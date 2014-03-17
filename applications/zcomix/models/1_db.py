@@ -41,6 +41,7 @@ from gluon.storage import Storage
 from gluon.tools import PluginManager
 from applications.zcomix.modules.stickon.tools import ModelDb
 from applications.zcomix.modules.creators import add_creator
+from applications.zcomix.modules.stickon.sqlhtml import formstyle_bootstrap3_custom
 
 model_db = ModelDb(globals())
 db = model_db.db
@@ -71,7 +72,7 @@ auth.settings.change_password_next = URL(c='profile', f='index')
 
 auth.settings.renew_session_onlogin = False
 auth.settings.renew_session_onlogout = False
-auth.settings.formstyle = 'bootstrap3'
+auth.settings.formstyle = formstyle_bootstrap3_custom
 auth.default_messages['profile_save_button']='Submit'
 auth.messages.verify_email = 'Click on the link http://' + request.env.http_host + URL('default', 'user', args=['verify_email']) + '/%(key)s to verify your email'
 auth.messages.reset_password = 'Click on the link http://' + request.env.http_host + URL('default', 'user', args=['reset_password']) + '/%(key)s to reset your password'

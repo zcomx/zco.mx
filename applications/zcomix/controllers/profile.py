@@ -19,7 +19,8 @@ from applications.zcomix.modules.utils import \
     reorder
 from applications.zcomix.modules.stickon.sqlhtml import \
     InputWidget, \
-    LocalSQLFORM
+    LocalSQLFORM, \
+    formstyle_bootstrap3_custom
 
 
 @auth.requires_login()
@@ -54,7 +55,7 @@ def book_edit():
     )
 
     crud.settings.update_deletable = False
-    crud.settings.formstyle = 'bootstrap3'
+    crud.settings.formstyle = formstyle_bootstrap3_custom
     if request.args(0):
         # Reload page to prevent consecutive self-submit warnings
         crud.settings.update_next = URL('book_edit', args=request.args)
@@ -438,7 +439,7 @@ def creator():
     # Reload page to prevent consecutive self-submit warnings
     crud.settings.update_next = URL('creator')
     crud.settings.update_deletable = False
-    crud.settings.formstyle = 'bootstrap3'
+    crud.settings.formstyle = formstyle_bootstrap3_custom
     form = crud.update(db.creator, creator_record.id)
 
     return dict(form=form)
