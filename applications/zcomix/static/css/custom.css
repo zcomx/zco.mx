@@ -34,10 +34,6 @@ hr {
     border-color: #DDDDDD;
 }
 
-.breadcrumb_label {
-    padding-right: 0.4em;
-}
-
 div.centered {
     text-align: center;
 }
@@ -173,15 +169,6 @@ div.centered table {
 
 .list_tile_options .btn.disabled {
     opacity: 0.2;
-}
-
-.list_tile_options .breadcrumb {
-    background-color: inherit;
-    margin-bottom: 0;
-}
-
-.list_tile_options .breadcrumb > li + li:before {
-    content: "\7C"     /* Ascii hex code for | */
 }
 
 .grid_section_header {
@@ -680,15 +667,6 @@ div.centered table {
 
 .scroll_slide_options .btn.disabled {
     opacity: 0.2;
-}
-
-.scroll_slide_options .breadcrumb {
-    background-color: inherit;
-    margin-bottom: 0;
-}
-
-.scroll_slide_options .breadcrumb > li + li:before {
-    content: "\7C"     /* Ascii hex code for | */
 }
 
 #reader_page_footer {

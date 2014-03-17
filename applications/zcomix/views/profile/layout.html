@@ -1,5 +1,5 @@
 {{from applications.zcomix.modules.utils import profile_wells}}
-{{extend 'layout.html'}}
+{{extend 'layout_main.html'}}
 <div id="profile_page">
 {{wells = profile_wells(request)}}
 {{for well in wells.keys():}}
