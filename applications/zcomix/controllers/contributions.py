@@ -3,9 +3,8 @@
 Controllers for contributions.
 """
 
+from applications.zcomix.modules.books import default_contribute_amount
 from applications.zcomix.modules.stickon.sqlhtml import LocalSQLFORM
-
-CONTRIBUTE_DEFAULT_AMOUNT = 1.00
 
 
 def contribute_widget():
@@ -27,7 +26,7 @@ def contribute_widget():
                 db.creator.ALL).first()
 
     return dict(
-            amount='{a:0.2f}'.format(a=CONTRIBUTE_DEFAULT_AMOUNT),
+            amount='{a:0.2f}'.format(a=default_contribute_amount(db, book_record)),
             book=book_record,
             creator=creator,
             )

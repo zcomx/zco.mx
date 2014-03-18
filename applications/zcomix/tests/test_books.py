@@ -17,6 +17,7 @@ from applications.zcomix.modules.books import \
     book_pages_as_json, \
     book_page_for_json, \
     cover_image, \
+    default_contribute_amount, \
     read_link
 from applications.zcomix.modules.test_runner import LocalTestCase
 
@@ -178,6 +179,40 @@ class TestFunctions(ImageTestCase):
             str(cover_image(db, book_id)),
             '<img src="/images/download/page_trees.png?size=original" />'
         )
+
+    def test__default_contribute_amount(self):
+        book_id = db.book.insert(name='test__default_contribute_amount')
+        book = db(db.book.id == book_id).select().first()
+        self._objects.append(book)
+
+        # Book has no pages
+        self.assertEqual(default_contribute_amount(db, book), 1.00)
+
+        tests = [
+            #(pages, expect)
+            (0, 1.00),
+            (1, 1.00),
+            (19, 1.00),
+            (20, 1.00),
+            (21, 1.00),
+            (39, 2.00),
+            (40, 2.00),
+            (41, 2.00),
+            (100, 5.00),
+            (400, 20.00),
+            (1000, 20.00),
+        ]
+        for t in tests:
+            page_count = db(db.book_page.book_id == book.id).count()
+            while page_count < t[0]:
+                page_id = db.book_page.insert(
+                    book_id=book_id,
+                    page_no=(count + 1),
+                )
+                page = db(db.book_page.id == page_id).select().first()
+                self._objects.append(page)
+                page_count = db(db.book_page.book_id == book.id).count()
+            self.assertEqual(default_contribute_amount(db, book), t[1])
 
     def test__read_link(self):
         empty = '<span></span>'

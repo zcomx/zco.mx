@@ -164,6 +164,34 @@ def cover_image(db, book_id, size='original', img_attributes=None):
     return img_tag(image, size=size, img_attributes=attributes)
 
 
+def default_contribute_amount(db, book_entity):
+    """Return the default amount for the contribute widget.
+
+    Args:
+        db: gluon.dal.DAL instance
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+    """
+    minimum = 1
+    maximum = 20
+    rate_per_page = 1.0 / 20
+
+    book = None
+    if hasattr(book_entity, 'id'):
+        book = book_entity
+    else:
+        # Assume book is an id
+        book = db(db.book.id == book_entity).select().first()
+
+    page_count = db(db.book_page.book_id == book.id).count()
+    amount = rate_per_page * page_count
+    if amount < minimum:
+        amount = minimum
+    if amount > maximum:
+        amount = maximum
+    return amount
+
+
 def read_link(db, book_entity, **attributes):
     """Return html code suitable for the cover image.
 
@@ -193,3 +221,6 @@ def read_link(db, book_entity, **attributes):
         url = URL(c='books', f=reader, args=book.id, extension=False)
         kwargs['_href'] = url
     return A('Read', **kwargs)
+
+
+
