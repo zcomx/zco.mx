@@ -43,6 +43,14 @@ div.centered table {
     text-align: left;
 }
 
+.placeholder_170x170 {
+    border: 0.8em double #EEEEEE;
+}
+
+.portrait_placeholder {
+    border: 1.4em double #EEEEEE;
+}
+
 #header {
     margin-top: 0;
 }
@@ -139,7 +147,7 @@ div.centered table {
     padding-top: 0.6em;
 }
 
-.list_tile_options .btn-lg, .btn-group-lg > .btn {
+.list_tile_options .btn-lg, .list_tile_options .btn-group-lg > .btn {
     padding-bottom: 0;
     padding-top: 0;
     padding-left: 0.4em;
@@ -162,7 +170,7 @@ div.centered table {
     border-left: 2px solid #DDDDDD;
 }
 
-.list_tile_options .btn:active, .btn.active {
+.list_tile_options .btn:active, .list_tile_options .btn.active {
     box-shadow: none;
     color: #666666;
 }
@@ -316,6 +324,13 @@ div.centered table {
     background-color: #EEEEEE;
 }
 
+@media screen and (max-width: 767px){
+    .grid_section .item_container .image_container {
+        margin-left: 0.8em !important;
+        margin-top: 2em !important;
+    }
+}
+
 @media screen and (min-width: 768px){
     .grid_section .item_container {
         min-width: 30em;
@@ -334,11 +349,14 @@ div.centered table {
         text-align: right;
     }
 
+    .grid_section .item_container .image_container .placeholder_170x170 {
+        float: right;
+    }
+
     .grid_section .orderby_field_container {
         text-align: right;
         padding-top: 0.9em;
     }
-
 }
 
 @media screen and (min-width: 992px){
@@ -388,6 +406,12 @@ div.centered table {
     padding-top: 1em;
 }
 
+#book_page .creator_img_container .placeholder_170x170,
+#creator_page .creator_img_container .placeholder_170x170 {
+    min-height: 170px;
+    min-width: 150px;
+}
+
 @media screen and (min-width: 768px){
     #creator_page #name_bio {
         margin-top: -3em;
@@ -398,8 +422,8 @@ div.centered table {
     margin: 1em;
 }
 
-#book_page #right_column {
-    padding-top: 2em;
+#book_page #book_cover_img .portrait_placeholder {
+    min-height: 30em;
 }
 
 #book_page #book_name {
@@ -444,25 +468,25 @@ div.centered table {
     color: #333333;
     font-weight: bold;
     height: inherit;
-    padding: 0px;
+    padding: 0;
     width: 4em;
 }
 
-.contribute_widget input::-webkit-input-placeholder { /* webKit */
-    color: #888888;
-    padding-left: 0.9em;
+.contribute_widget input.indented {
+    padding: 0 0 0 0.9em;
 }
-.contribute_widget input:-moz-placeholder { /* FF 4 to 18 */
+
+.contribute_widget input::-webkit-input-placeholder {
     color: #888888;
-    padding-left: 0.9em;
 }
-.contribute_widget input::-moz-placeholder { /* FF 19+ */
+.contribute_widget input:-moz-placeholder {
     color: #888888;
-    padding-left: 0.9em;
 }
-.contribute_widget input:-ms-input-placeholder { /* IE 10+ */
+.contribute_widget input::-moz-placeholder {
     color: #888888;
-    padding-left: 0.9em;
+}
+.contribute_widget input:-ms-input-placeholder {
+    color: #888888;
 }
 
 .contribute_widget div {
@@ -676,7 +700,7 @@ div.centered table {
     padding-right: 0;
 }
 
-.scroll_slide_options .btn:active, .btn.active {
+.scroll_slide_options .btn:active, .scroll_slide_options .btn.active {
     box-shadow: none;
     color: #0000FF;
 }
@@ -832,10 +856,6 @@ div.centered table {
 }
 
 #FIXME_page [class*="span"] {
-    border: 1px solid red;
-}
-
-#FIXM [class*="span"] {
     border: 1px solid red;
 }
 

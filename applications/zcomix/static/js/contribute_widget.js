@@ -37,10 +37,18 @@
     $(document).ready(function(){
         var default_amount = $('input#contribute_amount').attr('placeholder');
         $('#contribute_amount').focus(function(e) {
+            $(this).removeClass('indented');
             var parent = $(this).closest('.contribute_widget');
             parent.find('.contribute_error').each( function() {
                 clear_error_msg($(this));
             });
+        });
+        $('#contribute_amount').blur(function(e) {
+            if ($(this).val()) {
+                $(this).removeClass('indented');
+            } else {
+                $(this).addClass('indented');
+            }
         });
         $('#contribute_link').click( function(e) {
             var amount = $('#contribute_amount').val() || default_amount;

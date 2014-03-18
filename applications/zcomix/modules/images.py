@@ -178,6 +178,7 @@ def img_tag(field, size='original', img_attributes=None):
     attributes = {}
 
     if field:
+        tag = IMG
         if size != 'original' and size not in UploadImage.sizes.keys():
             size = 'original'
 
@@ -190,20 +191,23 @@ def img_tag(field, size='original', img_attributes=None):
             ),
         ))
     else:
-        img_name = 'placeholder_170x170.png' \
-            if size == 'thumb' else 'portrait_placeholder.png'
-        attributes.update(dict(
-            _src=URL(
-                c='static',
-                f='images',
-                args=[img_name],
-            ),
-        ))
+        tag = DIV
 
     if img_attributes:
         attributes.update(img_attributes)
 
-    return IMG(**attributes)
+    if not field:
+        class_name = 'placeholder_170x170' \
+            if size == 'thumb' else 'portrait_placeholder'
+        if '_class' in attributes:
+            attributes['_class'] = '{c1} {c2}'.format(
+                c1=attributes['_class'],
+                c2=class_name
+            ).replace('img-responsive', '').strip()
+        else:
+            attributes['_class'] = class_name
+
+    return tag(**attributes)
 
 
 def set_thumb_dimensions(db, book_page_id, dimensions):

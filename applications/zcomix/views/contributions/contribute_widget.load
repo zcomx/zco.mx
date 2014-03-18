@@ -3,7 +3,7 @@
         <div class="input_group_container">
             <div class="input-group">
                 <span class="input-group-addon">$</span>
-                <input type="text" id="contribute_amount" name="amount" class="input-sm" placeholder="{{=amount}}"/>
+                <input type="text" id="contribute_amount" name="amount" class="decimal currency indented input-sm" placeholder="{{=amount}}"/>
             </div>
         </div>
         <div class="contribute_link_container">
@@ -13,3 +13,4 @@
     {{pass}}
 </div>
 <script src="{{=URL(c='static', f='js/contribute_widget.js')}}"> </script>
+<script src="{{=URL(c='static', f='js/numbers.js')}}"> </script>
