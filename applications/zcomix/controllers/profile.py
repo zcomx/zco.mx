@@ -103,7 +103,7 @@ def book_link_edit():
         db.commit()
 
     crud.settings.update_deletable = False
-    crud.settings.formstyle = 'bootstrap3'
+    crud.settings.formstyle = formstyle_bootstrap3_custom
     if request.args(1):
         crud.settings.update_next = URL('book_links', args=request.args(0))
         form = crud.update(db.link, request.args(1))
@@ -470,7 +470,7 @@ def creator_link_edit():
         db.commit()
 
     crud.settings.update_deletable = False
-    crud.settings.formstyle = 'bootstrap3'
+    crud.settings.formstyle = formstyle_bootstrap3_custom
     if request.args(0):
         crud.settings.update_next = URL('creator_links')
         form = crud.update(db.link, request.args(0))
