@@ -1,25 +1,30 @@
 {{extend 'layout_main.html'}}
-
-<h2>{{=T( request.args(0).replace('_',' ').capitalize() )}}</h2>
 <div id="web2py_user_form">
-{{
-if request.args(0)=='login':
-    if not 'register' in auth.settings.actions_disabled:
-        form.add_button(T('Register'),URL(args='register', vars={'_next': request.vars._next} if request.vars._next else None),_class='btn btn-default')
-    pass
-    if not 'request_reset_password' in auth.settings.actions_disabled:
-        form.add_button(T('Lost Password'),URL(args='request_reset_password'),_class='btn btn-default')
-    pass
-pass
-=form
-}}
+    <div class="row">
+        <div class="col-xs-6 col-xs-offset-3 col-md-4 col-md-offset-4 web2py_user_form_container">
+        {{=form}}
+
+{{if request.args(0)=='login' and not 'request_reset_password' in auth.settings.actions_disabled:}}
+    <div class="forgot_password_container">
+    <a href="{{=URL(args='request_reset_password')}}">Forgot password?</a>
+    </div>
+{{pass}}
+
+{{if request.args(0)=='login' and not 'register' in auth.settings.actions_disabled:}}
+    {{register_url = URL(args='register', vars={'_next': request.vars._next} if request.vars._next else None)}}
+    <div class="register_container">
+    Don't have an account? <a href="{{=register_url}}">Sign Up</a>
+    </div>
+{{pass}}
+
+
+        </div>
+    </div>
 </div>
 <script language="javascript"><!--
-jQuery("#web2py_user_form input:visible:enabled:first").focus();
 {{if request.args(0)=='register':}}
     web2py_validate_entropy(jQuery('#auth_user_password'),100);
 {{elif request.args(0)=='change_password':}}
     web2py_validate_entropy(jQuery('#no_table_new_password'),100);
 {{pass}}
 //--></script>
-

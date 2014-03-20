@@ -30,6 +30,7 @@ a:hover, a:focus {
     color: #0000FF;
 }
 
+
 hr {
     border-color: #DDDDDD;
 }
@@ -41,6 +42,19 @@ div.centered {
 div.centered table {
     margin: 0 auto;
     text-align: left;
+}
+
+.align_center {
+    text-align: center;
+}
+
+.form-control {
+    box-shadow: none;
+}
+
+.form-control:focus {
+    border-color: #CCCCCC;
+    box-shadow: none;
 }
 
 .placeholder_170x170 {
@@ -84,6 +98,89 @@ div.centered table {
 
 .custom_link {
     padding-right: 0.6em;
+}
+
+#web2py_user_form {
+    margin-top: 12%;
+}
+
+#profile_page #web2py_user_form {
+    margin: 1em;
+}
+
+@media (max-width: 480px) {
+    #web2py_user_form .web2py_user_form_container {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+
+#web2py_user_form .form-group {
+    margin-bottom: 0;
+}
+
+#web2py_user_form input {
+    border-radius: 3px;
+}
+
+#web2py_user_form input[type=password],
+#web2py_user_form input[type=text] {
+    height: 3em;
+    margin-bottom: 0.3em;
+    width: 100%;
+}
+
+#web2py_user_form input[type=submit] {
+    background-color: #666666;
+    border-color: #555555;
+    font-weight: bold;
+    margin-top: 1em;
+}
+
+#web2py_user_form input[type=submit]:hover,
+#web2py_user_form input[type=submit]:focus,
+#web2py_user_form input[type=submit]:active,
+#web2py_user_form input[type=submit].active {
+    background-color: #777777;
+    border-color: #666666;
+}
+
+#web2py_user_form .labels_hidden {
+    display: none;
+}
+
+#web2py_user_form #auth_user_remember {
+    display: inline-block;
+    opacity: 0.3;
+}
+
+#web2py_user_form label[for=auth_user_remember] {
+    color: #AAAAAA;
+    display: inline-block;
+    font-size: 8pt;
+    font-weight: normal;
+    vertical-align: middle;
+}
+
+#web2py_user_form .forgot_password_container,
+#web2py_user_form .register_container {
+    color: #BBBBBB;
+    margin: 1em;
+    text-align: center;
+}
+
+#web2py_user_form .forgot_password_container a,
+#web2py_user_form .register_container a {
+    color: #AAAAAA;
+}
+
+#web2py_user_form .align_left {
+    text-align: left;
+}
+
+#web2py_user_form .form-horizontal .checkbox {
+    min-height: inherit;
 }
 
 #front_page {

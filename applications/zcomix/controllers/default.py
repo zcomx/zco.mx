@@ -2,6 +2,7 @@
 """
 Default controller.
 """
+from applications.zcomix.modules.stickon.sqlhtml import formstyle_bootstrap3_login
 
 
 def index():
@@ -26,7 +27,53 @@ def user():
         @auth.requires_permission('read','table name',record_id)
     to decorate functions that need access control
     """
-    return dict(form=auth())
+    if request.args(0) == 'profile' and request.extension == 'html':
+        redirect(URL(c='profile', f='index', extension=False))
+    if request.args(0) == 'change_password' and request.extension == 'html':
+        redirect(URL(c='profile', f='change_password', extension=False))
+
+    if request.extension == 'html':
+        auth.settings.formstyle = formstyle_bootstrap3_login
+
+    # The next lines are from Auth._get_login_settings
+    table_user = auth.table_user()
+    userfield = auth.settings.login_userfield or 'username' \
+        if 'username' in table_user.fields else 'email'
+    passfield = auth.settings.password_field
+
+    form = auth()
+
+    for w in form.custom.widget.keys():
+        if hasattr(form.custom.widget[w], 'add_class'):
+            form.custom.widget[w].add_class('input-lg')
+    if form.custom.widget.password_two:
+        # Looks like a web2py bug, formstyle is not applied
+        form.custom.widget.password_two.add_class('form-control')
+    if form.custom.submit:
+        form.custom.submit.add_class('btn-block')
+        form.custom.submit.add_class('input-lg')
+
+    hide_labels = True \
+        if request.args(0) in ['login', 'retrieve_password', 'request_reset_password']\
+        else False
+    if hide_labels:
+        table_user[userfield].label = ''
+        table_user[passfield].label = ''
+        for label in form.elements('label'):
+            label.add_class('labels_hidden')
+        if form.custom.widget[userfield]:
+            form.custom.widget[userfield].update(_placeholder="Email Address")
+            form.custom.widget[userfield].add_class('align_center')
+            form.custom.widget[userfield]['_label'] = 'false'
+        if form.custom.widget[passfield]:
+            form.custom.widget[passfield].update(_placeholder="Password")
+            form.custom.widget[passfield].add_class('align_center')
+
+    if request.extension == 'html' and not hide_labels:
+        for label in form.elements('label'):
+            label.add_class('align_left')
+
+    return dict(form=form)
 
 
 @cache.action()
