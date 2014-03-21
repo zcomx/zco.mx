@@ -6,11 +6,11 @@
     {{if not 'status' in wells[well] or not wells[well]['status']:}}
         {{continue}}
     {{if wells[well]['status'] == 'text':}}
-        <div class="well well-large" id="{{=well}}">
+        <div class="well well-sm" id="{{=well}}">
             {{=wells[well]['label']}}
     {{else:}}
         {{args = wells[well]['args'] if 'args' in wells[well] else None}}
-        <div class="well well-small" id="{{=well}}">
+        <div class="well well-sm" id="{{=well}}">
             <a href="{{=URL(well, args=args, anchor=well)}}">{{=wells[well]['label']}}</a>
     {{pass}}
     </div>

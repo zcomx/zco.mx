@@ -68,7 +68,6 @@ auth.settings.reset_password_requires_verification = True
 auth.settings.login_onaccept = lambda f: add_creator(f)
 auth.settings.login_next = URL(c='profile', f='index')
 auth.settings.logout_next = URL('index')
-auth.settings.change_password_next = URL(c='profile', f='index')
 
 auth.settings.renew_session_onlogin = False
 auth.settings.renew_session_onlogout = False
@@ -91,6 +90,7 @@ current.app.local_settings = local_settings
 #use_janrain(auth, filename='private/janrain.key')
 
 crud.settings.auth = None                      # =auth to enforce authorization on crud
+
 
 auth.signature = db.Table(
     db,
@@ -252,9 +252,6 @@ db.define_table('creator',
         'integer',
         readable=False,
         writable=False,
-    ),
-    Field('name',
-        label='Display name',
     ),
     Field('email',
         label='Contact email',

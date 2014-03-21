@@ -82,5 +82,7 @@ unset profile_opts
 if [[ $profile ]]; then
     profile_opts="-m cProfile -o $profile"
 fi
+python=python
+type python2 &>/dev/null && python=python2
 
-SERVER_PRODUCTION_MODE=$SERVER_PRODUCTION_MODE MYSQL_TCP_PORT=$MYSQL_TCP_PORT python $profile_opts  web2py.py --no-banner -L config.py -S "$app" -R "$script_to_run" -A "${args[@]}"
+SERVER_PRODUCTION_MODE=$SERVER_PRODUCTION_MODE MYSQL_TCP_PORT=$MYSQL_TCP_PORT "$python" $profile_opts  web2py.py --no-banner -L config.py -S "$app" -R "$script_to_run" -A "${args[@]}"

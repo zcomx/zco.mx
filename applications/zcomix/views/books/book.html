@@ -63,7 +63,7 @@
                     <div class="creator_links_container">
                         <dl class="dl-horizontal">
                         <dt>creator</dt>
-                        <dd><a href="{{=URL(c='creators', f='creator', args=creator.id)}}">{{=creator.name}}</a></dd>
+                        <dd><a href="{{=URL(c='creators', f='creator', args=creator.id)}}">{{=auth_user.name}}</a></dd>
                         {{for f in ['website', 'twitter', 'email']:}}
                             {{try:}}
                             {{if creator[f]:}}

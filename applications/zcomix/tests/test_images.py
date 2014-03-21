@@ -30,6 +30,7 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 class ImageTestCase(LocalTestCase):
     """ Base class for Image test cases. Sets up test data."""
 
+    _auth_user = None
     _creator = None
     _image_dir = '/tmp/image_resizer'
     _image_original = os.path.join(_image_dir, 'original')
@@ -58,9 +59,19 @@ class ImageTestCase(LocalTestCase):
             stored_filename = db.creator.image.store(f)
 
         # Create a creator and set the image
-        creator_id = db.creator.insert(
+        email = 'resizer@example.com'
+        auth_user_id = db.auth_user.insert(
             name='Image UploadImage',
-            email='resizer@example.com',
+            email=email,
+        )
+        db.commit()
+
+        cls._auth_user = db(db.auth_user.id == auth_user_id).select().first()
+        cls._objects.append(cls._auth_user)
+
+        creator_id = db.creator.insert(
+            auth_user_id=auth_user_id,
+            email=email,
             image=stored_filename,
         )
         db.commit()

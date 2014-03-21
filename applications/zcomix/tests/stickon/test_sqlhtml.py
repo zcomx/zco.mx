@@ -27,7 +27,7 @@ class TestInputWidget(LocalTestCase):
         self.assertTrue(widget)
 
     def test__widget(self):
-        field = db.creator.name
+        field = db.book.name
         value = '_some_fake_value__'
 
         widget = InputWidget()
@@ -39,7 +39,7 @@ class TestInputWidget(LocalTestCase):
         # <input class="generic-widget" id="account_number" name="number"
         #   type="text" value="_some_fake_value__" />
         self.assertEqual(w_input['class'], 'generic-widget')
-        self.assertEqual(w_input['id'], 'creator_name')
+        self.assertEqual(w_input['id'], 'book_name')
         self.assertEqual(w_input['name'], 'name')
         self.assertEqual(w_input['type'], 'text')
         self.assertEqual(w_input['value'], value)
@@ -62,7 +62,7 @@ class TestInputWidget(LocalTestCase):
         if not w_input:
             self.fail('Input tag not returned')
         self.assertEqual(w_input['class'], 'generic-widget')
-        self.assertEqual(w_input['id'], 'creator_name')
+        self.assertEqual(w_input['id'], 'book_name')
         self.assertEqual(w_input['name'], 'name')
         self.assertEqual(w_input['type'], 'submit')
         self.assertEqual(w_input['value'], value)

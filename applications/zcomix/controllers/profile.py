@@ -24,6 +24,18 @@ from applications.zcomix.modules.stickon.sqlhtml import \
 
 
 @auth.requires_login()
+def account():
+    """Account profile controller."""
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL(c='default', f='index'))
+
+    return dict(creator=creator_record)
+
+
+@auth.requires_login()
 def book_edit():
     """Book edit controller.
 
@@ -402,18 +414,6 @@ def books():
 
 
 @auth.requires_login()
-def change_password():
-    """Creator profile controller."""
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        redirect(URL('index'))
-
-    return dict(creator=creator_record)
-
-
-@auth.requires_login()
 def creator():
     """Creator links controller."""
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
@@ -708,3 +708,97 @@ def order_no_handler():
     links.move_link(request.args(1), request.args(2))
 
     redirect(next_url, client_side=False)
+
+def link_crud():
+    """Handler for ajax link CRUD calls."""
+    response.generic_patterns = ['json']
+    import sys; print >> sys.stderr, 'FIXME request.args: {var}'.format(var=request.args)
+    import sys; print >> sys.stderr, 'FIXME request.vars: {var}'.format(var=request.vars)
+    action = request.vars.action if request.vars.action else 'get'
+    import sys; print >> sys.stderr, 'FIXME action: {var}'.format(var=action)
+
+    link_id = None
+    if request.vars.link_id:
+        try:
+            link_id = int(request.vars.link_id)
+        except (TypeError, ValueError):
+            link_id = None
+
+    record_id = 0
+    rows = []
+    errors = []
+
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        return {}                           # FIXME doerror
+
+    do_reorder = False
+    if action == 'create':
+        ret = db.link.validate_and_insert(
+            url=request.vars.url,
+            name=request.vars.name,
+        )
+        db.commit()
+        if ret.id:
+            db.creator_to_link.insert(
+                link_id=ret.id,
+                creator_id=creator_record.id,
+                order_no=99999,
+            )
+            db.commit()
+            do_reorder = True
+        record_id = ret.id
+        errors = ret.errors
+    elif action == 'get':
+        query = (db.creator_to_link.creator_id == creator_record.id)
+        if link_id:
+            query = query & (db.link.id == link_id)
+        rows = db(query=query).select(
+            db.link.ALL,
+            left=[
+                db.creator_to_link.on(
+                    (db.creator_to_link.link_id == db.link.id)
+                )
+            ],
+            orderby=[db.creator_to_link.order_no, db.creator_to_link.id],
+        ).as_list()
+        import sys; print >> sys.stderr, 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
+    elif action == 'update':
+        if link_id:
+            data = {}
+            if request.vars.field and request.vars.value:
+                data = {request.vars.field: request.vars.value}
+            if data:
+                query = (db.link.id == link_id)
+                ret = db(query).validate_and_update(**data)
+                import sys; print >> sys.stderr, 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
+                record_id = link_id
+                errors = ret.errors
+                do_reorder = True
+        else:
+            pass        # FIXME provide error?
+    elif action == 'delete':
+        if link_id:
+            query = (db.creator_to_link.link_id == link_id)
+            db(query).delete()
+            query = (db.link.id == link_id)
+            db(query).delete()
+            db.commit()
+            record_id = link_id
+            do_reorder = True
+            # FIXME errors = ret.errors
+        else:
+            pass        # FIXME provide error?
+    if do_reorder:
+        reorder_query = (db.creator_to_link.creator_id == creator_record.id)
+        reorder(
+            db.creator_to_link.order_no,
+            query=reorder_query,
+        )
+    return {
+        'id': record_id,
+        'rows': rows,
+        'errors': errors,
+    }

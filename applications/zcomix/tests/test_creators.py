@@ -43,8 +43,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(creator_by_email(email), None)
 
         user_id = db.auth_user.insert(
-                first_name='First',
-                last_name='Last',
+                name='First Last',
                 email=email,
                 )
         db.commit()
@@ -57,7 +56,6 @@ class TestFunctions(LocalTestCase):
         self._objects.append(creator)
         self.assertEqual(creator.email, email)
         self.assertEqual(creator.auth_user_id, user_id)
-        self.assertEqual(creator.name, 'First Last')
 
         before = db(db.creator).count()
         add_creator(form)

@@ -130,8 +130,7 @@ def profile_wells(request):
 
     wells_data = [
         # (key, {data})
-        ('index', {'label': 'Account Profile'}),
-        ('change_password', {'label': 'Change Password'}),
+        ('account', {'label': 'Account Profile'}),
         ('creator', {'label': 'Creator Profile'}),
         ('creator_links', {
             'label': 'Creator Links',
@@ -193,22 +192,24 @@ def profile_wells(request):
         if 'parent' not in wells[well] or not wells[well]['parent']:
             wells[well]['status'] = 'link'
 
-    # Show children of active well if applicable
-    if wells[request.function]['children'] and wells[request.function]['show_children']:
-        for w in wells[request.function]['children']:
-            wells[w]['status'] = 'link'
+    if request.function in wells:
+        # Show children of active well if applicable
+        if wells[request.function]['children'] and wells[request.function]['show_children']:
+            for w in wells[request.function]['children']:
+                wells[w]['status'] = 'link'
 
-    # Recursively show all parents of active well.
-    current = request.function
-    while current:
-        wells[current]['status'] = 'link'
-        if 'parent' in wells[current]:
-            current = wells[current]['parent']
-        else:
-            current = None
+        # Recursively show all parents of active well.
+        current = request.function
+        while current:
+            wells[current]['status'] = 'link'
+            if 'parent' in wells[current]:
+                current = wells[current]['parent']
+            else:
+                current = None
 
-    # Show the active link as text.
-    wells[request.function]['status'] = 'text'
+        # Show the active link as text.
+        wells[request.function]['status'] = 'text'
+
     return wells
 
 

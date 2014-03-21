@@ -23,6 +23,8 @@ def book():
 
     creator = db(db.creator.id == book_record.creator_id).select(
             db.creator.ALL).first()
+    auth_user = db(db.auth_user.id == creator.auth_user_id).select(
+            db.auth_user.ALL).first()
 
     read_button = read_link(
         db,
@@ -39,14 +41,16 @@ def book():
     if creator.wikipedia:
         pre_links.append(A('wikipedia', _href=creator.wikipedia, _target='_blank'))
 
-    return dict(book=book_record,
-            cover_image=cover_image(db, book_record.id, size='original', img_attributes={'_class': 'img-responsive'}),
-            creator=creator,
-            creator_links=CustomLinks(db.creator, creator.id).represent(pre_links=pre_links),
-            links=CustomLinks(db.book, book_record.id).represent(),
-            page_count=db(db.book_page.book_id == book_record.id).count(),
-            read_button=read_button,
-            )
+    return dict(
+        auth_user=auth_user,
+        book=book_record,
+        cover_image=cover_image(db, book_record.id, size='original', img_attributes={'_class': 'img-responsive'}),
+        creator=creator,
+        creator_links=CustomLinks(db.creator, creator.id).represent(pre_links=pre_links),
+        links=CustomLinks(db.book, book_record.id).represent(),
+        page_count=db(db.book_page.book_id == book_record.id).count(),
+        read_button=read_button,
+    )
 
 
 def index():
@@ -71,6 +75,8 @@ def reader():
 
     creator_record = db(db.creator.id == book_record.creator_id).select(
             db.creator.ALL).first()
+    auth_user = db(db.auth_user.id == creator_record.auth_user_id).select(
+            db.auth_user.ALL).first()
 
     views = [
         'books/carousel.html',
@@ -96,6 +102,7 @@ def reader():
     size = 'medium' if ua['is_mobile'] else 'original'
 
     return dict(
+            auth_user=auth_user,
             book=book_record,
             creator=creator_record,
             pages=page_images,

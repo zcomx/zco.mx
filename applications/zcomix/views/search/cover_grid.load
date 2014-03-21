@@ -32,7 +32,7 @@
                             <div class="row">
                                 <div class="col-sm-12 creator">
                                     <a href="{{=URL(c='creators', f='creator', args=row.creator.id, extension=False)}}">
-                                    {{=ItemDescription(row.creator.name, more_text='', truncate_length=34).as_html()}}
+                                    {{=ItemDescription(row.auth_user.name, more_text='', truncate_length=34).as_html()}}
                                     </a>
                                 </div>
                             </div>

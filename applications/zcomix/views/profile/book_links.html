@@ -1,6 +1,6 @@
 {{extend 'profile/layout.html'}}
 <dl class="dl-horizontal">
-    <dt>Creator:</dt><dd>{{=creator.name}}</dd>
+    <dt>Creator:</dt><dd>{{=auth.user.name}}</dd>
     <dt>Book:</dt><dd>{{=book.name}}</dd>
 </dl>
 {{=LOAD(c='profile', f='links', vars={'book_id': book.id},extension='load', ajax=True)}}

@@ -29,7 +29,7 @@ class TestCustomLinks(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUpClass(cls):
-        creator_id = db.creator.insert(name='TestCustomLinks')
+        creator_id = db.creator.insert(email='testcustomlinks@example.com')
         db.commit()
         cls._creator = db(db.creator.id == creator_id).select(
                 db.creator.ALL).first()
@@ -53,7 +53,7 @@ class TestCustomLinks(LocalTestCase):
                     db(query).select(db.creator_to_link.ALL).first())
 
         # Create a second creator with no links
-        creator_2_id = db.creator.insert(name='TestCustomLinks_2')
+        creator_2_id = db.creator.insert(email='testcustomlinks@example.com')
         db.commit()
         cls._creator_2 = db(db.creator.id == creator_2_id).select(
                 db.creator.ALL).first()
@@ -257,7 +257,7 @@ class TestReorderLink(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUpClass(cls):
-        creator_id = db.creator.insert(name='TestReorderLink')
+        creator_id = db.creator.insert(email='testreorderlinke@example.com')
         db.commit()
         cls._creator = db(db.creator.id == creator_id).select(
                 db.creator.ALL).first()
@@ -281,7 +281,7 @@ class TestReorderLink(LocalTestCase):
                     db(query).select(db.creator_to_link.ALL).first())
 
         # Create a second creator with no links
-        creator_2_id = db.creator.insert(name='TestReorderLinks')
+        creator_2_id = db.creator.insert(email='testreorderlinke@example.com')
         db.commit()
         cls._creator_2 = db(db.creator.id == creator_2_id).select(
                 db.creator.ALL).first()

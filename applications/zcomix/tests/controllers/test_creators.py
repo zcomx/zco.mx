@@ -29,11 +29,15 @@ class TestFunctions(LocalTestCase):
             self.titles['books']))
 
     def test__creator(self):
-        creators = db(db.creator).select(db.creator.ALL, orderby=db.creator.id,
-                limitby=(0, 1))
+        creators = db(db.creator.auth_user_id > 0).select(
+            db.creator.ALL,
+            orderby=db.creator.id,
+            limitby=(0, 1)
+        )
         if not creators:
             self.fail('No creator found in db.')
         creator = creators[0]
+        auth_user = db(db.auth_user.id == creator.auth_user_id).select().first()
 
         # Without a creator id, should revert to default page.
         self.assertTrue(web.test('{url}/creator'.format(url=self.url),
@@ -41,7 +45,7 @@ class TestFunctions(LocalTestCase):
 
         self.assertTrue(web.test('{url}/creator/{id}'.format(
             url=self.url, id=creator.id),
-            [self.titles['creator'], creator.name]))
+            [self.titles['creator'], auth_user.name]))
 
     def test__index(self):
         self.assertTrue(web.test('{url}/index'.format(url=self.url),

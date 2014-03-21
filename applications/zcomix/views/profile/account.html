@@ -1,0 +1,10 @@
+{{extend 'profile/layout.html'}}
+<div class="row">
+    <div class="col-sm-6 account_profile_container">
+        {{=LOAD(c='default', f='user/profile', extension='load', ajax=True)}}
+    </div>
+    <div class="visible-xs vertical_spacer"></div>
+    <div class="col-sm-6 change_password_container">
+        {{=LOAD(c='default', f='user/change_password', extension='load', ajax=True)}}
+    </div>
+</div>

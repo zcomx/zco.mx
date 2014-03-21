@@ -68,7 +68,8 @@ class ModelDb(object):
         auth = Auth(db=self.db, hmac_key=self.local_settings.hmac_key)
         # This may need to be set to True the first time an app is used.
         if not self.local_settings.disable_authentication:
-            auth.define_tables(migrate=False)       # creates all needed tables
+            auth.settings.extra_fields['auth_user'] = [Field('name')]
+            auth.define_tables(username=False, signature=False, migrate=True)
         if self.settings_loader:
             self.settings_loader.import_settings(group='auth',
                     storage=auth.settings)

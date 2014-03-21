@@ -11,13 +11,42 @@
 .table-row {display: table-row}
 .table-cell {display: table-cell}
 
+.form-control::-webkit-input-placeholder {
+    color: #999999;
+}
+.form-control:-moz-placeholder {
+    color: #999999;
+}
+.form-control::-moz-placeholder {
+    color: #999999;
+}
+.form-control:-ms-input-placeholder {
+    color: #999999;
+}
+
+input::-webkit-input-placeholder {
+    color: #999999;
+}
+input:-moz-placeholder {
+    color: #999999;
+}
+input::-moz-placeholder {
+    color: #999999;
+}
+input:-ms-input-placeholder {
+    color: #999999;
+}
+
 input:focus::-webkit-input-placeholder{
+    color: transparent!important;
+}
+input:focus:-moz-placeholder{
     color: transparent!important;
 }
 input:focus::-moz-placeholder{
     color: transparent!important;
 }
-input:focus:-moz-placeholder{
+input:focus::-ms-input-placeholder{
     color: transparent!important;
 }
 
@@ -104,8 +133,22 @@ div.centered table {
     margin-top: 12%;
 }
 
+#profile_page .well {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
 #profile_page #web2py_user_form {
     margin: 1em;
+}
+
+#profile_page .change_password_container {
+    border-left: 1px solid #DDDDDD;
+    margin-bottom: 0.8em;
+}
+
+#profile_page .vertical_spacer {
+    min-height: 2em;
 }
 
 @media (max-width: 480px) {
@@ -885,10 +928,6 @@ div.centered table {
     float: right;
 }
 
-#profile_page #change_password_container {
-    float: right;
-}
-
 #profile_page .books_list_title h4 {
     display: inline-block;
 }
@@ -955,5 +994,63 @@ div.centered table {
 #FIXME_page [class*="span"] {
     border: 1px solid red;
 }
+
+.input_container {
+    display: inline-block;
+    vertical-align: top;
+}
+
+#add_link_container .error_wrapper {
+    display: none;
+}
+
+#add_link_container .input_container {
+    margin-right: 0.6em;
+}
+
+#add_link_container #link_name {
+    width: 10em;
+}
+
+.edit_link_template {
+    display: none;
+}
+
+.edit_link_container .edit_field {
+    display: inline-block;
+    min-width: 10em;
+}
+
+.edit_link_container .edit_link_name {
+    color: #666666;
+    margin-right: 1em;
+    text-align: right;
+}
+
+.edit_link_container .edit_link_delete {
+    border: none;
+    color: #666666;
+}
+
+.edit_link_container .edit_link_delete:hover,
+.edit_link_container .edit_link_delete:focus {
+    border: 1px solid #CCCCCC;
+    padding-top: 0;
+    padding-bottom: 0;
+    color: #333333;
+}
+
+/* foundation-icons start */
+.size-12 { font-size: 12px; }
+.size-14 { font-size: 14px; }
+.size-16 { font-size: 16px; }
+.size-18 { font-size: 18px; }
+.size-21 { font-size: 21px; }
+.size-24 { font-size: 24px; }
+.size-36 { font-size: 36px; }
+.size-48 { font-size: 48px; }
+.size-60 { font-size: 60px; }
+.size-72 { font-size: 72px; }
+/* foundation-icons end */
 
 /* temp stuff end /// */

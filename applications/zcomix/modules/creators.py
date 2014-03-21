@@ -36,10 +36,6 @@ def add_creator(form):
     if not creator:
         db.creator.insert(
             auth_user_id=auth_user.id,
-            name=' '.join([
-                auth_user.first_name,
-                auth_user.last_name,
-                ]).strip(),
             email=auth_user.email,
             )
         db.commit()

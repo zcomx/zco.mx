@@ -25,6 +25,7 @@ class TestFunctions(LocalTestCase):
     _user = None
 
     titles = {
+        'account': '<div class="well well-large" id="account">',
         'book_edit': '<div class="well well-large" id="book_edit">',
         'book_link_edit': '<div class="well well-large" id="book_link_edit">',
         'book_links': '<div class="well well-large" id="book_links">',
@@ -33,7 +34,6 @@ class TestFunctions(LocalTestCase):
         'book_pages_reorder': '<div class="well well-large" id="book_pages_reorder">',
         'book_release': '<div class="well well-large" id="book_release">',
         'books': '<div class="well well-large" id="books">',
-        'change_password': '<div class="well well-large" id="change_password">',
         'creator': '<div class="well well-large" id="creator">',
         'creator_link_edit': '<div class="well well-large" id="creator_link_edit">',
         'creator_links': '<div class="well well-large" id="creator_links">',
@@ -76,6 +76,10 @@ class TestFunctions(LocalTestCase):
         cls._book_to_link = db(db.book_to_link.book_id == cls._book.id).select(orderby=db.book_to_link.order_no).first()
         if not cls._book_to_link:
             self.fail('No book_to_link with email: {e}'.format(e=email))
+
+    def test__account(self):
+        self.assertTrue(web.test('{url}/account'.format(url=self.url),
+            self.titles['account']))
 
     def test__book_edit(self):
         # No book id, Add mode
@@ -132,10 +136,6 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test('{url}/books'.format(
             bid=self._book.id, url=self.url),
             self.titles['books']))
-
-    def test__change_password(self):
-        self.assertTrue(web.test('{url}/change_password'.format(url=self.url),
-            self.titles['change_password']))
 
     def test__creator(self):
         self.assertTrue(web.test('{url}/creator'.format(url=self.url),

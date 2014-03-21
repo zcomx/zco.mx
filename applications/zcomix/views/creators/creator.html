@@ -12,7 +12,7 @@
 <div class="row" id="bio_section">
     <div class="col-sm-7" id="name_bio">
         <div class="row" id="name">
-            {{=creator.name}}
+            {{=auth_user.name}}
         </div>
         <div class="row">
         {{=ItemDescription(creator.bio).as_html(**dict(_id='bio'))}}

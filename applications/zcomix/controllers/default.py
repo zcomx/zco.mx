@@ -28,24 +28,43 @@ def user():
     to decorate functions that need access control
     """
     if request.args(0) == 'profile' and request.extension == 'html':
-        redirect(URL(c='profile', f='index', extension=False))
+        redirect(URL(c='profile', f='account', extension=False))
     if request.args(0) == 'change_password' and request.extension == 'html':
-        redirect(URL(c='profile', f='change_password', extension=False))
+        redirect(URL(c='profile', f='account', extension=False))
 
-    if request.extension == 'html':
+    hide_labels = True if request.args(0) not in ['register'] else False
+    if request.extension == 'html' or hide_labels:
         auth.settings.formstyle = formstyle_bootstrap3_login
 
+    if request.args(0) == 'profile':
+        auth.settings.profile_next = URL(
+            c='profile', f='account', extension=False)
+    if request.args(0) == 'change_password':
+        auth.settings.change_password_next = URL(
+            c='profile', f='account', extension=False)
+
+    auth.messages.logged_in = None      # Hide 'Logged in' flash
     # The next lines are from Auth._get_login_settings
     table_user = auth.table_user()
     userfield = auth.settings.login_userfield or 'username' \
         if 'username' in table_user.fields else 'email'
     passfield = auth.settings.password_field
 
+    table_user.first_name.readable = False
+    table_user.first_name.writable = False
+    table_user.last_name.readable = False
+    table_user.last_name.writable = False
+    if request.args(0) == 'profile':
+        auth.settings.profile_fields = ['name', userfield]
+
+    if request.args(0) == 'register':
+        auth.settings.register_fields = ['name', userfield, passfield]
+
     form = auth()
 
-    for w in form.custom.widget.keys():
-        if hasattr(form.custom.widget[w], 'add_class'):
-            form.custom.widget[w].add_class('input-lg')
+    for k in form.custom.widget.keys():
+        if hasattr(form.custom.widget[k], 'add_class'):
+            form.custom.widget[k].add_class('input-lg')
     if form.custom.widget.password_two:
         # Looks like a web2py bug, formstyle is not applied
         form.custom.widget.password_two.add_class('form-control')
@@ -53,21 +72,19 @@ def user():
         form.custom.submit.add_class('btn-block')
         form.custom.submit.add_class('input-lg')
 
-    hide_labels = True \
-        if request.args(0) in ['login', 'retrieve_password', 'request_reset_password']\
-        else False
     if hide_labels:
-        table_user[userfield].label = ''
-        table_user[passfield].label = ''
         for label in form.elements('label'):
             label.add_class('labels_hidden')
-        if form.custom.widget[userfield]:
-            form.custom.widget[userfield].update(_placeholder="Email Address")
-            form.custom.widget[userfield].add_class('align_center')
-            form.custom.widget[userfield]['_label'] = 'false'
-        if form.custom.widget[passfield]:
-            form.custom.widget[passfield].update(_placeholder="Password")
-            form.custom.widget[passfield].add_class('align_center')
+        if form.custom.label[userfield]:
+            form.custom.label[userfield] = 'Email Address'
+        for f in form.custom.widget.keys():
+            if hasattr(form.custom.widget[f], 'update'):
+                form.custom.widget[f].update(_placeholder=form.custom.label[f])
+        if request.args(0)  == 'login':
+            if form.custom.widget[userfield]:
+                form.custom.widget[userfield].add_class('align_center')
+            if form.custom.widget[passfield]:
+                form.custom.widget[passfield].add_class('align_center')
 
     if request.extension == 'html' and not hide_labels:
         for label in form.elements('label'):

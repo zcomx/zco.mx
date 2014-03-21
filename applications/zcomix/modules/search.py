@@ -87,7 +87,7 @@ class Search(object):
         if request.vars.kw:
             queries.append(
                 (db.book.name.contains(request.vars.kw)) | \
-                (db.creator.name.contains(request.vars.kw))
+                (db.auth_user.name.contains(request.vars.kw))
                 )
 
         if not queries:
@@ -113,12 +113,15 @@ class Search(object):
         orderby = [~db[orderby_field['table']][orderby_fieldname]]
         orderby.append(db.book.id)              # Ensure consistent results
 
+        db.book.id.readable = False
+        db.book.id.writable = False
         db.book.name.represent = lambda v, row: A(v, _href=URL(c='books', f='book', args=row.book.id, extension=False))
         db.creator.id.readable = False
         db.creator.id.writable = False
-        db.creator.name.represent = lambda v, row: A(v, _href=URL(c='creators', f='creator', args=row.creator.id, extension=False))
+        db.auth_user.name.represent = lambda v, row: A(v, _href=URL(c='creators', f='creator', args=row.creator.id, extension=False))
 
         fields = [
+            db.book.id,
             db.book.name,
             db.book.release_date,
             db.book.contributions_year,
@@ -225,7 +228,7 @@ class Search(object):
                 )
 
         if request.vars.view != 'list' or not creator:
-            fields.append(db.creator.name)
+            fields.append(db.auth_user.name)
 
         oncreate = None
         if editable and creator:
@@ -250,11 +253,12 @@ class Search(object):
                 fields=fields,
                 headers={
                     'book.name': 'Title',
-                    'creator.name': 'Creator',
+                    'auth_user.name': 'Creator',
                     },
                 orderby=orderby,
                 left=[
                     db.creator.on(db.book.creator_id == db.creator.id),
+                    db.auth_user.on(db.creator.auth_user_id == db.auth_user.id),
                     ],
                 paginate=10,
                 details=False,
@@ -265,7 +269,7 @@ class Search(object):
                 searchable=False,
                 maxtextlengths={
                     'book.name': 50,
-                    'creator.name': 50,
+                    'auth_user.name': 50,
                     },
                 links=links,
                 oncreate=oncreate,
