@@ -845,4 +845,26 @@ div.centered table {
     border: 1px solid red;
 }
 
+.input_container {
+    display: inline-block;
+    vertical-align: top;
+}
+
+#add_link_container {
+    display: none;
+}
+
+.edit_link_template {
+    display: none;
+}
+
+.edit_link_container .edit_field {
+    display: inline-block;
+    min-width: 10em;
+}
+
+.edit_link_container .edit_link_name {
+    text-align: right;
+}
+
 /* temp stuff end /// */
