@@ -26,13 +26,16 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'book_edit': '<div class="well well-large" id="book_edit">',
+        'book_link_edit': '<div class="well well-large" id="book_link_edit">',
         'book_links': '<div class="well well-large" id="book_links">',
         'book_pages': '<div class="well well-large" id="book_pages">',
         'book_pages_handler': '<div class="well well-large" id="book_pages_handler">',
+        'book_pages_reorder': '<div class="well well-large" id="book_pages_reorder">',
         'book_release': '<div class="well well-large" id="book_release">',
         'books': '<div class="well well-large" id="books">',
         'change_password': '<div class="well well-large" id="change_password">',
         'creator': '<div class="well well-large" id="creator">',
+        'creator_link_edit': '<div class="well well-large" id="creator_link_edit">',
         'creator_links': '<div class="well well-large" id="creator_links">',
         'default': 'This is a not-for-profit site dedicated to promoting',
         'index': '<div class="well well-large" id="index">',
@@ -83,6 +86,11 @@ class TestFunctions(LocalTestCase):
             bid=self._book.id, url=self.url),
             self.titles['book_edit']))
 
+    def test__creator_link_edit(self):
+        # No book id, Add mode
+        self.assertTrue(web.test('{url}/creator_link_edit'.format(url=self.url),
+            self.titles['creator_link_edit']))
+
     def test__book_links(self):
         # No book id
         self.assertTrue(web.test('{url}/book_links'.format(url=self.url),
@@ -106,6 +114,11 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test('{url}/book_pages_handler'.format(url=self.url),
             self.titles['book_pages_handler']))
 
+    def test__book_pages_reorder(self):
+        # No book_id, redirects to books page
+        self.assertTrue(web.test('{url}/book_pages_reorder'.format(url=self.url),
+            self.titles['book_pages_reorder']))
+
     def test__book_release(self):
         # No book_id, redirects to books page
         self.assertTrue(web.test('{url}/book_release'.format(url=self.url),
@@ -127,6 +140,11 @@ class TestFunctions(LocalTestCase):
     def test__creator(self):
         self.assertTrue(web.test('{url}/creator'.format(url=self.url),
             self.titles['creator']))
+
+    def test__book_link_edit(self):
+        # No book id, Add mode
+        self.assertTrue(web.test('{url}/book_link_edit'.format(url=self.url),
+            self.titles['book_link_edit']))
 
     def test__creator_links(self):
         self.assertTrue(web.test('{url}/creator_links'.format(url=self.url),

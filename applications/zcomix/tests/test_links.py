@@ -208,7 +208,7 @@ class TestCustomLinks(LocalTestCase):
         got = links.represent()
         soup = BeautifulSoup(str(got))
         ul = soup.find('ul')
-        self.assertEqual(ul['class'], 'inline')
+        self.assertEqual(ul['class'], 'list-inline custom_links')
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 3)
         for count, li in enumerate(lis):
@@ -372,9 +372,9 @@ class TestReorderLink(LocalTestCase):
         anchor = soup.find('a')
         span = anchor.find('span')
         self.assertEqual(anchor['href'],
-            '/zcomix/profile/order_no_handler/creator_to_link/{id}/down?next=None'.format(id=self._creator_to_links[0].id)
+            '/profile/order_no_handler/creator_to_link/{id}/down?next=None'.format(id=self._creator_to_links[0].id)
             )
-        self.assertEqual(span['class'], 'icon arrow-down icon-arrow-down')
+        self.assertEqual(span['class'], 'glyphicon glyphicon-arrow-down')
         self.assertEqual(span['title'], 'down')
 
         # Order no max, direction 'up', up arrow
@@ -385,9 +385,9 @@ class TestReorderLink(LocalTestCase):
         anchor = soup.find('a')
         span = anchor.find('span')
         self.assertEqual(anchor['href'],
-            '/zcomix/profile/order_no_handler/creator_to_link/1/up?next=None'
+            '/profile/order_no_handler/creator_to_link/1/up?next=None'
             )
-        self.assertEqual(span['class'], 'icon arrow-up icon-arrow-up')
+        self.assertEqual(span['class'], 'glyphicon glyphicon-arrow-up')
         self.assertEqual(span['title'], 'up')
 
     def test__links_dict(self):

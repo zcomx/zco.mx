@@ -99,6 +99,8 @@ class TestFunctions(ImageTestCase):
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 2)
         self.assertEqual(sorted(data['files'][0].keys()), [
+            'book_id',
+            'book_page_id',
             'deleteType',
             'deleteUrl',
             'name',
@@ -123,9 +125,9 @@ class TestFunctions(ImageTestCase):
             nameonly=True,
         )
 
-        url = '/zcomix/images/download/{img}'.format(img=self._book_page.image)
-        thumb = '/zcomix/images/download/{img}?size=thumb'.format(img=self._book_page.image)
-        delete_url = '/zcomix/profile/book_pages_handler/{bid}?book_page_id={pid}'.format(
+        url = '/images/download/{img}'.format(img=self._book_page.image)
+        thumb = '/images/download/{img}?size=thumb'.format(img=self._book_page.image)
+        delete_url = '/profile/book_pages_handler/{bid}?book_page_id={pid}'.format(
                 bid=self._book_page.book_id,
                 pid=self._book_page.id
                 )
@@ -133,6 +135,8 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(
             book_page_for_json(db, self._book_page.id),
             {
+                'book_id': self._book_page.book_id,
+                'book_page_id': self._book_page.id,
                 'name': filename,
                 'size': 23127,
                 'url': url,
@@ -172,7 +176,7 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(
             str(cover_image(db, book_id)),
-            '<img src="/zcomix/images/download/page_trees.png?size=original" />'
+            '<img src="/images/download/page_trees.png?size=original" />'
         )
 
     def test__read_link(self):
@@ -186,19 +190,19 @@ class TestFunctions(ImageTestCase):
 
         # As integer, book_id
         link = read_link(db, book_id)
-        # Eg <a data-w2p_disable_with="default" href="/zcomix/books/slider/57">READ</a>
+        # Eg <a data-w2p_disable_with="default" href="/zcomix/books/slider/57">Read</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'READ')
-        self.assertEqual(anchor['href'], '/zcomix/books/slider/{bid}'.format(
+        self.assertEqual(anchor.string, 'Read')
+        self.assertEqual(anchor['href'], '/books/slider/{bid}'.format(
             bid=book_id))
 
         # As Row, book
         link = read_link(db, book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'READ')
-        self.assertEqual(anchor['href'], '/zcomix/books/slider/{bid}'.format(
+        self.assertEqual(anchor.string, 'Read')
+        self.assertEqual(anchor['href'], '/books/slider/{bid}'.format(
             bid=book_id))
 
         # Invalid id
@@ -210,8 +214,8 @@ class TestFunctions(ImageTestCase):
         link = read_link(db, book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'READ')
-        self.assertEqual(anchor['href'], '/zcomix/books/awesome_reader/{bid}'.format(
+        self.assertEqual(anchor.string, 'Read')
+        self.assertEqual(anchor['href'], '/books/awesome_reader/{bid}'.format(
             bid=book_id))
 
         # Test attributes
@@ -225,7 +229,7 @@ class TestFunctions(ImageTestCase):
         link = read_link(db, book, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'READ')
+        self.assertEqual(anchor.string, 'Read')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['type'], 'button')

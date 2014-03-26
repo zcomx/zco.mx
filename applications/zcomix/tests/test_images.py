@@ -191,6 +191,8 @@ class TestUploadImage(ImageTestCase):
         self.assertTrue('medium' in resizer._dimensions)
         self.assertEqual(dims_3, None)
 
+        del resizer._images['medium']
+        del resizer._dimensions['medium']
         medium = resizer.resize('medium')
         dims_4 = resizer.dimensions(size='medium')
         self.assertEqual(dims_4, (500, 500))
