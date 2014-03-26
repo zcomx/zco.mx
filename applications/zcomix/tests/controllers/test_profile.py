@@ -28,6 +28,7 @@ class TestFunctions(LocalTestCase):
         'book_edit': '<div class="well well-large" id="book_edit">',
         'book_links': '<div class="well well-large" id="book_links">',
         'book_pages': '<div class="well well-large" id="book_pages">',
+        'book_pages_handler': '<div class="well well-large" id="book_pages_handler">',
         'book_release': '<div class="well well-large" id="book_release">',
         'books': '<div class="well well-large" id="books">',
         'change_password': '<div class="well well-large" id="change_password">',
@@ -99,6 +100,11 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test('{url}/book_pages/{bid}'.format(
             bid=self._book.id, url=self.url),
             self.titles['book_pages']))
+
+    def test__book_pages_handler(self):
+        # No book_id, redirects to books page
+        self.assertTrue(web.test('{url}/book_pages_handler'.format(url=self.url),
+            self.titles['book_pages_handler']))
 
     def test__book_release(self):
         # No book_id, redirects to books page

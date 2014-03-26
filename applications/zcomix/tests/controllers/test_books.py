@@ -23,6 +23,7 @@ class TestFunctions(LocalTestCase):
             'book': '<div id="book_page">',
             'carousel': '<div id="carousel_page">',
             'default': 'This is a not-for-profit site dedicated to promoting',
+            'gallery': '<div id="gallery_page">',
             'reader': '<div id="reader_page">',
             'scroller': '<div id="scroller_page">',
             'slider': '<div id="slider_page">',
@@ -70,6 +71,11 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test('{url}/carousel/{bid}'.format(url=self.url,
             bid=self._book.id),
             self.titles['carousel']))
+
+    def test__gallery(self):
+        self.assertTrue(web.test('{url}/gallery/{bid}'.format(url=self.url,
+            bid=self._book.id),
+            self.titles['gallery']))
 
     def test__index(self):
         self.assertTrue(web.test('{url}/index'.format(url=self.url),
