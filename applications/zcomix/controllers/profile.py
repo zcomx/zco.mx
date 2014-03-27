@@ -709,13 +709,11 @@ def order_no_handler():
 
     redirect(next_url, client_side=False)
 
+
 def link_crud():
     """Handler for ajax link CRUD calls."""
     response.generic_patterns = ['json']
-    import sys; print >> sys.stderr, 'FIXME request.args: {var}'.format(var=request.args)
-    import sys; print >> sys.stderr, 'FIXME request.vars: {var}'.format(var=request.vars)
     action = request.vars.action if request.vars.action else 'get'
-    import sys; print >> sys.stderr, 'FIXME action: {var}'.format(var=action)
 
     link_id = None
     if request.vars.link_id:
@@ -764,18 +762,14 @@ def link_crud():
             ],
             orderby=[db.creator_to_link.order_no, db.creator_to_link.id],
         ).as_list()
-        import sys; print >> sys.stderr, 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
     elif action == 'update':
         if link_id:
             data = {}
             if request.vars.field is not None and request.vars.value is not None:
                 data = {request.vars.field: request.vars.value}
-            import sys; print >> sys.stderr, 'FIXME data: {var}'.format(var=data)
             if data:
                 query = (db.link.id == link_id)
                 ret = db(query).validate_and_update(**data)
-                import sys; print >> sys.stderr, 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
-                import sys; print >> sys.stderr, 'FIXME ret: {var}'.format(var=ret)
                 record_id = link_id
                 errors = ret.errors
                 do_reorder = True

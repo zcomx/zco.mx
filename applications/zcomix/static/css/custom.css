@@ -1022,10 +1022,6 @@ div.centered table {
     width: 10em;
 }
 
-.edit_link_template {
-    display: none;
-}
-
 .edit_link_container,
 .edit_field_container {
     vertical-align: top;
