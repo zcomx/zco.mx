@@ -768,12 +768,14 @@ def link_crud():
     elif action == 'update':
         if link_id:
             data = {}
-            if request.vars.field and request.vars.value:
+            if request.vars.field is not None and request.vars.value is not None:
                 data = {request.vars.field: request.vars.value}
+            import sys; print >> sys.stderr, 'FIXME data: {var}'.format(var=data)
             if data:
                 query = (db.link.id == link_id)
                 ret = db(query).validate_and_update(**data)
                 import sys; print >> sys.stderr, 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
+                import sys; print >> sys.stderr, 'FIXME ret: {var}'.format(var=ret)
                 record_id = link_id
                 errors = ret.errors
                 do_reorder = True

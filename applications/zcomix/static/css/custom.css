@@ -1004,6 +1004,16 @@ div.centered table {
     display: none;
 }
 
+.edit_link_container .edit_field_container:nth-child(1) {
+    width: 10em;
+    margin-right: 1em;
+}
+
+.input_container .error_wrapper div.error,
+.edit_field_container .error_wrapper div.error {
+    width: 100%;
+}
+
 #add_link_container .input_container {
     margin-right: 0.6em;
 }
@@ -1016,14 +1026,19 @@ div.centered table {
     display: none;
 }
 
-.edit_link_container .edit_field {
+.edit_link_container,
+.edit_field_container {
+    vertical-align: top;
+}
+
+.edit_link_container .edit_field_container {
     display: inline-block;
+    min-height: 1.9em;
     min-width: 10em;
 }
 
 .edit_link_container .edit_link_name {
     color: #666666;
-    margin-right: 1em;
     text-align: right;
 }
 
