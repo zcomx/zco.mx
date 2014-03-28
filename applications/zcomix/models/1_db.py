@@ -55,11 +55,6 @@ plugins = PluginManager()
 ## create all tables needed by auth if not custom tables
 auth.define_tables(username=False, signature=False)
 
-## configure email
-mail.settings.sender = 'iiijjjiii@gmail.com'
-mail.settings.server = 'smtp.gmail.com:587'
-mail.settings.login = 'iiijjjiii:gretz66Mario99'
-
 ## configure auth policy
 auth.settings.mailer = mail                    # for user email verification
 auth.settings.registration_requires_verification = True
@@ -254,20 +249,23 @@ db.define_table('creator',
         writable=False,
     ),
     Field('email',
-        label='Contact email',
+        label='email address',
         comment='Leave blank if you do not wish your email published.',
         represent=lambda email, row: A(
             email,
             _href='mailto:{e}'.format(e=email),
             _target="_blank",
         ) if email else '',
+        requires=IS_EMPTY_OR(IS_EMAIL()),
     ),
     Field('paypal_email',
-        label='Paypal email',
+        label='paypal address',
         comment='Required to received donations.',
+        requires=IS_EMPTY_OR(IS_EMAIL()),
     ),
     Field('website',
         comment='Eg. http://myhomepage.com',
+        label='website',
         represent=lambda url, row: A(
             re.sub(r'^http[s]*://', '', url),
             _href=url,
@@ -277,6 +275,7 @@ db.define_table('creator',
     ),
     Field('twitter',
         comment='Eg. @username',
+        label='twitter',
         represent=lambda twit, row: A(twit,
             _href='https://twitter.com/{t}'.format(t=twit),
             _target="_blank",
@@ -284,6 +283,7 @@ db.define_table('creator',
     ),
     Field('tumblr',
         comment='Eg. http://username.tumblr.com',
+        label='tumblr',
         represent=lambda url, row: A(url,
             _href=url,
             _target="_blank",
@@ -292,6 +292,7 @@ db.define_table('creator',
     ),
     Field('wikipedia',
         comment='Eg. http://en.wikipedia.org/wiki/First_Surname',
+        label='wikipedia',
         represent=lambda url, row: A(url,
             _href=url,
             _target="_blank",
@@ -299,10 +300,12 @@ db.define_table('creator',
         requires=IS_EMPTY_OR(IS_URL()),
     ),
     Field('bio', 'text',
+        label='bio',
         comment='Provide a biography, for example, a few sentences similar to the first paragraph of a wikipedia article.'
     ),
     Field('image', 'upload',
         autodelete=True,
+        label='photo',
         requires = IS_EMPTY_OR(IS_IMAGE()),
         uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
         uploadseparate=True,

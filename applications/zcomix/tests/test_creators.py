@@ -8,8 +8,11 @@ Test suite for zcomix/modules/creators.py
 """
 import unittest
 from gluon import *
+from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
-from applications.zcomix.modules.creators import add_creator
+from applications.zcomix.modules.creators import \
+    add_creator, \
+    image_as_json
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -61,6 +64,27 @@ class TestFunctions(LocalTestCase):
         add_creator(form)
         after = db(db.creator).count()
         self.assertEqual(before, after)
+
+    def test__image_as_json(self):
+        query = (db.creator.image != None)
+        creator = db(query).select(db.creator.ALL).first()
+        self.assertTrue(creator)
+
+        image_json = image_as_json(db, creator.id)
+        image = loads(image_json)
+        self.assertTrue('files' in image.keys())
+        self.assertEqual(len(image['files']), 1)
+        self.assertEqual(
+            sorted(image['files'][0].keys()),
+            [
+                'deleteType',
+                'deleteUrl',
+                'name',
+                'size',
+                'thumbnailUrl',
+                'url',
+            ]
+        )
 
 
 def setUpModule():

@@ -25,20 +25,18 @@ class TestFunctions(LocalTestCase):
     _user = None
 
     titles = {
-        'account': '<div class="well well-large" id="account">',
-        'book_edit': '<div class="well well-large" id="book_edit">',
-        'book_link_edit': '<div class="well well-large" id="book_link_edit">',
-        'book_links': '<div class="well well-large" id="book_links">',
-        'book_pages': '<div class="well well-large" id="book_pages">',
-        'book_pages_handler': '<div class="well well-large" id="book_pages_handler">',
-        'book_pages_reorder': '<div class="well well-large" id="book_pages_reorder">',
-        'book_release': '<div class="well well-large" id="book_release">',
-        'books': '<div class="well well-large" id="books">',
-        'creator': '<div class="well well-large" id="creator">',
-        'creator_link_edit': '<div class="well well-large" id="creator_link_edit">',
-        'creator_links': '<div class="well well-large" id="creator_links">',
+        'account': '<div class="well well-sm" id="account">',
+        'book_edit': '<div class="well well-sm" id="book_edit">',
+        'book_link_edit': '<div class="well well-sm" id="book_link_edit">',
+        'book_links': '<div class="well well-sm" id="book_links">',
+        'book_pages': '<div class="well well-sm" id="book_pages">',
+        'book_pages_handler': '<div class="well well-sm" id="book_pages_handler">',
+        'book_pages_reorder': '<div class="well well-sm" id="book_pages_reorder">',
+        'book_release': '<div class="well well-sm" id="book_release">',
+        'books': '<div class="well well-sm" id="books">',
+        'creator': '<div class="well well-sm" id="creator">',
         'default': 'This is a not-for-profit site dedicated to promoting',
-        'index': '<div class="well well-large" id="index">',
+        'index': '<div class="well well-sm" id="index">',
         'links': [
             'href="/zcomix/profile/links.load/new/link',
             'Add</span>',
@@ -56,7 +54,7 @@ class TestFunctions(LocalTestCase):
     @classmethod
     def setUpClass(cls):
         # Get the data the tests will use.
-        email = 'jimkarsten@gmail.com'
+        email = 'iiijjjiii+pgrant@gmail.com'
         cls._user = db(db.auth_user.email == email).select().first()
         if not cls._user:
             self.fail('No user with email: {e}'.format(e=email))
@@ -90,10 +88,10 @@ class TestFunctions(LocalTestCase):
             bid=self._book.id, url=self.url),
             self.titles['book_edit']))
 
-    def test__creator_link_edit(self):
+    def test__book_link_edit(self):
         # No book id, Add mode
-        self.assertTrue(web.test('{url}/creator_link_edit'.format(url=self.url),
-            self.titles['creator_link_edit']))
+        self.assertTrue(web.test('{url}/book_link_edit'.format(url=self.url),
+            self.titles['book_link_edit']))
 
     def test__book_links(self):
         # No book id
@@ -140,15 +138,6 @@ class TestFunctions(LocalTestCase):
     def test__creator(self):
         self.assertTrue(web.test('{url}/creator'.format(url=self.url),
             self.titles['creator']))
-
-    def test__book_link_edit(self):
-        # No book id, Add mode
-        self.assertTrue(web.test('{url}/book_link_edit'.format(url=self.url),
-            self.titles['book_link_edit']))
-
-    def test__creator_links(self):
-        self.assertTrue(web.test('{url}/creator_links'.format(url=self.url),
-            self.titles['creator_links']))
 
     def test__index(self):
         self.assertTrue(web.test('{url}/index'.format(url=self.url),

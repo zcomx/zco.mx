@@ -1,4 +1,13 @@
 {{extend 'profile/layout.html'}}
+{{from gluon.contrib.simplejson import dumps}}
 <div>
 {{=form}}
 </div>
+<div id="editable_fields_container"></div>
+<script src="{{=URL(c='static', f='js/links_editable.js')}}"> </script>
+<script>
+//<![CDATA[
+    var book_data = {
+    }
+//]]>
+</script>

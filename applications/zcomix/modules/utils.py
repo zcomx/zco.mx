@@ -132,14 +132,6 @@ def profile_wells(request):
         # (key, {data})
         ('account', {'label': 'Account Profile'}),
         ('creator', {'label': 'Creator Profile'}),
-        ('creator_links', {
-            'label': 'Creator Links',
-            'show_children': False,         # Children links in grid
-        }),
-        ('creator_link_edit', {
-            'label': 'Creator Link Edit',
-            'parent': 'creator_links',
-        }),
         ('books', {
             'label': 'Books',
             'show_children': False,         # Children links in grid

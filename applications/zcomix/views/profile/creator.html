@@ -1,4 +1,179 @@
 {{extend 'profile/layout.html'}}
-<div>
-{{=form}}
+{{from gluon.contrib.simplejson import dumps}}
+<div id="creator_section">
+
+<div id="editable_fields_container"></div>
+<div id="links_container">
+    <div id="edit_links_container"></div>
+    <div id="add_link_container">
+        <div class="arrow_container"></div>
+        <div class="input_container">
+            <input type="text" name="link_name" value="" id="link_name">
+        </div>
+        <div class="input_container">
+            <input type="text" name="link_url" value="" id="link_url" placeholder="http://www.example.com">
+        </div>
+    </div>
 </div>
+<div id="bio_container"></div>
+<div id="mug_shot">
+    <div class="row_container">
+        <div class="arrow_container"></div>
+        <div class="field_label">{{=db.creator.image.label}}</div>
+        <div class="image_field_container">
+            <div class="fileupload_container">
+                <form id="fileupload" action="/zcomix/profile/creator_img_handler" method="POST" enctype="multipart/form-data">
+                    <noscript><input type="hidden" name="redirect" value="/zcomix/profile/creator"></noscript>
+                    <div class="row fileupload-buttonbar">
+                        <div class="col-xs-12">
+                            <div class="no_photo_section">
+                                <span class="fileupload-process"></span>
+                                <div class="img_preview_container">
+                                    <div class="preview placeholder_torso">
+                                    <i class="icon fi-torso"></i>
+                                    </div>
+                                </div>
+                                <div class="button_container">
+                                    <div class="btn btn-default fileinput-button">
+                                        <span>Upload</span>
+                                        <input id="up_files_input" type="file" name="up_files" multiple>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="has_photo_section">
+                                <div class="files"> </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <br>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+<script id="template-upload" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <div class="template-upload fade">
+        <div>
+            <span class="preview"></span>
+            <p class="name">{%=file.name%}</p>
+            <strong class="error text-danger"></strong>
+        </div>
+        <div class="progress_buttons_container">
+            <p class="size">Processing...</p>
+            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
+            <div>
+            {% if (!i && !o.options.autoUpload) { %}
+                <button class="btn btn-primary start" disabled>
+                    <i class="glyphicon glyphicon-upload"></i>
+                    <span>Start</span>
+                </button>
+            {% } %}
+            {% if (!i) { %}
+                <button class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>Cancel</span>
+                </button>
+            {% } %}
+            </div>
+        </div>
+    </div>
+{% } %}
+</script>
+<script id="template-download" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <div class="template-download fade">
+        <div class="img_preview_container">
+            <span class="preview">
+                {% if (file.thumbnailUrl) { %}
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img src="{%=file.thumbnailUrl%}"></a>
+                {% } %}
+            </span>
+        </div>
+        <div class="button_container">
+            {% if (file.deleteUrl) { %}
+                <div>
+                <button class="btn btn-default delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
+                    <span>Remove</span>
+                </button>
+                </div>
+                <div>
+                <button id="change_button" class="btn btn-default">
+                    <span>Change</span>
+                </button>
+                </div>
+            {% } else { %}
+                <button class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>Cancel</span>
+                </button>
+            {% } %}
+        </div>
+        {% if (file.error) { %}
+        <div>
+            <p class="name">
+                {% if (file.url) { %}
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
+                {% } else { %}
+                    <span>{%=file.name%}</span>
+                {% } %}
+            </p>
+            <div><span class="label label-danger">Error</span> {%=file.error%}</div>
+        </div>
+        {% } %}
+    </div>
+{% } %}
+</script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/vendor/jquery.ui.widget.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/JavaScript-Templates/js/tmpl.min.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/JavaScript-Load-Image/js/load-image.min.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.iframe-transport.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-process.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-image.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-audio.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-video.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-validate.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-ui.js')}}"></script>
+<!-- The XDomainRequest Transport is included for cross-domain file deletion for IE 8 and IE 9 -->
+<!--[if (gte IE 8)&(lt IE 10)]>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/cors/jquery.xdr-transport.js')}}"></script>
+<![endif]-->
+<script src="{{=URL(c='static', f='js/jquery.jeditable.mini.js')}}"> </script>
+<script>
+//<![CDATA[
+    var creator_data = {
+        'email': {
+            'label': '{{=db.creator.email.label}}',
+            'value': '{{=creator.email}}',
+        },
+        'paypal_email': {
+            'label': '{{=db.creator.paypal_email.label}}',
+            'value': '{{=creator.paypal_email}}',
+        },
+        'website': {
+            'label': '{{=db.creator.website.label}}',
+            'value': '{{=creator.website}}',
+        },
+        'twitter': {
+            'label': '{{=db.creator.twitter.label}}',
+            'value': '{{=creator.twitter}}',
+        },
+        'tumblr': {
+            'label': '{{=db.creator.tumblr.label}}',
+            'value': '{{=creator.tumblr}}',
+            'append_to': '#edit_links_container',
+        },
+        'bio': {
+            'label': '{{=db.creator.bio.label}}',
+            'value': '{{=dumps(creator.bio).strip('"')}}',
+            'jeditable_settings': {'type': 'textarea'},
+            'append_to': '#bio_container',
+        },
+    }
+//]]>
+</script>
+<script src="{{=URL(c='static', f='js/links_editable.js')}}"> </script>
+<script src="{{=URL(c='static', f='js/creator_fileupload.js')}}"> </script>

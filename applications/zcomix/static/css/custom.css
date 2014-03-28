@@ -77,6 +77,10 @@ div.centered table {
     text-align: center;
 }
 
+.btn {
+    border-radius: 3px;
+}
+
 .form-control {
     box-shadow: none;
 }
@@ -88,6 +92,8 @@ div.centered table {
 
 .placeholder_170x170 {
     border: 0.8em double #EEEEEE;
+    height: 170px;
+    width: 150px;
 }
 
 .portrait_placeholder {
@@ -546,12 +552,6 @@ div.centered table {
     padding-top: 1em;
 }
 
-#book_page .creator_img_container .placeholder_170x170,
-#creator_page .creator_img_container .placeholder_170x170 {
-    min-height: 170px;
-    min-width: 150px;
-}
-
 @media screen and (min-width: 768px){
     #creator_page #name_bio {
         margin-top: -3em;
@@ -995,23 +995,61 @@ div.centered table {
     border: 1px solid red;
 }
 
-.input_container {
-    display: inline-block;
-    vertical-align: top;
+#add_link_container {
+    margin-top: 0.8em;
 }
 
-#add_link_container .error_wrapper {
+.row_container {
+    margin-top: 0.6em;
+}
+
+#add_link_container .arrow_container,
+.row_container .arrow_container {
+    display: inline-block;
+    min-width: 2.2em;
+}
+
+#mug_shot .row_container .arrow_container {
     display: none;
 }
 
-.edit_link_container .edit_field_container:nth-child(1) {
-    width: 10em;
-    margin-right: 1em;
+.row_container .field_label {
+    font-weight: bold;
+}
+
+.row_container .edit_field_container {
+    display: inline-block;
+}
+
+.row_container .edit_link_delete {
+    display: inline-block;
+}
+
+.row_container .edit_field_container {
+    padding: 1px;
+}
+
+.row_container .edit_field_container:hover {
+    border: 1px solid #DDDDDD;
+    cursor: pointer;
+    padding: 0;
+}
+
+.row_container .active:hover {
+    border: none;
+}
+
+.row_container .edit_field_container.field_label {
+    color: #666666;
+    font-weight: normal;
 }
 
 .input_container .error_wrapper div.error,
 .edit_field_container .error_wrapper div.error {
+    border-radius: 0;
     width: 100%;
+    background: #FF9999;
+    font-weight: bold;
 }
 
 #add_link_container .input_container {
@@ -1022,35 +1060,50 @@ div.centered table {
     width: 10em;
 }
 
-.edit_link_container,
-.edit_field_container {
-    vertical-align: top;
-}
-
-.edit_link_container .edit_field_container {
-    display: inline-block;
-    min-height: 1.9em;
-    min-width: 10em;
-}
-
-.edit_link_container .edit_link_name {
+.row_container .btn-xs {
     color: #666666;
-    text-align: right;
+    border: 1px solid #ffffff;
+    padding: 1px 1px;
 }
 
-.edit_link_container .edit_link_delete {
-    border: none;
-    color: #666666;
-}
-
-.edit_link_container .edit_link_delete:hover,
-.edit_link_container .edit_link_delete:focus {
+#links_container .row_container .btn:hover,
+#links_container .row_container .btn:focus {
     border: 1px solid #CCCCCC;
     padding-top: 0;
     padding-bottom: 0;
     color: #333333;
 }
 
+.row_container .arrow-muted {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.1;
+}
+
+#bio_container,
+#mug_shot{
+    margin-top: 1.2em;
+}
+
+#mug_shot {
+    background-color: #F3F3F3;
+    border: 1px solid #DDDDDD;
+    padding: 1em 1em 1em 1em;
+    min-width: 23em;
+    width: 100%;
+}
+
+#mug_shot input[type=submit] {
+    margin-top: 1em;
+}
+
+.jeditable_placeholder{
+    color: #999999;
+}
+
+#profile_page #creator_section {
+    margin: 1em;
+}
 /* foundation-icons start */
 .size-12 { font-size: 12px; }
 .size-14 { font-size: 14px; }
@@ -1063,5 +1116,160 @@ div.centered table {
 .size-60 { font-size: 60px; }
 .size-72 { font-size: 72px; }
 /* foundation-icons end */
+
+.image_widget_container {
+    margin: 0;
+}
+
+.image_widget_buttons {
+    display: inline-block;
+    margin-left: 1em;
+}
+
+.image_widget_img {
+    display: inline-block;
+    margin-padding: 0
+}
+.image_widget_buttons label {
+    margin-left: 0.6em;
+}
+
+.image_submit {
+    float: right;
+    margin-top: -3em;
+    margin-right: 8em;
+}
+
+#mug_shot .files .btn span {
+    display: block;
+}
+
+#mug_shot .template-download .button_container .btn {
+    min-width: 6em;
+}
+
+#mug_shot .row_container .placeholder_torso {
+    height: 12em;
+    max-width: 10.7em;
+    overflow: hidden;
+    padding: 0em;
+    border: 8px solid #DDDDDD;
+}
+
+#mug_shot .row_container .placeholder_torso i {
+    font-size: 15em;
+    color: #DDDDDD;
+    line-height: 0.8em;
+}
+
+.fi-torso:before {
+    line-height: 0.8em;
+}
+
+@media (min-width: 480px) {
+    .input_container {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    .row_container {
+        margin-top: 0;
+        vertical-align: top;
+    }
+
+    .row_container .field_label {
+        margin-right: 1em;
+        min-height: 1.6em;
+        text-align: right;
+        width: 10em;
+    }
+
+    .row_container .edit_field_container,
+    .row_container .image_field_container,
+    .row_container .field_label {
+        display: inline-block;
+        min-width: 10em;
+        margin-top: 0.2em;
+    }
+
+    .row_container .edit_field_container,
+    .row_container .field_label {
+        max-width: 30em;
+    }
+
+    .row_container .edit_field_container {
+        min-height: 1.9em;
+        vertical-align: top;
+    }
+
+    .row_container .image_field_container {
+        vertical-align: top;
+    }
+
+    .row_container .image_button_container {
+        display: inline-block;
+    }
+
+    #bio_container .row_container .edit_field_container {
+        max-width: 35em;
+    }
+
+
+    #mug_shot {
+        max-width: 65em;
+        padding: 1em 1em 1em 0;
+    }
+
+    #mug_shot .template-download,
+    #mug_shot .img_preview_container,
+    #mug_shot .button_container {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    #mug_shot .img_preview_container {
+        padding-right: 1em;
+    }
+
+    #mug_shot .row_container .placeholder_torso {
+        display: inline-block;
+    }
+
+    #mug_shot .row_container .arrow_container {
+        display: inline-block;
+    }
+
+    #mug_shot .no_photo_section {
+        display: none;
+        vertical-align: top;
+    }
+    #mug_shot .has_photo_section {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    #mug_shot .has_photo_section .files > div {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    #mug_shot .template-upload .progress_buttons_container > div {
+        display: inline-block;
+        vertical-align: top;
+    }
+    #mug_shot .template-upload .progress_buttons_container .progress-striped {
+        min-width: 20em;
+    }
+}
+
+
+/* bootstrap 2.3.2 for jquery-file-upload */
+.fade {
+  opacity: 0;
+  -webkit-transition: opacity 0.15s linear;
+  -moz-transition: opacity 0.15s linear;
+  -o-transition: opacity 0.15s linear;
+  transition: opacity 0.15s linear;
+}
 
 /* temp stuff end /// */

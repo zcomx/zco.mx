@@ -24,7 +24,7 @@ class CustomLinks(object):
             table: gluon.dal.Table instance, the table the links are associated
                     with. Eg db.creator or db.book
             record_id: integer, the id of the record in table the links are
-                    associated with.
+                    associated with. Eg value of db.creator.id or db.book.id
         """
         self.table = table
         self.record_id = record_id

@@ -11,7 +11,7 @@ application.
 """
 import logging
 from gluon import *
-from gluon.sqlhtml import FormWidget
+from gluon.sqlhtml import FormWidget, UploadWidget
 
 # E1101: *%s %r has no %r member*
 # pylint: disable=E1101
@@ -53,6 +53,78 @@ class InputWidget(FormWidget):
         if self.class_extra:
             attr['_class'] = ' '.join([attr['_class'], self.class_extra])
         return INPUT(**attr)
+
+class SimpleUploadWidget(UploadWidget):
+    """Simplified upload widget.
+
+    Modifications:
+    * Remove the 'file' download link.
+    * Remove the brackets
+    * Position the buttons and checkbox to the right of the image.
+    """
+
+    @classmethod
+    def widget(cls, field, value, download_url=None, **attributes):
+        """
+        generates a INPUT file tag.
+
+        Optionally provides an A link to the file, including a checkbox so
+        the file can be deleted.
+        All is wrapped in a DIV.
+
+        see also: :meth:`FormWidget.widget`
+
+        :param download_url: Optional URL to link to the file (default = None)
+        """
+
+        default = dict(_type='file',)
+        attr = cls._attributes(field, default, **attributes)
+
+        inp = INPUT(**attr)
+
+        if download_url and value:
+            if callable(download_url):
+                url = download_url(value)
+            else:
+                url = download_url + '/' + value
+            (br, image) = ('', '')
+            if UploadWidget.is_image(value):
+                br = BR()
+                image = IMG(_src=url, _width=cls.DEFAULT_WIDTH)
+
+            requires = attr["requires"]
+            if requires == [] or isinstance(requires, IS_EMPTY_OR):
+                inp = DIV(
+                        DIV(
+                            image,
+                            _class='image_widget_img',
+                            ),
+                        DIV(
+                            inp,
+                            SPAN(INPUT(_type='checkbox',
+                                         _name=field.name + cls.ID_DELETE_SUFFIX,
+                                         _id=field.name + cls.ID_DELETE_SUFFIX),
+                                LABEL(current.T(cls.DELETE_FILE),
+                                         _for=field.name + cls.ID_DELETE_SUFFIX,
+                                         _style='display:inline'),
+                            _style='white-space:nowrap'),
+                            _class='image_widget_buttons',
+                            ),
+                         SCRIPT("""
+                         jQuery('.image_widget_buttons input[type=file]').change(function(e) {
+                            $(this).closest('form').submit();
+                         });
+                         """ % dict(name=field.name + cls.ID_DELETE_SUFFIX)
+                         ),
+                        _class='image_widget_container row'
+                        )
+            else:
+                inp = DIV(inp,
+                          SPAN('[',
+                               A(current.T(cls.GENERIC_DESCRIPTION),_href=url),
+                               ']', _style='white-space:nowrap'),
+                          br, image)
+        return inp
 
 
 class LocalSQLFORM(SQLFORM):

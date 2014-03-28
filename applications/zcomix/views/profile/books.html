@@ -1,28 +1,101 @@
+{{from applications.zcomix.modules.books import read_link}}
 {{extend 'profile/layout.html'}}
 <div>
     <div class="books_list_title">
     <h4>RELEASED</h4>
-    <a onclick="web2py_component('{{=URL(c='search', f='list_grid', vars={'creator_id': request.args(0), 'released': 1, 'rw': 1}, extension='load')}}', 'released_container');" title="Refresh">
-        <span class="glyphicon glyphicon-refresh"></span>
-    </a>
     </div>
     <div id="released_container">
-    {{=LOAD(c='search', f='list_grid', vars={'creator_id': request.args(0), 'released': 1, 'rw': 1}, extension='load', ajax=True, target='released_container', content='')}}
+        <table class="table table-condensed table-hover table-striped">
+            {{for book in released:}}
+            <tr>
+                <td>{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>
+                <td>{{=book.release_date.year}}</td>
+                <td>
+                    {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
+                </td>
+                <td>
+                    {{=A(
+                        'Upload',
+                        _class='btn btn-default',
+                        _href=URL(c='profile', f='book_pages', args=book.id),
+                        _type='button',
+                    )}}
+                </td>
+                <td>
+                    {{=A(
+                        'Edit',
+                        _class='btn btn-default',
+                        _href=URL(c='profile', f='book_edit', args=book.id),
+                        _type='button',
+                    )}}
+                </td>
+                <td>
+                    {{=A(
+                        I('', _class='icon fi-trash size-18 fixme'),
+                        _href=URL('fixme'),
+                    )}}
+                </td>
+            </tr>
+            {{pass}}
+            {{if not released:}}
+            <tr>
+                <td colspan="7">No records found.</td>
+            </tr>
+            {{pass}}
+        </table>
     </div>
 
     <div class="books_list_title">
     <h4>ONGOING</h4>
-    <a onclick="web2py_component('{{=URL(c='search', f='list_grid', vars={'creator_id': request.args(0), 'released': 0, 'rw': 1}, extension='load')}}', 'ongoing_container');" title="Refresh">
-        <span class="glyphicon glyphicon-refresh"></span>
-    </a>
-    </div>
-    <div>
-        <a href="{{=URL('book_edit')}}" class="btn btn-default">Add</a>
     </div>
     <div id="ongoing_container">
-    {{=LOAD(c='search', f='list_grid', vars={'creator_id': request.args(0), 'released': 0, 'rw': 1}, extension='load', ajax=True, target='ongoing_container', content='')}}
+        <table class="table table-condensed table-hover table-striped">
+            {{for book in ongoing:}}
+            <tr>
+                <td>{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>
+                <td>
+                    {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
+                </td>
+                <td>
+                    {{=A(
+                        'Upload',
+                        _class='btn btn-default',
+                        _href=URL(c='profile', f='book_pages', args=book.id),
+                        _type='button',
+                    )}}
+                </td>
+                <td>
+                    {{=A(
+                        'Edit',
+                        _class='btn btn-default',
+                        _href=URL(c='profile', f='book_edit', args=book.id),
+                        _type='button',
+                    )}}
+                </td>
+                <td>
+                    {{=A(
+                        I('', _class='icon fi-trash size-18 fixme'),
+                        _href=URL('fixme'),
+                    )}}
+                </td>
+                <td>
+                    {{=A(
+                        'Release',
+                        _class='btn btn-default',
+                        _href=URL(c='profile', f='book_release', args=book.id),
+                        _type='button',
+                    )}}
+                </td>
+            </tr>
+            {{pass}}
+            {{if not ongoing:}}
+            <tr>
+                <td colspan="7">No records found.</td>
+            </tr>
+            {{pass}}
+        </table>
+    </div>
+    <div>
+        <a href="{{=URL('book_edit')}}" class="btn btn-default fixme">Add</a>
     </div>
 </div>
-<script>
-    var w2p_ajax_confirm_message = 'Deleting this book will remove all its pages, all its image files and all statistics related to it (ratings, views, etc). Are you sure you want to delete this book?'
-</script>
