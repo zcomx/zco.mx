@@ -172,8 +172,6 @@ class TestFunctions(LocalTestCase):
                 'books': 'link',
                 'book_edit': None,
                 'book_pages': None,
-                'book_links': None,
-                'book_link_edit': None,
                 'book_release': None,
             }),
             ('creator', {
@@ -182,8 +180,6 @@ class TestFunctions(LocalTestCase):
                 'books': 'link',
                 'book_edit': None,
                 'book_pages': None,
-                'book_links': None,
-                'book_link_edit': None,
                 'book_release': None,
             }),
             ('books', {
@@ -192,8 +188,6 @@ class TestFunctions(LocalTestCase):
                 'books': 'text',
                 'book_edit': None,
                 'book_pages': None,
-                'book_links': None,
-                'book_link_edit': None,
                 'book_release': None,
             }),
             ('book_edit', {
@@ -202,18 +196,6 @@ class TestFunctions(LocalTestCase):
                 'books': 'link',
                 'book_edit': 'text',
                 'book_pages': 'link',
-                'book_links': 'link',
-                'book_link_edit': None,
-                'book_release': None,
-            }),
-            ('book_link_edit', {
-                'account': 'link',
-                'creator': 'link',
-                'books': 'link',
-                'book_edit': 'link',
-                'book_pages': None,
-                'book_links': 'link',
-                'book_link_edit': 'text',
                 'book_release': None,
             }),
         ]

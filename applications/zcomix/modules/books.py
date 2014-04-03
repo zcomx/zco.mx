@@ -184,7 +184,7 @@ def default_contribute_amount(db, book_entity):
         book = db(db.book.id == book_entity).select().first()
 
     page_count = db(db.book_page.book_id == book.id).count()
-    amount = rate_per_page * page_count
+    amount = round(rate_per_page * page_count)
     if amount < minimum:
         amount = minimum
     if amount > maximum:

@@ -21,7 +21,12 @@ class TestFunctions(LocalTestCase):
     titles = {
         'data': '<h2>Not authorized</h2>',
         'index': 'This is a not-for-profit site dedicated to promoting',
-        'user': '<h2>Login</h2>',
+        'user': [
+            'web2py_user_form',
+            'web2py_user_form_container',
+            'forgot_password_container',
+            'register_container'
+        ],
     }
     url = '/zcomix/default'
 
@@ -46,15 +51,19 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
     def test__index(self):
-        self.assertTrue(web.test('{url}/index'.format(url=self.url),
-            self.titles['index']))
+        self.assertTrue(web.test(
+            '{url}/index'.format(url=self.url),
+            self.titles['index']
+        ))
 
         # Test that settings.conf is respected
         self.assertEqual(auth.settings.expiration, 86400)
 
     def test__user(self):
-        self.assertTrue(web.test('{url}/user'.format(url=self.url),
-            self.titles['user']))
+        self.assertTrue(web.test(
+            '{url}/user'.format(url=self.url),
+            self.titles['user']
+        ))
 
 
 def setUpModule():

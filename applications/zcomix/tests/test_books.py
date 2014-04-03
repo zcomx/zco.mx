@@ -129,9 +129,9 @@ class TestFunctions(ImageTestCase):
         url = '/images/download/{img}'.format(img=self._book_page.image)
         thumb = '/images/download/{img}?size=thumb'.format(img=self._book_page.image)
         delete_url = '/profile/book_pages_handler/{bid}?book_page_id={pid}'.format(
-                bid=self._book_page.book_id,
-                pid=self._book_page.id
-                )
+            bid=self._book_page.book_id,
+            pid=self._book_page.id
+        )
 
         self.assertEqual(
             book_page_for_json(db, self._book_page.id),
@@ -150,7 +150,7 @@ class TestFunctions(ImageTestCase):
     def test__cover_image(self):
 
         placeholder = \
-            '<img src="/zcomix/static/images/portrait_placeholder.png" />'
+            '<div class="portrait_placeholder"></div>'
 
         self.assertEqual(str(cover_image(db, 0)), placeholder)
 
@@ -207,7 +207,7 @@ class TestFunctions(ImageTestCase):
             while page_count < t[0]:
                 page_id = db.book_page.insert(
                     book_id=book_id,
-                    page_no=(count + 1),
+                    page_no=(page_count + 1),
                 )
                 page = db(db.book_page.id == page_id).select().first()
                 self._objects.append(page)

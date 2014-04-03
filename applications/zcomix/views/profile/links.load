@@ -1,6 +1,0 @@
-<div>
-    {{table = 'book' if book else 'creator'}}
-    {{args = book.id if book else None}}
-    <a href="{{=URL('{t}_link_edit'.format(t=table), args=args, extension=False)}}" class="btn btn-default">Add</a>
-</div>
-{{=grid}}

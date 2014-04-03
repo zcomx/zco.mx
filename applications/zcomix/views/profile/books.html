@@ -25,7 +25,7 @@
                     {{=A(
                         'Edit',
                         _class='btn btn-default modal-btn',
-                        _href=URL(c='profile', f='book_edit_modal', args=book.id),
+                        _href=URL(c='profile', f='book_edit', args=book.id),
                         _type='button',
                     )}}
                 </td>
@@ -68,7 +68,7 @@
                     {{=A(
                         'Edit',
                         _class='btn btn-default modal-btn',
-                        _href=URL(c='profile', f='book_edit_modal', args=book.id),
+                        _href=URL(c='profile', f='book_edit', args=book.id),
                         _type='button',
                     )}}
                 </td>
@@ -100,54 +100,4 @@
     </div>
 </div>
 <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
-<script>
-//<![CDATA[
-    function get_message(elem) {
-        console.log('get_message called');
-        var url = elem.attr('href');
-        return $('<div>Loading...</div>').load(url, function(){
-            set_color_widgets();
-        });
-    }
-
-    function get_title(elem) {
-        var tr = elem.closest('tr');
-        var td = tr.find('td').first();
-        return td.text();
-    }
-
-    function submit_form(elem) {
-        var form = elem.find('form').first();
-        form.submit();
-    }
-
-    $(document).ready(function(){
-        $('.modal-btn').click(function(event){
-            var link = $(this);
-            new BootstrapDialog({
-                title   :   get_title(link),
-                message :   get_message(link),
-                buttons :   [
-                    {
-                        label   :   'Cancel',
-                        action :   function(dialog){
-                            dialog.close();
-                        }
-                    },
-                    {
-                        label   :   'OK',
-                        action :   function(dialog){
-                            submit_form(dialog.getModal());
-                            dialog.close();
-                        }
-                    },
-                ],
-            }).open();
-
-            event.preventDefault();
-        });
-    });
-//]]>
-</script>
-<script src="{{=URL(c='static', f='bgrins-spectrum-28ab793/spectrum.js')}}"> </script>
-<script src="{{=URL(c='static', f='js/book_edit.js')}}"> </script>
+<script src="{{=URL(c='static', f='js/books.js')}}"> </script>

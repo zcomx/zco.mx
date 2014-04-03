@@ -18,15 +18,17 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 class TestFunctions(LocalTestCase):
 
     titles = {
-            'books': ['<h4>RELEASED</h4>', '<h4>ONGOING</h4>'],
-            'creator': '<div id="creator_page">',
-            'default': 'This is a not-for-profit site dedicated to promoting',
-            }
+        'books': ['<h4>RELEASED</h4>', '<h4>ONGOING</h4>'],
+        'creator': '<div id="creator_page">',
+        'default': 'This is a not-for-profit site dedicated to promoting',
+    }
     url = '/zcomix/creators'
 
     def test__books(self):
-        self.assertTrue(web.test('{url}/books.load'.format(url=self.url),
-            self.titles['books']))
+        self.assertTrue(web.test(
+            '{url}/books.load'.format(url=self.url),
+            self.titles['books']
+        ))
 
     def test__creator(self):
         creators = db(db.creator.auth_user_id > 0).select(
@@ -40,16 +42,21 @@ class TestFunctions(LocalTestCase):
         auth_user = db(db.auth_user.id == creator.auth_user_id).select().first()
 
         # Without a creator id, should revert to default page.
-        self.assertTrue(web.test('{url}/creator'.format(url=self.url),
-            self.titles['default']))
+        self.assertTrue(web.test(
+            '{url}/creator'.format(url=self.url),
+            self.titles['default']
+        ))
 
         self.assertTrue(web.test('{url}/creator/{id}'.format(
             url=self.url, id=creator.id),
-            [self.titles['creator'], auth_user.name]))
+            self.titles['creator']
+        ))
 
     def test__index(self):
-        self.assertTrue(web.test('{url}/index'.format(url=self.url),
-            self.titles['default']))
+        self.assertTrue(web.test(
+            '{url}/index'.format(url=self.url),
+            self.titles['default']
+        ))
 
 
 def setUpModule():

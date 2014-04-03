@@ -20,14 +20,14 @@ class TestFunctions(LocalTestCase):
     _invalid_book_id = None
 
     titles = {
-            'book': '<div id="book_page">',
-            'carousel': '<div id="carousel_page">',
-            'default': 'This is a not-for-profit site dedicated to promoting',
-            'gallery': '<div id="gallery_page">',
-            'reader': '<div id="reader_page">',
-            'scroller': '<div id="scroller_page">',
-            'slider': '<div id="slider_page">',
-            }
+        'book': '<div id="book_page">',
+        'carousel': '<div id="carousel_page">',
+        'default': 'This is a not-for-profit site dedicated to promoting',
+        'gallery': '<div id="blueimp-gallery-carousel"',
+        'reader': '<div id="reader_section">',
+        'scroller': '<div id="scroller_page">',
+        'slider': '<div id="slider_page">',
+    }
     url = '/zcomix/books'
 
     # C0103: *Invalid name "%s" (should match %s)*

@@ -5,15 +5,6 @@
 <div id="editable_fields_container"></div>
 <div id="links_container">
     <div id="edit_links_container"></div>
-    <div id="add_link_container">
-        <div class="arrow_container"></div>
-        <div class="input_container">
-            <input type="text" name="link_name" value="" id="link_name">
-        </div>
-        <div class="input_container">
-            <input type="text" name="link_url" value="" id="link_url" placeholder="http://www.example.com">
-        </div>
-    </div>
 </div>
 <div id="bio_container"></div>
 <div id="mug_shot">
@@ -166,14 +157,34 @@
             'value': '{{=creator.tumblr}}',
             'append_to': '#edit_links_container',
         },
+    }
+
+    var bio_data = {
         'bio': {
             'label': '{{=db.creator.bio.label}}',
             'value': '{{=dumps(creator.bio).strip('"')}}',
             'jeditable_settings': {'type': 'textarea'},
-            'append_to': '#bio_container',
         },
     }
 //]]>
 </script>
-<script src="{{=URL(c='static', f='js/links_editable.js')}}"> </script>
+<script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('#editable_fields_container').inplace_crud(
+            '{{=URL(c='profile', f='creator_crud.json')}}',
+            {source_data: creator_data}
+        );
+        $('#edit_links_container').inplace_crud(
+            '{{=URL(c='profile', f='link_crud.json')}}',
+            {links: true}
+        );
+        $('#bio_container').inplace_crud(
+            '{{=URL(c='profile', f='creator_crud.json')}}',
+            {source_data: bio_data}
+        );
+    });
+//]]>
+</script>
 <script src="{{=URL(c='static', f='js/creator_fileupload.js')}}"> </script>

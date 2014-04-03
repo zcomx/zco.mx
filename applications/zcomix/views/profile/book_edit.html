@@ -1,13 +1,64 @@
-{{extend 'profile/layout.html'}}
-{{from gluon.contrib.simplejson import dumps}}
-<div>
-{{=form}}
-</div>
+<div id="book_edit_section">
+
 <div id="editable_fields_container"></div>
-<script src="{{=URL(c='static', f='js/links_editable.js')}}"> </script>
+<div id="links_container">
+    <div id="edit_links_container"></div>
+</div>
+</div>
+<script src="{{=URL(c='static', f='bgrins-spectrum-28ab793/spectrum.js')}}"> </script>
+<script src="{{=URL(c='static', f='js/jquery.jeditable.mini.js')}}"> </script>
 <script>
 //<![CDATA[
     var book_data = {
+        'name': {
+            'label': '{{=db.book.name.label}}',
+            'value': '{{=book.name}}',
+        },
+        'description': {
+            'label': '{{=db.book.description.label}}',
+            'value': '{{=book.description}}',
+            'jeditable_settings': {'type': 'textarea'},
+        },
+        {{if book.release_date:}}
+        'release_date': {
+            'label': '{{=db.book.release_date.label}}',
+            'value': '{{=book.release_date}}',
+            'jeditable_settings': {'type': 'date'},
+        },
+        {{pass}}
+        'background_colour': {
+            'label': '{{=db.book.background_colour.label}}',
+            'value': '{{=book.background_colour}}',
+            'jeditable_settings': {'type': 'colour_picker'},
+        },
+        'border_colour': {
+            'label': '{{=db.book.border_colour.label}}',
+            'value': '{{=book.border_colour}}',
+            'jeditable_settings': {'type': 'colour_picker'},
+        },
+        'reader': {
+            'label': '{{=db.book.reader.label}}',
+            'value': '{{=book.reader}}',
+            'jeditable_settings': {
+                'type': 'select_with_style',
+                'data': "{'scroller':'scroller','slider':'slider','selected': '{{=book.reader}}'}",
+            },
+        },
     }
+//]]>
+</script>
+<script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('#editable_fields_container').inplace_crud(
+            '{{=URL(c='profile', f='book_crud.json', args=book.id)}}',
+            {source_data: book_data}
+        );
+        $('#edit_links_container').inplace_crud(
+            '{{=URL(c='profile', f='link_crud.json', args=book.id)}}',
+            {links: true}
+        );
+    });
 //]]>
 </script>

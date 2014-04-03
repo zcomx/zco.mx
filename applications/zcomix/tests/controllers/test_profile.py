@@ -19,24 +19,36 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 class TestFunctions(LocalTestCase):
 
     _book = None
+    _book_page = None
+    _book_to_link = None
     _creator = None
     _creator_to_link = None
-    _book_to_link = None
     _user = None
 
     titles = {
         'account': '<div class="well well-sm" id="account">',
         'book_edit': '<div class="well well-sm" id="book_edit">',
-        'book_link_edit': '<div class="well well-sm" id="book_link_edit">',
-        'book_links': '<div class="well well-sm" id="book_links">',
         'book_pages': '<div class="well well-sm" id="book_pages">',
-        'book_pages_handler': '<div class="well well-sm" id="book_pages_handler">',
-        'book_pages_reorder': '<div class="well well-sm" id="book_pages_reorder">',
+        'book_pages_handler_fail': [
+            '{"files":',
+            'Upload service unavailable',
+        ],
+        'book_pages_handler': [
+            '{"files":',
+            '"thumbnailUrl"',
+        ],
+        'book_pages_reorder_fail': [
+            '"success": false',
+            '"error": "Reorder service unavailable."',
+        ],
+        'book_pages_reorder': [
+            '"success": true',
+        ],
         'book_release': '<div class="well well-sm" id="book_release">',
         'books': '<div class="well well-sm" id="books">',
         'creator': '<div class="well well-sm" id="creator">',
         'default': 'This is a not-for-profit site dedicated to promoting',
-        'index': '<div class="well well-sm" id="index">',
+        'index': '<div class="well well-sm" id="account">',
         'links': [
             'href="/zcomix/profile/links.load/new/link',
             'Add</span>',
@@ -54,26 +66,45 @@ class TestFunctions(LocalTestCase):
     @classmethod
     def setUpClass(cls):
         # Get the data the tests will use.
-        email = 'iiijjjiii+pgrant@gmail.com'
-        cls._user = db(db.auth_user.email == email).select().first()
+        cls._user = db(db.auth_user.email == web.username).select().first()
         if not cls._user:
-            self.fail('No user with email: {e}'.format(e=email))
+            raise SyntaxError('No user with email: {e}'.format(e=email))
 
         cls._creator = db(db.creator.auth_user_id == cls._user.id).select().first()
         if not cls._creator:
-            self.fail('No creator with email: {e}'.format(e=email))
+            raise SyntaxError('No creator with email: {e}'.format(e=email))
 
-        cls._book = db(db.book.creator_id == cls._creator.id).select().first()
+        # Get a book by creator with pages and links.
+        count = db.book_page.book_id.count()
+        query = (db.creator.id == cls._creator.id)
+        book_page = db(query).select(
+            db.book_page.ALL,
+            count,
+            left=[
+                db.book.on(db.book.id == db.book_page.book_id),
+                db.book_to_link.on(db.book_to_link.book_id == db.book.id),
+                db.creator.on(db.creator.id == db.book.creator_id),
+            ],
+            groupby=db.book_page.book_id,
+            orderby=~count
+        ).first()
+
+        cls._book_page = db(db.book_page.id == book_page.book_page.id).select().first()
+        if not cls._book_page:
+            raise SyntaxError('Unable to get book_page for: {e}'.format(e=email))
+
+        query = (db.book.id == cls._book_page.book_id)
+        cls._book = db(query).select(db.book.ALL).first()
         if not cls._book:
-            self.fail('No books for creator with email: {e}'.format(e=email))
+            raise SyntaxError('No books for creator with email: {e}'.format(e=email))
 
         cls._creator_to_link = db(db.creator_to_link.creator_id == cls._creator.id).select(orderby=db.creator_to_link.order_no).first()
         if not cls._creator_to_link:
-            self.fail('No creator_to_link with email: {e}'.format(e=email))
+            raise SyntaxError('No creator_to_link with email: {e}'.format(e=email))
 
         cls._book_to_link = db(db.book_to_link.book_id == cls._book.id).select(orderby=db.book_to_link.order_no).first()
         if not cls._book_to_link:
-            self.fail('No book_to_link with email: {e}'.format(e=email))
+            raise SyntaxError('No book_to_link with email: {e}'.format(e=email))
 
     def test__account(self):
         self.assertTrue(web.test('{url}/account'.format(url=self.url),
@@ -88,38 +119,62 @@ class TestFunctions(LocalTestCase):
             bid=self._book.id, url=self.url),
             self.titles['book_edit']))
 
-    def test__book_link_edit(self):
-        # No book id, Add mode
-        self.assertTrue(web.test('{url}/book_link_edit'.format(url=self.url),
-            self.titles['book_link_edit']))
-
-    def test__book_links(self):
-        # No book id
-        self.assertTrue(web.test('{url}/book_links'.format(url=self.url),
-            self.titles['books']))
-
-        self.assertTrue(web.test('{url}/book_links/{bid}'.format(
-            bid=self._book.id, url=self.url),
-            self.titles['book_links']))
-
     def test__book_pages(self):
         # No book_id, redirects to books page
-        self.assertTrue(web.test('{url}/book_pages'.format(url=self.url),
-            self.titles['books']))
+        self.assertTrue(web.test(
+            '{url}/book_pages'.format(url=self.url),
+            self.titles['books']
+        ))
 
-        self.assertTrue(web.test('{url}/book_pages/{bid}'.format(
+        self.assertTrue(web.test(
+            '{url}/book_pages/{bid}'.format(
             bid=self._book.id, url=self.url),
-            self.titles['book_pages']))
+            self.titles['book_pages']
+        ))
 
     def test__book_pages_handler(self):
-        # No book_id, redirects to books page
+        # No book_id, return fail message
         self.assertTrue(web.test('{url}/book_pages_handler'.format(url=self.url),
-            self.titles['book_pages_handler']))
+            self.titles['book_pages_handler_fail']))
+
+        self.assertTrue(web.test('{url}/book_pages_handler/{bid}'.format(
+            bid=self._book.id,
+            url=self.url),
+            self.titles['book_pages_handler']
+        ))
 
     def test__book_pages_reorder(self):
-        # No book_id, redirects to books page
-        self.assertTrue(web.test('{url}/book_pages_reorder'.format(url=self.url),
-            self.titles['book_pages_reorder']))
+        # No book_id, return fail message
+        self.assertTrue(web.test(
+            '{url}/book_pages_reorder'.format(url=self.url),
+            self.titles['book_pages_reorder_fail']
+        ))
+
+        # Invalid book_id, return fail message
+        self.assertTrue(web.test(
+            '{url}/book_pages_reorder/{bid}'.format(
+            bid=999999,
+            url=self.url),
+            self.titles['book_pages_reorder_fail']
+        ))
+
+        # Invalid book_page_id, return fail message
+        self.assertTrue(web.test(
+            '{url}/book_pages_reorder/{bid}?book_page_id={bpid}'.format(
+            bid=self._book.id,
+            bpid=9999,
+            url=self.url),
+            self.titles['book_pages_reorder_fail']
+        ))
+
+        # Valid
+        self.assertTrue(web.test(
+            '{url}/book_pages_reorder/{bid}?book_page_id={bpid}'.format(
+            bid=self._book.id,
+            bpid=self._book_page.id,
+            url=self.url),
+            self.titles['book_pages_reorder']
+        ))
 
     def test__book_release(self):
         # No book_id, redirects to books page
@@ -142,18 +197,6 @@ class TestFunctions(LocalTestCase):
     def test__index(self):
         self.assertTrue(web.test('{url}/index'.format(url=self.url),
             self.titles['index']))
-
-    def test__links(self):
-        self.assertTrue(
-            web.test(
-                '{url}/links.load'.format(url=self.url),
-                self.titles['links']
-            )
-        )
-
-        self.assertTrue(web.test('{url}/links.load?book_id={bid}'.format(
-            bid=self._book.id, url=self.url),
-            self.titles['links_book']))
 
     def test__order_no_handler(self):
         self.assertTrue(web.test('{url}/order_no_handler'.format(url=self.url),

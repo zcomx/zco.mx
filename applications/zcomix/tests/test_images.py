@@ -277,36 +277,40 @@ class TestUploadImage(ImageTestCase):
 class TestFunctions(LocalTestCase):
 
     def test__img_tag(self):
-        def has_attr(tag, attr, value):
+        def get_tag(tag, tag_type):
             soup = BeautifulSoup(str(tag))
-            img = soup.find('img')
-            self.assertEqual(img[attr], value)
+            return soup.find(tag_type)
+
+        def has_attr(element, attr, value):
+            self.assertTrue(element)
+            self.assertTrue(hasattr(element, attr))
+            self.assertEqual(element[attr], value)
 
         tag = img_tag(None)
-        has_attr(tag, 'src', '/zcomix/static/images/portrait_placeholder.png')
+        has_attr(get_tag(tag, 'div'), 'class', 'portrait_placeholder')
 
         tag = img_tag(db.creator.image, size='original')
-        has_attr(tag, 'src', '/images/download?size=original')
+        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=original')
 
         tag = img_tag(db.creator.image, size='thumb')
-        has_attr(tag, 'src', '/images/download?size=thumb')
+        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=thumb')
 
         tag = img_tag(db.creator.image, size='_fake_')
-        has_attr(tag, 'src', '/images/download?size=original')
+        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=original')
 
         # Test img_attributes parameter
         attrs = dict(_class='img_class', _id='img_id', _style='height: 1px;')
         tag = img_tag(db.creator.image, img_attributes=attrs)
-        has_attr(tag, 'src', '/images/download?size=original')
-        has_attr(tag, 'class', 'img_class')
-        has_attr(tag, 'id', 'img_id')
-        has_attr(tag, 'style', 'height: 1px;')
+        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=original')
+        has_attr(get_tag(tag, 'img'), 'class', 'img_class')
+        has_attr(get_tag(tag, 'img'), 'id', 'img_id')
+        has_attr(get_tag(tag, 'img'), 'style', 'height: 1px;')
 
         # If _src is among img_attributes, it should supercede.
         attrs = dict(_src='http://www.src.com', _id='img_id')
         tag = img_tag(db.creator.image, img_attributes=attrs)
-        has_attr(tag, 'src', 'http://www.src.com')
-        has_attr(tag, 'id', 'img_id')
+        has_attr(get_tag(tag, 'img'), 'src', 'http://www.src.com')
+        has_attr(get_tag(tag, 'img'), 'id', 'img_id')
 
     def test__set_thumb_dimensions(self):
         book_page_id = db.book_page.insert(

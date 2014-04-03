@@ -146,17 +146,6 @@ def profile_wells(request):
             'parent': 'book_edit',
             'args': request.args,
         }),
-        ('book_links', {
-            'label': 'Book Links',
-            'parent': 'book_edit',
-            'show_children': False,         # Children links in grid
-            'args': request.args,
-        }),
-        ('book_link_edit', {
-            'label': 'Book Link Edit',
-            'parent': 'book_links',
-            'args': request.args,
-        }),
         ('book_release', {
             'label': 'Book Release',
             'parent': 'books',
