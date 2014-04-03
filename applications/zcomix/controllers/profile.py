@@ -127,6 +127,50 @@ def book_edit():
 
 
 @auth.requires_login()
+def book_edit_modal():
+    """Book edit controller for modal view.
+
+    request.args(0): integer, id of book
+    """
+    import sys; print >> sys.stderr, 'FIXME request.args: {var}'.format(var=request.args)
+    import sys; print >> sys.stderr, 'FIXME request.vars: {var}'.format(var=request.vars)
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL('books'))
+
+    book_record = None
+    if request.args(0):
+        book_record = db(db.book.id == request.args(0)).select(
+            db.book.ALL
+        ).first()
+    if (request.args(0) and not book_record) or \
+            (book_record and book_record.creator_id != creator_record.id):
+        redirect(URL('books'))
+
+    response.files.append(
+        URL('static', 'bgrins-spectrum-28ab793/spectrum.css')
+    )
+    response.files.append(
+        URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
+    )
+
+    crud.settings.update_deletable = False
+    crud.settings.formstyle = formstyle_bootstrap3_custom
+    if request.args(0):
+        # Reload page to prevent consecutive self-submit warnings
+        crud.settings.update_next = URL('book_edit', args=request.args)
+        form = crud.update(db.book, book_record.id)
+    else:
+        db.book.creator_id.default = creator_record.id
+        crud.settings.create_next = URL('books')
+        form = crud.create(db.book)
+
+    return dict(form=form)
+
+
+@auth.requires_login()
 def book_link_edit():
     """Book edit controller.
 
@@ -454,6 +498,10 @@ def books():
     ).first()
     if not creator_record:
         redirect(URL('index'))
+
+    response.files.append(
+        URL('static', 'bgrins-spectrum-28ab793/spectrum.css')
+    )
 
     creator_query = (db.book.creator_id == creator_record.id)
     released_query = creator_query & (db.book.release_date != None)
