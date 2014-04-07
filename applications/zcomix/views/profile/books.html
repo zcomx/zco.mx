@@ -99,5 +99,9 @@
         <a href="{{=URL('book_edit')}}" class="btn btn-default fixme">Add</a>
     </div>
 </div>
-<script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
+{{if DEBUG:}}
+    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
+{{else:}}
+    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
+{{pass}}
 <script src="{{=URL(c='static', f='js/books.js')}}"> </script>

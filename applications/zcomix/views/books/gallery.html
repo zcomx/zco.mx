@@ -17,11 +17,12 @@
     {{pass}}
 </div>
 
-<!--
-<script src="{{=URL('static', 'blueimp/Gallery/js/blueimp-gallery.min.js')}}"></script>
--->
 <script src="{{=URL('static', 'blueimp/Gallery/js/blueimp-helper.js')}}"></script>
-<script src="{{=URL('static', 'blueimp/Gallery/js/blueimp-gallery.js')}}"></script>
+{{if DEBUG:}}
+    <script src="{{=URL('static', 'blueimp/Gallery/js/blueimp-gallery.js')}}"></script>
+{{else:}}
+    <script src="{{=URL('static', 'blueimp/Gallery/js/blueimp-gallery.min.js')}}"></script>
+{{pass}}
 <script src="{{=URL('static', 'blueimp/Gallery/js/blueimp-gallery-fullscreen.js')}}"></script>
 <script src="{{=URL('static', 'blueimp/Gallery/js/blueimp-gallery-indicator.js')}}"></script>
 <script src="{{=URL('static', 'blueimp/Gallery/js/blueimp-gallery-video.js')}}"></script>

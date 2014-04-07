@@ -6,7 +6,11 @@
 </div>
 </div>
 <script src="{{=URL(c='static', f='bgrins-spectrum-28ab793/spectrum.js')}}"> </script>
-<script src="{{=URL(c='static', f='js/jquery.jeditable.mini.js')}}"> </script>
+{{if DEBUG:}}
+    <script src="{{=URL(c='static', f='js/jquery.jeditable.js')}}"> </script>
+{{else:}}
+    <script src="{{=URL(c='static', f='js/jquery.jeditable.mini.js')}}"> </script>
+{{pass}}
 <script>
 //<![CDATA[
     var book_data = {

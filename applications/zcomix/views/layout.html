@@ -83,6 +83,7 @@
     {{pass}}
     </header>
   </div> <!-- /container -->
+  {{=DEBUG}}
 
             {{include}}
 
@@ -129,7 +130,12 @@
 
   <!-- The javascript =============================================
        (Placed at the end of the document so the pages load faster) -->
-  <script src="{{=URL('static','bootstrap/js/bootstrap.min.js')}}"></script>
+  {{if DEBUG:}}
+      <script src="{{=URL('static','bootstrap/js/bootstrap.js')}}"></script>
+  {{else:}}
+      <script src="{{=URL('static','bootstrap/js/bootstrap.min.js')}}"></script>
+  {{pass}}
+
   <script src="{{=URL('static','js/web2py_bootstrap.js')}}"></script>
   <!--[if lt IE 7 ]>
       <script src="{{=URL('static','js/dd_belatedpng.js')}}"></script>
