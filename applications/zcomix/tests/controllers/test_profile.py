@@ -27,7 +27,11 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'account': '<div class="well well-sm" id="account">',
-        'book_edit': '<div class="well well-sm" id="book_edit">',
+        'book_add': [
+            '<div id="book_edit_section">',
+            "'value': '__Untitled-",
+        ],
+        'book_edit': '<div id="book_edit_section">',
         'book_pages': '<div class="well well-sm" id="book_pages">',
         'book_pages_handler_fail': [
             '{"files":',
@@ -110,10 +114,14 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test('{url}/account'.format(url=self.url),
             self.titles['account']))
 
+    def test__book_add(self):
+        self.assertTrue(web.test('{url}/book_add'.format(url=self.url),
+            self.titles['book_add']))
+
     def test__book_edit(self):
-        # No book id, Add mode
+        # No book id, redirect to books
         self.assertTrue(web.test('{url}/book_edit'.format(url=self.url),
-            self.titles['book_edit']))
+            self.titles['books']))
 
         self.assertTrue(web.test('{url}/book_edit/{bid}'.format(
             bid=self._book.id, url=self.url),

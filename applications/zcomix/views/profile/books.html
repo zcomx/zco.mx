@@ -96,7 +96,12 @@
         </table>
     </div>
     <div>
-        <a href="{{=URL('book_edit')}}" class="btn btn-default fixme">Add</a>
+        {{=A(
+            'Add',
+            _class='btn btn-default modal-btn modal-add-btn',
+            _href=URL(c='profile', f='book_add'),
+            _type='button',
+        )}}
     </div>
 </div>
 {{if DEBUG:}}

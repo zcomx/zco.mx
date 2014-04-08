@@ -3,7 +3,7 @@
 
     function get_message(elem) {
         var url = elem.attr('href');
-        return $('<div>Loading...</div>').load(url);
+        return $('<div></div>').load(url);
     }
 
     function get_title(elem) {
@@ -27,6 +27,11 @@
             new BootstrapDialog({
                 title: get_title(link),
                 message: get_message(link),
+                onhide: function(dialog) {
+                    if (link.hasClass('modal-add-btn')) {
+                        window.location.reload();
+                    }
+                },
                 onshow: onshow_callback,
                 buttons: [
                     {

@@ -38,6 +38,43 @@ def account():
 
 
 @auth.requires_login()
+def book_add():
+    """Add a book and redirect to book_edit controller.
+
+    request.args(0): integer, id of book
+    """
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL('books'))
+
+    query = (db.book.creator_id == creator_record.id) &  \
+            (db.book.name.like('__Untitled%__'))
+    try:
+        count = len(db(query).select(db.book.id)) + 1
+    except TypeError:
+        count = 1
+
+    name = '__Untitled-{nn:02d}__'.format(nn=count)
+
+    book_id = db.book.insert(
+        name=name,
+        creator_id=creator_record.id,
+    )
+    db.commit()
+
+    book_record = db(db.book.id == book_id).select(
+        db.book.ALL
+    ).first()
+    if (not book_record) or \
+            (book_record and book_record.creator_id != creator_record.id):
+        redirect(URL('books'))
+
+    redirect(URL('book_edit', args=book_record.id))
+
+
+@auth.requires_login()
 def book_crud():
     """Handler for ajax book CRUD calls.
 
@@ -98,7 +135,7 @@ def book_edit():
         book_record = db(db.book.id == request.args(0)).select(
             db.book.ALL
         ).first()
-    if (request.args(0) and not book_record) or \
+    if not book_record or \
             (book_record and book_record.creator_id != creator_record.id):
         redirect(URL('books'))
 
@@ -559,7 +596,8 @@ def link_crud():
     book_record = None
     if request.args(0):
         book_record = db(db.book.id == request.args(0)).select(
-                db.book.ALL).first()
+            db.book.ALL
+        ).first()
         if not book_record:
             return do_error('Invalid data provided.')
 

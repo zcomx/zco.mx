@@ -16,17 +16,17 @@
     var book_data = {
         'name': {
             'label': '{{=db.book.name.label}}',
-            'value': '{{=book.name}}',
+            'value': '{{=book.name or ""}}',
         },
         'description': {
             'label': '{{=db.book.description.label}}',
-            'value': '{{=book.description}}',
+            'value': '{{=book.description or ""}}',
             'jeditable_settings': {'type': 'textarea'},
         },
         {{if book.release_date:}}
         'release_date': {
             'label': '{{=db.book.release_date.label}}',
-            'value': '{{=book.release_date}}',
+            'value': '{{=book.release_date or ""}}',
             'jeditable_settings': {'type': 'date'},
         },
         {{pass}}
