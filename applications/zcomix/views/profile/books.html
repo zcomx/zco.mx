@@ -5,7 +5,7 @@
     <h4>RELEASED</h4>
     </div>
     <div id="released_container">
-        <table class="table table-condensed table-hover table-striped">
+        <table class="table table-condensed table-hover">
             {{for book in released:}}
             <tr>
                 <td>{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>
@@ -51,7 +51,7 @@
     <h4>ONGOING</h4>
     </div>
     <div id="ongoing_container">
-        <table class="table table-condensed table-hover table-striped">
+        <table class="table table-condensed table-hover">
             {{for book in ongoing:}}
             <tr>
                 <td>{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>

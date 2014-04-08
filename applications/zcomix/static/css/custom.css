@@ -139,6 +139,23 @@ div.centered table {
     margin-top: 12%;
 }
 
+#profile_page .books_list_title h4 {
+    margin-bottom: 0;
+    margin-top: 2em;
+    line-height: 1;
+}
+
+
+#profile_page .table > thead > tr > th,
+#profile_page .table > tbody > tr > th,
+#profile_page .table > tfoot > tr > th,
+#profile_page .table > thead > tr > td,
+#profile_page .table > tbody > tr > td,
+#profile_page .table > tfoot > tr > td {
+    border-top: 1px solid #EEEEEE;
+    vertical-align: middle;
+}
+
 #profile_page .well {
     margin-bottom: 10px;
     margin-top: 10px;
@@ -1035,6 +1052,8 @@ div.centered table {
 .row_container .edit_field_container.field_label {
     color: #666666;
     font-weight: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .add_link_container .error_wrapper div.error,
@@ -1054,7 +1073,7 @@ div.centered table {
 }
 
 #add_link_container .link_name {
-    width: 10em;
+    width: 12em;
 }
 
 .row_container .btn-xs {
@@ -1178,14 +1197,14 @@ div.centered table {
         margin-right: 1em;
         min-height: 1.6em;
         text-align: right;
-        width: 10em;
+        width: 12em;
     }
 
     .row_container .edit_field_container,
     .row_container .image_field_container,
     .row_container .field_label {
         display: inline-block;
-        min-width: 10em;
+        min-width: 12em;
         margin-top: 0.2em;
     }
 
