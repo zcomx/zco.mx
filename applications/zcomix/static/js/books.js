@@ -62,7 +62,15 @@
                 message: get_message(link),
                 onshow: onshow_callback,
                 buttons: [
-                    close_button(),
+                    {
+                        label: 'Delete',
+                        action : function(dialog){
+                            var modal_body = dialog.getModalBody();
+                            var form = $(modal_body).find('form').first();
+                            form.submit();
+                        }
+                    },
+                    close_button('Cancel'),
                 ],
             }).open();
             event.preventDefault();

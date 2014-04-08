@@ -40,8 +40,6 @@ def account():
 @auth.requires_login()
 def book_add():
     """Add a book and redirect to book_edit controller.
-
-    request.args(0): integer, id of book
     """
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
@@ -116,6 +114,69 @@ def book_crud():
     return {
         'errors': ret.errors,
     }
+
+
+@auth.requires_login()
+def book_delete():
+    """Delete a book controller.
+
+    request.args(0): integer, id of book.
+    """
+    import sys; print >> sys.stderr, 'FIXME request.args: {var}'.format(var=request.args)
+    import sys; print >> sys.stderr, 'FIXME request.vars: {var}'.format(var=request.vars)
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL('books'))
+
+    book_record = None
+    if request.args(0):
+        book_record = db(db.book.id == request.args(0)).select(
+            db.book.ALL
+        ).first()
+    if not book_record or book_record.creator_id != creator_record.id:
+        redirect(URL('books'))
+
+    form = SQLFORM.factory(
+        Field('dummy'),
+        _action=URL('book_delete', args=request.args),
+    )
+
+    success_msg = '{name} deleted.'.format(name=book_record.name)
+
+    if form.process(
+        keepvalues=True,
+        formname='book_delete',
+        message_onsuccess=success_msg
+    ).accepted:
+        # FIXME delete torrent
+        # FIXME remove book from creator torrent
+        # FIXME remove book from ALL torrent
+
+        # Delete all records associated with the book.
+        for t in ['book_page', 'book_view', 'contribution', 'rating']:
+            db(db[t].book_id == book_record.id).delete()
+
+        # Delete all links associated with the book.
+        query = db.book_to_link.book_id == book_record.id
+        for row in db(query).select(db.book_to_link.link_id):
+            db(db.link.id == row['link_id']).delete()
+        db(db.book_to_link.book_id == book_record.id).delete()
+
+        # Delete the book
+        db(db.book.id == book_record.id).delete()
+        db.commit()
+
+        redirect(URL('books'))
+    elif form.errors:
+        response.flash = 'Form could not be submitted.' + \
+            ' Please make corrections.'
+
+    return dict(
+        book=book_record,
+        form=form,
+    )
 
 
 @auth.requires_login()
@@ -313,9 +374,7 @@ def book_pages_reorder():
 def book_release():
     """Release a book controller.
 
-    request.args(0): integer, id of book. Optional, if provided, only
-        links associated with that book are listed. Otherwise only books for
-        the logged in creator are listed.
+    request.args(0): integer, id of book.
     """
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
@@ -334,24 +393,17 @@ def book_release():
     page_count = db(db.book_page.book_id == book_record.id).count()
 
     form = SQLFORM.factory(
-        Field(
-            'cancel',
-            default='Cancel',
-            widget=InputWidget({
-                '_type': 'button',
-                '_onclick': 'history.go(-1); return false;'
-            }).widget,
-        ),
-        submit_button='Release',
+        Field('dummy'),
         _action=URL('book_release', args=request.args),
     )
 
-    if form.accepts(
-        request.vars,
-        session,
+    success_msg = '{name} released.'.format(name=book_record.name)
+
+    if form.process(
+        keepvalues=True,
         formname='book_release',
-        keepvalues=True
-    ):
+        message_onsuccess=success_msg
+    ).accepted:
         book_record.update_record(
             release_date=datetime.datetime.today()
         )
@@ -359,9 +411,6 @@ def book_release():
         # FIXME create torrent
         # FIXME add book to creator torrent
         # FIXME add book to ALL torrent
-        session.flash = '{name} released.'.format(
-            name=book_record.name
-        )
         redirect(URL('books'))
     elif form.errors:
         response.flash = 'Form could not be submitted.' + \
@@ -429,11 +478,8 @@ def creator():
 def creator_img_handler():
     """Callback function for the jQuery-File-Upload plugin.
 
-    # Add
-    request.vars.up_files: list of files representing pages to add to book.
-
-    # Delete
-    request.vars.book_page_id: integer, id of book_page to delete
+    # POST
+    request.vars.up_files: list of files representing creator image.
 
     """
     def do_error(msg):
@@ -501,7 +547,11 @@ def creator_img_handler():
 
 @auth.requires_login()
 def creator_crud():
-    """Handler for ajax creator CRUD calls."""
+    """Handler for ajax creator CRUD calls.
+
+    request.vars.field: string, creator table field name
+    request.vars.value: string, value of creator table field.
+    """
     response.generic_patterns = ['json']
 
     def do_error(msg=None):

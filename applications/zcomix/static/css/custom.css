@@ -157,6 +157,12 @@ div.centered table {
     min-height: 2em;
 }
 
+#profile_page .btn-xs {
+    color: #666666;
+    padding: 2px 12px;
+}
+
+
 @media (max-width: 480px) {
     #web2py_user_form .web2py_user_form_container {
         margin-left: 0;

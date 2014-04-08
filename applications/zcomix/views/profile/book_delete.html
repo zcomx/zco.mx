@@ -1,0 +1,23 @@
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        Deleting this book will do the following:
+    </div>
+    <div class="panel-body">
+        <ul>
+            <li>The book record is deleted and removed from search results.</li>
+            <li>All book pages and images are deleted.</li>
+            <li>All links associated with the book are deleted.</li>
+            <li>All statistics and history related to the book are deleted (Eg. ratings, views, etc).</li>
+            <li>The torrent for the book is deleted.</li>
+            <li>The book is removed from the torrent containing all books from the creator.</li>
+            <li>The book is removed from the torrent containing all books from zcomix.</li>
+        </ul>
+    </div>
+</div>
+
+{{=form.custom.begin}}
+<div class="instruction">
+    Click the <em>Delete</em> button to delete <em>{{=book.name}}</em>.
+    Click the <em>Cancel</em> button if you've changed your mind.
+</div>
+{{=form.custom.end}}
