@@ -24,7 +24,7 @@
                 <td>
                     {{=A(
                         'Edit',
-                        _class='btn btn-default modal-btn',
+                        _class='btn btn-default modal-edit-btn',
                         _href=URL(c='profile', f='book_edit', args=book.id),
                         _type='button',
                     )}}
@@ -67,21 +67,23 @@
                 <td>
                     {{=A(
                         'Edit',
-                        _class='btn btn-default modal-btn',
+                        _class='btn btn-default modal-edit-btn',
                         _href=URL(c='profile', f='book_edit', args=book.id),
                         _type='button',
                     )}}
                 </td>
                 <td>
                     {{=A(
-                        I('', _class='icon fi-trash size-18 fixme'),
+                        I('', _class='icon fi-trash size-18 modal-delete-btn fixme'),
                         _href=URL('fixme'),
                     )}}
                 </td>
                 <td>
+                    {{page_count = db(db.book_page.book_id == book.id).count()}}
+                    {{not_available = 'release_not_available' if page_count <=0 else ''}}
                     {{=A(
                         'Release',
-                        _class='btn btn-default',
+                        _class='btn btn-default modal-release-btn' + ' ' + not_available,
                         _href=URL(c='profile', f='book_release', args=book.id),
                         _type='button',
                     )}}
@@ -98,7 +100,7 @@
     <div>
         {{=A(
             'Add',
-            _class='btn btn-default modal-btn modal-add-btn',
+            _class='btn btn-default modal-add-btn',
             _href=URL(c='profile', f='book_add'),
             _type='button',
         )}}

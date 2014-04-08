@@ -343,6 +343,7 @@ def book_release():
             }).widget,
         ),
         submit_button='Release',
+        _action=URL('book_release', args=request.args),
     )
 
     if form.accepts(
@@ -366,22 +367,10 @@ def book_release():
         response.flash = 'Form could not be submitted.' + \
             ' Please make corrections.'
 
-    read_button = read_link(
-        db,
-        book_record,
-        **dict(
-            _class='btn btn-default btn-lg',
-            _type='button',
-            _target='_blank',
-        )
-    )
-
     return dict(
         book=book_record,
-        creator=creator_record,
         form=form,
         page_count=page_count,
-        read_button=read_button,
     )
 
 

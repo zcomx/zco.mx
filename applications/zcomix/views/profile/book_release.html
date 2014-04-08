@@ -1,53 +1,43 @@
-{{extend 'profile/layout.html'}}
-
-<div class="row">
-    <div class="col-sm-7" id="left_column">
-        <dl class="dl-horizontal">
-            <dt>Creator:</dt><dd>{{=auth.user.name}}</dd>
-            <dt>Book:</dt><dd>{{=book.name}}</dd>
-        </dl>
-    </div>
-    <div class="col-sm-5" id="right_column">
-        {{=read_button}}
-    </div>
-</div>
-
-<h4>Instructions</h4>
-<div class="text-muted">
+<div>
     <p>
     Release a book when all pages are complete and correct: all images files
     are uploaded and pages are sorted in the correct order.
     </p>
 </div>
 
-<div class="instruction">
-<p>
-Releasing a book has the following effect:
-</p>
-<ul>
-    <li>The book release date is set to today's date.</li>
-    <li>The book is packaged for download.</li>
-    <li>A torrent is created for the book and it is seeded.</li>
-    <li>The book is added to the torrent containing all books from the creator.</li>
-    <li>The book is added to the torrent containing all books from zcomix.</li>
-    <li>The book pages are locked from further modifications.</li>
-</ul>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        Releasing a book has the following effect:
+    </div>
+    <div class="panel-body">
+        <ul>
+            <li>The book release date is set to today's date.</li>
+            <li>The book is packaged for download.</li>
+            <li>A torrent is created for the book and it is seeded.</li>
+            <li>The book is added to the torrent containing all books from the creator.</li>
+            <li>The book is added to the torrent containing all books from zcomix.</li>
+            <li>The book pages are locked from further modifications.</li>
+        </ul>
+    </div>
 </div>
+
 {{if page_count > 0:}}
     {{=form.custom.begin}}
     <div class="instruction">
         Click the <em>Release</em> button to release <em>{{=book.name}}</em>.
         Click the <em>Cancel</em> button if you've changed your mind.
     </div>
-    {{=form.custom.submit}}
-    {{=form.custom.widget.cancel}}
     {{=form.custom.end}}
 {{else:}}
-    <div class="alert alert-error">
-        The book <em>{{=book.name}}</em> has no pages. It cannot be released at this time.
+    <div class="panel panel-danger">
+        <div class="panel-heading">
+            The book <em>{{=book.name}}</em> has no pages. It cannot be released at this time.
+        </div>
+        <div class="panel-body">
+            <ul>
+                <li>Complete the book description if necessary.</li>
+                <li><a href="{{=URL(c='profile', f='book_pages', args=book.id)}}">Upload</a> book pages.</li>
+            </ul>
+        </div>
     </div>
-    <ul>
-        <li>Complete the book description if necessary.</li>
-        <li><a href="{{=URL(c='profile', f='book_pages', args=book.id)}}">Upload</a> book pages.</li>
-    </ul>
 {{pass}}
