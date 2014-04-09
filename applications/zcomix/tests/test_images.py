@@ -6,6 +6,7 @@
 Test suite for zcomix/modules/utils.py
 
 """
+import inspect
 import os
 import shutil
 import sys
@@ -19,6 +20,7 @@ from applications.zcomix.modules.images import \
     Downloader, \
     UploadImage, \
     img_tag, \
+    is_image, \
     set_thumb_dimensions
 from applications.zcomix.modules.test_runner import LocalTestCase
 
@@ -311,6 +313,49 @@ class TestFunctions(LocalTestCase):
         tag = img_tag(db.creator.image, img_attributes=attrs)
         has_attr(get_tag(tag, 'img'), 'src', 'http://www.src.com')
         has_attr(get_tag(tag, 'img'), 'id', 'img_id')
+
+    def test__is_image(self):
+        # Test common image types.
+        image_dir = '/tmp/test__is_image'
+        if not os.path.exists(image_dir):
+            os.makedirs(image_dir)
+
+        original_filename = os.path.join(image_dir, 'original.jpg')
+
+        # Create an image to test with.
+        im = Image.new('RGB', (1200, 1200))
+        with open(original_filename, 'wb') as f:
+            im.save(f)
+
+        tests = [
+            # (filename, format, expect)
+            ('file.gif', 'GIF', True),
+            ('file.ppm', 'PPM', True),
+            ('file.tiff', 'TIFF', True),
+            ('file.jpg', 'JPEG', True),
+            ('file.jpeg', 'JPEG', True),
+            ('file.bmp', 'BMP', True),
+            ('file.png', 'PNG', True),
+        ]
+
+        only_bmp = ['bmp']
+        for t in tests:
+            with open(original_filename, 'rb') as f:
+                outfile = os.path.join(os.path.dirname(original_filename), t[0])
+                im.save(outfile, format=t[1])
+                self.assertEqual(is_image(outfile), t[2])
+
+                # Test image_types parameter
+                expect = t[1] == 'BMP'
+                self.assertEqual(
+                    is_image(outfile, image_types=only_bmp),
+                    expect
+                )
+
+        # Test non-image files.
+        # This file is a python ASCII text, test it.
+        this_filename = inspect.getfile(inspect.currentframe())
+        self.assertFalse(is_image(this_filename))
 
     def test__set_thumb_dimensions(self):
         book_page_id = db.book_page.insert(

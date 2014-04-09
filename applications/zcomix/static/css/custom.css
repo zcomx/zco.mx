@@ -1313,4 +1313,13 @@ div.centered table {
     border: 1px solid red;
 }
 
+.fileupload-buttonbar .col-lg-7 {
+    border: 1px solid red;
+}
+
+.fileupload-buttonbar .col-lg-5 {
+    border: 1px solid blue;
+}
+
+
 /* temp stuff end /// */

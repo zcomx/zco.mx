@@ -3,6 +3,7 @@
 
 import datetime
 from gluon.contrib.simplejson import dumps
+from applications.zcomix.modules.book_upload import BookPageUploader
 from applications.zcomix.modules.books import \
     book_pages_as_json, \
     book_page_for_json, \
@@ -273,27 +274,7 @@ def book_pages_handler():
         files = request.vars.up_files
         if not isinstance(files, list):
             files = [files]
-        max_page = db.book_page.page_no.max()
-        page_no = db().select(max_page)[0][max_page]
-        book_page_ids = []
-        for file in files:
-            stored_filename = db.book_page.image.store(file, file.filename)
-            page_no = page_no + 1
-            page_id = db.book_page.insert(
-                book_id=book_record.id,
-                page_no=page_no,
-                image=stored_filename,
-                thumb_shrink=1,
-            )
-            db.commit()
-            resizer = UploadImage(db.book_page.image, stored_filename)
-            resizer.resize_all()
-            set_thumb_dimensions(db, page_id, resizer.dimensions(size='thumb'))
-            book_page_ids.append(page_id)
-        # Make sure page_no values are sequential
-        reorder_query = (db.book_page.book_id == book_record.id)
-        reorder(db.book_page.page_no, query=reorder_query)
-        return book_pages_as_json(db, book_record.id, book_page_ids=book_page_ids)
+        return BookPageUploader(book_record.id, files).upload()
     elif request.env.request_method == 'DELETE':
         book_page_id = request.vars.book_page_id
         book_page = db(db.book_page.id == book_page_id).select().first()

@@ -5,6 +5,7 @@
 
 Classes and functions related to images.
 """
+import imghdr
 import os
 import re
 from PIL import Image
@@ -208,6 +209,37 @@ def img_tag(field, size='original', img_attributes=None):
             attributes['_class'] = class_name
 
     return tag(**attributes)
+
+
+def is_image(filename, image_types=None):
+    """Determine if a file is an image.
+
+    Args:
+        filename: string, name of file.
+        image_types: list of image types as returned by imghdr
+
+    Returns:
+        True if file is an image.
+    """
+    if image_types is None:
+        # image types recognized by imghdr
+        image_types = [
+            'rgb',   # SGI ImgLib Files
+            'gif',   # GIF 87a and 89a Files
+            'pbm',   # Portable Bitmap Files
+            'pgm',   # Portable Graymap Files
+            'ppm',   # Portable Pixmap Files
+            'tiff',  # TIFF Files
+            'rast',  # Sun Raster Files
+            'xbm',   # X Bitmap Files
+            'jpeg',  # JPEG data in JFIF or Exif formats
+            'bmp',   # BMP files
+            'png',   # Portable Network Graphics
+        ]
+
+    if imghdr.what(filename) not in image_types:
+        return False
+    return True
 
 
 def set_thumb_dimensions(db, book_page_id, dimensions):

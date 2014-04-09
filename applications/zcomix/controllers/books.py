@@ -2,8 +2,8 @@
 
 from gluon.contrib import user_agent_parser
 from applications.zcomix.modules.books import \
-        cover_image, \
-        read_link
+    cover_image, \
+    read_link
 from applications.zcomix.modules.links import CustomLinks
 from applications.zcomix.modules.stickon.sqlhtml import LocalSQLFORM
 
@@ -17,14 +17,14 @@ def book():
         redirect(URL(c='default', f='index'))
 
     book_record = db(db.book.id == request.args(0)).select(
-            db.book.ALL).first()
+        db.book.ALL).first()
     if not book_record:
         redirect(URL(c='default', f='index'))
 
     creator = db(db.creator.id == book_record.creator_id).select(
-            db.creator.ALL).first()
+        db.creator.ALL).first()
     auth_user = db(db.auth_user.id == creator.auth_user_id).select(
-            db.auth_user.ALL).first()
+        db.auth_user.ALL).first()
 
     read_button = read_link(
         db,
@@ -69,14 +69,14 @@ def reader():
         redirect(URL(c='default', f='index'))
 
     book_record = db(db.book.id == request.args(0)).select(
-            db.book.ALL).first()
+        db.book.ALL).first()
     if not book_record:
         redirect(URL(c='default', f='index'))
 
     creator_record = db(db.creator.id == book_record.creator_id).select(
-            db.creator.ALL).first()
+        db.creator.ALL).first()
     auth_user = db(db.auth_user.id == creator_record.auth_user_id).select(
-            db.auth_user.ALL).first()
+        db.auth_user.ALL).first()
 
     views = [
         'books/carousel.html',
@@ -89,8 +89,9 @@ def reader():
         response.view = 'books/slider.html'
 
     page_images = db(db.book_page.book_id == request.args(0)).select(
-            db.book_page.image
-            )
+        db.book_page.image,
+        orderby=[db.book_page.page_no, db.book_page.id]
+    )
     try:
         current_page = int(request.vars.page)
     except (TypeError, ValueError):
@@ -102,15 +103,15 @@ def reader():
     size = 'medium' if ua['is_mobile'] else 'original'
 
     return dict(
-            auth_user=auth_user,
-            book=book_record,
-            creator=creator_record,
-            pages=page_images,
-            current_page=current_page,
-            next_page=next_page,
-            prev_page=prev_page,
-            size=size,
-            )
+        auth_user=auth_user,
+        book=book_record,
+        creator=creator_record,
+        pages=page_images,
+        current_page=current_page,
+        next_page=next_page,
+        prev_page=prev_page,
+        size=size,
+    )
 
 
 def carousel():
