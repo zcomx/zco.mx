@@ -24,6 +24,14 @@
     color: #999999;
 }
 
+.modal-header {
+    background-color: #F05000 !important;
+}
+
+.bootstrap-dialog-title {
+    font-weight: bold;
+}
+
 input::-webkit-input-placeholder {
     color: #999999;
 }
