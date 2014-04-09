@@ -90,6 +90,9 @@ def move_record(sequential_field, record_id, direction='up', query=None, start=1
         start: integer, the sequential field value of the first record is set
             to this. Subsequent records have values incremented by 1.
     """
+    # W0212: *Access to a protected member %%s of a client class*
+    # pylint: disable=W0212
+
     db = sequential_field._db
     table = sequential_field.table
 
@@ -132,25 +135,7 @@ def profile_wells(request):
         # (key, {data})
         ('account', {'label': 'Account Profile'}),
         ('creator', {'label': 'Creator Profile'}),
-        ('books', {
-            'label': 'Books',
-            'show_children': False,         # Children links in grid
-        }),
-        ('book_edit', {
-            'label': 'Book Edit',
-            'parent': 'books',
-            'args': request.args,
-        }),
-        ('book_pages', {
-            'label': 'Book Pages',
-            'parent': 'book_edit',
-            'args': request.args,
-        }),
-        ('book_release', {
-            'label': 'Book Release',
-            'parent': 'books',
-            'args': request.args,
-        }),
+        ('books', {'label': 'Books'}),
     ]
     wells = collections.OrderedDict(wells_data)
 
@@ -173,23 +158,23 @@ def profile_wells(request):
         if 'parent' not in wells[well] or not wells[well]['parent']:
             wells[well]['status'] = 'link'
 
-    if request.function in wells:
+    if active_well in wells:
         # Show children of active well if applicable
-        if wells[request.function]['children'] and wells[request.function]['show_children']:
-            for w in wells[request.function]['children']:
+        if wells[active_well]['children'] and wells[active_well]['show_children']:
+            for w in wells[active_well]['children']:
                 wells[w]['status'] = 'link'
 
         # Recursively show all parents of active well.
-        current = request.function
-        while current:
-            wells[current]['status'] = 'link'
-            if 'parent' in wells[current]:
-                current = wells[current]['parent']
+        current_well = active_well
+        while current_well:
+            wells[current_well]['status'] = 'link'
+            if 'parent' in wells[current_well]:
+                current_well = wells[current_well]['parent']
             else:
-                current = None
+                current_well = None
 
         # Show the active link as text.
-        wells[request.function]['status'] = 'text'
+        wells[active_well]['status'] = 'text'
 
     return wells
 
@@ -210,6 +195,8 @@ def reorder(sequential_field, record_ids=None, query=None, start=1):
         start: integer, the sequential field value of the first record is set
             to this. Subsequent records have values incremented by 1.
     """
+    # W0212: *Access to a protected member %%s of a client class*
+    # pylint: disable=W0212
     db = sequential_field._db
     table = sequential_field.table
     if not record_ids:

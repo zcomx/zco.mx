@@ -11,7 +11,7 @@
     {{else:}}
         {{args = wells[well]['args'] if 'args' in wells[well] else None}}
         <div class="well well-sm" id="{{=well}}">
-            <a href="{{=URL(well, args=args, anchor=well)}}">{{=wells[well]['label']}}</a>
+            <a href="{{=URL(well, args=args)}}">{{=wells[well]['label']}}</a>
     {{pass}}
     </div>
     {{if request.function == well:}}

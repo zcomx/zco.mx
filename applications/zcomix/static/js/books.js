@@ -121,5 +121,18 @@
             event.preventDefault();
         });
 
+        $('.modal-upload-btn').click(function(event){
+            var action = 'Upload';
+            var link = $(this);
+            new BootstrapDialog({
+                title: get_title(link, action),
+                message: get_message(link),
+                onshow: onshow_callback,
+                buttons: [
+                    close_button(),
+                ],
+            }).open();
+            event.preventDefault();
+        });
     });
 }());

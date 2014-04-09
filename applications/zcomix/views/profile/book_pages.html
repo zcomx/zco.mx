@@ -1,55 +1,42 @@
-{{from applications.zcomix.modules.utils import ItemDescription}}
-{{extend 'profile/layout.html'}}
 <div id="profile_book_pages_page">
-    <div class="row">
-        <div class="col-sm-7" id="left_column">
-            <div id="book_name">
-                {{=book.name}} ({{=db.book.release_date.represent(book.release_date, book)}})
+
+<div class="fileupload_container">
+    <form id="fileupload" action="/zcomix/profile/book_pages_handler/{{=book.id}}" method="POST" enctype="multipart/form-data">
+        <noscript><input type="hidden" name="redirect" value="/zcomix/profile/book_edit/{{=book.id}}"></noscript>
+        <div class="row fileupload-buttonbar">
+            <div class="col-lg-7">
+                <span class="btn btn-success fileinput-button">
+                    <i class="glyphicon glyphicon-plus"></i>
+                    <span>Add files...</span>
+                    <input type="file" name="up_files" multiple>
+                </span>
+                <button type="submit" class="btn btn-primary start">
+                    <i class="glyphicon glyphicon-upload"></i>
+                    <span>Start upload</span>
+                </button>
+                <button type="reset" class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>Cancel upload</span>
+                </button>
+                <button type="button" class="btn btn-danger delete">
+                    <i class="glyphicon glyphicon-trash"></i>
+                    <span>Delete</span>
+                </button>
+                <input type="checkbox" class="toggle">
+                <span class="fileupload-process"></span>
             </div>
-            <div class="text-muted">
-            {{=ItemDescription(book.description).as_html(**dict(_id='book_description'))}}
+            <div class="col-lg-5 fileupload-progress fade">
+                <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+                </div>
+                <div class="progress-extended">&nbsp;</div>
             </div>
         </div>
-        <div class="col-sm-5" id="right_column">
-            {{=read_button}}
-        </div>
-    </div>
-    <div class="fileupload_container">
-        <form id="fileupload" action="/zcomix/profile/book_pages_handler/{{=book.id}}" method="POST" enctype="multipart/form-data">
-            <noscript><input type="hidden" name="redirect" value="/zcomix/profile/book_edit/{{=book.id}}"></noscript>
-            <div class="row fileupload-buttonbar">
-                <div class="col-lg-7">
-                    <span class="btn btn-success fileinput-button">
-                        <i class="glyphicon glyphicon-plus"></i>
-                        <span>Add files...</span>
-                        <input type="file" name="up_files" multiple>
-                    </span>
-                    <button type="submit" class="btn btn-primary start">
-                        <i class="glyphicon glyphicon-upload"></i>
-                        <span>Start upload</span>
-                    </button>
-                    <button type="reset" class="btn btn-warning cancel">
-                        <i class="glyphicon glyphicon-ban-circle"></i>
-                        <span>Cancel upload</span>
-                    </button>
-                    <button type="button" class="btn btn-danger delete">
-                        <i class="glyphicon glyphicon-trash"></i>
-                        <span>Delete</span>
-                    </button>
-                    <input type="checkbox" class="toggle">
-                    <span class="fileupload-process"></span>
-                </div>
-                <div class="col-lg-5 fileupload-progress fade">
-                    <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
-                        <div class="progress-bar progress-bar-success" style="width:0%;"></div>
-                    </div>
-                    <div class="progress-extended">&nbsp;</div>
-                </div>
-            </div>
-            <table role="presentation" class="table table-striped"><tbody class="files"></tbody></table>
-        </form>
-        <br>
-    </div>
+        <table role="presentation" class="table table-striped"><tbody class="files"></tbody></table>
+    </form>
+    <br>
+</div>
+
 </div>
 <script id="template-upload" type="text/x-tmpl">
 {% for (var i=0, file; file=o.files[i]; i++) { %}
@@ -149,88 +136,14 @@
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/cors/jquery.xdr-transport.js')}}"></script>
 <![endif]-->
 
-<script src="{{=URL(c='static', f='js/description.js')}}"> </script>
+<script src="{{=URL(c='static', f='js/image_upload.js')}}"> </script>
 <script>
 //<![CDATA[
-    function clear_download(context) {
-        table = context.closest('table')
-        table.find('tr.template-download').each(function(e) {
-            $(this).remove();
-        });
-
-    }
-
-    function display_download() {
-        $('#fileupload').addClass('fileupload-processing');
-        $.ajax({
-            // Uncomment the following to send cross-domain cookies:
-            //xhrFields: {withCredentials: true},
-            url: $('#fileupload').fileupload('option', 'url'),
-            dataType: 'json',
-            context: $('#fileupload')[0]
-        }).always(function () {
-            $(this).removeClass('fileupload-processing');
-        }).done(function (result) {
-            $(this).fileupload('option', 'done')
-                .call(this, $.Event('done'), {result: result});
-            set_reorder_links();
-            set_arrows();
-        });
-    }
-
-    function set_arrows() {
-        $('.reorder-arrow').removeClass('arrow-muted');
-        $('.reorder-arrow-up').first().addClass('arrow-muted');
-        $('.reorder-arrow-down').last().addClass('arrow-muted');
-    }
-
-    function set_reorder_links() {
-        $('.reorder-arrow').click(function(e) {
-            e.preventDefault();
-
-            $('#fileupload').addClass('fileupload-processing');
-
-            var url = '/zcomix/profile/book_pages_reorder'
-            url = url + '/' + $(this).data('book_id');
-            url = url + '?book_page_id=' + $(this).data('book_page_id');
-            url = url + '&dir=' + $(this).data('dir');
-
-            var that = $(this);
-
-            $.ajax({
-                url: url,
-                dataType: 'json'
-            }).always(function () {
-                $('#fileupload').removeClass('fileupload-processing');
-            }).done(function (result) {
-                if (result['success']) {
-                    var tr = that.closest('tr');
-                    tr.fadeOut(400, function() {
-                        if (that.data('dir') === 'down') {
-                            tr.next().after(tr);
-                        }
-                        else {
-                            tr.prev().before(tr);
-                        }
-                        tr.fadeIn(400, function() {
-                            set_arrows();
-                        });
-                    });
-                }
-                else {
-                    clear_download(that);
-                    display_download();
-                }
-            })
-        });
-    }
-
     $(document).ready(function(){
-        $('#fileupload').fileupload({
-            url: '/zcomix/profile/book_pages_handler/{{=book.id}}'
-            });
-
-        display_download();
+        $('#fileupload').image_upload(
+            '/zcomix/profile/book_pages_handler/{{=book.id}}'
+        );
     });
+
 //]]>
 </script>

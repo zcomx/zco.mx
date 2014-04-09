@@ -223,16 +223,6 @@ def book_pages():
     if not book_record or book_record.creator_id != creator_record.id:
         redirect(URL('books'))
 
-    response.files.append(
-        URL('static', 'blueimp/jQuery-File-Upload/css/jquery.fileupload.css')
-    )
-    response.files.append(
-        URL(
-            'static',
-            'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
-        )
-    )
-
     read_button = read_link(
         db,
         book_record,
@@ -438,6 +428,17 @@ def books():
 
     response.files.append(
         URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
+    )
+
+    response.files.append(
+        URL('static', 'blueimp/jQuery-File-Upload/css/jquery.fileupload.css')
+    )
+
+    response.files.append(
+        URL(
+            'static',
+            'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
+        )
     )
 
     creator_query = (db.book.creator_id == creator_record.id)
