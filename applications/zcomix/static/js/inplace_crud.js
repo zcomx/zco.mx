@@ -14,8 +14,8 @@ $.editable.addInputType('colour_picker', {
     plugin: function(settings, original) {
         var input = $(':input:first', this);
         input.spectrum({
-            cancelText: "Cancel",
-            chooseText: "OK",
+            cancelText: 'Cancel',
+            chooseText: 'OK',
             preferredFormat: 'name',
             showInitial: true,
             showInput: true,
@@ -31,6 +31,9 @@ $.editable.addInputType('colour_picker', {
                 ["#600","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
             ],
             change : function(color) {
+                input.trigger('blur');
+            },
+            hide : function(color) {
                 input.trigger('blur');
             },
          })

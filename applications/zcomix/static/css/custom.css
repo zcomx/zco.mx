@@ -1046,7 +1046,7 @@ div.centered table {
 }
 
 .row_container .active:hover {
-    border: none;
+    border-color: #FFFFFF;      /*hide it*/
 }
 
 .row_container .edit_field_container.field_label {
@@ -1076,24 +1076,30 @@ div.centered table {
     width: 12em;
 }
 
+.row_container .arrow-muted {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.1;
+}
+
 .row_container .btn-xs {
     color: #666666;
     border: 1px solid #ffffff;
-    padding: 1px 1px;
+    padding: 0 0.4em;
 }
 
 #links_container .row_container .btn:hover,
 #links_container .row_container .btn:focus {
     border: 1px solid #CCCCCC;
-    padding-top: 0;
-    padding-bottom: 0;
     color: #333333;
 }
 
-.row_container .arrow-muted {
-    pointer-events: none;
-    cursor: default;
-    opacity: 0.1;
+.row_container .arrow_container .btn-xs {
+    padding: 0;
+}
+
+#links_container .row_container {
+    margin-top: 2.6em;
 }
 
 #bio_container,
@@ -1188,6 +1194,10 @@ div.centered table {
         vertical-align: top;
     }
 
+    #links_container .row_container {
+        margin-top: 0;
+    }
+
     .row_container {
         margin-top: 0;
         vertical-align: top;
@@ -1211,11 +1221,6 @@ div.centered table {
     .row_container .edit_field_container,
     .row_container .field_label {
         max-width: 30em;
-    }
-
-    .row_container .edit_field_container {
-        min-height: 1.9em;
-        vertical-align: top;
     }
 
     .row_container .image_field_container {
