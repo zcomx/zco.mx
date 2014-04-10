@@ -44,7 +44,9 @@
                 title: get_title(link, action),
                 message: get_message(link),
                 onhide: function(dialog) {
-                    window.location.reload();
+                    setTimeout(function() {
+                        window.location.reload();
+                    }.bind(this), 100);
                 },
                 onshow: onshow_callback,
                 buttons: [
@@ -82,6 +84,11 @@
             new BootstrapDialog({
                 title: get_title(link, action),
                 message: get_message(link),
+                onhide: function(dialog) {
+                    setTimeout(function() {
+                        window.location.reload();
+                    }.bind(this), 100);
+                },
                 onshow: onshow_callback,
                 buttons: [
                     close_button(),

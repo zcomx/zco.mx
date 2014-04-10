@@ -110,6 +110,7 @@ def book_crud():
 
     query = (db.book.id == book_record.id)
     ret = db(query).validate_and_update(**data)
+    db.commit()
 
     return {
         'errors': ret.errors,
@@ -122,8 +123,6 @@ def book_delete():
 
     request.args(0): integer, id of book.
     """
-    import sys; print >> sys.stderr, 'FIXME request.args: {var}'.format(var=request.args)
-    import sys; print >> sys.stderr, 'FIXME request.vars: {var}'.format(var=request.vars)
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()
@@ -576,6 +575,7 @@ def creator_crud():
 
     query = (db.creator.id == creator_record.id)
     ret = db(query).validate_and_update(**data)
+    db.commit()
 
     return {
         'errors': ret.errors,
@@ -689,6 +689,7 @@ def link_crud():
             if data:
                 query = (db.link.id == link_id)
                 ret = db(query).validate_and_update(**data)
+                db.commit()
                 record_id = link_id
                 errors = ret.errors
                 do_reorder = True

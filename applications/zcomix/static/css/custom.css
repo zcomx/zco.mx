@@ -1035,15 +1035,17 @@ div.centered table {
 }
 
 .row_container .field_label {
+    border: 1px solid #FFFFFF;          /* same as bg colour, hides it */
     font-weight: bold;
 }
 
-.row_container .edit_field_container {
+.row_container .field_container {
+    border: 1px solid #FFFFFF;          /* same as bg colour, hides it */
     display: inline-block;
-    padding: 1px;
+    vertical-align: top;
 }
 
-.row_container .edit_field_container:hover {
+.row_container .field_container.edit:hover {
     border: 1px solid #DDDDDD;
     cursor: pointer;
     padding: 0;
@@ -1054,10 +1056,10 @@ div.centered table {
 }
 
 .row_container .active:hover {
-    border-color: #FFFFFF;      /*hide it*/
+    border-color: #FFFFFF;             /* same as bg colour, hides it */
 }
 
-.row_container .edit_field_container.field_label {
+.row_container .field_container.field_label {
     color: #666666;
     font-weight: normal;
     overflow-wrap: break-word;
@@ -1065,7 +1067,7 @@ div.centered table {
 }
 
 .add_link_container .error_wrapper div.error,
-.edit_field_container .error_wrapper div.error {
+.field_container .error_wrapper div.error {
     border-radius: 0;
     width: 100%;
     background: #FF9999;
@@ -1218,7 +1220,7 @@ div.centered table {
         width: 12em;
     }
 
-    .row_container .edit_field_container,
+    .row_container .field_container,
     .row_container .image_field_container,
     .row_container .field_label {
         display: inline-block;
@@ -1226,7 +1228,7 @@ div.centered table {
         margin-top: 0.2em;
     }
 
-    .row_container .edit_field_container,
+    .row_container .field_container,
     .row_container .field_label {
         max-width: 30em;
     }
@@ -1239,7 +1241,7 @@ div.centered table {
         display: inline-block;
     }
 
-    #bio_container .row_container .edit_field_container {
+    #bio_container .row_container .field_container {
         max-width: 35em;
     }
 

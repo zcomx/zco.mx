@@ -187,10 +187,10 @@ $.editable.addInputType('select_with_style', {
                           + '          <i class="icon fi-arrow-down size-14"></i>'
                           + '    </button>'
                           + '    </div>'
-                          + '    <div class="edit_field_container field_label">'
+                          + '    <div class="field_container field_label">'
                           + '        <div></div>'
                           + '    </div>'
-                          + '    <div class="edit_field_container">'
+                          + '    <div class="field_container">'
                           + '        <div></div>'
                           + '    </div>'
                           + '    <button type="button" class="btn btn-default btn-xs edit_link_delete">'
@@ -206,8 +206,9 @@ $.editable.addInputType('select_with_style', {
                         'field': field,
                         'url': settings.url,
                     };
-                    var container = link.find('.edit_field_container').eq(i);
+                    var container = link.find('.field_container').eq(i);
                     container.data(data);
+                    container.addClass('edit');
                     var editable_div = container.find('div').first();
                     editable_div.text(row[field]);
                     methods._set_editable(editable_div);
@@ -281,20 +282,23 @@ $.editable.addInputType('select_with_style', {
                 }
             },
 
-            _load_field: function(label, value, jeditable_settings, data) {
+            _load_field: function(label, value, editable, jeditable_settings, data) {
                 var link = $(
                             '<div class="row_container">'
                           + '    <div class="arrow_container"></div>'
                           + '    <div class="field_label">' + label + '</div>'
-                          + '    <div class="edit_field_container">'
+                          + '    <div class="field_container">'
                           + '        <div>' + value + '</div>'
                           + '    </div>'
                           + '</div>'
                         );
-                var container = link.find('.edit_field_container').eq(0);
+                var container = link.find('.field_container').eq(0);
                 container.data(data);
-                var editable_div = link.find('.edit_field_container > div').eq(0)
-                methods._set_editable(editable_div, jeditable_settings);
+                if (editable) {
+                    container.addClass('edit');
+                    var editable_div = link.find('.field_container > div').eq(0)
+                    methods._set_editable(editable_div, jeditable_settings);
+                }
                 return link;
             },
 
@@ -305,7 +309,11 @@ $.editable.addInputType('select_with_style', {
                             'field': k,
                             'url': settings.url,
                         }
-                        var link = methods._load_field(v.label, v.value, v.jeditable_settings, data);
+                        var editable = false;
+                        if (! v.hasOwnProperty('writable') || v.writable) {
+                            editable = true;
+                        }
+                        var link = methods._load_field(v.label, v.value, editable, v.jeditable_settings, data);
                         link.appendTo(elem);
                     }
                 });
@@ -401,7 +409,7 @@ $.editable.addInputType('select_with_style', {
                         $(elem).find('input, textarea').blur();
                         var nextBox = '';
                         var action = 'click';
-                        var selector = ".edit_field_container > div:not('.error_wrapper')";
+                        var selector = ".field_container > div:not('.error_wrapper')";
                         var this_idx = $(selector).index(this);
                         if (e.shiftKey) {
                             if (this_idx <= 0)     {
