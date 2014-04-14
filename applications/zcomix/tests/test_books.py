@@ -6,6 +6,7 @@
 Test suite for zcomix/modules/books.py
 
 """
+import datetime
 import os
 import shutil
 import unittest
@@ -18,6 +19,7 @@ from applications.zcomix.modules.books import \
     book_page_for_json, \
     cover_image, \
     default_contribute_amount, \
+    publication_year_range, \
     read_link
 from applications.zcomix.modules.test_runner import LocalTestCase
 
@@ -213,6 +215,11 @@ class TestFunctions(ImageTestCase):
                 self._objects.append(page)
                 page_count = db(db.book_page.book_id == book.id).count()
             self.assertEqual(default_contribute_amount(db, book), t[1])
+
+    def test__publication_year_range(self):
+        start, end = publication_year_range()
+        self.assertEqual(start, 1900)
+        self.assertEqual(end, datetime.date.today().year + 5)
 
     def test__read_link(self):
         empty = '<span></span>'

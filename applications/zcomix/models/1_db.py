@@ -34,14 +34,16 @@ response.generic_patterns = ['*'] if request.is_local else []
 ## (optional) static assets folder versioning
 # response.static_version = '0.0.0'
 
+import datetime
 import os
 import re
 from gluon import *
 from gluon.storage import Storage
 from gluon.tools import PluginManager
-from applications.zcomix.modules.stickon.tools import ModelDb
+from applications.zcomix.modules.books import publication_year_range
 from applications.zcomix.modules.creators import add_creator
 from applications.zcomix.modules.stickon.sqlhtml import formstyle_bootstrap3_custom
+from applications.zcomix.modules.stickon.tools import ModelDb
 
 model_db = ModelDb(globals())
 db = model_db.db
@@ -121,6 +123,15 @@ db.define_table('book',
         'integer',
         writable=False,
         readable=False,
+    ),
+    Field(
+        'publication_year',
+        'integer',
+        default=datetime.date.today().year,
+        label='Published',
+        represent=lambda v, row: str(v) if v else 'N/A',
+        requires = IS_INT_IN_RANGE(*publication_year_range(),
+            error_message='Enter a valid year')
     ),
     Field(
         'description',

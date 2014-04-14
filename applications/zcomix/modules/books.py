@@ -5,6 +5,7 @@
 
 Book classes and functions.
 """
+import datetime
 import os
 import stat
 from gluon import *
@@ -192,6 +193,12 @@ def default_contribute_amount(db, book_entity):
     return amount
 
 
+def publication_year_range():
+    """Return a tuple representing the start and end range of publication years
+    """
+    return (1900, datetime.date.today().year + 5)
+
+
 def read_link(db, book_entity, **attributes):
     """Return html code suitable for the cover image.
 
@@ -221,6 +228,3 @@ def read_link(db, book_entity, **attributes):
         url = URL(c='books', f=reader, args=book.id, extension=False)
         kwargs['_href'] = url
     return A('Read', **kwargs)
-
-
-

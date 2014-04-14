@@ -24,7 +24,7 @@
                             <div class="row">
                                 <div class="col-sm-12 name">
                                     <a href="{{=URL(c='books', f='book', args=row.book.id, extension=False)}}">
-                                    {{book_name = '{n} ({r})'.format(n=row.book.name, r=db.book.release_date.represent(row.book.release_date, row.book))}}
+                                    {{book_name = '{n} ({r})'.format(n=row.book.name, r=db.book.publication_year.represent(row.book.publication_year, row.book))}}
                                     {{=ItemDescription(book_name, more_text='', truncate_length=29).as_html()}}
                                     </a>
                                 </div>

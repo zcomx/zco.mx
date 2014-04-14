@@ -1,3 +1,4 @@
+{{from applications.zcomix.modules.books import publication_year_range}}
 <div id="book_edit_section">
 
 <div id="editable_fields_container"></div>
@@ -20,6 +21,18 @@
             'value': '{{=book.name or ""}}',
             'writable': {{if book.release_date:}}false{{else:}}true{{pass}},
         },
+        'publication_year': {
+            'label': '{{=db.book.publication_year.label}}',
+            'value': '{{=book.publication_year or ""}}',
+            'writable': {{if book.release_date:}}false{{else:}}true{{pass}},
+            'jeditable_settings': {
+                'type': 'select_with_style',
+                'data': "{ {{=XML(
+                    ','.join(["""'{x}':'{x}'""".format(x=x) for x in range(*publication_year_range())])
+                    )}},'selected': '{{=book.publication_year}}'}",
+
+            },
+        },
         'description': {
             'label': '{{=db.book.description.label}}',
             'value': '{{=book.description or ""}}',
@@ -30,6 +43,7 @@
             'value': '{{=book.release_date or ""}}',
             'readable': {{if book.release_date:}}true{{else:}}false{{pass}},
             'writable': false,
+            'writable': {{if book.release_date:}}false{{else:}}true{{pass}},
             'jeditable_settings': {'type': 'date'},
         },
         'background_colour': {

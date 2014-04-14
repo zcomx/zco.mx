@@ -18,7 +18,7 @@
     <div class="col-sm-7" id="right_column">
         <div class="row">
             <div id="book_name">
-                {{=book.name}} ({{=db.book.release_date.represent(book.release_date, book)}})
+                {{=book.name}} ({{=db.book.publication_year.represent(book.publication_year, book)}})
             </div>
             {{=ItemDescription(book.description).as_html(**dict(_id='book_description'))}}
             <div class="row" id="book_id_section">

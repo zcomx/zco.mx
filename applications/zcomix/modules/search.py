@@ -123,7 +123,7 @@ class Search(object):
         fields = [
             db.book.id,
             db.book.name,
-            db.book.release_date,
+            db.book.publication_year,
             db.book.contributions_year,
             db.book.contributions_month,
             db.book.rating_year,
