@@ -192,6 +192,13 @@ db.define_table('book',
         requires=IS_IN_SET(['scroller', 'slider']),
         comment='Default reader format.'
     ),
+    Field(
+        'status',
+        'boolean',
+        default=True,
+        represent=lambda v, r=None: 'Active' if v == True else \
+            'Deactive' if v == False else 'None',
+    ),
     format='%(name)s',
     migrate=True,
 )

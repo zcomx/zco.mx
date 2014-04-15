@@ -1,6 +1,16 @@
 {{from applications.zcomix.modules.books import publication_year_range}}
 <div id="book_edit_section">
-
+{{if not book.status:}}
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        <h3 class="panel-title">This book is disabled.</h3>
+    </div>
+    <div class="panel-body">
+    Books are disabled by the site admin if they are under copyright review
+    or deemed inappropriate.
+    </div>
+</div>
+{{pass}}
 <div id="editable_fields_container"></div>
 <div id="links_container">
     <div id="edit_links_container"></div>

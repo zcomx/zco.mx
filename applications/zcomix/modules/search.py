@@ -79,6 +79,9 @@ class Search(object):
         if creator:
             queries.append((db.book.creator_id == creator.id))
 
+        if not editable:
+            queries.append((db.book.status == True))
+
         if request.vars.released == '0':
             queries.append((db.book.release_date == None))
         if request.vars.released == '1':

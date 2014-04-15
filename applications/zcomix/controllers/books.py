@@ -20,6 +20,8 @@ def book():
         db.book.ALL).first()
     if not book_record:
         redirect(URL(c='default', f='index'))
+    if not book_record.status:
+        redirect(URL(c='default', f='index'))
 
     creator = db(db.creator.id == book_record.creator_id).select(
         db.creator.ALL).first()
@@ -71,6 +73,8 @@ def reader():
     book_record = db(db.book.id == request.args(0)).select(
         db.book.ALL).first()
     if not book_record:
+        redirect(URL(c='default', f='index'))
+    if not book_record.status:
         redirect(URL(c='default', f='index'))
 
     creator_record = db(db.creator.id == book_record.creator_id).select(

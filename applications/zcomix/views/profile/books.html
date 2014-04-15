@@ -92,6 +92,40 @@
             {{pass}}
         </table>
     </div>
+    {{if disabled:}}
+    <div class="books_list_title">
+    <h4>DISABLED</h4>
+    </div>
+    <div class="text-muted">
+        Books are disabled by the site admin if they are under copyright review
+        or deemed inappropriate.
+    </div>
+    <div id="disabled_container">
+        <table class="table table-condensed table-hover">
+            {{for book in disabled:}}
+            <tr>
+                <td>{{=book.name}}</td>
+                <td>
+                    {{=A(
+                        'Edit',
+                        _class='btn btn-default modal-edit-btn',
+                        _href=URL(c='profile', f='book_edit', args=book.id),
+                        _type='button',
+                    )}}
+                </td>
+                <td>
+                    {{=A(
+                        I('', _class='icon fi-trash size-18 modal-delete-btn'),
+                        _href=URL(c='profile', f='book_delete', args=book.id),
+                        _class='btn btn-default btn-xs',
+                        _type='button',
+                    )}}
+                </td>
+            </tr>
+            {{pass}}
+        </table>
+    </div>
+    {{pass}}
     <div>
         {{=A(
             'Add',

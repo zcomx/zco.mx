@@ -422,12 +422,16 @@ def books():
     )
 
     creator_query = (db.book.creator_id == creator_record.id)
-    released_query = creator_query & (db.book.release_date != None)
+    active_query = (db.book.status == True)
+    released_query = creator_query & active_query & (db.book.release_date != None)
     released = db(released_query).select(db.book.ALL, orderby=db.book.name)
-    ongoing_query = creator_query & (db.book.release_date == None)
+    ongoing_query = creator_query & active_query & (db.book.release_date == None)
     ongoing = db(ongoing_query).select(db.book.ALL, orderby=db.book.name)
+    disabled_query = creator_query & (db.book.status == False)
+    disabled = db(disabled_query).select(db.book.ALL, orderby=db.book.name)
 
     return dict(
+        disabled=disabled,
         ongoing=ongoing,
         released=released,
     )
