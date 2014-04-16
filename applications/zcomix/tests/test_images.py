@@ -16,6 +16,7 @@ from PIL import Image
 from cStringIO import StringIO
 from gluon import *
 from gluon.http import HTTP
+from gluon.storage import List
 from applications.zcomix.modules.images import \
     Downloader, \
     UploadImage, \
@@ -96,7 +97,7 @@ class TestDownloader(ImageTestCase):
         self.assertTrue(downloader)
         env = globals()
         request = env['request']
-        request.args = [self._creator.image]
+        request.args = List([self._creator.image])
 
         lengths = {
             # size: bytes

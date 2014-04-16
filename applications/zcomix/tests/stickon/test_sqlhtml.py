@@ -44,8 +44,10 @@ class TestInputWidget(LocalTestCase):
         self.assertEqual(w_input['type'], 'text')
         self.assertEqual(w_input['value'], value)
 
-        widget = InputWidget(attributes=dict(_type='hidden', _id='my_fake_id'),
-                class_extra='id_widget')
+        widget = InputWidget(
+            attributes=dict(_type='hidden', _id='my_fake_id'),
+            class_extra='id_widget'
+        )
         soup = BeautifulSoup(str(widget.widget(field, value)))
         w_input = soup.find('input')
         if not w_input:
@@ -114,6 +116,7 @@ class TestLocalSQLFORM(LocalTestCase):
             pages += 1
         href = last_page.a['href']
         self.assertTrue('page={pgs}'.format(pgs=pages) in href)
+
 
 def setUpModule():
     """Set up web2py environment."""

@@ -22,7 +22,9 @@ from gluon.contrib.webclient import \
         DEFAULT_HEADERS as webclient_default_headers
 from gluon.globals import current
 import gluon.shell
-from gluon.storage import Storage
+from gluon.storage import \
+    List, \
+    Storage
 
 FILTER_TABLES = []          # Cache for values in comment.filter_table fields
 APP_ENV = {}                # Cache for app environments. Reuse of db prevents
@@ -131,6 +133,7 @@ class LocalTestCase(unittest.TestCase):
             APP_ENV[app]['current'] = current
         env['current'] = APP_ENV[app]['current']
         env['request'] = APP_ENV[app]['current'].request
+        env['request'].args = List()
         env['request'].vars = Storage()
         env['response'] = APP_ENV[app]['current'].response
         env['session'] = APP_ENV[app]['current'].session
