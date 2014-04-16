@@ -6,6 +6,7 @@
 Utilty classes and functions.
 """
 import collections
+import os
 from gluon import *
 
 
@@ -74,6 +75,15 @@ class ItemDescription(object):
         kwargs.update(attributes)
 
         return DIV(*divs, **kwargs)
+
+
+def markmin_content(filename):
+    """Return markmin content."""
+    content = ''
+    fullname = os.path.join(current.request.folder, 'private', 'doc', filename)
+    with open(fullname) as f:
+        content = f.read()
+    return content
 
 
 def move_record(sequential_field, record_id, direction='up', query=None, start=1):

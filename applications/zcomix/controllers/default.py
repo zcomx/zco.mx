@@ -3,6 +3,7 @@
 Default controller.
 """
 from applications.zcomix.modules.stickon.sqlhtml import formstyle_bootstrap3_login
+from applications.zcomix.modules.utils import markmin_content
 
 
 def index():
@@ -128,3 +129,13 @@ def data():
       LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
     """
     return dict(form=crud())
+
+
+def faq():
+    """FAQ page"""
+    return dict(text=markmin_content('faq.mkd'))
+
+
+def todo():
+    """TODO page"""
+    return dict(text=markmin_content('todo.mkd'))

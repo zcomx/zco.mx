@@ -1,0 +1,14 @@
+
+#### What is zcomix?
+
+This is a not-for-profit site dedicated to promoting self-publishing comic
+creators. It's also an attempt to help readers by organizing content
+produced by these creators.
+
+----
+
+#### What is the second question?
+
+This question was asked before,  and this was the proposed solution from the
+last time.  However,  this is fine as a workaround but requires more code.
+Line breaks may be required for all kinds of reasons.

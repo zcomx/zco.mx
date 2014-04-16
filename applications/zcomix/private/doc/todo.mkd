@@ -1,0 +1,11 @@
+
+1. Create cbz files.
+
+    Each book will be converted into a cbz file suitable for download.
+
+2. Create torrent files.
+
+    Books will be made available in torrent files.
+    - torrent for single book
+    - torrent for all books from creator
+    - torrent for all books available on zcomix
