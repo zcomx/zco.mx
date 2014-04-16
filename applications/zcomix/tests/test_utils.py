@@ -9,7 +9,9 @@ Test suite for zcomix/modules/utils.py
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
-from gluon.storage import Storage
+from gluon.storage import \
+    List, \
+    Storage
 from applications.zcomix.modules.utils import \
     ItemDescription, \
     markmin_content, \
@@ -167,7 +169,7 @@ class TestFunctions(LocalTestCase):
     def test__profile_wells(self):
         request = Storage()
         request.function = 'books'
-        request.args = [99]
+        request.args = List([99])
 
         tests = [
             #(request.function, expect)
