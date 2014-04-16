@@ -389,7 +389,7 @@ div.centered table {
 }
 
 .grid_section .item_details_padding {
-    padding: 0.8em;
+    padding: 0.8em 0 0.8em 0.8em;
 }
 
 .grid_section .item_details .name {
@@ -478,6 +478,10 @@ div.centered table {
     font-size: 18pt;
     padding-top: 0.4em;
     width: 100%;
+}
+
+.grid_section .orderby_field_value.orderby_newest {
+    font-size: 14pt;
 }
 
 .grid_section .web2py_paginator {

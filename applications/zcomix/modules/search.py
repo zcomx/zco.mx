@@ -20,6 +20,7 @@ class Search(object):
                 'fmt': lambda x: '${v:0.0f}'.format(v=x),
                 'label': 'contributions',
                 'periods': True,
+                'class': 'orderby_contributions',
                 },
             'newest': {
                 'table': 'book',
@@ -27,6 +28,7 @@ class Search(object):
                 'fmt': lambda x: str(x.date()),
                 'label': 'added',
                 'periods': False,
+                'class': 'orderby_newest',
                 },
             'views': {
                 'table': 'book',
@@ -34,6 +36,7 @@ class Search(object):
                 'fmt': lambda x: '{v}'.format(v=x),
                 'label': 'views',
                 'periods': True,
+                'class': 'orderby_views',
                 },
             'rating': {
                 'table': 'book',
@@ -41,6 +44,7 @@ class Search(object):
                 'fmt': lambda x: '{v:0.1f}'.format(v=x),
                 'label': 'rating',
                 'periods': True,
+                'class': 'orderby_rating',
                 },
             }
 
