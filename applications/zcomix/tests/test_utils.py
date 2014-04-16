@@ -12,6 +12,7 @@ from gluon import *
 from gluon.storage import Storage
 from applications.zcomix.modules.utils import \
     ItemDescription, \
+    markmin_content, \
     move_record, \
     profile_wells, \
     reorder
@@ -119,6 +120,10 @@ class TestFunctions(LocalTestCase):
         )
         return [x[field] for x in values]
 
+    def test__markmin_content(self):
+        faq = markmin_content('faq.mkd')
+        self.assertTrue('#### What is zcomix?' in faq)
+
     def test__move_record(self):
         self._reset()
         reorder(db.test__reorder.order_no)
@@ -170,33 +175,16 @@ class TestFunctions(LocalTestCase):
                 'account': 'link',
                 'creator': 'link',
                 'books': 'link',
-                'book_edit': None,
-                'book_pages': None,
-                'book_release': None,
             }),
             ('creator', {
                 'account': 'link',
                 'creator': 'text',
                 'books': 'link',
-                'book_edit': None,
-                'book_pages': None,
-                'book_release': None,
             }),
             ('books', {
                 'account': 'link',
                 'creator': 'link',
                 'books': 'text',
-                'book_edit': None,
-                'book_pages': None,
-                'book_release': None,
-            }),
-            ('book_edit', {
-                'account': 'link',
-                'creator': 'link',
-                'books': 'link',
-                'book_edit': 'text',
-                'book_pages': 'link',
-                'book_release': None,
             }),
         ]
 
