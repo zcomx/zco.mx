@@ -278,6 +278,9 @@ def book_pages_handler():
     elif request.env.request_method == 'DELETE':
         book_page_id = request.vars.book_page_id
         book_page = db(db.book_page.id == book_page_id).select().first()
+        if not book_page:
+            return do_error('Unable to delete page.')
+
         # retrieve real file name
         filename, _ = db.book_page.image.retrieve(
             book_page.image,
@@ -289,7 +292,7 @@ def book_pages_handler():
         # Make sure page_no values are sequential
         reorder_query = (db.book_page.book_id == book_record.id)
         reorder(db.book_page.page_no, query=reorder_query)
-        return dumps({"files": [{filename: 'true'}]})
+        return dumps({"files": [{filename: True}]})
     else:
         # GET
         return book_pages_as_json(db, book_record.id)

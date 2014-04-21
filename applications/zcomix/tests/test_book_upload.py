@@ -7,6 +7,9 @@ Test suite for zcomix/modules/book_upload.py
 
 """
 import os
+import pwd
+import re
+import shutil
 import unittest
 from applications.zcomix.modules.book_upload import \
     BookPageFile, \
@@ -181,12 +184,51 @@ class TestUploadedUnsupported(BaseTestCase):
 
 
 class TestFunctions(BaseTestCase):
+    _tmp_backup = None
+    _tmp_dir = None
+
+    @classmethod
+    def setUp(cls):
+        if cls._tmp_backup is None:
+            cls._tmp_backup = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp_bak')
+        if cls._tmp_dir is None:
+            cls._tmp_dir = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
+
+    @classmethod
+    def tearDown(cls):
+        if cls._tmp_backup and os.path.exists(cls._tmp_backup):
+            if os.path.exists(cls._tmp_dir):
+                shutil.rmtree(cls._tmp_dir)
+            os.rename(cls._tmp_backup, cls._tmp_dir)
 
     def test__classify_uploaded_file(self):
         pass        # FIXME
 
     def test__temp_directory(self):
-        pass        # FIXME
+        def valid_tmp_dir(path):
+            """Return if path is tmp dir."""
+            # Typical path:
+            # 'applications/zcomix/databases/../uploads/tmp/tmpSMFJJL'
+            dirs = path.split('/')
+            self.assertEqual(dirs[0], 'applications')
+            self.assertEqual(dirs[1], 'zcomix')
+            self.assertEqual(dirs[-3], 'uploads')
+            self.assertEqual(dirs[-2], 'tmp')
+            self.assertRegexpMatches(dirs[-1], re.compile(r'tmp[a-zA-Z0-9].*'))
+
+        valid_tmp_dir(temp_directory())
+
+        # Test: tmp directory does not exist.
+        if os.path.exists(self._tmp_dir):
+            os.rename(self._tmp_dir, self._tmp_backup)
+
+        valid_tmp_dir(temp_directory())
+        # Check permissions on tmp subdirectory
+        tmp_path = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
+        self.assertTrue(os.path.exists(tmp_path))
+        stats = os.stat(tmp_path)
+        self.assertEqual(stats.st_uid, pwd.getpwnam('http').pw_uid)
+        self.assertEqual(stats.st_gid, pwd.getpwnam('http').pw_gid)
 
 
 def setUpModule():

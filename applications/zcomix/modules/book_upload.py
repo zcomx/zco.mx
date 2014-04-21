@@ -33,6 +33,7 @@ BookPageFile instances, one for each image file extracted from the archive.
 """
 import cgi
 import os
+import pwd
 import shutil
 import subprocess
 import sys
@@ -504,4 +505,11 @@ def temp_directory():
     # W0212: *Access to a protected member %%s of a client class*
     # pylint: disable=W0212
     tmp_path = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
+    if not os.path.exists(tmp_path):
+        os.makedirs(tmp_path)
+        os.chown(
+            tmp_path,
+            pwd.getpwnam('http').pw_uid,
+            pwd.getpwnam('http').pw_gid,
+        )
     return tempfile.mkdtemp(dir=tmp_path)
