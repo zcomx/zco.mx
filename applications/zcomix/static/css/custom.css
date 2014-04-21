@@ -184,7 +184,6 @@ div.centered table {
 
 #profile_page .btn-xs {
     color: #666666;
-    padding: 2px 12px;
 }
 
 
@@ -1021,7 +1020,7 @@ div.centered table {
 }
 
 #add_link_container {
-    margin-top: 0.8em;
+    margin-top: 0.2em;
 }
 
 .row_container {
@@ -1079,7 +1078,8 @@ div.centered table {
 }
 
 #add_link_container > div {
-    margin-right: 1.2em;
+    margin-left: 0.2em;
+    margin-right: 0.6em;
 }
 
 #add_link_container .arrow_container {
