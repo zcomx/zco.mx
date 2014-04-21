@@ -6,6 +6,7 @@
 Test suite for zcomix/controllers/profile.py
 
 """
+import re
 import unittest
 import urllib2
 from applications.zcomix.modules.test_runner import LocalTestCase
@@ -32,7 +33,7 @@ class TestFunctions(LocalTestCase):
             "'value': '__Untitled-",
         ],
         'book_edit': '<div id="book_edit_section">',
-        'book_pages': '<div class="well well-sm" id="book_pages">',
+        'book_pages': '<div id="profile_book_pages_page">',
         'book_pages_handler_fail': [
             '{"files":',
             'Upload service unavailable',
@@ -48,7 +49,7 @@ class TestFunctions(LocalTestCase):
         'book_pages_reorder': [
             '"success": true',
         ],
-        'book_release': '<div class="well well-sm" id="book_release">',
+        'book_release': '<div id="profile_book_release_page">',
         'books': '<div class="well well-sm" id="books">',
         'creator': '<div class="well well-sm" id="creator">',
         'default': 'This is a not-for-profit site dedicated to promoting',
@@ -111,131 +112,226 @@ class TestFunctions(LocalTestCase):
             raise SyntaxError('No book_to_link with email: {e}'.format(e=email))
 
     def test__account(self):
-        self.assertTrue(web.test('{url}/account'.format(url=self.url),
-            self.titles['account']))
+        self.assertTrue(
+            web.test(
+                '{url}/account'.format(url=self.url),
+                self.titles['account']
+            )
+        )
 
     def test__book_add(self):
-        self.assertTrue(web.test('{url}/book_add'.format(url=self.url),
-            self.titles['book_add']))
+        # This test will create a book.
+
+        def book_ids(creator_id):
+            return [
+                x.id for x in
+                db(db.book.creator_id == creator_id).select(db.book.id)
+            ]
+
+        before_ids = book_ids(self._creator.id)
+        self.assertTrue(
+            web.test(
+                '{url}/book_add'.format(url=self.url),
+                self.titles['book_add']
+            )
+        )
+        after_ids = book_ids(self._creator.id)
+        self.assertEqual(set(before_ids).difference(set(after_ids)), set())
+        diff_set = set(after_ids).difference(set(before_ids))
+        self.assertEqual(len(diff_set), 1)
+        new_book = db(db.book.id == list(diff_set)[0]).select().first()
+        self._objects.append(new_book)
+        self.assertEqual(new_book.creator_id, self._creator.id)
+        self.assertRegexpMatches(
+            new_book.name,
+            re.compile(r'__Untitled-[0-9]{2}__')
+        )
 
     def test__book_edit(self):
         # No book id, redirect to books
-        self.assertTrue(web.test('{url}/book_edit'.format(url=self.url),
-            self.titles['books']))
+        self.assertTrue(
+            web.test(
+                '{url}/book_edit'.format(url=self.url),
+                self.titles['books']
+            )
+        )
 
-        self.assertTrue(web.test('{url}/book_edit/{bid}'.format(
-            bid=self._book.id, url=self.url),
-            self.titles['book_edit']))
+        self.assertTrue(
+            web.test(
+                '{url}/book_edit/{bid}'.format(
+                    bid=self._book.id, url=self.url),
+                self.titles['book_edit']
+            )
+        )
 
     def test__book_pages(self):
         # No book_id, redirects to books page
-        self.assertTrue(web.test(
-            '{url}/book_pages'.format(url=self.url),
-            self.titles['books']
-        ))
+        self.assertTrue(
+            web.test(
+                '{url}/book_pages'.format(url=self.url),
+                self.titles['books']
+            )
+        )
 
-        self.assertTrue(web.test(
-            '{url}/book_pages/{bid}'.format(
-            bid=self._book.id, url=self.url),
-            self.titles['book_pages']
-        ))
+        self.assertTrue(
+            web.test(
+                '{url}/book_pages/{bid}'.format(
+                    bid=self._book.id, url=self.url),
+                self.titles['book_pages']
+            )
+        )
 
     def test__book_pages_handler(self):
         # No book_id, return fail message
-        self.assertTrue(web.test('{url}/book_pages_handler'.format(url=self.url),
-            self.titles['book_pages_handler_fail']))
+        self.assertTrue(
+            web.test(
+                '{url}/book_pages_handler'.format(url=self.url),
+                self.titles['book_pages_handler_fail']
+            )
+        )
 
-        self.assertTrue(web.test('{url}/book_pages_handler/{bid}'.format(
-            bid=self._book.id,
-            url=self.url),
-            self.titles['book_pages_handler']
-        ))
+        self.assertTrue(
+            web.test(
+                '{url}/book_pages_handler/{bid}'.format(
+                    bid=self._book.id, url=self.url),
+                self.titles['book_pages_handler']
+            )
+        )
 
     def test__book_pages_reorder(self):
         # No book_id, return fail message
-        self.assertTrue(web.test(
-            '{url}/book_pages_reorder'.format(url=self.url),
-            self.titles['book_pages_reorder_fail']
-        ))
+        self.assertTrue(
+            web.test(
+                '{url}/book_pages_reorder'.format(url=self.url),
+                self.titles['book_pages_reorder_fail']
+            )
+        )
 
         # Invalid book_id, return fail message
-        self.assertTrue(web.test(
-            '{url}/book_pages_reorder/{bid}'.format(
-            bid=999999,
-            url=self.url),
-            self.titles['book_pages_reorder_fail']
-        ))
+        self.assertTrue(
+            web.test(
+                '{url}/book_pages_reorder/{bid}'.format(
+                    bid=999999, url=self.url),
+                self.titles['book_pages_reorder_fail']
+            )
+        )
 
         # Invalid book_page_id, return fail message
-        self.assertTrue(web.test(
-            '{url}/book_pages_reorder/{bid}?book_page_id={bpid}'.format(
-            bid=self._book.id,
-            bpid=9999,
-            url=self.url),
-            self.titles['book_pages_reorder_fail']
-        ))
+        self.assertTrue(
+            web.test(
+                '{url}/book_pages_reorder/{bid}?book_page_id={bpid}'.format(
+                    bid=self._book.id,
+                    bpid=9999,
+                    url=self.url,
+                ),
+                self.titles['book_pages_reorder_fail']
+            )
+        )
 
         # Valid
-        self.assertTrue(web.test(
-            '{url}/book_pages_reorder/{bid}?book_page_id={bpid}'.format(
-            bid=self._book.id,
-            bpid=self._book_page.id,
-            url=self.url),
-            self.titles['book_pages_reorder']
-        ))
+        self.assertTrue(
+            web.test(
+                '{url}/book_pages_reorder/{bid}?book_page_id={bpid}'.format(
+                    bid=self._book.id,
+                    bpid=self._book_page.id,
+                    url=self.url),
+                self.titles['book_pages_reorder']
+            )
+        )
 
     def test__book_release(self):
         # No book_id, redirects to books page
-        self.assertTrue(web.test('{url}/book_release'.format(url=self.url),
-            self.titles['books']))
+        self.assertTrue(
+            web.test(
+                '{url}/book_release'.format(url=self.url),
+                self.titles['books']
+            )
+        )
 
-        self.assertTrue(web.test('{url}/book_release/{bid}'.format(
-            bid=self._book.id, url=self.url),
-            self.titles['book_release']))
+        self.assertTrue(
+            web.test(
+                '{url}/book_release/{bid}'.format(
+                    bid=self._book.id, url=self.url),
+                self.titles['book_release']
+            )
+        )
 
     def test__books(self):
-        self.assertTrue(web.test('{url}/books'.format(
-            bid=self._book.id, url=self.url),
-            self.titles['books']))
+        self.assertTrue(
+            web.test(
+                '{url}/books'.format(bid=self._book.id, url=self.url),
+                self.titles['books']
+            )
+        )
 
     def test__creator(self):
-        self.assertTrue(web.test('{url}/creator'.format(url=self.url),
-            self.titles['creator']))
+        self.assertTrue(
+            web.test(
+                '{url}/creator'.format(url=self.url),
+                self.titles['creator']
+            )
+        )
 
     def test__index(self):
-        self.assertTrue(web.test('{url}/index'.format(url=self.url),
-            self.titles['index']))
+        self.assertTrue(
+            web.test(
+                '{url}/index'.format(url=self.url),
+                self.titles['index']
+            )
+        )
 
     def test__order_no_handler(self):
-        self.assertTrue(web.test('{url}/order_no_handler'.format(url=self.url),
-            self.titles['default']))
+        self.assertTrue(
+            web.test(
+                '{url}/order_no_handler'.format(url=self.url),
+                self.titles['default']
+            )
+        )
 
-        self.assertTrue(web.test('{url}/order_no_handler/creator_to_link'.format(url=self.url),
-            self.titles['default']))
+        self.assertTrue(
+            web.test(
+                '{url}/order_no_handler/creator_to_link'.format(url=self.url),
+                self.titles['default']
+            )
+        )
 
-        self.assertTrue(web.test('{url}/order_no_handler/creator_to_link/{clid}'.format(
-            clid=self._creator_to_link.id, url=self.url),
-            self.titles['default']))
+        self.assertTrue(
+            web.test(
+                '{url}/order_no_handler/creator_to_link/{clid}'.format(
+                    clid=self._creator_to_link.id, url=self.url),
+                self.titles['default']
+            )
+        )
 
         # Down
         before = self._creator_to_link.order_no
         next_url = '/zcomix/creators/creator/{cid}'.format(cid=self._creator.id)
-        self.assertTrue(web.test('{url}/order_no_handler/creator_to_link/{clid}/down?next={nurl}'.format(
-            clid=self._creator_to_link.id,
-            nurl=next_url,
-            url=self.url),
-            self.titles['order_no_handler']))
+        self.assertTrue(
+            web.test(
+                '{url}/order_no_handler/creator_to_link/{clid}/down?next={nurl}'.format(
+                    clid=self._creator_to_link.id,
+                    nurl=next_url,
+                    url=self.url
+                ),
+                self.titles['order_no_handler']
+            )
+        )
 
         after = db(db.creator_to_link.id == self._creator_to_link.id).select().first().order_no
         # This test fails because db is not updated.
         # self.assertEqual(before + 1, after)
 
         # Up
-        self.assertTrue(web.test('{url}/order_no_handler/creator_to_link/{clid}/up?next={nurl}'.format(
-            clid=self._creator_to_link.id,
-            nurl=next_url,
-            url=self.url),
-            self.titles['order_no_handler']))
+        self.assertTrue(
+            web.test(
+                '{url}/order_no_handler/creator_to_link/{clid}/up?next={nurl}'.format(
+                    clid=self._creator_to_link.id,
+                    nurl=next_url,
+                    url=self.url
+                ),
+                self.titles['order_no_handler']
+            )
+        )
 
         after = db(db.creator_to_link.id == self._creator_to_link.id).select().first().order_no
         self.assertEqual(before, after)

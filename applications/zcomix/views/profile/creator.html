@@ -142,23 +142,23 @@
     var creator_data = {
         'email': {
             'label': '{{=db.creator.email.label}}',
-            'value': '{{=creator.email}}',
+            'value': '{{=creator.email or ""}}',
         },
         'paypal_email': {
             'label': '{{=db.creator.paypal_email.label}}',
-            'value': '{{=creator.paypal_email}}',
+            'value': '{{=creator.paypal_email or ""}}',
         },
         'website': {
             'label': '{{=db.creator.website.label}}',
-            'value': '{{=creator.website}}',
+            'value': '{{=creator.website or ""}}',
         },
         'twitter': {
             'label': '{{=db.creator.twitter.label}}',
-            'value': '{{=creator.twitter}}',
+            'value': '{{=creator.twitter or ""}}',
         },
         'tumblr': {
             'label': '{{=db.creator.tumblr.label}}',
-            'value': '{{=creator.tumblr}}',
+            'value': '{{=creator.tumblr or ""}}',
             'append_to': '#edit_links_container',
         },
     }
@@ -166,7 +166,7 @@
     var bio_data = {
         'bio': {
             'label': '{{=db.creator.bio.label}}',
-            'value': '{{=dumps(creator.bio).strip('"')}}',
+            'value': '{{=dumps(creator.bio or "").strip('"')}}',
             'jeditable_settings': {'type': 'textarea'},
         },
     }

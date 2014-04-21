@@ -391,12 +391,29 @@ div.centered table {
     padding: 0.8em 0 0.8em 0.8em;
 }
 
-.grid_section .item_details .name {
+.grid_section .item_details .name_padding {
     padding-bottom: 0.4em;
+}
+
+.grid_section .item_details .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.grid_section .item_details .name a {
+    white-space: nowrap;
 }
 
 .grid_section .item_details .creator {
     font-size: 8pt;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.grid_section .item_details .creator a {
+    white-space: nowrap;
 }
 
 .grid_section .item_details .unused_row{
@@ -988,6 +1005,17 @@ div.centered table {
     color: black;
     opacity: 0.3;
 }
+
+#profile_book_pages_page .template-download span.glyphicon:focus,
+#profile_book_pages_page .template-download span.glyphicon:hover {
+    opacity: 0.6;
+}
+
+#profile_book_pages_page .template-download .reorder-arrow:focus,
+#profile_book_pages_page .template-download .reorder-arrow:hover  {
+    text-decoration: none;
+}
+
 #profile_book_pages_page .template-download .arrow-muted {
     pointer-events: none;
     cursor: default;
@@ -1045,6 +1073,7 @@ div.centered table {
 .row_container .field_container {
     border: 1px solid #FFFFFF;          /* same as bg colour, hides it */
     display: inline-block;
+    min-height: 1.9em;                  /* >= input height */
     vertical-align: top;
 }
 
@@ -1054,12 +1083,13 @@ div.centered table {
     padding: 0;
 }
 
-.row_container .edit_link_delete {
-    display: inline-block;
+.row_container .field_container.edit.active,
+.row_container .field_container.edit.active:hover {
+    border-color: #FFFFFF;             /* same as bg colour, hides it */
 }
 
-.row_container .active:hover {
-    border-color: #FFFFFF;             /* same as bg colour, hides it */
+.row_container .edit_link_delete {
+    display: inline-block;
 }
 
 .row_container .field_container.field_label {
@@ -1067,6 +1097,10 @@ div.centered table {
     font-weight: normal;
     overflow-wrap: break-word;
     word-wrap: break-word;
+}
+
+.row_container .field_container input {
+    min-width: 12em;
 }
 
 .add_link_container .error_wrapper div.error,
@@ -1088,6 +1122,10 @@ div.centered table {
 
 #add_link_container .link_name {
     width: 12em;
+}
+
+#add_link_container .link_url {
+    min-width: 24em;
 }
 
 .row_container .arrow-muted {
@@ -1122,8 +1160,6 @@ div.centered table {
 }
 
 #mug_shot {
-    background-color: #F3F3F3;
-    border: 1px solid #DDDDDD;
     padding: 1em 1em 1em 1em;
     min-width: 23em;
     width: 100%;
@@ -1235,6 +1271,10 @@ div.centered table {
     .row_container .field_container,
     .row_container .field_label {
         max-width: 30em;
+    }
+
+    .row_container .field_container:not(.field_label) input {
+        min-width: 24em;
     }
 
     .row_container .image_field_container {

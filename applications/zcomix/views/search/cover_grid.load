@@ -22,18 +22,22 @@
                     <div class="col-xs-12 col-sm-7 item_details">
                         <div class="item_details_padding">
                             <div class="row">
-                                <div class="col-sm-12 name">
+                                <div class="col-sm-12 name_padding">
+                                    <div class="name">
                                     <a href="{{=URL(c='books', f='book', args=row.book.id, extension=False)}}">
                                     {{book_name = '{n} ({r})'.format(n=row.book.name, r=db.book.publication_year.represent(row.book.publication_year, row.book))}}
-                                    {{=ItemDescription(book_name, more_text='', truncate_length=23).as_html()}}
+                                    {{=book_name}}
                                     </a>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-sm-12 creator">
-                                    <a href="{{=URL(c='creators', f='creator', args=row.creator.id, extension=False)}}">
-                                    {{=ItemDescription(row.auth_user.name, more_text='', truncate_length=34).as_html()}}
-                                    </a>
+                                <div class="col-sm-12 creator_padding">
+                                    <div class="creator">
+                                        <a href="{{=URL(c='creators', f='creator', args=row.creator.id, extension=False)}}">
+                                        {{=row.auth_user.name}}
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row unused_row">
