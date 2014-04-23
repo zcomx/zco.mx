@@ -8,7 +8,6 @@ Test suite for zcomix/controllers/profile.py
 """
 import re
 import unittest
-import urllib2
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 
@@ -216,24 +215,26 @@ class TestFunctions(LocalTestCase):
             )
         )
 
-        # Invalid book_page_id, return fail message
+        # Valid book_id, no book pages returns success
         self.assertTrue(
             web.test(
-                '{url}/book_pages_reorder/{bid}?book_page_id={bpid}'.format(
+                '{url}/book_pages_reorder/{bid}'.format(
                     bid=self._book.id,
-                    bpid=9999,
                     url=self.url,
                 ),
-                self.titles['book_pages_reorder_fail']
+                self.titles['book_pages_reorder']
             )
         )
 
         # Valid
+        query = (db.book_page.book_id == self._book.id)
+        book_page_ids = [x.id for x in db(query).select(db.book_page.id)]
+        bpids = ['book_page_ids[]={pid}'.format(pid=x) for x in book_page_ids]
         self.assertTrue(
             web.test(
-                '{url}/book_pages_reorder/{bid}?book_page_id={bpid}'.format(
+                '{url}/book_pages_reorder/{bid}?{bpid}'.format(
                     bid=self._book.id,
-                    bpid=self._book_page.id,
+                    bpid='&'.join(bpids),
                     url=self.url),
                 self.titles['book_pages_reorder']
             )

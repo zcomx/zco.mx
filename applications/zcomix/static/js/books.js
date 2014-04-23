@@ -27,6 +27,35 @@
         return title;
     }
 
+    function reorder_pages(dialog) {
+        var page_ids = [];
+        var book_id = 0;
+        dialog.getModalBody().find('tr.template-download').each(function(index, elem) {
+            if (!book_id) {
+                book_id = $(elem).data('book_id');
+            }
+            page_ids.push($(elem).data('book_page_id'));
+        });
+
+        var url = '/zcomix/profile/book_pages_reorder'
+        url = url + '/' + book_id;
+
+        var that = $(this);
+
+        $('#fileupload').addClass('fileupload-processing');
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            dataType: 'json',
+            data: {book_page_ids: page_ids},
+        }).always(function () {
+            $('#fileupload').removeClass('fileupload-processing');
+        // }).done(function (result) {
+        // Reordering not critical, ignore results
+        })
+    }
+
     function onshow_callback(dialog) {
         dialog.getModalDialog().addClass('modal-lg');
     }
@@ -135,6 +164,7 @@
                 title: get_title(link, action),
                 message: get_message(link),
                 onshow: onshow_callback,
+                onhide: reorder_pages,
                 buttons: [
                     close_button(),
                 ],

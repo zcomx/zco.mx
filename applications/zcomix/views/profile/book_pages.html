@@ -1,14 +1,14 @@
 <div id="profile_book_pages_page">
 
 <div class="fileupload_container">
-    <form id="fileupload" action="/zcomix/profile/book_pages_handler/{{=book.id}}" method="POST" enctype="multipart/form-data">
+    <form id="fileupload" class="fileupload-processing" action="/zcomix/profile/book_pages_handler/{{=book.id}}" method="POST" enctype="multipart/form-data">
         <noscript><input type="hidden" name="redirect" value="/zcomix/profile/book_edit/{{=book.id}}"></noscript>
         <div class="row fileupload-buttonbar">
             <div class="col-xs-12">
                 <span class="btn btn-success fileinput-button">
                     <i class="glyphicon glyphicon-plus"></i>
                     <span>Add files...</span>
-                    <input type="file" name="up_files" multiple>
+                    <input type="file" name="up_files[]" multiple>
                 </span>
                 <button type="submit" class="btn btn-primary start">
                     <i class="glyphicon glyphicon-upload"></i>
@@ -73,12 +73,12 @@
 </script>
 <script id="template-download" type="text/x-tmpl">
 {% for (var i=0, file; file=o.files[i]; i++) { %}
-    <tr class="template-download fade">
+    <tr class="template-download fade" data-book_id="{%=file.book_id%}" data-book_page_id="{%=file.book_page_id%}">
         <td>
-            <a href="" class="reorder-arrow reorder-arrow-up" data-book_id="{%=file.book_id%}" data-book_page_id="{%=file.book_page_id%}" data-dir="up">
+            <a href="" class="reorder-arrow reorder-arrow-up" data-dir="up">
             <span class="glyphicon glyphicon-arrow-up" title="Move up"></span>
             </a>
-            <a href="" class="reorder-arrow reorder-arrow-down" data-book_id="{%=file.book_id%}" data-book_page_id="{%=file.book_page_id%}" data-dir="down">
+            <a href="" class="reorder-arrow reorder-arrow-down" data-dir="down">
             <span class="glyphicon glyphicon-arrow-down" title="Move down"></span>
             </a>
         </td>
@@ -126,8 +126,6 @@
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload.js')}}"></script>
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-process.js')}}"></script>
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-image.js')}}"></script>
-<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-audio.js')}}"></script>
-<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-video.js')}}"></script>
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-validate.js')}}"></script>
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-ui.js')}}"></script>
 <!-- The XDomainRequest Transport is included for cross-domain file deletion for IE 8 and IE 9 -->
@@ -142,7 +140,7 @@
         $('#fileupload').image_upload(
             '/zcomix/profile/book_pages_handler/{{=book.id}}'
         );
+        $('#fileupload').removeClass('fileupload-processing');
     });
-
 //]]>
 </script>

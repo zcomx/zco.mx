@@ -16,9 +16,7 @@ from applications.zcomix.modules.images import \
 from applications.zcomix.modules.links import \
     CustomLinks, \
     ReorderLink
-from applications.zcomix.modules.utils import \
-    move_record, \
-    reorder
+from applications.zcomix.modules.utils import reorder
 from applications.zcomix.modules.stickon.sqlhtml import \
     InputWidget, \
     SimpleUploadWidget, \
@@ -271,7 +269,7 @@ def book_pages_handler():
 
     if request.env.request_method == 'POST':
         # Create a book_page record for each upload.
-        files = request.vars.up_files
+        files = request.vars['up_files[]']
         if not isinstance(files, list):
             files = [files]
         return BookPageUploader(book_record.id, files).upload()
@@ -289,9 +287,6 @@ def book_pages_handler():
         resizer = UploadImage(db.book_page.image, book_page.image)
         resizer.delete_all()
         book_page.delete_record()
-        # Make sure page_no values are sequential
-        reorder_query = (db.book_page.book_id == book_record.id)
-        reorder(db.book_page.page_no, query=reorder_query)
         return dumps({"files": [{filename: True}]})
     else:
         # GET
@@ -303,8 +298,7 @@ def book_pages_reorder():
     """Callback function for reordering book pages.
 
     request.args(0): integer, id of book.
-    request.vars.book_page_id: integer, id of book_page
-    request.vars.dir: string, direction to move page, 'up'(default) or 'down'
+    request.vars.book_page_ids[], list of book page ids.
     """
     def do_error(msg):
         return dumps({'success': False, 'error': msg})
@@ -323,23 +317,25 @@ def book_pages_reorder():
     if not book_record or book_record.creator_id != creator_record.id:
         return do_error('Reorder service unavailable.')
 
-    page_record = None
-    if request.vars.book_page_id:
-        query = (db.book_page.id == request.vars.book_page_id)
+    if not 'book_page_ids[]' in request.vars:
+        # Nothing to do
+        return dumps({'success': True})
+
+    page_ids = []
+    for page_id in request.vars['book_page_ids[]']:
+        try:
+            page_ids.append(int(page_id))
+        except (TypeError, ValueError):
+            # reordering pages isn't critical, if page is not valid, just move
+            # on
+            continue
+
+    for count, page_id in enumerate(page_ids):
+        query = (db.book_page.id == page_id)
         page_record = db(query).select(db.book_page.ALL).first()
-    if not page_record:
-        return do_error('Reorder service unavailable.')
-
-    direction = request.vars.dir or 'up'
-    if direction not in ['up', 'down']:
-        direction = 'up'
-
-    move_record(
-        db.book_page.page_no,
-        page_record.id,
-        direction=direction,
-        query=(db.book_page.book_id == book_record.id),
-    )
+        if page_record and page_record.book_id == book_record.id:
+            page_record.update_record(page_no=(count + 1))
+    db.commit()
     return dumps({'success': True})
 
 

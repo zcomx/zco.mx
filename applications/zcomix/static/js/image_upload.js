@@ -1,4 +1,5 @@
 (function( $ ) {
+
     $.fn.image_upload = function (url, options) {
         var settings = $.extend(true, {}, $.fn.image_upload.defaults, {url: url}, options);
 
@@ -12,7 +13,13 @@
             },
 
             _completed_callback: function(e, data) {
-                methods._set_reorder_links();
+                data.context.find('.reorder-arrow').each(function(index, elem) {
+                    methods._set_reorder_links(elem);
+                });
+                methods._set_arrows();
+            },
+
+            _deleted_callback: function(e, data) {
                 methods._set_arrows();
             },
 
@@ -36,55 +43,36 @@
                 $(elem).fileupload({
                     url: settings.url,
                     completed: methods._completed_callback,
+                    destroyed: methods._deleted_callback,
                     });
 
                 methods._display_download();
             },
 
-            _set_arrows:function() {
+            _set_arrows: function() {
                 $('.reorder-arrow').removeClass('arrow-muted');
                 $('.reorder-arrow-up').first().addClass('arrow-muted');
                 $('.reorder-arrow-down').last().addClass('arrow-muted');
             },
 
-            _set_reorder_links:function() {
-                $('.reorder-arrow').click(function(e) {
+            _set_reorder_links: function(elem) {
+                $(elem).click(function(e) {
                     e.preventDefault();
-
                     $('#fileupload').addClass('fileupload-processing');
-
-                    var url = '/zcomix/profile/book_pages_reorder'
-                    url = url + '/' + $(this).data('book_id');
-                    url = url + '?book_page_id=' + $(this).data('book_page_id');
-                    url = url + '&dir=' + $(this).data('dir');
-
                     var that = $(this);
-
-                    $.ajax({
-                        url: url,
-                        dataType: 'json'
-                    }).always(function () {
-                        $('#fileupload').removeClass('fileupload-processing');
-                    }).done(function (result) {
-                        if (result['success']) {
-                            var tr = that.closest('tr');
-                            tr.fadeOut(400, function() {
-                                if (that.data('dir') === 'down') {
-                                    tr.next().after(tr);
-                                }
-                                else {
-                                    tr.prev().before(tr);
-                                }
-                                tr.fadeIn(400, function() {
-                                    methods._set_arrows();
-                                });
-                            });
+                    var tr = that.closest('tr');
+                    tr.fadeOut(400, function() {
+                        if (that.data('dir') === 'down') {
+                            tr.next().after(tr);
                         }
                         else {
-                            methods._clear_download(that);
-                            methods._display_download();
+                            tr.prev().before(tr);
                         }
-                    })
+                        tr.fadeIn(400, function() {
+                            methods._set_arrows();
+                        });
+                    });
+                    $('#fileupload').removeClass('fileupload-processing');
                 });
             },
         };
