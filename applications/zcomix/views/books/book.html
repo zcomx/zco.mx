@@ -21,8 +21,16 @@
                 {{=book.name}} ({{=db.book.publication_year.represent(book.publication_year, book)}})
             </div>
             {{=ItemDescription(book.description).as_html(**dict(_id='book_description'))}}
-            <div class="row" id="book_id_section">
-                <div class="col-sm-7" id="book_specs_column">
+            <div id="book_id_section">
+                <div id="buttons_container">
+                    <div class="read button_container">
+                    {{=read_button}}
+                    </div>
+                    <div class="download button_container">
+                    <a class="btn btn-default fixme" type="button" href="#" data-w2p_disable_with="default">Download</a>
+                    </div >
+                </div>
+                <div id="book_specs_column">
                     <div id="contribute_widget_container">
                     {{=LOAD(c='contributions', f='contribute_widget', args=book.id, extension='load', ajax=True, content='')}}
                     </div>
@@ -33,19 +41,11 @@
                         <dt>views</dt><dd>{{=book.views_year}}</dd>
                         <dt>downloads</dt><dd>{{=book.downloads or 0}}</dd>
                         {{if links:}}
-                            <dt>paper copy</dt>
+                            <dt>links</dt>
                             <dd>{{=links}}</dd>
                         {{pass}}
                         </dl>
                     </div>
-                </div>
-                <div class="col-sm-5" id="buttons_container">
-                    <div class="read button_container">
-                    {{=read_button}}
-                    </div>
-                    <div class="download button_container">
-                    <a class="btn btn-default fixme" type="button" href="#" data-w2p_disable_with="default">Download</a>
-                    </div >
                 </div>
             </div>
         </div>

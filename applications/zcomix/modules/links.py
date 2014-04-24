@@ -146,7 +146,7 @@ class CustomLinks(object):
         if not links:
             return None
         return UL([LI(x) for x in links],
-                _class='list-inline custom_links',
+                _class='custom_links breadcrumb',
                 )
 
 

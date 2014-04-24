@@ -420,6 +420,10 @@ div.centered table {
     min-height: 1.0em;
 }
 
+#book_page #buttons_container {
+    padding-bottom: 1em;
+}
+
 #book_page #buttons_container .read,
 .grid_section .buttons_orderby_container .read{
     letter-spacing: 0.1em;
@@ -630,10 +634,6 @@ div.centered table {
     min-height: 2.9em;
 }
 
-#book_page #book_id_section {
-    padding-top: 2em;
-}
-
 #book_page #book_id_section .contribute_widget {
     margin-left: 0;
 }
@@ -693,8 +693,11 @@ div.centered table {
     display: inline-block;
     font-size: 10pt;
     margin-bottom: 0;
-    margin-left: 1em;
     padding: 0 0.8em 0 0.4em;
+}
+
+.contribute_widget .contribute_error.alert {
+    margin-left: 1em;
 }
 
 .contribute_widget .contribute_error span {
@@ -727,11 +730,6 @@ div.centered table {
     -ms-border-radius: 0.6em;
     -khtml-border-radius: 0.6em;
     border-radius: 0.6em;
-}
-
-#book_id_section .custom_links,
-#creator_id_section .custom_links {
-    margin-bottom: 0;
 }
 
 #book_page #right_column hr {
@@ -783,18 +781,46 @@ div.centered table {
     max-width: 20em;
 }
 
+#book_id_section .custom_links,
+#creator_id_section .custom_links {
+    margin-bottom: 0;
+}
+
 #book_id_section .custom_links > li:first-child,
 #creator_id_section .custom_links > li:first-child {
     padding-left: 0
 }
 
+#book_id_section .custom_links.breadcrumb,
+#creator_id_section .custom_links.breadcrumb {
+    background-color: inherit;
+    margin-left: 0;
+    padding: 0;
+}
+
+#book_id_section .custom_links.breadcrumb > li + li:before,
+#creator_id_section .custom_links.breadcrumb > li + li:before {
+    content: "\7C"     /* Ascii hex code for | */
+}
+
+
 
 @media screen and (min-width: 768px){
 
-    #book_page #buttons_container {
-        padding-top: 8%;
-        padding-right: 8%;
+    #book_page #book_id_section {
+        padding-top: 2em;
+        position: relative;
     }
+
+    #book_page #buttons_container {
+        float: right;
+        padding-right: 8%;
+        padding-top: 8%;
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
 
     #book_page #book_cover_img {
         padding-right: 1.2em;
@@ -824,7 +850,7 @@ div.centered table {
 
 #reader_page_header #name_creator_section {
     border-bottom: 1px solid #DDDDDD;
-    padding-bottom: 0.6em;
+    padding-bottom: 0.3em;
 }
 
 @media screen and (min-width: 768px){
@@ -861,7 +887,7 @@ div.centered table {
     float: right;
     padding-top: 0.6em;
     padding-left: 7em;
-    margin-top: -1.7em;
+    margin-top: -1em;
     margin-right: 0.2em;
 }
 
@@ -922,11 +948,6 @@ div.centered table {
     content: "\7C"     /* Ascii hex code for | */
 }
 
-#reader_page_footer #contribute_widget_container {
-    padding-right: 1.4em;
-}
-
-
 @media screen and (min-width: 992px){
     #reader_page_header {
         min-width: 60em;
@@ -935,6 +956,19 @@ div.centered table {
 
 #slider_page .slide {
     display: none;
+}
+
+#slider_page #page_nav_container input {
+    border-bottom: 2px solid #DDDDDD;
+    border-radius: 3px 3px 3px 3px;
+    border-right: 2px solid #DDDDDD;
+    width: 3em;
+}
+
+#slider_page .pagination > li > a,
+#slider_page .pagination > li > span {
+    color: #666666;
+    line-height: 2;
 }
 
 #reader_section #reader_container{
@@ -1099,7 +1133,7 @@ div.centered table {
     word-wrap: break-word;
 }
 
-.row_container .field_container input {
+.row_container .field_container input:not(.sp-input) {
     min-width: 12em;
 }
 
@@ -1273,7 +1307,7 @@ div.centered table {
         max-width: 30em;
     }
 
-    .row_container .field_container:not(.field_label) input {
+    .row_container .field_container:not(.field_label) input:not(.sp-input) {
         min-width: 24em;
     }
 

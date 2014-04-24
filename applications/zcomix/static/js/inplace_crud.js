@@ -14,6 +14,7 @@ $.editable.addInputType('colour_picker', {
     plugin: function(settings, original) {
         var input = $(':input:first', this);
         input.spectrum({
+            appendTo: 'parent',
             cancelText: 'Cancel',
             chooseText: 'OK',
             preferredFormat: 'name',
@@ -36,10 +37,11 @@ $.editable.addInputType('colour_picker', {
             hide : function(color) {
                 input.trigger('blur');
             },
-         })
-         setTimeout( function() {
-             input.spectrum('show');
-         }, 100);
+        })
+
+        setTimeout( function() {
+            input.spectrum('show');
+        }, 100);
     }
 });
 

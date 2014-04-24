@@ -45,7 +45,7 @@
         },
         'description': {
             'label': '{{=db.book.description.label}}',
-            'value': '{{=book.description or ""}}',
+            'value': '{{=book.description.encode('string_escape') or ""}}',
             'jeditable_settings': {'type': 'textarea'},
         },
         'release_date': {
