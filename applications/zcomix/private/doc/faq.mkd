@@ -1,14 +1,48 @@
+#### What is zcomix.com?
+Zcomix is a not-for-profit website for self-publishing comic creators
+and their readers. Readers can browse a large library of comics and can
+read them online or download them, no strings attached.
 
-#### What is zcomix?
+Self-publishing comic creators can easily make their material available
+to readers. Books can be uploaded within minutes and readers can pay
+creators directly in return for work they enjoy.
 
-This is a not-for-profit site dedicated to promoting self-publishing comic
-creators. It's also an attempt to help readers by organizing content
-produced by these creators.
+#### What's in it for creators?
+Zcomix makes publishing books simple. Jpg's or cbz files can be uploaded
+and made available to readers immediately.
 
-----
+Zcomix makes it easy to promote and distribute material. Creators get
+more exposure and can reach new audiences.
 
-#### What is the second question?
+Creators maintain full ownership of their material.
 
-This question was asked before,  and this was the proposed solution from the
-last time.  However,  this is fine as a workaround but requires more code.
-Line breaks may be required for all kinds of reasons.
+Creators can make money. Payments from readers go directly to creators.
+Apart from paypal processing fees, there are no commissions or charges.
+
+#### How do readers benefit?
+Readers can try before they buy. All books are free to read and
+download.
+
+Readers have complete control over their books. They can read online,
+download them and read offline, copy them to other devices and share
+them however they please.
+
+Books are in the common cbz format so allowing readers to use their
+favourite comic book reading software.
+
+All books are DRM free. Books are freely available with no conditions
+other than the copyright used by the creator.
+
+Readers can reward creators for entertaining them. Apart from paypal
+processing fees, donations go directly to creators. There are no
+commission fees.
+
+#### Can any creator sign up?
+While beta testing the site is invite-only.
+
+#### How do you make money off the site?
+Zcomix is not-for-profit.  The time to create and maintain the site is
+donated free of charge -- it's a labour of love.  The code for the site
+is [[open source https://github.com/zcomix]].
+
+
