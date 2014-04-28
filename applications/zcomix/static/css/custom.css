@@ -1371,6 +1371,14 @@ div.centered table {
     }
 }
 
+#faq_page {
+    width: 36em;
+}
+
+#faq_page h4 {
+    margin-bottom: 0.4em;
+    margin-top: 1.2em;
+}
 
 /* bootstrap 2.3.2 for jquery-file-upload */
 .fade {
@@ -1390,14 +1398,5 @@ div.centered table {
 #FIXME_page [class*="span"] {
     border: 1px solid red;
 }
-
-.fileupload-buttonbar .col-lg-7 {
-    border: 1px solid red;
-}
-
-.fileupload-buttonbar .col-lg-5 {
-    border: 1px solid blue;
-}
-
 
 /* temp stuff end /// */

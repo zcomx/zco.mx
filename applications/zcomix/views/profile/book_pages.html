@@ -98,7 +98,7 @@
                 {% } %}
             </p>
             {% if (file.error) { %}
-                <div><span class="label label-danger">Error</span> {%=file.error%}</div>
+                <div><span class="label label-danger">Error</span> {%=o.options._error_scrub(file.error)%}</div>
             {% } %}
         </td>
         <td>
