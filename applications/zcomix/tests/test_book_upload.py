@@ -21,7 +21,6 @@ from applications.zcomix.modules.book_upload import \
     Unpacker, \
     UnpackerRAR, \
     UnpackerZip, \
-    UploadError, \
     UploadedFile, \
     UploadedArchive, \
     UploadedImage, \
@@ -150,17 +149,6 @@ class TestUnpackerRAR(BaseTestCase):
 class TestUnpackerZip(BaseTestCase):
     def test____init__(self):
         pass        # FIXME
-
-
-class TestUploadError(LocalTestCase):
-    def test____init__(self):
-        msg = 'This is an error message.'
-        try:
-            raise UploadError(msg)
-        except UploadError as err:
-            self.assertEqual(str(err), msg)
-        else:
-            self.fail('UploadError not raised')
 
 
 class TestUploadedFile(BaseTestCase):

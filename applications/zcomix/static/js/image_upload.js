@@ -39,11 +39,24 @@
                 });
             },
 
+            _error_scrub: function(raw_msg) {
+                translation = {
+                    'Request Entity Too Large': 'The file is too large (max 500 MB).',
+                    'Unsupported file type.': 'Invalid file or unsupported file type.',
+                }
+                if (translation.hasOwnProperty(raw_msg)) {
+                    return translation[raw_msg];
+                }
+                return raw_msg;
+                return 'The file upload failed.';
+            },
+
             _run: function(elem) {
                 $(elem).fileupload({
                     url: settings.url,
                     completed: methods._completed_callback,
                     destroyed: methods._deleted_callback,
+                    _error_scrub: methods._error_scrub,
                     });
 
                 methods._display_download();

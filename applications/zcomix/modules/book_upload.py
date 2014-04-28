@@ -117,7 +117,6 @@ class BookPageUploader(object):
         self.book_id = book_id
         self.files = files
         self.uploaded_files = []
-        self.errors = []
         self.temp_directory = None
 
     def as_json(self):
@@ -135,11 +134,7 @@ class BookPageUploader(object):
         with open(local_filename, 'w+b') as lf:
             shutil.copyfileobj(up_file.file, lf)
 
-        try:
-            uploaded_file = classify_uploaded_file(local_filename)
-        except UploadError as err:
-            self.errors.append(err)
-
+        uploaded_file = classify_uploaded_file(local_filename)
         self.uploaded_files.append(uploaded_file)
         uploaded_file.load(self.book_id)
 
@@ -308,11 +303,6 @@ class UnpackerZip(Unpacker):
         return self.image_files()
 
 
-class UploadError(Exception):
-    """Exception class for upload errors."""
-    pass
-
-
 class UploadedFile(object):
     """Base class representing a single uploaded file."""
 
@@ -444,6 +434,14 @@ class UploadedUnsupported(UploadedFile):
         """
         UploadedFile.__init__(self, filename)
 
+    def create_book_pages(self, book_id):
+        """Create book_pages.
+
+        Args:
+            book_id: integer, id of book record the files belong to
+        """
+        return
+
     def for_json(self):
         """Return uploaded files as json appropriate for jquery-file-upload."""
         try:
@@ -459,6 +457,10 @@ class UploadedUnsupported(UploadedFile):
         if self.errors:
             json_data['error'] = ', '.join(self.errors)
         return json_data
+
+    def load(self, book_id):
+        """Load uploaded file into database."""
+        return
 
     def unpack(self):
         """Unpack file."""
