@@ -853,10 +853,13 @@ div.centered table {
     padding-bottom: 0.3em;
 }
 
+#reader_page_header #name_creator_inlay {
+    padding: 0;
+}
+
 @media screen and (min-width: 768px){
-    #reader_page_header #name_creator {
+    #reader_page_header #name_creator_inlay {
         margin-top: -3em;
-        padding-right: 0;
     }
 }
 
@@ -942,6 +945,10 @@ div.centered table {
     line-height: 2em;
     margin: 0 0 20px;
     padding: 0;
+}
+
+#reader_page_footer .breadcrumb > li + li {
+    margin-left: -0.2em;
 }
 
 #reader_page_footer .breadcrumb > li + li:before {
@@ -1395,7 +1402,7 @@ div.centered table {
     font-size: 8pt;
 }
 
-#FIXME_page [class*="span"] {
+#FIXME_page [class*="col"] {
     border: 1px solid red;
 }
 

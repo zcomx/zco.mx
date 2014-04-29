@@ -25,18 +25,20 @@
                 </div>
             </div>
             <div class="row" id="name_creator_section">
-                <div class="col-sm-8" id="name_creator">
-                    <div id="book_name" class="row">
-                        <a href="{{=URL(c='books', f='book', args=book.id)}}">
-                        {{=book.name}} ({{=db.book.publication_year.represent(book.publication_year, book)}})
-                        </a>
-                    </div>
-                    <div id="creator" class="row">
-                        <div id="creator_name">
-                            <a href="{{=URL(c='creators', f='creator', args=creator.id)}}">{{=auth_user.name}}</a>
+                <div class="col-sm-12" id="name_creator_inlay">
+                    <div class="row" id="name_creator">
+                        <div id="book_name" class="col-sm-8">
+                            <a href="{{=URL(c='books', f='book', args=book.id)}}">
+                            {{=book.name}} ({{=db.book.publication_year.represent(book.publication_year, book)}})
+                            </a>
+                        </div>
+                        <div id="creator" class="col-sm-8">
+                            <div id="creator_name">
+                                <a href="{{=URL(c='creators', f='creator', args=creator.id)}}">{{=auth_user.name}}</a>
+                            </div>
                         </div>
                     </div>
-                    <div class="row scroll_slide_options">
+                    <div class="scroll_slide_options">
                         <div class="btn-group">
                             {{for s in ['slider', 'scroller']:}}
                                 {{status = 'disabled' if request.function == s else 'active'}}
