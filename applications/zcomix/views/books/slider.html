@@ -8,36 +8,6 @@
                     {{=img_tag(page.image, size=size)}}
                 </div>
             {{pass}}
-            <div>
-            <ul class="pagination" id="page_nav_container">
-            <li>
-                <a href="#">
-                    <i class="glyphicon glyphicon-step-backward" id="page_nav_prev"></i>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="glyphicon glyphicon-fast-backward" id="page_nav_first"></i>
-                </a>
-            </li>
-            <li><span>
-                    Page <input type="text" name="page_nav_page_no" value="1" id="page_nav_page_no">
-                    of <span id="page_nav_total">1</span>
-                </span>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="glyphicon glyphicon-fast-forward" id="page_nav_last"></i>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="glyphicon glyphicon-step-forward" id="page_nav_next"></i>
-                </a>
-            </li>
-            </ul>
-            </div>
-
         {{else:}}
         No pages found.
         {{pass}}
