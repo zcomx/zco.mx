@@ -890,16 +890,16 @@ div.centered table {
 #reader_section #slider_page,
 #reader_section #reader_container,
 #reader_section .slide {
-    width:100%;
-    height:100%;
-    margin:0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
 }
 
-#reader_section #slider_page img {
-    width:auto;
-    height:auto;
-    max-width:100%;
-    max-height:90%;
+#reader_section img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .scroll_slide_options {
@@ -947,17 +947,21 @@ div.centered table {
 
 #reader_page_footer {
     background-color: #FFFFFF;
+    font-size: 9pt;
     margin-top: 15px;
 }
 
-#reader_page_footer #contribute_download_section {
+#reader_page_footer #contribute_download_pager {
     border-top: 1px solid #DDDDDD;
     padding-top: 0.6em;
 }
 
+#reader_page_footer #contribute_download_container {
+    min-width: 20em;
+}
+
 #reader_page_footer .breadcrumb {
     background-color: inherit;
-    font-size: 12px;
     line-height: 2em;
     margin: 0 0 20px;
     padding: 0;
@@ -971,6 +975,50 @@ div.centered table {
     content: "\7C"     /* Ascii hex code for | */
 }
 
+#reader_page_footer .page_nav_container {
+    padding: 0.2em 0 1em 0;
+    margin: 0;
+}
+
+#reader_page_footer #page_nav_list {
+    min-width: 16em;
+    padding: 0;
+    margin: 0;
+}
+
+#reader_page_footer #page_nav_list li {
+    display: inline;
+    padding: 0 0.2em;
+    white-space: nowrap;
+}
+
+#reader_page_footer #page_nav_list > li > a,
+#reader_page_footer #page_nav_list > li > span {
+    color: #666666;
+    line-height: 2;
+}
+
+#reader_page_footer #page_nav_list input {
+    border-bottom: 2px solid #DDDDDD;
+    border-radius: 3px;
+    border-right: 2px solid #DDDDDD;
+    color: #333333;
+    height: inherit;
+    padding: 0;
+    width: 3em;
+}
+
+@media screen and (min-width: 768px){
+    #reader_page_footer .page_nav_container {
+        padding: 0;
+        margin: 0;
+    }
+
+    #reader_page_footer #page_nav_list {
+        text-align: center;
+    }
+}
+
 @media screen and (min-width: 992px){
     #reader_page_header {
         min-width: 60em;
@@ -979,19 +1027,6 @@ div.centered table {
 
 #slider_page .slide {
     display: none;
-}
-
-#slider_page #page_nav_container input {
-    border-bottom: 2px solid #DDDDDD;
-    border-radius: 3px 3px 3px 3px;
-    border-right: 2px solid #DDDDDD;
-    width: 3em;
-}
-
-#slider_page .pagination > li > a,
-#slider_page .pagination > li > span {
-    color: #666666;
-    line-height: 2;
 }
 
 #reader_section #reader_container{

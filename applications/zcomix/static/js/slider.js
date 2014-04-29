@@ -39,8 +39,12 @@
 
     function show_slide(num) {
         $('#reader_section .slide').hide();
+        $('#reader_section').height('94%');
         $('#reader_section #img-' + num).css( "display", "inline-block")
         $('#page_nav_page_no').val(num + 1);
+        /* Resize the container div */
+        var h = $('#img-' + num).children('img')[0].height;
+        $('#reader_section').height(h * 0.9);
     }
 
     $(document).ready(function(){
