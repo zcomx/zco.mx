@@ -164,9 +164,9 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(str(cover_image(db, book_id)), placeholder)
 
         images = [
-            'page_trees.png',
-            'page_flowers.png',
-            'page_birds.png',
+            'book_page.image.page_trees.png',
+            'book_page.image.page_flowers.png',
+            'book_page.image.page_birds.png',
         ]
         for count, i in enumerate(images):
             page_id = db.book_page.insert(
@@ -179,7 +179,7 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(
             str(cover_image(db, book_id)),
-            '<img src="/images/download/page_trees.png?size=original" />'
+            '<img src="/images/download/book_page.image.page_trees.png?size=original" />'
         )
 
     def test__default_contribute_amount(self):

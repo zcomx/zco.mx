@@ -24,21 +24,20 @@ def contribute_widget():
     if book_record:
         creator = db(db.creator.id == book_record.creator_id).select(
                 db.creator.ALL).first()
+        amount = '{a:0.2f}'.format(a=default_contribute_amount(db, book_record)),
+    else:
+        amount = 1.00
 
     return dict(
-            amount='{a:0.2f}'.format(a=default_contribute_amount(db, book_record)),
+            amount=amount,
             book=book_record,
             creator=creator,
             )
 
 
-@auth.requires_login()
 def index():
     """Contributions grid."""
-    grid = LocalSQLFORM.grid(
-            db.contribution,
-            )
-    return dict(grid=grid)
+    redirect(URL(c='default', f='index'))
 
 
 def paypal():

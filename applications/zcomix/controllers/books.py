@@ -46,7 +46,7 @@ def book():
     return dict(
         auth_user=auth_user,
         book=book_record,
-        cover_image=cover_image(db, book_record.id, size='original', img_attributes={'_class': 'img-responsive'}),
+        cover_image=cover_image(db, book_record.id, size='medium', img_attributes={'_class': 'img-responsive'}),
         creator=creator,
         creator_links=CustomLinks(db.creator, creator.id).represent(pre_links=pre_links),
         links=CustomLinks(db.book, book_record.id).represent(),
@@ -104,7 +104,7 @@ def reader():
     prev_page = current_page - 1 if current_page - 1 >= 0 else len(page_images) - 1
 
     ua = user_agent_parser.detect(request.env.http_user_agent)
-    size = 'medium' if ua['is_mobile'] else 'original'
+    size = 'medium' if ua['is_mobile'] else 'large'
 
     return dict(
         auth_user=auth_user,

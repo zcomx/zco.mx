@@ -39,7 +39,7 @@ class TestFunctions(LocalTestCase):
     def test__data(self):
         self.assertTrue(
             web.test(
-                '{url}/data'.format(url=self.url),
+                '{url}/data/book'.format(url=self.url),
                 self.titles['data']
             )
         )
@@ -61,7 +61,7 @@ class TestFunctions(LocalTestCase):
 
     def test__user(self):
         self.assertTrue(web.test(
-            '{url}/user'.format(url=self.url),
+            '{url}/user/login'.format(url=self.url),
             self.titles['user']
         ))
 

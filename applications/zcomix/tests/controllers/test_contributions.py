@@ -25,10 +25,10 @@ class TestFunctions(LocalTestCase):
                 ' id="contribute_link">contribute</a>',
                 ],
             'contribute_widget_nada': [
-                '<div class="contribute_widget">',
+                '<div class="row contribute_widget">',
                 '</div>',
                 ],
-            'index': '<h4>Contributions</h4>',
+            'index': 'This is a not-for-profit site dedicated to promoting',
             'paypal': '<form id="paypal_form"',
             }
     url = '/zcomix/contributions'

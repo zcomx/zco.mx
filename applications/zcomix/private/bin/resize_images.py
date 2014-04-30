@@ -15,6 +15,7 @@ from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
 from applications.zcomix.modules.images import \
+    SIZERS, \
     UploadImage, \
     set_thumb_dimensions
 
@@ -47,7 +48,7 @@ class ImageHandler(object):
         Args:
             filenames: list of image filenames, if empty all images are
                 resized.
-            size: string, one of UploadImage.sizes
+            size: string, one of SIZERS.keys()
             field: string, one of FIELDS
             record_id: integer, id of database record.
             dry_run: If True, make no changes.
@@ -74,10 +75,15 @@ class ImageHandler(object):
                 query = (db_table.id == self.record_id)
             rows = db(query).select(db_table.id, db_field)
             for r in rows:
-                original_name, unused_fullname = db_field.retrieve(
-                    r.image,
-                    nameonly=True,
-                )
+                try:
+                    original_name, unused_fullname = db_field.retrieve(
+                        r.image,
+                        nameonly=True,
+                    )
+                except TypeError:
+                    LOG.error('Image not found, {fld} {rid}:  {img}'.format(
+                        fld=db_field, rid=r.id, img=r.image))
+                    continue
                 if self.filenames and original_name not in self.filenames:
                     continue
                 yield (db_field, r.id, r.image, original_name)
@@ -91,7 +97,7 @@ class ImageHandler(object):
         """Resize images."""
         LOG.debug('{a}: {t} {i} {f} {s}'.format(
             a='Action', t='table', i='id', f='image', s='size'))
-        sizes = [self.size] if self.size else UploadImage.sizes.keys()
+        sizes = [self.size] if self.size else SIZERS.keys()
         for field, record_id, image_name, original in self.image_generator():
             resizer = UploadImage(field, image_name)
             for size in sizes:
@@ -99,11 +105,16 @@ class ImageHandler(object):
                 LOG.debug('{a}: {t} {i} {f} {s}'.format(
                     a=action, t=field.table, i=record_id, f=original, s=size))
                 if not self.dry_run:
-                    resizer.resize(size)
+                    try:
+                        resizer.resize(size)
+                    except IOError as err:
+                        LOG.error('Unable to resize: {f} {i} {s} - {e}'.format(
+                            f=field, i=record_id, s=size, e=err))
+                        continue
                     if str(field) == 'book_page.image' and size == 'thumb':
-                        set_thumb_dimensions(
-                            db, record_id, resizer.dimensions(size='thumb')
-                        )
+                            set_thumb_dimensions(
+                                db, record_id, resizer.dimensions(size='thumb')
+                            )
 
 
 def man_page():
@@ -213,7 +224,7 @@ def main():
     )
     parser.add_option(
         '-s', '--size',
-        choices=UploadImage.sizes.keys(),
+        choices=SIZERS.keys(),
         dest='size', default=None,
         help='Resize images to this size only.',
     )
@@ -256,9 +267,12 @@ def main():
 
     if options.sizes:
         print 'Image sizes:'
-        for name, size in UploadImage.sizes.items():
-            w, h = size
-            print '    {n}: ({w} x {h})'.format(n=name, w=w, h=h)
+        for name, sizer_class in SIZERS.items():
+            if hasattr(sizer_class, 'dimensions'):
+                w, h = getattr(sizer_class, 'dimensions')
+                print '    {n}: ({w} x {h})'.format(n=name, w=w, h=h)
+            else:
+                print '    {n}: (variable)'.format(n=name)
         quick_exit = True
 
     if quick_exit:

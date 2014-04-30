@@ -19,6 +19,10 @@ from gluon.http import HTTP
 from gluon.storage import List
 from applications.zcomix.modules.images import \
     Downloader, \
+    LargeSizer, \
+    MediumSizer, \
+    Sizer, \
+    ThumbnailSizer, \
     UploadImage, \
     img_tag, \
     is_image, \
@@ -132,6 +136,93 @@ class TestDownloader(ImageTestCase):
         test_http('medium')
         request.vars.size = 'thumb'
         test_http('thumb')
+
+
+class TestSizer(LocalTestCase):
+
+    def test____init__(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = Sizer(im)
+        self.assertTrue(sizer)
+
+    def test__size(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = Sizer(im)
+        self.assertEqual(sizer.size(), (400, 400))
+
+
+class TestLargeSizer(LocalTestCase):
+
+    _image_dir = '/tmp/image_resizer'
+
+    @classmethod
+    def setUp(cls):
+        if not os.path.exists(cls._image_dir):
+            os.makedirs(cls._image_dir)
+
+    @classmethod
+    def tearDown(cls):
+        return  # FIXME
+        if os.path.exists(cls._image_dir):
+            shutil.rmtree(cls._image_dir)
+
+    def test____init__(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = LargeSizer(im)
+        self.assertTrue(sizer)
+
+    def test__size(self):
+        tests = [
+            # original dimensions (w, h), expect dimensions (w, h)
+            ((1200, 750), (1200, 750)),     # landscape
+            ((2400, 1500), (1200, 750)),    # large landscape
+            ((600, 375), (600, 375)),       # small landscape
+            ((750, 1200), (750, 1200)),     # portrait
+            ((1500, 2400), (750, 1200)),    # large portrait
+            ((375, 600), (375, 600)),       # small portrait
+            ((948, 948), (948, 948)),       # square
+            ((1000, 1000), (948, 948)),     # large square
+            ((400, 400), (400, 400)),       # small square
+        ]
+
+        image_filename = os.path.join(self._image_dir, 'test.jpg')
+
+        for t in tests:
+            im = Image.new('RGB', t[0])
+            with open(image_filename, 'wb') as f:
+                im.save(f)
+            sizer = LargeSizer(im)
+            self.assertEqual(sizer.size(), t[1])
+
+
+class TestMediumSizer(LocalTestCase):
+
+    def test____init__(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = MediumSizer(im)
+        self.assertTrue(sizer)
+
+    def test__size(self):
+        im = Image.new('RGBA', (1000, 1000))
+        sizer = MediumSizer(im)
+        self.assertEqual(sizer.size(), MediumSizer.dimensions)
+
+        im = Image.new('RGBA', (400, 400))
+        sizer = MediumSizer(im)
+        self.assertEqual(sizer.size(), MediumSizer.dimensions)
+
+
+class TestThumbnailSizer(LocalTestCase):
+
+    def test____init__(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = ThumbnailSizer(im)
+        self.assertTrue(sizer)
+
+    def test__size(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = ThumbnailSizer(im)
+        self.assertEqual(sizer.size(), ThumbnailSizer.dimensions)
 
 
 class TestUploadImage(ImageTestCase):
@@ -260,10 +351,10 @@ class TestUploadImage(ImageTestCase):
         resizer = UploadImage(db.creator.image, self._creator.image)
         medium = resizer.resize('medium')
         im = Image.open(medium)
-        self.assertEqual(im.size, UploadImage.sizes['medium'])
+        self.assertEqual(im.size, MediumSizer.dimensions)
         thumb = resizer.resize('thumb')
         im = Image.open(thumb)
-        self.assertEqual(im.size, UploadImage.sizes['thumb'])
+        self.assertEqual(im.size, ThumbnailSizer.dimensions)
 
     def test__resize_all(self):
         resizer = UploadImage(db.creator.image, self._creator.image)

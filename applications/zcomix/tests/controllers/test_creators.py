@@ -18,7 +18,11 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 class TestFunctions(LocalTestCase):
 
     titles = {
-        'books': ['<h4>RELEASED</h4>', '<h4>ONGOING</h4>'],
+        'books': [
+            'Released',
+            'Ongoing',
+            '<div class="grid_section">'
+        ],
         'creator': '<div id="creator_page">',
         'default': 'This is a not-for-profit site dedicated to promoting',
     }

@@ -80,8 +80,10 @@ class TestLocalSQLFORM(LocalTestCase):
 
     def test__grid(self):
         # Use table with many records so pagination is required.
-        form = LocalSQLFORM(db.contribution)
-        grid = form.grid(db.contribution)
+        table = db.book_page
+
+        form = LocalSQLFORM(table)
+        grid = form.grid(table)
         soup = BeautifulSoup(str(grid))
         # Sample outer div's of soup
         # <div class="web2py_grid grid_widget">
@@ -105,14 +107,14 @@ class TestLocalSQLFORM(LocalTestCase):
         # Test paginator
         div_paginator = soup.find('div', {'class': 'web2py_paginator grid_header '})
         lis = div_paginator.findAll('li')
-        self.assertTrue(len(lis) > 5)
+        self.assertTrue(len(lis) >= 5)
         last_page = lis[-1]
         # Example last page li
         # <li><a class="w2p_trap" href="/igeejo/default/index?page=797">&gt;&gt;</a></li>
-        count = db.contribution.id.count()
-        num_contribution = db(db.contribution).select(count).first()[count]
-        pages = int(num_contribution / 35)
-        if num_contribution % pages != 0:
+        count = table.id.count()
+        num_records = db(table).select(count).first()[count]
+        pages = int(num_records / 35)
+        if num_records % pages != 0:
             pages += 1
         href = last_page.a['href']
         self.assertTrue('page={pgs}'.format(pgs=pages) in href)
