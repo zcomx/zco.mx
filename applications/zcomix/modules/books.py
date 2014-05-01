@@ -12,7 +12,8 @@ from gluon import *
 from gluon.storage import Storage
 from gluon.contrib.simplejson import dumps
 from applications.zcomix.modules.images import \
-    UploadImage, \
+    SIZERS, \
+    ThumbnailSizer, \
     img_tag
 
 
@@ -116,7 +117,7 @@ def cover_image(db, book_id, size='original', img_attributes=None):
     Args:
         db: gluon.dal.DAL instance
         book_id: integer, the id of the book
-        size: string, the size of the image. One of UploadImage.sizes.keys()
+        size: string, the size of the image. One of SIZERS.keys()
         img_attributes: dict of attributes for IMG
     """
     query = (db.book_page.book_id == book_id)
@@ -132,9 +133,9 @@ def cover_image(db, book_id, size='original', img_attributes=None):
         if not first_page:
             # Create a dummy book_page record
             first_page = Storage(
-                thumb_w=UploadImage.sizes['thumb'][0],
-                thumb_h=UploadImage.sizes['thumb'][1],
-                thumb_shrink=UploadImage.thumb_shrink_multiplier,
+                thumb_w=ThumbnailSizer.dimensions[0],
+                thumb_h=ThumbnailSizer.dimensions[1],
+                thumb_shrink=ThumbnailSizer.shrink_multiplier,
             )
 
         fmt = ' '.join([
@@ -145,10 +146,10 @@ def cover_image(db, book_id, size='original', img_attributes=None):
         width = first_page.thumb_w * first_page.thumb_shrink
         height = first_page.thumb_h * first_page.thumb_shrink
         padding_horizontal = (100 - width) / 2
-        padding_horizontal = (UploadImage.sizes['thumb'][0] - width)
+        padding_horizontal = (ThumbnailSizer.dimensions[0] - width)
         if padding_horizontal < 0:
             padding_horizontal = 0
-        padding_vertical = (UploadImage.sizes['thumb'][1] - height) / 2
+        padding_vertical = (ThumbnailSizer.dimensions[1] - height) / 2
         if padding_vertical < 0:
             padding_vertical = 0
         attributes['_style'] = fmt.format(

@@ -6,6 +6,7 @@
 Classes and functions related to images.
 """
 import imghdr
+import math
 import os
 import re
 from PIL import Image
@@ -46,7 +47,7 @@ class Downloader(Response):
             raise HTTP(404)
 
         # Customization: start
-        if request.vars.size and request.vars.size in UploadImage.sizes:
+        if request.vars.size and request.vars.size in SIZERS.keys():
             resized = stream.replace('/original/', '/{s}/'.format(s=request.vars.size))
             if os.path.exists(resized):
                 stream = resized
@@ -62,17 +63,99 @@ class Downloader(Response):
         return self.stream(stream, chunk_size=chunk_size, request=request)
 
 
+class Sizer(object):
+    """Base class representing an image Sizer"""
+
+    def __init__(self, im):
+        """Constructor
+
+        Args:
+            im: Image instance.
+        """
+        self.im = im
+
+    def size(self):
+        """Return (w, h) tuple representing max width and max height size of
+        image.
+
+        Returns:
+            tuple (w integer, h integer)
+        """
+        return self.im.size
+
+
+class LargeSizer(Sizer):
+    """Class representing a sizer for large images."""
+
+    _max_area = 900000          # in pixels, 1200w x 750h
+
+    def __init__(self, im):
+        """Constructor """
+        Sizer.__init__(self, im)
+
+    def size(self):
+        """Return (w, h) tuple representing max width and max height size of
+        image.
+
+        Returns:
+            tuple (w integer, h integer)
+        """
+        w, h = self.im.size
+        area = w * h
+        new_w, new_h = w, h
+        if area > self._max_area:
+            new_w = int(math.sqrt(1.0 * w * self._max_area / h))
+            new_h = int(math.sqrt(1.0 * h * self._max_area / w))
+        return (new_w, new_h)
+
+
+class MediumSizer(Sizer):
+    """Class representing a sizer for medium images."""
+    dimensions = (500, 500)
+
+    def __init__(self, im):
+        """Constructor """
+        Sizer.__init__(self, im)
+
+    def size(self):
+        """Return (w, h) tuple representing max width and max height size of
+        image.
+
+        Returns:
+            tuple (w integer, h integer)
+        """
+        return self.dimensions
+
+
+class ThumbnailSizer(Sizer):
+    """Class representing a sizer for thumbnail images."""
+    dimensions = (170, 170)
+    shrink_threshold = 120
+    shrink_multiplier = 0.80
+
+    def __init__(self, im):
+        """Constructor """
+        Sizer.__init__(self, im)
+
+    def size(self):
+        """Return (w, h) tuple representing max width and max height size of
+        image.
+
+        Returns:
+            tuple (w integer, h integer)
+        """
+        return self.dimensions
+
+
+SIZERS = {
+    'large': LargeSizer,
+    'medium': MediumSizer,
+    'thumb': ThumbnailSizer,
+}
+
+
 class UploadImage(object):
     """Class representing an image resizer"""
-
-    sizes = {
-        # size: (w px, h px)
-        'medium': (500, 500),
-        'thumb': (170, 170),
-    }
-
-    thumb_shrink_threshold = 120
-    thumb_shrink_multiplier = 0.80
 
     def __init__(self, field, image_name):
         """Constructor
@@ -91,7 +174,7 @@ class UploadImage(object):
         """Delete a version of the image
 
         Args:
-            size: string, name of size, must one of the keys of the cls.sizes
+            size: string, name of size, must one of the keys of the SIZERS
                     dict
         """
         fullname = self.fullname(size=size)
@@ -100,7 +183,7 @@ class UploadImage(object):
 
     def delete_all(self):
         """Delete all sizes."""
-        for size in self.sizes.keys():
+        for size in SIZERS.keys():
             self.delete(size)
         self.delete('original')
 
@@ -108,7 +191,7 @@ class UploadImage(object):
         """Return the dimensions of the image of the indicated size.
 
         Args:
-            size: string, name of size, must one of the keys of the cls.sizes
+            size: string, name of size, must one of the keys of the SIZERS
                     dict
         """
         if not self._dimensions or size not in self._dimensions:
@@ -133,7 +216,7 @@ class UploadImage(object):
         """Return a PIL Image instance representing the image.
 
         Args:
-            size: string, name of size, must one of the keys of the cls.sizes
+            size: string, name of size, must one of the keys of the SIZERS
                     dict
         """
         if not self._images or size not in self._images:
@@ -148,7 +231,7 @@ class UploadImage(object):
         """Resize the image.
 
         Args:
-            size: string, name of size, must one of the keys of the cls.sizes
+            size: string, name of size, must one of the keys of the SIZERS
                     dict
         """
         original_filename = self.fullname(size='original')
@@ -157,15 +240,30 @@ class UploadImage(object):
         if not os.path.exists(sized_path):
             os.makedirs(sized_path)
         im = Image.open(original_filename)
-        im.thumbnail(self.sizes[size], Image.ANTIALIAS)
+        sizer = classified_sizer(size)
+        im.thumbnail(sizer(im).size(), Image.ANTIALIAS)
         im.save(sized_filename)
         # self.dimensions[size] = im.size
         return sized_filename
 
     def resize_all(self):
         """Resize all sizes."""
-        for size in self.sizes.keys():
+        for size in SIZERS.keys():
             self.resize(size)
+
+
+def classified_sizer(size):
+    """Return the approapriate class for the given size.
+
+    Args:
+        size: string, eg 'medium', 'large', 'thumb'
+
+    Returns:
+        Sizer class or subclass
+    """
+    if size in SIZERS:
+        return SIZERS[size]
+    return Sizer
 
 
 def img_tag(field, size='original', img_attributes=None):
@@ -180,7 +278,7 @@ def img_tag(field, size='original', img_attributes=None):
 
     if field:
         tag = IMG
-        if size != 'original' and size not in UploadImage.sizes.keys():
+        if size != 'original' and size not in SIZERS.keys():
             size = 'original'
 
         attributes.update(dict(
@@ -254,11 +352,11 @@ def set_thumb_dimensions(db, book_page_id, dimensions):
         return
     w = dimensions[0]
     h = dimensions[1]
-    shrink = True if h > UploadImage.thumb_shrink_threshold \
-        and w > UploadImage.thumb_shrink_threshold \
+    shrink = True if h > ThumbnailSizer.shrink_threshold \
+        and w > ThumbnailSizer.shrink_threshold \
         else False
 
-    thumb_shrink = UploadImage.thumb_shrink_multiplier if shrink else 1
+    thumb_shrink = ThumbnailSizer.shrink_multiplier if shrink else 1
 
     db(db.book_page.id == book_page_id).update(
         thumb_w=w,

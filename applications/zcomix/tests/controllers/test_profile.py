@@ -70,7 +70,8 @@ class TestFunctions(LocalTestCase):
     @classmethod
     def setUpClass(cls):
         # Get the data the tests will use.
-        cls._user = db(db.auth_user.email == web.username).select().first()
+        email = web.username
+        cls._user = db(db.auth_user.email == email).select().first()
         if not cls._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
@@ -92,6 +93,8 @@ class TestFunctions(LocalTestCase):
             groupby=db.book_page.book_id,
             orderby=~count
         ).first()
+        if not book_page:
+            raise SyntaxError('No book page from creator with email: {e}'.format(e=email))
 
         cls._book_page = db(db.book_page.id == book_page.book_page.id).select().first()
         if not cls._book_page:
