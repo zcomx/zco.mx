@@ -31,6 +31,7 @@ class TestFunctions(LocalTestCase):
             '<div id="book_edit_section">',
             "'value': '__Untitled-",
         ],
+        'book_delete': '<div id="book_delete_section">',
         'book_edit': '<div id="book_edit_section">',
         'book_pages': '<div id="profile_book_pages_page">',
         'book_pages_handler_fail': [
@@ -147,6 +148,96 @@ class TestFunctions(LocalTestCase):
         self.assertRegexpMatches(
             new_book.name,
             re.compile(r'__Untitled-[0-9]{2}__')
+        )
+
+    def test__book_crud(self):
+
+        def get_book(book_id):
+            """Return a book"""
+            query = (db.book.id == book_id)
+            return db(query).select(db.book.ALL).first()
+
+        book_id = db.book.insert(
+            name='',
+            creator_id=self._creator.id,
+        )
+        book = get_book(book_id)
+        self._objects.append(book)
+        self.assertEqual(book.name, '')
+
+        web.login()
+
+        url = '{url}/book_crud.json/{bid}'.format(bid=book_id, url=self.url)
+        data = {
+            'field': 'name',
+            'value': 'Test Book CRUD',
+        }
+        web.post(url, data=data)
+
+        book = get_book(book_id)
+        self.assertEqual(book.name, 'Test Book CRUD')
+
+        # No book id
+        url = '{url}/book_crud.json'.format(url=self.url)
+        data = {
+            'field': 'name',
+            'value': 'No book id',
+        }
+        web.post(url, data=data)
+        self.assertEqual(
+            web.text,
+            '{"errors": {"url": "Invalid data provided."}}\n'
+        )
+        book = get_book(book_id)
+        self.assertEqual(book.name, 'Test Book CRUD')
+
+        # Invalid book id
+        url = '{url}/book_crud.json/999999'.format(url=self.url)
+        data = {
+            'field': 'name',
+            'value': 'Invalid book id',
+        }
+        web.post(url, data=data)
+        self.assertEqual(
+            web.text,
+            '{"errors": {"url": "Invalid data provided."}}\n'
+        )
+
+        # Invalid data
+        url = '{url}/book_crud.json/{bid}'.format(bid=book_id, url=self.url)
+        data = {
+            'field': '_invalid_field_',
+            'value': 'Invalid book id',
+        }
+        web.post(url, data=data)
+        self.assertEqual(
+            web.text,
+            '{"errors": {"url": "Invalid data provided."}}\n'
+        )
+
+        # No data
+        data = {}
+        web.post(url, data=data)
+        self.assertEqual(
+            web.text,
+            '{"errors": {"url": "Invalid data provided."}}\n'
+        )
+
+    def test__book_delete(self):
+        # No book id, redirect to books
+        self.assertTrue(
+            web.test(
+                '{url}/book_delete'.format(url=self.url),
+                self.titles['books']
+            )
+        )
+
+        self.assertTrue(
+            web.test(
+                '{url}/book_delete/{bid}'.format(
+                    bid=self._book.id, url=self.url),
+                self.titles['book_delete']
+            )
         )
 
     def test__book_edit(self):
@@ -275,6 +366,50 @@ class TestFunctions(LocalTestCase):
                 self.titles['creator']
             )
         )
+
+    def test__creator_crud(self):
+
+        def get_creator():
+            """Return a creator"""
+            query = (db.creator.id == self._creator.id)
+            return db(query).select(db.creator.ALL).first()
+
+        old_creator = get_creator()
+
+        web.login()
+
+        url = '{url}/creator_crud.json'.format(url=self.url)
+        data = {
+            'field': 'email',
+            'value': 'test__creator_crud@example.com',
+        }
+        web.post(url, data=data)
+
+        creator = get_creator()
+        self.assertEqual(creator.email, 'test__creator_crud@example.com')
+
+        # Invalid field
+        data = {
+            'field': '_invalid_field_',
+            'value': 'test__creator_crud@example.com',
+        }
+        web.post(url, data=data)
+        self.assertEqual(
+            web.text,
+            '{"errors": {"url": "Invalid data provided."}}\n'
+        )
+
+        # No data
+        data = {}
+        web.post(url, data=data)
+        self.assertEqual(
+            web.text,
+            '{"errors": {"url": "Invalid data provided."}}\n'
+        )
+
+        db(db.creator.id == old_creator.id).update(**old_creator.as_dict())
+        db.commit()
+        creator = get_creator()
 
     def test__index(self):
         self.assertTrue(

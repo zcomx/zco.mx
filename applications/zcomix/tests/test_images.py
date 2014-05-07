@@ -21,9 +21,11 @@ from applications.zcomix.modules.images import \
     Downloader, \
     LargeSizer, \
     MediumSizer, \
+    SIZERS, \
     Sizer, \
     ThumbnailSizer, \
     UploadImage, \
+    classified_sizer, \
     img_tag, \
     is_image, \
     set_thumb_dimensions
@@ -381,6 +383,15 @@ class TestFunctions(LocalTestCase):
     def tearDown(cls):
         if os.path.exists(cls._images):
             shutil.rmtree(cls._images)
+
+    def test__classified_sizer(self):
+        self.assertTrue('large' in SIZERS)
+        self.assertTrue('medium' in SIZERS)
+        self.assertTrue('thumb' in SIZERS)
+        self.assertEqual(classified_sizer('large'), LargeSizer)
+        self.assertEqual(classified_sizer('medium'), MediumSizer)
+        self.assertEqual(classified_sizer('thumb'), ThumbnailSizer)
+        self.assertEqual(classified_sizer('_fake_'), Sizer)
 
     def test__img_tag(self):
         def get_tag(tag, tag_type):
