@@ -1,7 +1,8 @@
 #### What is zcomix.com?
-Zcomix is a not-for-profit website for self-publishing comic creators
-and their readers. Readers can browse a large library of comics and can
-read them online or download them, no strings attached.
+Zcomix is a comic sharing website. It is a not-for-profit site for
+self-publishing comic creators and their readers. Readers can browse a large
+library of comics and can read them online or download them, no strings
+attached.
 
 Self-publishing comic creators can easily make their material available
 to readers. Books can be uploaded within minutes and readers can pay

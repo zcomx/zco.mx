@@ -83,7 +83,7 @@ def user():
         for f in form.custom.widget.keys():
             if hasattr(form.custom.widget[f], 'update'):
                 form.custom.widget[f].update(_placeholder=form.custom.label[f])
-        if request.args(0)  == 'login':
+        if request.args(0) == 'login':
             if form.custom.widget[userfield]:
                 form.custom.widget[userfield].add_class('align_center')
             if form.custom.widget[passfield]:
@@ -141,3 +141,8 @@ def faq():
 def todo():
     """TODO page"""
     return dict(text=markmin_content('todo.mkd'))
+
+
+def overview():
+    """Overview page"""
+    return dict(text=markmin_content('overview.mkd'))
