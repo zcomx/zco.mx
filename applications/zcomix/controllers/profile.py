@@ -94,7 +94,7 @@ def book_crud():
         book_record = db(db.book.id == request.args(0)).select(
             db.book.ALL
         ).first()
-    if (request.args(0) and not book_record) or \
+    if not request.args(0) or not book_record or \
             (book_record and book_record.creator_id != creator_record.id):
         return do_error('Invalid data provided.')
 
@@ -459,6 +459,43 @@ def creator():
 
 
 @auth.requires_login()
+def creator_crud():
+    """Handler for ajax creator CRUD calls.
+
+    request.vars.field: string, creator table field name
+    request.vars.value: string, value of creator table field.
+    """
+    response.generic_patterns = ['json']
+
+    def do_error(msg=None):
+        errors = {'url': msg or 'Server request failed.'}
+        return {'errors': errors}
+
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        return do_error('Permission denied.')
+
+    if request.vars.field is not None and request.vars.field not in db.creator.fields:
+        return do_error('Invalid data provided.')
+
+    data = {}
+    if request.vars.field is not None and request.vars.value is not None:
+        data = {request.vars.field: request.vars.value}
+    if not data:
+        return do_error('Invalid data provided.')
+
+    query = (db.creator.id == creator_record.id)
+    ret = db(query).validate_and_update(**data)
+    db.commit()
+
+    return {
+        'errors': ret.errors,
+    }
+
+
+@auth.requires_login()
 def creator_img_handler():
     """Callback function for the jQuery-File-Upload plugin.
 
@@ -527,43 +564,6 @@ def creator_img_handler():
 
     # GET
     return image_as_json(db, creator_record.id)
-
-
-@auth.requires_login()
-def creator_crud():
-    """Handler for ajax creator CRUD calls.
-
-    request.vars.field: string, creator table field name
-    request.vars.value: string, value of creator table field.
-    """
-    response.generic_patterns = ['json']
-
-    def do_error(msg=None):
-        errors = {'url': msg or 'Server request failed.'}
-        return {'errors': errors}
-
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        return do_error('Permission denied.')
-
-    if request.vars.field is not None and request.vars.field not in db.creator.fields:
-        return do_error('Invalid data provided.')
-
-    data = {}
-    if request.vars.field is not None and request.vars.value is not None:
-        data = {request.vars.field: request.vars.value}
-    if not data:
-        return do_error('Invalid data provided.')
-
-    query = (db.creator.id == creator_record.id)
-    ret = db(query).validate_and_update(**data)
-    db.commit()
-
-    return {
-        'errors': ret.errors,
-    }
 
 
 @auth.requires_login()

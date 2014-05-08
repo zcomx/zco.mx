@@ -37,10 +37,17 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
     def test__data(self):
+        # Permission is denied here, should redirect to index
+        self.assertTrue(
+            web.test(
+                '{url}/data'.format(url=self.url),
+                self.titles['index']
+            )
+        )
         self.assertTrue(
             web.test(
                 '{url}/data/book'.format(url=self.url),
-                self.titles['data']
+                self.titles['index']
             )
         )
 

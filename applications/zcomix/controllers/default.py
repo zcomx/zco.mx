@@ -62,6 +62,8 @@ def user():
         auth.settings.register_fields = ['name', userfield, passfield]
 
     form = auth()
+    if form == 'ACCESS DENIED':
+        redirect(URL(c='default', f='index'))
 
     for k in form.custom.widget.keys():
         if hasattr(form.custom.widget[k], 'add_class'):
