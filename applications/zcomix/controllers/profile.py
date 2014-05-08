@@ -501,7 +501,6 @@ def creator_img_handler():
 
     # POST
     request.vars.up_files: list of files representing creator image.
-
     """
     def do_error(msg):
         return dumps({'files': [{'error': msg}]})
