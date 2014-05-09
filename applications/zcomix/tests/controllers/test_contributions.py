@@ -28,7 +28,7 @@ class TestFunctions(LocalTestCase):
                 '<div class="row contribute_widget">',
                 '</div>',
                 ],
-            'index': 'This is a not-for-profit site dedicated to promoting',
+            'index': 'zcomix.com is a not-for-profit comic-sharing website',
             'paypal': '<form id="paypal_form"',
             }
     url = '/zcomix/contributions'

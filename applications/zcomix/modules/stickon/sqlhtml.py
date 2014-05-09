@@ -54,6 +54,7 @@ class InputWidget(FormWidget):
             attr['_class'] = ' '.join([attr['_class'], self.class_extra])
         return INPUT(**attr)
 
+
 class SimpleUploadWidget(UploadWidget):
     """Simplified upload widget.
 
@@ -224,7 +225,7 @@ def formstyle_bootstrap3_login(form, fields):
 
     Modifications:
         1. Replace col-lg-* with size specific settings
-            col-sm-12
+            col-xs-12
 
     """
     form.add_class('form-horizontal')

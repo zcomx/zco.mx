@@ -6,14 +6,18 @@
 Test suite for zcomix/controllers/profile.py
 
 """
+import requests
+import os
 import re
 import unittest
+from gluon.contrib.simplejson import loads
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 
 # C0111: Missing docstring
 # R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# E0602: *Undefined variable %%r*
+# pylint: disable=C0111,R0904,E0602
 
 
 class TestFunctions(LocalTestCase):
@@ -24,6 +28,7 @@ class TestFunctions(LocalTestCase):
     _creator = None
     _creator_to_link = None
     _user = None
+    _test_data_dir = None
 
     titles = {
         'account': '<div class="well well-sm" id="account">',
@@ -52,7 +57,7 @@ class TestFunctions(LocalTestCase):
         'book_release': '<div id="profile_book_release_page">',
         'books': '<div class="well well-sm" id="books">',
         'creator': '<div class="well well-sm" id="creator">',
-        'default': 'This is a not-for-profit site dedicated to promoting',
+        'default': 'zcomix.com is a not-for-profit comic-sharing website',
         'index': '<div class="well well-sm" id="account">',
         'links': [
             'href="/zcomix/profile/links.load/new/link',
@@ -70,13 +75,16 @@ class TestFunctions(LocalTestCase):
 
     @classmethod
     def setUpClass(cls):
+        # C0103: *Invalid name "%%s" (should match %%s)*
+        # pylint: disable=C0103
         # Get the data the tests will use.
         email = web.username
         cls._user = db(db.auth_user.email == email).select().first()
         if not cls._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
-        cls._creator = db(db.creator.auth_user_id == cls._user.id).select().first()
+        query = db.creator.auth_user_id == cls._user.id
+        cls._creator = db(query).select().first()
         if not cls._creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
@@ -95,24 +103,42 @@ class TestFunctions(LocalTestCase):
             orderby=~count
         ).first()
         if not book_page:
-            raise SyntaxError('No book page from creator with email: {e}'.format(e=email))
+            raise SyntaxError(
+                'No book page from creator with email: {e}'.format(e=email)
+            )
 
-        cls._book_page = db(db.book_page.id == book_page.book_page.id).select().first()
+        query = (db.book_page.id == book_page.book_page.id)
+        cls._book_page = db(query).select().first()
         if not cls._book_page:
-            raise SyntaxError('Unable to get book_page for: {e}'.format(e=email))
+            raise SyntaxError(
+                'Unable to get book_page for: {e}'.format(e=email)
+            )
 
         query = (db.book.id == cls._book_page.book_id)
         cls._book = db(query).select(db.book.ALL).first()
         if not cls._book:
-            raise SyntaxError('No books for creator with email: {e}'.format(e=email))
+            raise SyntaxError(
+                'No books for creator with email: {e}'.format(e=email)
+            )
 
-        cls._creator_to_link = db(db.creator_to_link.creator_id == cls._creator.id).select(orderby=db.creator_to_link.order_no).first()
+        query = (db.creator_to_link.creator_id == cls._creator.id)
+        cls._creator_to_link = db(query).select(
+            orderby=db.creator_to_link.order_no
+        ).first()
         if not cls._creator_to_link:
-            raise SyntaxError('No creator_to_link with email: {e}'.format(e=email))
+            raise SyntaxError(
+                'No creator_to_link with email: {e}'.format(e=email)
+            )
 
-        cls._book_to_link = db(db.book_to_link.book_id == cls._book.id).select(orderby=db.book_to_link.order_no).first()
+        query = (db.book_to_link.book_id == cls._book.id)
+        cls._book_to_link = db(query).select(
+            orderby=db.book_to_link.order_no).first()
         if not cls._book_to_link:
-            raise SyntaxError('No book_to_link with email: {e}'.format(e=email))
+            raise SyntaxError(
+                'No book_to_link with email: {e}'.format(e=email)
+            )
+
+        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
 
     def test__account(self):
         self.assertTrue(
@@ -419,15 +445,39 @@ class TestFunctions(LocalTestCase):
             return db(query).select(db.creator.ALL).first()
 
         old_creator = get_creator()
+        save_image = old_creator.image
+        old_creator.update_record(image=None)
+        old_creator = get_creator()
+        self.assertFalse(old_creator.image)
 
         web.login()
 
-        url = '{url}/creator_img_handler.json'.format(url=self.url)
-        data = {
-            'up_files': None,
-        }
-        web.post(url, data=data)
+        # Use requests to simplify uploading a file.
+        sample_file = os.path.join(self._test_data_dir, 'file.jpg')
+        files = {'up_files': open(sample_file, 'rb')}
+        response = requests.post(
+            web.app + '/profile/creator_img_handler',
+            files=files,
+            cookies=web.cookies,
+            verify=False,
+        )
 
+        self.assertEqual(response.status_code, 200)
+        creator = get_creator()
+        self.assertTrue(creator.image)
+
+        response_2 = requests.delete(
+            web.app + '/profile/creator_img_handler',
+            cookies=web.cookies,
+            verify=False,
+        )
+        self.assertEqual(response_2.status_code, 200)
+        creator = get_creator()
+        self.assertFalse(creator.image)
+
+        old_creator.update_record(image=save_image)
+        old_creator = get_creator()
+        self.assertTrue(old_creator.image)
 
     def test__index(self):
         self.assertTrue(
@@ -436,6 +486,154 @@ class TestFunctions(LocalTestCase):
                 self.titles['index']
             )
         )
+
+    def test__link_crud(self):
+
+        def do_test(record_id, data, expect_names, expect_errors):
+            # When record_id is None, we're testing creator links.
+            # When record_id is set,  we're testing book links.
+            url = '{url}/link_crud.json/{rid}'.format(
+                url=self.url,
+                rid=record_id or '',
+            )
+            web.post(url, data=data)
+            result = loads(web.text)
+            if not expect_errors:
+                self.assertTrue('rows' in result)
+                names = [x['name'] for x in result['rows']]
+                self.assertEqual(names, expect_names)
+            self.assertTrue('errors' in result)
+            self.assertEqual(result['errors'], expect_errors)
+            return result
+
+        def reset(record_id, keep_names):
+            if record_id:
+                link_to_table = db.book_to_link
+                link_to_table_field = db.book_to_link.book_id
+            else:
+                link_to_table = db.creator_to_link
+                link_to_table_field = db.creator_to_link.creator_id
+                record_id = self._creator.id
+
+            query = (link_to_table_field == record_id)
+            rows = db(query).select(
+                link_to_table.ALL,
+                db.link.ALL,
+                left=[link_to_table.on(db.link.id == link_to_table.link_id)],
+            )
+            for r in rows:
+                if r.link.name in keep_names:
+                    continue
+                db(link_to_table.id == r.creator_to_link.id).delete()
+                db(db.link.id == r.link.id).delete()
+                db.commit()
+
+        web.login()
+        for record_id in [None, self._book.id]:
+            # When record_id is None, we're testing creator links.
+            # When record_id is set,  we're testing book links.
+
+            reset(record_id, 'test_do_not_delete')
+
+            # Action: get
+            data = {'action': 'get'}
+            do_test(record_id, data, ['test_do_not_delete'], {})
+
+            # Action: create
+            data = {
+                'action': 'create',
+                'name': '_test__link_crud_',
+                'url': 'http://www.linkcrud.com',
+            }
+            result = do_test(record_id, data, [], {})
+            data = {'action': 'get'}
+            got = do_test(record_id, data, ['test_do_not_delete', '_test__link_crud_'], {})
+            self.assertEqual(result['id'], got['rows'][1]['id'])
+            link_id = result['id']
+
+            # Action: get with link_id
+            data = {
+                'action': 'get',
+                'link_id': link_id,
+            }
+            do_test(record_id, data, ['_test__link_crud_'], {})
+
+            # Action: update
+            data = {
+                'action': 'update',
+                'link_id': link_id,
+                'field': 'name',
+                'value': '_test__link_crud_2_',
+            }
+            do_test(record_id, data, [], {})
+            data = {'action': 'get'}
+            do_test(record_id, data, ['test_do_not_delete', '_test__link_crud_2_'], {})
+
+            data = {
+                'action': 'update',
+                'link_id': link_id,
+                'field': 'url',
+                'value': 'http://www.linkcrud2.com',
+            }
+            do_test(record_id, data, [], {})
+            data = {'action': 'get'}
+            got = do_test(record_id, data, ['test_do_not_delete', '_test__link_crud_2_'], {})
+            self.assertEqual(got['rows'][1]['url'], 'http://www.linkcrud2.com')
+
+            # Action: update, Invalid link_id
+            data = {
+                'action': 'update',
+                'link_id': 0,
+                'field': 'url',
+                'value': 'http://www.linkcrud2.com',
+            }
+            do_test(record_id, data, [], {'url': 'Invalid data provided.'})
+
+            # Action: update, Invalid url
+            data = {
+                'action': 'update',
+                'link_id': link_id,
+                'field': 'url',
+                'value': '_bad_url_',
+            }
+            do_test(record_id, data, [], {'url': 'enter a valid URL'})
+
+            # Action: update, Invalid name
+            data = {
+                'action': 'update',
+                'link_id': link_id,
+                'field': 'name',
+                'value': '',
+            }
+            do_test(record_id, data, [], {'name': 'enter from 1 to 40 characters'})
+
+            # Action: move
+            data = {
+                'action': 'move',
+                'link_id': link_id,
+                'dir': 'up',
+            }
+            do_test(record_id, data, [], {})
+            data = {'action': 'get'}
+            do_test(record_id, data, ['_test__link_crud_2_', 'test_do_not_delete'], {})
+
+            # Action: delete
+            data = {
+                'action': 'delete',
+                'link_id': link_id,
+            }
+            do_test(record_id, data, [], {})
+            data = {'action': 'get'}
+            do_test(record_id, data, ['test_do_not_delete'], {})
+
+            # Action: delete, Invalid link_id
+            data = {
+                'action': 'delete',
+                'link_id': 0,
+            }
+            do_test(record_id, data, [], {'url': 'Invalid data provided.'})
+
+            reset(record_id, 'test_do_not_delete')
 
     def test__order_no_handler(self):
         self.assertTrue(
@@ -454,35 +652,39 @@ class TestFunctions(LocalTestCase):
 
         self.assertTrue(
             web.test(
-                '{url}/order_no_handler/creator_to_link/{clid}'.format(
-                    clid=self._creator_to_link.id, url=self.url),
+                '{url}/order_no_handler/creator_to_link/{lid}'.format(
+                    lid=self._creator_to_link.id, url=self.url),
                 self.titles['default']
             )
         )
 
         # Down
         before = self._creator_to_link.order_no
-        next_url = '/zcomix/creators/creator/{cid}'.format(cid=self._creator.id)
+        next_url = '/zcomix/creators/creator/{cid}'.format(
+            cid=self._creator.id)
+        fmt = '{url}/order_no_handler/creator_to_link/{lid}/down?next={n}'
         self.assertTrue(
             web.test(
-                '{url}/order_no_handler/creator_to_link/{clid}/down?next={nurl}'.format(
-                    clid=self._creator_to_link.id,
-                    nurl=next_url,
+                fmt.format(
+                    lid=self._creator_to_link.id,
+                    n=next_url,
                     url=self.url
                 ),
                 self.titles['order_no_handler']
             )
         )
 
-        after = db(db.creator_to_link.id == self._creator_to_link.id).select().first().order_no
+        query = (db.creator_to_link.id == self._creator_to_link.id)
+        after = db(query).select().first().order_no
         # This test fails because db is not updated.
         # self.assertEqual(before + 1, after)
 
         # Up
+        fmt = '{url}/order_no_handler/creator_to_link/{lid}/up?next={nurl}'
         self.assertTrue(
             web.test(
-                '{url}/order_no_handler/creator_to_link/{clid}/up?next={nurl}'.format(
-                    clid=self._creator_to_link.id,
+                fmt.format(
+                    lid=self._creator_to_link.id,
                     nurl=next_url,
                     url=self.url
                 ),
@@ -490,7 +692,8 @@ class TestFunctions(LocalTestCase):
             )
         )
 
-        after = db(db.creator_to_link.id == self._creator_to_link.id).select().first().order_no
+        query = (db.creator_to_link.id == self._creator_to_link.id)
+        after = db(query).select().first().order_no
         self.assertEqual(before, after)
 
 

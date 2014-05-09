@@ -75,8 +75,8 @@ version = '0.1'
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
         model_db = ModelDb(APP_ENV, init_all=False)
-        # get_server_mode gets called eventually from __init__()
-        self.assertEqual(model_db._server_mode, 'test')
+        # get_server_mode doesn't get called  if init_all=False
+        self.assertEqual(model_db._server_mode, None)
 
         # Test cache access
         model_db._server_mode = None

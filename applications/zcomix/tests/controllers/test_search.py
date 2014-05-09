@@ -19,7 +19,7 @@ class TestFunctions(LocalTestCase):
     titles = {
             'box': 'search: creator/title',
             'cover_grid': '<div class="col-sm-12 col-md-6 item_container odd">',
-            'index': 'This is a not-for-profit site dedicated to promoting',
+            'index': 'zcomix.com is a not-for-profit comic-sharing website',
             'list_grid': 'records found',
             }
     url = '/zcomix/search'

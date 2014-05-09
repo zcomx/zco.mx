@@ -7,11 +7,15 @@ Test suite for igeejo/modules/stickon/sqlhtml.py
 
 """
 import unittest
+from BeautifulSoup import BeautifulSoup
+from gluon.sqlhtml import StringWidget
 from applications.zcomix.modules.stickon.sqlhtml import \
     InputWidget, \
-    LocalSQLFORM
+    SimpleUploadWidget, \
+    LocalSQLFORM, \
+    formstyle_bootstrap3_custom, \
+    formstyle_bootstrap3_login
 from applications.zcomix.modules.test_runner import LocalTestCase
-from BeautifulSoup import BeautifulSoup
 
 
 # R0904: *Too many public methods (%%s/%%s)*
@@ -70,6 +74,104 @@ class TestInputWidget(LocalTestCase):
         self.assertEqual(w_input['value'], value)
 
 
+class TestSimpleUploadWidget(LocalTestCase):
+
+    def test_init(self):
+        widget = SimpleUploadWidget()
+        self.assertTrue(widget)
+
+    def test__widget(self):
+        field = db.creator.image
+        value = None
+
+        widget = SimpleUploadWidget()
+        soup = BeautifulSoup(str(widget.widget(field, value)))
+        w_input = soup.find('input')
+        if not w_input:
+            self.fail('Input tag not returned')
+        # Example:
+        # <input class="upload" id="creator_image" name="image" type="file" />
+        self.assertEqual(w_input['class'], 'upload')
+        self.assertEqual(w_input['id'], 'creator_image')
+        self.assertEqual(w_input['name'], 'image')
+        self.assertEqual(w_input['type'], 'file')
+
+        value = 'test_image.jpg'
+        url = 'http://www.download.com'
+
+        widget = SimpleUploadWidget()
+        soup = BeautifulSoup(
+            str(widget.widget(field, value, download_url=url)))
+        # Example:
+        # <div class="image_widget_container row">
+        # <div class="image_widget_img">
+        #     <img src="http://www.download.com/test_image.jpg" width="150px" />
+        # </div>
+        # <div class="image_widget_buttons">
+        #     <input class="upload" id="creator_image" name="image" type="file" />
+        #     <span style="white-space:nowrap">
+        #         <input id="image__delete" name="image__delete" type="checkbox" value="on" />
+        #         <label for="image__delete" style="display:inline">
+        #             delete
+        #         </label>
+        #     </span>
+        # </div>
+        # <script>
+        # &lt;!--
+        #
+        # jQuery('.image_widget_buttons input[type=file]').change(function(e) {
+        # $(this).closest('form').submit();
+        # });
+        #
+        # //--&gt;
+        # </script>
+        # </div>
+
+        container_div = soup.find('div')
+        if not container_div:
+            self.fail('DIV tag not returned')
+        self.assertEqual(container_div['class'], 'image_widget_container row')
+        divs = container_div.findAll('div')
+        img_div = divs[0]
+        if not img_div:
+            self.fail('Image DIV tag not returned')
+
+        img = img_div.img
+        if not img:
+            self.fail('IMG tag not returned')
+        self.assertEqual(img['src'], 'http://www.download.com/test_image.jpg')
+
+        buttons_div = divs[1]
+        if not buttons_div:
+            self.fail('Buttons DIV tag not returned')
+
+        up_input = buttons_div.input
+        if not up_input:
+            self.fail('Upload input tag not returned')
+        self.assertEqual(up_input['class'], 'upload')
+        self.assertEqual(up_input['id'], 'creator_image')
+        self.assertEqual(up_input['name'], 'image')
+        self.assertEqual(up_input['type'], 'file')
+
+        span = buttons_div.span
+        if not span:
+            self.fail('SPAN tag not returned')
+
+        del_input = span.input
+        if not del_input:
+            self.fail('Delete input tag not returned')
+        self.assertEqual(del_input['id'], 'image__delete')
+        self.assertEqual(del_input['name'], 'image__delete')
+        self.assertEqual(del_input['type'], 'checkbox')
+        self.assertEqual(del_input['value'], 'on')
+
+        label = span.label
+        if not label:
+            self.fail('Delete input label tag not returned')
+        self.assertEqual(label['for'], 'image__delete')
+        self.assertEqual(label.string, 'delete')
+
+
 class TestLocalSQLFORM(LocalTestCase):
 
     def test_parent__init__(self):
@@ -108,7 +210,7 @@ class TestLocalSQLFORM(LocalTestCase):
         div_paginator = soup.find('div', {'class': 'web2py_paginator grid_header '})
         lis = div_paginator.findAll('li')
         self.assertTrue(len(lis) >= 5)
-        last_page = lis[-1]
+        next_page = lis[-1]
         # Example last page li
         # <li><a class="w2p_trap" href="/igeejo/default/index?page=797">&gt;&gt;</a></li>
         count = table.id.count()
@@ -116,8 +218,50 @@ class TestLocalSQLFORM(LocalTestCase):
         pages = int(num_records / 35)
         if num_records % pages != 0:
             pages += 1
-        href = last_page.a['href']
-        self.assertTrue('page={pgs}'.format(pgs=pages) in href)
+        href = next_page.a['href']
+        self.assertTrue('page={p}'.format(p=pages) in href)
+
+
+class TestFunctions(LocalTestCase):
+
+    _table = None
+    _fields = None
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUpClass(cls):
+        cls._table = db.creator
+        cls._fields = [
+            (
+                'creator.email',
+                db.creator.email.label,
+                StringWidget.widget(db.creator.email, 'username@gmail.com'),
+                db.creator.email.comment
+            ),
+            (
+                'creator.paypal_email',
+                db.creator.paypal_email.label,
+                StringWidget.widget(db.creator.paypal_email, 'paypal.username@gmail.com'),
+                db.creator.paypal_email.comment
+            ),
+        ]
+
+    def test__formstyle_bootstrap3_custom(self):
+        form = LocalSQLFORM(self._table)
+        bootstrap_form = formstyle_bootstrap3_custom(form, self._fields)
+        soup = BeautifulSoup(str(bootstrap_form))
+        fieldset = soup.find('fieldset')
+        div = fieldset.div.div
+        self.assertEqual(div['class'], 'col-sm-6 col-lg-4')
+
+    def test__formstyle_bootstrap3_login(self):
+        form = LocalSQLFORM(self._table)
+        bootstrap_form = formstyle_bootstrap3_login(form, self._fields)
+        soup = BeautifulSoup(str(bootstrap_form))
+        fieldset = soup.find('fieldset')
+        div = fieldset.div.div
+        self.assertEqual(div['class'], 'col-xs-12')
 
 
 def setUpModule():

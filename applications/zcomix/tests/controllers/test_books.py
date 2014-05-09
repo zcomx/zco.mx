@@ -22,7 +22,7 @@ class TestFunctions(LocalTestCase):
     titles = {
         'book': '<div id="book_page">',
         'carousel': '<div id="carousel_page">',
-        'default': 'This is a not-for-profit site dedicated to promoting',
+        'default': 'zcomix.com is a not-for-profit comic-sharing website',
         'gallery': '<div id="blueimp-gallery-carousel"',
         'reader': '<div id="reader_section">',
         'scroller': '<div id="scroller_page">',

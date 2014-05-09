@@ -21,7 +21,8 @@ class TestFunctions(LocalTestCase):
     titles = {
         'data': '<h2>Not authorized</h2>',
         'faq': '<h1>FAQ</h1>',
-        'index': 'This is a not-for-profit site dedicated to promoting',
+        'index': 'zcomix.com is a not-for-profit comic-sharing website',
+        'overview': '<h1>Overview</h1>',
         'todo': '<h1>TODO</h1>',
         'user': [
             'web2py_user_form',
@@ -73,6 +74,12 @@ class TestFunctions(LocalTestCase):
 
         # Test that settings.conf is respected
         self.assertEqual(auth.settings.expiration, 86400)
+
+    def test__overview(self):
+        self.assertTrue(web.test(
+            '{url}/overview'.format(url=self.url),
+            self.titles['overview']
+        ))
 
     def test__todo(self):
         self.assertTrue(web.test(

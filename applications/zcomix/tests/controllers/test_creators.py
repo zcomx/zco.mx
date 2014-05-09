@@ -24,7 +24,7 @@ class TestFunctions(LocalTestCase):
             '<div class="grid_section">'
         ],
         'creator': '<div id="creator_page">',
-        'default': 'This is a not-for-profit site dedicated to promoting',
+        'default': 'zcomix.com is a not-for-profit comic-sharing website',
     }
     url = '/zcomix/creators'
 

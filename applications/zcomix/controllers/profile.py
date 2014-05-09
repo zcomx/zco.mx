@@ -525,7 +525,7 @@ def creator_img_handler():
             stored_filename = None
 
         if not stored_filename:
-            return do_error('')
+            return do_error('File upload failed.')
 
         if creator_record.image and creator_record.image != stored_filename:
             filename, _ = db.creator.image.retrieve(
@@ -547,6 +547,7 @@ def creator_img_handler():
         return image_as_json(db, creator_record.id)
 
     elif request.env.request_method == 'DELETE':
+        import sys; print >> sys.stderr, 'FIXME DELETE found'
         # retrieve real file name
         if not creator_record.image:
             return do_error('')
@@ -600,6 +601,7 @@ def link_crud():
     # action = 'move'
     request.vars.dir: string, 'up' or 'down'
     """
+    import sys; print >> sys.stderr, 'FIXME request.vars: {var}'.format(var=request.vars)
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
@@ -614,7 +616,7 @@ def link_crud():
 
     record_id = 0
     rows = []
-    errors = []
+    errors = {}     # Row() or dict
 
     book_record = None
     if request.args(0):

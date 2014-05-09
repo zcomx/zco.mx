@@ -124,7 +124,7 @@ class TestFunctions(LocalTestCase):
 
     def test__markmin_content(self):
         faq = markmin_content('faq.mkd')
-        self.assertTrue('#### What is zcomix?' in faq)
+        self.assertTrue('#### What is zcomix.com?' in faq)
 
     def test__move_record(self):
         self._reset()
