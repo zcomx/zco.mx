@@ -1,205 +1,203 @@
-
 #### Why zcomix?
 
-zcomix.com is a comic-sharing website for self-publishing comic creators                                                    and their readers.
+zcomix.com is a comic-sharing website for self-publishing comic creators
+and their readers.
 
-With this page, we hope to give an overview of the site and a bit of the
+This page is intended to give an overview of the site and a bit of the
 motivation for the creation of zcomix.com. It's an attempt at a top-down
-approach, so it maybe a little scattered. The main goal is to get down the key
-concepts.
+approach, so it maybe a little scattered. The main goal is to get down
+the key concepts.
 
 ----
 
 #### Perspective
-Most people spend their leisure time on some combination of the Internet, TV,
-movies, video games, prose books and outdoor activities. Comic books represent
-a humble, tiny dot on the entertainment map. Of the relatively few comic
-readers, only a small percent are involved in, or even aware of,
-small/micro/self-published books. In order for self-publishers to increase
-their foot-print, they might benefit from promoting their material in one
-location so readers can easily find it.
+Most people spend their leisure time on some combination of the
+Internet, TV, movies, video games, prose books and outdoor activities.
+Comics represent a humble, tiny dot on the entertainment map. Of the
+relatively few comic readers, only a small percent are involved in, or
+even aware of, small/micro/self-published books.
 
-Self-publishing is a unique and interesting craft. Creators take pride in
-participating in most aspects of their work and there is a hands-on simplicity
-to how they create value -- as simple as print, fold and staple. The Internet
-is a interesting piece in the evolution of self-publishing, providing a
-low-cost, yet accessible and professional means to publish, promote, and
-distribute directly to the reader.
+Self-publishing is a unique and interesting craft. Creators take pride
+in participating in most aspects of their work and there is a hands-on
+simplicity to how they create value -- as simple as print, fold and
+staple. The Internet is an appealing piece in the evolution of
+self-publishing, providing a low-cost, yet accessible and professional
+means to publish, promote, and distribute directly to the reader.
 
 The Internet does have its challenges. Some self-publishers are giving it a go,
 but from a readers perspective, it hasn't been ideal. Each creator has their
-material in some small corner of the Internet. It can be difficult to find and
-track. And there is little consistency between websites with regards to how the
-content is accessed and how the creator is compensated.
+material in their own corner of the Internet. It can be difficult for readers
+to find and track the creators' books. And there is little consistency between
+websites with regards to how the content is presented and how the creator is
+compensated.
 
-What if there was a site where creators could upload their content using a
-dead-simple interface so that material could be published in minutes?  What if
-there was a site that presented the content in a consistent format and provided
-searching and sorting so readers could find what they want and be reading
-immediately.
+What if there was a site where creators could upload their content using
+a dead-simple interface so that material could be published in minutes?
+What if there was a site that presented the content in a consistent, common
+format and provided searching and sorting so readers could find what
+they want and be reading immediately?
 
 
 #### Popular Comics
-Publishing creative works on the Internet can result in copying. The music and
-film industry battle with this and it happens with comic books too. If a comic
-is popular enough, it will be available via P2P networks (bittorrent or direct
-connect)[1]. Digital material will be copied. Pretending this doesn't happen is
+Publishing creative works on the Internet can result in copying. The
+music and film industry face this and it happens with comics too. If a
+comic is popular enough, it will be available via P2P networks
+([[BitTorrent http://www.bittorrent.com popup]] or
+[[Direct Connect https://en.wikipedia.org/wiki/Direct_Connect_(file_sharing) popup]])[[[1 #footnote_1]]][[anchor_footnote_1]].
+Popular digital material will be shared. Pretending this doesn't happen is
 foolish. Pretending it can be stopped by guilting people with terms like
-"piracy" and "theft" is, to be frank, ignorant. Hard-core comic readers expend
-enormous amount of energy acquiring, formatting, sharing and praising
-works. In the Internet era, enthusiasts are the creator's marketing and
-distributing departments.
+"piracy" and "theft" is, to be frank, ignorant.  Hard-core comic readers expend
+enormous amount of energy acquiring, formatting, sharing and praising works. In
+the Internet era, enthusiasts are the creator's marketing and distributing
+departments.
 
-Copying isn't the problem, it's actually a solution. The difficulty for the
-digital comic industry is to find a frictionless way for creators to be
-compensated. Creators created value. They deserved to be paid.
-
-The site Comixology makes an attempt to serve self-publishers and comic book
-readers, but it will not stop copying because it doesn't provide books
-in a convenient, unobstructed way that readers can get otherwise. More on this
-later.
+Users sharing digital content isn't the problem, it's a solution. What's
+missing is a frictionless way for readers to compensate the creators.
 
 
 #### Digital & Paper Comics
-Some people suggest digital comics hurt the paper comics industry, saying it
-will take away from paper sales and lead to store closings. Is it not possible
-that digital and paper are two sides of the same coin? Maybe, just maybe, paper
-and digital sales are directly proportional: the more paper copies sold, the
-more digital copies sold; the more digital sales, the more paper sales.
+Some people suggest digital comics hurt the paper comics industry,
+saying it will take away from paper sales and lead to store closings. Is
+it not possible that digital and paper are two sides of the same coin?
+Maybe paper and digital sales are directly proportional: the more paper
+copies sold, the more digital copies sold; the more digital sales, the
+more paper sales.
 
-Consider the vinyl record industry. Here we have an industry that should have
-died years ago. And yet sales are higher now than they've been in decades.
-There are music enthusiasts that listen to digital material only, some are
-tradionalists and swear by vinyl, and some enjoy the benefits of both.
-There is room for both. The key is to make people aware of it, and make it
-accessible.
+Consider the vinyl record industry. In theory this industry should have
+died years ago and yet sales are higher now than they've been in
+decades. There are music enthusiasts that listen to digital material
+only, there are traditionalists that swear by vinyl, and some enjoy the
+benefits of both.
 
 
 #### Leaving Money on the Table
-Small/micro/self-publishers lose sales with traditional publishing methods
-in several ways:
-    + Out of print books (demand is not being met)
-    + Shipping costs (shipping costs outside the US are especially high)
-    + Poor exchange rates with the USD
+Small/micro/self-publishers lose sales with traditional publishing
+methods in several ways:
+
+    - Out of print books (demand is not being met)
+    - Shipping costs (especially to countries outside the US)
+    - Poor exchange rates with the USD
 
 By using sites like Comixology, publishers lose sales because of:
-    + Regional locks
-    + DRM
-    + Over-priced books
-    + Unfair compensation [2]
 
-----
-#### STOP! The rest is incomplete
-
-----
+    - Regional locks
+    - DRM
+    - Over-priced books
+    - Unfair compensation [[[2 #footnote_2]]][[anchor_footnote_2]]
 
 
+#### Solutions
 
-SOLUTIONS
-Creators are the ones who create the item of value.  I don't feel they
-leverage the resources available to them to capitalize on this huge
-advantage.
+People value a good story. Creators make them. Creators have what people
+want. But do self-publishing creators leverage this advantage? Do they
+make full use of resources available to them to capitalize on their
+favourable position?
 
-I think the solution is two pronged.  Since publishing comics digitally
-is virtually free and requires little effort, I think this is the best
-place to start. Second phase would be to document what's required in
-getting a physical book printed.
+Relative to paper, digital publishing requires much less resources.  In
+terms of dollars and time, the cost of producing and distributing
+digital material is minimal. The Internet is ideal for self-publishers
+with a small budget to gain exposure and to establish a reader base.
+
+Many people want paper copies of their favourite books. Once a reader
+base is established and demand for paper books determined, creators can
+work directly with their base to crowdfund the project via
+[[kickstarter kickstarter.com popup]].
 
 
-GOODWILL
-One Site - The goal is to generate as much goodwill between the creators
-and their readers.  Sites like kickstarter show that "The whole is
-greater than the sum of its parts".  People are willing to give money
-when others are also willing to give.  People are more comfortable when
-the UI is simple and they have the same experience each time.  Imagine a
-thousand people trying to crowdfund on their own site versus a thousand
-people using one site like kickstarter.  In this vain trying to keep
-track of various sites (ie creator's personal blogs & tumblr sites) is a
-needless burden for the reader.
+#### Goodwill
 
-Leverage the File Sharing Communities - This communities have been
-around since the 90's.  They have a tried and tested method for how they
-do things. If handled properly goodwill would be created if their
-methods are mirrored, ie filenames, use of cbz format, distribution
-methods, etc. This community would report mistakes, eg pages out of
-order/missing.  As well the project might gain an instant readership.
+Creators can benefit by generating goodwill between themselves and their
+readers.  Below is a list of ideas to help generate goodwill.
 
-Creator Documentation - howto's for:
-    + setting up a paypal micro-payments account
+
+Make It Convenient - Creators make it difficult for readers to discover their
+work if that work is spread over the Internet. It's tedious for readers to
+track the new releases from their favourite creators if that material is
+presented in different locations, some on personal blogs, some on tumblr pages,
+some on small/micro press sites, etc. Make accessing the material simple,
+convenient, and familiar. Make the experience for the reader as seamless as
+possible so they are excited and motivated to support creators.
+
+Crowdfunding (eg [[kickstarter kickstarter.com popup]]) works but only with a crowd.
+Creators are better off if readers come to a single hub-site where buzz about a
+new release can grow and snowball. Imagine a thousand creators each
+crowdfunding projects on their own sites, and now consider how more effective
+it is if they all used a single site like [[kickstarter kickstarter.com popup]].
+A single location is more convenient for readers as well.
+
+Leverage File Sharing Communities - File sharing communities have been
+around since the 90's. They have a tried and tested method for
+distributing digital material. The community has momentum and numbers.
+Goodwill would be created if creators indulged the community by
+mirroring their methods by, for example, using consistent and familiar
+file names and formats, eg cbz, and using P2P networks (eg BitTorrent
+and Direct Connect) for distribution. The community will give back. They
+will report mistakes and issues, such as pages out of order/missing or
+corrupt files. As well, creators might gain an instant readership if a
+work catches on.
+
+Creator Documentation - If a site is to be effective, it has to be easy
+to use. If the site provides howto's for common tasks, this will ease
+the learning curve for creators wanting to publish. Include howto's for:
     + scanning & photoshop
     + information on png vs jpg vs gif
-    + licencing
-
-Site Costs - The site would be not-for-profit.  Jim and I would donate
-our time for free.  Any surplus money raised by the site would be put
-back into the site.  All the code for the site would be open and
-freely available from github.
-
-Copyright - Creators using one of the Creative Commons licences would
-also add a level of goodwill to the creator and this project.
-
-Money Model - Like most industries, the majority of paper and digital
-comics use the 'buy before you try' model. This model relies on hype to
-try and gain traction for books, which in turns creates lots of general
-distrust and negativity.  Furthermore, as stated earlier, the majority
-of popular comics are already digitized and available via P2P networks
-and many indie creators are posting their work online for free in hopes
-of picking up an audience, which further weakens the 'buy before you
-try' model.
-
-A 'try before you buy' method would generate a huge amount of goodwill
-to the site.  As stated above, comics are vying for people's leisure
-time and this method would allow for spontaneous consumption -- this is
-what the internet excels at.
+    + setting up a paypal micro-payments account
+    + copyright licencing
 
 
-WEBSITE
-* Website ideas:
-    + create as much goodwill as possible
-    + filter brainstorming through, "what is best/ideal for the creator?"
-    + filter brainstorming through, "what is best/ideal for the reader?"
-    + keep the UI simple, allowing the creators and their works to standout
+Site Costs - To maximize the return for creators, the site would be
+not-for-profit. This helps create goodwill. Readers are much more likely
+to support creators if they know payments are going directly to creators
+and not to a middleman. Users should have more faith in the site if they
+know the site's only intention is to connect creators and readers, and
+not to benefit developers.
 
-* Content demographics for the site:
-    + minicomics
-    + webcomics (webcomics solve many of the problems listed above)
-    + strips
-    + retired minicomics
-    + retired webcomics
-    + retired strips
+Site administrators will donate their time. The site will accept
+donations. They will be used to offset hosting costs and if there is any
+surplus, it will be put towards the site and its community. The site
+code will be open source and made available on github so the community
+has an opportunity to contribute features and bug fixes.
 
+Copyright - By using one of the [[Creative Commons http://creativecommons.org popup]]
+[[licences http://creativecommons.org/licenses popup]], creators would add a level
+of goodwill for their work attracting readers and maintaining interest in the
+site.
 
-An alpha version of the site site can be found here:
-https://dev.zcomix.com/
+Money Model - Most paper and digital comics use the 'buy before you try' model.
+The model is prevalent in the publishing industry. Buyers purchase a book, a
+movie ticket, or an album without knowing exactly what they're getting. In
+order to overcome the buyer's reluctance to buy something unknown, sellers rely
+on marketing hype. The hype is often extravagant and deceptive leading to
+unfulfilled expectations. Buyers become cynical and distrust publishers.
 
-You can login with:
-u: FIXME
-p: FIXME
+Many comics are digitized and available on P2P networks. This is appealing to
+readers because they can try the material before purchasing. If they find a
+book unfavourable, the only cost is their time. If a book is great, the reader
+may decide to purchase a paper copy. Either way, the reader is satisfied. The
+'buy before you try' model is not as appealing when readers have an
+alternative.
 
-The data and info used is only for demo purposes, so feel free to test.
-There are still features missing (eg download) but hopefully you get the
-idea. Since the site isn't complete, please don't share the url.  Sorry
-there isn't more documentation.  Let me know what isn't obvious and I
-will write it.
+Some indie creators use the appeal to 'try before you by' to their advantage.
+They are posting work online and giving it away for free, no strings attached.
+Their goal is to develop a readership first and create secondary streams of
+income through sales paper copies and collector items, and commissions. The
+growing availability of quality free content on the web is making 'buy before
+you try' less appealing.
 
-Three things the project needs moving forward:
-    1) Feedback from people like yourself; on what's written above as
-       well as the site itself
-    2) Creators to back this project in order to add credibility
-    3) Content
+A 'try before you buy' method would generate a huge amount of goodwill.
+As stated above, comics are vying for people's leisure time and this method
+would allow for spontaneous consumption -- this is what the Internet excels at.
 
-On a side note, both Jim and I grew up north of London near Listowel.
-We're both living in Guelph now.  Are you still in London?
+----
 
--steve
-
-
----
-[1] As well books can also be digitized if a scanner or ripper follows a
+[[footnote_1]]
+[ [[1 #anchor_footnote_1]] ] As well books can also be digitized if a scanner or ripper follows a
     creator or finds a book of interest
 
-[2] FIXME: Becky's link
-
-
+[[footnote_2]]
+[ [[2 #anchor_footnote_2]] ]
+    "with ComiXology I’m only guaranteed 33 cents on every dollar if it’s bought
+    through the Apple store. " Becky Cloonan,
+    [[Self Publish or Perish http://beckycloonan.tumblr.com/post/71721963332/self-publish-or-perish-a-short-essay-or-4-000 popup]]
 
 
