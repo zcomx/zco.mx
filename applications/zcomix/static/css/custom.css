@@ -1440,6 +1440,11 @@ div.centered table {
     margin-top: 1.2em;
 }
 
+#overview_page h5 {
+    margin-bottom: 0.4em;
+    margin-top: 1.2em;
+}
+
 /* bootstrap 2.3.2 for jquery-file-upload */
 .fade {
   opacity: 0;

@@ -1,5 +1,3 @@
-#### Why zcomix?
-
 zcomix.com is a comic-sharing website for self-publishing comic creators
 and their readers.
 
@@ -110,7 +108,8 @@ Creators can benefit by generating goodwill between themselves and their
 readers.  Below is a list of ideas to help generate goodwill.
 
 
-Make It Convenient - Creators make it difficult for readers to discover their
+##### Make It Convenient
+Creators make it difficult for readers to discover their
 work if that work is spread over the Internet. It's tedious for readers to
 track the new releases from their favourite creators if that material is
 presented in different locations, some on personal blogs, some on tumblr pages,
@@ -125,32 +124,35 @@ crowdfunding projects on their own sites, and now consider how more effective
 it is if they all used a single site like [[kickstarter kickstarter.com popup]].
 A single location is more convenient for readers as well.
 
-Leverage File Sharing Communities - File sharing communities have been
+##### Leverage File Sharing Communities
+File sharing communities have been
 around since the 90's. They have a tried and tested method for
 distributing digital material. The community has momentum and numbers.
 Goodwill would be created if creators indulged the community by
 mirroring their methods by, for example, using consistent and familiar
-file names and formats, eg cbz, and using P2P networks (eg BitTorrent
-and Direct Connect) for distribution. The community will give back. They
+file names and formats, eg cbz, and using P2P networks
+(eg [[BitTorrent http://www.bittorrent.com popup]] and
+[[Direct Connect https://en.wikipedia.org/wiki/Direct_Connect_(file_sharing) popup]])[[[1 #footnote_1]]][[anchor_footnote_1]]) for distribution. The community will give back. They
 will report mistakes and issues, such as pages out of order/missing or
 corrupt files. As well, creators might gain an instant readership if a
 work catches on.
 
-Creator Documentation - If a site is to be effective, it has to be easy
-to use. If the site provides howto's for common tasks, this will ease
-the learning curve for creators wanting to publish. Include howto's for:
-    + scanning & photoshop
-    + information on png vs jpg vs gif
-    + setting up a paypal micro-payments account
-    + copyright licencing
+##### Creator Documentation
+If a site is to be effective, it has to be easy to use. If the site provides
+howto's for common tasks, this will ease the learning curve for creators
+wanting to publish. Include howto's for:
+    - scanning & photoshop
+    - information on png vs jpg vs gif
+    - setting up a paypal micro-payments account
+    - copyright licencing
 
 
-Site Costs - To maximize the return for creators, the site would be
-not-for-profit. This helps create goodwill. Readers are much more likely
-to support creators if they know payments are going directly to creators
-and not to a middleman. Users should have more faith in the site if they
-know the site's only intention is to connect creators and readers, and
-not to benefit developers.
+##### Site Costs
+To maximize the return for creators, the site would be not-for-profit. This
+helps create goodwill. Readers are much more likely to support creators if they
+know payments are going directly to creators and not to a middleman. Users
+should have more faith in the site if they know the site's only intention is to
+connect creators and readers, and not to benefit developers.
 
 Site administrators will donate their time. The site will accept
 donations. They will be used to offset hosting costs and if there is any
@@ -158,35 +160,55 @@ surplus, it will be put towards the site and its community. The site
 code will be open source and made available on github so the community
 has an opportunity to contribute features and bug fixes.
 
-Copyright - By using one of the [[Creative Commons http://creativecommons.org popup]]
+##### Copyright
+By using one of the [[Creative Commons http://creativecommons.org popup]]
 [[licences http://creativecommons.org/licenses popup]], creators would add a level
 of goodwill for their work attracting readers and maintaining interest in the
 site.
 
-Money Model - Most paper and digital comics use the 'buy before you try' model.
-The model is prevalent in the publishing industry. Buyers purchase a book, a
-movie ticket, or an album without knowing exactly what they're getting. In
-order to overcome the buyer's reluctance to buy something unknown, sellers rely
-on marketing hype. The hype is often extravagant and deceptive leading to
-unfulfilled expectations. Buyers become cynical and distrust publishers.
+##### Money Model
+Most paper and digital comics use the 'buy before you try'
+model. The model is prevalent in the media industry. Buyers purchase a
+book, a movie ticket, or an album without knowing exactly what they're
+getting. In order to overcome the buyer's reluctance to buy something
+unknown, sellers rely on marketing hype. The hype is often extravagant
+and deceptive leading to unfulfilled expectations. Buyers become cynical
+and distrust publishers.
 
-Many comics are digitized and available on P2P networks. This is appealing to
-readers because they can try the material before purchasing. If they find a
-book unfavourable, the only cost is their time. If a book is great, the reader
-may decide to purchase a paper copy. Either way, the reader is satisfied. The
-'buy before you try' model is not as appealing when readers have an
-alternative.
+Many comics are digitized and available on P2P networks. This is
+appealing to readers because they can try the material before
+purchasing. If they find a book unfavourable, the only cost is their
+time. If a book is great, the reader may decide to purchase a paper
+copy. Either way, the reader is satisfied. The 'buy before you try'
+model is not as appealing when readers have an alternative.
 
-Some indie creators use the appeal to 'try before you by' to their advantage.
-They are posting work online and giving it away for free, no strings attached.
-Their goal is to develop a readership first and create secondary streams of
-income through sales paper copies and collector items, and commissions. The
-growing availability of quality free content on the web is making 'buy before
-you try' less appealing.
+Some indie creators use the appeal to 'try before you buy' to their
+advantage. They are posting work online and giving it away for free, no
+strings attached. Their goal is to develop a readership first and create
+secondary streams of income through paper copy sales, collectable
+items and commissions. The growing availability of quality free content
+on the web is making 'buy before you try' less appealing.
 
 A 'try before you buy' method would generate a huge amount of goodwill.
-As stated above, comics are vying for people's leisure time and this method
-would allow for spontaneous consumption -- this is what the Internet excels at.
+As stated above, comics are vying for people's leisure time and this
+method would allow for spontaneous consumption -- this is what the
+Internet excels at.
+
+
+#### Website
+* Website ideas:
+    - create as much goodwill as possible
+    - filter brainstorming through, "what is best/ideal for the creator?"
+    - filter brainstorming through, "what is best/ideal for the reader?"
+    - keep the UI simple, allowing the creators and their works to standout
+
+* Content demographics for the site:
+    - minicomics
+    - webcomics (webcomics solve many of the problems listed above)
+    - strips
+    - retired minicomics
+    - retired webcomics
+    - retired strips
 
 ----
 
