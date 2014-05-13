@@ -411,6 +411,24 @@ class TestFunctions(LocalTestCase):
         db.commit()
         creator = get_creator()
 
+    def test__creator_img_handler(self):
+
+        def get_creator():
+            """Return a creator"""
+            query = (db.creator.id == self._creator.id)
+            return db(query).select(db.creator.ALL).first()
+
+        old_creator = get_creator()
+
+        web.login()
+
+        url = '{url}/creator_img_handler.json'.format(url=self.url)
+        data = {
+            'up_files': None,
+        }
+        web.post(url, data=data)
+
+
     def test__index(self):
         self.assertTrue(
             web.test(

@@ -20,7 +20,9 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'data': '<h2>Not authorized</h2>',
+        'faq': '<h1>FAQ</h1>',
         'index': 'This is a not-for-profit site dedicated to promoting',
+        'todo': '<h1>TODO</h1>',
         'user': [
             'web2py_user_form',
             'web2py_user_form_container',
@@ -57,6 +59,12 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(cm.exception.code, 404)
         self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
+    def test__faq(self):
+        self.assertTrue(web.test(
+            '{url}/faq'.format(url=self.url),
+            self.titles['faq']
+        ))
+
     def test__index(self):
         self.assertTrue(web.test(
             '{url}/index'.format(url=self.url),
@@ -65,6 +73,12 @@ class TestFunctions(LocalTestCase):
 
         # Test that settings.conf is respected
         self.assertEqual(auth.settings.expiration, 86400)
+
+    def test__todo(self):
+        self.assertTrue(web.test(
+            '{url}/todo'.format(url=self.url),
+            self.titles['todo']
+        ))
 
     def test__user(self):
         self.assertTrue(web.test(

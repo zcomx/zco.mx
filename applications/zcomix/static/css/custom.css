@@ -1429,11 +1429,13 @@ div.centered table {
     }
 }
 
-#faq_page {
+#faq_page,
+#overview_page {
     width: 36em;
 }
 
-#faq_page h4 {
+#faq_page h4,
+#overview_page h4 {
     margin-bottom: 0.4em;
     margin-top: 1.2em;
 }
