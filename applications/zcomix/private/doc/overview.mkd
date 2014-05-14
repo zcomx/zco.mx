@@ -117,12 +117,14 @@ some on small/micro press sites, etc. Make accessing the material simple,
 convenient, and familiar. Make the experience for the reader as seamless as
 possible so they are excited and motivated to support creators.
 
-Crowdfunding (eg [[kickstarter kickstarter.com popup]]) works but only with a crowd.
-Creators are better off if readers come to a single hub-site where buzz about a
-new release can grow and snowball. Imagine a thousand creators each
-crowdfunding projects on their own sites, and now consider how more effective
-it is if they all used a single site like [[kickstarter kickstarter.com popup]].
-A single location is more convenient for readers as well.
+##### The Whole is Greater Than the Sum of Its Parts
+Having a variety of stories, genres, and styles from different creators on one
+site will excite readers and generate an atmosphere of goodwill. Positive
+energy motivates people to give back. People can contribute in many ways:
+donating, blogging, making comments via social media, distributing and
+organizing material, and recommending the site to others. If people have faith
+in the site, they'll treat it like their own.  By working together, everyone
+benefits.
 
 ##### Leverage File Sharing Communities
 File sharing communities have been
