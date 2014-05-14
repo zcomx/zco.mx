@@ -1,5 +1,5 @@
-zcomix.com is a comic-sharing website for self-publishing comic creators
-and their readers.
+zcomix.com is a not-for-profit comic-sharing website for self-publishing
+creators and their readers.
 
 This page is intended to give an overview of the site and a bit of the
 motivation for the creation of zcomix.com. It's an attempt at a top-down
