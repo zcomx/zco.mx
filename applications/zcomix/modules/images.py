@@ -9,6 +9,7 @@ import imghdr
 import math
 import os
 import re
+import subprocess
 from PIL import Image
 from gluon import *
 from gluon.globals import Response
@@ -16,10 +17,57 @@ from gluon.streamer import DEFAULT_CHUNK_SIZE
 from gluon.contenttype import contenttype
 
 
+class ImageOptimizeError(Exception):
+    """Exception class for an image optimize errors."""
+    pass
+
+
+class CBZImage(object):
+    """Class representing an image for a CBZ file."""
+
+    def __init__(self, filename):
+        """Constructor
+
+        Args:
+            filename: string, name of image file.
+        """
+        self.filename = filename
+
+    def optimize(self, out_filename, size=''):
+        """Optimize the file to reduce size.
+
+        Args:
+            out_filename: string, name of optimized image file.
+            size: string, name of size, must one of the keys of the SIZERS
+                    dict
+        """
+        optimize_script = os.path.join(
+            current.request.folder, 'private', 'bin', 'optimize_img.sh')
+        args = [optimize_script]
+        if size:
+            sizer = classified_sizer(size)(Image.open(self.filename))
+            w, h = sizer.size()
+            resize = '{w}x{h}'.format(w=w, h=h)
+            args.append('-r')
+            args.append(resize)
+        args.append(self.filename)
+        args.append(out_filename)
+        p = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        unused_stdout, p_stderr = p.communicate()
+        if p.returncode:
+            msg = 'optimize_img.sh failed, file: {f}, err: {e}'.format(
+                f=self.filename,
+                e=p_stderr,
+            )
+            raise ImageOptimizeError(msg)
+
+
 class Downloader(Response):
     """Class representing an image downloader"""
 
-    def download(self, request, db, chunk_size=DEFAULT_CHUNK_SIZE, attachment=True, download_filename=None):
+    def download(self, request, db, chunk_size=DEFAULT_CHUNK_SIZE,
+            attachment=True, download_filename=None):
         """
         Adapted from Response.download.
 
@@ -27,6 +75,9 @@ class Downloader(Response):
                 'thumb'. If provided the image is streamed from a subdirectory
                  with that name.
         """
+        # C0103: *Invalid name "%%s" (should match %%s)*
+        # pylint: disable=C0103
+
         current.session.forget(current.response)
 
         if not request.args:
@@ -48,7 +99,10 @@ class Downloader(Response):
 
         # Customization: start
         if request.vars.size and request.vars.size in SIZERS.keys():
-            resized = stream.replace('/original/', '/{s}/'.format(s=request.vars.size))
+            resized = stream.replace(
+                '/original/',
+                '/{s}/'.format(s=request.vars.size)
+            )
             if os.path.exists(resized):
                 stream = resized
         # Customization: end
@@ -58,8 +112,9 @@ class Downloader(Response):
         if download_filename is None:
             download_filename = filename
         if attachment:
+            fmt = 'attachment; filename="%s"'
             headers['Content-Disposition'] = \
-                'attachment; filename="%s"' % download_filename.replace('"', '\"')
+                fmt % download_filename.replace('"', '\"')
         return self.stream(stream, chunk_size=chunk_size, request=request)
 
 
@@ -84,10 +139,10 @@ class Sizer(object):
         return self.im.size
 
 
-class LargeSizer(Sizer):
-    """Class representing a sizer for large images."""
+class MaxAreaSizer(Sizer):
+    """Base class representing a sizer that resizes based on max area."""
 
-    _max_area = 900000          # in pixels, 1200w x 750h
+    _max_area = None             # in pixels, w x h
 
     def __init__(self, im):
         """Constructor """
@@ -100,6 +155,9 @@ class LargeSizer(Sizer):
         Returns:
             tuple (w integer, h integer)
         """
+        if self._max_area is None:
+            raise NotImplementedError
+
         w, h = self.im.size
         area = w * h
         new_w, new_h = w, h
@@ -107,6 +165,26 @@ class LargeSizer(Sizer):
             new_w = int(math.sqrt(1.0 * w * self._max_area / h))
             new_h = int(math.sqrt(1.0 * h * self._max_area / w))
         return (new_w, new_h)
+
+
+class CBZSizer(MaxAreaSizer):
+    """Class representing a sizer for images for cbz files."""
+
+    _max_area = 4096000             # in pixels, 2560w x 1600h
+
+    def __init__(self, im):
+        """Constructor """
+        MaxAreaSizer.__init__(self, im)
+
+
+class LargeSizer(MaxAreaSizer):
+    """Class representing a sizer for large images."""
+
+    _max_area = 900000              # in pixels, 1200w x 750h
+
+    def __init__(self, im):
+        """Constructor """
+        MaxAreaSizer.__init__(self, im)
 
 
 class MediumSizer(Sizer):
@@ -148,6 +226,7 @@ class ThumbnailSizer(Sizer):
 
 
 SIZERS = {
+    'cbz': CBZSizer,
     'large': LargeSizer,
     'medium': MediumSizer,
     'thumb': ThumbnailSizer,
@@ -155,7 +234,7 @@ SIZERS = {
 
 
 class UploadImage(object):
-    """Class representing an image resizer"""
+    """Class representing an uploaded image."""
 
     def __init__(self, field, image_name):
         """Constructor
@@ -348,6 +427,8 @@ def set_thumb_dimensions(db, book_page_id, dimensions):
         book_page_id: integer, id of book_page record
         dimensions: tuple (w, h), dimensions of thumb image.
     """
+    # C0103: *Invalid name "%%s" (should match %%s)*
+    # pylint: disable=C0103
     if not dimensions:
         return
     w = dimensions[0]

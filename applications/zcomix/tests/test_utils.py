@@ -6,6 +6,10 @@
 Test suite for zcomix/modules/utils.py
 
 """
+import os
+import pwd
+import re
+import shutil
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
@@ -17,7 +21,9 @@ from applications.zcomix.modules.utils import \
     markmin_content, \
     move_record, \
     profile_wells, \
-    reorder
+    reorder, \
+    temp_directory
+
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -82,8 +88,10 @@ class TestItemDescription(LocalTestCase):
 
 class TestFunctions(LocalTestCase):
 
-    _fields = ['a', 'b', 'c']
     _by_name = {}
+    _fields = ['a', 'b', 'c']
+    _tmp_backup = None
+    _tmp_dir = None
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
@@ -105,6 +113,18 @@ class TestFunctions(LocalTestCase):
             )
             db.commit()
             cls._by_name[f] = record_id
+
+        if cls._tmp_backup is None:
+            cls._tmp_backup = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp_bak')
+        if cls._tmp_dir is None:
+            cls._tmp_dir = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
+
+    @classmethod
+    def tearDown(cls):
+        if cls._tmp_backup and os.path.exists(cls._tmp_backup):
+            if os.path.exists(cls._tmp_dir):
+                shutil.rmtree(cls._tmp_dir)
+            os.rename(cls._tmp_backup, cls._tmp_dir)
 
     def _reset(self):
         record_ids = [
@@ -244,6 +264,32 @@ class TestFunctions(LocalTestCase):
         reorder(db.test__reorder.order_no)
         self.assertEqual(self._ordered_values(), ['a', 'c', 'd'])
         self.assertEqual(self._ordered_values(field='order_no'), [1, 2, 3])
+
+    def test__temp_directory(self):
+        def valid_tmp_dir(path):
+            """Return if path is tmp dir."""
+            # Typical path:
+            # 'applications/zcomix/uploads/original/../tmp/tmprHbFAM
+            dirs = path.split('/')
+            self.assertEqual(dirs[0], 'applications')
+            self.assertEqual(dirs[1], 'zcomix')
+            self.assertEqual(dirs[2], 'uploads')
+            self.assertEqual(dirs[-2], 'tmp')
+            self.assertRegexpMatches(dirs[-1], re.compile(r'tmp[a-zA-Z0-9].*'))
+
+        valid_tmp_dir(temp_directory())
+
+        # Test: tmp directory does not exist.
+        if os.path.exists(self._tmp_dir):
+            os.rename(self._tmp_dir, self._tmp_backup)
+
+        valid_tmp_dir(temp_directory())
+        # Check permissions on tmp subdirectory
+        tmp_path = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
+        self.assertTrue(os.path.exists(tmp_path))
+        stats = os.stat(tmp_path)
+        self.assertEqual(stats.st_uid, pwd.getpwnam('http').pw_uid)
+        self.assertEqual(stats.st_gid, pwd.getpwnam('http').pw_gid)
 
 
 def setUpModule():

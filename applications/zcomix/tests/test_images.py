@@ -18,8 +18,12 @@ from gluon import *
 from gluon.http import HTTP
 from gluon.storage import List
 from applications.zcomix.modules.images import \
+    CBZImage, \
+    CBZSizer, \
     Downloader, \
+    ImageOptimizeError, \
     LargeSizer, \
+    MaxAreaSizer, \
     MediumSizer, \
     SIZERS, \
     Sizer, \
@@ -45,6 +49,7 @@ class ImageTestCase(LocalTestCase):
     _image_original = os.path.join(_image_dir, 'original')
     _image_name = 'file.jpg'
     _uuid_key = None
+    _test_data_dir = None
 
     _objects = []
 
@@ -90,10 +95,94 @@ class ImageTestCase(LocalTestCase):
 
         cls._uuid_key = cls._creator.image.split('.')[2][:2]
 
+        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+
     @classmethod
     def tearDown(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
+
+
+class SizerTestCase(LocalTestCase):
+    """ Base class for Sizer  test cases. Sets up test directories."""
+    _image_dir = '/tmp/image_resizer'
+
+    @classmethod
+    def setUp(cls):
+        if not os.path.exists(cls._image_dir):
+            os.makedirs(cls._image_dir)
+
+    @classmethod
+    def tearDown(cls):
+        if os.path.exists(cls._image_dir):
+            shutil.rmtree(cls._image_dir)
+
+
+class TestCBZImage(ImageTestCase):
+
+    def test____init__(self):
+        cbz_image = CBZImage(self._image_name)
+        self.assertTrue(cbz_image)
+
+    def test__optimize(self):
+        test_file = os.path.join(self._test_data_dir, 'file.jpg')
+        im = Image.open(test_file)
+        original_dimensions = im.size
+        original_size = os.stat(test_file).st_size
+        cbz_image = CBZImage(test_file)
+        out_filename = os.path.join(
+            self._image_dir, os.path.basename(test_file))
+        cbz_image.optimize(out_filename)
+        optimized_size = os.stat(out_filename).st_size
+        self.assertTrue(optimized_size < original_size)
+        im = Image.open(out_filename)
+        self.assertEqual(im.size, original_dimensions)
+
+        # Test size option
+        cbz_image.optimize(out_filename, size='thumb')
+        resized_size = os.stat(out_filename).st_size
+        self.assertTrue(resized_size < optimized_size)
+        im = Image.open(out_filename)
+        self.assertEqual(im.size[0], 170)        # scale is maintained
+        self.assertEqual(im.size[1], 170)
+
+        # Test invalid, non-existent file
+        test_file = os.path.join(self._test_data_dir, '_not_exists_.jpg')
+        cbz_image = CBZImage(test_file)
+        with self.assertRaises(ImageOptimizeError) as cm:
+            cbz_image.optimize(out_filename)
+        self.assertTrue('No such file or directory' in str(cm.exception))
+
+
+class TestCBZSizer(SizerTestCase):
+
+    def test____init__(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = CBZSizer(im)
+        self.assertTrue(sizer)
+
+    def test_parent_size(self):
+        tests = [
+            # original dimensions (w, h), expect dimensions (w, h)
+            ((2560, 1600), (2560, 1600)),    # landscape
+            ((5120, 3200), (2560, 1600)),    # large landscape
+            ((600, 375), (600, 375)),        # small landscape
+            ((1600, 2560), (1600, 2560)),    # portrait
+            ((3200, 5120), (1600, 2560)),    # large portrait
+            ((375, 600), (375, 600)),        # small portrait
+            ((2023, 2023), (2023, 2023)),        # square
+            ((3000, 3000), (2023, 2023)),      # large square
+            ((400, 400), (400, 400)),        # small square
+        ]
+
+        image_filename = os.path.join(self._image_dir, 'test.jpg')
+
+        for t in tests:
+            im = Image.new('RGB', t[0])
+            with open(image_filename, 'wb') as f:
+                im.save(f)
+            sizer = CBZSizer(im)
+            self.assertEqual(sizer.size(), t[1])
 
 
 class TestDownloader(ImageTestCase):
@@ -140,40 +229,25 @@ class TestDownloader(ImageTestCase):
         test_http('thumb')
 
 
-class TestSizer(LocalTestCase):
-
-    def test____init__(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = Sizer(im)
-        self.assertTrue(sizer)
-
-    def test__size(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = Sizer(im)
-        self.assertEqual(sizer.size(), (400, 400))
+class TestImageOptimizeError(LocalTestCase):
+    def test_parent_init(self):
+        msg = 'This is an error message.'
+        try:
+            raise ImageOptimizeError(msg)
+        except ImageOptimizeError as err:
+            self.assertEqual(str(err), msg)
+        else:
+            self.fail('ImageOptimizeError not raised')
 
 
-class TestLargeSizer(LocalTestCase):
-
-    _image_dir = '/tmp/image_resizer'
-
-    @classmethod
-    def setUp(cls):
-        if not os.path.exists(cls._image_dir):
-            os.makedirs(cls._image_dir)
-
-    @classmethod
-    def tearDown(cls):
-        return  # FIXME
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
+class TestLargeSizer(SizerTestCase):
 
     def test____init__(self):
         im = Image.new('RGBA', (400, 400))
         sizer = LargeSizer(im)
         self.assertTrue(sizer)
 
-    def test__size(self):
+    def test_parent_size(self):
         tests = [
             # original dimensions (w, h), expect dimensions (w, h)
             ((1200, 750), (1200, 750)),     # landscape
@@ -197,6 +271,19 @@ class TestLargeSizer(LocalTestCase):
             self.assertEqual(sizer.size(), t[1])
 
 
+class TestMaxAreaSizer(LocalTestCase):
+
+    def test____init__(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = MaxAreaSizer(im)
+        self.assertTrue(sizer)
+
+    def test__size(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = MaxAreaSizer(im)
+        self.assertRaises(NotImplementedError, sizer.size)
+
+
 class TestMediumSizer(LocalTestCase):
 
     def test____init__(self):
@@ -212,6 +299,19 @@ class TestMediumSizer(LocalTestCase):
         im = Image.new('RGBA', (400, 400))
         sizer = MediumSizer(im)
         self.assertEqual(sizer.size(), MediumSizer.dimensions)
+
+
+class TestSizer(LocalTestCase):
+
+    def test____init__(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = Sizer(im)
+        self.assertTrue(sizer)
+
+    def test__size(self):
+        im = Image.new('RGBA', (400, 400))
+        sizer = Sizer(im)
+        self.assertEqual(sizer.size(), (400, 400))
 
 
 class TestThumbnailSizer(LocalTestCase):

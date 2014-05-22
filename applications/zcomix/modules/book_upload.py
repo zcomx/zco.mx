@@ -33,11 +33,9 @@ BookPageFile instances, one for each image file extracted from the archive.
 """
 import cgi
 import os
-import pwd
 import shutil
 import subprocess
 import sys
-import tempfile
 import zipfile
 from gluon import *
 from gluon.contrib.simplejson import dumps
@@ -47,6 +45,7 @@ from applications.zcomix.modules.images import \
     is_image, \
     set_thumb_dimensions
 from applications.zcomix.modules.unix_file import UnixFile
+from applications.zcomix.modules.utils import temp_directory
 
 
 class BookPageFile(object):
@@ -499,19 +498,3 @@ def classify_uploaded_file(filename):
     uploaded_file.unpacker = unpacker(filename) if unpacker else None
     uploaded_file.errors = errors
     return uploaded_file
-
-
-def temp_directory():
-    """Return a temp directory"""
-    db = current.app.db
-    # W0212: *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
-    tmp_path = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
-    if not os.path.exists(tmp_path):
-        os.makedirs(tmp_path)
-        os.chown(
-            tmp_path,
-            pwd.getpwnam('http').pw_uid,
-            pwd.getpwnam('http').pw_gid,
-        )
-    return tempfile.mkdtemp(dir=tmp_path)

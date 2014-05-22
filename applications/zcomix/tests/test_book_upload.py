@@ -7,8 +7,6 @@ Test suite for zcomix/modules/book_upload.py
 
 """
 import os
-import pwd
-import re
 import shutil
 import unittest
 from applications.zcomix.modules.book_upload import \
@@ -25,8 +23,7 @@ from applications.zcomix.modules.book_upload import \
     UploadedArchive, \
     UploadedImage, \
     UploadedUnsupported, \
-    classify_uploaded_file, \
-    temp_directory
+    classify_uploaded_file
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -196,6 +193,7 @@ class TestUnpacker(BaseTestCase):
         tmp_dir = unpacker.temp_directory()
         files = unpacker.image_files()
         self.assertEqual(files, [])
+
         img_files = ['file.jpg', 'file.png']
         test_files = list(img_files)
         test_files.append('sampler.cbr')
@@ -207,18 +205,20 @@ class TestUnpacker(BaseTestCase):
         files = unpacker.image_files()
         expect = [os.path.join(tmp_dir, x) for x in img_files]
         self.assertEqual(files, expect)
+        unpacker.cleanup()
 
     def test__temp_directory(self):
         filename = os.path.join(self._test_data_dir, 'sampler.cbz')
         unpacker = Unpacker(filename)
         tmp_dir = unpacker.temp_directory()
-        print 'FIXME tmp_dir: {var}'.format(var=tmp_dir)
         expect = os.path.join(request.folder, 'uploads', 'tmp')
         self.assertEqual(
             os.path.realpath(os.path.dirname(tmp_dir)),
             os.path.realpath(expect)
         )
         self.assertEqual(unpacker._temp_directory, tmp_dir)
+
+        unpacker.cleanup()
 
 
 class TestUnpackerRAR(BaseTestCase):
@@ -243,6 +243,7 @@ class TestUnpackerRAR(BaseTestCase):
             'video.png'
         ]
         self.assertEqual(img_names, expect)
+        unpacker.cleanup()
 
 
 class TestUnpackerZip(BaseTestCase):
@@ -257,6 +258,7 @@ class TestUnpackerZip(BaseTestCase):
         images = unpacker.extract()
         img_names = sorted([os.path.basename(x) for x in images])
         self.assertEqual(img_names, ['001.png', '002.png', '003.png'])
+        unpacker.cleanup()
 
 
 class TestUploadedFile(BaseTestCase):
@@ -339,6 +341,7 @@ class TestUploadedArchive(BaseTestCase):
         uploaded.unpacker = UnpackerRAR(filename)
         uploaded.unpack()
         self.assertEqual(len(uploaded.image_filenames), 8)
+        uploaded.unpacker.cleanup()
 
 
 class TestUploadedImage(BaseTestCase):
@@ -413,51 +416,25 @@ class TestUploadedUnsupported(BaseTestCase):
 
 
 class TestFunctions(BaseTestCase):
-    _tmp_backup = None
-    _tmp_dir = None
-
-    @classmethod
-    def setUp(cls):
-        if cls._tmp_backup is None:
-            cls._tmp_backup = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp_bak')
-        if cls._tmp_dir is None:
-            cls._tmp_dir = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
-
-    @classmethod
-    def tearDown(cls):
-        if cls._tmp_backup and os.path.exists(cls._tmp_backup):
-            if os.path.exists(cls._tmp_dir):
-                shutil.rmtree(cls._tmp_dir)
-            os.rename(cls._tmp_backup, cls._tmp_dir)
 
     def test__classify_uploaded_file(self):
-        pass        # FIXME
-
-    def test__temp_directory(self):
-        def valid_tmp_dir(path):
-            """Return if path is tmp dir."""
-            # Typical path:
-            # 'applications/zcomix/databases/../uploads/tmp/tmpSMFJJL'
-            dirs = path.split('/')
-            self.assertEqual(dirs[0], 'applications')
-            self.assertEqual(dirs[1], 'zcomix')
-            self.assertEqual(dirs[-3], 'uploads')
-            self.assertEqual(dirs[-2], 'tmp')
-            self.assertRegexpMatches(dirs[-1], re.compile(r'tmp[a-zA-Z0-9].*'))
-
-        valid_tmp_dir(temp_directory())
-
-        # Test: tmp directory does not exist.
-        if os.path.exists(self._tmp_dir):
-            os.rename(self._tmp_dir, self._tmp_backup)
-
-        valid_tmp_dir(temp_directory())
-        # Check permissions on tmp subdirectory
-        tmp_path = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
-        self.assertTrue(os.path.exists(tmp_path))
-        stats = os.stat(tmp_path)
-        self.assertEqual(stats.st_uid, pwd.getpwnam('http').pw_uid)
-        self.assertEqual(stats.st_gid, pwd.getpwnam('http').pw_gid)
+        tests = [
+            #(filename, expect, unpacker, errors)
+            ('file.jpg', UploadedImage, None, []),
+            ('sampler.cbz', UploadedArchive, UnpackerZip, []),
+            ('sampler.cbr', UploadedArchive, UnpackerRAR, []),
+            ('sampler.text', UploadedUnsupported, None,
+                ['Unsupported file type.']),
+        ]
+        for t in tests:
+            sample_file = os.path.join(self._test_data_dir, t[0])
+            uploaded = classify_uploaded_file(sample_file)
+            self.assertTrue(isinstance(uploaded, t[1]))
+            if t[2]:
+                self.assertTrue(isinstance(uploaded.unpacker, t[2]))
+            else:
+                self.assertTrue(uploaded.unpacker is None)
+            self.assertEqual(uploaded.errors, t[3])
 
 
 def setUpModule():

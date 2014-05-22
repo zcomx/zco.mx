@@ -49,6 +49,8 @@ class ImageTestCase(LocalTestCase):
 
         # Store images in tmp directory
         db.book_page.image.uploadfolder = cls._image_original
+        if not os.path.exists(db.book_page.image.uploadfolder):
+            os.makedirs(db.book_page.image.uploadfolder)
 
         def create_image(image_name):
             image_filename = os.path.join(cls._image_dir, image_name)
@@ -64,7 +66,7 @@ class ImageTestCase(LocalTestCase):
                 stored_filename = db.book_page.image.store(f)
             return stored_filename
 
-        book_id = db.book.insert(name='ImageTestCase')
+        book_id = db.book.insert(name='Image Test Case')
         db.commit()
         cls._book = db(db.book.id == book_id).select().first()
         cls._objects.append(cls._book)
