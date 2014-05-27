@@ -328,6 +328,9 @@ db.define_table('creator',
         uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
         uploadseparate=True,
     ),
+    Field(
+        'path_name',
+    ),
     format='%(name)s',
     migrate=True,
 )

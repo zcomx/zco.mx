@@ -6,8 +6,11 @@
 Creator classes and functions.
 """
 import os
+import re
+import string
 from gluon import *
 from gluon.contrib.simplejson import dumps
+from applications.zcomix.modules.encoding import latin_factory
 
 
 def add_creator(form):
@@ -42,6 +45,26 @@ def add_creator(form):
             email=auth_user.email,
         )
         db.commit()
+
+
+def for_path(name):
+    """Scrub name so it is suitable for use in a file path or url.
+
+    Args:
+        name: string, creator name to be scrubbed.
+    Returns:
+        string, scrubbed name
+    """
+
+    # Convert to ascii
+    clean = latin_factory(name.decode('utf-8')).as_ascii()
+    # Remove all but [a-zA-Z0-9 _-]
+    valid_chars = '_- {l}{d}'.format(l=string.ascii_letters, d=string.digits)
+    clean = ''.join(c for c in clean if c in valid_chars).strip()
+    clean = clean.replace('_', ' ')             # Replace underscore with space
+    clean = re.sub(r'[-]{2,}', '-', clean)      # Squeeze multiple hyphens
+    clean = re.sub(r'[\s]{2,}', ' ', clean)     # Squeeze multiple space
+    return clean
 
 
 def image_as_json(db, creator_id):
@@ -99,3 +122,39 @@ def image_as_json(db, creator_id):
     )
 
     return dumps(dict(files=images))
+
+
+def set_path_name(creator_entity):
+    """Set the path_name field on a creator record.
+
+    Args:
+        creator: Row instance or integer, Row instance represents creator,
+                or integer representing id of creator record.
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+    """
+    if not creator_entity:
+        return
+
+    db = current.app.db
+
+    creator = None
+    if hasattr(creator_entity, 'id'):
+        creator = creator_entity
+    else:
+        # Assume creator is an id
+        creator = db(db.creator.id == creator_entity).select().first()
+
+    if not creator or not creator.auth_user_id:
+        return
+
+    # Read the auth_user record
+    query = (db.auth_user.id == creator.auth_user_id)
+    auth_user = db(query).select(db.auth_user.ALL).first()
+    if not auth_user:
+        return
+
+    name = for_path(auth_user.name)
+    if creator.path_name != name:
+        db(db.creator.id == creator.id).update(path_name=name)
+        db.commit()

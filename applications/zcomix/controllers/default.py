@@ -2,7 +2,14 @@
 """
 Default controller.
 """
-from applications.zcomix.modules.stickon.sqlhtml import formstyle_bootstrap3_login
+from applications.zcomix.modules.creators import \
+    add_creator, \
+    for_path, \
+    set_path_name
+from applications.zcomix.modules.stickon.sqlhtml import \
+    formstyle_bootstrap3_login
+from applications.zcomix.modules.stickon.validators import \
+    IS_NOT_IN_DB_SCRUBBED
 from applications.zcomix.modules.utils import markmin_content
 
 
@@ -28,6 +35,15 @@ def user():
         @auth.requires_permission('read','table name',record_id)
     to decorate functions that need access control
     """
+    def set_creator_path_name(form):
+        """Set the creator.path_name field associated with the user."""
+        if not form.vars.id:
+            return
+        creator = db(db.creator.auth_user_id == form.vars.id).select(
+            db.creator.ALL).first()
+        if creator:
+            set_path_name(creator)
+
     if request.args(0) == 'profile' and request.extension == 'html':
         redirect(URL(c='profile', f='account', extension=False))
     if request.args(0) == 'change_password' and request.extension == 'html':
@@ -57,9 +73,31 @@ def user():
     table_user.last_name.writable = False
     if request.args(0) == 'profile':
         auth.settings.profile_fields = ['name', userfield]
+        auth.settings.profile_onaccept = [set_creator_path_name]
 
     if request.args(0) == 'register':
         auth.settings.register_fields = ['name', userfield, passfield]
+        auth.settings.register_onaccept = [add_creator, set_creator_path_name]
+
+    if request.args(0) in ['profile', 'register']:
+        error_msg = 'An account already exists with this name.'
+        allowed_override = []
+        if auth.user_id:
+            row = db(db.creator.auth_user_id == auth.user_id).select(db.creator.path_name).first()
+            if row and 'path_name' in row and row['path_name']:
+                allowed_override.append(row['path_name'])
+        db.auth_user.name.requires = [
+            IS_NOT_EMPTY(
+                error_message='This is a required field.',
+            ),
+            IS_NOT_IN_DB_SCRUBBED(
+                db,
+                db.creator.path_name,
+                error_message=error_msg,
+                allowed_override=allowed_override,
+                scrub_callback=for_path,
+            ),
+        ]
 
     form = auth()
     if form == 'ACCESS DENIED':
