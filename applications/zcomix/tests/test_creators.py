@@ -12,12 +12,15 @@ from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from applications.zcomix.modules.creators import \
     add_creator, \
-    image_as_json
+    for_path, \
+    image_as_json, \
+    set_path_name
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
 
 class TestFunctions(LocalTestCase):
 
@@ -46,9 +49,9 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(creator_by_email(email), None)
 
         user_id = db.auth_user.insert(
-                name='First Last',
-                email=email,
-                )
+            name='First Last',
+            email=email,
+        )
         db.commit()
         user = db(db.auth_user.id == user_id).select().first()
         self._objects.append(user)
@@ -64,6 +67,27 @@ class TestFunctions(LocalTestCase):
         add_creator(form)
         after = db(db.creator).count()
         self.assertEqual(before, after)
+
+    def test__for_path(self):
+
+        tests = [
+            #(name, expect)
+            ('Fred Smith', 'Fred Smith'),
+            ("Sean O'Reilly", 'Sean OReilly'),
+            ("Some Van_Dude", 'Some Van Dude'),
+            ('José Muñoz', 'Jose Munoz'),
+            ('Ralf König', 'Ralf Konig'),
+            ('Ted Benoît', 'Ted Benoit'),
+            ('Sverre Årnes', 'Sverre Arnes'),
+            ('Frode Øverli', 'Frode Overli'),
+            ('Dražen Kovačević', 'Drazen Kovacevic'),
+            ('Yıldıray Çınar', 'Yildiray Cinar'),
+            ('Gilbert G. Groud', 'Gilbert G Groud'),
+            ('Alain Saint-Ogan', 'Alain Saint-Ogan'),
+        ]
+
+        for t in tests:
+            self.assertEqual(for_path(t[0]), t[1])
 
     def test__image_as_json(self):
         query = (db.creator.image != None)
@@ -85,6 +109,46 @@ class TestFunctions(LocalTestCase):
                 'url',
             ]
         )
+
+    def test__set_path_name(self):
+        def get_record(table, record_id):
+            """Get a record from a table."""
+            return db(table.id == record_id).select(table.ALL).first()
+
+        auth_user_id = db.auth_user.insert(
+            name='Test Set Path Name'
+        )
+        auth_user = get_record(db.auth_user, auth_user_id)
+        self._objects.append(auth_user)
+
+        creator_id = db.creator.insert(
+            email='test_set_path_name@example.com'
+        )
+        db.commit()
+        creator = get_record(db.creator, creator_id)
+        self._objects.append(creator)
+
+        self.assertEqual(creator.path_name, None)
+        set_path_name(creator)
+        # creator.auth_user_id not set
+        creator = get_record(db.creator, creator_id)
+        self.assertEqual(creator.path_name, None)
+
+        creator.update_record(auth_user_id=auth_user.id)
+        db.commit()
+        set_path_name(creator)
+        creator = get_record(db.creator, creator_id)
+        self.assertEqual(creator.path_name, 'Test Set Path Name')
+
+        # Test with creator_id
+        # Reset
+        creator.update_record(path_name=None)
+        db.commit()
+        creator = get_record(db.creator, creator_id)
+        self.assertEqual(creator.path_name, None)
+        set_path_name(creator_id)
+        creator = get_record(db.creator, creator_id)
+        self.assertEqual(creator.path_name, 'Test Set Path Name')
 
 
 def setUpModule():
