@@ -8,14 +8,14 @@ VERSION 1
 
 [/] FAQ
     http://web2py.googlecode.com/hg/gluon/contrib/markmin/markmin.html
-[ ] (i) info popups
-[ ] Intro email
-[ ] Mature Content icon
-[ ] Footer - Is there a better way to handle/label 'my account' and possibly 'logout' ?
+[/] Intro email
 [ ] add paypal functionality
-    * create howto for setting up or switching to a micro-payment account
+    [ ] create howto for setting up or switching to a micro-payment account
 [ ] scrub and resize files for html version
     * different default sizes for jpg's that are portrait vs landscape vs square ?
+[ ] (i) info popups
+[ ] Mature Content icon
+[ ] Footer - Is there a better way to handle/label 'my account' and possibly 'logout' ?
 
 
 VERSION 2 - Before Going Live
