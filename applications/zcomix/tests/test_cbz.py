@@ -30,7 +30,8 @@ class ImageTestCase(LocalTestCase):
     _book_page = None
     _creator = None
     _image_dir = os.path.join(
-            current.request.folder, 'uploads', 'tmp', 'image_for_books')
+        current.request.folder, 'uploads', 'tmp', 'image_for_books'
+    )
     _image_original = os.path.join(_image_dir, 'original')
     _image_name = 'file.jpg'
     _image_name_2 = 'file_2.jpg'
@@ -134,15 +135,29 @@ class TestCBZCreator(ImageTestCase):
         tests = [
             #(name, year, creator_id, expect)
             ('My Book', 1999, 123, 'My Book (1999) (123.zcomix.com).cbz'),
-            ('A !@#$%^&*?/\[]{};:" B', 1999, 123,
-                'A B (1999) (123.zcomix.com).cbz'),
+            (r'A !@#$%^&*?/\[]{};:" B', 1999, 123,
+                r'A !@#$^&[]{}; -  B (1999) (123.zcomix.com).cbz'),
             ('A B', 1999, 123, 'A B (1999) (123.zcomix.com).cbz'),
-            ('A  B', 1999, 123, 'A B (1999) (123.zcomix.com).cbz'),
-            ('A   B', 1999, 123, 'A B (1999) (123.zcomix.com).cbz'),
-            ('A...B', 1999, 123, 'A.B (1999) (123.zcomix.com).cbz'),
-            ('A---B', 1999, 123, 'A-B (1999) (123.zcomix.com).cbz'),
-            ('A___B', 1999, 123, 'A_B (1999) (123.zcomix.com).cbz'),
-            ("A'B", 1999, 123, 'AB (1999) (123.zcomix.com).cbz'),
+            ('A  B', 1999, 123, 'A  B (1999) (123.zcomix.com).cbz'),
+            ('A   B', 1999, 123, 'A   B (1999) (123.zcomix.com).cbz'),
+            ('A...B', 1999, 123, 'A...B (1999) (123.zcomix.com).cbz'),
+            ('A---B', 1999, 123, 'A---B (1999) (123.zcomix.com).cbz'),
+            ('A___B', 1999, 123, 'A___B (1999) (123.zcomix.com).cbz'),
+            ('A:B', 1999, 123, 'A - B (1999) (123.zcomix.com).cbz'),
+            ('A: B', 1999, 123, 'A - B (1999) (123.zcomix.com).cbz'),
+            ('A : B', 1999, 123, 'A - B (1999) (123.zcomix.com).cbz'),
+            ('A :B', 1999, 123, 'A - B (1999) (123.zcomix.com).cbz'),
+            ("A'B", 1999, 123, "A'B (1999) (123.zcomix.com).cbz"),
+            ('Berserk Alert!', 2014, 6,
+                'Berserk Alert! (2014) (6.zcomix.com).cbz'),
+            ('SUPER-ENIGMATIX', 2014, 11,
+                'SUPER-ENIGMATIX (2014) (11.zcomix.com).cbz'),
+            ('Tarzan Comic #v2#7', 2014, 123,
+                'Tarzan Comic #v2#7 (2014) (123.zcomix.com).cbz'),
+            ('Hämähäkkimies #11/1986', 1986, 123,
+                'Hämähäkkimies #111986 (1986) (123.zcomix.com).cbz'),
+            ('Warcraft: Legends', 2008, 123,
+                'Warcraft - Legends (2008) (123.zcomix.com).cbz'),
         ]
 
         for t in tests:
@@ -151,8 +166,8 @@ class TestCBZCreator(ImageTestCase):
                 publication_year=t[1],
                 creator_id=t[2],
             ))
-            creator = CBZCreator(book)
-            self.assertEqual(creator.cbz_filename(), t[3])
+            cbz_creator = CBZCreator(book)
+            self.assertEqual(cbz_creator.cbz_filename(), t[3])
 
     def test__image_filename(self):
         creator = CBZCreator(self._book)
@@ -190,6 +205,8 @@ class TestCBZCreator(ImageTestCase):
     def test__optimize(self):
         creator = CBZCreator(self._book)
         creator.optimize()
+        # W0212 (protected-access): *Access to a protected member
+        # pylint: disable=W0212
         self.assertTrue(os.path.exists(creator._working_directory))
         self.assertEqual(
             sorted(os.listdir(creator._working_directory)),
@@ -197,11 +214,15 @@ class TestCBZCreator(ImageTestCase):
         )
 
         self.assertLess(
-            os.stat(os.path.join(creator._working_directory, '001.jpg')).st_size,
+            os.stat(
+                os.path.join(creator._working_directory, '001.jpg')
+            ).st_size,
             os.stat(os.path.join(self._image_dir, 'file.jpg')).st_size
         )
         self.assertLess(
-            os.stat(os.path.join(creator._working_directory, '002.jpg')).st_size,
+            os.stat(
+                os.path.join(creator._working_directory, '002.jpg')
+            ).st_size,
             os.stat(os.path.join(self._image_dir, 'file_2.jpg')).st_size
         )
 
@@ -217,6 +238,7 @@ class TestCBZCreator(ImageTestCase):
         p_stdout, p_stderr = p.communicate()
         self.assertFalse(p.returncode)
         self.assertTrue('Everything is Ok' in p_stdout)
+        self.assertEqual(p_stderr, '')
 
     def test__working_directory(self):
         creator = CBZCreator(self._book)
@@ -234,6 +256,8 @@ class TestCBZCreator(ImageTestCase):
         p = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p_stdout, p_stderr = p.communicate()
+        # E1101 (no-member): *%%s %%r has no %%r member*
+        # pylint: disable=E1101
         self.assertFalse(p.returncode)
         self.assertTrue('Everything is Ok' in p_stdout)
 

@@ -89,6 +89,14 @@ div.centered table {
     border-radius: 3px;
 }
 
+.error_extra {
+    background: #ffeeee;
+    border: 1px solid #ff0000;
+    color: #888888;
+    font-size: 9pt;
+    padding: 5px;
+}
+
 .form-control {
     box-shadow: none;
 }

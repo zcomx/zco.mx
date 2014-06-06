@@ -6,9 +6,11 @@ from applications.zcomix.modules.creators import \
     add_creator, \
     for_path, \
     set_path_name
+from applications.zcomix.modules.files import FileName
 from applications.zcomix.modules.stickon.sqlhtml import \
     formstyle_bootstrap3_login
 from applications.zcomix.modules.stickon.validators import \
+    IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_SCRUBBED
 from applications.zcomix.modules.utils import markmin_content
 
@@ -71,6 +73,7 @@ def user():
     table_user.first_name.writable = False
     table_user.last_name.readable = False
     table_user.last_name.writable = False
+
     if request.args(0) == 'profile':
         auth.settings.profile_fields = ['name', userfield]
         auth.settings.profile_onaccept = [set_creator_path_name]
@@ -80,7 +83,23 @@ def user():
         auth.settings.register_onaccept = [add_creator, set_creator_path_name]
 
     if request.args(0) in ['profile', 'register']:
-        error_msg = 'An account already exists with this name.'
+        error_msg = XML(
+            DIV(
+                SPAN('An account already exists with this name.'),
+                DIV(
+                    'The name must be unique as it is used in archive file ',
+                    'names and url paths. Consider using a variation of your ',
+                    'name. For example:',
+                    UL([
+                        'Mike Smith',
+                        'Michael A Smith',
+                        'Michael Andrew Smith',
+                    ]),
+                    'Note: Punctuation and accents are ignored.',
+                    _class="error_extra"
+                )
+            )
+        )
         allowed_override = []
         if auth.user_id:
             row = db(db.creator.auth_user_id == auth.user_id).select(db.creator.path_name).first()
@@ -90,6 +109,7 @@ def user():
             IS_NOT_EMPTY(
                 error_message='This is a required field.',
             ),
+            IS_ALLOWED_CHARS(not_allowed=FileName.invalid_chars),
             IS_NOT_IN_DB_SCRUBBED(
                 db,
                 db.creator.path_name,

@@ -6,9 +6,11 @@
 Test suite for zcomix/modules/stickon/validators.py
 
 """
+import string
 import unittest
 from gluon import *
 from applications.zcomix.modules.stickon.validators import \
+    IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_ANYCASE, \
     IS_NOT_IN_DB_SCRUBBED
 from applications.zcomix.modules.test_runner import LocalTestCase
@@ -16,6 +18,64 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
+
+class TestIS_ALLOWED_CHARS(LocalTestCase):
+    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)*
+    # pylint: disable=C0103
+
+    def test____init__(self):
+        validator = IS_ALLOWED_CHARS()
+        self.assertTrue(validator)
+        self.assertTrue(len(validator.error_message) > 0)
+
+    def test____call__(self):
+        default_err = 'This is a test error message.'
+
+        def run(validator, value, error):
+            result, err_msg = validator(value)
+            self.assertEqual(result, value)
+            if error is not None:
+                self.assertTrue(error in err_msg)
+            else:
+                self.assertEqual(error, err_msg)
+            return result, err_msg
+
+        # Test not_allowed default
+        validator = IS_ALLOWED_CHARS(error_message=default_err)
+        run(validator, string.ascii_letters, None)
+        run(validator, string.digits, None)
+        run(validator, string.punctuation, None)
+
+        # Test not_allowed as string
+        validator = IS_ALLOWED_CHARS(not_allowed='a', error_message=default_err)
+        run(validator, 'abc', default_err)
+        run(validator, 'bcd', None)
+        validator = IS_ALLOWED_CHARS(not_allowed='a<>$z', error_message=default_err)
+        run(validator, 'abc', default_err)
+        run(validator, 'bcd', None)
+        run(validator, 'xyz', default_err)
+        run(validator, 'bbb<', default_err)
+        run(validator, 'bbb!', None)
+
+        # Test not_allowed as list
+        validator = IS_ALLOWED_CHARS(not_allowed=['a', 'c', 'e'], error_message=default_err)
+        run(validator, 'abc', default_err)
+        run(validator, 'bdf', None)
+
+        # Test not_allowed as tuples
+        not_allowed = [
+            (r'/', 'slash'),
+            ('%', 'percent'),
+            ('*', 'asterisk'),
+            ('|', 'pipe'),
+            ('<', 'less than'),
+            ('>', 'greater than'),
+        ]
+        validator = IS_ALLOWED_CHARS(not_allowed=not_allowed, error_message=default_err)
+        run(validator, 'abc', None)
+        result, err_msg = run(validator, 'ab%c', default_err)
+        self.assertTrue('percent' in err_msg)
 
 
 class TestIS_NOT_IN_DB_ANYCASE(LocalTestCase):

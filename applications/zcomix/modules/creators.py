@@ -6,11 +6,9 @@
 Creator classes and functions.
 """
 import os
-import re
-import string
 from gluon import *
 from gluon.contrib.simplejson import dumps
-from applications.zcomix.modules.encoding import latin_factory
+from applications.zcomix.modules.files import FileName
 
 
 def add_creator(form):
@@ -55,16 +53,7 @@ def for_path(name):
     Returns:
         string, scrubbed name
     """
-
-    # Convert to ascii
-    clean = latin_factory(name.decode('utf-8')).as_ascii()
-    # Remove all but [a-zA-Z0-9 _-]
-    valid_chars = '_- {l}{d}'.format(l=string.ascii_letters, d=string.digits)
-    clean = ''.join(c for c in clean if c in valid_chars).strip()
-    clean = clean.replace('_', ' ')             # Replace underscore with space
-    clean = re.sub(r'[-]{2,}', '-', clean)      # Squeeze multiple hyphens
-    clean = re.sub(r'[\s]{2,}', ' ', clean)     # Squeeze multiple space
-    return clean
+    return FileName(name).scrubbed()
 
 
 def image_as_json(db, creator_id):

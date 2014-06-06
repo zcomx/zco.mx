@@ -7,12 +7,10 @@ CBZ classes and functions.
 """
 import math
 import os
-import re
-import string
 import subprocess
 import sys
-import unicodedata
 from gluon import *
+from applications.zcomix.modules.files import TitleFileName
 from applications.zcomix.modules.images import CBZImage
 from applications.zcomix.modules.utils import temp_directory
 
@@ -41,25 +39,12 @@ class CBZCreator(object):
 
     def cbz_filename(self):
         """Return the name for the cbz file."""
-        def scrub(filename):
-            """Remove invalid chars from filename."""
-            valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-            clean = unicodedata.normalize('NFKD', unicode(filename)).encode(
-                    'ASCII', 'ignore')
-            clean = ''.join(c for c in clean if c in valid_chars).strip()
-            clean = re.sub(r'[-]{2,}', '-', clean)
-            clean = re.sub(r'[_]{2,}', '_', clean)
-            clean = re.sub(r'[.]{2,}', '.', clean)
-            clean = re.sub(r'[\s]{2,}', ' ', clean)
-            return clean
-
         fmt = '{name} ({year}) ({cid}.zcomix.com).cbz'
-        raw_name = fmt.format(
-            name=self.book.name,
+        return fmt.format(
+            name=TitleFileName(self.book.name).scrubbed(),
             year=self.book.publication_year,
             cid=self.book.creator_id,
         )
-        return scrub(raw_name)
 
     def image_filename(self, page):
         """Return the name for an image file.
@@ -128,6 +113,8 @@ class CBZCreator(object):
         p = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         unused_stdout, p_stderr = p.communicate()
+        # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
+        # pylint: disable=E1101
         if p.returncode:
             print >> sys.stderr, '7z call failed: {e}'.format(e=p_stderr)
             raise CBZCreateError('Creation of cbz file failed.')
