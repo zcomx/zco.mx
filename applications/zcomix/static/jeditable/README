@@ -1,0 +1,15 @@
+jquery.jeditable.js
+-------------------
+
+This is a fork of the original. Development on the original has stagnated and
+the fork has some important bug fixes.
+
+fork:     https://github.com/nimbleapps/jquery_jeditable
+original: https://github.com/tuupola/jquery_jeditable
+
+Minify
+------
+
+The min file was created using JS Minifier based on JSMin.
+http://fmarcia.info/jsmin/test.html
+Level: conservative
