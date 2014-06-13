@@ -6,24 +6,13 @@ from gluon.contrib.simplejson import dumps
 from applications.zcomix.modules.book_upload import BookPageUploader
 from applications.zcomix.modules.books import \
     book_pages_as_json, \
-    book_page_for_json, \
     read_link
 from applications.zcomix.modules.creators import image_as_json
-from applications.zcomix.modules.images import \
-    UploadImage, \
-    img_tag, \
-    set_thumb_dimensions
-from applications.zcomix.modules.links import \
-    CustomLinks, \
-    ReorderLink
+from applications.zcomix.modules.images import UploadImage
+from applications.zcomix.modules.links import CustomLinks
 from applications.zcomix.modules.utils import \
     markmin_content, \
     reorder
-from applications.zcomix.modules.stickon.sqlhtml import \
-    InputWidget, \
-    SimpleUploadWidget, \
-    LocalSQLFORM, \
-    formstyle_bootstrap3_custom
 
 
 @auth.requires_login()
@@ -78,12 +67,22 @@ def book_crud():
     """Handler for ajax book CRUD calls.
 
     request.args(0): integer, id of book
+
+    request.vars._action: Optional, 'create', 'update'
+
+    update:
+    request.vars.pk: integer, id of book record
+    request.vars.name: string, book table field name
+    request.vars.value: string, value of book table field.
+
+    create:
+    request.vars.<field>: mixed, value of book table <field>.
+
     """
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
-        errors = {'url': msg or 'Server request failed.'}
-        return {'errors': errors}
+        return {'status': 'error', 'msg': msg or 'Server request failed.'}
 
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
@@ -91,31 +90,73 @@ def book_crud():
     if not creator_record:
         return do_error('Permission denied.')
 
-    book_record = None
-    if request.args(0):
-        book_record = db(db.book.id == request.args(0)).select(
+    # W0212 (protected-access): *Access to a protected member %%s of a client class*
+    # pylint: disable=W0212
+    action = None
+    if request.vars.pk:
+        action = 'update'
+    elif request.vars._action:
+        action = request.vars._action
+
+    if not action:
+        return do_error('Invalid data provided.')
+
+    if action == 'update':
+        book_record = None
+        try:
+            book_id = int(request.vars.pk)
+        except (TypeError, ValueError):
+            return do_error('Invalid data provided.')
+        book_record = db(db.book.id == book_id).select(
             db.book.ALL
         ).first()
-    if not request.args(0) or not book_record or \
+        if not book_record or \
             (book_record and book_record.creator_id != creator_record.id):
-        return do_error('Invalid data provided.')
+            return do_error('Invalid data provided.')
 
-    if request.vars.field is not None and request.vars.field not in db.book.fields:
-        return do_error('Invalid data provided.')
+        if request.vars.name is not None and request.vars.name not in db.book.fields:
+            return do_error('Invalid data provided.')
 
-    data = {}
-    if request.vars.field is not None and request.vars.value is not None:
-        data = {request.vars.field: request.vars.value}
-    if not data:
-        return do_error('Invalid data provided.')
+        data = {}
+        if request.vars.name is not None and request.vars.value is not None:
+            data = {request.vars.name: request.vars.value}
+        if not data:
+            return do_error('Invalid data provided.')
 
-    query = (db.book.id == book_record.id)
-    ret = db(query).validate_and_update(**data)
-    db.commit()
+        query = (db.book.id == book_record.id)
+        ret = db(query).validate_and_update(**data)
+        db.commit()
 
-    return {
-        'errors': ret.errors,
-    }
+        if ret.errors:
+            if request.vars.name in ret.errors:
+                return {'status': 'error', 'msg': ret.errors[request.vars.name]}
+            else:
+                return {
+                    'status': 'error',
+                    'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
+                }
+        return {'status': 'ok'}
+
+    if action == 'create':
+        # Validate all fields.
+        data = {'creator_id': creator_record.id}
+        for f in db.book.fields:
+            if f in request.vars:
+                data[f] = request.vars[f]
+        ret = db.book.validate_and_insert(**data)
+        if ret.errors:
+            errors = {}
+            for k, v in ret.errors.items():
+                if k in db.book.fields:
+                    errors[db.book[k].label] = v
+                else:
+                    errors[k] = v
+            return {'errors': errors}
+        if ret.id:
+            return {'id': ret.id}
+        return do_error('Unable to create book.')
+
+    return {'status': 'ok'}
 
 
 @auth.requires_login()
@@ -196,9 +237,6 @@ def book_edit():
         book_record = db(db.book.id == request.args(0)).select(
             db.book.ALL
         ).first()
-    if not book_record or \
-            (book_record and book_record.creator_id != creator_record.id):
-        redirect(URL('books'))
 
     return dict(book=book_record)
 
@@ -421,6 +459,9 @@ def books():
             'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
         )
     )
+    response.files.append(
+        URL('static', 'x-editable/bootstrap3-editable/css/bootstrap-editable.css')
+    )
 
     creator_query = (db.book.creator_id == creator_record.id)
     active_query = (db.book.status == True)
@@ -456,6 +497,9 @@ def creator():
             'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
         )
     )
+    response.files.append(
+        URL('static', 'x-editable/bootstrap3-editable/css/bootstrap-editable.css')
+    )
 
     return dict(creator=creator_record)
 
@@ -464,7 +508,7 @@ def creator():
 def creator_crud():
     """Handler for ajax creator CRUD calls.
 
-    request.vars.field: string, creator table field name
+    request.vars.name: string, creator table field name
     request.vars.value: string, value of creator table field.
     """
     response.generic_patterns = ['json']
@@ -479,12 +523,12 @@ def creator_crud():
     if not creator_record:
         return do_error('Permission denied.')
 
-    if request.vars.field is not None and request.vars.field not in db.creator.fields:
+    if request.vars.name is not None and request.vars.name not in db.creator.fields:
         return do_error('Invalid data provided.')
 
     data = {}
-    if request.vars.field is not None and request.vars.value is not None:
-        data = {request.vars.field: request.vars.value}
+    if request.vars.name is not None and request.vars.value is not None:
+        data = {request.vars.name: request.vars.value}
     if not data:
         return do_error('Invalid data provided.')
 
@@ -492,9 +536,15 @@ def creator_crud():
     ret = db(query).validate_and_update(**data)
     db.commit()
 
-    return {
-        'errors': ret.errors,
-    }
+    if ret.errors:
+        if request.vars.name in ret.errors:
+            return {'status': 'error', 'msg': ret.errors[request.vars.name]}
+        else:
+            return {
+                'status': 'error',
+                'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
+            }
+    return {'status': 'ok'}
 
 
 @auth.requires_login()
@@ -626,12 +676,10 @@ def link_crud():
     # action = 'move'
     request.vars.dir: string, 'up' or 'down'
     """
-    import sys; print >> sys.stderr, 'FIXME request.vars: {var}'.format(var=request.vars)
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
-        errors = {'url': msg or 'Server request failed.'}
-        return {'errors': errors}
+        return {'status': 'error', 'msg': msg or 'Server request failed.'}
 
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
@@ -701,7 +749,14 @@ def link_crud():
                 ret = db(query).validate_and_update(**data)
                 db.commit()
                 record_id = link_id
-                errors = ret.errors
+                if ret.errors:
+                    if request.vars.field in ret.errors:
+                        return {'status': 'error', 'msg': ret.errors[request.vars.field]}
+                    else:
+                        return {
+                            'status': 'error',
+                            'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
+                        }
                 do_reorder = True
         else:
             return do_error('Invalid data provided.')
@@ -724,7 +779,8 @@ def link_crud():
             db.commit()
             do_reorder = True
         record_id = ret.id
-        errors = ret.errors
+        if ret.errors:
+            return {'status': 'error', 'msg': ret.errors}
     elif action == 'delete':
         if link_id:
             query = (to_link_table.link_id == link_id)
@@ -756,6 +812,30 @@ def link_crud():
         'rows': rows,
         'errors': errors,
     }
+
+
+@auth.requires_login()
+def link_edit():
+    """Link edit controller for modal view.
+
+    request.args(0): integer, id of link
+    """
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL('books'))
+
+    link_record = None
+    if request.args(0):
+        link_record = db(db.link.id == request.args(0)).select(
+            db.link.ALL
+        ).first()
+
+    if not link_record:
+        redirect(URL('books'))
+
+    return dict(link=link_record)
 
 
 @auth.requires_login()

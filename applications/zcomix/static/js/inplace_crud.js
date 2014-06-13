@@ -1,61 +1,44 @@
-$.editable.addInputType('date', {
-    element: $.editable.types.text.element,
-    plugin: function(settings, original) {
-        Calendar.setup({
-            inputField: $(':input:first', this),
-            ifFormat: '%Y-%m-%d',
-            showsTime: false
-        });
-    }
-});
+(function ($) {
+    "use strict";
 
-$.editable.addInputType('colour_picker', {
-    element: $.editable.types.text.element,
-    plugin: function(settings, original) {
-        var input = $(':input:first', this);
-        input.spectrum({
-            appendTo: 'parent',
-            cancelText: 'Cancel',
-            chooseText: 'OK',
-            preferredFormat: 'name',
-            showInitial: true,
-            showInput: true,
-            showPalette: true,
-            palette: [
-                ["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
-                ["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
-                ["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
-                ["#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
-                ["#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
-                ["#c00","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
-                ["#900","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
-                ["#600","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
-            ],
-            change : function(color) {
-                input.trigger('blur');
-            },
-            hide : function(color) {
-                input.trigger('blur');
-            },
-        })
+    //utils
+    $.fn.inplace_crud_utils = {
+        /**
+        * set an elem as editable
+        */
+        set_editable: function(elem, auto_open, extended_settings) {
+            var args = Array.apply(null, arguments);
+            args.shift();
+            args.shift();
+            var opts = {};
+            for (var i=0; i < args.length; i++) {
+                $.extend(opts, args[i]);
+            }
+            elem.editable(opts);
 
-        setTimeout( function() {
-            input.spectrum('show');
-        }, 100);
-    }
-});
+            /* auto proceed to next input */
+            if (auto_open) {
+                $(elem).on('save.' + $(elem).attr('id') || 'new_record', function(){
+                       var that = this;
+                       setTimeout(function() {
+                           $(that).closest('.row_container').next().find('.editable').editable('show');
+                       }, 200);
+                });
+            }
+        },
+    };
 
-$.editable.addInputType('select_with_style', {
-    element: $.editable.types.select.element,
-    content: $.editable.types.select.content,
-    plugin: function(settings, original) {
-        $(':input:first', this).addClass('form-control');
-    }
-});
+}(jQuery));
 
 (function( $ ) {
-    $.fn.inplace_crud = function (url, options) {
-        var settings = $.extend(true, {}, $.fn.inplace_crud.defaults, {url: url}, options);
+    $.fn.inplace_link_crud = function (url, record_id, options) {
+        var settings = $.extend(
+            true,
+            {},
+            $.fn.inplace_link_crud.defaults,
+            {url: url, record_id: record_id},
+            options
+        );
 
         var methods = {
             _add_input_onblur: function(elem) {
@@ -82,7 +65,7 @@ $.editable.addInputType('select_with_style', {
                         });
                     }
                     else {
-                        methods._clear_add_container();
+                        methods._clear_add_inputs();
                     }
                 }
             },
@@ -102,20 +85,22 @@ $.editable.addInputType('select_with_style', {
                 if (error_wrapper.length === 0) {
                     error_wrapper = $(
                             '<div class="error_wrapper">'
-                          + '    <div class="error"></div>'
+                          + '    <div class="help-block"></div>'
                           + '</div>'
                         );
                     container.append(error_wrapper);
                 }
+                $('#' + settings.add_container_id).addClass('has-error');
                 error_wrapper.show();
-                var error_div = error_wrapper.find('.error');
+                var error_div = error_wrapper.find('.help-block');
                 error_div.text(msg);
             },
 
-            _clear_add_container: function() {
+            _clear_add_inputs: function() {
                 $('#' + settings.add_container_id).find('input.link_url').val('');
                 $('#' + settings.add_container_id).find('input.link_name').val('');
                 $('#' + settings.add_container_id).find('.error_wrapper').hide();
+                $('#' + settings.add_container_id).removeClass('has-error');
             },
 
             _create_add_inputs: function(elem) {
@@ -131,10 +116,10 @@ $.editable.addInputType('select_with_style', {
                 var inputs = $(
                             '<div class="arrow_container"></div>'
                           + '<div>'
-                          + '    <input type="text" name="link_name" value="" class="link_name">'
+                          + '    <input type="text" name="link_name" value="" class="link_name form-control">'
                           + '</div>'
                           + '<div>'
-                          + '    <input type="text" name="link_url" value="" class="link_url" placeholder="http://www.example.com">'
+                          + '    <input type="text" name="link_url" value="" class="link_url form-control" placeholder="http://www.example.com">'
                           + '</div>'
                         );
                 inputs.appendTo(add_container);
@@ -163,22 +148,7 @@ $.editable.addInputType('select_with_style', {
                 add_container.data('edit_container_id', $(elem).attr('id'));
             },
 
-            _create_callback: function(data, input) {
-                if (data.errors && Object.getOwnPropertyNames(data.errors).length > 0) {
-                    $.each(data.errors, function(k, v) {
-                        var input = $('#' + settings.add_container_id + ' .link_' + k).first();
-                        methods._append_error(input.closest('div'), v);
-                    });
-                }
-                else {
-                    edit_container_id = $('#' + settings.add_container_id).data('edit_container_id');
-                    edit_container = $('#' + edit_container_id);
-                    methods._load_links(edit_container, data.id);
-                    methods._clear_add_container();
-                }
-            },
-
-            _create_link: function(elem, row) {
+            _create: function(elem, row) {
                 var link = $(
                             '<div class="row_container">'
                           + '    <div class="arrow_container">'
@@ -190,10 +160,10 @@ $.editable.addInputType('select_with_style', {
                           + '    </button>'
                           + '    </div>'
                           + '    <div class="field_container field_label">'
-                          + '        <div></div>'
+                          + '        <a href="#" id="link_name"></a>'
                           + '    </div>'
                           + '    <div class="field_container">'
-                          + '        <div></div>'
+                          + '        <a href="#" id="link_url"></a>'
                           + '    </div>'
                           + '    <button type="button" class="btn btn-default btn-xs edit_link_delete">'
                           + '          <i class="icon fi-trash size-18"></i>'
@@ -203,40 +173,53 @@ $.editable.addInputType('select_with_style', {
                 link.appendTo(elem);
                 var fields = ['name', 'url'];
                 $.each(fields, function(i, field) {
-                    var data = {
-                        'record_id': row.id,
-                        'field': field,
-                        'url': settings.url,
-                    };
                     var container = link.find('.field_container').eq(i);
-                    container.data(data);
-                    container.addClass('edit');
-                    var editable_div = container.find('div').first();
-                    editable_div.text(row[field]);
-                    methods._set_editable(editable_div);
+                    var editable_elem = container.find('a').first();
+                    editable_elem.text(row[field]);
+                    var x_editable_settings = {
+                        params: {
+                            'action': 'update',
+                            'link_id': row.id,
+                            'field': field,
+                        },
+                    };
+
+                    $.fn.inplace_crud_utils.set_editable(
+                        editable_elem,
+                        settings.auto_open,
+                        {url: settings.url, pk: settings.record_id},
+                        settings.x_editable_settings,
+                        x_editable_settings
+                    );
                 });
 
                 link.find('.edit_link_delete')
-                    .click(methods._delete_link)
+                    .click(methods._delete)
                     .data({'record_id': row.id});
                 link.find('.edit_link_up')
-                    .click(methods._move_link)
+                    .click(methods._move)
                     .data({'record_id': row.id, 'dir': 'up'});
                 link.find('.edit_link_down')
-                    .click(methods._move_link)
+                    .click(methods._move)
                     .data({'record_id': row.id, 'dir': 'down'});
             },
 
-            _delete_callback: function(data, button) {
-                if (data.id) {
-                    var row = $(button).closest('.row_container');
-                    var edit_link_container = $(row).parent('div');
-                    row.remove();
-                    methods._set_arrows(edit_link_container);
+            _create_callback: function(data, input) {
+                if (data.status === 'error') {
+                    $.each(data.msg, function(k, v) {
+                        var input = $('#' + settings.add_container_id + ' .link_' + k).first();
+                        methods._append_error(input.closest('div'), v);
+                    });
+                }
+                else {
+                    edit_container_id = $('#' + settings.add_container_id).data('edit_container_id');
+                    edit_container = $('#' + edit_container_id);
+                    methods._load_links(edit_container, data.id);
+                    methods._clear_add_inputs();
                 }
             },
 
-            _delete_link: function(e) {
+            _delete: function(e) {
                 e.preventDefault();
                 var that = $(this);
                 $.ajax({
@@ -253,72 +236,18 @@ $.editable.addInputType('select_with_style', {
                 });
             },
 
-            _editable_callback: function(value) {
-                var container = $(this).parent();
-                container.removeClass('active');
-                var that = $(this);
-                $.ajax({
-                    url: container.data('url'),
-                    type: 'POST',
-                    data: {
-                        'action': 'update',
-                        'field': container.data('field'),
-                        'link_id': container.data('record_id'),
-                        'value': value,
-                    },
-                    error: methods._ajax_error,
-                    success: function (data) {
-                        methods._update_callback(data, that);
-                    }
-                });
-                return(value);
+            _delete_callback: function(data, button) {
+                if (data.id) {
+                    var row = $(button).closest('.row_container');
+                    var edit_link_container = $(row).parent('div');
+                    row.remove();
+                    methods._set_arrows(edit_link_container);
+                }
             },
 
             _load: function(elem) {
-                if (settings.links) {
-                    methods._load_links(elem);
-                    methods._create_add_inputs(elem);
-                }
-                else {
-                    methods._load_fields(elem);
-                }
-            },
-
-            _load_field: function(label, value, editable, jeditable_settings, data) {
-                var link = $(
-                            '<div class="row_container">'
-                          + '    <div class="arrow_container"></div>'
-                          + '    <div class="field_label">' + label + '</div>'
-                          + '    <div class="field_container">'
-                          + '        <div>' + value + '</div>'
-                          + '    </div>'
-                          + '</div>'
-                        );
-                var container = link.find('.field_container').eq(0);
-                container.data(data);
-                if (editable) {
-                    container.addClass('edit');
-                    var editable_div = link.find('.field_container > div').eq(0)
-                    methods._set_editable(editable_div, jeditable_settings);
-                }
-                return link;
-            },
-
-            _load_fields: function(elem) {
-                $.each(settings.source_data, function(k, v) {
-                    if (! v.hasOwnProperty('readable') || v.readable) {
-                        var data = {
-                            'field': k,
-                            'url': settings.url,
-                        }
-                        var editable = false;
-                        if (! v.hasOwnProperty('writable') || v.writable) {
-                            editable = true;
-                        }
-                        var link = methods._load_field(v.label, v.value, editable, v.jeditable_settings, data);
-                        link.appendTo(elem);
-                    }
-                });
+                methods._load_links(elem);
+                methods._create_add_inputs(elem);
             },
 
             _load_links: function(elem, link_id) {
@@ -346,11 +275,29 @@ $.editable.addInputType('select_with_style', {
                 }
                 else {
                     $.each(data.rows, function(k, v) {
-                        methods._create_link(elem, v);
+                        methods._create(elem, v);
                     });
                     methods._set_arrows(elem);
                 }
             },
+
+           _move: function(e) {
+               e.preventDefault();
+               var that = $(this);
+               $.ajax({
+                   url: settings.url,
+                   type: 'POST',
+                   data: {
+                       'action': 'move',
+                       'link_id': $(this).data('record_id'),
+                       'dir': $(this).data('dir'),
+                   },
+                   error: methods._ajax_error,
+                   success: function (data) {
+                       methods._move_callback(data, that);
+                   }
+               });
+           },
 
            _move_callback: function(data, button) {
                 if (data.id) {
@@ -370,91 +317,10 @@ $.editable.addInputType('select_with_style', {
                 }
             },
 
-           _move_link: function(e) {
-               e.preventDefault();
-               var that = $(this);
-               var dir = $(this).data('dir');
-               $.ajax({
-                   url: settings.url,
-                   type: 'POST',
-                   data: {
-                       'action': 'move',
-                       'link_id': $(this).data('record_id'),
-                       'dir': dir,
-                   },
-                   error: methods._ajax_error,
-                   success: function (data) {
-                       methods._move_callback(data, that);
-                   }
-               });
-           },
-
            _set_arrows: function(elem) {
                 $(elem).find('.reorder-arrow').removeClass('arrow-muted');
                 $(elem).find('.edit_link_up').first().addClass('arrow-muted');
                 $(elem).find('.edit_link_down').last().addClass('arrow-muted');
-            },
-
-            _set_editable: function(elem, extended_settings) {
-                if (! extended_settings) {
-                    extended_settings = {};
-                }
-                var opts = {};
-                $.extend(opts, settings.jeditable_settings, extended_settings);
-                elem.editable(methods._editable_callback, opts);
-                elem.on('click', function(e) {
-                    $(this).trigger(settings.jeditable_settings.event);
-                    $(this).parent().addClass('active');
-                });
-                elem.on('keydown', function(e){
-                    if (e.which == 9) {
-                        $(elem).find('input, textarea').blur();
-                        var nextBox = '';
-                        var action = 'click';
-                        var selector = ".field_container > div:not('.error_wrapper')";
-                        var this_idx = $(selector).index(this);
-                        if (e.shiftKey) {
-                            if (this_idx <= 0)     {
-                                nextBox=$(selector)[$(selector).length];         //first box, go to last
-                            } else {
-                                nextBox=$(selector)[this_idx-1];
-                            }
-                        }
-                        else {
-                            if (this_idx >= ($(selector).length-1))     {
-                                nextBox=$('#' + settings.add_container_id).find('input')[0];    //last box, go to next input
-                                action = 'focus';
-                            } else {
-                                nextBox=$(selector)[this_idx+1];
-                            }
-                        }
-                        if (action === 'focus') {
-                            $(nextBox).focus();  //focus on next box
-                        }
-                        else {
-                            $(nextBox).click();  //Go to assigned next box
-                        }
-                        return false;           //Suppress normal tab
-                    }
-                });
-            },
-
-            _update_callback: function(data, input) {
-                var input_container = $(input).parent();
-                var error_wrapper = input_container.find('.error_wrapper');
-                if (data.errors && Object.getOwnPropertyNames(data.errors).length > 0) {
-                    // See mod 12428 the next line can trigger endless focus
-                    // flip if subsequence fields have invalid values
-                    $(input).trigger(settings.jeditable_settings.event);
-                    $.each(data.errors, function(k, v) {
-                        methods._append_error(input_container, v);
-                    });
-                }
-                else {
-                    if (error_wrapper.length > 0) {
-                        error_wrapper.hide();
-                    }
-                }
             },
         };
 
@@ -463,20 +329,181 @@ $.editable.addInputType('select_with_style', {
         });
     };
 
-    $.fn.inplace_crud.defaults = {
+    $.fn.inplace_link_crud.defaults = {
         add_container_id: 'add_link_container',
-        create: $.noop,
-        jeditable_settings: {
-            cssclass: 'jeditable_form',
-            onblur: 'submit',
-            event: 'edit',
-            placeholder: '<div class="jeditable_placeholder">Click to edit</div>',
-            select: true,
-            cols: 60,
-            rows: 10,
+        x_editable_settings: {
+            placement: 'right',
+            success: function(response, newValue) {
+                if(response.status == 'error') {
+                    return response.msg;
+                }
+            },
         },
-        links: false,
         source_data: {},
+    };
+
+}( jQuery ));
+
+
+(function( $ ) {
+    $.fn.inplace_crud = function (url, record_id, options) {
+        var settings = $.extend(
+            true,
+            {},
+            $.fn.inplace_crud.defaults,
+            {url: url, record_id: record_id},
+            options
+        );
+
+        var methods = {
+            _buttons: function(elem) {
+                var button_div = $(
+                    '<div>'
+                  + '<button id="save-btn" class="btn btn-primary">Save</button>'
+                  + '<button id="reset-btn" class="btn pull-right">Reset</button>'
+                  + '</div>'
+                );
+                button_div.appendTo(elem);
+
+                $('#save-btn').click(function() {
+                    $('.editable').editable('submit', {
+                        url: settings.url,
+                        data: {'_action': 'create'},
+                        ajaxOptions: {
+                            dataType: 'json'     //assuming json response
+                        },
+                        success: function(data, config) {
+                            if(data && data.id) { //record created, response like {"id": 2}
+                                typeof settings.on_add === 'function' && settings.on_add(elem, data.id);
+                            } else if(data && data.errors){
+                                //server-side validation error, response like {"errors": {"username": "username already exist"} }
+                                config.error.call(this, data.errors);
+                            }
+                        },
+                        error: function(errors) {
+                            var msg = '';
+                            if(errors && errors.responseText) { //ajax error, errors = xhr object
+                                msg = errors.responseText;
+                            } else { //validation error (client-side or server-side)
+                                $.each(errors, function(k, v) { msg += k+": "+v+"<br>"; });
+                            }
+                            methods.display_message('Errors', msg, 'panel-danger');
+                        }
+                    });
+                });
+            },
+
+            _create_message_panel: function(elem) {
+                var panel = $(
+                    '<div id="message_panel" class="panel panel-default" style="display: none;">'
+                  + '    <div class="panel-heading">'
+                  + '        <h3 class="panel-title">Messages</h3>'
+                  + '    </div>'
+                  + '    <div class="panel-body"></div>'
+                  + '</div>'
+                  );
+                if (settings.message_panel) {
+                    settings.message_panel.html(panel);
+                } else {
+                    panel.prependTo(elem);
+                }
+            },
+
+            _hide_message: function(title, msg) {
+                $('#message_panel').hide();
+            },
+
+            _load: function(elem) {
+                $.each(settings.source_data, function(k, v) {
+                    if (! v.hasOwnProperty('readable') || v.readable) {
+                        var editable = false;
+                        if (! v.hasOwnProperty('writable') || v.writable) {
+                            editable = true;
+                        }
+                        var opts = {'name': k, 'value': v.value};
+                        $.extend(opts, v.x_editable_settings);
+                        var link = methods._load_field(v.label, v.value, editable, opts);
+                        link.appendTo(elem);
+                    }
+                });
+            },
+
+            _load_field: function(label, value, editable, x_editable_settings) {
+                anchor = '<a href="#" id="' + x_editable_settings.name + '">' + value + '</a>';
+                var link = $(
+                            '<div class="row_container">'
+                          + '    <div class="arrow_container"></div>'
+                          + '    <div class="field_label">' + label + '</div>'
+                          + '    <div class="field_container">'
+                          + anchor
+                          + '    </div>'
+                          + '</div>'
+                        );
+                var container = link.find('.field_container').eq(0);
+                if (editable) {
+                    var editable_elem = link.find('.field_container > a').eq(0);
+                    $.fn.inplace_crud_utils.set_editable(
+                        editable_elem,
+                        settings.auto_open,
+                        {url: settings.url, pk: settings.record_id || null},
+                        settings.x_editable_settings,
+                        x_editable_settings
+                    );
+                }
+                return link;
+            },
+
+            /* Public methods */
+            display_message: function(title, msg, panel_class) {
+                var panel_classes = [
+                    'panel-default',
+                    'panel-primary',
+                    'panel-success',
+                    'panel-info',
+                    'panel-warning',
+                    'panel-danger'
+                ];
+
+                $('#message_panel').find('.panel-title').first().text(title);
+                $('#message_panel div.panel-body').html(msg);
+
+                var new_class = panel_classes[0];
+                if (panel_classes.indexOf(panel_class) >= 0) {
+                    new_class = panel_class;
+                }
+                for(var i = 0; i < panel_classes.length; i++) {
+                    $('#message_panel').removeClass(panel_classes[i])
+                }
+                $('#message_panel').addClass(new_class).show();
+            },
+        };
+
+        return this.each( function(index, elem) {
+            var $this = $(this);
+            methods._create_message_panel.apply(this, [elem]);
+            methods._load.apply(this, [elem]);
+            if (!settings.record_id) {
+                methods._buttons.apply(this, [elem]);
+            }
+            /* expose display_message */
+            $this.data({'display_message': methods.display_message });
+        });
+    };
+
+    $.fn.inplace_crud.defaults = {
+        auto_open: false,
+        message_panel: null,
+        on_add: null,
+        source_data: {},
+        x_editable_settings: {
+            emptytext: 'Click to edit',
+            placement: 'right',
+            success: function(response, newValue) {
+                if(response && response.status == 'error') {
+                    return response.msg;
+                }
+            },
+        },
     };
 
 }( jQuery ));

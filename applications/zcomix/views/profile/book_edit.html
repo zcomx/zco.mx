@@ -1,7 +1,8 @@
-{{from applications.zcomix.modules.books import publication_year_range}}
+{{import datetime}}
+{{from applications.zcomix.modules.books import publication_years}}
 <div id="book_edit_section">
 
-{{if not book.status:}}
+{{if book and not book.status:}}
 <div class="panel panel-warning">
     <div class="panel-heading">
         <h3 class="panel-title">This book is disabled.</h3>
@@ -12,84 +13,121 @@
     </div>
 </div>
 {{pass}}
+
 <div id="editable_fields_container"></div>
 <div id="links_container">
     <div id="edit_links_container"></div>
 </div>
 
 </div>
-<script src="{{=URL(c='static', f='bgrins-spectrum-28ab793/spectrum.js')}}"> </script>
-{{if DEBUG:}}
-    <script src="{{=URL(c='static', f='jeditable/jquery.jeditable.js')}}"> </script>
-{{else:}}
-    <script src="{{=URL(c='static', f='jeditable/jquery.jeditable.min.js')}}"> </script>
-{{pass}}
 <script>
 //<![CDATA[
     var book_data = {
         'name': {
             'label': '{{=db.book.name.label}}',
-            'value': '{{=book.name or ""}}',
-            'writable': {{if book.release_date:}}false{{else:}}true{{pass}},
+            'value': '{{=XML(book.name or "") if book else ""}}',
+            'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
+            'x_editable_settings': {
+                'title': 'Enter the title of the book.',
+                'escape': true,
+                'placeholder': 'Book Title',
+            },
         },
         'publication_year': {
             'label': '{{=db.book.publication_year.label}}',
-            'value': '{{=book.publication_year or ""}}',
-            'writable': {{if book.release_date:}}false{{else:}}true{{pass}},
-            'jeditable_settings': {
-                'type': 'select_with_style',
-                'data': "{ {{=XML(
-                    ','.join(["""'{x}':'{x}'""".format(x=x) for x in range(*publication_year_range())])
-                    )}},'selected': '{{=book.publication_year}}'}",
-
+            'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
+            'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
+            'x_editable_settings': {
+                'type': 'select',
+                'source': [ {{=publication_years()}} ],
             },
         },
         'description': {
             'label': '{{=db.book.description.label}}',
             'value': '{{try:}}{{=book.description.encode('string_escape') or ""}}{{except:}}{{=""}}{{pass}}',
-            'jeditable_settings': {'type': 'textarea'},
+            'x_editable_settings': {'type': 'textarea'},
         },
         'release_date': {
             'label': '{{=db.book.release_date.label}}',
-            'value': '{{=book.release_date or ""}}',
-            'readable': {{if book.release_date:}}true{{else:}}false{{pass}},
-            'writable': false,
-            'writable': {{if book.release_date:}}false{{else:}}true{{pass}},
-            'jeditable_settings': {'type': 'date'},
-        },
-        'background_colour': {
-            'label': '{{=db.book.background_colour.label}}',
-            'value': '{{=book.background_colour}}',
-            'jeditable_settings': {'type': 'colour_picker'},
-        },
-        'border_colour': {
-            'label': '{{=db.book.border_colour.label}}',
-            'value': '{{=book.border_colour}}',
-            'jeditable_settings': {'type': 'colour_picker'},
+            'value': '{{=book.release_date or "" if book else ""}}',
+            'readable': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+            'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
+            'x_editable_settings': {'type': 'date'},
         },
         'reader': {
             'label': '{{=db.book.reader.label}}',
-            'value': '{{=book.reader}}',
-            'jeditable_settings': {
-                'type': 'select_with_style',
-                'data': "{'scroller':'scroller','slider':'slider','selected': '{{=book.reader}}'}",
+            'value': '{{=book.reader if book else db.book.reader.default}}',
+            'x_editable_settings': {
+                'type': 'select',
+                'source': [
+                    {value: 'scroller', text: 'scroller'},
+                    {value: 'slider', text: 'slider'}
+                ],
+            },
+        },
+        'background_colour': {
+            'label': '{{=db.book.background_colour.label}}',
+            'value': '{{=book.background_colour if book else db.book.background_colour.default}}',
+            'x_editable_settings': {
+                type: 'colour_picker',
+                title: 'Enter a color for the background',
+                placement: 'bottom',
+                mode: 'inline',
+                showbuttons: false,
+            },
+        },
+        'border_colour': {
+            'label': '{{=db.book.border_colour.label}}',
+            'value': '{{=book.border_colour if book else db.book.border_colour.default}}',
+            'x_editable_settings': {
+                type: 'colour_picker',
+                title: 'Enter a color for the border',
+                placement: 'bottom',
+                mode: 'inline',
+                showbuttons: false,
             },
         },
     }
 //]]>
 </script>
-<script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
 <script>
 //<![CDATA[
+    function add_callback(inplace_crud_obj, record_id) {
+        var display_message = $(inplace_crud_obj).data().display_message;
+        var dialog = $('#add_book_button').data().dialog;
+        if (!dialog) { return; }
+        dialog.getModalHeader().find('.' + dialog.getNamespace('title'))
+            .html('')
+            .append('Edit: ' + $('a#name.editable').text());
+        dialog.getModalBody().find('.' + dialog.getNamespace('message'))
+            .html('')
+            .load('{{=URL(c='profile', f='book_edit')}}' + '/' + record_id, function(){
+                var msg = 'New record created.';
+                display_message('Success!', msg, 'panel-success');
+            });
+        dialog.getModalFooter().find("button:contains('Cancel')").text('Close');
+    }
+
     $(document).ready(function(){
         $('#editable_fields_container').inplace_crud(
-            '{{=URL(c='profile', f='book_crud.json', args=book.id)}}',
-            {source_data: book_data}
+            '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+            '{{=book.id if book else ""}}',
+            {
+                source_data: book_data,
+                on_add: add_callback,
+                auto_open: true,
+            }
         );
-        $('#edit_links_container').inplace_crud(
+        {{if book and book.id:}}
+        $('#edit_links_container').inplace_link_crud(
             '{{=URL(c='profile', f='link_crud.json', args=book.id)}}',
-            {links: true}
+            '{{=book.id}}',
+            {
+                auto_open: true,
+            }
         );
+        {{pass}}
     });
+
 //]]>
 </script>

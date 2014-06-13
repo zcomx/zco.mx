@@ -7,12 +7,10 @@ Book classes and functions.
 """
 import datetime
 import os
-import stat
 from gluon import *
 from gluon.storage import Storage
 from gluon.contrib.simplejson import dumps
 from applications.zcomix.modules.images import \
-    SIZERS, \
     ThumbnailSizer, \
     img_tag
 
@@ -192,6 +190,18 @@ def default_contribute_amount(db, book_entity):
     if amount > maximum:
         amount = maximum
     return amount
+
+
+def publication_years():
+    """Return a XML instance representing publication years suitable for
+    drop down menu.
+    """
+    # {'value': '1900', 'text': '1900'}, ...
+    return XML(
+        ','.join(
+            ["{{'value':'{x}', 'text':'{x}'}}".format(x=x) \
+                    for x in range(*publication_year_range())])
+    )
 
 
 def publication_year_range():
