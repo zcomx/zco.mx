@@ -70,20 +70,41 @@ class TestFunctions(LocalTestCase):
 
     def test__for_path(self):
 
+        # These names should remain unchanged.
+        tests = [
+            'Fred Smith',
+            "Sean O'Reilly",
+            'Sverre Årnes',
+            'Bjørn Eidsvåg',
+            'Frode Øverli',
+            'Dražen Kovačević',
+            'Yıldıray Çınar',
+            'Alain Saint-Ogan',
+            'José Muñoz',
+            'Ralf König',
+            'Ted Benoît',
+            'Gilbert G. Groud',
+            'Samuel (Mark) Clemens',
+            'Alfa _Rant_ Tamil',
+            'Too     Close',
+        ]
+        for t in tests:
+            self.assertEqual(for_path(t), t)
+
+        # These names are scrubed
         tests = [
             #(name, expect)
-            ('Fred Smith', 'Fred Smith'),
-            ("Sean O'Reilly", 'Sean OReilly'),
-            ("Some Van_Dude", 'Some Van Dude'),
-            ('José Muñoz', 'Jose Munoz'),
-            ('Ralf König', 'Ralf Konig'),
-            ('Ted Benoît', 'Ted Benoit'),
-            ('Sverre Årnes', 'Sverre Arnes'),
-            ('Frode Øverli', 'Frode Overli'),
-            ('Dražen Kovačević', 'Drazen Kovacevic'),
-            ('Yıldıray Çınar', 'Yildiray Cinar'),
-            ('Gilbert G. Groud', 'Gilbert G Groud'),
-            ('Alain Saint-Ogan', 'Alain Saint-Ogan'),
+            ('Fred/ Smith', 'Fred Smith'),
+            (r'Fred\ Smith', 'Fred Smith'),
+            ('Fred? Smith', 'Fred Smith'),
+            ('Fred% Smith', 'Fred Smith'),
+            ('Fred* Smith', 'Fred Smith'),
+            ('Fred: Smith', 'Fred Smith'),
+            ('Fred| Smith', 'Fred Smith'),
+            ('Fred" Smith', 'Fred Smith'),
+            ('Fred< Smith', 'Fred Smith'),
+            ('Fred> Smith', 'Fred Smith'),
+            ('Kevin "Kev" Walker', 'Kevin Kev Walker'),
         ]
 
         for t in tests:

@@ -42,8 +42,10 @@ from gluon.storage import Storage
 from gluon.tools import PluginManager
 from applications.zcomix.modules.books import publication_year_range
 from applications.zcomix.modules.creators import add_creator
+from applications.zcomix.modules.files import FileName
 from applications.zcomix.modules.stickon.sqlhtml import formstyle_bootstrap3_custom
 from applications.zcomix.modules.stickon.tools import ModelDb
+from applications.zcomix.modules.stickon.validators import IS_ALLOWED_CHARS
 
 model_db = ModelDb(globals())
 db = model_db.db
@@ -116,7 +118,10 @@ db._common_fields = [auth.signature]
 db.define_table('book',
     Field(
         'name',
-        requires=IS_NOT_EMPTY(),
+        requires=[
+            IS_NOT_EMPTY(),
+            IS_ALLOWED_CHARS(not_allowed=FileName.not_allowed_in_inputs),
+        ],
     ),
     Field(
         'creator_id',
@@ -331,7 +336,7 @@ db.define_table('creator',
     Field(
         'path_name',
     ),
-    format='%(name)s',
+    format='%(path_name)s',
     migrate=True,
 )
 

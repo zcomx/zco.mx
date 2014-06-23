@@ -443,6 +443,8 @@ $.editable.addInputType('select_with_style', {
                 var input_container = $(input).parent();
                 var error_wrapper = input_container.find('.error_wrapper');
                 if (data.errors && Object.getOwnPropertyNames(data.errors).length > 0) {
+                    // See mod 12428 the next line can trigger endless focus
+                    // flip if subsequence fields have invalid values
                     $(input).trigger(settings.jeditable_settings.event);
                     $.each(data.errors, function(k, v) {
                         methods._append_error(input_container, v);

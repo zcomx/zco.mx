@@ -88,7 +88,8 @@ def markmin_content(filename):
     return content
 
 
-def move_record(sequential_field, record_id, direction='up', query=None, start=1):
+def move_record(sequential_field, record_id, direction='up', query=None,
+                start=1):
     """Move a record in the direction.
 
     Args:
@@ -145,6 +146,7 @@ def profile_wells(request):
 
     wells_data = [
         # (key, {data})
+        ('faq', {'label': 'FAQ'}),
         ('account', {'label': 'Account Profile'}),
         ('creator', {'label': 'Creator Profile'}),
         ('books', {'label': 'Books'}),
@@ -172,7 +174,8 @@ def profile_wells(request):
 
     if active_well in wells:
         # Show children of active well if applicable
-        if wells[active_well]['children'] and wells[active_well]['show_children']:
+        if wells[active_well]['children'] and \
+                wells[active_well]['show_children']:
             for w in wells[active_well]['children']:
                 wells[w]['status'] = 'link'
 
