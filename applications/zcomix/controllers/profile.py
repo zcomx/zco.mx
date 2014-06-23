@@ -16,7 +16,9 @@ from applications.zcomix.modules.images import \
 from applications.zcomix.modules.links import \
     CustomLinks, \
     ReorderLink
-from applications.zcomix.modules.utils import reorder
+from applications.zcomix.modules.utils import \
+    markmin_content, \
+    reorder
 from applications.zcomix.modules.stickon.sqlhtml import \
     InputWidget, \
     SimpleUploadWidget, \
@@ -564,6 +566,18 @@ def creator_img_handler():
 
     # GET
     return image_as_json(db, creator_record.id)
+
+
+@auth.requires_login()
+def faq():
+    """FAQ profile controller."""
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL(c='default', f='index'))
+
+    return dict(text=markmin_content('faqc.mkd'))
 
 
 @auth.requires_login()

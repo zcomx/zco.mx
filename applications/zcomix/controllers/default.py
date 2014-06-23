@@ -196,6 +196,11 @@ def faq():
     return dict(text=markmin_content('faq.mkd'))
 
 
+def faqc():
+    """Creator FAQ page"""
+    return dict(text=markmin_content('faqc.mkd'))
+
+
 def todo():
     """TODO page"""
     return dict(text=markmin_content('todo.mkd'))

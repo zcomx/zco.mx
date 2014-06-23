@@ -146,6 +146,7 @@ def profile_wells(request):
 
     wells_data = [
         # (key, {data})
+        ('faq', {'label': 'FAQ'}),
         ('account', {'label': 'Account Profile'}),
         ('creator', {'label': 'Creator Profile'}),
         ('books', {'label': 'Books'}),
