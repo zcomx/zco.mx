@@ -201,6 +201,11 @@ def faqc():
     return dict(text=markmin_content('faqc.mkd'))
 
 
+def goodwill():
+    """Goodwill page"""
+    return dict(text=markmin_content('goodwill.mkd'))
+
+
 def todo():
     """TODO page"""
     return dict(text=markmin_content('todo.mkd'))
