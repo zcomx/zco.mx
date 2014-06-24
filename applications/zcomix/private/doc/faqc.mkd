@@ -1,2 +1,194 @@
-#### Lorem ipsum dolor sit amet?
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+###### [[As a cartoonist, why would I want to use zcomix? #use]]
+###### [[Why would I not use my own website? #own]]
+###### [[How can goodwill be created? #goodwill]]
+###### [[Doesn't paper offer a superior reading experience? #paper]]
+###### [[I run a successful webcomic, wouldn't zcomix lower my web traffic? #traffic]]
+###### [[As an established artist, why would I want to associate my work with others? #associate]]
+###### [[Why use P2P networks to distribute the files? #p2p]]
+###### [[Do digital comics take away from paper sales? #digital]]
+###### [[How are cartoonists leaving money on the table? #money]]
+###### [[What content will be on the site? #content]]
+
+-----
+
+[[use]]
+#### As a cartoonist, why would I want to use zcomix?
+People love to share their culture with others.  Virtually every popular
+comic is freely available online.  In this digital age it's impossible
+for the self-publishing cartoonist industry to stop sharing, nor should
+it. Instead this sharing should be leveraged. The main reason people try
+to control content is not to control distribution but to ensure they can
+monetize it.
+
+One way to leverage the Internet and monetize the content is for
+self-publishing cartoonists to work together and generate as much
+goodwill as possible. Goodwill creates trust and loyalty in readers, who
+spread the word, increasing audience size and resulting in more exposure
+and more sales -- both paper and digital.
+
+
+[[own]]
+#### Why would I not use my own website?
+When self-publishing cartoonists work together they generate much more
+goodwill then they could on their own. A comic festival is a good
+example (eg TCAF).  Comic creators and publishers come from all over to
+participate. They volunteer their time, sign autographs and give away
+free sketches. Creators generate a lot of goodwill at TCAF and TCAF
+generates goodwill for them in return.
+
+    - Many cartoonists in one area (300+ at TCAF 2014)
+    - Signatures and sketches
+    - Engaging the creators
+    - Free talks/panels
+    - Free comics and doodads
+    - Pre-release of books
+    - Meeting other readers
+    - Saving on shipping costs
+
+A single creator making the same presentation on their own doesn't have
+near the same effect as it does at TCAF. Many creators bring many fans
+which creates a positive buzz.  This buzz or goodwill encourages readers
+to support creators with purchases of their material.
+
+
+[[goodwill]]
+#### How can goodwill be created?
+[link to goodwill page]
+
+
+[[paper]]
+#### Doesn't paper offer a superior reading experience?
+Many readers think so but what about comics that are out of print?  A
+digital version may be their only option.
+
+What about readers who live outside the US? The shipping costs on a $5
+minicomic to destinations outside the US is often prohibitive. On top of
+that, there are exchange rates and fees to consider.
+
+The new generation of readers will not likely have the same fondness
+towards paper -- this is a by-product of our childhood``1``:cite. In a
+few years teenagers will be as old as the first-gen iPad. They will have
+used a tablet all their lives.  They will find digital media very
+natural.  The demand for digital content should increase immensely.
+
+
+[[traffic]]
+#### I run a successful webcomic, wouldn't zcomix lower my web traffic?
+The design of zcomix is intentionally simple and unassuming. Zcomix is
+about making content available.  Each creator on zcomix has a page with
+a brief description and a list of all their material. Creators can add
+custom links including their home page, social channels (blogs, twitter,
+tumblr, etc), and any webpages where their material can be found -- both
+digital and print.
+
+If zcomix can increase the audience size, and give readers access to
+creators' material in a consistent, familiar way, this should drive even
+more traffic to personal sites and increase the volume on social
+channels (eg tumblr, blogs, twitter, facebook, etc).
+
+
+[[associate]]
+#### As an established artist, why would I want to associate my work with others?
+If there are many comics hosted on zcomix, then there should be no
+positive or negative association with the content (similar to Youtube).
+
+
+[[p2p]]
+#### Why use P2P networks to distribute the files?
+From a technical standpoint P2P networks save on bandwidth and reduce
+network congestion. As well, these networks ensure there are multiple
+copies of the files available.  This has the benefit of acting like a
+file backup.  If the zcomix server (or any user) were to lose their
+data, it could be rebuilt via P2P networks.
+
+More importantly the P2P communities, especially the Direct Connect (DC)
+network, is the nucleus of digital comics on the Internet.  Comics are
+competing for people's leisure time.  They're up against Internet, TV,
+movies, video games, etc.  The more readers the industry has, the
+better``2``:cite.  The more readers the industry has, the more readers
+there are to spend money.
+
+P2P networks can expand a cartoonist's audience. On one P2P network
+which only shares comics, it was found that 63% of the users were from
+outside the US.
+
+Here is a breakdown of downloaders in the top 13 countries:
+
+``
+37.06%  US, United States
+ 6.61%  CA, Canada
+ 6.33%  BR, Brazil
+ 6.02%  GB, United Kingdom
+ 3.39%  RU, Russian Federation
+ 3.17%  ES, Spain
+ 3.11%  SE, Sweden
+ 2.53%  AU, Australia
+ 2.39%  IT, Italy
+ 2.25%  DE, Germany
+ 2.16%  FR, France
+ 1.92%  PL, Poland
+ 1.83%  NL, Netherlands
+``
+
+These numbers illustrate there is a large demand for digital comics
+outside the US.
+
+I think it is important to mirror how file-sharing communities have done
+things. File-sharing communities have been at it for 20+ years. Their
+methods are tried and tested. There are advatanges to mirroring their
+approach. It's unfortunate P2P networks have been branded negatively
+(mostly by large corporation via the media) but there is an opportunity
+here. Self-publishing creators could make use of this technology and
+show how efficient and effective it is, ignoring big corps attempt to
+demonize it. This plays nicely into self-publishing creators'
+counter-culture roots (ie Underground Comix). If handled right, this
+could be a huge boon cartoonists.
+
+People love to share their culture with others.  In this digital age
+it's impossible to stop and it shouldn't be -- it should be leveraged.
+The current P2P communities are distributing and marketing cartoonists'
+material. Make use of these groups to expand audiences and to generate
+more sales.
+
+
+[[digital]]
+#### Do digital comics take away from paper sales?
+Some people suggest digital comics hurt the paper comics industry,
+saying it will take away from paper sales and lead to store closings. Is
+it not possible that digital and paper are two sides of the same coin?
+Maybe paper and digital sales are directly proportional: the more paper
+copies sold, the more digital copies sold; the more digital sales, the
+more paper sales.
+
+Consider the vinyl record industry. In theory this industry should have
+died years ago and yet sales are higher now than they've been in
+decades. There are music enthusiasts that listen to digital material
+only, there are traditionalists that swear by vinyl, and some enjoy the
+benefits of both.  There is no reason why comics are different.
+
+
+[[money]]
+#### How are cartoonists leaving money on the table?
+Small/micro/self-publishers lose sales with traditional publishing
+methods in several ways:
+    - Out of print books (demand is not being met)
+    - Shipping costs (especially to countries outside the US)
+    - Poor exchange rates with the USD
+
+By using sites like Comixology, publishers lose sales because of:
+    - Regional locks
+    - DRM
+    - Over-priced books
+    - Unfair compensation``3``:cite
+
+
+[[content]]
+#### What content will be on the site?
+Current minicomics, webcomics and strips are of interest.  As well we'd
+like to excavate older material from the 80's, 90's, 00's.
+
+-----
+
+###### [[1]] 1. That said, I think there will also be demand for paper comics.
+###### [[2]] 2. The bigger the head, the longer the [[tail http://en.wikipedia.org/wiki/Long_tail]].
+###### [[3]] 3. "...with ComiXology I’m only guaranteed 33 cents on every dollar if it’s bought through the Apple store." Becky Cloonan, [[Self Publish or Perish http://beckycloonan.tumblr.com/post/71721963332/self-publish-or-perish-a-short-essay-or-4-000]]
