@@ -1,26 +1,30 @@
 ``
 VERSION 1
-[ ] bugs/changes
-    - nagios check for emperor.uwsgi.service
-    - Log rotate
-        /var/log/httpd/dev.zcomix.com-*
-        /var/log/uwsgi/*
+[x] bugs/changes
+
 
 [/] FAQ
     http://web2py.googlecode.com/hg/gluon/contrib/markmin/markmin.html
-[ ] (i) info popups
-[ ] Intro email
-[ ] Mature Content icon
-[ ] Footer - Is there a better way to handle/label 'my account' and possibly 'logout' ?
-[ ] add paypal functionality
-    * create howto for setting up or switching to a micro-payment account
-[ ] scrub and resize files for html version
-    * different default sizes for jpg's that are portrait vs landscape vs square ?
+[/] Intro email
+[ ] Add paypal functionality
+    [S] create howto for setting up or switching to a micro-payment account
+[O] Scrub and resize files for html version
+    * optimum convert command?
+    * current convert command bloats pngs
+    $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"
+[O] UX
+    [O] (i) info popups
+    [O] Mature Content icon
+    [O] Footer
+        Compare footer before and after logging in.
+        Is there a better way to handle/label 'my account' and possibly 'logout' ?
 
 
 VERSION 2 - Before Going Live
-[ ] Front Page - Get view stats working (or what should be on with Front Page?)
-[ ] Front Page - show both released and ongoing books?
+[ ] Get download links working
+[ ] Front Page - Get view stats working
+[ ] Front Page - only show released books
+[ ] Front Page - Add 'download' report
 [ ] Indica Page
     * last page of comic
     * call to action (last page (jpg in cbz and html in scroll/slider))
@@ -28,10 +32,10 @@ VERSION 2 - Before Going Live
     * creative commons licence
     * for jpg indica https://101.zcomix.com/Name_of_Comic_001/  ?
 
-[ ] add torrent and dc functionality
+[ ] Add torrent and dc functionality
     * upload and delete modal wording - nothing about dc mentioned
 
-[ ] rewrite urls
+[ ] Rewrite urls
     https://zcomix.com
     https://login.zcomix.com
     https://101.zcomix.com
@@ -47,16 +51,16 @@ VERSION 2 - Before Going Live
     "Name of Comic 001 (2014) (101.zcomix.com).cbz"
     "Channel Zero - The Complete Collection (2012) (digital) (Son of Ultron-Empire).cbr"
 
-[ ] reader notifications of new material (rss? and mailing list?)
+[ ] Reader notifications of new material (rss? and mailing list?)
 
-[ ] copyright material
+[ ] Copyright material
     DMCA / C&D disclaimer button would work
     'wide with curated lists'
 
-[ ] social media links other than indica?
-[ ] tags (kids, by genre)
-[ ] url checker
-[ ] contribute link for zcomix.com
+[ ] Social media links other than indica?
+[ ] Tags (kids, by genre)
+[ ] Url checker
+[ ] Add contribute link for zcomix.com to FAQ
 
 IDEAS
 [s] zcomix: Creative Commons Licence
