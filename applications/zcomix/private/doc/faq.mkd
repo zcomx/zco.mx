@@ -96,9 +96,9 @@ P2P networks.
 [[reader]]
 #### Where do I get a comic reader for my computer/tablet?
 ---------
-Windows     | [[CDisplay http://www.cdisplay.me/]]
-Mac         | [[?? http://fixme.com]]
+Windows     | [[CDisplay http://www.cdisplay.me/]], [[GonVisor http://www.gonvisor.com/]]
+Mac         | [[Simple Comic http://dancingtortoise.com/simplecomic/]]
 Linux       | [[MComix http://sourceforge.net/projects/mcomix/]]
 Android     | [[Perfect Viewer https://sites.google.com/site/rookiestudio/]]
-iPad/iPhone | [[?? http://fixme.com]]
+iPad/iPhone | [[SideBooks https://itunes.apple.com/us/app/sidebooks/id409777225?mt=8]], [[Comic Zeal http://itunes.apple.com/us/app/comic-zeal-comic-reader/id363990983?mt=8]]
 ---------
