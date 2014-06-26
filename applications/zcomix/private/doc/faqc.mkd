@@ -8,6 +8,8 @@
 ###### [[Do digital comics take away from paper sales? #digital]]
 ###### [[How are cartoonists leaving money on the table? #money]]
 ###### [[What content will be on the site? #content]]
+###### [[Why should I setup a Micropayments paypal account? #whymp]]
+###### [[How do I setup a Micropayments paypal account? #howmp]]
 
 -----
 
@@ -53,7 +55,7 @@ to support creators with purchases of their material.
 
 [[goodwill]]
 #### How can goodwill be created?
-[link to goodwill page]
+[[Goodwill https://dev.zcomix.com/goodwill]]
 
 
 [[paper]]
@@ -74,12 +76,12 @@ natural.  The demand for digital content should increase immensely.
 
 [[traffic]]
 #### I run a successful webcomic, wouldn't zcomix lower my web traffic?
-The design of zcomix is intentionally simple and unassuming. Zcomix is
-about making content available.  Each creator on zcomix has a page with
-a brief description and a list of all their material. Creators can add
-custom links including their home page, social channels (blogs, twitter,
-tumblr, etc), and any webpages where their material can be found -- both
-digital and print.
+The design of zcomix is intentionally simple and unassuming. zcomix.com
+is about making content available.  Each creator on zcomix has a page
+with a brief description and a list of all their material. Creators can
+add custom links including their home page, social channels (blogs,
+twitter, tumblr, etc), and any webpages where their material can be
+found -- both digital and print.
 
 If zcomix can increase the audience size, and give readers access to
 creators' material in a consistent, familiar way, this should drive even
@@ -186,6 +188,33 @@ By using sites like Comixology, publishers lose sales because of:
 #### What content will be on the site?
 Current minicomics, webcomics and strips are of interest.  As well we'd
 like to excavate older material from the 80's, 90's, 00's.
+
+
+[[whymp]]
+#### Why should I setup a Micropayments paypal account?
+If transactions average $12 or less, the fees with a Micropayments
+paypal
+account will be lower than with a Standard account.  For more
+information, go
+[[here https://www.paypal.com/ca/webapps/mpp/merchant-fees]]
+
+
+[[howmp]]
+#### How do I setup a Micropayments paypal account?
+If you have an active paypal account, you can switch it from Standard to
+Micropayments. Otherwise you can create a new account.
++ To setup a new account, go [[here
+https://www.paypal.com/ca/cgi-bin/marketingweb?cmd=_product-go&product=none]].
++ After creating an account, paypal will send you an email with an
+activation link. Click this.·
++ To switch a paypal account from 'Standard' to
+'Micropayment', you must call paypal.  To find the number in your
+country, go [[here
+https://www.paypal.com/ca/cgi-bin/webscr?cmd=_contact-phone]].  Their
+auto-attendant is voice operated.  None of their options are for
+switching to a micropayment account.  To drop out of their
+auto-attendant and speak to an agent, say the word "agent".
+
 
 -----
 

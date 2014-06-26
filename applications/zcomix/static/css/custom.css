@@ -59,12 +59,12 @@ input:focus::-ms-input-placeholder{
 }
 
 a {
-    color: #0000FF;
+    color: #F05000;
     text-decoration: none;
 }
 
 a:hover, a:focus {
-    color: #0000FF;
+    color: #F05000;
 }
 
 
@@ -136,12 +136,12 @@ div.centered table {
     font-size: 13pt;
     height: 2.5em;
     max-width: 16em;
-    -webkit-border-radius: 0.4em;
-    -moz-border-radius: 0.4em;
-    -o-border-radius: 0.4em;
-    -ms-border-radius: 0.4em;
-    -khtml-border-radius: 0.4em;
-    border-radius: 0.4em;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -o-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -khtml-border-radius: 3px;
+    border-radius: 3px;
     border: 1px solid #666666;
     box-shadow: none;
     padding: 4px 14px;
@@ -277,13 +277,13 @@ div.centered table {
 #front_page #intro {
     background: #666666;
     color: #FFFFFF;
-    padding: 2em;
-    -webkit-border-radius: 1em;
-    -moz-border-radius: 1em;
-    -o-border-radius: 1em;
-    -ms-border-radius: 1em;
-    -khtml-border-radius: 1em;
-    border-radius: 1em;
+    padding: 1.5em;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -o-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -khtml-border-radius: 3px;
+    border-radius: 3px;
 }
 
 #front_page #options_section {
@@ -368,9 +368,7 @@ div.centered table {
     padding-top: 0.2em;
 }
 .grid_section .item_container {
-    //background-color: #EEEEEE;
-    border: 2px solid #DDDDDD;
-    border-radius: 0.4em;
+    border: 1px dotted #DDDDDD;
     margin: 0.4em 0;
 }
 
@@ -378,12 +376,6 @@ div.centered table {
     text-align: left;
     margin-left: 0;
     height: 100%;
-    -webkit-border-radius: 0.4em;
-    -moz-border-radius: 0.4em;
-    -o-border-radius: 0.4em;
-    -ms-border-radius: 0.4em;
-    -khtml-border-radius: 0.4em;
-    border-radius: 0.4em;
 }
 
 .grid_section .item_container .number {
@@ -489,7 +481,7 @@ div.centered table {
 
 #book_page #buttons_container .button_container .btn-sm,
 .grid_section .buttons_orderby_container .btn-sm {
-    border-radius: 5px;
+    border-radius: 3px;
 }
 
 .grid_section .orderby_field_container {
@@ -556,6 +548,8 @@ div.centered table {
 
     .grid_section .item_container .image_container {
         text-align: right;
+        background-color: #EEEEEE;
+        z-index: -1;
     }
 
     .grid_section .item_container .image_container .placeholder_170x170 {
@@ -655,15 +649,14 @@ div.centered table {
     border-style: none;
     color: #666666;
     padding-left: 0;
-    padding-right: 0.2em;
+    padding-right: 0.1em;
     padding-top: 0.2em;
 }
 
 .contribute_widget input {
     background-color: #FFFFFF;
     border-radius: 3px;
-    border-bottom: 2px solid #DDDDDD;
-    border-right: 2px solid #DDDDDD;
+    border: 1px solid #666666;
     color: #333333;
     font-weight: bold;
     height: inherit;
@@ -727,17 +720,6 @@ div.centered table {
 #book_page #creator_mug_shot {
     text-align: right;
     float: right;
-}
-
-#book_page #creator_container {
-    border: 2px solid #DDDDDD;
-    margin-left: 15px;
-    -webkit-border-radius: 0.6em;
-    -moz-border-radius: 0.6em;
-    -o-border-radius: 0.6em;
-    -ms-border-radius: 0.6em;
-    -khtml-border-radius: 0.6em;
-    border-radius: 0.6em;
 }
 
 #book_page #right_column hr {
@@ -1007,12 +989,11 @@ div.centered table {
 }
 
 #reader_page_footer #page_nav_list input {
-    border-bottom: 2px solid #DDDDDD;
+    border: 1px solid #666666;
     border-radius: 3px;
-    border-right: 2px solid #DDDDDD;
     color: #333333;
     height: inherit;
-    padding: 0;
+    padding: 0 0 0 2px;
     width: 2.5em;
 }
 
@@ -1445,14 +1426,22 @@ div.centered table {
 }
 
 #faq_page h4,
-#overview_page h4 {
-    margin-bottom: 0.4em;
-    margin-top: 1.2em;
+#goodwill_page h4,
+#overview_page h4, h5 {
+    margin-bottom: 0.2em;
+    margin-top: 1.4em;
 }
 
-#overview_page h5 {
-    margin-bottom: 0.4em;
-    margin-top: 1.2em;
+#faq_page td, th,
+#goodwill_page td, th,
+#overview_page td, th {
+    padding-right: 12px;
+}
+
+#faq_page table,
+#goodwill_page table,
+#overview_page table {
+    margin: 0;
 }
 
 /* bootstrap 2.3.2 for jquery-file-upload */
