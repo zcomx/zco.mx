@@ -2,6 +2,7 @@
 """
 Default controller.
 """
+import os
 from applications.zcomix.modules.creators import \
     add_creator, \
     for_path, \
@@ -9,6 +10,7 @@ from applications.zcomix.modules.creators import \
 from applications.zcomix.modules.files import FileName
 from applications.zcomix.modules.stickon.sqlhtml import \
     formstyle_bootstrap3_login
+from applications.zcomix.modules.stickon.tools import ExposeImproved
 from applications.zcomix.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_SCRUBBED
@@ -204,6 +206,13 @@ def faqc():
 def goodwill():
     """Goodwill page"""
     return dict(text=markmin_content('goodwill.mkd'))
+
+
+def logos():
+    """Logos page"""
+    base_path = os.path.join(request.folder, 'static', 'images', 'logos')
+    expose = ExposeImproved(base=base_path, display_breadcrumbs=False)
+    return dict(expose=expose)
 
 
 def todo():

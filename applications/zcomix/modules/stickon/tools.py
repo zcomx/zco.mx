@@ -8,14 +8,20 @@ Classes extending functionality of gluon/tools.py.
 
 """
 from applications.zcomix.modules.environ import server_production_mode
+from gluon import *
 from gluon.dal import Field
 from gluon.storage import Settings
-from gluon.tools import Auth, Crud, Mail, Service
+from gluon.tools import \
+    Auth, \
+    Crud, \
+    Expose, \
+    Mail, \
+    Service
 import logging
 import os
 import ConfigParser
 from applications.zcomix.modules.ConfigParser_improved import  \
-        ConfigParserImproved
+    ConfigParserImproved
 
 # C0103: *Invalid name "%s" (should match %s)*
 # Some variable names are adapted from web2py.
@@ -27,6 +33,57 @@ LOG = logging.getLogger('app')
 class ConfigFileError(Exception):
     """Exception class for configuration file errors."""
     pass
+
+
+class ExposeImproved(Expose):
+    """Class representing Expose with bug fixes/improvements.
+    Sub classes gluon/tools.py class Expose
+    Modifications:
+        * Fixes raw_args bug
+          http://code.google.com/p/web2py/issues/detail?id=1947
+        * breadcrumbs are optional
+        * .svg are considered images.
+
+    """
+    image_extensions = ('.bmp', '.png', '.jpg', '.jpeg', '.gif', '.tiff',
+                        '.svg')
+
+    def __init__(
+        self,
+        base=None,
+        basename=None,
+        extensions=None,
+        allow_download=True,
+        display_breadcrumbs=True
+    ):
+        """Constructor.
+        """
+        # E0602 (undefined-variable): *Undefined variable %%r*  # current
+        # pylint: disable=E0602
+        if not 'raw_args' in current.request:
+            current.request.raw_args = '/'.join(current.request.args)
+        Expose.__init__(
+            self,
+            base=base,
+            basename=basename,
+            extensions=extensions,
+            allow_download=allow_download
+        )
+        self.display_breadcrumbs = display_breadcrumbs
+
+    @staticmethod
+    def isimage(f):
+        return os.path.splitext(f)[-1].lower() \
+            in ExposeImproved.image_extensions
+
+    def xml(self):
+        return DIV(
+            H2(self.breadcrumbs(self.basename))
+                if self.display_breadcrumbs else '',
+            self.paragraph or '',
+            self.table_folders(),
+            self.table_files()
+        ).xml()
 
 
 class ModelDb(object):
@@ -59,8 +116,8 @@ class ModelDb(object):
             self.service = self._service()
 
         if self.settings_loader and 'response' in self.environment:
-            self.settings_loader.import_settings(group='response',
-                    storage=self.environment['response'])
+            self.settings_loader.import_settings(
+                group='response', storage=self.environment['response'])
 
     def _auth(self):
         """Create a auth instance. """
@@ -71,8 +128,8 @@ class ModelDb(object):
             auth.settings.extra_fields['auth_user'] = [Field('name')]
             auth.define_tables(username=False, signature=False, migrate=True)
         if self.settings_loader:
-            self.settings_loader.import_settings(group='auth',
-                    storage=auth.settings)
+            self.settings_loader.import_settings(
+                group='auth', storage=auth.settings)
         auth.settings.mailer = self.mail
         auth.settings.verify_email_onaccept = self.verify_email_onaccept
         # Controller tests scripts require login's with same session.
@@ -103,22 +160,27 @@ class ModelDb(object):
 
         # W0108: *Lambda may not be necessary*
         # pylint: disable=W0108
-        auth.signature = self.db.Table(self.db, 'auth_signature',
-                              Field('created_on',
-                                  'datetime',
-                                  default=request.now,
-                                  represent=lambda x: str(x),
-                                  readable=False,
-                                  writable=False,
-                                  ),
-                              Field('updated_on',
-                                  'datetime',
-                                  default=request.now,
-                                  update=request.now,
-                                  represent=lambda x: str(x),
-                                  readable=False,
-                                  writable=False,
-                                  ))
+        auth.signature = self.db.Table(
+            self.db,
+            'auth_signature',
+            Field(
+                'created_on',
+                'datetime',
+                default=request.now,
+                represent=lambda x: str(x),
+                readable=False,
+                writable=False,
+            ),
+            Field(
+                'updated_on',
+                'datetime',
+                default=request.now,
+                update=request.now,
+                represent=lambda x: str(x),
+                readable=False,
+                writable=False,
+            )
+        )
         return auth
 
     def _crud(self):
@@ -161,8 +223,8 @@ class ModelDb(object):
 
         mail = Mail()  # mailer
         if self.settings_loader:
-            self.settings_loader.import_settings(group='mail',
-                    storage=mail.settings)
+            self.settings_loader.import_settings(
+                group='mail', storage=mail.settings)
         return mail
 
     def _service(self):
@@ -180,15 +242,16 @@ class ModelDb(object):
         """
         request = self.environment['request']
         etc_conf_file = self.config_file if self.config_file else \
-                os.path.join(request.folder, 'private', 'settings.conf')
+            os.path.join(request.folder, 'private', 'settings.conf')
         if not os.path.exists(etc_conf_file):
             raise ConfigFileError(
-                    'Local configuration file not found: {file}'.format(
-                    file=etc_conf_file))
-        settings_loader = SettingsLoader(config_file=etc_conf_file,
-                application=request.application)
-        settings_loader.import_settings(group='local',
-                storage=self.local_settings)
+                'Local configuration file not found: {file}'.format(
+                    file=etc_conf_file)
+            )
+        settings_loader = SettingsLoader(
+            config_file=etc_conf_file, application=request.application)
+        settings_loader.import_settings(
+            group='local', storage=self.local_settings)
         return settings_loader
 
     def get_server_mode(self):
@@ -215,10 +278,10 @@ class ModelDb(object):
 
         # Add user to admin group if email matches admin_email.
         if user.email == self.auth.settings.admin_email:
-            if not self.auth.has_membership(self.auth.id_group(admin),
-                    user.id):
-                self.auth.add_membership(self.auth.id_group(admin),
-                        user.id)
+            if not self.auth.has_membership(
+                    self.auth.id_group(admin), user.id):
+                self.auth.add_membership(
+                    self.auth.id_group(admin), user.id)
 
 
 class SettingsLoader(object):
@@ -248,11 +311,11 @@ class SettingsLoader(object):
 
     def __repr__(self):
         fmt = ', '.join([
-                'SettingsLoader(config_file={config_file!r}',
-                'application={application!r}',
-                ])
-        return fmt.format(config_file=self.config_file,
-                application=self.application)
+            'SettingsLoader(config_file={config_file!r}',
+            'application={application!r}',
+        ])
+        return fmt.format(
+            config_file=self.config_file, application=self.application)
 
     def get_settings(self):
         """Read settings from config file."""
