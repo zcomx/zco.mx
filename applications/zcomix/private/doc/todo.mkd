@@ -4,10 +4,8 @@ VERSION 1
 
 [/] FAQ
     http://web2py.googlecode.com/hg/gluon/contrib/markmin/markmin.html
-    [ ] faq: what is a cbr/cbz file?
-[/] Intro email
-[x] Add paypal functionality
-    [x] create howto for setting up or switching to a micro-payment account
+    [ ] fix up paypal links in faq's
+    [ ] I'd like to link back to your site, do you have a logo I can use?
 
 [O] UX/UI
     [x] set a and a:hover to #F05000
@@ -21,9 +19,11 @@ VERSION 1
         set everything to 3px
     [x] sanitize input boxes
     [x] smaller logo
-    [ ] contribute input == ('1.00 ??
-    [ ] use slightly thicker google font?
-    [ ] nav problem
+    [x] contribute input == ('1.00 ??
+    [x] use slightly thicker google font?
+        http://www.google.com/fonts/specimen/Roboto+Slab
+        http://www.google.com/fonts/specimen/Roboto
+    [ ] navigation problem when using scroll
         - sticky footer
         - move to top
     [O] (i) info popups
@@ -31,8 +31,6 @@ VERSION 1
     [O] Footer
         Compare footer before and after logging in.
         Is there a better way to handle/label 'my account' and possibly 'logout' ?
-
-
 
 
 [O] Scrub and resize files for html version
@@ -80,7 +78,8 @@ VERSION 2 - Before Going Live
 [ ] Social media links other than indica?
 [ ] Tags (kids, by genre)
 [ ] Url checker
-[ ] Add contribute link for zcomix.com to FAQ
+[ ] Keyboard control for slider - L, R (and maybe U for back to artist page)
+[ ] Article/interview links for creators ?
 
 IDEAS
 [s] zcomix: Creative Commons Licence
@@ -94,7 +93,7 @@ IDEAS
     by-nc-sa
     by-sa
 
-[ ] Re-releasing released books a problem?
+[ ] Is re-releasing released books a problem?
     * use the upload modal with any read-only fields
     * update a version number on the indica?
 
@@ -106,12 +105,10 @@ IDEAS
     [ ] Different styles of book printing
         [ ] maybe a list of printers and approximate pricing
 
-[ ] Keyboard control for slider - L, R (and maybe U for back to artist page)
 [ ] How best to use the front page?
 [ ] How to best leverage goodwill?
 [ ] Guided view using Perfect Viewer ?
 [ ] bio and book description - wikipedia api?
 [ ] user comments? - disqus api?
 [ ] how best to promote micro-publisher and things like the Muster List
-[ ] article/interview links for creators ?
 ``

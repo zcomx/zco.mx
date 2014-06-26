@@ -2,6 +2,7 @@
 ###### [[Can anyone upload content? #upload]]
 ###### [[How does zcomix pay its expenses? #expenses]]
 ###### [[What is up with the design of the site? #design]]
+###### [[What is a cbr/cbz file? #cbz]]
 ###### [[What is the Direct Connect (DC) network? #dc]]
 ###### [[Where do I get a DC client? #dcclient]]
 ###### [[What is the BitTorrent Network? #bittorrent]]
@@ -50,6 +51,14 @@ others a slider. Many sites use Flash viewers which do not allow reader
 to direct links to pages of a book.  This creates a unpredictable and
 unsettling user experience. The aim for zcomix is for a consistent,
 simple interface.
+
+
+[[cbz]]
+#### What is a cbr/cbz file?
+cbr files are archive files using the RAR file format, while cbz files
+use zip. From a technical standpoint there is no difference between
+foo.cbz and foo.zip except for the filename. RAR is an antiquated,
+proprietary file format that is no longer recommended.
 
 
 [[dc]]
