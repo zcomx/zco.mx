@@ -2,23 +2,43 @@
 VERSION 1
 [x] bugs/changes
 
-
 [/] FAQ
     http://web2py.googlecode.com/hg/gluon/contrib/markmin/markmin.html
+    [ ] faq: what is a cbr/cbz file?
 [/] Intro email
-[ ] Add paypal functionality
-    [S] create howto for setting up or switching to a micro-payment account
-[O] Scrub and resize files for html version
-    * optimum convert command?
-    * current convert command bloats pngs
-    $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"
-[O] UX
+[x] Add paypal functionality
+    [x] create howto for setting up or switching to a micro-payment account
+
+[O] UX/UI
+    [x] set a and a:hover to #F05000
+    [x] front page
+        [x] borders - 1px dotted #DDDDDD
+        [x] borders - no radios
+        [x] set image bg to #EEE
+            [x] numbers are missing
+                z-index: -1
+    [x] sanitize all border radius
+        set everything to 3px
+    [x] sanitize input boxes
+    [x] smaller logo
+    [ ] contribute input == ('1.00 ??
+    [ ] use slightly thicker google font?
+    [ ] nav problem
+        - sticky footer
+        - move to top
     [O] (i) info popups
     [O] Mature Content icon
     [O] Footer
         Compare footer before and after logging in.
         Is there a better way to handle/label 'my account' and possibly 'logout' ?
 
+
+
+
+[O] Scrub and resize files for html version
+    * optimum convert command?
+    * current convert command bloats pngs
+    $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"
 
 VERSION 2 - Before Going Live
 [ ] Get download links working
@@ -86,6 +106,7 @@ IDEAS
     [ ] Different styles of book printing
         [ ] maybe a list of printers and approximate pricing
 
+[ ] Keyboard control for slider - L, R (and maybe U for back to artist page)
 [ ] How best to use the front page?
 [ ] How to best leverage goodwill?
 [ ] Guided view using Perfect Viewer ?
