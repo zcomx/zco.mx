@@ -24,7 +24,7 @@ def contribute_widget():
     if book_record:
         creator = db(db.creator.id == book_record.creator_id).select(
                 db.creator.ALL).first()
-        amount = '{a:0.2f}'.format(a=default_contribute_amount(db, book_record)),
+        amount = '{a:0.2f}'.format(a=default_contribute_amount(db, book_record))
     else:
         amount = 1.00
 
