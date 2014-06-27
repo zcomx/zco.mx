@@ -6,40 +6,13 @@
 */
 
 @charset "UTF-8";
-@font-face {
-    font-family: "Roboto";
-    font-style: normal;
-    font-weight: 400;
-    src: local("Roboto Regular"), local("Roboto-Regular"), url("https://themes.googleusercontent.com/licensed/font?kit=hrGc2K_tmZ0eh2k4POj2u-5ugVuF0peRE2RbCX9_oyQNwBUijgVt51JMhI0yg6Bx0GWXnTxZNKPIJBGdtNDk7aYaNtxZUiq34CEol0CPowf3rGVtsTkPsbDajuO5ueQw") format("woff");
-}
-
-@font-face {
-    font-family: "Roboto";
-    font-style: normal;
-    font-weight: 700;
-    src: local("Roboto Bold"), local("Roboto-Bold"), url("https://themes.googleusercontent.com/licensed/font?kit=nfhj24JksmTx5Z43vvzTilAKFZEl-uwt8ZAZD7Zj1x8hU65Org-VsHihMsgCE9y49EhpiqJDj9lnQaq249QEOeUQPIbVTiqEwuMCDJhqySqh0bZea9sKcRbh9Fsh11uP") format("woff");
-}
-
-@font-face {
-    font-family: "Roboto Slab";
-    font-style: normal;
-    font-weight: 400;
-    src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url("https://themes.googleusercontent.com/licensed/font?kit=3__ulTNA7unv0UtplybPigB0Reh04nFjt5MHEhuNP5gFjxAsoMPe6KTmxHr8yBfIjVpFoe6rX3ET310906cqDO5a0y2yM-buDzIWb-IT1VZnJfANE-_pKN9C1ZsKTQQU") format("woff");
-}
-
-@font-face {
-    font-family: "Roboto Slab";
-    font-style: normal;
-    font-weight: 700;
-    src: local("Roboto Slab Bold"), local("RobotoSlab-Bold"), url("https://themes.googleusercontent.com/licensed/font?kit=dazS1PrQQuCxC3iOAJFEJfPEi3Eym1SSMPPL2gJMau2ruusgsetRaCmkKU2Of3BmMh8Htnga2sTO__4Bgy4aRUbOfyIL9KspCxN8ekvQQBzoq8GLqcC6GrPYOPNC3QDT") format("woff");
-}
 
 body {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'robotoregular', sans-serif;
 }
 
 h1, h2, h3, h4, h5 {
-    font-family: 'Roboto Slab', serif;
+    font-family: 'roboto_slabregular', serif;
 }
 
 /* custom \\\ */
