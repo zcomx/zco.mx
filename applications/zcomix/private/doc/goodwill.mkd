@@ -56,11 +56,11 @@ site's only intention is to connect creators and readers, and not to
 benefit developers.
 
 Site administrators will donate their time. The site will accept
-[[donations http://FIXME.com]]. They will be used to offset hosting
-costs and if there is any surplus, it will be put towards the site and
-its community. The site code will be open source and made available on
-[[github https://github.com/zcomix]] so the community has an opportunity
-to contribute features and bug fixes.
+[[donations [Contribute via paypal] /contribute popup]]. They will be
+used to offset hosting costs and if there is any surplus, it will be put
+towards the site and its community. The site code will be open source
+and made available on [[github https://github.com/zcomix]] so the
+community has an opportunity to contribute features and bug fixes.
 
 
 #### Copyright

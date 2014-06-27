@@ -2,10 +2,6 @@
 VERSION 1
 [x] bugs/changes
 
-[/] FAQ
-    http://web2py.googlecode.com/hg/gluon/contrib/markmin/markmin.html
-    [ ] fix up paypal links
-
 [O] UX/UI
     [x] set a and a:hover to #F05000
     [x] front page

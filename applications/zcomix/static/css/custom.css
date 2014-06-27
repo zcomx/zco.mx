@@ -106,6 +106,7 @@ a:hover, a:focus {
 
 hr {
     border-color: #DDDDDD;
+    border-style: dotted;
 }
 
 div.centered {
@@ -180,7 +181,7 @@ div.centered table {
     border-radius: 3px;
     border: 1px solid #666666;
     box-shadow: none;
-    padding: 4px 14px;
+    padding: 0 14px 2px;
 }
 
 .custom_link {
@@ -1466,6 +1467,11 @@ div.centered table {
 #overview_page h4, h5 {
     margin-bottom: 0.2em;
     margin-top: 1.4em;
+}
+
+#faq_page h5 {
+    padding: 4px 0 4px 0;
+    margin: 0;
 }
 
 #faq_page td, th,

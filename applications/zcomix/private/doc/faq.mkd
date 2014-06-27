@@ -1,15 +1,15 @@
-###### [[What is zcomix? #zcomix]]
-###### [[Can anyone upload content? #upload]]
-###### [[How does zcomix pay its expenses? #expenses]]
-###### [[What is up with the design of the site? #design]]
-###### [[What is a cbr/cbz file? #cbz]]
-###### [[What is the Direct Connect (DC) network? #dc]]
-###### [[Where do I get a DC client? #dcclient]]
-###### [[What is the BitTorrent Network? #bittorrent]]
-###### [[Where do I get a BitTorrent client? #btclient]]
-###### [[Why use P2P networks to distribute the files? #distribute]]
-###### [[Where do I get a comic reader for my computer/tablet? #reader]]
-###### [[I'd like to link back to your site, do you have a logo I can use? #logo]]
+##### [[What is zcomix? #zcomix]]
+##### [[Can anyone upload content? #upload]]
+##### [[How does zcomix pay its expenses? #expenses]]
+##### [[What is up with the design of the site? #design]]
+##### [[What is a cbr/cbz file? #cbz]]
+##### [[What is the Direct Connect (DC) network? #dc]]
+##### [[Where do I get a DC client? #dcclient]]
+##### [[What is the BitTorrent Network? #bittorrent]]
+##### [[Where do I get a BitTorrent client? #btclient]]
+##### [[Why use P2P networks to distribute the files? #distribute]]
+##### [[Where do I get a comic reader for my computer/tablet? #reader]]
+##### [[I'd like to link back to your site, do you have a logo I can use? #logo]]
 
 -----
 
@@ -116,5 +116,4 @@ iPad/iPhone | [[SideBooks https://itunes.apple.com/us/app/sidebooks/id409777225?
 
 [[logo]]
 #### I'd like to link back to your site, do you have a logo I can use?
-Logos can be found [[here https://dev.zcomix.com/logos]]
-
+Logos can be found [[here https://dev.zcomix.com/logos]].
