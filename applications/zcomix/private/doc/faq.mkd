@@ -9,6 +9,7 @@
 ###### [[Where do I get a BitTorrent client? #btclient]]
 ###### [[Why use P2P networks to distribute the files? #distribute]]
 ###### [[Where do I get a comic reader for my computer/tablet? #reader]]
+###### [[I'd like to link back to your site, do you have a logo I can use? #logo]]
 
 -----
 
@@ -111,3 +112,8 @@ Linux       | [[MComix http://sourceforge.net/projects/mcomix/]]
 Android     | [[Perfect Viewer https://sites.google.com/site/rookiestudio/]]
 iPad/iPhone | [[SideBooks https://itunes.apple.com/us/app/sidebooks/id409777225?mt=8]], [[Comic Zeal http://itunes.apple.com/us/app/comic-zeal-comic-reader/id363990983?mt=8]]
 ---------
+
+[[logo]]
+#### I'd like to link back to your site, do you have a logo I can use?
+Logos can be found [[here https://dev.zcomix.com/logos]]
+

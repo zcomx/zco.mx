@@ -4,8 +4,7 @@ VERSION 1
 
 [/] FAQ
     http://web2py.googlecode.com/hg/gluon/contrib/markmin/markmin.html
-    [ ] fix up paypal links in faq's
-    [ ] I'd like to link back to your site, do you have a logo I can use?
+    [ ] fix up paypal links
 
 [O] UX/UI
     [x] set a and a:hover to #F05000
@@ -31,7 +30,6 @@ VERSION 1
     [O] Footer
         Compare footer before and after logging in.
         Is there a better way to handle/label 'my account' and possibly 'logout' ?
-
 
 [O] Scrub and resize files for html version
     * optimum convert command?
