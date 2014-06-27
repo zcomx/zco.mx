@@ -127,7 +127,7 @@ div.centered table {
 
 .error_extra {
     background: #ffeeee;
-    border: 1px solid #ff0000;
+    border: 1px solid #FF0000;
     color: #888888;
     font-size: 9pt;
     padding: 5px;
@@ -964,7 +964,7 @@ div.centered table {
 
 .scroll_slide_options .btn:active, .scroll_slide_options .btn.active {
     box-shadow: none;
-    color: #0000FF;
+    color: #F05000;
 }
 
 .scroll_slide_options .btn.disabled {
