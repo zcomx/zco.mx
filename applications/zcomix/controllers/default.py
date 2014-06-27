@@ -193,6 +193,11 @@ def data():
     return dict(form=crud())
 
 
+def contribute():
+    """Contribute to zcomix admin controller"""
+    redirect(URL(c='contributions', f='record', extension=False))
+
+
 def faq():
     """FAQ page"""
     return dict(text=markmin_content('faq.mkd'))
