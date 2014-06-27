@@ -165,6 +165,10 @@ div.centered table {
     margin-top: 12%;
 }
 
+.web2py_paginator .current a:hover{
+    text-decoration: none;
+}
+
 #profile_page .books_list_title h4 {
     margin-bottom: 0;
     margin-top: 2em;
