@@ -42,19 +42,34 @@ def index():
 
 def paypal():
     """Controller for paypal donate page.
-    request.args(0): id of book
+    request.args(0): id of book, optional, if 0, payment is for admin.
     request.vars.amount: double, amount to contribute
     """
-    book_record = db(db.book.id == request.args(0)).select(
-            db.book.ALL).first()
-    creator = None
-    if book_record:
-        creator = db(db.creator.id == book_record.creator_id).select(
-                db.creator.ALL).first()
+    if request.args(0):
+        # Contribute to a creator's book.
+        book_record = db(db.book.id == request.args(0)).select(
+                db.book.ALL).first()
+        creator = None
+        if book_record:
+            creator = db(db.creator.id == book_record.creator_id).select(
+                    db.creator.ALL).first()
+
+        business = creator.paypal_email or ''
+        item_name = book_record.name or ''
+        item_number = book_record.id or ''
+        amount = request.vars.amount if 'amount' in request.vars else ''
+    else:
+        # Contribute to zcomix.com
+        business = 'show.me@zcomix.com'
+        item_name = 'zcomix.com'
+        item_number = None
+        amount = ''
 
     return dict(
-            book=book_record,
-            creator=creator,
+            business=business,
+            item_name=item_name,
+            item_number=item_number,
+            amount=amount,
             )
 
 

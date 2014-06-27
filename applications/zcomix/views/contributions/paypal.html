@@ -4,12 +4,14 @@ response.include_files()
 }}
 <form id="paypal_form" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
 <input type="hidden" name="cmd" value="_donations">
-<input type="hidden" name="business" value="{{try:}}{{=creator.paypal_email}}{{except:}}{{pass}}">
+<input type="hidden" name="business" value="{{=business}}">
 <input type="hidden" name="lc" value="CA">
-<input type="hidden" name="item_name" value="{{try:}}{{=book.name}}{{except:}}{{pass}}">
-<input type="hidden" name="item_number" value="{{try:}}{{=book.id}}{{except:}}{{pass}}">
-{{if request.vars.amount:}}
-<input id="paypal_amount" type="hidden" name="amount" value="{{try:}}{{=request.vars.amount}}{{except:}}{{pass}}">
+<input type="hidden" name="item_name" value="{{=item_name}}">
+{{if item_number:}}
+<input type="hidden" name="item_number" value="{{=item_number}}">
+{{pass}}
+{{if amount:}}
+<input id="paypal_amount" type="hidden" name="amount" value="{{=amount}}">
 {{pass}}
 <input type="hidden" name="currency_code" value="USD">
 <input type="hidden" name="no_note" value="0">
