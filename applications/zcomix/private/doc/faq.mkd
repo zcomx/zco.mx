@@ -35,7 +35,8 @@ To start, due to scalability, the site will be curated.
 [[expenses]]
 #### How does zcomix pay its expenses?
 zcomix is not-for-profit.  It raises money for hosting expenses the
-same way cartoonists raise money, via [[donations http://FIXME.com]].
+same way cartoonists raise money, via
+[[donations [Contribute via paypal] /contribute popup]].
 The time to create and maintain the site is donated free of charge --
 this project is a labour of love.  The code for the site is [[open
 source https://github.com/zcomix]].
@@ -95,7 +96,7 @@ Linux   | [[Deluge http://deluge-torrent.org]]
 
 
 [[distribute]]
-#### Why use P2P networks to distribute the files? 
+#### Why use P2P networks to distribute the files?
 P2P networks save on bandwidth and alleviate network congestion. These
 networks also ensure there are multiple copies of the files available.
 This has the benefit of acting as a file backup.  If the zcomix server
