@@ -224,6 +224,12 @@ def todo():
     """TODO page"""
     return dict(text=markmin_content('todo.mkd'))
 
+def top():
+    """Controller for top header component
+
+    request.args(0): name of page, optional. Set to None for home page.
+    """
+    return dict()
 
 def overview():
     """Overview page"""

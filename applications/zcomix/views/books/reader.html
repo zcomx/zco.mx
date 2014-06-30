@@ -23,11 +23,7 @@
 <div class="container">
     <div id="reader_page_header_margin">
         <div id="reader_page_header">
-            <div class="row" id="top_section">
-                <div class="col-sm-4 col-sm-offset-8">
-                    {{=LOAD(c='search', f='box', extension='load', ajax=False, content='')}}
-                </div>
-            </div>
+            {{=LOAD(c='default', f='top', args='reader', extension='load', ajax=False, content='')}}
             <div class="row" id="name_creator_section">
                 <div class="col-sm-12" id="name_creator_inlay">
                     <div class="row" id="name_creator">

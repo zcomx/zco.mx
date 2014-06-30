@@ -1,15 +1,11 @@
 {{extend 'layout_main.html'}}
 <div id="front_page">
 
-<div class="row" id="top_section">
-    <div class="col-sm-4 col-sm-offset-8">
-        {{=LOAD(c='search', f='box', extension='load', ajax=False, content='')}}
-    </div>
-</div>
+{{=LOAD(c='default', f='top', extension='load', ajax=False, content='')}}
 
 <div class="row" id="intro_section">
-    <div class="col-sm-7" id="intro">
-    zcomix.com is a not-for-profit comic-sharing website for self-publishing creators and their readers.
+    <div class="col-sm-7 bubble">
+    zcomix is a not-for-profit comic-sharing website for self-publishing cartoonists and their readers.
     </div>
 </div>
 

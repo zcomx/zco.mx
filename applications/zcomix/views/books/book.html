@@ -3,11 +3,7 @@
 {{extend 'layout_main.html'}}
 <div id="book_page">
 
-<div class="row" id="top_section">
-    <div class="col-sm-4 col-sm-offset-8">
-        {{=LOAD(c='search', f='box', extension='load', ajax=False, content='')}}
-    </div>
-</div>
+{{=LOAD(c='default', f='top', args='book', extension='load', ajax=False, content='')}}
 
 <div class="row">
     <div class="col-sm-5" id="left_column">
