@@ -10,6 +10,7 @@
                 {{row = None}}
             {{else:}}
             {{parity_class = 'even' if j % 2 else 'odd'}}
+            {{book_name = '{n} ({r})'.format(n=row.book.name, r=db.book.publication_year.represent(row.book.publication_year, row.book))}}
             <div class="col-sm-12 col-md-6 item_container {{=parity_class}}">
                 <div class="row">
                     <div class="col-xs-12 number">
@@ -17,14 +18,15 @@
                         {{=((page - 1) * items_per_page) + (i + j)}}
                     </div>
                     <div class="col-sm-5 image_container">
+                        <a href="{{=URL(c='books', f='book', args=row.book.id, extension=False)}}" title="{{=book_name}}">
                         {{=cover_image(db, row.book.id, size='thumb')}}
+                        </a>
                     </div>
                     <div class="col-xs-12 col-sm-7 item_details">
                         <div class="item_details_padding">
                             <div class="row">
                                 <div class="col-sm-12 name_padding">
                                     <div class="name">
-                                    {{book_name = '{n} ({r})'.format(n=row.book.name, r=db.book.publication_year.represent(row.book.publication_year, row.book))}}
                                     <a href="{{=URL(c='books', f='book', args=row.book.id, extension=False)}}" title="{{=book_name}}">
                                     {{=book_name}}
                                     </a>

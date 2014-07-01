@@ -1,5 +1,5 @@
 <div id="search">
-    <form action={{=URL(c='search', f='index', extension='html')}} method="POST" class="pull-right">
+    <form action={{=URL(c='search', f='index', extension='html')}} method="POST" class="search_form">
     <input type="text" name="kw" class="input-block-level" placeholder="search: creator/title" title="Enter a book title or creator name in whole or part" name="q">
     </form>
 </div>

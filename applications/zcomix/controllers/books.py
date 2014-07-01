@@ -28,6 +28,12 @@ def book():
     auth_user = db(db.auth_user.id == creator.auth_user_id).select(
         db.auth_user.ALL).first()
 
+    cover = read_link(
+        db,
+        book_record,
+        [cover_image(db, book_record.id, size='medium', img_attributes={'_class': 'img-responsive'})]
+    )
+
     read_button = read_link(
         db,
         book_record,
@@ -46,7 +52,7 @@ def book():
     return dict(
         auth_user=auth_user,
         book=book_record,
-        cover_image=cover_image(db, book_record.id, size='medium', img_attributes={'_class': 'img-responsive'}),
+        cover_image=cover,
         creator=creator,
         creator_links=CustomLinks(db.creator, creator.id).represent(pre_links=pre_links),
         links=CustomLinks(db.book, book_record.id).represent(),

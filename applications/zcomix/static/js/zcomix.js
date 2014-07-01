@@ -2,7 +2,7 @@
     "use strict";
 
     function set_viewport_size() {
-        $('#viewport_info').text($(window).width().toString());
+        $('#viewport_px').text($(window).width().toString());
     }
 
     $(document).ready(function(){

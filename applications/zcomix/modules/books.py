@@ -200,13 +200,14 @@ def publication_year_range():
     return (1900, datetime.date.today().year + 5)
 
 
-def read_link(db, book_entity, **attributes):
+def read_link(db, book_entity, components=None, **attributes):
     """Return html code suitable for the cover image.
 
     Args:
         db: gluon.dal.DAL instance
         book_entity: Row instance or integer, if integer, this is the id of the
             book. The book record is read.
+        components: list, passed to A(*components),  default ['Read']
         attributes: dict of attributes for A()
     """
     empty = SPAN('')
@@ -221,6 +222,9 @@ def read_link(db, book_entity, **attributes):
     if not book:
         return empty
 
+    if not components:
+        components = ['Read']
+
     kwargs = {}
     kwargs.update(attributes)
 
@@ -228,4 +232,4 @@ def read_link(db, book_entity, **attributes):
         reader = book.reader or 'slider'
         url = URL(c='books', f=reader, args=book.id, extension=False)
         kwargs['_href'] = url
-    return A('Read', **kwargs)
+    return A(*components, **kwargs)

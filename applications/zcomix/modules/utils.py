@@ -146,10 +146,10 @@ def profile_wells(request):
 
     wells_data = [
         # (key, {data})
-        ('faq', {'label': 'FAQ'}),
-        ('account', {'label': 'Account Profile'}),
-        ('creator', {'label': 'Creator Profile'}),
-        ('books', {'label': 'Books'}),
+        ('faq', {'label': 'faq'}),
+        ('account', {'label': 'account'}),
+        ('creator', {'label': 'profile'}),
+        ('books', {'label': 'books'}),
     ]
     wells = collections.OrderedDict(wells_data)
 
