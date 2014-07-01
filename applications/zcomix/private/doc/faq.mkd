@@ -57,8 +57,9 @@ simple interface.
 
 [[cbz]]
 #### What is a cbr/cbz file?
-cbr files are archive files using the RAR file format, while cbz files
-use zip. From a technical standpoint there is no difference between
+cbr files are archive files which use the RAR file format, while cbz
+files use zip. A cbr/cbz file containts nothing more than image files
+(eg jpg).  From a technical standpoint there is no difference between
 foo.cbz and foo.zip except for the filename. RAR is an antiquated,
 proprietary file format that is no longer recommended.
 

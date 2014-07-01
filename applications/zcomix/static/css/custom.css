@@ -377,6 +377,10 @@ div.centered table {
     opacity: 0.2;
 }
 
+.grid_header {
+    border-bottom: 1px solid #FFF;
+}
+
 .grid_section_header {
     font-size: 16pt;
     padding-top: 0.2em;
@@ -420,7 +424,7 @@ div.centered table {
 }
 
 .grid_section .item_details .creator {
-    font-size: 8pt;
+    font-size: 12px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -881,7 +885,7 @@ div.centered table {
 }
 
 #reader_page_header #creator_name {
-    font-size: 8pt;
+    font-size: 12px;
     line-height: 1em;
     margin-left: 0.1em;
 }
@@ -926,7 +930,7 @@ div.centered table {
     border-top: none;
     border-bottom: none;
     padding: 0 0.6em;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .scroll_slide_options .btn-group > .btn:first-child {
@@ -1134,8 +1138,9 @@ div.centered table {
 
 .footer-content #footer_links .breadcrumb {
     background-color: inherit;
-    font-size: 11px;
+    font-size: 12px;
     margin: 0 0 20px;
+    line-height: 2em;
 }
 
 .footer-content #footer_links .breadcrumb > li + li:before {

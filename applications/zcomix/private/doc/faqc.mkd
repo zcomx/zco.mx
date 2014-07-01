@@ -201,19 +201,14 @@ information, go
 
 [[howmp]]
 #### How do I setup a Micropayments paypal account?
-If you have an active paypal account, you can switch it from Standard to
-Micropayments. Otherwise you can create a new account.
+An active paypal account can be switched from Standard to Micropayments,
+see step 3, otherwise a new account is required.
+
 + To setup a new account, go [[here
 https://www.paypal.com/ca/cgi-bin/marketingweb?cmd=_product-go&product=none]].
-+ After creating an account, paypal will send you an email with an
-activation link. Click this.·
-+ To switch a paypal account from 'Standard' to
-'Micropayment', you must call paypal.  To find the number in your
-country, go [[here
-https://www.paypal.com/ca/cgi-bin/webscr?cmd=_contact-phone]].  Their
-auto-attendant is voice operated.  None of their options are for
-switching to a micropayment account.  To drop out of their
-auto-attendant and speak to an agent, say the word "agent".
++ After creating an account, paypal will send you an email with an activation link.
++ To switch a paypal account from 'Standard' to 'Micropayment', you must call paypal.  To find the number in your country, go [[here
+https://www.paypal.com/ca/cgi-bin/webscr?cmd=_contact-phone]].  Their auto-attendant is voice operated.  None of their options are for switching to a micropayment account.  To drop out of their auto-attendant and speak to an agent, say the word "agent".
 
 
 -----

@@ -18,8 +18,18 @@ VERSION 1
     [x] use slightly thicker google font?
         http://www.google.com/fonts/specimen/Roboto+Slab
         http://www.google.com/fonts/specimen/Roboto
-    [ ] navigation problem when using scroll
-        - sticky footer
+    [ ] front page - blurb
+        "zcomix is a not-for-profit comic-sharing website for self-publishing cartoonists and their readers."
+    [ ] front page - the covers should link to the book description page
+    [ ] book page - the cover should link to the reader
+    [ ] contribute | download - download needs to be wrapped in a div and 'vertical-align: middle' added
+    [ ] cartoonist faq in the logic area needs #faq_page div wrapped around it
+
+    [ ] make 'wells' collapsable
+    [ ] make the entire 'well' clickable
+    [ ] faq, account, profile, books
+
+    [ ] navigation problem
         - move to top
     [O] (i) info popups
     [O] Mature Content icon
