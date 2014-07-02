@@ -262,6 +262,20 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['href'], '/books/awesome_reader/{bid}'.format(
             bid=book_id))
 
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = read_link(db, book, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src="http://www.img.com")]
+        link = read_link(db, book, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
         # Test attributes
         book.reader = 'slider'
         attributes = dict(
