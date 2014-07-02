@@ -1,5 +1,9 @@
 {{extend 'layout_main.html'}}
+{{=LOAD(c='default', f='top', args='login', extension='load', ajax=False, content='')}}
 <div id="web2py_user_form">
+    {{if request.args(0)=='login':}}
+        <div class="user_form_header">Cartoonist Login</div>
+    {{pass}}
     <div class="row">
         <div class="col-xs-6 col-xs-offset-3 col-md-4 col-md-offset-4 web2py_user_form_container">
         {{=form}}

@@ -101,20 +101,26 @@
                 </div>
                 <div id="footer_links">
                     <ul class="breadcrumb">
-                    <li>
-                        <a href="/faq">faq</a>
-                    </li>
                     {{if auth.user_id:}}
-                    <li>
-                        <a href="{{=URL(c='profile', f='index')}}" >my account</a>
-                    </li>
-                    <li>
-                        <a href="{{=URL(c='default', f='user/logout')}}" >logout</a>
-                    </li>
+                        <li>
+                            <a href="{{=URL(c='profile', f='faq')}}" >faq</a>
+                        </li>
                     {{else:}}
-                    <li>
-                        <a href="{{=URL(c='default', f='user/login')}}" >login</a>
-                    </li>
+                        <li>
+                            <a href="{{=URL(c='default', f='faq')}}" >faq</a>
+                        </li>
+                    {{pass}}
+                    {{if auth.user_id:}}
+                        <li>
+                            <a href="{{=URL(c='profile', f='index')}}" >my account</a>
+                        </li>
+                        <li>
+                            <a href="{{=URL(c='default', f='user/logout')}}" >logout</a>
+                        </li>
+                    {{else:}}
+                        <li>
+                            <a href="{{=URL(c='default', f='user/login')}}" >login</a>
+                        </li>
                     {{pass}}
                     <li>
                         <a href="#fixme">all.torrent</a>

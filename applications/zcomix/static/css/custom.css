@@ -115,7 +115,7 @@ div.centered table {
 }
 
 .bubble:after {
-    border-color: #FFFFFF transparent;
+    border-color: #FFFFFF rgba(255, 255, 255, 0);
     border-style: solid;
     border-width: 22px 10px 0;
     bottom: -22px;
@@ -128,7 +128,7 @@ div.centered table {
 }
 
 .bubble:before {
-    border-color: #DDDDDD transparent;
+    border-color: #DDDDDD rgba(221, 221, 221, 0);
     border-style: solid;
     border-width: 39px 19px 0;
     content: "";
@@ -206,6 +206,11 @@ div.centered table {
     color: #ffffff;
 }
 
+.breadcrumb_container .breadcrumb li.active {
+    font-weight: bold;
+}
+
+
 #search {
     padding-bottom: 4em;
 }
@@ -227,7 +232,13 @@ div.centered table {
 }
 
 #web2py_user_form {
-    margin-top: 12%;
+    margin-top: 10%;
+}
+
+#web2py_user_form .user_form_header {
+    font-size: 18pt;
+    text-align: center;
+    margin-bottom: 2em;
 }
 
 .web2py_paginator .current a:hover{
@@ -277,6 +288,13 @@ div.centered table {
     color: #666666;
 }
 
+#profile_page .faq_options_container {
+    margin-bottom: 1em;
+}
+
+#profile_page .faq_options_container ul.nav-tabs {
+    margin-left: 0;
+}
 
 @media (max-width: 480px) {
     #web2py_user_form .web2py_user_form_container {

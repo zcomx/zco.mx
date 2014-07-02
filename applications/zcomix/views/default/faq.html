@@ -1,4 +1,5 @@
 {{extend 'layout_main.html'}}
+{{=LOAD(c='default', f='top', args='faq', extension='load', ajax=False, content='')}}
 <div id="faq_page" class="doc_section">
 <h1>FAQ</h1>
 {{=MARKMIN(text, id_prefix='')}}

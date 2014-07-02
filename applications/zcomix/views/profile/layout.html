@@ -1,33 +1,7 @@
-{{from applications.zcomix.modules.utils import profile_wells}}
 {{extend 'layout_main.html'}}
+
+{{=LOAD(c='default', f='top', args=['profile', request.function], extension='load', ajax=False, content='')}}
+
 <div id="profile_page">
-{{wells = profile_wells(request)}}
-{{for well in wells.keys():}}
-    {{if not 'status' in wells[well] or not wells[well]['status']:}}
-        {{continue}}
-    {{if wells[well]['status'] == 'text':}}
-        <div class="well well-sm active" id="{{=well}}">
-            {{=wells[well]['label']}}
-        </div>
-    {{else:}}
-        {{args = wells[well]['args'] if 'args' in wells[well] else None}}
-        <a href="{{=URL(well, args=args)}}">
-            <div class="well well-sm" id="{{=well}}">
-            {{=wells[well]['label']}}
-            </div>
-        </a>
-    {{pass}}
-    {{if request.function == well:}}
-        {{include}}
-    {{pass}}
-{{pass}}
+    {{include}}
 </div>
-<script>
-//<![CDATA[
-    $(document).ready(function(){
-        $('.well.active').click(function() {
-            $(this).next('div').toggle();
-        });
-    });
-//]]>
-</script>

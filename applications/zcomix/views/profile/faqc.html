@@ -1,10 +1,10 @@
 {{extend 'profile/layout.html'}}
 <div class="faq_options_container">
         <ul class="nav nav-tabs">
-            <li class="nav-tab active">
+            <li class="nav-tab">
                 <a href="{{=URL(c='profile', f='faq')}}">general</a>
             </li>
-            <li class="nav-tab">
+            <li class="nav-tab active">
                 <a href="{{=URL(c='profile', f='faqc')}}">cartoonist</a>
             </li>
         </ul>
@@ -12,5 +12,4 @@
 <div id="faq_section" class="doc_section">
     {{=MARKMIN(text, id_prefix='')}}
 </div>
-
 
