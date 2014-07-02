@@ -100,41 +100,44 @@ div.centered table {
 }
 
 .bubble {
-    position: relative;
-    width: 250px;
-    height: 120px;
-    padding: 1px;
     background: #FFFFFF;
-    border: #DDDDDD solid 10px;
+    border: 10px solid #DDDDDD;
     -webkit-border-radius: 20px;
     -moz-border-radius: 20px;
+    -o-border-radius: 20px;
+    -ms-border-radius: 20px;
+    -khtml-border-radius: 20px;
     border-radius: 20px;
+    height: 120px;
+    padding: 16px;
+    position: relative;
+    width: 272px;
 }
 
 .bubble:after {
-    content: "";
-    position: absolute;
-    bottom: -30px;
-    left: 207px;
-    border-style: solid;
-    border-width: 30px 10px 0;
     border-color: #FFFFFF transparent;
+    border-style: solid;
+    border-width: 22px 10px 0;
+    bottom: -22px;
+    content: "";
     display: block;
+    left: 209px;
+    position: absolute;
     width: 0;
     z-index: 1;
 }
 
 .bubble:before {
-    content: "";
-    position: absolute;
-    top: 130px;
-    left: 198px;
+    border-color: #DDDDDD transparent;
     border-style: solid;
     border-width: 39px 19px 0;
-    border-color: #DDDDDD transparent;
+    content: "";
     display: block;
+    left: 200px;
+    position: absolute;
+    top: 100px;
     width: 0;
-    z-index: 0;
+    z-index: -1;
 }
 
 .error_extra {
@@ -180,21 +183,17 @@ div.centered table {
 }
 
 .breadcrumb_container {
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    -o-border-radius: 3px;
-    -ms-border-radius: 3px;
-    -khtml-border-radius: 3px;
-    border-radius: 3px;
     background-color: #F05000;
-    color: #ffffff;
+    color: #FFFFFF;
+    font-size: 12px;
+    padding: 0 6px;
 }
 
 
 .breadcrumb_container .breadcrumb {
     background-color: #F05000;
     color: #ffffff;
-    margin-bottom: 0.2em;
+    margin-bottom: 0;
     margin-left: 0.2em;
     padding: 0.4em 0 0.4em 0.4em;
 }
@@ -208,24 +207,19 @@ div.centered table {
 }
 
 #search {
-    padding-bottom: 5em;
+    padding-bottom: 4em;
 }
 
 #search input {
-    background-color: #fff;
+    background-color: #FFFFFF;
     color: #666666;
-    font-size: 13pt;
-    height: 2.5em;
-    max-width: 16em;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    -o-border-radius: 3px;
-    -ms-border-radius: 3px;
-    -khtml-border-radius: 3px;
-    border-radius: 3px;
-    border: 1px solid #666666;
+    font-size: 9.5pt;
+    height: 2.1em;
+    max-width: 22.5em;
+    border: 1px solid #F05000;
     box-shadow: none;
-    padding: 0 14px 2px;
+    padding: 0 14px;
+    margin-right: 0;
 }
 
 .custom_link {
@@ -260,6 +254,10 @@ div.centered table {
 #profile_page .well {
     margin-bottom: 10px;
     margin-top: 10px;
+}
+
+.well:active .well.active {
+    font-color: #FF0000;
 }
 
 #profile_page #web2py_user_form {
@@ -360,7 +358,7 @@ div.centered table {
 }
 
 #front_page #options_section {
-    margin-top: 3em;
+    margin-top: 2em;
 }
 
 #options_container  {
@@ -399,9 +397,15 @@ div.centered table {
 }
 /* navs end */
 
-.list_tile_options {
+#front_page .list_tile_options {
     float: right;
-    padding-top: 0.6em;
+    padding-top: 0.5em;
+}
+
+#creator_page .list_tile_options {
+    bottom: 0;
+    right: 0;
+    position: absolute;
 }
 
 .list_tile_options .btn-lg, .list_tile_options .btn-group-lg > .btn {
@@ -441,8 +445,12 @@ div.centered table {
 }
 
 .grid_section_header {
-    font-size: 16pt;
-    padding-top: 0.2em;
+    padding-top: 2em;
+}
+
+.grid_section_header h4 {
+    font-size: 22px;
+    margin: 0px;
 }
 .grid_section .item_container {
     border: 1px dotted #DDDDDD;
@@ -469,11 +477,12 @@ div.centered table {
 }
 
 .grid_section .item_details_padding {
-    padding: 0.8em 0 0.8em 0.8em;
+    padding: 0.8em 0 0 0.8em;
 }
 
 .grid_section .item_details .name_padding {
     padding-bottom: 0.4em;
+    z-index: 1;
 }
 
 .grid_section .item_details .name {
@@ -546,6 +555,8 @@ div.centered table {
 .grid_section .buttons_orderby_container .btn-default {
     background-color: #EEEEEE;
     border-color: #ADADAD;
+    padding: 6px 0px;
+    font-size: 12px;
 }
 
 #book_page #buttons_container .button_container .btn-default:hover,
@@ -676,12 +687,13 @@ div.centered table {
 }
 
 #creator_page {
-    margin: 1.4em 1em 1em 1em;
+    margin: 1em;
 }
 
-#creator_page #name {
-    font-size: 32pt;
-    line-height: 1em;
+#creator_page #name h1 {
+    font-size: 42px;
+    margin: 0;
+//    line-height: 1em;
 }
 
 #creator_page #bio {
@@ -701,7 +713,7 @@ div.centered table {
 }
 
 #book_page {
-    margin: 1.4em 1em 1em 1em;
+    margin: 1em;
 }
 
 #book_page #book_cover_img .portrait_placeholder {
@@ -840,6 +852,10 @@ div.centered table {
 
 #creator_id_section .dl-horizontal dt {
     width: 5em;
+}
+
+#creator_id_section {
+    padding-bottom: 1em;
 }
 
 #book_id_section .dl-horizontal dd,
@@ -1040,6 +1056,7 @@ div.centered table {
     line-height: 2em;
     margin: 0 0 20px;
     padding: 0;
+    vertical-align: middle;
 }
 
 #reader_page_footer .breadcrumb li {
@@ -1512,8 +1529,7 @@ div.centered table {
     width: 36em;
 }
 
-.doc_section h4,
-.doc_section h5 {
+.doc_section h4 {
     margin-bottom: 0.2em;
     margin-top: 1.4em;
 }
@@ -1527,6 +1543,7 @@ div.centered table {
     margin: 0;
 }
 
+.doc_section h5,
 #faq_page h5 {
     padding: 4px 0 4px 0;
     margin: 0;
@@ -1543,6 +1560,12 @@ div.centered table {
   -moz-transition: opacity 0.15s linear;
   -o-transition: opacity 0.15s linear;
   transition: opacity 0.15s linear;
+}
+
+#intro_section {
+    margin-left: auto;
+    margin-right: auto;
+    width: 300px;
 }
 
 /* temp stuff start \\\*/

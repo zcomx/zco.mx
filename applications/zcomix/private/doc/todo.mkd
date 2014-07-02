@@ -18,24 +18,35 @@ VERSION 1
     [x] use slightly thicker google font?
         http://www.google.com/fonts/specimen/Roboto+Slab
         http://www.google.com/fonts/specimen/Roboto
-    [ ] front page - blurb
+    [x] front page - blurb
         "zcomix is a not-for-profit comic-sharing website for self-publishing cartoonists and their readers."
-    [ ] front page - the covers should link to the book description page
-    [ ] book page - the cover should link to the reader
-    [ ] contribute | download - download needs to be wrapped in a div and 'vertical-align: middle' added
-    [ ] cartoonist faq in the logic area needs #faq_page div wrapped around it
+    [x] front page - the covers should link to the book description page
+    [x] book page - the cover should link to the reader
+    [x] book links on front page are hidden
+    [x] contribute | download - download needs to be wrapped in a div and 'vertical-align: middle' added
+    [x] navigation problem - move to top
+    [x] remove 'my account'/login from navbar
+    [x] merge search into navbar
+    [ ] faq page - navbar missing
+    [ ] login page - navbar missing
+    [ ] profile page - navbar missing
+        home  |  books  |  account  |  profile
 
-    [ ] make 'wells' collapsable
-    [ ] make the entire 'well' clickable
-    [ ] faq, account, profile, books
+        * bold active link
+        * default 'books' page after login
+    [ ] login page - Add 'Cartoonist Login' header
+    [x] cartoonist faq in the login area needs #faq_page div wrapped around it
+        [x] h5 padding wrong
+    [x] faq, account, profile, books -- lowercase
+    [ ] merge faqc into main faq
+        if logged in, show tabs: 'General | Cartoonist'
 
-    [ ] navigation problem
-        - move to top
+    [ ] navbar doesn't resize gracefully @screen-sm
+
+    [ ] footer
+        Maybe cartoonist's name instead of 'my account'
     [O] (i) info popups
     [O] Mature Content icon
-    [O] Footer
-        Compare footer before and after logging in.
-        Is there a better way to handle/label 'my account' and possibly 'logout' ?
 
 [O] Scrub and resize files for html version
     * optimum convert command?

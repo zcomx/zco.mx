@@ -18,7 +18,7 @@
             {{pass}}
             </div>
         </div>
-        <div class="grid_section_header">Released</div>
+        <div class="grid_section_header"><h4>Released</h4></div>
     </div>
 </div>
 
@@ -27,7 +27,7 @@
 {{=LOAD(c='search', f=func, vars={'creator_id': request.args(0), 'released': 1}, extension='load', ajax=True)}}
 </div>
 
-<div class="row grid_section_header">Ongoing</div>
+<div class="row grid_section_header"><h4>Ongoing</h4></div>
 <div class="grid_section">
 {{=LOAD(c='search', f=func, vars={'creator_id': request.args(0), 'released': 0}, extension='load', ajax=True)}}
 </div>

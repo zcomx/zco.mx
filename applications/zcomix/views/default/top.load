@@ -1,7 +1,7 @@
 <div class="row" id="top_section">
-    <div class="col-sm-7 breadcrumb_container">
+    <div class="col-sm-9 breadcrumb_container">
         <div class="row">
-            <div class="col-xs-7">
+            <div class="col-xs-12">
                 <ol class="breadcrumb">
                 {{if request.args(0): }}
                 <li><a href="{{=URL(c='default', f='index', extension=False)}}">home</a></li>
@@ -11,22 +11,9 @@
                 {{pass}}
                 </ol>
             </div>
-            <div class="col-xs-5 right">
-                <ol class="breadcrumb">
-                {{if auth.user_id:}}
-                <li>
-                    <a href="{{=URL(c='profile', f='index', extension=False)}}" >my account</a>
-                </li>
-                {{else:}}
-                <li>
-                    <a href="{{=URL(c='default', f='user/login', extension=False)}}" >login</a>
-                </li>
-                {{pass}}
-                </ol>
-            </div>
         </div>
     </div>
-    <div class="col-sm-5">
+    <div class="col-sm-3">
         <div class="row">
         {{=LOAD(c='search', f='box', extension='load', ajax=False, content='')}}
         </div>
