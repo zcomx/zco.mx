@@ -4,6 +4,7 @@
     function close_button(label) {
         label = typeof label !== 'undefined' ? label : 'Close';
         return {
+            id: 'close_button',
             label: label,
             action : function(dialog){
                 dialog.close();
@@ -67,10 +68,9 @@
 
     $(document).ready(function(){
         $('.modal-add-btn').click(function(event){
-            var action = 'Add';
             var link = $(this);
-            new BootstrapDialog({
-                title: get_title(link, action),
+            var add_dialog = new BootstrapDialog({
+                title: 'Add book',
                 message: get_message(link),
                 onhide: function(dialog) {
                     setTimeout(function() {
@@ -79,9 +79,10 @@
                 },
                 onshow: onshow_callback,
                 buttons: [
-                    close_button(),
+                    close_button('Cancel'),
                 ],
             }).open();
+            $(this).data({'dialog': add_dialog});
             event.preventDefault();
         });
 

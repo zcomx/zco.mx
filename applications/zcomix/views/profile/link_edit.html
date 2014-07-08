@@ -1,0 +1,39 @@
+<div id="link_edit_section">
+
+<div id="link_editable_fields_container"></div>
+
+</div>
+<script>
+//<![CDATA[
+    var link_data = {
+        'name': {
+            'label': '{{=db.link.name.label}}',
+            'value': '{{=XML(link.name or "")}}',
+            'x_editable_settings': {
+                'title': 'Enter the name of the link.',
+                'escape': true,
+            },
+        },
+        'url': {
+            'label': '{{=db.link.url.label}}',
+            'value': '{{=link.url or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter the url of the link.',
+                'escape': true,
+            },
+        },
+    }
+//]]>
+</script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        console.log('link_edit ready');
+        $('#link_editable_fields_container').inplace_crud(
+            '{{=URL(c='profile', f='link_crud.json', args=link.id)}}',
+            '{{=link.id}}',
+            {source_data: link_data}
+        );
+    });
+//]]>
+</script>

@@ -297,6 +297,54 @@ div.centered table {
     margin-left: 0;
 }
 
+
+.editable_combolink_container input {
+    display: inline-block;
+}
+
+.editable_combolink_container label {
+    display: inline-block;
+    min-width: 4em;
+    text-align: right;
+}
+
+.editable_combolink_container .dl-horizontal dd {
+    margin-left: 4.4em;
+}
+
+.editable_combolink_container .dl-horizontal dt {
+    width: 4em;
+}
+
+.editable_combolink_container .instruction {
+    clear: both;
+    padding: 0 0 0.9em 0;
+    max-width: 44em;
+    margin-top: 2em;
+}
+
+.editable_combolink_container .panel-title {
+    color: #999999;
+}
+
+a.modal-link-btn, a.modal-link-btn:hover {
+    border-bottom: 1px dashed #0088CC;
+    text-decoration: none;
+}
+
+#link_edit_section .row_container .field_label {
+    width: 3em;
+    min-width: 2em;
+}
+
+#link_edit_section .field_container {
+    min-width: 2em;
+}
+
+.link_edit_modalx {
+    width: 20em;
+}
+
 @media (max-width: 480px) {
     #web2py_user_form .web2py_user_form_container {
         margin-left: 0;
@@ -1289,26 +1337,13 @@ div.centered table {
 }
 
 .row_container .field_label {
-    border: 1px solid #FFFFFF;          /* same as bg colour, hides it */
     font-weight: bold;
 }
 
 .row_container .field_container {
-    border: 1px solid #FFFFFF;          /* same as bg colour, hides it */
     display: inline-block;
     min-height: 1.9em;                  /* >= input height */
     vertical-align: top;
-}
-
-.row_container .field_container.edit:hover {
-    border: 1px solid #DDDDDD;
-    cursor: pointer;
-    padding: 0;
-}
-
-.row_container .field_container.edit.active,
-.row_container .field_container.edit.active:hover {
-    border-color: #FFFFFF;             /* same as bg colour, hides it */
 }
 
 .row_container .edit_link_delete {
@@ -1398,10 +1433,6 @@ div.centered table {
 
 #mug_shot input[type=submit] {
     margin-top: 1em;
-}
-
-.jeditable_placeholder {
-    color: #999999;
 }
 
 #profile_page #creator_section {
@@ -1623,7 +1654,11 @@ div.centered table {
 }
 
 /* temp stuff start \\\*/
-.viewport_info {
+.x_editable_textarea {
+    width: 40em;
+}
+
+#viewport_info {
     padding: 1em;
     font-size: 8pt;
 }
@@ -1632,4 +1667,7 @@ div.centered table {
     border: 1px solid red;
 }
 
+.jjjjjj {
+    background: purple;
+}
 /* temp stuff end /// */

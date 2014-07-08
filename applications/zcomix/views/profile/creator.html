@@ -130,34 +130,54 @@
 <!--[if (gte IE 8)&(lt IE 10)]>
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/cors/jquery.xdr-transport.js')}}"></script>
 <![endif]-->
-{{if DEBUG:}}
-    <script src="{{=URL(c='static', f='jeditable/jquery.jeditable.js')}}"> </script>
-{{else:}}
-    <script src="{{=URL(c='static', f='jeditable/jquery.jeditable.min.js')}}"> </script>
-{{pass}}
 <script>
 //<![CDATA[
     var creator_data = {
         'email': {
             'label': '{{=db.creator.email.label}}',
             'value': '{{=creator.email or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter your contact email address. (Optional)',
+                'escape': true,
+                'placeholder': 'username@example.com',
+            },
         },
         'paypal_email': {
             'label': '{{=db.creator.paypal_email.label}}',
             'value': '{{=creator.paypal_email or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter your paypal email address. (Optional. Required to receive payments.)',
+                'escape': true,
+                'placeholder': 'username@example.com',
+            },
         },
         'website': {
             'label': '{{=db.creator.website.label}}',
             'value': '{{=creator.website or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter your website address. (Optional)',
+                'escape': true,
+                'placeholder': 'http://www.example.com',
+            },
         },
         'twitter': {
             'label': '{{=db.creator.twitter.label}}',
             'value': '{{=creator.twitter or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter your twitter handle. (Optional)',
+                'escape': true,
+                'placeholder': '#twitter_account',
+            },
         },
         'tumblr': {
             'label': '{{=db.creator.tumblr.label}}',
             'value': '{{=creator.tumblr or ""}}',
             'append_to': '#edit_links_container',
+            'x_editable_settings': {
+                'title': 'Enter your tumblr account. (Optional)',
+                'escape': true,
+                'placeholder': 'http://username.tumblr.com',
+            },
         },
     }
 
@@ -165,28 +185,49 @@
         'bio': {
             'label': '{{=db.creator.bio.label}}',
             'value': '{{=dumps(creator.bio or "").strip('"')}}',
-            'jeditable_settings': {'type': 'textarea'},
+            'x_editable_settings': {
+                'title': 'Enter a brief biography.',
+                'type': 'textarea',
+                'escape': true,
+            },
         },
     }
 //]]>
 </script>
-<script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
 <script>
 //<![CDATA[
     $(document).ready(function(){
         $('#editable_fields_container').inplace_crud(
             '{{=URL(c='profile', f='creator_crud.json')}}',
-            {source_data: creator_data}
+            '{{=creator.id}}',
+            {
+                source_data: creator_data,
+                auto_open: true,
+            }
         );
-        $('#edit_links_container').inplace_crud(
+
+        $('#edit_links_container').inplace_link_crud(
             '{{=URL(c='profile', f='link_crud.json')}}',
-            {links: true}
+            '',
+            {
+                auto_open: true,
+            }
         );
+
         $('#bio_container').inplace_crud(
             '{{=URL(c='profile', f='creator_crud.json')}}',
-            {source_data: bio_data}
+            '{{=creator.id}}',
+            { source_data: bio_data }
         );
     });
 //]]>
 </script>
 <script src="{{=URL(c='static', f='js/creator_fileupload.js')}}"> </script>
+{{block post_bootstrap_js}}
+    {{if DEBUG:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.js')}}"></script>
+    {{else:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.min.js')}}"></script>
+    {{pass}}
+    <script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
+{{end}}

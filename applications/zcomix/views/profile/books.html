@@ -129,15 +129,26 @@
     <div>
         {{=A(
             'Add',
+            _id='add_book_button',
             _class='btn btn-default modal-add-btn',
-            _href=URL(c='profile', f='book_add'),
+            _href=URL(c='profile', f='book_edit'),
             _type='button',
         )}}
     </div>
 </div>
-{{if DEBUG:}}
-    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
-{{else:}}
-    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
-{{pass}}
-<script src="{{=URL(c='static', f='js/books.js')}}"> </script>
+{{block post_bootstrap_js}}
+    {{if DEBUG:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.js')}}"></script>
+    {{else:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.min.js')}}"></script>
+    {{pass}}
+    {{if DEBUG:}}
+        <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
+    {{else:}}
+        <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
+    {{pass}}
+    <script src="{{=URL(c='static', f='bgrins-spectrum-28ab793/spectrum.js')}}"> </script>
+    <script src="{{=URL(c='static', f='x-editable/inputs_custom/colour_picker.js')}}"> </script>
+    <script src="{{=URL(c='static', f='js/books.js')}}"> </script>
+    <script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
+{{end}}
