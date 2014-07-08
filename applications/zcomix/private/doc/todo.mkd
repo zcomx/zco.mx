@@ -27,27 +27,34 @@ VERSION 1
     [x] navigation problem - move to top
     [x] remove 'my account'/login from navbar
     [x] merge search into navbar
-    [ ] faq page - navbar missing
-    [ ] login page - navbar missing
-    [ ] profile page - navbar missing
+    [x] faq page - navbar missing
+    [x] login page - navbar missing
+    [x] profile page - navbar missing
         home  |  books  |  account  |  profile
-
-        * bold active link
-        * default 'books' page after login
-    [ ] login page - Add 'Cartoonist Login' header
+    [x] profile page navbar - bold active link
+    [x] profile page navbar - Use white '|' as separator
+    [x] profile page navbar - unbold '|' on active link
+    [x] login page - Add 'Cartoonist Login' header
     [x] cartoonist faq in the login area needs #faq_page div wrapped around it
         [x] h5 padding wrong
     [x] faq, account, profile, books -- lowercase
-    [ ] merge faqc into main faq
+    [x] merge faqc into main faq
         if logged in, show tabs: 'General | Cartoonist'
-
-    [ ] navbar doesn't resize gracefully @screen-sm
+    [ ] login - thumbnails for png's aren't showing
+    [ ] login - default to the 'books' page after logging in
+    [ ] login - swap 'profile' and 'account' in navbar
+    [ ] login -> books page - change 'No records found.' to "no books released" and "no ongoing series"
+    [ ] login -> books page - do the record in 'released' and 'ongoing' paginate
+    [ ] login -> books page -> add - change '__Untitled-01__' to 'Click to edit'.  If not name, delete record ??
+    [ ] login -> books page -> add - slight jump when selecting 'Name', 'Published' and 'Reader'
+    [ ] login -> books page -> add - change borders on url input boxes ??
 
     [ ] footer
-        Maybe cartoonist's name instead of 'my account'
+        Maybe use the cartoonist's (eg 'charles forsman') name instead of 'my account' ??
     [O] (i) info popups
     [O] Mature Content icon
 
+[ ] ssl cert for zco.mx
 [O] Scrub and resize files for html version
     * optimum convert command?
     * current convert command bloats pngs

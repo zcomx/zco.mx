@@ -172,9 +172,12 @@ div.centered table {
 }
 
 .main {
-    padding-top: 0;
-    padding-bottom: 0;
+    padding: 1em;
     min-width: 24em;
+}
+
+#top_section {
+    padding-bottom: 2em;
 }
 
 .breadcrumb_container {
@@ -188,7 +191,6 @@ div.centered table {
     font-size: 12px;
     padding: 0 6px;
 }
-
 
 .breadcrumb_container .breadcrumb {
     background-color: #F05000;
@@ -210,9 +212,8 @@ div.centered table {
     font-weight: bold;
 }
 
-
 #search {
-    padding-bottom: 4em;
+//    padding-bottom: 3em;
 }
 
 #search input {
@@ -232,13 +233,13 @@ div.centered table {
 }
 
 #web2py_user_form {
-    margin-top: 10%;
+    margin-top: 5%;
 }
 
 #web2py_user_form .user_form_header {
     font-size: 18pt;
     text-align: center;
-    margin-bottom: 2em;
+    margin-bottom: 1.2em;
 }
 
 .web2py_paginator .current a:hover{
@@ -371,10 +372,6 @@ div.centered table {
     min-height: inherit;
 }
 
-#front_page {
-    margin: 1em;
-}
-
 #front_page #options_section {
     margin-top: 2em;
 }
@@ -385,28 +382,41 @@ div.centered table {
 }
 
 /* navs start */
-#front_page #options_container .nav {
+#front_page #options_container .nav,
+#profile_page .faq_options_container .nav {
     margin-bottom: 0.5em;
     margin-left: 0;
 }
 
 #front_page #options_container .nav > li > a:hover,
-#front_page #options_container .nav > li > a:focus {
+#profile_page .faq_options_container .nav > li > a:hover,
+#front_page #options_container .nav > li > a:focus,
+#profile_page .faq_options_container .nav > li > a:focus {
   text-decoration: underline;
   background-color: inherit;
 }
-#front_page #options_container .nav-tabs {
+
+#front_page #options_container .nav-tabs,
+#profile_page .faq_options_container .nav-tabs {
   border-bottom: 1px solid #333333;
 }
-#front_page #options_container .nav-tabs > li > a {
+
+#front_page #options_container .nav-tabs > li > a,
+#profile_page .faq_options_container .nav-tabs > li > a {
   border: 1px solid transparent;
 }
-#front_page #options_container .nav-tabs > li > a:hover {
+
+#front_page #options_container .nav-tabs > li > a:hover,
+#profile_page .faq_options_container .nav-tabs > li > a:hover {
   border-bottom: 1px solid #333333;
 }
+
 #front_page #options_container .nav-tabs > li.active > a,
+#profile_page .faq_options_container .nav-tabs > li.active > a,
 #front_page #options_container .nav-tabs > li.active > a:hover,
-#front_page #options_container .nav-tabs > li.active > a:focus {
+#profile_page .faq_options_container .nav-tabs > li.active > a:hover,
+#front_page #options_container .nav-tabs > li.active > a:focus,
+#profile_page .faq_options_container .nav-tabs > li.active > a:focus {
   color: #333;
   background-color: #fff;
   border: 1px solid #333;
@@ -463,6 +473,7 @@ div.centered table {
 }
 
 .grid_section_header {
+    margin-bottom: -0.4em;
     padding-top: 2em;
 }
 
@@ -496,6 +507,12 @@ div.centered table {
 
 .grid_section .item_details_padding {
     padding: 0.8em 0 0 0.8em;
+}
+
+@media screen and (max-width: 767px){
+    .grid_section .item_details_padding {
+        padding: 0.8em 0 0.8em 0.8em;
+    }
 }
 
 .grid_section .item_details .name_padding {
@@ -704,20 +721,14 @@ div.centered table {
     }
 }
 
-#creator_page {
-    margin: 1em;
-}
-
 #creator_page #name h1 {
-    font-size: 42px;
     margin: 0;
-//    line-height: 1em;
 }
 
 #creator_page #bio {
     font-size: 9pt;
-    line-height: 1.2em;
-    margin: 1em 0;
+    line-height: 1.4em;
+    margin: 0.2em 0 1em;
 }
 
 #creator_page #report_section {
@@ -726,12 +737,8 @@ div.centered table {
 
 @media screen and (min-width: 768px){
     #creator_page #name_bio {
-        margin-top: -1em;
+//        margin-top: -1em;
     }
-}
-
-#book_page {
-    margin: 1em;
 }
 
 #book_page #book_cover_img .portrait_placeholder {
@@ -907,15 +914,20 @@ div.centered table {
     padding: 0;
 }
 
+#top_section .breadcrumb > li + li:before {
+    content: "\7C";     /* Ascii hex code for | */
+    color: #FFFFFF;
+    font-weight: normal;
+    padding: 0 10px;
+}
+
 #book_id_section .custom_links.breadcrumb > li + li:before,
 #creator_id_section .custom_links.breadcrumb > li + li:before {
-    content: "\7C"     /* Ascii hex code for | */
+    content: "\7C";     /* Ascii hex code for | */
 }
 
 
-
 @media screen and (min-width: 768px){
-
     #book_page #book_id_section {
         padding-top: 2em;
         position: relative;
@@ -929,7 +941,6 @@ div.centered table {
         top: 0;
         right: 0;
     }
-
 
     #book_page #book_cover_img {
         padding-right: 1.2em;
@@ -1184,6 +1195,11 @@ div.centered table {
     float: right;
 }
 
+#profile_page {
+    margin-left: -1em;
+    margin-right: -1em;
+}
+
 #profile_page .books_list_title h4 {
     display: inline-block;
 }
@@ -1225,6 +1241,7 @@ div.centered table {
     pointer-events: none;
     cursor: default;
 }
+
 #profile_book_pages_page .template-download .arrow-muted span {
     opacity: 0.1;
 }
@@ -1306,15 +1323,19 @@ div.centered table {
 }
 
 .row_container .field_container input:not(.sp-input) {
+    border: 1px solid #333333;
     min-width: 12em;
 }
 
-.add_link_container .error_wrapper div.error,
+#add_link_container .error_wrapper div.error,
 .field_container .error_wrapper div.error {
+//    background: #FF9999;
+    background: none;
     border-radius: 0;
+    color: #DD0000;
+//    font-weight: bold;
+    padding: 3px;
     width: 100%;
-    background: #FF9999;
-    font-weight: bold;
 }
 
 #add_link_container > div {
@@ -1327,11 +1348,15 @@ div.centered table {
 }
 
 #add_link_container .link_name {
+    border: 1px solid #333333;
     width: 12em;
+    margin-right: 0;
 }
 
 #add_link_container .link_url {
-    min-width: 24em;
+    border: 1px solid #333333;
+    min-width: 20em;
+    margin-right: 0;
 }
 
 .row_container .arrow-muted {
@@ -1375,7 +1400,7 @@ div.centered table {
     margin-top: 1em;
 }
 
-.jeditable_placeholder{
+.jeditable_placeholder {
     color: #999999;
 }
 
@@ -1470,6 +1495,7 @@ div.centered table {
     .row_container .image_field_container,
     .row_container .field_label {
         display: inline-block;
+        line-height: 1.8em;
         min-width: 12em;
         margin-top: 0.2em;
     }
@@ -1559,6 +1585,16 @@ div.centered table {
 
 .doc_section table {
     margin: 0;
+}
+
+.doc_section,
+#faq_page {
+//    margin-left: -1em;
+}
+
+.doc_section h1,
+#faq_page h1 {
+    margin-top: 0;
 }
 
 .doc_section h5,
