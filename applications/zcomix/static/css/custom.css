@@ -1526,9 +1526,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     .row_container .image_field_container,
     .row_container .field_label {
         display: inline-block;
-        line-height: 1.8em;
+        line-height: 2em;
         min-width: 12em;
-        margin-top: 0.2em;
     }
 
     .row_container .field_container,
@@ -1636,6 +1635,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #todo_page {
     width: auto;
+}
+
+.editable-click, a.editable-click, a.editable-click:hover {
+    border-bottom: 1px dotted #999999;
 }
 
 /* bootstrap 2.3.2 for jquery-file-upload */
