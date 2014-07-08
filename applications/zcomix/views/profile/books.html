@@ -23,9 +23,10 @@
                 </td>
                 <td>
                     {{=A(
-                        I('', _class='icon fi-trash size-18 modal-delete-btn'),
+                        I('',
+                        _class='icon fi-trash size-18'),
                         _href=URL(c='profile', f='book_delete', args=book.id),
-                        _class='btn btn-default btn-xs',
+                        _class='btn btn-default btn-xs modal-delete-btn',
                         _type='button',
                     )}}
                 </td>
