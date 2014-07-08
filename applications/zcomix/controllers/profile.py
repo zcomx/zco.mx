@@ -641,6 +641,7 @@ def faqc():
 
     return dict(text=markmin_content('faqc.mkd'))
 
+
 @auth.requires_login()
 def index():
     """Creator profile controller."""
@@ -649,8 +650,7 @@ def index():
     ).first()
     if not creator_record:
         redirect(URL(c='default', f='index'))
-
-    return dict(creator=creator_record)
+    redirect(URL(c='profile', f='books'))
 
 
 @auth.requires_login()
