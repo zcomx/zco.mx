@@ -265,7 +265,6 @@ div.centered table {
     line-height: 1;
 }
 
-
 #profile_page .table > thead > tr > th,
 #profile_page .table > tbody > tr > th,
 #profile_page .table > tfoot > tr > th,
@@ -294,6 +293,10 @@ div.centered table {
     margin-bottom: 0.8em;
 }
 
+#profile_page .no_records_found {
+    color: #999999;
+}
+
 #profile_page .vertical_spacer {
     min-height: 2em;
 }
@@ -309,7 +312,6 @@ div.centered table {
 #profile_page .faq_options_container ul.nav-tabs {
     margin-left: 0;
 }
-
 
 .editable_combolink_container input {
     display: inline-block;
@@ -343,6 +345,11 @@ div.centered table {
 a.modal-link-btn, a.modal-link-btn:hover {
     border-bottom: 1px dashed #0088CC;
     text-decoration: none;
+}
+
+/* Roboto distorts Add files... button */
+.fileinput-button input {
+    font-family: sans-serif;
 }
 
 #link_edit_section .row_container .field_label {

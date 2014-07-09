@@ -442,7 +442,7 @@ def books():
         redirect(URL('index'))
 
     response.files.append(
-        URL('static', 'bgrins-spectrum-28ab793/spectrum.css')
+        URL('static', 'bgrins-spectrum/spectrum.css')
     )
 
     response.files.append(

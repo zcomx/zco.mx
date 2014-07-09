@@ -112,7 +112,7 @@
                     {{pass}}
                     {{if auth.user_id:}}
                         <li>
-                            <a href="{{=URL(c='profile', f='index')}}" >my account</a>
+                        <a href="{{=URL(c='profile', f='index')}}" >{{try:}}{{=auth.user.name}}{{except:}}my account{{pass}}</a>
                         </li>
                         <li>
                             <a href="{{=URL(c='default', f='user/logout')}}" >logout</a>

@@ -23,9 +23,10 @@
                 </td>
                 <td>
                     {{=A(
-                        I('', _class='icon fi-trash size-18 modal-delete-btn'),
+                        I('',
+                        _class='icon fi-trash size-18'),
                         _href=URL(c='profile', f='book_delete', args=book.id),
-                        _class='btn btn-default btn-xs',
+                        _class='btn btn-default btn-xs modal-delete-btn',
                         _type='button',
                     )}}
                 </td>
@@ -33,7 +34,7 @@
             {{pass}}
             {{if not released:}}
             <tr>
-                <td colspan="7">No records found.</td>
+                <td colspan="7"><span class="no_records_found">No books released.</span></td>
             </tr>
             {{pass}}
         </table>
@@ -87,7 +88,7 @@
             {{pass}}
             {{if not ongoing:}}
             <tr>
-                <td colspan="7">No records found.</td>
+                <td colspan="7"><span class="no_records_found">No ongoing series.</span></td>
             </tr>
             {{pass}}
         </table>
@@ -147,7 +148,7 @@
     {{else:}}
         <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
     {{pass}}
-    <script src="{{=URL(c='static', f='bgrins-spectrum-28ab793/spectrum.js')}}"> </script>
+    <script src="{{=URL(c='static', f='bgrins-spectrum/spectrum.js')}}"> </script>
     <script src="{{=URL(c='static', f='x-editable/inputs_custom/colour_picker.js')}}"> </script>
     <script src="{{=URL(c='static', f='js/books.js')}}"> </script>
     <script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
