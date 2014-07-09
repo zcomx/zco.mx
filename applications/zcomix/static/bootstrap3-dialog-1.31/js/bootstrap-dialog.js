@@ -1,3 +1,5 @@
+/* global define */
+
 /* ================================================
  * Make use of Bootstrap's modal more monkey-friendly.
  * 
@@ -9,27 +11,38 @@
  * 
  * Licensed under The MIT License.
  * ================================================ */
-(function($) {
+(function(root, factory) {
+
+    "use strict";
+
+    // CommonJS module is defined
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = factory(require('jquery')(root));
+    }
+    // AMD module is defined
+    else if (typeof define === "function" && define.amd) {
+        define("bootstrap-dialog", ["jquery"], function($) {
+            return factory($);
+        });
+    } else {
+        // planted over the root!
+        root.BootstrapDialog = factory(root.jQuery);
+    }
+
+}(this, function($) {
 
     "use strict";
 
     var BootstrapDialog = function(options) {
-        this.defaultOptions = {
+        this.defaultOptions = $.extend(true, {
             id: BootstrapDialog.newGuid(),
-            type: BootstrapDialog.TYPE_PRIMARY,
-            size: BootstrapDialog.SIZE_NORMAL,
-            cssClass: '',
-            title: null,
-            message: null,
             buttons: [],
-            closable: true,
-            spinicon: BootstrapDialog.ICON_SPINNER,
             data: {},
             onshow: null,
+            onshown: null,
             onhide: null,
-            autodestroy: true,
-            draggable: false
-        };
+            onhidden: null
+        }, BootstrapDialog.defaultOptions);
         this.indexedButtons = {};
         this.registeredButtonHotkeys = {};
         this.draggableData = {
@@ -70,6 +83,35 @@
     BootstrapDialog.BUTTON_SIZES[BootstrapDialog.SIZE_LARGE] = 'btn-lg';
 
     BootstrapDialog.ICON_SPINNER = 'glyphicon glyphicon-asterisk';
+
+    BootstrapDialog.ZINDEX_BACKDROP = 1040;
+    BootstrapDialog.ZINDEX_MODAL = 1050;
+
+    /**
+     * Default options.
+     */
+    BootstrapDialog.defaultOptions = {
+        type: BootstrapDialog.TYPE_PRIMARY,
+        size: BootstrapDialog.SIZE_NORMAL,
+        cssClass: '',
+        title: null,
+        message: null,
+        nl2br: true,
+        closable: true,
+        closeByBackdrop: true,
+        closeByKeyboard: true,
+        spinicon: BootstrapDialog.ICON_SPINNER,
+        autodestroy: true,
+        draggable: false,
+        animate: true
+    };
+
+    /**
+     * Config default options.
+     */
+    BootstrapDialog.configDefaultOptions = function(options) {
+        BootstrapDialog.defaultOptions = $.extend(true, BootstrapDialog.defaultOptions, options);
+    };
 
     /**
      * Open / Close all created dialogs all at once.
@@ -116,7 +158,7 @@
             return this;
         },
         createModal: function() {
-            var $modal = $('<div class="modal fade" tabindex="-1"></div>');
+            var $modal = $('<div class="modal" tabindex="-1"></div>');
             $modal.prop('id', this.getId());
 
             return $modal;
@@ -198,7 +240,11 @@
             return content;
         },
         formatStringContent: function(content) {
-            return content.replace(/\r\n/g, '<br />').replace(/[\r\n]/g, '<br />');
+            if (this.options.nl2br) {
+                return content.replace(/\r\n/g, '<br />').replace(/[\r\n]/g, '<br />');
+            }
+
+            return content;
         },
         setData: function(key, value) {
             this.options.data[key] = value;
@@ -283,6 +329,37 @@
 
             return this;
         },
+        setCloseByBackdrop: function(closeByBackdrop) {
+            this.options.closeByBackdrop = closeByBackdrop;
+
+            return this;
+        },
+        canCloseByBackdrop: function() {
+            return this.options.closeByBackdrop;
+        },
+        setCloseByKeyboard: function(closeByKeyboard) {
+            this.options.closeByKeyboard = closeByKeyboard;
+
+            return this;
+        },
+        canCloseByKeyboard: function() {
+            return this.options.closeByKeyboard;
+        },
+        isAnimate: function() {
+            return this.options.animate;
+        },
+        setAnimate: function(animate) {
+            this.options.animate = animate;
+
+            return this;
+        },
+        updateAnimate: function() {
+            if (this.isRealized()) {
+                this.getModal().toggleClass('fade', this.isAnimate());
+            }
+
+            return this;
+        },
         getSpinicon: function() {
             return this.options.spinicon;
         },
@@ -309,6 +386,7 @@
         },
         setButtons: function(buttons) {
             this.options.buttons = buttons;
+            this.updateButtons();
 
             return this;
         },
@@ -334,6 +412,17 @@
 
             return '';
         },
+        updateButtons: function() {
+            if (this.isRealized()) {
+                if (this.getButtons().length === 0) {
+                    this.getModalFooter().hide();
+                } else {
+                    this.getModalFooter().find('.' + this.getNamespace('footer')).html('').append(this.createFooterButtons());
+                }
+            }
+
+            return this;
+        },
         isAutodestroy: function() {
             return this.options.autodestroy;
         },
@@ -354,7 +443,7 @@
             $container.append(this.createTitleContent());
 
             // Close button
-            $container.append(this.createCloseButton());
+            $container.prepend(this.createCloseButton());
 
             return $container;
         },
@@ -394,9 +483,6 @@
             var $container = $('<div></div>');
             $container.addClass(this.getNamespace('footer'));
 
-            // Buttons
-            $container.append(this.createFooterButtons());
-
             return $container;
         },
         createFooterButtons: function() {
@@ -421,24 +507,24 @@
             $button.prop('id', button.id);
 
             // Icon
-            if (typeof button.icon !== undefined && $.trim(button.icon) !== '') {
+            if (typeof button.icon !== 'undefined' && $.trim(button.icon) !== '') {
                 $button.append(this.createButtonIcon(button.icon));
             }
 
             // Label
-            if (typeof button.label !== undefined) {
+            if (typeof button.label !== 'undefined') {
                 $button.append(button.label);
             }
 
             // Css class
-            if (typeof button.cssClass !== undefined && $.trim(button.cssClass) !== '') {
+            if (typeof button.cssClass !== 'undefined' && $.trim(button.cssClass) !== '') {
                 $button.addClass(button.cssClass);
             } else {
                 $button.addClass('btn-default');
             }
 
             // Hotkey
-            if (typeof button.hotkey !== undefined) {
+            if (typeof button.hotkey !== 'undefined') {
                 this.registeredButtonHotkeys[button.hotkey] = $button;
             }
 
@@ -555,11 +641,8 @@
             return this;
         },
         /**
-         * Set handler for modal event 'show'.
+         * Set handler for modal event 'show.bs.modal'.
          * This is a setter!
-         * 
-         * @param {type} onopen
-         * @returns {_L9.BootstrapDialog.prototype}
          */
         onShow: function(onshow) {
             this.options.onshow = onshow;
@@ -567,14 +650,29 @@
             return this;
         },
         /**
-         * Set handler for modal event 'hide'.
+         * Set handler for modal event 'shown.bs.modal'.
          * This is a setter!
-         * 
-         * @param {type} onclose
-         * @returns {_L9.BootstrapDialog.prototype}
+         */
+        onShown: function(onshown) {
+            this.options.onshown = onshown;
+
+            return this;
+        },
+        /**
+         * Set handler for modal event 'hide.bs.modal'.
+         * This is a setter!
          */
         onHide: function(onhide) {
             this.options.onhide = onhide;
+
+            return this;
+        },
+        /**
+         * Set handler for modal event 'hidden.bs.modal'.
+         * This is a setter!
+         */
+        onHidden: function(onhidden) {
+            this.options.onhidden = onhidden;
 
             return this;
         },
@@ -597,27 +695,37 @@
         handleModalEvents: function() {
             this.getModal().on('show.bs.modal', {dialog: this}, function(event) {
                 var dialog = event.data.dialog;
-                typeof dialog.options.onshow === 'function' && dialog.options.onshow(dialog);
+                dialog.showPageScrollBar(true);
+                if (typeof dialog.options.onshow === 'function') {
+                    return dialog.options.onshow(dialog);
+                }
+            });
+            this.getModal().on('shown.bs.modal', {dialog: this}, function(event) {
+                var dialog = event.data.dialog;
+                typeof dialog.options.onshown === 'function' && dialog.options.onshown(dialog);
                 dialog.showPageScrollBar(true);
             });
             this.getModal().on('hide.bs.modal', {dialog: this}, function(event) {
                 var dialog = event.data.dialog;
-                typeof dialog.options.onhide === 'function' && dialog.options.onhide(dialog);
+                if (typeof dialog.options.onhide === 'function') {
+                    return dialog.options.onhide(dialog);
+                }
             });
             this.getModal().on('hidden.bs.modal', {dialog: this}, function(event) {
                 var dialog = event.data.dialog;
+                typeof dialog.options.onhidden === 'function' && dialog.options.onhidden(dialog);
                 dialog.isAutodestroy() && $(this).remove();
                 dialog.showPageScrollBar(false);
             });
 
             // Backdrop, I did't find a way to change bs3 backdrop option after the dialog is popped up, so here's a new wheel.
             this.getModal().on('click', {dialog: this}, function(event) {
-                event.target === this && event.data.dialog.isClosable() && event.data.dialog.close();
+                event.target === this && event.data.dialog.isClosable() && event.data.dialog.canCloseByBackdrop() && event.data.dialog.close();
             });
 
             // ESC key support
             this.getModal().on('keyup', {dialog: this}, function(event) {
-                event.which === 27 && event.data.dialog.isClosable() && event.data.dialog.close();
+                event.which === 27 && event.data.dialog.isClosable() && event.data.dialog.canCloseByKeyboard() && event.data.dialog.close();
             });
 
             // Button hotkey
@@ -662,6 +770,20 @@
         showPageScrollBar: function(show) {
             $(document.body).toggleClass('modal-open', show);
         },
+        /**
+         * To make multiple opened dialogs look better.
+         */
+        updateZIndex: function() {
+            var dialogCount = Object.keys(BootstrapDialog.dialogs).length;
+            if (dialogCount > 1) {
+                var $modal = this.getModal();
+                var $backdrop = $modal.data('bs.modal').$backdrop;
+                $modal.css('z-index', BootstrapDialog.ZINDEX_MODAL + (dialogCount - 1) * 20);
+                $backdrop.css('z-index', BootstrapDialog.ZINDEX_BACKDROP + (dialogCount - 1) * 20);
+            }
+
+            return this;
+        },
         realize: function() {
             this.initModalStuff();
             this.getModal().addClass(BootstrapDialog.NAMESPACE)
@@ -679,15 +801,18 @@
             this.makeModalDraggable();
             this.handleModalEvents();
             this.setRealized(true);
+            this.updateButtons();
             this.updateTitle();
             this.updateMessage();
             this.updateClosable();
+            this.updateAnimate();
 
             return this;
         },
         open: function() {
             !this.isRealized() && this.realize();
             this.getModal().modal('show');
+            this.updateZIndex();
             this.setOpened(true);
 
             return this;
@@ -812,20 +937,6 @@
         }).open();
     };
 
-    BootstrapDialog.init = function() {
-        // check for nodeJS
-        var hasModule = (typeof module !== 'undefined' && module.exports);
+    return BootstrapDialog;
 
-        // CommonJS module is defined
-        if (hasModule)
-            module.exports = BootstrapDialog;
-        else if (typeof define === "function" && define.amd)
-            define("bootstrap-dialog", function() {
-                return BootstrapDialog;
-            });
-        else
-            window.BootstrapDialog = BootstrapDialog;
-    };
-    BootstrapDialog.init();
-
-})(window.jQuery);
+}));
