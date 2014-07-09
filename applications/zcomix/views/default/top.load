@@ -7,8 +7,8 @@
                     {{if request.args(0) == 'profile' and auth.user_id:}}
                     <li><a href="{{=URL(c='default', f='index', extension=False)}}">home</a></li>
                     <li {{if request.args(1) == 'books':}}class="active"{{pass}}><a href="{{=URL(c='profile', f='books', extension=False)}}">books</a></li>
-                    <li {{if request.args(1) == 'account':}}class="active"{{pass}}><a href="{{=URL(c='profile', f='account', extension=False)}}">account</a></li>
                     <li {{if request.args(1) == 'creator':}}class="active"{{pass}}><a href="{{=URL(c='profile', f='creator', extension=False)}}">profile</a></li>
+                    <li {{if request.args(1) == 'account':}}class="active"{{pass}}><a href="{{=URL(c='profile', f='account', extension=False)}}">account</a></li>
                     {{else:}}
                         <li><a href="{{=URL(c='default', f='index', extension=False)}}">home</a></li>
                     {{pass}}

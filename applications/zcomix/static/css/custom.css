@@ -252,7 +252,6 @@ div.centered table {
     line-height: 1;
 }
 
-
 #profile_page .table > thead > tr > th,
 #profile_page .table > tbody > tr > th,
 #profile_page .table > tfoot > tr > th,
@@ -279,6 +278,10 @@ div.centered table {
 #profile_page .change_password_container {
     border-left: 1px solid #DDDDDD;
     margin-bottom: 0.8em;
+}
+
+#profile_page .no_records_found {
+    color: #999999;
 }
 
 #profile_page .vertical_spacer {
