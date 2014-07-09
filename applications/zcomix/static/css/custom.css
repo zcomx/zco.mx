@@ -297,7 +297,6 @@ div.centered table {
     margin-left: 0;
 }
 
-
 .editable_combolink_container input {
     display: inline-block;
 }
@@ -330,6 +329,11 @@ div.centered table {
 a.modal-link-btn, a.modal-link-btn:hover {
     border-bottom: 1px dashed #0088CC;
     text-decoration: none;
+}
+
+/* Roboto distorts Add files... button */
+.fileinput-button input {
+    font-family: sans-serif;
 }
 
 #link_edit_section .row_container .field_label {
