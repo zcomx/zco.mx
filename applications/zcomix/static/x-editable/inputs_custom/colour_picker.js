@@ -6,7 +6,7 @@ Internally value stored as a string: '#ff0000'
 @extends abstractinput
 @final
 @example
-<script src="http://www.domain.com/static/js/bgrins-spectrum-28ab793/spectrum.js'"> </script>
+<script src="http://www.domain.com/static/js/bgrins-spectrum/spectrum.js'"> </script>
 <a href="#" id="colour_picker" data-type="colour_picker" data-pk="1">#ff0000</a>
 <script>
 $(function(){

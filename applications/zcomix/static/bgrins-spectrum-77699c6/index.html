@@ -19,7 +19,7 @@
 <div id='header'>
     <h1><a href='http://bgrins.github.com/spectrum'>Spectrum</a></h1> <h2><em>The No Hassle jQuery Colorpicker</em></h2>
     <div id='links'>
-        <a href='http://github.com/bgrins/spectrum/zipball/1.2.0' class="btn btn-primary">Download Zip</a>
+        <a href='http://github.com/bgrins/spectrum/zipball/1.3.4' class="btn btn-primary">Download Zip</a>
         View the <a href='http://github.com/bgrins/spectrum'>Source code</a>.
         Spectrum is a project by <a href='http://twitter.com/bgrins'>@bgrins</a>.
     </div>
@@ -68,6 +68,7 @@
         <p>I wanted an option for the most basic use case, a polyfill for the <a href='http://dev.w3.org/html5/markup/input.color.html'>input[type=color]</a> HTML5 control.
            This mode needs to work without JavaScript enabled - and fallback to an input[type=text] like other HTML5 inputs.
         </p>
+        <p>If you don't want this behavior to happen, but still want to use spectrum elsewhere on the page, you can set <code>$.fn.spectrum.load = false;</code> right after loading the script file.</p>
 
 
         <h3 id="why-customizable" class='point'>Customizable</h3>
@@ -198,13 +199,17 @@ $("#picker").spectrum({
     clickoutFiresChange: bool,
     cancelText: string,
     chooseText: string,
-    className: string,
+    containerClassName: string,
+    replacerClassName: string,
     preferredFormat: string,
     maxSelectionSize: int,
     palette: [[string]],
     selectionPalette: [string]
 });
 </pre>
+        <div class="alert alert-info">
+            Tip: options can be specified in an options object in the <code>spectrum</code> initializer, like <code>$(element).spectrum({showAlpha: true })</code> or on the element's markup, like <code>&lt;input data-show-alpha="true" /&gt;</code>.
+        </div>
 
         <h3 id="options-color">Color</h3>
         <div class='option-content'>
@@ -380,8 +385,9 @@ $("#showSelectionPaletteStorage").spectrum({
             <div class='example'>
                     <span class='label label-info'>This colorpicker will store what you pick:</span><br /><br />
                     <input type='text' name='showSelectionPalette' id='showSelectionPalette' value='lightblue' /><br /><br />
-                    <span class='label label-info'>Try reloading your page, it will still be here on this one:</span><br /><br />
+                    <span class='label label-info'>Try switching between the two colorpickers or reloading your page, the chosen colors are always available:</span><br /><br />
                     <input type='text' name='showSelectionPaletteStorage' id='showSelectionPaletteStorage' value='lightblue' />
+                    <input type='text' name='showSelectionPaletteStorage2' id='showSelectionPaletteStorage2' value='pink' />
             </div>
         </div>
 
@@ -456,7 +462,7 @@ $("#showInputInitialClear").spectrum({
     showInput: true
 });
             </pre>
-            
+
             <div class='example'>
                     <input type='text' name='showInputInitialClear' id='showInputInitialClear' value='' />
             </div>
@@ -500,17 +506,17 @@ $("#hideButtons").spectrum({
             </div>
         </div>
 
-        <h3 id="options-className">className</h3>
+        <h3 id="options-containerClassName">Container Class Name</h3>
         <div class='option-content'>
             <div class='description'>
                 <p>
-                You can add an additional class name to the replacer and container element using the <code>className</code> property.
+                You can add an additional class name to the just the container element using the <code>containerClassName</code> property.
                 </p>
             </div>
 
             <pre class='prettyprint'>
-$("#className").spectrum({
-    className: 'awesome'
+$("#containerClassName").spectrum({
+    containerClassName: 'awesome'
 });
             </pre>
             <pre class='prettyprint'>
@@ -525,46 +531,88 @@ $("#className").spectrum({
             </style>
 
             <div class='example'>
-                    <input type='text' name='className' id='className' value='orangered' />
+                    <input type='text' name='containerClassName' id='containerClassName' value='orangered' />
+            </div>
+        </div>
+
+        <h3 id="options-replacerClassName">Replacer Class Name</h3>
+        <div class='option-content'>
+            <div class='description'>
+                <p>
+                You can add an additional class name to just the replacer element using the <code>replacerClassName</code> property.
+                </p>
+            </div>
+
+            <pre class='prettyprint'>
+$("#replacerClassName").spectrum({
+    replacerClassName: 'awesome'
+});
+            </pre>
+            <pre class='prettyprint'>
+.awesome {
+    background: purple;
+}
+            </pre>
+            <style type='text/css'>
+.awesome {
+    background: purple;
+}
+            </style>
+
+            <div class='example'>
+                    <input type='text' name='replacerClassName' id='replacerClassName' value='orangered' />
             </div>
         </div>
 
         <h3 id="options-preferredFormat">Preferred Format</h3>
         <div class='option-content'>
             <div class='description'>
-                <p>You can set the format that is displayed</p>
+                <p>You can set the format that is displayed in the text box.</p>
+                <p>This will also change the format that is displayed in the titles from the palette swatches.</p>
             </div>
 
             <pre class='prettyprint'>
 $("#preferredHex").spectrum({
     preferredFormat: "hex",
-    showInput: true
+    showInput: true,
+    showPalette: true,
+    palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
 });
-$("#preferredHex6").spectrum({
-    preferredFormat: "hex6",
-    showInput: true
+$("#preferredHex3").spectrum({
+    preferredFormat: "hex3",
+    showInput: true,
+    showPalette: true,
+    palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
 });
 $("#preferredHsl").spectrum({
     preferredFormat: "hsl",
-    showInput: true
+    showInput: true,
+    showPalette: true,
+    palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
 });
 $("#preferredRgb").spectrum({
     preferredFormat: "rgb",
-    showInput: true
+    showInput: true,
+    showPalette: true,
+    palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
 });
 $("#preferredName").spectrum({
     preferredFormat: "name",
-    showInput: true
+    showInput: true,
+    showPalette: true,
+    palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
 });
 $("#preferredNone").spectrum({
-    showInput: true
+    showInput: true,
+    showPalette: true,
+    palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
 });
             </pre>
             <div class='example'>
                     <div class='alert alert-info'>Hex</div>
                     <input type='text' name='preferredHex' id='preferredHex' value='orangered' />
-                    <div class='alert alert-info'>Hex (6 Characters Always)</div>
-                    <input type='text' name='preferredHex6' id='preferredHex6' value='orangered' />
+                    <div class='alert alert-info'>Hex (3 Characters If Possible)</div>
+                    <input type='text' name='preferredHex3' id='preferredHex3' value='orangered' />
                     <div class='alert alert-info'>Hsl</div>
                     <input type='text' name='preferredHsl' id='preferredHsl' value='orangered' />
                     <div class='alert alert-info'>Rgb</div>
@@ -638,10 +686,15 @@ move: function(color) {
             </div>
 
             <pre class='prettyprint'>
-            hide: function(color) {
-                color.toHexString(); // #ff0000
-            }
+hide: function(color) {
+    color.toHexString(); // #ff0000
+}
             </pre>
+
+            <div class='example'>
+                <input type='text' value='blanchedalmond' name='eventhide' id='eventhide' />
+                <em id='eventhideLabel'  class='em-label'></em>
+            </div>
         </div>
 
         <h3 id="events-show">show</h3>
@@ -656,10 +709,15 @@ move: function(color) {
             </div>
 
             <pre class='prettyprint'>
-            show: function(color) {
-                color.toHexString(); // #ff0000
-            }
+show: function(color) {
+    color.toHexString(); // #ff0000
+}
             </pre>
+
+            <div class='example'>
+                <input type='text' value='blanchedalmond' name='eventshow' id='eventshow' />
+                <em id='eventshowLabel'  class='em-label'></em>
+            </div>
         </div>
 
         <h3 id="events-beforeShow">beforeShow</h3>
@@ -682,6 +740,51 @@ beforeShow: function(color) {
                 <input type='text' value='blanchedalmond' name='beforeShow' id='beforeShow' />
             </div>
         </div>
+
+        <h3 id="events-dragstart">dragstart</h3>
+
+        <div class='option-content'>
+            <div class='description'>
+                <p>
+                Called at the beginning of a drag event on either
+                hue slider, alpha slider, or main color picker areas
+                </p>
+            </div>
+
+            <pre class='prettyprint'>
+$(element).on("dragstart.spectrum"): function(e, color) {
+    color.toHexString(); // #ff0000
+}
+            </pre>
+
+            <div class='example'>
+                <input type='text' value='blanchedalmond' name='eventdragstart' id='eventdragstart' />
+                <em id='eventdragstartLabel'  class='em-label'></em>
+            </div>
+        </div>
+
+        <h3 id="events-dragstop">dragstop</h3>
+
+        <div class='option-content'>
+            <div class='description'>
+                <p>
+                Called at the end of a drag event on either
+                hue slider, alpha slider, or main color picker areas
+                </p>
+            </div>
+
+            <pre class='prettyprint'>
+$(element).on("dragstop.spectrum"): function(e, color) {
+    color.toHexString(); // #ff0000
+}
+            </pre>
+
+            <div class='example'>
+                <input type='text' value='blanchedalmond' name='eventdragstop' id='eventdragstop' />
+                <em id='eventdragstopLabel'  class='em-label'></em>
+            </div>
+        </div>
+
 
         <h2 id="methods">Methods</h2>
 <pre class='prettyprint'>
@@ -805,7 +908,7 @@ $("#btnEnterAColor").click(function() {
         <div class='option-content'>
             <div class='description'>
                 <p>
-                Resets the positioning of the container element.  This could be used if the colorpicker is inside of a moving area.
+                Resets the positioning of the container element.  This could be used was hidden when initialized, or if the colorpicker is inside of a moving area.
                 </p>
             </div>
         </div>
