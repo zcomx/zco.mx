@@ -33,85 +33,105 @@
                 'placeholder': 'Book Title',
             },
         },
-        'publication_year': {
-            'label': '{{=db.book.publication_year.label}}',
-            'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
-            'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
-            'x_editable_settings': {
-                'type': 'select',
-                'source': [ {{=publication_years()}} ],
-            },
-        },
-        'description': {
-            'label': '{{=db.book.description.label}}',
-            'value': '{{try:}}{{=book.description.encode('string_escape') or ""}}{{except:}}{{=""}}{{pass}}',
-            'x_editable_settings': {'type': 'textarea'},
-        },
-        'release_date': {
-            'label': '{{=db.book.release_date.label}}',
-            'value': '{{=book.release_date or "" if book else ""}}',
-            'readable': {{if book and book.release_date:}}true{{else:}}false{{pass}},
-            'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
-            'x_editable_settings': {'type': 'date'},
-        },
-        'reader': {
-            'label': '{{=db.book.reader.label}}',
-            'value': '{{=book.reader if book else db.book.reader.default}}',
-            'x_editable_settings': {
-                'type': 'select',
-                'source': [
-                    {value: 'scroller', text: 'scroller'},
-                    {value: 'slider', text: 'slider'}
-                ],
-            },
-        },
-        'background_colour': {
-            'label': '{{=db.book.background_colour.label}}',
-            'value': '{{=book.background_colour if book else db.book.background_colour.default}}',
-            'x_editable_settings': {
-                type: 'colour_picker',
-                title: 'Enter a color for the background',
-                placement: 'bottom',
-                mode: 'inline',
-                showbuttons: false,
-            },
-        },
-        'border_colour': {
-            'label': '{{=db.book.border_colour.label}}',
-            'value': '{{=book.border_colour if book else db.book.border_colour.default}}',
-            'x_editable_settings': {
-                type: 'colour_picker',
-                title: 'Enter a color for the border',
-                placement: 'bottom',
-                mode: 'inline',
-                showbuttons: false,
-            },
-        },
     }
+    var book_data_extra = {};
+    {{if book:}}
+        {{# Edit mode}}
+        book_data_extra = {
+            'publication_year': {
+                'label': '{{=db.book.publication_year.label}}',
+                'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
+                'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
+                'x_editable_settings': {
+                    'type': 'select',
+                    'source': [ {{=publication_years()}} ],
+                },
+            },
+            'description': {
+                'label': '{{=db.book.description.label}}',
+                'value': '{{try:}}{{=book.description.encode('string_escape') or ""}}{{except:}}{{=""}}{{pass}}',
+                'x_editable_settings': {'type': 'textarea'},
+            },
+            'release_date': {
+                'label': '{{=db.book.release_date.label}}',
+                'value': '{{=book.release_date or "" if book else ""}}',
+                'readable': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
+                'x_editable_settings': {'type': 'date'},
+            },
+            'reader': {
+                'label': '{{=db.book.reader.label}}',
+                'value': '{{=book.reader if book else db.book.reader.default}}',
+                'x_editable_settings': {
+                    'type': 'select',
+                    'source': [
+                        {value: 'scroller', text: 'scroller'},
+                        {value: 'slider', text: 'slider'}
+                    ],
+                },
+            },
+            'background_colour': {
+                'label': '{{=db.book.background_colour.label}}',
+                'value': '{{=book.background_colour if book else db.book.background_colour.default}}',
+                'x_editable_settings': {
+                    type: 'colour_picker',
+                    title: 'Enter a color for the background',
+                    placement: 'bottom',
+                    mode: 'inline',
+                    showbuttons: false,
+                },
+            },
+            'border_colour': {
+                'label': '{{=db.book.border_colour.label}}',
+                'value': '{{=book.border_colour if book else db.book.border_colour.default}}',
+                'x_editable_settings': {
+                    type: 'colour_picker',
+                    title: 'Enter a color for the border',
+                    placement: 'bottom',
+                    mode: 'inline',
+                    showbuttons: false,
+                },
+            },
+        };
+    {{else:}}
+        {{# Add mode}}
+        book_data_extra = {
+            'name': {
+                'x_editable_settings': {
+                    'success': function(response, newValue) {
+                        if(response && response.status == 'error') {
+                            return response.msg;
+                        }
+                        add_callback(response, newValue);
+                    }
+                }
+            }
+        };
+    {{pass}}
+    $.extend(true, book_data, book_data_extra);
+
 //]]>
 </script>
 <script>
 //<![CDATA[
-    function add_callback(inplace_crud_obj, record_id) {
-        var display_message = $(inplace_crud_obj).data().display_message;
+    function add_callback(response, newValue) {
+        var record_id = response.id;
+        var display_message = $('#editable_fields_container').data().display_message;
         var dialog = $('#add_book_button').data().dialog;
         if (!dialog) { return; }
         dialog.getModalHeader().find('.' + dialog.getNamespace('title'))
             .html('')
-            .append('Edit: ' + $('a#name.editable').text());
+            .append('Edit: ' + newValue);
         dialog.getModalBody().find('.' + dialog.getNamespace('message'))
             .html('')
-            .load('{{=URL(c='profile', f='book_edit')}}' + '/' + record_id, function(){
-                var msg = 'New record created.';
-                display_message('Success!', msg, 'panel-success');
-            });
+            .load('{{=URL(c='profile', f='book_edit')}}' + '/' + record_id);
         dialog.getModalFooter().find("button:contains('Cancel')").text('Close');
     }
 
     $(document).ready(function(){
         $('#editable_fields_container').inplace_crud(
             '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
-            '{{=book.id if book else ""}}',
+            '{{=book.id if book else "0"}}',
             {
                 source_data: book_data,
                 on_add: add_callback,
@@ -126,6 +146,11 @@
                 auto_open: true,
             }
         );
+        {{else:}}
+            setTimeout( function() {
+                $('a#name').editable('show');
+
+            }, 300);
         {{pass}}
     });
 

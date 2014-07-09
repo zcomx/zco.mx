@@ -93,8 +93,8 @@ def book_crud():
     # W0212 (protected-access): *Access to a protected member %%s of a client class*
     # pylint: disable=W0212
     action = None
-    if request.vars.pk:
-        action = 'update'
+    if request.vars.pk is not None:
+        action = 'update' if request.vars.pk and request.vars.pk != '0' else 'create'
     elif request.vars._action:
         action = request.vars._action
 
@@ -140,20 +140,23 @@ def book_crud():
     if action == 'create':
         # Validate all fields.
         data = {'creator_id': creator_record.id}
-        for f in db.book.fields:
-            if f in request.vars:
-                data[f] = request.vars[f]
+        if request.vars.name is not None and request.vars.value is not None:
+            data[request.vars.name] = request.vars.value
         ret = db.book.validate_and_insert(**data)
+
         if ret.errors:
-            errors = {}
-            for k, v in ret.errors.items():
-                if k in db.book.fields:
-                    errors[db.book[k].label] = v
-                else:
-                    errors[k] = v
-            return {'errors': errors}
+            if request.vars.name in ret.errors:
+                return {'status': 'error', 'msg': ret.errors[request.vars.name]}
+            else:
+                return {
+                    'status': 'error',
+                    'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
+                }
         if ret.id:
-            return {'id': ret.id}
+            return {
+                'id': ret.id,
+                'status': 'ok',
+            }
         return do_error('Unable to create book.')
 
     return {'status': 'ok'}
@@ -599,7 +602,6 @@ def creator_img_handler():
         return image_as_json(db, creator_record.id)
 
     elif request.env.request_method == 'DELETE':
-        import sys; print >> sys.stderr, 'FIXME DELETE found'
         # retrieve real file name
         if not creator_record.image:
             return do_error('')
