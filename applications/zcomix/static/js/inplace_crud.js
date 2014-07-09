@@ -116,10 +116,10 @@
                 var inputs = $(
                             '<div class="arrow_container"></div>'
                           + '<div>'
-                          + '    <input type="text" name="link_name" value="" class="link_name form-control">'
+                          + '    <input type="text" name="link_name" value="" class="link_name form-control" placeholder="Title-of-Book">'
                           + '</div>'
                           + '<div>'
-                          + '    <input type="text" name="link_url" value="" class="link_url form-control" placeholder="http://www.example.com">'
+                          + '    <input type="text" name="link_url" value="" class="link_url form-control" placeholder="http://etsy.com/title-of-book">'
                           + '</div>'
                         );
                 inputs.appendTo(add_container);

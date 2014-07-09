@@ -22,15 +22,19 @@ h1, h2, h3, h4, h5 {
 
 .form-control::-webkit-input-placeholder {
     color: #999999;
+    opacity: 0.7;
 }
 .form-control:-moz-placeholder {
     color: #999999;
+    opacity: 0.7;
 }
 .form-control::-moz-placeholder {
     color: #999999;
+    opacity: 0.7;
 }
 .form-control:-ms-input-placeholder {
     color: #999999;
+    opacity: 0.7;
 }
 
 .modal-header {
@@ -43,19 +47,23 @@ h1, h2, h3, h4, h5 {
 
 input::-webkit-input-placeholder {
     color: #999999;
+    opacity: 0.7;
 }
 input:-moz-placeholder {
     color: #999999;
+    opacity: 0.7;
 }
 input::-moz-placeholder {
     color: #999999;
+    opacity: 0.7;
 }
 input:-ms-input-placeholder {
     color: #999999;
+    opacity: 0.7;
 }
 
 input:focus::-webkit-input-placeholder{
-    color: transparent!important;
+    color: transparent !important;
 }
 input:focus:-moz-placeholder{
     color: transparent!important;
@@ -182,7 +190,7 @@ div.centered table {
 
 .breadcrumb_container {
     background-color: #F05000;
-    color: #ffffff;
+    color: #FFFFFF;
 }
 
 .breadcrumb_container {
@@ -201,15 +209,20 @@ div.centered table {
 }
 
 .breadcrumb_container .breadcrumb a {
-    color: #ffffff;
+    color: #FFFFFF;
 }
 
-.breadcrumb_container .breadcrumb > .active {
-    color: #ffffff;
+.breadcrumb_container .breadcrumb > .active a {
+    border-bottom: 3px dotted #FFFFFF;
+    color: #FFFFFF;
+    font-weight: normal;
+    text-decoration: none;
 }
 
 .breadcrumb_container .breadcrumb li.active {
-    font-weight: bold;
+    color: #FFFFFF;
+    font-weight: normal;
+//    font-weight: bold;
 }
 
 #search {
@@ -1336,8 +1349,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: none;
 }
 
+#editable_fields_container {
+    margin-bottom: 0.4em;
+}
+
 .row_container .field_label {
-    font-weight: bold;
+//    font-weight: bold;
 }
 
 .row_container .field_container {
@@ -1374,8 +1391,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #add_link_container > div {
-    margin-left: 0.2em;
-    margin-right: 0.6em;
+    margin-left: 0.1em;
+    margin-right: 1em;
+}
+
+#add_link_container .form-control {
+    border-radius: 0px;
+    height: inherit;
+    padding: 2px 2px;
+    color: #333333;
 }
 
 #add_link_container .arrow_container {
@@ -1512,7 +1536,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     .row_container {
         margin-top: 0;
-        vertical-align: top;
     }
 
     .row_container .field_label {
@@ -1638,7 +1661,36 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .editable-click, a.editable-click, a.editable-click:hover {
-    border-bottom: 1px dotted #999999;
+//    border-bottom: 1px dotted #999999;
+    border-bottom: none;
+}
+
+.editable-empty, .editable-empty:hover, .editable-empty:focus {
+    color: #999999;
+    font-style: normal;
+}
+
+.editable-clear-x {
+    right: 12px;
+}
+
+.sp-input-container sp-cf, .sp-input {
+    background-color: #FFFFFF
+}
+
+.sp-replacer {
+    border: 1px solid #666666;
+    padding: 3px;
+}
+
+.sp-preview {
+    border: 1px solid #333333;
+    height: 15px;
+    width: 20px;
+}
+
+.sp-dd {
+    padding: 0;
 }
 
 /* bootstrap 2.3.2 for jquery-file-upload */
