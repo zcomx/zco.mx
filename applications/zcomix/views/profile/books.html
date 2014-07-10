@@ -4,96 +4,16 @@
     <div class="books_list_title">
     <h4>RELEASED</h4>
     </div>
-    <div id="released_container">
-        <table class="table table-condensed table-hover">
-            {{for book in released:}}
-            <tr>
-                <td class="book_name_column">{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>
-                <td>{{=book.release_date.year}}</td>
-                <td>
-                    {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
-                </td>
-                <td>
-                    {{=A(
-                        'Edit',
-                        _class='btn btn-default modal-edit-btn',
-                        _href=URL(c='profile', f='book_edit', args=book.id),
-                        _type='button',
-                    )}}
-                </td>
-                <td>
-                    {{=A(
-                        I('',
-                        _class='icon fi-trash size-18'),
-                        _href=URL(c='profile', f='book_delete', args=book.id),
-                        _class='btn btn-default btn-xs modal-delete-btn',
-                        _type='button',
-                    )}}
-                </td>
-            </tr>
-            {{pass}}
-            {{if not released:}}
-            <tr>
-                <td colspan="7"><span class="no_records_found">No books released.</span></td>
-            </tr>
-            {{pass}}
-        </table>
-    </div>
+    {{=LOAD(c='profile', f='book_list', args='released', extension='load', ajax=True, target="released_book_list")}}
+    <div id="released_book_list"></div>
 
     <div class="books_list_title">
     <h4>ONGOING</h4>
     </div>
-    <div id="ongoing_container">
-        <table class="table table-condensed table-hover">
-            {{for book in ongoing:}}
-            <tr>
-                <td class="book_name_column">{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>
-                <td>
-                    {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
-                </td>
-                <td>
-                    {{=A(
-                        'Upload',
-                        _class='btn btn-default modal-upload-btn',
-                        _href=URL(c='profile', f='book_pages', args=book.id),
-                        _type='button',
-                    )}}
-                </td>
-                <td>
-                    {{=A(
-                        'Edit',
-                        _class='btn btn-default modal-edit-btn',
-                        _href=URL(c='profile', f='book_edit', args=book.id),
-                        _type='button',
-                    )}}
-                </td>
-                <td>
-                    {{=A(
-                        I('', _class='icon fi-trash size-18'),
-                        _href=URL(c='profile', f='book_delete', args=book.id),
-                        _class='btn btn-default btn-xs modal-delete-btn',
-                    )}}
-                </td>
-                <td>
-                    {{page_count = db(db.book_page.book_id == book.id).count()}}
-                    {{not_available = 'release_not_available' if page_count <=0 else ''}}
-                    {{=A(
-                        'Release',
-                        _class='btn btn-default modal-release-btn' + ' ' + not_available,
-                        _href=URL(c='profile', f='book_release', args=book.id),
-                        _type='button',
-                    )}}
-                </td>
-            </tr>
-            {{pass}}
-            {{if not ongoing:}}
-            <tr>
-                <td colspan="7"><span class="no_records_found">No ongoing series.</span></td>
-            </tr>
-            {{pass}}
-        </table>
-    </div>
-    {{if disabled:}}
+    {{=LOAD(c='profile', f='book_list', args='ongoing', extension='load', ajax=True, target="ongoing_book_list")}}
+    <div id="ongoing_book_list"></div>
+
+    {{if has_disabled:}}
     <div class="books_list_title">
     <h4>DISABLED</h4>
     </div>
@@ -101,31 +21,8 @@
         Books are disabled by the site admin if they are under copyright review
         or deemed inappropriate.
     </div>
-    <div id="disabled_container">
-        <table class="table table-condensed table-hover">
-            {{for book in disabled:}}
-            <tr>
-                <td class="book_name_column">{{=book.name}}</td>
-                <td>
-                    {{=A(
-                        'Edit',
-                        _class='btn btn-default modal-edit-btn',
-                        _href=URL(c='profile', f='book_edit', args=book.id),
-                        _type='button',
-                    )}}
-                </td>
-                <td>
-                    {{=A(
-                        I('', _class='icon fi-trash size-18 modal-delete-btn'),
-                        _href=URL(c='profile', f='book_delete', args=book.id),
-                        _class='btn btn-default btn-xs',
-                        _type='button',
-                    )}}
-                </td>
-            </tr>
-            {{pass}}
-        </table>
-    </div>
+    {{=LOAD(c='profile', f='book_list', args='disabled', extension='load', ajax=True, target="disabled_book_list")}}
+    <div id="disabled_book_list"></div>
     {{pass}}
     <div>
         {{=A(
@@ -137,6 +34,7 @@
         )}}
     </div>
 </div>
+
 {{block post_bootstrap_js}}
     {{if DEBUG:}}
         <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.js')}}"></script>

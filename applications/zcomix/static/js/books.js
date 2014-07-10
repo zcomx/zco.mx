@@ -66,84 +66,45 @@
         form.submit();
     }
 
-    $(document).ready(function(){
-        $('.modal-add-btn').click(function(event){
-            var link = $(this);
-            var add_dialog = new BootstrapDialog({
-                title: 'Add book',
-                message: get_message(link),
-                onhide: function(dialog) {
-                    setTimeout(function() {
-                        window.location.reload();
-                    }.bind(this), 100);
-                },
-                onshow: onshow_callback,
-                buttons: [
-                    close_button('Cancel'),
-                ],
-            }).open();
-            $(this).data({'dialog': add_dialog});
-            event.preventDefault();
+    $.fn.set_modal_events = function() {
+        $('.modal-add-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_add_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Add book';
+                    var link = that;
+                    var add_dialog = new BootstrapDialog({
+                        title: action,
+                        message: get_message(link),
+                        onhide: function(dialog) {
+                            web2py_component('/profile/book_list.load/released', 'released_book_list');
+                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                        },
+                        onshow: onshow_callback,
+                        buttons: [
+                            close_button('Cancel'),
+                        ],
+                    }).open();
+                    that.data({'dialog': add_dialog});
+                    event.preventDefault();
+                });
+                that.data('has_modal_add_btn', true);
+            }
         });
 
-        $('.modal-delete-btn').click(function(event){
-            var action = 'Delete';
-            var link = $(this);
-            new BootstrapDialog({
-                title: get_title(link, action),
-                message: get_message(link),
-                onshow: onshow_callback,
-                buttons: [
-                    {
-                        label: 'Delete',
-                        action : function(dialog){
-                            var modal_body = dialog.getModalBody();
-                            var form = $(modal_body).find('form').first();
-                            form.submit();
-                        }
-                    },
-                    close_button('Cancel'),
-                ],
-            }).open();
-            event.preventDefault();
-        });
-
-        $('.modal-edit-btn').click(function(event){
-            var action = 'Edit';
-            var link = $(this);
-            new BootstrapDialog({
-                title: get_title(link, action),
-                message: get_message(link),
-                onhide: function(dialog) {
-                    setTimeout(function() {
-                        window.location.reload();
-                    }.bind(this), 100);
-                },
-                onshow: onshow_callback,
-                buttons: [
-                    close_button(),
-                ],
-            }).open();
-            event.preventDefault();
-        });
-
-        $('.modal-release-btn').click(function(event){
-            var action = 'Release';
-            var link = $(this);
-            new BootstrapDialog({
-                title: get_title(link, action),
-                message: get_message(link),
-                onshow: onshow_callback,
-                buttons: (function() {
-                    if (link.hasClass('release_not_available')) {
-                        return [
-                            close_button(),
-                        ];
-                    }
-                    else {
-                        return [
+        $('.modal-delete-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_delete_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Delete';
+                    var link = that;
+                    new BootstrapDialog({
+                        title: get_title(link, action),
+                        message: get_message(link),
+                        onshow: onshow_callback,
+                        buttons: [
                             {
-                                label: 'Release',
+                                label: 'Delete',
                                 action : function(dialog){
                                     var modal_body = dialog.getModalBody();
                                     var form = $(modal_body).find('form').first();
@@ -151,26 +112,94 @@
                                 }
                             },
                             close_button('Cancel'),
-                        ];
-                    }
-                })(),
-            }).open();
-            event.preventDefault();
+                        ],
+                    }).open();
+                    event.preventDefault();
+                });
+                that.data('has_modal_delete_btn', true);
+            }
         });
 
-        $('.modal-upload-btn').click(function(event){
-            var action = 'Upload';
-            var link = $(this);
-            new BootstrapDialog({
-                title: get_title(link, action),
-                message: get_message(link),
-                onshow: onshow_callback,
-                onhide: reorder_pages,
-                buttons: [
-                    close_button(),
-                ],
-            }).open();
-            event.preventDefault();
+        $('.modal-edit-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_edit_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Edit';
+                    var link = that;
+                    new BootstrapDialog({
+                        title: get_title(link, action),
+                        message: get_message(link),
+                        onhide: function(dialog) {
+                            web2py_component('/profile/book_list.load/released', 'released_book_list');
+                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                        },
+                        onshow: onshow_callback,
+                        buttons: [
+                            close_button(),
+                        ],
+                    }).open();
+                    event.preventDefault();
+                });
+                that.data('has_modal_edit_btn', true);
+            }
         });
-    });
+
+        $('.modal-release-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_release_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Release';
+                    var link = that;
+                    new BootstrapDialog({
+                        title: get_title(link, action),
+                        message: get_message(link),
+                        onshow: onshow_callback,
+                        buttons: (function() {
+                            if (link.hasClass('release_not_available')) {
+                                return [
+                                    close_button(),
+                                ];
+                            }
+                            else {
+                                return [
+                                    {
+                                        label: 'Release',
+                                        action : function(dialog){
+                                            var modal_body = dialog.getModalBody();
+                                            var form = $(modal_body).find('form').first();
+                                            form.submit();
+                                        }
+                                    },
+                                    close_button('Cancel'),
+                                ];
+                            }
+                        })(),
+                    }).open();
+                    event.preventDefault();
+                });
+                that.data('has_modal_release_btn', true);
+            }
+        });
+
+        $('.modal-upload-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_upload_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Upload';
+                    var link = that;
+                    new BootstrapDialog({
+                        title: get_title(link, action),
+                        message: get_message(link),
+                        onshow: onshow_callback,
+                        onhide: reorder_pages,
+                        buttons: [
+                            close_button(),
+                        ],
+                    }).open();
+                    event.preventDefault();
+                });
+                that.data('has_modal_upload_btn', true);
+            }
+        });
+    }
 }());

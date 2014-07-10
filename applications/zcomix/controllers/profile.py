@@ -211,7 +211,6 @@ def book_delete():
         # Delete the book
         db(db.book.id == book_record.id).delete()
         db.commit()
-
         redirect(URL('books'))
     elif form.errors:
         response.flash = 'Form could not be submitted.' + \
@@ -242,6 +241,37 @@ def book_edit():
         ).first()
 
     return dict(book=book_record)
+
+
+@auth.requires_login()
+def book_list():
+    """Book list component controller."""
+
+
+    # Verify user is legit
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        return dict()
+
+    if not request.args(0) or \
+            request.args(0) not in ['released', 'ongoing', 'disabled']:
+        return dict()
+
+    creator_query = (db.book.creator_id == creator_record.id)
+    active_query = (db.book.status == True)
+
+    book_records = None
+    if request.args(0) == 'released':
+        query = creator_query & active_query & (db.book.release_date != None)
+    elif request.args(0) == 'ongoing':
+        query = creator_query & active_query & (db.book.release_date == None)
+    elif request.args(0) == 'disabled':
+        query = creator_query & (db.book.status == False)
+    if query:
+        book_records = db(query).select(db.book.ALL, orderby=db.book.name)
+    return dict(books=book_records)
 
 
 @auth.requires_login()
@@ -466,20 +496,11 @@ def books():
         URL('static', 'x-editable/bootstrap3-editable/css/bootstrap-editable.css')
     )
 
-    creator_query = (db.book.creator_id == creator_record.id)
-    active_query = (db.book.status == True)
-    released_query = creator_query & active_query & (db.book.release_date != None)
-    released = db(released_query).select(db.book.ALL, orderby=db.book.name)
-    ongoing_query = creator_query & active_query & (db.book.release_date == None)
-    ongoing = db(ongoing_query).select(db.book.ALL, orderby=db.book.name)
-    disabled_query = creator_query & (db.book.status == False)
-    disabled = db(disabled_query).select(db.book.ALL, orderby=db.book.name)
+    query = (db.book.creator_id == creator_record.id) & \
+            (db.book.status == False)
+    has_disabled = db(query).count()
 
-    return dict(
-        disabled=disabled,
-        ongoing=ongoing,
-        released=released,
-    )
+    return dict(has_disabled=has_disabled)
 
 
 @auth.requires_login()
