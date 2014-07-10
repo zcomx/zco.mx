@@ -44,16 +44,7 @@ VERSION 1
     [x] login - default to the 'books' page after logging in
     [x] login - swap 'profile' and 'account' in navbar
     [x] login -> books page - change 'No records found.' to "no books released" & "no ongoing series". Set color #999 (needs div)
-    [ ] login -> books page - do the record in 'released' and 'ongoing' paginate
     [ ] login -> books page -> add - Only display 'Name', once entered show remaining options
-    [ ] login -> books page -> add - change "enter from 1 to 40 characters" to "enter 1 to 40 characters"
-        remove period
-    [ ] login -> books page -> add/edit and login -> profile page
-        Add 'new window' icon to links -- "glyphicon glyphicon-new-window"
-    [ ] footer -> use the cartoonist's name, eg 'charles forsman' instead of 'my account'
-        Use lowercase
-
-    [ ] login -> books page - min-width: 20em on books_name column
     [ ] login -> books page -> ongoing -> delete
         The book is deleted and removed from search results
         All statistics and history related to the book are deleted (eg. ratings, views, etc)
@@ -65,9 +56,21 @@ VERSION 1
         The book release date is set to today's date. ??
         * add dc info
 
-    [ ] login -> books page -> released -> delete
+    [x] login -> books page -> released -> delete
         Modal has no wording and 'Delete' button does nothing
 
+    [ ] Set default to inline editing (vs popup)
+
+    [ ] login -> books page -> add - change "enter from 1 to 40 characters" to "enter 1 to 40 characters"
+        remove period
+
+    [ ] login -> books page -> add/edit and login -> profile page
+        Add 'new window' icon to links -- "glyphicon glyphicon-new-window"
+
+    [ ] footer -> use the cartoonist's name, eg 'charles forsman' instead of 'my account'
+        Use lowercase
+
+    [ ] login -> books page - min-width: 20em on books_name column
     [ ] login -> books page -> released -> edit
         Take link and colour off fields that are not editable
 
@@ -81,9 +84,10 @@ VERSION 1
     $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"
 
 VERSION 2 - Before Going Live
-[ ] Get download links working
+[ ] Add torrent and dc functionality
 [ ] Front Page - Get view stats working
 [ ] Front Page - only show released books
+[ ] Front Page - Add 'random' report ??
 [ ] Front Page - Add 'download' report
 [ ] Indica Page
     * last page of comic
@@ -91,8 +95,6 @@ VERSION 2 - Before Going Live
         + donate, download, social media, copyright
     * creative commons licence
     * for jpg indica https://101.zcomix.com/Name_of_Comic_001/  ?
-
-[ ] Add torrent and dc functionality
 
 [ ] Rewrite urls
     https://zcomix.com
@@ -110,6 +112,7 @@ VERSION 2 - Before Going Live
     "Name of Comic 001 (2014) (101.zcomix.com).cbz"
     "Channel Zero - The Complete Collection (2012) (digital) (Son of Ultron-Empire).cbr"
 
+[ ] login -> books page - paginate 'released' and 'ongoing' books
 [ ] Reader notifications of new material (rss? and mailing list?)
 
 [ ] Copyright material
@@ -117,7 +120,7 @@ VERSION 2 - Before Going Live
     'wide with curated lists'
 
 [ ] Social media links other than indica?
-[ ] Tags (kids, by genre)
+[ ] Tags (kids, by genre ??)
 [ ] Url checker
 [ ] Keyboard control for slider - L, R (and maybe U for back to artist page)
 [ ] Article/interview links for creators ?
