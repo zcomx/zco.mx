@@ -202,16 +202,12 @@
             '{{=creator.id}}',
             {
                 source_data: creator_data,
-                auto_open: true,
             }
         );
 
         $('#edit_links_container').inplace_link_crud(
             '{{=URL(c='profile', f='link_crud.json')}}',
-            '',
-            {
-                auto_open: true,
-            }
+            ''
         );
 
         $('#bio_container').inplace_crud(

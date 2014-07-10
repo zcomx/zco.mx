@@ -135,16 +135,12 @@
             {
                 source_data: book_data,
                 on_add: add_callback,
-                auto_open: true,
             }
         );
         {{if book and book.id:}}
         $('#edit_links_container').inplace_link_crud(
             '{{=URL(c='profile', f='link_crud.json', args=book.id)}}',
-            '{{=book.id}}',
-            {
-                auto_open: true,
-            }
+            '{{=book.id}}'
         );
         {{else:}}
             setTimeout( function() {

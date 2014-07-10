@@ -347,7 +347,12 @@
     $.fn.inplace_link_crud.defaults = {
         add_container_id: 'add_link_container',
         x_editable_settings: {
+            emptytext: 'Click to edit',
+            inputclass: 'inplace_crud',
+            mode: 'inline',
             placement: 'right',
+            showbuttons: false,
+            onblur: 'submit',
             success: function(response, newValue) {
                 if(response.status == 'error') {
                     return response.msg;
@@ -499,21 +504,15 @@
         });
     };
 
-    $.fn.inplace_crud.defaults = {
-        auto_open: false,
-        message_panel: null,
-        on_add: null,
-        source_data: {},
-        x_editable_settings: {
-            emptytext: 'Click to edit',
-            mode: 'inline',
-            placement: 'right',
-            success: function(response, newValue) {
-                if(response && response.status == 'error') {
-                    return response.msg;
-                }
-            },
-        },
-    };
+    $.fn.inplace_crud.defaults = $.extend(
+        true,
+        {},
+        $.fn.inplace_link_crud.defaults,
+        {
+            auto_open: false,
+            message_panel: null,
+            on_add: null,
+        }
+    );
 
 }( jQuery ));
