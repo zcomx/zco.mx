@@ -26,9 +26,9 @@
         'name': {
             'label': '{{=db.book.name.label}}',
             'value': '{{=XML(book.name or "") if book else ""}}',
-            'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
             'x_editable_settings': {
                 'title': 'Enter the title of the book.',
+                'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
                 'escape': true,
                 'placeholder': 'Book Title',
             },
@@ -41,10 +41,10 @@
             'publication_year': {
                 'label': '{{=db.book.publication_year.label}}',
                 'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
-                'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
                 'x_editable_settings': {
-                    'type': 'select',
+                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
                     'source': [ {{=publication_years()}} ],
+                    'type': 'select',
                 },
             },
             'description': {
@@ -56,40 +56,40 @@
                 'label': '{{=db.book.release_date.label}}',
                 'value': '{{=book.release_date or "" if book else ""}}',
                 'readable': {{if book and book.release_date:}}true{{else:}}false{{pass}},
-                'writable': {{if book and book.release_date:}}false{{else:}}true{{pass}},
-                'x_editable_settings': {'type': 'date'},
+                'x_editable_settings': {
+                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'type': 'date',
+                },
             },
             'reader': {
                 'label': '{{=db.book.reader.label}}',
                 'value': '{{=book.reader if book else db.book.reader.default}}',
                 'x_editable_settings': {
-                    'type': 'select',
                     'source': [
                         {value: 'scroller', text: 'scroller'},
                         {value: 'slider', text: 'slider'}
                     ],
+                    'type': 'select',
                 },
             },
             'background_colour': {
                 'label': '{{=db.book.background_colour.label}}',
                 'value': '{{=book.background_colour if book else db.book.background_colour.default}}',
                 'x_editable_settings': {
-                    type: 'colour_picker',
-                    title: 'Enter a color for the background',
-                    placement: 'bottom',
-                    mode: 'inline',
-                    showbuttons: false,
+                    'placement': 'bottom',
+                    'showbuttons': false,
+                    'title': 'Enter a color for the background',
+                    'type': 'colour_picker',
                 },
             },
             'border_colour': {
                 'label': '{{=db.book.border_colour.label}}',
                 'value': '{{=book.border_colour if book else db.book.border_colour.default}}',
                 'x_editable_settings': {
-                    type: 'colour_picker',
-                    title: 'Enter a color for the border',
-                    placement: 'bottom',
-                    mode: 'inline',
-                    showbuttons: false,
+                    'placement': 'bottom',
+                    'showbuttons': false,
+                    'title': 'Enter a color for the border',
+                    'type': 'colour_picker',
                 },
             },
         };
