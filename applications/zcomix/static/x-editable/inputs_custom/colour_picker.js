@@ -106,6 +106,7 @@ $(function(){
         tpl: '<div style="display: none;"><input type="hidden" class="editable-colour_picker" /></div>',
         showbuttons: false,
         highlight: '#FFFF80',
+        mode: 'inline',
         /* spectrum config */
         spectrum:{
             appendTo: 'parent',

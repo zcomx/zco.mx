@@ -759,6 +759,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
         text-align: right;
         padding-top: 0.9em;
     }
+
+    #profile_page .book_name_column {
+        min-width: 20em;
+    }
 }
 
 @media screen and (min-width: 992px){

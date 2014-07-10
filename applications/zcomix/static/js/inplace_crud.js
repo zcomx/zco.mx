@@ -152,20 +152,23 @@
                 var link = $(
                             '<div class="row_container">'
                           + '    <div class="arrow_container">'
-                          + '    <button type="button" class="btn btn-default btn-xs reorder-arrow edit_link_up">'
+                          + '    <button type="button" class="btn btn-default btn-xs reorder-arrow edit_link_up" title="Move link up">'
                           + '          <i class="icon fi-arrow-up size-14"></i>'
                           + '    </button>'
-                          + '    <button type="button" class="btn btn-default btn-xs reorder-arrow edit_link_down">'
+                          + '    <button type="button" class="btn btn-default btn-xs reorder-arrow edit_link_down" title="Move link down">'
                           + '          <i class="icon fi-arrow-down size-14"></i>'
                           + '    </button>'
                           + '    </div>'
                           + '    <div class="field_container field_label">'
-                          + '        <a href="#" id="link_name"></a>'
+                          + '        <a href="#" class="link_name"></a>'
                           + '    </div>'
                           + '    <div class="field_container">'
-                          + '        <a href="#" id="link_url"></a>'
+                          + '        <a href="#" class="link_url"></a>'
                           + '    </div>'
-                          + '    <button type="button" class="btn btn-default btn-xs edit_link_delete">'
+                          + '    <button type="button" class="btn btn-default btn-xs edit_link_open" title="Open link in new window">'
+                          + '          <i class="glyphicon glyphicon-new-window"></i>'
+                          + '    </button>'
+                          + '    <button type="button" class="btn btn-default btn-xs edit_link_delete" title="Delete link">'
                           + '          <i class="icon fi-trash size-18"></i>'
                           + '    </button>'
                           + '</div>'
@@ -195,6 +198,9 @@
 
                 link.find('.edit_link_delete')
                     .click(methods._delete)
+                    .data({'record_id': row.id});
+                link.find('.edit_link_open')
+                    .click(methods._open)
                     .data({'record_id': row.id});
                 link.find('.edit_link_up')
                     .click(methods._move)
@@ -317,6 +323,15 @@
                 }
             },
 
+            _open: function(e) {
+                e.preventDefault();
+                var row = $(this).closest('.row_container');
+                var url = row.find('a.link_url').first().text();
+                if (url) {
+                    window.open(url, 'window_name');
+                }
+            },
+
            _set_arrows: function(elem) {
                 $(elem).find('.reorder-arrow').removeClass('arrow-muted');
                 $(elem).find('.edit_link_up').first().addClass('arrow-muted');
@@ -416,19 +431,15 @@
             _load: function(elem) {
                 $.each(settings.source_data, function(k, v) {
                     if (! v.hasOwnProperty('readable') || v.readable) {
-                        var editable = false;
-                        if (! v.hasOwnProperty('writable') || v.writable) {
-                            editable = true;
-                        }
                         var opts = {'name': k, 'value': v.value};
                         $.extend(opts, v.x_editable_settings);
-                        var link = methods._load_field(v.label, v.value, editable, opts);
+                        var link = methods._load_field(v.label, v.value, opts);
                         link.appendTo(elem);
                     }
                 });
             },
 
-            _load_field: function(label, value, editable, x_editable_settings) {
+            _load_field: function(label, value, x_editable_settings) {
                 anchor = '<a href="#" id="' + x_editable_settings.name + '">' + value + '</a>';
                 var link = $(
                             '<div class="row_container">'
@@ -440,16 +451,14 @@
                           + '</div>'
                         );
                 var container = link.find('.field_container').eq(0);
-                if (editable) {
-                    var editable_elem = link.find('.field_container > a').eq(0);
-                    $.fn.inplace_crud_utils.set_editable(
-                        editable_elem,
-                        settings.auto_open,
-                        {url: settings.url, pk: settings.record_id || null},
-                        settings.x_editable_settings,
-                        x_editable_settings
-                    );
-                }
+                var editable_elem = link.find('.field_container > a').eq(0);
+                $.fn.inplace_crud_utils.set_editable(
+                    editable_elem,
+                    settings.auto_open,
+                    {url: settings.url, pk: settings.record_id || null},
+                    settings.x_editable_settings,
+                    x_editable_settings
+                );
                 return link;
             },
 
@@ -497,6 +506,7 @@
         source_data: {},
         x_editable_settings: {
             emptytext: 'Click to edit',
+            mode: 'inline',
             placement: 'right',
             success: function(response, newValue) {
                 if(response && response.status == 'error') {

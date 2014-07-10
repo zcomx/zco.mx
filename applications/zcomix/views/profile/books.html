@@ -8,7 +8,7 @@
         <table class="table table-condensed table-hover">
             {{for book in released:}}
             <tr>
-                <td>{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>
+                <td class="book_name_column">{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>
                 <td>{{=book.release_date.year}}</td>
                 <td>
                     {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
@@ -47,7 +47,7 @@
         <table class="table table-condensed table-hover">
             {{for book in ongoing:}}
             <tr>
-                <td>{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>
+                <td class="book_name_column">{{=A(book.name, _href=URL(c='books', f='book', args=book.id))}}</td>
                 <td>
                     {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
                 </td>
@@ -105,7 +105,7 @@
         <table class="table table-condensed table-hover">
             {{for book in disabled:}}
             <tr>
-                <td>{{=book.name}}</td>
+                <td class="book_name_column">{{=book.name}}</td>
                 <td>
                     {{=A(
                         'Edit',
