@@ -54,7 +54,7 @@ class TestFunctions(LocalTestCase):
         'book_pages_reorder': [
             '"success": true',
         ],
-        'book_release': '<div id="profile_book_release_page">',
+        'book_release': '<div id="book_release_section">',
         'books': '<div class="well well-sm" id="books">',
         'creator': '<div class="well well-sm" id="creator">',
         'default': 'zcomix.com is a not-for-profit comic-sharing website',

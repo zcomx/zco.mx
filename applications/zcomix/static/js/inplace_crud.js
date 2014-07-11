@@ -12,7 +12,7 @@
             args.shift();
             var opts = {};
             for (var i=0; i < args.length; i++) {
-                $.extend(opts, args[i]);
+                $.extend(true, opts, args[i]);
             }
             elem.editable(opts);
 
@@ -460,7 +460,13 @@
                 $.fn.inplace_crud_utils.set_editable(
                     editable_elem,
                     settings.auto_open,
-                    {url: settings.url, pk: settings.record_id || null},
+                    {
+                        url: settings.url,
+                        pk: settings.record_id || null,
+                        params: {
+                            '_action': (! settings.record_id || settings.record_id === "0") ? 'create' : 'update',
+                        },
+                    },
                     settings.x_editable_settings,
                     x_editable_settings
                 );

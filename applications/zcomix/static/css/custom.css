@@ -297,7 +297,8 @@ div.centered table {
     color: #999999;
 }
 
-#book_delete_section #message_panel {
+#book_delete_section #message_panel,
+#book_release_section #message_panel {
     margin-top: 1em;
 }
 
