@@ -116,7 +116,6 @@
 //<![CDATA[
     function add_callback(response, newValue) {
         var record_id = response.id;
-        var display_message = $('#editable_fields_container').data().display_message;
         var dialog = $('#add_book_button').data().dialog;
         if (!dialog) { return; }
         dialog.getModalHeader().find('.' + dialog.getNamespace('title'))

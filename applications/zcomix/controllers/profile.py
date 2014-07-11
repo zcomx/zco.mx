@@ -78,6 +78,8 @@ def book_crud():
     create:
     request.vars.<field>: mixed, value of book table <field>.
 
+    delete
+    request.vars.book_id: integer, id of book record
     """
     response.generic_patterns = ['json']
 
@@ -159,6 +161,40 @@ def book_crud():
             }
         return do_error('Unable to create book.')
 
+    if action == 'delete':
+        if not request.vars.book_id:
+            return do_error('Invalid data provided.')
+
+        book_record = None
+        try:
+            book_id = int(request.vars.book_id)
+        except (TypeError, ValueError):
+            return do_error('Invalid data provided.')
+        book_record = db(db.book.id == book_id).select(
+            db.book.ALL
+        ).first()
+        if not book_record or \
+            (book_record and book_record.creator_id != creator_record.id):
+            return do_error('Invalid data provided.')
+
+        # FIXME delete torrent
+        # FIXME remove book from creator torrent
+        # FIXME remove book from ALL torrent
+
+        # Delete all records associated with the book.
+        for t in ['book_page', 'book_view', 'contribution', 'rating']:
+            db(db[t].book_id == book_record.id).delete()
+
+        # Delete all links associated with the book.
+        query = db.book_to_link.book_id == book_record.id
+        for row in db(query).select(db.book_to_link.link_id):
+            db(db.link.id == row['link_id']).delete()
+        db(db.book_to_link.book_id == book_record.id).delete()
+
+        # Delete the book
+        db(db.book.id == book_record.id).delete()
+        db.commit()
+
     return {'status': 'ok'}
 
 
@@ -182,44 +218,7 @@ def book_delete():
     if not book_record or book_record.creator_id != creator_record.id:
         redirect(URL('books'))
 
-    form = SQLFORM.factory(
-        Field('dummy'),
-        _action=URL('book_delete', args=request.args),
-    )
-
-    success_msg = '{name} deleted.'.format(name=book_record.name)
-
-    if form.process(
-        keepvalues=True,
-        formname='book_delete',
-        message_onsuccess=success_msg
-    ).accepted:
-        # FIXME delete torrent
-        # FIXME remove book from creator torrent
-        # FIXME remove book from ALL torrent
-
-        # Delete all records associated with the book.
-        for t in ['book_page', 'book_view', 'contribution', 'rating']:
-            db(db[t].book_id == book_record.id).delete()
-
-        # Delete all links associated with the book.
-        query = db.book_to_link.book_id == book_record.id
-        for row in db(query).select(db.book_to_link.link_id):
-            db(db.link.id == row['link_id']).delete()
-        db(db.book_to_link.book_id == book_record.id).delete()
-
-        # Delete the book
-        db(db.book.id == book_record.id).delete()
-        db.commit()
-        redirect(URL('books'))
-    elif form.errors:
-        response.flash = 'Form could not be submitted.' + \
-            ' Please make corrections.'
-
-    return dict(
-        book=book_record,
-        form=form,
-    )
+    return dict(book=book_record)
 
 
 @auth.requires_login()

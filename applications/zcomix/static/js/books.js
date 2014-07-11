@@ -12,6 +12,62 @@
         };
     }
 
+    function delete_book(dialog) {
+        var that = $(this);
+        var url = '/zcomix/profile/book_crud.json';
+        var book_id = delete_book_id || 0;
+
+        $('#message_panel').hide();
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                '_action': 'delete',
+                'book_id': book_id,
+            },
+            success: function (data, textStatus, jqXHR) {
+                console.log('data: %o', data);
+                console.log('textStatus: %o', textStatus);
+                if (data.status === 'error') {
+                    var msg = 'ERROR: ' + data.msg || 'Server request failed';
+                    display_message('', msg, 'panel-danger');
+                }
+                else {
+                    dialog.close();
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                var msg = 'ERROR: Unable to delete record. Server request failed.';
+                display_message('', msg, 'panel-danger');
+            }
+        });
+    }
+
+    function display_message(title, msg, panel_class) {
+        var panel_classes = [
+            'panel-default',
+            'panel-primary',
+            'panel-success',
+            'panel-info',
+            'panel-warning',
+            'panel-danger'
+        ];
+
+        $('#message_panel').find('.panel-title').first().text(title);
+        $('#message_panel div.panel-body').html(msg);
+
+        var new_class = panel_classes[0];
+        if (panel_classes.indexOf(panel_class) >= 0) {
+            new_class = panel_class;
+        }
+        for(var i = 0; i < panel_classes.length; i++) {
+            $('#message_panel').removeClass(panel_classes[i])
+        }
+        $('#message_panel').addClass(new_class).show();
+    }
+
     function get_message(elem) {
         var url = elem.attr('href');
         return $('<div></div>').load(url);
@@ -101,14 +157,17 @@
                     new BootstrapDialog({
                         title: get_title(link, action),
                         message: get_message(link),
+                        onhide: function(dialog) {
+                            delete_book_id = 0;
+                            web2py_component('/profile/book_list.load/released', 'released_book_list');
+                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                        },
                         onshow: onshow_callback,
                         buttons: [
                             {
                                 label: 'Delete',
                                 action : function(dialog){
-                                    var modal_body = dialog.getModalBody();
-                                    var form = $(modal_body).find('form').first();
-                                    form.submit();
+                                    delete_book(dialog);
                                 }
                             },
                             close_button('Cancel'),

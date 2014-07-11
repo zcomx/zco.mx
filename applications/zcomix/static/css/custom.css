@@ -297,6 +297,10 @@ div.centered table {
     color: #999999;
 }
 
+#book_delete_section #message_panel {
+    margin-top: 1em;
+}
+
 #profile_page .vertical_spacer {
     min-height: 2em;
 }
