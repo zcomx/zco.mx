@@ -348,19 +348,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-family: sans-serif;
 }
 
-#link_edit_section .row_container .field_label {
-    width: 3em;
-    min-width: 2em;
-}
-
-#link_edit_section .field_container {
-    min-width: 2em;
-}
-
-.link_edit_modalx {
-    width: 20em;
-}
-
 @media (max-width: 480px) {
     #web2py_user_form .web2py_user_form_container {
         margin-left: 0;
@@ -368,7 +355,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 
 }
-
 
 #web2py_user_form .form-group {
     margin-bottom: 0;

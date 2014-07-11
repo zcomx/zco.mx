@@ -8,7 +8,6 @@ Test suite for zcomix/controllers/profile.py
 """
 import requests
 import os
-import re
 import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomix.modules.test_runner import LocalTestCase
@@ -515,7 +514,12 @@ class TestFunctions(LocalTestCase):
             }
             result = do_test(record_id, data, [], {})
             data = {'action': 'get'}
-            got = do_test(record_id, data, ['test_do_not_delete', '_test__link_crud_'], {})
+            got = do_test(
+                record_id,
+                data,
+                ['test_do_not_delete', '_test__link_crud_'],
+                {}
+            )
             self.assertEqual(result['id'], got['rows'][1]['id'])
             link_id = result['id']
 
@@ -535,7 +539,12 @@ class TestFunctions(LocalTestCase):
             }
             do_test(record_id, data, [], {})
             data = {'action': 'get'}
-            do_test(record_id, data, ['test_do_not_delete', '_test__link_crud_2_'], {})
+            do_test(
+                record_id,
+                data,
+                ['test_do_not_delete', '_test__link_crud_2_'],
+                {}
+            )
 
             data = {
                 'action': 'update',
@@ -545,7 +554,12 @@ class TestFunctions(LocalTestCase):
             }
             do_test(record_id, data, [], {})
             data = {'action': 'get'}
-            got = do_test(record_id, data, ['test_do_not_delete', '_test__link_crud_2_'], {})
+            got = do_test(
+                record_id,
+                data,
+                ['test_do_not_delete', '_test__link_crud_2_'],
+                {}
+            )
             self.assertEqual(got['rows'][1]['url'], 'http://www.linkcrud2.com')
 
             # Action: update, Invalid link_id
@@ -573,7 +587,12 @@ class TestFunctions(LocalTestCase):
                 'field': 'name',
                 'value': '',
             }
-            do_test(record_id, data, [], {'name': 'enter from 1 to 40 characters'})
+            do_test(
+                record_id,
+                data,
+                [],
+                {'name': 'enter from 1 to 40 characters'}
+            )
 
             # Action: move
             data = {
@@ -583,7 +602,12 @@ class TestFunctions(LocalTestCase):
             }
             do_test(record_id, data, [], {})
             data = {'action': 'get'}
-            do_test(record_id, data, ['_test__link_crud_2_', 'test_do_not_delete'], {})
+            do_test(
+                record_id,
+                data,
+                ['_test__link_crud_2_', 'test_do_not_delete'],
+                {}
+            )
 
             # Action: delete
             data = {
@@ -602,67 +626,6 @@ class TestFunctions(LocalTestCase):
             do_test(record_id, data, [], {'url': 'Invalid data provided.'})
 
             reset(record_id, 'test_do_not_delete')
-
-    def test__order_no_handler(self):
-        self.assertTrue(
-            web.test(
-                '{url}/order_no_handler'.format(url=self.url),
-                self.titles['default']
-            )
-        )
-
-        self.assertTrue(
-            web.test(
-                '{url}/order_no_handler/creator_to_link'.format(url=self.url),
-                self.titles['default']
-            )
-        )
-
-        self.assertTrue(
-            web.test(
-                '{url}/order_no_handler/creator_to_link/{lid}'.format(
-                    lid=self._creator_to_link.id, url=self.url),
-                self.titles['default']
-            )
-        )
-
-        # Down
-        before = self._creator_to_link.order_no
-        next_url = '/zcomix/creators/creator/{cid}'.format(
-            cid=self._creator.id)
-        fmt = '{url}/order_no_handler/creator_to_link/{lid}/down?next={n}'
-        self.assertTrue(
-            web.test(
-                fmt.format(
-                    lid=self._creator_to_link.id,
-                    n=next_url,
-                    url=self.url
-                ),
-                self.titles['order_no_handler']
-            )
-        )
-
-        query = (db.creator_to_link.id == self._creator_to_link.id)
-        after = db(query).select().first().order_no
-        # This test fails because db is not updated.
-        # self.assertEqual(before + 1, after)
-
-        # Up
-        fmt = '{url}/order_no_handler/creator_to_link/{lid}/up?next={nurl}'
-        self.assertTrue(
-            web.test(
-                fmt.format(
-                    lid=self._creator_to_link.id,
-                    nurl=next_url,
-                    url=self.url
-                ),
-                self.titles['order_no_handler']
-            )
-        )
-
-        query = (db.creator_to_link.id == self._creator_to_link.id)
-        after = db(query).select().first().order_no
-        self.assertEqual(before, after)
 
 
 def setUpModule():

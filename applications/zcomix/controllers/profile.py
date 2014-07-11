@@ -167,7 +167,7 @@ def book_crud():
 
 @auth.requires_login()
 def book_delete():
-    """Delete a book controller.
+    """Book delete controller for modal view.
 
     request.args(0): integer, id of book.
     """
@@ -175,7 +175,7 @@ def book_delete():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('books'))
+        redirect(URL('modal_error', vars={'message': 'Permission denied.'}))
 
     book_record = None
     if request.args(0):
@@ -183,7 +183,8 @@ def book_delete():
             db.book.ALL
         ).first()
     if not book_record or book_record.creator_id != creator_record.id:
-        redirect(URL('books'))
+        redirect(
+            URL('modal_error', vars={'message': 'Invalid data provided.'}))
 
     return dict(book=book_record)
 
@@ -198,7 +199,7 @@ def book_edit():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('books'))
+        redirect(URL('modal_error', vars={'message': 'Permission denied.'}))
 
     book_record = None
     if request.args(0):
@@ -245,7 +246,7 @@ def book_list():
 
 @auth.requires_login()
 def book_pages():
-    """Creator profile book pages component. (Multiple file upload.)
+    """Book pages (image upload) controller for modal view.
 
     request.args(0): integer, id of book.
     """
@@ -254,14 +255,15 @@ def book_pages():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('books'))
+        redirect(URL('modal_error', vars={'message': 'Permission denied.'}))
 
     book_record = None
     if request.args(0):
         query = (db.book.id == request.args(0))
         book_record = db(query).select(db.book.ALL).first()
     if not book_record or book_record.creator_id != creator_record.id:
-        redirect(URL('books'))
+        redirect(
+            URL('modal_error', vars={'message': 'Invalid data provided.'}))
 
     read_button = read_link(
         db,
@@ -383,7 +385,7 @@ def book_pages_reorder():
 
 @auth.requires_login()
 def book_release():
-    """Release a book controller.
+    """Book release controller for modal view.
 
     request.args(0): integer, id of book.
     """
@@ -391,7 +393,7 @@ def book_release():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('books'))
+        redirect(URL('modal_error', vars={'message': 'Permission denied.'}))
 
     book_record = None
     if request.args(0):
@@ -399,7 +401,8 @@ def book_release():
             db.book.ALL
         ).first()
     if not book_record or book_record.creator_id != creator_record.id:
-        redirect(URL('books'))
+        redirect(
+            URL('modal_error', vars={'message': 'Invalid data provided.'}))
 
     page_count = db(db.book_page.book_id == book_record.id).count()
 
@@ -785,57 +788,9 @@ def link_crud():
 
 
 @auth.requires_login()
-def link_edit():
-    """Link edit controller for modal view.
+def modal_error():
+    """Controller for displaying error messages within modal.
 
-    request.args(0): integer, id of link
+    request.vars.message: string, error message
     """
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        redirect(URL('books'))
-
-    link_record = None
-    if request.args(0):
-        link_record = db(db.link.id == request.args(0)).select(
-            db.link.ALL
-        ).first()
-
-    if not link_record:
-        redirect(URL('books'))
-
-    return dict(link=link_record)
-
-
-@auth.requires_login()
-def order_no_handler():
-    """Handler for order_no sorting.
-
-    request.args(0): string, link table name, eg creator_to_link
-    request.args(1): integer, id of record in table.
-    request.args(2): string, direction, 'up' or 'down'
-    """
-    next_url = request.vars.next or URL(c='default', f='index')
-
-    if not request.args(0):
-        redirect(next_url, client_side=False)
-    table = db[request.args(0)]
-
-    if not request.args(1):
-        redirect(next_url, client_side=False)
-    record = db(table.id == request.args(1)).select(table.ALL).first()
-    if not record:
-        redirect(next_url, client_side=False)
-    if not record.order_no:
-        redirect(next_url, client_side=False)
-
-    custom_links_table = db.book if request.args(0) == 'book_to_link' \
-        else db.creator
-    filter_field = 'book_id' if request.args(0) == 'book_to_link' \
-        else 'creator_id'
-    custom_links_id = record[filter_field]
-    links = CustomLinks(custom_links_table, custom_links_id)
-    links.move_link(request.args(1), request.args(2))
-
-    redirect(next_url, client_side=False)
+    return dict(message=request.vars.message)
