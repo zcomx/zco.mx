@@ -12,7 +12,7 @@
             args.shift();
             var opts = {};
             for (var i=0; i < args.length; i++) {
-                $.extend(opts, args[i]);
+                $.extend(true, opts, args[i]);
             }
             elem.editable(opts);
 
@@ -347,7 +347,12 @@
     $.fn.inplace_link_crud.defaults = {
         add_container_id: 'add_link_container',
         x_editable_settings: {
+            emptytext: 'Click to edit',
+            inputclass: 'inplace_crud',
+            mode: 'inline',
             placement: 'right',
+            showbuttons: false,
+            onblur: 'submit',
             success: function(response, newValue) {
                 if(response.status == 'error') {
                     return response.msg;
@@ -455,7 +460,13 @@
                 $.fn.inplace_crud_utils.set_editable(
                     editable_elem,
                     settings.auto_open,
-                    {url: settings.url, pk: settings.record_id || null},
+                    {
+                        url: settings.url,
+                        pk: settings.record_id || null,
+                        params: {
+                            '_action': (! settings.record_id || settings.record_id === "0") ? 'create' : 'update',
+                        },
+                    },
                     settings.x_editable_settings,
                     x_editable_settings
                 );
@@ -499,21 +510,15 @@
         });
     };
 
-    $.fn.inplace_crud.defaults = {
-        auto_open: false,
-        message_panel: null,
-        on_add: null,
-        source_data: {},
-        x_editable_settings: {
-            emptytext: 'Click to edit',
-            mode: 'inline',
-            placement: 'right',
-            success: function(response, newValue) {
-                if(response && response.status == 'error') {
-                    return response.msg;
-                }
-            },
-        },
-    };
+    $.fn.inplace_crud.defaults = $.extend(
+        true,
+        {},
+        $.fn.inplace_link_crud.defaults,
+        {
+            auto_open: false,
+            message_panel: null,
+            on_add: null,
+        }
+    );
 
 }( jQuery ));

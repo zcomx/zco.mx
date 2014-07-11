@@ -68,16 +68,22 @@ def book_crud():
 
     request.args(0): integer, id of book
 
-    request.vars._action: Optional, 'create', 'update'
+    request.vars._action: string, 'create', 'update', etc
+
+    create:
+    request.vars.name: string, book table field name ('name')
+    request.vars.value: string, value of book table field.
+
+    delete:
+    request.vars.pk: integer, id of book record
+
+    release:
+    request.vars.pk: integer, id of book record
 
     update:
     request.vars.pk: integer, id of book record
     request.vars.name: string, book table field name
     request.vars.value: string, value of book table field.
-
-    create:
-    request.vars.<field>: mixed, value of book table <field>.
-
     """
     response.generic_patterns = ['json']
 
@@ -92,17 +98,13 @@ def book_crud():
 
     # W0212 (protected-access): *Access to a protected member %%s of a client class*
     # pylint: disable=W0212
-    action = None
-    if request.vars.pk is not None:
-        action = 'update' if request.vars.pk and request.vars.pk != '0' else 'create'
-    elif request.vars._action:
-        action = request.vars._action
-
-    if not action:
+    actions = ['create', 'delete', 'release', 'update']
+    if not request.vars._action or request.vars._action not in actions:
         return do_error('Invalid data provided.')
+    action = request.vars._action
 
-    if action == 'update':
-        book_record = None
+    book_record = None
+    if action != 'create':
         try:
             book_id = int(request.vars.pk)
         except (TypeError, ValueError):
@@ -113,29 +115,6 @@ def book_crud():
         if not book_record or \
             (book_record and book_record.creator_id != creator_record.id):
             return do_error('Invalid data provided.')
-
-        if request.vars.name is not None and request.vars.name not in db.book.fields:
-            return do_error('Invalid data provided.')
-
-        data = {}
-        if request.vars.name is not None and request.vars.value is not None:
-            data = {request.vars.name: request.vars.value}
-        if not data:
-            return do_error('Invalid data provided.')
-
-        query = (db.book.id == book_record.id)
-        ret = db(query).validate_and_update(**data)
-        db.commit()
-
-        if ret.errors:
-            if request.vars.name in ret.errors:
-                return {'status': 'error', 'msg': ret.errors[request.vars.name]}
-            else:
-                return {
-                    'status': 'error',
-                    'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
-                }
-        return {'status': 'ok'}
 
     if action == 'create':
         # Validate all fields.
@@ -158,6 +137,60 @@ def book_crud():
                 'status': 'ok',
             }
         return do_error('Unable to create book.')
+
+    if action == 'delete':
+        # FIXME delete torrent
+        # FIXME remove book from creator torrent
+        # FIXME remove book from ALL torrent
+
+        # Delete all records associated with the book.
+        for t in ['book_page', 'book_view', 'contribution', 'rating']:
+            db(db[t].book_id == book_record.id).delete()
+
+        # Delete all links associated with the book.
+        query = db.book_to_link.book_id == book_record.id
+        for row in db(query).select(db.book_to_link.link_id):
+            db(db.link.id == row['link_id']).delete()
+        db(db.book_to_link.book_id == book_record.id).delete()
+
+        # Delete the book
+        db(db.book.id == book_record.id).delete()
+        db.commit()
+        return {'status': 'ok'}
+
+    if action == 'release':
+        book_record.update_record(
+            release_date=datetime.datetime.today()
+        )
+        db.commit()
+        # FIXME create torrent
+        # FIXME add book to creator torrent
+        # FIXME add book to ALL torrent
+        return {'status': 'ok'}
+
+    if action == 'update':
+        if request.vars.name is not None and request.vars.name not in db.book.fields:
+            return do_error('Invalid data provided.')
+
+        data = {}
+        if request.vars.name is not None and request.vars.value is not None:
+            data = {request.vars.name: request.vars.value}
+        if not data:
+            return do_error('Invalid data provided.')
+
+        query = (db.book.id == book_record.id)
+        ret = db(query).validate_and_update(**data)
+        db.commit()
+
+        if ret.errors:
+            if request.vars.name in ret.errors:
+                return {'status': 'error', 'msg': ret.errors[request.vars.name]}
+            else:
+                return {
+                    'status': 'error',
+                    'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
+                }
+        return {'status': 'ok'}
 
     return {'status': 'ok'}
 
@@ -182,45 +215,7 @@ def book_delete():
     if not book_record or book_record.creator_id != creator_record.id:
         redirect(URL('books'))
 
-    form = SQLFORM.factory(
-        Field('dummy'),
-        _action=URL('book_delete', args=request.args),
-    )
-
-    success_msg = '{name} deleted.'.format(name=book_record.name)
-
-    if form.process(
-        keepvalues=True,
-        formname='book_delete',
-        message_onsuccess=success_msg
-    ).accepted:
-        # FIXME delete torrent
-        # FIXME remove book from creator torrent
-        # FIXME remove book from ALL torrent
-
-        # Delete all records associated with the book.
-        for t in ['book_page', 'book_view', 'contribution', 'rating']:
-            db(db[t].book_id == book_record.id).delete()
-
-        # Delete all links associated with the book.
-        query = db.book_to_link.book_id == book_record.id
-        for row in db(query).select(db.book_to_link.link_id):
-            db(db.link.id == row['link_id']).delete()
-        db(db.book_to_link.book_id == book_record.id).delete()
-
-        # Delete the book
-        db(db.book.id == book_record.id).delete()
-        db.commit()
-
-        redirect(URL('books'))
-    elif form.errors:
-        response.flash = 'Form could not be submitted.' + \
-            ' Please make corrections.'
-
-    return dict(
-        book=book_record,
-        form=form,
-    )
+    return dict(book=book_record)
 
 
 @auth.requires_login()
@@ -242,6 +237,37 @@ def book_edit():
         ).first()
 
     return dict(book=book_record)
+
+
+@auth.requires_login()
+def book_list():
+    """Book list component controller."""
+
+
+    # Verify user is legit
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        return dict()
+
+    if not request.args(0) or \
+            request.args(0) not in ['released', 'ongoing', 'disabled']:
+        return dict()
+
+    creator_query = (db.book.creator_id == creator_record.id)
+    active_query = (db.book.status == True)
+
+    book_records = None
+    if request.args(0) == 'released':
+        query = creator_query & active_query & (db.book.release_date != None)
+    elif request.args(0) == 'ongoing':
+        query = creator_query & active_query & (db.book.release_date == None)
+    elif request.args(0) == 'disabled':
+        query = creator_query & (db.book.status == False)
+    if query:
+        book_records = db(query).select(db.book.ALL, orderby=db.book.name)
+    return dict(books=book_records)
 
 
 @auth.requires_login()
@@ -404,33 +430,8 @@ def book_release():
 
     page_count = db(db.book_page.book_id == book_record.id).count()
 
-    form = SQLFORM.factory(
-        Field('dummy'),
-        _action=URL('book_release', args=request.args),
-    )
-
-    success_msg = '{name} released.'.format(name=book_record.name)
-
-    if form.process(
-        keepvalues=True,
-        formname='book_release',
-        message_onsuccess=success_msg
-    ).accepted:
-        book_record.update_record(
-            release_date=datetime.datetime.today()
-        )
-        db.commit()
-        # FIXME create torrent
-        # FIXME add book to creator torrent
-        # FIXME add book to ALL torrent
-        redirect(URL('books'))
-    elif form.errors:
-        response.flash = 'Form could not be submitted.' + \
-            ' Please make corrections.'
-
     return dict(
         book=book_record,
-        form=form,
         page_count=page_count,
     )
 
@@ -466,20 +467,11 @@ def books():
         URL('static', 'x-editable/bootstrap3-editable/css/bootstrap-editable.css')
     )
 
-    creator_query = (db.book.creator_id == creator_record.id)
-    active_query = (db.book.status == True)
-    released_query = creator_query & active_query & (db.book.release_date != None)
-    released = db(released_query).select(db.book.ALL, orderby=db.book.name)
-    ongoing_query = creator_query & active_query & (db.book.release_date == None)
-    ongoing = db(ongoing_query).select(db.book.ALL, orderby=db.book.name)
-    disabled_query = creator_query & (db.book.status == False)
-    disabled = db(disabled_query).select(db.book.ALL, orderby=db.book.name)
+    query = (db.book.creator_id == creator_record.id) & \
+            (db.book.status == False)
+    has_disabled = db(query).count()
 
-    return dict(
-        disabled=disabled,
-        ongoing=ongoing,
-        released=released,
-    )
+    return dict(has_disabled=has_disabled)
 
 
 @auth.requires_login()

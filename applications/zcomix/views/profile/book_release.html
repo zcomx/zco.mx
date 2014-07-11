@@ -1,4 +1,4 @@
-<div id="profile_book_release_page">
+<div id="book_release_section">
 
 <div>
     <p>
@@ -25,12 +25,10 @@
 </div>
 
 {{if page_count > 0:}}
-    {{=form.custom.begin}}
     <div class="instruction">
         Click the <em>Release</em> button to release <em>{{=book.name}}</em>.
         Click the <em>Cancel</em> button if you've changed your mind.
     </div>
-    {{=form.custom.end}}
 {{else:}}
     <div class="panel panel-danger">
         <div class="panel-heading">
@@ -39,10 +37,14 @@
         <div class="panel-body">
             <ul>
                 <li>Edit the book and set the name and description if necessary.</li>
-                <li><a href="{{=URL(c='profile', f='book_pages', args=book.id)}}">Upload</a> book pages.</li>
+                <li>Upload book pages.</li>
             </ul>
         </div>
     </div>
 {{pass}}
+
+<div id="message_panel" class="panel panel-default" style="display: none;">
+    <div class="panel-body"></div>
+</div>
 
 </div>

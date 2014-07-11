@@ -116,7 +116,6 @@
 //<![CDATA[
     function add_callback(response, newValue) {
         var record_id = response.id;
-        var display_message = $('#editable_fields_container').data().display_message;
         var dialog = $('#add_book_button').data().dialog;
         if (!dialog) { return; }
         dialog.getModalHeader().find('.' + dialog.getNamespace('title'))
@@ -135,16 +134,12 @@
             {
                 source_data: book_data,
                 on_add: add_callback,
-                auto_open: true,
             }
         );
         {{if book and book.id:}}
         $('#edit_links_container').inplace_link_crud(
             '{{=URL(c='profile', f='link_crud.json', args=book.id)}}',
-            '{{=book.id}}',
-            {
-                auto_open: true,
-            }
+            '{{=book.id}}'
         );
         {{else:}}
             setTimeout( function() {

@@ -12,6 +12,29 @@
         };
     }
 
+    function display_message(title, msg, panel_class) {
+        var panel_classes = [
+            'panel-default',
+            'panel-primary',
+            'panel-success',
+            'panel-info',
+            'panel-warning',
+            'panel-danger'
+        ];
+
+        $('#message_panel').find('.panel-title').first().text(title);
+        $('#message_panel div.panel-body').html(msg);
+
+        var new_class = panel_classes[0];
+        if (panel_classes.indexOf(panel_class) >= 0) {
+            new_class = panel_class;
+        }
+        for(var i = 0; i < panel_classes.length; i++) {
+            $('#message_panel').removeClass(panel_classes[i])
+        }
+        $('#message_panel').addClass(new_class).show();
+    }
+
     function get_message(elem) {
         var url = elem.attr('href');
         return $('<div></div>').load(url);
@@ -66,111 +89,185 @@
         form.submit();
     }
 
-    $(document).ready(function(){
-        $('.modal-add-btn').click(function(event){
-            var link = $(this);
-            var add_dialog = new BootstrapDialog({
-                title: 'Add book',
-                message: get_message(link),
-                onhide: function(dialog) {
-                    setTimeout(function() {
-                        window.location.reload();
-                    }.bind(this), 100);
-                },
-                onshow: onshow_callback,
-                buttons: [
-                    close_button('Cancel'),
-                ],
-            }).open();
-            $(this).data({'dialog': add_dialog});
-            event.preventDefault();
-        });
+    function update_book(action, book_id, dialog) {
+        var that = $(this);
+        var url = '/zcomix/profile/book_crud.json';
 
-        $('.modal-delete-btn').click(function(event){
-            var action = 'Delete';
-            var link = $(this);
-            new BootstrapDialog({
-                title: get_title(link, action),
-                message: get_message(link),
-                onshow: onshow_callback,
-                buttons: [
-                    {
-                        label: 'Delete',
-                        action : function(dialog){
-                            var modal_body = dialog.getModalBody();
-                            var form = $(modal_body).find('form').first();
-                            form.submit();
-                        }
-                    },
-                    close_button('Cancel'),
-                ],
-            }).open();
-            event.preventDefault();
-        });
+        $('#message_panel').hide();
 
-        $('.modal-edit-btn').click(function(event){
-            var action = 'Edit';
-            var link = $(this);
-            new BootstrapDialog({
-                title: get_title(link, action),
-                message: get_message(link),
-                onhide: function(dialog) {
-                    setTimeout(function() {
-                        window.location.reload();
-                    }.bind(this), 100);
-                },
-                onshow: onshow_callback,
-                buttons: [
-                    close_button(),
-                ],
-            }).open();
-            event.preventDefault();
+        $.ajax({
+            url: url,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                '_action': action,
+                'pk': book_id,
+            },
+            success: function (data, textStatus, jqXHR) {
+                if (data.status === 'error') {
+                    var msg = 'ERROR: ' + data.msg || 'Server request failed';
+                    display_message('', msg, 'panel-danger');
+                }
+                else {
+                    dialog.close();
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                var msg = 'ERROR: Unable to ' + action + ' record. Server request failed.';
+                display_message('', msg, 'panel-danger');
+            }
         });
+    }
 
-        $('.modal-release-btn').click(function(event){
-            var action = 'Release';
-            var link = $(this);
-            new BootstrapDialog({
-                title: get_title(link, action),
-                message: get_message(link),
-                onshow: onshow_callback,
-                buttons: (function() {
-                    if (link.hasClass('release_not_available')) {
-                        return [
+
+    $.fn.set_modal_events = function() {
+        $('.modal-add-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_add_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Add book';
+                    var link = that;
+                    var add_dialog = new BootstrapDialog({
+                        title: action,
+                        message: get_message(link),
+                        onhide: function(dialog) {
+                            web2py_component('/profile/book_list.load/released', 'released_book_list');
+                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                        },
+                        onshow: onshow_callback,
+                        buttons: [
                             close_button(),
-                        ];
+                        ],
+                    }).open();
+                    that.data({'dialog': add_dialog});
+                    event.preventDefault();
+                });
+                that.data('has_modal_add_btn', true);
+            }
+        });
+
+        $('.modal-delete-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_delete_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Delete';
+                    var link = that;
+                    var book_id = 0;
+                    var href_parts = link.attr('href').split('/');
+                    if (href_parts[2] === 'book_delete') {
+                        book_id = href_parts[3];
                     }
-                    else {
-                        return [
+                    new BootstrapDialog({
+                        title: get_title(link, action),
+                        message: get_message(link),
+                        onhide: function(dialog) {
+                            web2py_component('/profile/book_list.load/released', 'released_book_list');
+                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                        },
+                        onshow: onshow_callback,
+                        buttons: [
                             {
-                                label: 'Release',
+                                label: 'Delete',
                                 action : function(dialog){
-                                    var modal_body = dialog.getModalBody();
-                                    var form = $(modal_body).find('form').first();
-                                    form.submit();
+                                    update_book('delete', book_id, dialog);
                                 }
                             },
                             close_button('Cancel'),
-                        ];
-                    }
-                })(),
-            }).open();
-            event.preventDefault();
+                        ],
+                    }).open();
+                    event.preventDefault();
+                });
+                that.data('has_modal_delete_btn', true);
+            }
         });
 
-        $('.modal-upload-btn').click(function(event){
-            var action = 'Upload';
-            var link = $(this);
-            new BootstrapDialog({
-                title: get_title(link, action),
-                message: get_message(link),
-                onshow: onshow_callback,
-                onhide: reorder_pages,
-                buttons: [
-                    close_button(),
-                ],
-            }).open();
-            event.preventDefault();
+        $('.modal-edit-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_edit_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Edit';
+                    var link = that;
+                    new BootstrapDialog({
+                        title: get_title(link, action),
+                        message: get_message(link),
+                        onhide: function(dialog) {
+                            web2py_component('/profile/book_list.load/released', 'released_book_list');
+                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                        },
+                        onshow: onshow_callback,
+                        buttons: [
+                            close_button(),
+                        ],
+                    }).open();
+                    event.preventDefault();
+                });
+                that.data('has_modal_edit_btn', true);
+            }
         });
-    });
+
+        $('.modal-release-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_release_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Release';
+                    var link = that;
+                    var book_id = 0;
+                    var href_parts = link.attr('href').split('/');
+                    if (href_parts[2] === 'book_release') {
+                        book_id = href_parts[3];
+                    }
+                    new BootstrapDialog({
+                        title: get_title(link, action),
+                        message: get_message(link),
+                        onhide: function(dialog) {
+                            web2py_component('/profile/book_list.load/released', 'released_book_list');
+                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                        },
+                        onshow: onshow_callback,
+                        buttons: (function() {
+                            if (link.hasClass('release_not_available')) {
+                                return [
+                                    close_button(),
+                                ];
+                            }
+                            else {
+                                return [
+                                    {
+                                        label: 'Release',
+                                        action : function(dialog){
+                                            update_book('release', book_id, dialog);
+                                        }
+                                    },
+                                    close_button('Cancel'),
+                                ];
+                            }
+                        })(),
+                    }).open();
+                    event.preventDefault();
+                });
+                that.data('has_modal_release_btn', true);
+            }
+        });
+
+        $('.modal-upload-btn').each( function(indx, elem) {
+            var that = $(this);
+            if (!that.data('has_modal_upload_btn')) {
+                that.on('click', function(event) {
+                    var action = 'Upload';
+                    var link = that;
+                    new BootstrapDialog({
+                        title: get_title(link, action),
+                        message: get_message(link),
+                        onshow: onshow_callback,
+                        onhide: reorder_pages,
+                        buttons: [
+                            close_button(),
+                        ],
+                    }).open();
+                    event.preventDefault();
+                });
+                that.data('has_modal_upload_btn', true);
+            }
+        });
+    }
 }());

@@ -297,6 +297,11 @@ div.centered table {
     color: #999999;
 }
 
+#book_delete_section #message_panel,
+#book_release_section #message_panel {
+    margin-top: 1em;
+}
+
 #profile_page .vertical_spacer {
     min-height: 2em;
 }
@@ -1394,6 +1399,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border: 1px solid #333333;
     border-radius: 0;
     min-width: 12em;
+}
+
+.row_container input.inplace_crud {
+    border-radius: 0px;
+    height: inherit;
+    padding: 2px 2px;
+    color: #333333;
 }
 
 #add_link_container .error_wrapper div.error,
