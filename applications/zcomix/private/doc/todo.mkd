@@ -44,35 +44,33 @@ VERSION 1
     [x] login - default to the 'books' page after logging in
     [x] login - swap 'profile' and 'account' in navbar
     [x] login -> books page - change 'No records found.' to "no books released" & "no ongoing series". Set color #999 (needs div)
-    [ ] login -> books page -> add - Only display 'Name', once entered show remaining options
+    [x] login -> books page -> add - Only display 'Name', once entered show remaining options
+    [x] login -> books page -> released -> delete
+        Modal has no wording and 'Delete' button does nothing
+    [x] login -> books page -> add - change "enter from 1 to 40 characters" to "enter 1 to 40 characters"
+        remove period
+    [x] footer -> use the cartoonist's name, eg 'charles forsman' instead of 'my account'
+        Use lowercase
+    [/] login -> books page - min-width: 20em on books_name column
+        line up rightside of released:delete and ongoing:release ?
+    [x] login -> books page -> released -> edit
+        Take link and colour off fields that are not editable
+    [/] Set default to inline editing (vs popup)
+        fix up css
+    [x] login -> books page -> add/edit and login -> profile page
+        Add 'new window' icon to links -- "glyphicon glyphicon-new-window"
+        fix up css
     [ ] login -> books page -> ongoing -> delete
         The book is deleted and removed from search results
         All statistics and history related to the book are deleted (eg. ratings, views, etc)
        -The torrent for the book is deleted
        -The book is removed from the torrent containing all books from the creator
        -The book is removed from the torrent containing all books from zcomix
+       -The book is deleted from the Direct Connect network
 
-    [ ] login -> books page -> ongoing -> release
-        The book release date is set to today's date. ??
+    [x] login -> books page -> ongoing -> release
         * add dc info
-
-    [x] login -> books page -> released -> delete
-        Modal has no wording and 'Delete' button does nothing
-
-    [ ] Set default to inline editing (vs popup)
-
-    [ ] login -> books page -> add - change "enter from 1 to 40 characters" to "enter 1 to 40 characters"
-        remove period
-
-    [ ] login -> books page -> add/edit and login -> profile page
-        Add 'new window' icon to links -- "glyphicon glyphicon-new-window"
-
-    [ ] footer -> use the cartoonist's name, eg 'charles forsman' instead of 'my account'
-        Use lowercase
-
-    [ ] login -> books page - min-width: 20em on books_name column
-    [ ] login -> books page -> released -> edit
-        Take link and colour off fields that are not editable
+        * change color and spacing on italicized words
 
     [O] (i) info popups
     [O] Mature Content icon
