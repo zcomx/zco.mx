@@ -138,7 +138,7 @@
                         },
                         onshow: onshow_callback,
                         buttons: [
-                            close_button('Cancel'),
+                            close_button(),
                         ],
                     }).open();
                     that.data({'dialog': add_dialog});
