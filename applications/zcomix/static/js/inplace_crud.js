@@ -103,6 +103,10 @@
                 $('#' + settings.add_container_id).removeClass('has-error');
             },
 
+            _clear_row_messages: function() {
+                $('.row_message').hide();
+            },
+
             _create_add_inputs: function(elem) {
                 if (! settings.add_container_id ){
                     return;
@@ -171,6 +175,7 @@
                           + '    <button type="button" class="btn btn-default btn-xs edit_link_delete" title="Delete link">'
                           + '          <i class="icon fi-trash size-18"></i>'
                           + '    </button>'
+                          + '    <div class="row_message" style="display: none;"></div>'
                           + '</div>'
                         );
                 link.appendTo(elem);
@@ -243,12 +248,48 @@
             },
 
             _delete_callback: function(data, button) {
+                methods._clear_row_messages();
+                if (data.status === 'error') {
+                    methods._display_row_message(
+                        button,
+                        data.msg || 'Server request failed',
+                        'text-danger'
+                    );
+                }
                 if (data.id) {
                     var row = $(button).closest('.row_container');
                     var edit_link_container = $(row).parent('div');
                     row.remove();
                     methods._set_arrows(edit_link_container);
                 }
+            },
+
+            _display_row_message: function(elem, msg, text_class) {
+                var row = $(elem).closest('.row_container');
+                msg_div = row.find('.row_message');
+                if (!msg_div) {
+                    return;
+                }
+
+                var text_classes = [
+                    'text-default',
+                    'text-primary',
+                    'text-success',
+                    'text-info',
+                    'text-warning',
+                    'text-danger'
+                ];
+
+                msg_div.html(msg);
+
+                var new_class = text_classes[0];
+                if (text_classes.indexOf(text_class) >= 0) {
+                    new_class = text_class;
+                }
+                for(var i = 0; i < text_classes.length; i++) {
+                    msg_div.removeClass(text_classes[i])
+                }
+                msg_div.addClass(new_class).show();
             },
 
             _load: function(elem) {
@@ -306,6 +347,14 @@
            },
 
            _move_callback: function(data, button) {
+                methods._clear_row_messages();
+                if (data.status === 'error') {
+                    methods._display_row_message(
+                        button,
+                        data.msg || 'Server request failed',
+                        'text-danger'
+                    );
+                }
                 if (data.id) {
                     var row = $(button).closest('.row_container');
                     row.fadeOut(400, function() {
