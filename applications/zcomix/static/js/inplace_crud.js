@@ -185,6 +185,7 @@
                     var editable_elem = container.find('a').first();
                     editable_elem.text(row[field]);
                     var x_editable_settings = {
+                        inputclass: 'inplace_crud link_' + field + '_input',
                         params: {
                             'action': 'update',
                             'link_id': row.id,
@@ -397,7 +398,6 @@
         add_container_id: 'add_link_container',
         x_editable_settings: {
             emptytext: 'Click to edit',
-            inputclass: 'inplace_crud',
             mode: 'inline',
             placement: 'right',
             showbuttons: false,

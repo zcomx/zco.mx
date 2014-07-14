@@ -30,6 +30,7 @@
                 'title': 'Enter the title of the book.',
                 'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
                 'escape': true,
+                'inputclass': 'inplace_crud book_name_input',
                 'placeholder': 'Book Title',
             },
         },
@@ -43,6 +44,7 @@
                 'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
                 'x_editable_settings': {
                     'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'inputclass': 'inplace_crud book_publication_year_input',
                     'source': [ {{=publication_years()}} ],
                     'type': 'select',
                 },
@@ -50,7 +52,10 @@
             'description': {
                 'label': '{{=db.book.description.label}}',
                 'value': '{{try:}}{{=book.description.encode('string_escape') or ""}}{{except:}}{{=""}}{{pass}}',
-                'x_editable_settings': {'type': 'textarea'},
+                'x_editable_settings': {
+                    'inputclass': 'inplace_crud book_description_input',
+                    'type': 'textarea',
+                },
             },
             'release_date': {
                 'label': '{{=db.book.release_date.label}}',
@@ -58,6 +63,7 @@
                 'readable': {{if book and book.release_date:}}true{{else:}}false{{pass}},
                 'x_editable_settings': {
                     'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'inputclass': 'inplace_crud book_release_date_input',
                     'type': 'date',
                 },
             },
@@ -65,6 +71,7 @@
                 'label': '{{=db.book.reader.label}}',
                 'value': '{{=book.reader if book else db.book.reader.default}}',
                 'x_editable_settings': {
+                    'inputclass': 'inplace_crud book_reader_input',
                     'source': [
                         {value: 'scroller', text: 'scroller'},
                         {value: 'slider', text: 'slider'}
