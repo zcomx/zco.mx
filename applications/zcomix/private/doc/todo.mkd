@@ -3,59 +3,11 @@ VERSION 1
 [x] bugs/changes
 
 [O] UX/UI
-    [x] set a and a:hover to #F05000
-    [x] front page
-        [x] borders - 1px dotted #DDDDDD
-        [x] borders - no radios
-        [x] set image bg to #EEE
-            [x] numbers are missing
-                z-index: -1
-    [x] sanitize all border radius
-        set everything to 3px
-    [x] sanitize input boxes
-    [x] smaller logo
-    [x] contribute input == ('1.00 ??
-    [x] use slightly thicker google font?
-        http://www.google.com/fonts/specimen/Roboto+Slab
-        http://www.google.com/fonts/specimen/Roboto
-    [x] front page - blurb
-        "zcomix is a not-for-profit comic-sharing website for self-publishing cartoonists and their readers."
-    [x] front page - the covers should link to the book description page
-    [x] book page - the cover should link to the reader
-    [x] book links on front page are hidden
-    [x] contribute | download - download needs to be wrapped in a div and 'vertical-align: middle' added
-    [x] navigation problem - move to top
-    [x] remove 'my account'/login from navbar
-    [x] merge search into navbar
-    [x] faq page - navbar missing
-    [x] login page - navbar missing
-    [x] profile page - navbar missing
-        home  |  books  |  account  |  profile
-    [x] profile page navbar - bold active link
-    [x] profile page navbar - Use white '|' as separator
-    [x] profile page navbar - unbold '|' on active link
-    [x] login page - Add 'Cartoonist Login' header
-    [x] cartoonist faq in the login area needs #faq_page div wrapped around it
-        [x] h5 padding wrong
-    [x] faq, account, profile, books -- lowercase
-    [x] merge faqc into main faq
-        if logged in, show tabs: 'General | Cartoonist'
-    [x] login -> books page -> add - placeholder for link_name
-    [x] login - default to the 'books' page after logging in
-    [x] login - swap 'profile' and 'account' in navbar
-    [x] login -> books page - change 'No records found.' to "no books released" & "no ongoing series". Set color #999 (needs div)
-    [x] login -> books page -> add - Only display 'Name', once entered show remaining options
-    [x] login -> books page -> released -> delete
-        Modal has no wording and 'Delete' button does nothing
-    [x] login -> books page -> add - change "enter from 1 to 40 characters" to "enter 1 to 40 characters"
-        remove period
-    [x] footer -> use the cartoonist's name, eg 'charles forsman' instead of 'my account'
-        Use lowercase
     [/] login -> books page - min-width: 20em on books_name column
         line up rightside of released:delete and ongoing:release ?
     [x] login -> books page -> released -> edit
         Take link and colour off fields that are not editable
-    [/] Set default to inline editing (vs popup)
+    [x] Set default to inline editing (vs popup)
         fix up css
     [x] login -> books page -> add/edit and login -> profile page
         Add 'new window' icon to links -- "glyphicon glyphicon-new-window"

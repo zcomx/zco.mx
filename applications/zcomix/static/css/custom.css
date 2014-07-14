@@ -1380,7 +1380,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .row_container .field_container {
     display: inline-block;
-    min-height: 1.9em;                  /* >= input height */
+    min-height: 1.8em;                  /* >= input height */
     vertical-align: top;
 }
 
@@ -1443,7 +1443,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #add_link_container .link_url {
     border: 1px solid #333333;
-    min-width: 20em;
+    min-width: 24em;
     margin-right: 0;
 }
 
@@ -1579,13 +1579,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
     .row_container .image_field_container,
     .row_container .field_label {
         display: inline-block;
-        line-height: 2em;
+        line-height: 1.8em;
         min-width: 12em;
     }
 
     .row_container .field_container,
     .row_container .field_label {
         max-width: 30em;
+        vertical-align: middle;
     }
 
     .row_container .field_container:not(.field_label) input:not(.sp-input) {
@@ -1760,6 +1761,27 @@ a.modal-link-btn, a.modal-link-btn:hover {
     height: 1.8em;
     padding: 2px;
     min-width: 20em;
+}
+
+#book_edit_section .editableform .control-group {
+    margin-left: -4px;
+    vertical-align: top;
+}
+
+#book_edit_section .editable-container.editable-inline {
+    vertical-align: top;
+}
+
+#book_edit_section .form-control {
+//    border: none;
+//    color: #333333;
+//    height: inherit;
+//    padding-top: 2px 0;
+//    transition: none;
+}
+
+#book_edit_section #edit_links_container {
+    vertical-align: middle;
 }
 
 #book_delete_section .instruction em {
