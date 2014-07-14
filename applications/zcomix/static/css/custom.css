@@ -1577,7 +1577,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     .row_container .field_container,
     .row_container .image_field_container,
-    .row_container .field_label {
+    .row_container .field_label,
+    .row_container .row_message {
         display: inline-block;
         line-height: 1.8em;
         min-width: 12em;
