@@ -213,7 +213,7 @@ div.centered table {
 }
 
 .breadcrumb_container .breadcrumb > .active a {
-    border-bottom: 3px dotted #FFFFFF;
+    border-bottom: 1px dotted #FFFFFF;
     color: #FFFFFF;
     font-weight: normal;
     text-decoration: none;
@@ -1447,6 +1447,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-right: 0;
 }
 
+@media screen and (max-width: 992px) {
+    #add_link_container .link_url {
+        min-width: 20em;
+    }
+}
+
 .row_container .arrow-muted {
     pointer-events: none;
     cursor: default;
@@ -1586,7 +1592,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     .row_container .field_container,
     .row_container .field_label {
-        max-width: 30em;
+        max-width: 24em;
         vertical-align: middle;
     }
 
@@ -1651,6 +1657,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
     #mug_shot .template-upload .progress_buttons_container .progress-striped {
         min-width: 20em;
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .field_container {
+        max-width: 20em !important;
     }
 }
 
@@ -1783,6 +1795,17 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #book_edit_section #edit_links_container {
     vertical-align: middle;
+}
+
+@media screen and (max-width: 992px) {
+    #book_edit_section .book_name_input {
+        min-width: 20em;
+    }
+}
+
+#book_edit_section #description {
+    color: #333333;
+    font-size: 9pt;
 }
 
 #book_delete_section .instruction em {
