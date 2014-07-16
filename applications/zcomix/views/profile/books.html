@@ -1,17 +1,19 @@
 {{from applications.zcomix.modules.books import read_link}}
 {{extend 'profile/layout.html'}}
 <div>
+    {{if request.vars.can_release is not None:}}
     <div class="books_list_title">
     <h4>RELEASED</h4>
     </div>
-    {{=LOAD(c='profile', f='book_list', args='released', extension='load', ajax=True, target="released_book_list")}}
-    <div id="released_book_list"></div>
+    <div id="released_book_list" class="book_list"></div>
+    {{pass}}
 
+    {{if request.vars.can_release is not None:}}
     <div class="books_list_title">
     <h4>ONGOING</h4>
     </div>
-    {{=LOAD(c='profile', f='book_list', args='ongoing', extension='load', ajax=True, target="ongoing_book_list")}}
-    <div id="ongoing_book_list"></div>
+    {{pass}}
+    <div id="ongoing_book_list" class="book_list"></div>
 
     {{if has_disabled:}}
     <div class="books_list_title">
@@ -21,8 +23,7 @@
         Books are disabled by the site admin if they are under copyright review
         or deemed inappropriate.
     </div>
-    {{=LOAD(c='profile', f='book_list', args='disabled', extension='load', ajax=True, target="disabled_book_list")}}
-    <div id="disabled_book_list"></div>
+    <div id="disabled_book_list" class="book_list"></div>
     {{pass}}
     <div>
         {{=A(
@@ -34,6 +35,29 @@
         )}}
     </div>
 </div>
+
+<script>
+//<![CDATA[
+    function display_book_lists() {
+        var urls = {
+            'released': '{{=URL(c='profile', f='book_list', args='released', vars=request.vars, extension='load')}}',
+            'ongoing':  '{{=URL(c='profile', f='book_list', args='ongoing', vars=request.vars, extension='load')}}',
+            'disabled': '{{=URL(c='profile', f='book_list', args='disabled', vars=request.vars, extension='load')}}',
+        }
+
+        $.each(urls, function(key, url) {
+            var target =  key + '_book_list';
+            if ($('#' + target).length) {
+                web2py_component(url, target);
+            }
+        });
+    }
+
+    $(document).ready(function(){
+        display_book_lists();
+    });
+//]]>
+</script>
 
 {{block post_bootstrap_js}}
     {{if DEBUG:}}
