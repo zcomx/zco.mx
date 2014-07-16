@@ -505,6 +505,7 @@
                           + '</div>'
                         );
                 var container = link.find('.field_container').eq(0);
+                container.addClass('field_container_' + x_editable_settings.name);
                 var editable_elem = link.find('.field_container > a').eq(0);
                 $.fn.inplace_crud_utils.set_editable(
                     editable_elem,
