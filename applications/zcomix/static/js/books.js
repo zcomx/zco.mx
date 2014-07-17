@@ -1,6 +1,15 @@
 (function () {
     "use strict";
 
+    function book_id_from_link(link, link_func) {
+        var book_id = 0;
+        var href_parts = link.attr('href').split('/');
+        if (href_parts[2] === link_func) {
+            book_id = href_parts[3];
+        }
+        return book_id;
+    }
+
     function close_button(label) {
         label = typeof label !== 'undefined' ? label : 'Close';
         return {
@@ -35,9 +44,13 @@
         $('#message_panel').addClass(new_class).show();
     }
 
+    function get_message_by_url(url) {
+        return $('<div></div>').load(url);
+    }
+
     function get_message(elem) {
         var url = elem.attr('href');
-        return $('<div></div>').load(url);
+        return get_message_by_url(url);
     }
 
     function get_title(elem, action) {
@@ -80,6 +93,47 @@
         })
     }
 
+    function open_edit_modal(link, url, title, book_id) {
+        var action = 'Edit';
+        title = title || get_title(link, action),
+        new BootstrapDialog({
+            title: title,
+            message: url ? get_message_by_url(url) : get_message(link),
+            onhidden: function(dialog) {
+                display_book_lists();
+            },
+            onshow: onshow_callback,
+            buttons: [
+                {
+                    label: 'Upload',
+                    action : function(dialog){
+                        dialog.close();
+                        var url = '/profile/book_pages/' + dialog.getData('book_id');
+                        var new_title = title.replace('Edit: ', 'Upload: ');
+                        open_upload_modal(null, url, new_title);
+                    }
+                },
+                close_button(),
+            ],
+            data: {
+                'book_id': book_id || book_id_from_link(link, 'book_edit'),
+            },
+        }).open();
+    }
+
+    function open_upload_modal(link, url, title) {
+        var action = 'Upload';
+        new BootstrapDialog({
+            title: title || get_title(link, action),
+            message: url ? get_message_by_url(url) : get_message(link),
+            onshow: onshow_callback,
+            onhidden: reorder_pages,
+            buttons: [
+                close_button(),
+            ],
+        }).open();
+    }
+
     function onshow_callback(dialog) {
         dialog.getModalDialog().addClass('modal-lg');
     }
@@ -89,9 +143,14 @@
         form.submit();
     }
 
-    function update_book(action, book_id, dialog) {
+    function update_book(action, dialog) {
         var that = $(this);
         var url = '/zcomix/profile/book_crud.json';
+
+        var book_id = dialog.getData('book_id');
+        if (!book_id) {
+            return;
+        }
 
         $('#message_panel').hide();
 
@@ -130,8 +189,15 @@
                     var add_dialog = new BootstrapDialog({
                         title: action,
                         message: get_message(link),
-                        onhide: function(dialog) {
-                            display_book_lists();
+                        onhidden: function(dialog) {
+                            var book_id = dialog.getData('book_id');
+                            if (book_id) {
+                                var url = '/profile/book_edit/' + book_id;
+                                var title = 'Edit: ' + dialog.getData('title');
+                                open_edit_modal(null, url, title, book_id);
+                            } else {
+                                display_book_lists();
+                            }
                         },
                         onshow: onshow_callback,
                         buttons: [
@@ -151,15 +217,10 @@
                 that.on('click', function(event) {
                     var action = 'Delete';
                     var link = that;
-                    var book_id = 0;
-                    var href_parts = link.attr('href').split('/');
-                    if (href_parts[2] === 'book_delete') {
-                        book_id = href_parts[3];
-                    }
                     new BootstrapDialog({
                         title: get_title(link, action),
                         message: get_message(link),
-                        onhide: function(dialog) {
+                        onhidden: function(dialog) {
                             display_book_lists();
                         },
                         onshow: onshow_callback,
@@ -167,11 +228,14 @@
                             {
                                 label: 'Delete',
                                 action : function(dialog){
-                                    update_book('delete', book_id, dialog);
+                                    update_book('delete', dialog);
                                 }
                             },
                             close_button('Cancel'),
                         ],
+                        data: {
+                            'book_id': book_id_from_link(link, 'book_delete')
+                        },
                     }).open();
                     event.preventDefault();
                 });
@@ -183,19 +247,7 @@
             var that = $(this);
             if (!that.data('has_modal_edit_btn')) {
                 that.on('click', function(event) {
-                    var action = 'Edit';
-                    var link = that;
-                    new BootstrapDialog({
-                        title: get_title(link, action),
-                        message: get_message(link),
-                        onhide: function(dialog) {
-                            display_book_lists();
-                        },
-                        onshow: onshow_callback,
-                        buttons: [
-                            close_button(),
-                        ],
-                    }).open();
+                    open_edit_modal(that);
                     event.preventDefault();
                 });
                 that.data('has_modal_edit_btn', true);
@@ -208,15 +260,10 @@
                 that.on('click', function(event) {
                     var action = 'Release';
                     var link = that;
-                    var book_id = 0;
-                    var href_parts = link.attr('href').split('/');
-                    if (href_parts[2] === 'book_release') {
-                        book_id = href_parts[3];
-                    }
                     new BootstrapDialog({
                         title: get_title(link, action),
                         message: get_message(link),
-                        onhide: function(dialog) {
+                        onhidden: function(dialog) {
                             display_book_lists();
                         },
                         onshow: onshow_callback,
@@ -231,13 +278,16 @@
                                     {
                                         label: 'Release',
                                         action : function(dialog){
-                                            update_book('release', book_id, dialog);
+                                            update_book('release', dialog);
                                         }
                                     },
                                     close_button('Cancel'),
                                 ];
                             }
                         })(),
+                        data: {
+                            'book_id': book_id_from_link(link, 'book_release')
+                        },
                     }).open();
                     event.preventDefault();
                 });
@@ -249,17 +299,7 @@
             var that = $(this);
             if (!that.data('has_modal_upload_btn')) {
                 that.on('click', function(event) {
-                    var action = 'Upload';
-                    var link = that;
-                    new BootstrapDialog({
-                        title: get_title(link, action),
-                        message: get_message(link),
-                        onshow: onshow_callback,
-                        onhide: reorder_pages,
-                        buttons: [
-                            close_button(),
-                        ],
-                    }).open();
+                    open_upload_modal(that);
                     event.preventDefault();
                 });
                 that.data('has_modal_upload_btn', true);

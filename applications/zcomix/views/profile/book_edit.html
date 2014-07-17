@@ -133,13 +133,9 @@
         var record_id = response.id;
         var dialog = $('#add_book_button').data().dialog;
         if (!dialog) { return; }
-        dialog.getModalHeader().find('.' + dialog.getNamespace('title'))
-            .html('')
-            .append('Edit: ' + newValue);
-        dialog.getModalBody().find('.' + dialog.getNamespace('message'))
-            .html('')
-            .load('{{=URL(c='profile', f='book_edit')}}' + '/' + record_id);
-        dialog.getModalFooter().find("button:contains('Cancel')").text('Close');
+        dialog.setData('book_id', record_id);
+        dialog.setData('title', newValue);
+        dialog.close();
     }
 
     $(document).ready(function(){
@@ -148,7 +144,6 @@
             '{{=book.id if book else "0"}}',
             {
                 source_data: book_data,
-                on_add: add_callback,
             }
         );
         {{if book and book.id:}}
