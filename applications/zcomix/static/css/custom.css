@@ -1104,6 +1104,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     max-height: 100%;
 }
 
+#reader_section #slider_page img {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 .scroll_slide_options {
     float: right;
     padding-top: 0.6em;
@@ -1660,12 +1666,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
-@media screen and (max-width: 992px) {
-    .field_container {
-        max-width: 20em !important;
-    }
-}
-
 .doc_section {
     width: 36em;
 }
@@ -1785,26 +1785,46 @@ a.modal-link-btn, a.modal-link-btn:hover {
     vertical-align: top;
 }
 
-#book_edit_section .form-control {
-//    border: none;
-//    color: #333333;
-//    height: inherit;
-//    padding-top: 2px 0;
-//    transition: none;
+#book_edit_section .book_publication_year_input,
+#book_edit_section .book_reader_input {
+    border: none;
+    color: #333333;
+    height: inherit;
+    padding: 2px 0 0;
+    transition: none;
 }
 
 #book_edit_section #edit_links_container {
     vertical-align: middle;
 }
 
+#book_edit_section .book_description_input {
+    border-color: #999999;
+    color: #333333;
+    transition: none;
+    width: 24em;
+}
+
 @media screen and (max-width: 992px) {
     #book_edit_section .book_name_input {
         min-width: 20em;
     }
+    #book_edit_section .field_container_description {
+        max-width: 20em;
+    }
+    #book_edit_section .book_description_input {
+        width: 20em;
+    }
+
+}
+
+#book_edit_section .field_container_description {
+    line-height: 1.2em;
+    padding: 2px 0;
 }
 
 #book_edit_section #description {
-    color: #333333;
+    color: #999999;
     font-size: 9pt;
 }
 

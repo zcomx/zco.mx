@@ -13,8 +13,15 @@ VERSION 1
     [x] login -> books page -> ongoing -> release
         * add dc info
         * change color and spacing on italicized words
-    [ ] login -> books page -> Add
+    [x] login -> books page -> Add
         Add class/id's for each value
+
+    [x] slider layout
+        https://i.imgur.com/cxF2P15.png
+        images stick to top border, looks somewhat lopsided for some books
+        position: relative;
+        top: 50%;
+        transform: translateY(-50%);
 
     [ ] login -> books page -> ongoing -> delete
         The book is deleted and removed from search results
@@ -27,33 +34,42 @@ VERSION 1
     [ ] login -> books page -> Add
         Add an 'Upload Images' button to the bottom left
 
-    [ ] login -> books page -> Add
+    [ ] login -> books page -> Add/Edit
         handle really long urls
+        https://reallylongassur...
 
     [ ] login -> books page
-        align  buttons?
+        right justify button row.  it looks right on the next smallest screen size
 
     [ ] login -> books -> upload
-        maybe add "press enter to save" in upload form (some people might hit
-        the close button instead, since it's the only one visible)
+        Combine 'add files...' and 'start upload'
+        remove 'cancel upload'
+
+    [ ] login -> books -> upload
+        Add (i) and explain they can hold shift or ctrl to select multiple files
 
     [ ] login -> books -> add/edit
         add (i) popup in upload form: "scroller = vertical layout, several
         images per page / slider = one image per page"
 
     [ ] login -> books -> add/edit
-        book border width variable? (2px might not be enough for some material)
-
-    [ ] slider layout
-        https://i.imgur.com/cxF2P15.png
-        images stick to top border, looks somewhat lopsided for some books
+        change default border to 4px
 
     [ ] login
         Temporarily hide Release section and button & Ongoing header
 
     [ ] What is the weirdo fifth portal about?
+        at 480px
 
     [ ] navbar on front page has small gap between oranage bar and search bar
+        place the searchbox on top of the navbar
+
+    ---
+    [ ] login -> books page -> Add/Edit
+        Add div to 'Description' for vertical-align: top
+
+    [ ] duplicate filenames
+    [ ] issue number ?
 
 
 VERSION 2 - Before Going Live
