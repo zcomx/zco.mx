@@ -438,7 +438,10 @@ def book_release():
 
 @auth.requires_login()
 def books():
-    """Books controller."""
+    """Books controller.
+
+    request.vars.can_release: mixed, if set, released books are displayed.
+    """
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()

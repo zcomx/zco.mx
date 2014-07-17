@@ -184,6 +184,7 @@
                     var container = link.find('.field_container').eq(i);
                     var editable_elem = container.find('a').first();
                     editable_elem.text(row[field]);
+                    editable_elem.attr({'title': row[field]});
                     var x_editable_settings = {
                         inputclass: 'inplace_crud link_' + field + '_input',
                         params: {
@@ -487,13 +488,16 @@
                     if (! v.hasOwnProperty('readable') || v.readable) {
                         var opts = {'name': k, 'value': v.value};
                         $.extend(opts, v.x_editable_settings);
-                        var link = methods._load_field(v.label, v.value, opts);
+                        var link = methods._load_field(v.label, v.value, v.info, opts);
                         link.appendTo(elem);
+                        if (v.callback) {
+                            v.callback(link);
+                        }
                     }
                 });
             },
 
-            _load_field: function(label, value, x_editable_settings) {
+            _load_field: function(label, value, info, x_editable_settings) {
                 anchor = '<a href="#" id="' + x_editable_settings.name + '">' + value + '</a>';
                 var link = $(
                             '<div class="row_container">'
@@ -502,10 +506,14 @@
                           + '    <div class="field_container">'
                           + anchor
                           + '    </div>'
+                          + '    <div class="field_info"></div>'
                           + '</div>'
                         );
                 var container = link.find('.field_container').eq(0);
                 container.addClass('field_container_' + x_editable_settings.name);
+                if (info) {
+                    link.find('.field_info').html(info);
+                }
                 var editable_elem = link.find('.field_container > a').eq(0);
                 $.fn.inplace_crud_utils.set_editable(
                     editable_elem,

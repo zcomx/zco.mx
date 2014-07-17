@@ -131,8 +131,7 @@
                         title: action,
                         message: get_message(link),
                         onhide: function(dialog) {
-                            web2py_component('/profile/book_list.load/released', 'released_book_list');
-                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                            display_book_lists();
                         },
                         onshow: onshow_callback,
                         buttons: [
@@ -161,8 +160,7 @@
                         title: get_title(link, action),
                         message: get_message(link),
                         onhide: function(dialog) {
-                            web2py_component('/profile/book_list.load/released', 'released_book_list');
-                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                            display_book_lists();
                         },
                         onshow: onshow_callback,
                         buttons: [
@@ -191,8 +189,7 @@
                         title: get_title(link, action),
                         message: get_message(link),
                         onhide: function(dialog) {
-                            web2py_component('/profile/book_list.load/released', 'released_book_list');
-                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                            display_book_lists();
                         },
                         onshow: onshow_callback,
                         buttons: [
@@ -220,8 +217,7 @@
                         title: get_title(link, action),
                         message: get_message(link),
                         onhide: function(dialog) {
-                            web2py_component('/profile/book_list.load/released', 'released_book_list');
-                            web2py_component('/profile/book_list.load/ongoing', 'ongoing_book_list');
+                            display_book_lists();
                         },
                         onshow: onshow_callback,
                         buttons: (function() {

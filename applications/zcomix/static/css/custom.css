@@ -191,11 +191,6 @@ div.centered table {
 .breadcrumb_container {
     background-color: #F05000;
     color: #FFFFFF;
-}
-
-.breadcrumb_container {
-    background-color: #F05000;
-    color: #FFFFFF;
     font-size: 12px;
     padding: 0 6px;
 }
@@ -234,11 +229,11 @@ div.centered table {
     color: #666666;
     font-size: 9.5pt;
     height: 2.1em;
-    max-width: 22.5em;
     border: 1px solid #F05000;
     box-shadow: none;
     padding: 0 14px;
     margin-right: 0;
+    width: 100%;
 }
 
 .custom_link {
@@ -263,6 +258,10 @@ div.centered table {
     margin-bottom: 0;
     margin-top: 2em;
     line-height: 1;
+}
+
+#profile_page .book_list .table-condensed td:nth-last-child(-n+1) {
+    text-align: right;
 }
 
 #profile_page .table > thead > tr > th,
@@ -380,6 +379,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
         margin-left: 0;
         width: 100%;
     }
+
 }
 
 
@@ -593,6 +593,18 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+@media screen and (min-width: 481px) and (max-width: 767px) {
+    #search input {
+        width: 22.5em;
+    }
+}
+
+@media screen and (max-width: 480px){
+    #search input {
+        width: 100%;
+    }
+}
+
 .grid_section .item_details .name_padding {
     padding-bottom: 0.4em;
     z-index: 1;
@@ -772,6 +784,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     #profile_page .book_name_column {
         min-width: 20em;
+    }
+}
+
+@media screen and (min-width: 481px) and (max-width: 992px){
+    .modal-dialog {
+        width: 90%;
+        margin-left: 5%;
     }
 }
 
@@ -1397,8 +1416,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .row_container .field_container.field_label {
     color: #666666;
     font-weight: normal;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
 }
 
 .row_container .field_container input:not(.sp-input) {
@@ -1504,6 +1521,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #profile_page #creator_section {
     margin: 1em;
 }
+
+
 /* foundation-icons start */
 .size-12 { font-size: 12px; }
 .size-14 { font-size: 14px; }
@@ -1566,7 +1585,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     line-height: 0.8em;
 }
 
-@media (min-width: 480px) {
+@media (min-width: 768px) {
     #add_link_container > div {
         display: inline-block;
         vertical-align: top;
@@ -1590,6 +1609,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     .row_container .field_container,
     .row_container .image_field_container,
     .row_container .field_label,
+    .row_container .field_info,
     .row_container .row_message {
         display: inline-block;
         line-height: 1.8em;
@@ -1612,6 +1632,17 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     .row_container .image_button_container {
         display: inline-block;
+    }
+
+    #edit_links_container .field_container {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 24em;
+    }
+
+    #edit_links_container .field_label {
+        width: 12em;
     }
 
     #bio_container .row_container .field_container {

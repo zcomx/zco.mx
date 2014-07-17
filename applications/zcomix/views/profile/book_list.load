@@ -68,6 +68,7 @@
                     _class='btn btn-default btn-xs modal-delete-btn',
                 )}}
             </td>
+            {{if request.vars.can_release is not None:}}
             <td>
                 {{page_count = db(db.book_page.book_id == book.id).count()}}
                 {{not_available = 'release_not_available' if page_count <=0 else ''}}
@@ -78,6 +79,7 @@
                     _type='button',
                 )}}
             </td>
+            {{pass}}
         </tr>
         {{pass}}
         {{if not books:}}
