@@ -1431,6 +1431,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     color: #333333;
 }
 
+.row_container input.link_name_input {
+    width: 12em;
+}
+
 #add_link_container .error_wrapper div.error,
 .field_container .error_wrapper div.error {
 //    background: #FF9999;
@@ -1466,8 +1470,9 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #add_link_container .link_url {
     border: 1px solid #333333;
-    min-width: 24em;
+    margin-left: 0.15em;
     margin-right: 0;
+    min-width: 23.85em;
 }
 
 @media screen and (max-width: 992px) {
@@ -1808,7 +1813,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #book_edit_section .editableform .control-group {
-    margin-left: -4px;
     vertical-align: top;
 }
 
@@ -1872,3 +1876,4 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #profile_book_release_page .panel-heading em {
     padding: 0 2px;
 }
+
