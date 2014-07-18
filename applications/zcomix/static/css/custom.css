@@ -822,6 +822,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+
 #creator_page #name h1 {
     margin: 0;
 }
@@ -1846,7 +1847,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     #book_edit_section .book_description_input {
         width: 20em;
     }
-
+    #edit_links_container .field_container {
+        width: 20em;
+    }
+    #edit_links_container .field_label {
+        width: 12em;
+    }
 }
 
 #book_edit_section .field_container_description {
