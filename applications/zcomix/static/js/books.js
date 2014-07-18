@@ -105,7 +105,8 @@
             onshow: onshow_callback,
             buttons: [
                 {
-                    label: 'Upload',
+                    label: 'Upload Images',
+                    cssClass: 'btn-default pull-left',
                     action : function(dialog){
                         dialog.close();
                         var url = '/profile/book_pages/' + dialog.getData('book_id');
