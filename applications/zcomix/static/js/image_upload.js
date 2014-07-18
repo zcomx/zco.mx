@@ -54,6 +54,7 @@
             _run: function(elem) {
                 $(elem).fileupload({
                     url: settings.url,
+                    autoUpload: true,
                     completed: methods._completed_callback,
                     destroyed: methods._deleted_callback,
                     _error_scrub: methods._error_scrub,
