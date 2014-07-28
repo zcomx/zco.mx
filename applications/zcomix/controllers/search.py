@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 """ Search controller."""
 
-import re
 import uuid
 from BeautifulSoup import BeautifulSoup
-from applications.zcomix.modules.links import CustomLinks
 from applications.zcomix.modules.search import Search
-from applications.zcomix.modules.stickon.sqlhtml import LocalSQLFORM
 
 
 def box():
@@ -18,7 +15,7 @@ def cover_grid():
     """Search results cover grid.
 
     request.vars.o: string, orderby field, one of:
-            'views' (default), 'newest', 'rating', 'contributions'
+            'newest' (default) 'views', 'rating', 'contributions'
     """
     search = Search()
     search.set(db, request)

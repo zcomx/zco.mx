@@ -5,6 +5,7 @@
 
 Search classes and functions.
 """
+import collections
 from gluon import *
 from applications.zcomix.modules.books import read_link
 from applications.zcomix.modules.stickon.sqlhtml import LocalSQLFORM
@@ -13,40 +14,48 @@ from applications.zcomix.modules.stickon.sqlhtml import LocalSQLFORM
 class Search(object):
     """Class representing a search grid"""
 
-    order_fields = {
-            'contributions': {
-                'table': 'book',
-                'field': 'contributions',
-                'fmt': lambda x: '${v:0.0f}'.format(v=x),
-                'label': 'contributions',
-                'periods': True,
-                'class': 'orderby_contributions',
-                },
-            'newest': {
-                'table': 'book',
-                'field': 'created_on',
-                'fmt': lambda x: str(x.date()),
-                'label': 'added',
-                'periods': False,
-                'class': 'orderby_newest',
-                },
-            'views': {
-                'table': 'book',
-                'field': 'views',
-                'fmt': lambda x: '{v}'.format(v=x),
-                'label': 'views',
-                'periods': True,
-                'class': 'orderby_views',
-                },
-            'rating': {
-                'table': 'book',
-                'field': 'rating',
-                'fmt': lambda x: '{v:0.1f}'.format(v=x),
-                'label': 'rating',
-                'periods': True,
-                'class': 'orderby_rating',
-                },
-            }
+    order_fields = collections.OrderedDict()
+    # Items are displayed on front page in order.
+    order_fields['newest pages'] = {
+        'table': 'book_page',
+        'field': 'created_on',
+        'fmt': lambda x: str(x.date()) if x is not None else 'n/a',
+        'label': 'page added',
+        'periods': False,
+        'class': 'orderby_newest_pages',
+    }
+    # order_fields['newest'] = {
+    #         'table': 'book',
+    #         'field': 'created_on',
+    #         'fmt': lambda x: str(x.date()),
+    #         'label': 'added',
+    #         'periods': False,
+    #         'class': 'orderby_newest',
+    # }
+    order_fields['views'] = {
+            'table': 'book',
+            'field': 'views',
+            'fmt': lambda x: '{v}'.format(v=x),
+            'label': 'views',
+            'periods': True,
+            'class': 'orderby_views',
+    }
+    # order_fields['contributions'] = {
+    #         'table': 'book',
+    #         'field': 'contributions',
+    #         'fmt': lambda x: '${v:0.0f}'.format(v=x),
+    #         'label': 'contributions',
+    #         'periods': True,
+    #         'class': 'orderby_contributions',
+    # }
+    # order_fields['rating'] = {
+    #         'table': 'book',
+    #         'field': 'rating',
+    #         'fmt': lambda x: '{v:0.1f}'.format(v=x),
+    #         'label': 'rating',
+    #         'periods': True,
+    #         'class': 'orderby_rating',
+    # }
 
     def __init__(self):
         """Constructor"""
@@ -107,7 +116,7 @@ class Search(object):
         if request.vars.o and request.vars.o in self.order_fields.keys():
             orderby_field = self.order_fields[request.vars.o]
         else:
-            orderby_field = self.order_fields['views']
+            orderby_field = self.order_fields['newest pages']
 
         self.orderby_field = orderby_field
 
@@ -139,6 +148,7 @@ class Search(object):
             db.book.views_month,
             db.book.created_on,
             db.creator.id,
+            db.book_page.created_on,
             ]
 
         def link_book_id(row):
@@ -256,6 +266,8 @@ class Search(object):
             db(db.book_to_link.book_id == record_id).delete()
             db.commit()
 
+        page2 = db.book_page.with_alias('page2')
+
         kwargs = dict(
                 fields=fields,
                 headers={
@@ -263,9 +275,16 @@ class Search(object):
                     'auth_user.name': 'Creator',
                     },
                 orderby=orderby,
+                groupby=db.book.id,
                 left=[
                     db.creator.on(db.book.creator_id == db.creator.id),
                     db.auth_user.on(db.creator.auth_user_id == db.auth_user.id),
+                    db.book_page.on(db.book_page.book_id == db.book.id),
+                    page2.on(
+                        (page2.book_id == db.book.id) & \
+                        (page2.id != db.book_page.id) & \
+                        (page2.created_on < db.book_page.created_on)
+                    ),
                     ],
                 paginate=10,
                 details=False,

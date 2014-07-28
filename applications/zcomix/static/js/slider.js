@@ -61,22 +61,27 @@
 
         $('#reader_section .slide').click(function(e) {
             next_slide(ROTATE);
+            e.preventDefault();
         });
 
         $('#page_nav_next').click(function(e) {
             next_slide(NO_ROTATE);
+            e.preventDefault();
         });
 
         $('#page_nav_prev').click(function(e) {
             prev_slide(NO_ROTATE);
+            e.preventDefault();
         });
 
         $('#page_nav_first').click(function(e) {
             show_slide(0);
+            e.preventDefault();
         });
 
         $('#page_nav_last').click(function(e) {
             show_slide(image_count());
+            e.preventDefault();
         });
 
         $('#page_nav_page_no').change(function(e) {
