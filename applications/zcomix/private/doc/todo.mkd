@@ -3,85 +3,51 @@ VERSION 1
 [x] bugs/changes
 
 [O] UX/UI
-    [x] login -> books page -> released -> edit
-        Take link and colour off fields that are not editable
-    [x] Set default to inline editing (vs popup)
-        fix up css
-    [x] login -> books page -> add/edit and login -> profile page
-        Add 'new window' icon to links -- "glyphicon glyphicon-new-window"
-        fix up css
-    [x] login -> books page -> ongoing -> release
-        * add dc info
-        * change color and spacing on italicized words
-    [x] login -> books page -> Add
-        Add class/id's for each value
+    [ ] css
+        Check css for xs, sm and med on all pages
 
-    [x] slider layout
-        https://i.imgur.com/cxF2P15.png
-        images stick to top border, looks somewhat lopsided for some books
-        position: relative;
-        top: 50%;
-        transform: translateY(-50%);
+    [ ] front page -> newest
+        s/added/page added/
 
-    [x] login -> books page -> ongoing -> delete
-        The book is deleted and removed from search results
-        All statistics and history related to the book are deleted (eg. ratings, views, etc)
-       -The torrent for the book is deleted
-       -The book is removed from the torrent containing all books from the creator
-       -The book is removed from the torrent containing all books from zcomix
-       -The book is deleted from the Direct Connect network
+    [ ] login -> books -> Add/Edit
+        Numbering   () ongoing (eg 001, 002, 003, etc)
+                    () mini-series (eg 01 of 04)
+                    () One-shot/Graphic Novel
 
-    [ ] login -> books page -> Add/Edit
-        handle really long urls
-        https://reallylongassur...
+        SB 2014-07-23 16:58
+        - ongoing
+          Selecting 'ongoing' shows a input field where the example was which
+          as the next number in the series as a placeholder in light grey ?
+          (default 001)
 
-    [x] login -> books page
-        right justify button row.  it looks right on the next smallest screen size
+        - mini-series
+            Selecting 'mini-series' shows an input field and a dropdown with
+            'of' in between  [01] of [04], where the example was
 
-    [/] login -> books -> upload
-        Add (i) and explain they can hold shift or ctrl to select multiple files
-
-    [/] login -> books -> add/edit
-        add (i) popup in upload form: "scroller = vertical layout, several
-        images per page / slider = one image per page"
-
-    [x] login -> books -> add/edit
-        change default border to 4px
-
-    [x] login
-        Temporarily hide Release section and button & Ongoing header
-
-    [x] What is the weirdo fifth portal about?
-        at 480px
-
-    [x] navbar on front page has small gap between oranage bar and search bar
-        place the searchbox on top of the navbar
-
-    [ ] login -> books page -> Add
-        Add an 'Upload Images' button to the bottom left
-
-    [ ] login -> books -> upload
-        Combine 'add files...' and 'start upload'
-        remove 'cancel upload'
-
-    ---
-    [ ] login -> books page -> Add/Edit
+    [ ] login -> books -> Add/Edit
         Add div to 'Description' for vertical-align: top
+        Add div to 'Numbering' for vertical-align: top
 
-    [ ] duplicate filenames
-    [ ] issue number ?
+    [ ] creators page
+        min-width for Title for Released and Ongoing
+    [ ] front page -> newest
+        make default
+    [ ] reader page -> slider
+        prev/next will cause page jump
+    [ ] reader page
+        page_nav_container shows link underline on hover
 
 
 VERSION 2 - Before Going Live
-[ ] Front Page - only show released books
+[ ] Front Page - 'newest released' or 'released'? (add this report)
 [ ] Front Page - Get view stats working
-[ ] Front Page - Add 'random' report ??
-[ ] Front Page - Add 'download' report
 
 [O] Scrub and resize files for html version
     * optimum convert command?
     * current convert command bloats pngs
     $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"
+    $ convert "$input" -limit memory 200MB -limit map 200MB -quiet ${resize:+-resize "$resize"} "$output"
+
 [ ] Indica Page
     * last page of comic
     * call to action (last page (jpg in cbz and html in scroll/slider))
@@ -89,6 +55,8 @@ VERSION 2 - Before Going Live
     * creative commons licence
     * for jpg indica https://101.zco.mx/Name_of_Comic_001/  ?
 
+[ ] wildcard ssl cert for zcomix.com
+[ ] wildcard ssl cert for zco.mx
 [ ] Rewrite urls
     https://zcomix.com
     https://zco.mx
@@ -104,12 +72,13 @@ VERSION 2 - Before Going Live
 
     "Name of Comic 001 (2014) (101.zco.mx).cbz"
     "Name of Comic 001 (2014) (101.zcomix.com).cbz"
-    "Channel Zero - The Complete Collection (2012) (digital) (Son of Ultron-Empire).cbr"
+    "Name of Comic 001 (2012) (digital-Empire).cbr"
+    "Name of Comic 001 (2012) (digital) (Son of Ultron-Empire).cbr"
 
-[ ] ssl cert for zco.mx
 [ ] Add torrent and dc functionality
 [O] (i) info popups
 [O] Mature Content icon
+[ ] Check for duplicate file/book names
 [ ] login -> books page - paginate 'released' and 'ongoing' books
 [ ] Reader notifications of new material (rss? and mailing list?)
 
@@ -120,7 +89,8 @@ VERSION 2 - Before Going Live
 [ ] Tags (kids, by genre ??)
 [ ] Url checker
 [ ] Keyboard control for slider - L, R (and maybe U for back to artist page)
-[ ] Article/interview links for creators ?
+[ ] Links to Cartoonist Articles/interviews?
+[ ] Links to Book Reivews ?
 
 IDEAS
 [s] zcomix: Creative Commons Licence
@@ -146,6 +116,7 @@ IDEAS
     [ ] Different styles of book printing
         [ ] maybe a list of printers and approximate pricing
 
+[ ] Front Page - Add 'download' report
 [ ] How best to use the front page?
 [ ] How to best leverage goodwill?
 [ ] Guided view using Perfect Viewer ?

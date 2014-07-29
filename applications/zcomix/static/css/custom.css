@@ -107,19 +107,17 @@ div.centered table {
     border-radius: 3px;
 }
 
-.bubble {
-    background: #FFFFFF;
-    border: 10px solid #DDDDDD;
-    -webkit-border-radius: 20px;
-    -moz-border-radius: 20px;
-    -o-border-radius: 20px;
-    -ms-border-radius: 20px;
-    -khtml-border-radius: 20px;
-    border-radius: 20px;
-    height: 120px;
-    padding: 16px;
-    position: relative;
-    width: 272px;
+.bubble:before {
+    border-color: #DDDDDD rgba(221, 221, 221, 0);
+    border-style: solid;
+    border-width: 40px 20px 0;
+    content: "";
+    display: block;
+    left: 200px;
+    position: absolute;
+    top: 90px;
+    width: 0;
+    z-index: -1;
 }
 
 .bubble:after {
@@ -129,23 +127,25 @@ div.centered table {
     bottom: -22px;
     content: "";
     display: block;
-    left: 209px;
+    left: 210px;
     position: absolute;
     width: 0;
     z-index: 1;
 }
 
-.bubble:before {
-    border-color: #DDDDDD rgba(221, 221, 221, 0);
-    border-style: solid;
-    border-width: 39px 19px 0;
-    content: "";
-    display: block;
-    left: 200px;
-    position: absolute;
-    top: 100px;
-    width: 0;
-    z-index: -1;
+.bubble {
+    background: #FFFFFF;
+    border: 10px solid #DDDDDD;
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    -o-border-radius: 20px;
+    -ms-border-radius: 20px;
+    -khtml-border-radius: 20px;
+    border-radius: 20px;
+    height: 110px;
+    padding: 16px;
+    position: relative;
+    width: 272px;
 }
 
 .error_extra {
@@ -184,8 +184,14 @@ div.centered table {
     min-width: 24em;
 }
 
-#top_section {
+#top_section,
+#front_page #top_section {
     padding-bottom: 2em;
+}
+@media screen and (max-width: 767px){
+    #top_section {
+        padding-bottom: inherit;
+    }
 }
 
 .breadcrumb_container {
@@ -601,7 +607,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 @media screen and (max-width: 480px){
     #search input {
+        margin-top: 0.4em;
         width: 100%;
+    }
+}
+
+@media screen and (max-width: 767px){
+    #search input {
+        margin-top: 0.2em;
     }
 }
 
@@ -699,6 +712,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #book_page #buttons_container .button_container .btn-sm,
 .grid_section .buttons_orderby_container .btn-sm {
     border-radius: 3px;
+}
+
+@media screen and (max-width: 767px){
+    #book_page #left_column {
+        padding-top: 1em;
+    }
 }
 
 .grid_section .orderby_field_container {
@@ -1221,7 +1240,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #reader_page_footer #page_nav_list li {
     display: inline;
-    padding: 0 0.2em;
+    padding: 0 0.4em;
     white-space: nowrap;
 }
 
@@ -1236,6 +1255,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border-radius: 3px;
     color: #333333;
     height: inherit;
+    margin-left: 2px;
+    margin-right: 2px;
     padding: 0 0 0 2px;
     width: 2.5em;
 }
@@ -1382,9 +1403,9 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-top: 0.2em;
 }
 
-.row_container {
-    margin-top: 0.6em;
-}
+// .row_container {
+//     margin-top: 0.6em;
+// }
 
 #add_link_container .arrow_container,
 .row_container .arrow_container {
@@ -1455,7 +1476,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #add_link_container .form-control {
     border-radius: 0px;
     height: inherit;
-    padding: 2px 2px;
+    padding: 2px 3px 2px 2px;
     color: #333333;
 }
 
@@ -1466,19 +1487,28 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #add_link_container .link_name {
     border: 1px solid #333333;
     width: 12em;
-    margin-right: 0;
+    margin-right: 2px;
+}
+@media screen and (max-width: 767px){
+    #add_link_container .link_name {
+        min-width: 20em;
+    }
+    #add_link_container > div {
+        padding-bottom: 0.2em;
+    }
 }
 
 #add_link_container .link_url {
     border: 1px solid #333333;
-    margin-left: 0.15em;
+//    margin-left: 0.15em;
     margin-right: 0;
-    min-width: 23.85em;
+    min-width: 24em;
 }
 
 @media screen and (max-width: 992px) {
     #add_link_container .link_url {
         min-width: 20em;
+        max-width: 30em;
     }
 }
 
@@ -1498,7 +1528,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #links_container .row_container .btn:focus {
     border: 1px solid #CCCCCC;
     color: #333333;
-    height: 2.4em;
+    height: 100%
 }
 
 .row_container .arrow_container .btn-xs {
@@ -1508,6 +1538,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #links_container .row_container {
     margin-top: 2.6em;
 }
+@media screen and (max-width: 767px){
+    #links_container .row_container {
+        margin-top: 1em;
+    }
+}
 
 #bio_container,
 #mug_shot{
@@ -1515,9 +1550,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #mug_shot {
-    padding: 1em 1em 1em 1em;
+    padding: 1em;
     min-width: 23em;
     width: 100%;
+}
+@media screen and (max-width: 767px){
+    #mug_shot {
+        padding: inherit;
+    }
 }
 
 #mug_shot input[type=submit] {
@@ -1526,6 +1566,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #profile_page #creator_section {
     margin: 1em;
+}
+
+#profile_page #creator_section .img_preview_container {
+    padding-bottom: 0.2em;
 }
 
 
@@ -1601,9 +1645,9 @@ a.modal-link-btn, a.modal-link-btn:hover {
         margin-top: 0;
     }
 
-    .row_container {
-        margin-top: 0;
-    }
+//    .row_container {
+//        margin-top: 0;
+//    }
 
     .row_container .field_label {
         margin-right: 1em;
@@ -1638,13 +1682,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     .row_container .image_button_container {
         display: inline-block;
-    }
-
-    #edit_links_container .field_container {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        width: 24em;
     }
 
     #edit_links_container .field_label {
@@ -1701,6 +1738,16 @@ a.modal-link-btn, a.modal-link-btn:hover {
     #mug_shot .template-upload .progress_buttons_container .progress-striped {
         min-width: 20em;
     }
+}
+
+#edit_links_container .field_container {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 24em;
+}
+#edit_links_container .field_label {
+    width: 12em;
 }
 
 .doc_section {
@@ -1841,6 +1888,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 24em;
 }
 
+#book_edit_section .field_info {
+    display: inline;
+}
+
 @media screen and (max-width: 992px) {
     #book_edit_section .book_name_input {
         min-width: 20em;
@@ -1852,16 +1903,32 @@ a.modal-link-btn, a.modal-link-btn:hover {
         width: 20em;
     }
     #edit_links_container .field_container {
+        line-height: 1.8em;
+        vertical-align: middle;
         width: 20em;
     }
     #edit_links_container .field_label {
+        line-height: 1.8em;
+        vertical-align: middle;
         width: 12em;
+    }
+    #book_edit_section .row_container .field_container:not(.field_label) input:not(.sp-input) {
+        min-width: 20em;
     }
 }
 
 #book_edit_section .field_container_description {
     line-height: 1.2em;
     padding: 2px 0;
+}
+
+#book_edit_section .field_container_reader {
+    min-width: 3em;
+}
+
+#book_edit_section #book_reader_info {
+    color: #666666;
+    margin-top: 2px;
 }
 
 #book_edit_section #description {
@@ -1881,5 +1948,35 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #profile_book_release_page .panel-heading em {
     padding: 0 2px;
+}
+
+#profile_book_pages_page #add_files_info {
+    color: #666666;
+    margin-left: 8px;
+    margin-top: 2px;
+    vertical-align: top;
+}
+
+.tooltip.in {
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
+
+.tooltip-inner {
+    color: #333333;
+    background: #FFFFFF;
+    border: solid 3px #999999;
+    text-align: left;
+    max-width: 30em;
+    padding: 15px;
+}
+
+.tooltip.top .tooltip-arrow {
+    bottom: 0;
+    left: 50%;
+    margin-left: -11px;
+    margin-bottom: -5px;
+    border-top-color: #999999;
+    border-width: 10px 10px 0;
 }
 
