@@ -1,4 +1,6 @@
+{{from applications.zcomix.modules.search import Search}}
 {{extend 'layout_main.html'}}
+
 <div id="front_page">
 
 {{=LOAD(c='default', f='top', extension='load', ajax=False, content='')}}
@@ -27,7 +29,7 @@
             </div>
         </div>
         <ul class="nav nav-tabs">
-        {{orderbys = ['views', 'newest']}}
+        {{orderbys = Search.order_fields.keys()}}
         {{orderby = request.vars.o if request.vars.o in orderbys else orderbys[0]}}
         {{for o in orderbys:}}
             <li class="nav-tab {{if o == orderby:}}active{{pass}}">
