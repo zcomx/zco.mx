@@ -124,6 +124,23 @@ db.define_table('book',
         ],
     ),
     Field(
+        'book_type_id',
+        'integer',
+        label='Book Type',
+    ),
+    Field(
+        'number',
+        'integer',
+        default=1,
+        requires = IS_INT_IN_RANGE(),
+    ),
+    Field(
+        'of_number',
+        'integer',
+        default=1,
+        requires = IS_INT_IN_RANGE(),
+    ),
+    Field(
         'creator_id',
         'integer',
         writable=False,
@@ -249,6 +266,13 @@ db.define_table('book_to_link',
     Field('book_id', 'integer'),
     Field('link_id', 'integer'),
     Field('order_no', 'integer'),
+    migrate=True,
+)
+
+db.define_table('book_type',
+    Field('name'),
+    Field('description'),
+    Field('sequence', 'integer'),
     migrate=True,
 )
 
@@ -407,6 +431,13 @@ db.define_table('book_view',
     ),
     Field('time_stamp', 'datetime'),
     migrate=True,
+)
+
+db.book.book_type_id.requires = IS_IN_DB(
+    db,
+    db.book_type.id,
+    '%(name)s',
+    zero=None
 )
 
 db.book.creator_id.requires = IS_IN_DB(

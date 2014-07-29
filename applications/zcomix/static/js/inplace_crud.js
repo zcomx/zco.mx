@@ -486,10 +486,28 @@
             _load: function(elem) {
                 $.each(settings.source_data, function(k, v) {
                     if (! v.hasOwnProperty('readable') || v.readable) {
-                        var opts = {'name': k, 'value': v.value};
-                        $.extend(opts, v.x_editable_settings);
-                        var link = methods._load_field(v.label, v.value, v.info, opts);
+                        var anchor = '<a href="#" id="' + k + '">' + v.value + '</a>';
+                        var link = null;
+                        if (settings.row_container) {
+                            link = methods._row_container(anchor, k, v);
+                        } else {
+                            link = $(anchor);
+                        }
                         link.appendTo(elem);
+                        $.fn.inplace_crud_utils.set_editable(
+                            $('#' + k),
+                            settings.auto_open,
+                            {
+                                url: settings.url,
+                                pk: settings.record_id || null,
+                                params: {
+                                    '_action': (! settings.record_id || settings.record_id === "0") ? 'create' : 'update',
+                                },
+                            },
+                            settings.x_editable_settings,
+                            {'name': k, 'value': v.value},
+                            v.x_editable_settings
+                        );
                         if (v.callback) {
                             v.callback(link);
                         }
@@ -500,7 +518,7 @@
             _load_field: function(label, value, info, x_editable_settings) {
                 anchor = '<a href="#" id="' + x_editable_settings.name + '">' + value + '</a>';
                 var link = $(
-                            '<div class="row_container">'
+                            '<div id="row_container_' + x_editable_settings.name + '" class="row_container">'
                           + '    <div class="arrow_container"></div>'
                           + '    <div class="field_label">' + label + '</div>'
                           + '    <div class="field_container">'
@@ -514,6 +532,40 @@
                 if (info) {
                     link.find('.field_info').html(info);
                 }
+                var editable_elem = link.find('.field_container > a').eq(0);
+                $.fn.inplace_crud_utils.set_editable(
+                    editable_elem,
+                    settings.auto_open,
+                    {
+                        url: settings.url,
+                        pk: settings.record_id || null,
+                        params: {
+                            '_action': (! settings.record_id || settings.record_id === "0") ? 'create' : 'update',
+                        },
+                    },
+                    settings.x_editable_settings,
+                    x_editable_settings
+                );
+                return link;
+            },
+
+            _row_container: function(anchor, name, options) {
+                var link = $(
+                            '<div id="row_container_' + name + '" class="row_container">'
+                          + '    <div class="arrow_container"></div>'
+                          + '    <div class="field_label">' + options.label + '</div>'
+                          + '    <div class="field_container">'
+                          + anchor
+                          + '    </div>'
+                          + '    <div class="field_info"></div>'
+                          + '</div>'
+                        );
+                var container = link.find('.field_container').eq(0);
+                container.addClass('field_container_' + name);
+                if (options.info) {
+                    link.find('.field_info').html(options.info);
+                }
+                return link;
                 var editable_elem = link.find('.field_container > a').eq(0);
                 $.fn.inplace_crud_utils.set_editable(
                     editable_elem,
@@ -558,7 +610,9 @@
 
         return this.each( function(index, elem) {
             var $this = $(this);
-            methods._create_message_panel.apply(this, [elem]);
+            if (settings.row_container) {
+                methods._create_message_panel.apply(this, [elem]);
+            }
             methods._load.apply(this, [elem]);
             if (!settings.record_id) {
                 methods._buttons.apply(this, [elem]);
@@ -576,6 +630,7 @@
             auto_open: false,
             message_panel: null,
             on_add: null,
+            row_container: true,
         }
     );
 

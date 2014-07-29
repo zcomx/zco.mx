@@ -1,4 +1,4 @@
-{{from applications.zcomix.modules.books import cover_image, read_link}}
+{{from applications.zcomix.modules.books import cover_image, formatted_name, read_link}}
 {{from applications.zcomix.modules.utils import ItemDescription}}
 {{if grid.rows:}}
     {{for i in range(1, len(grid.rows) + 1, 2): }}
@@ -10,7 +10,7 @@
                 {{row = None}}
             {{else:}}
             {{parity_class = 'even' if j % 2 else 'odd'}}
-            {{book_name = '{n} ({r})'.format(n=row.book.name, r=db.book.publication_year.represent(row.book.publication_year, row.book))}}
+            {{book_name = formatted_name(db, row.book)}}
             <div class="col-sm-12 col-md-6 item_container {{=parity_class}}">
                 <div class="row">
                     <div class="col-xs-12 number">

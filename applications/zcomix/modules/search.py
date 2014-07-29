@@ -7,7 +7,7 @@ Search classes and functions.
 """
 import collections
 from gluon import *
-from applications.zcomix.modules.books import read_link
+from applications.zcomix.modules.books import formatted_name, read_link
 from applications.zcomix.modules.stickon.sqlhtml import LocalSQLFORM
 
 
@@ -127,11 +127,18 @@ class Search(object):
             orderby_fieldname = orderby_field['field']
 
         orderby = [~db[orderby_field['table']][orderby_fieldname]]
-        orderby.append(db.book.id)              # Ensure consistent results
+        orderby.append(db.book.number)
+        orderby.append(db.book.id)                # For consistent results
 
         db.book.id.readable = False
         db.book.id.writable = False
-        db.book.name.represent = lambda v, row: A(v, _href=URL(c='books', f='book', args=row.book.id, extension=False))
+        db.book.name.represent = lambda v, row: A(formatted_name(db, row.book), _href=URL(c='books', f='book', args=row.book.id, extension=False))
+        db.book.book_type_id.readable = False
+        db.book.book_type_id.writable = False
+        db.book.number.readable = False
+        db.book.number.writable = False
+        db.book.of_number.readable = False
+        db.book.of_number.writable = False
         db.creator.id.readable = False
         db.creator.id.writable = False
         db.auth_user.name.represent = lambda v, row: A(v, _href=URL(c='creators', f='creator', args=row.creator.id, extension=False))
@@ -139,6 +146,9 @@ class Search(object):
         fields = [
             db.book.id,
             db.book.name,
+            db.book.book_type_id,
+            db.book.number,
+            db.book.of_number,
             db.book.publication_year,
             db.book.contributions_year,
             db.book.contributions_month,

@@ -15,10 +15,12 @@ from PIL import Image
 from gluon import *
 from gluon.contrib.simplejson import loads
 from applications.zcomix.modules.books import \
+    DEFAULT_BOOK_TYPE, \
     book_pages_as_json, \
     book_page_for_json, \
     cover_image, \
     default_contribute_amount, \
+    defaults, \
     publication_year_range, \
     read_link
 from applications.zcomix.modules.test_runner import LocalTestCase
@@ -33,6 +35,7 @@ class ImageTestCase(LocalTestCase):
 
     _book = None
     _book_page = None
+    _creator = None
     _image_dir = '/tmp/image_for_books'
     _image_original = os.path.join(_image_dir, 'original')
     _image_name = 'file.jpg'
@@ -66,7 +69,14 @@ class ImageTestCase(LocalTestCase):
                 stored_filename = db.book_page.image.store(f)
             return stored_filename
 
-        book_id = db.book.insert(name='Image Test Case')
+        creator_id = db.creator.insert(email='image_test_case@example.com')
+        db.commit()
+        cls._creator = db(db.creator.id == creator_id).select().first()
+
+        book_id = db.book.insert(
+            name='Image Test Case',
+            creator_id=cls._creator.id,
+        )
         db.commit()
         cls._book = db(db.book.id == book_id).select().first()
         cls._objects.append(cls._book)
@@ -217,6 +227,80 @@ class TestFunctions(ImageTestCase):
                 self._objects.append(page)
                 page_count = db(db.book_page.book_id == book.id).count()
             self.assertEqual(default_contribute_amount(db, book), t[1])
+
+    def test__defaults(self):
+        types_by_name = {}
+        for row in db(db.book_type).select(db.book_type.ALL):
+            types_by_name[row.name] = row
+
+        # Test book unique name
+        got = defaults(db, '_test__defaults_', self._creator)
+        expect = {
+            'creator_id': self._creator.id,
+            'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id
+        }
+        self.assertEqual(got, expect)
+
+        # Test book name not unique, various number values.
+        self._book.update_record(
+            book_type_id=types_by_name[DEFAULT_BOOK_TYPE].id,
+            number=1,
+            of_number=1
+        )
+        db.commit()
+
+        got = defaults(db, self._book.name, self._creator)
+        expect = {
+            'creator_id': self._creator.id,
+            'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
+            'number': 2,
+            'of_number': 1,
+        }
+        self.assertEqual(got, expect)
+
+        self._book.update_record(
+            number=2,
+            of_number=9
+        )
+        db.commit()
+        got = defaults(db, self._book.name, self._creator)
+        expect = {
+            'creator_id': self._creator.id,
+            'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
+            'number': 3,
+            'of_number': 9,
+        }
+        self.assertEqual(got, expect)
+
+
+        # Test: various book_types
+        for book_type in ['one-shot', 'ongoing', 'mini-series']:
+            self._book.update_record(
+                book_type_id=types_by_name[book_type].id,
+                number=1,
+                of_number=1
+            )
+            db.commit()
+
+            got = defaults(db, self._book.name, self._creator)
+            expect = {
+                'creator_id': self._creator.id,
+                'book_type_id': types_by_name[book_type].id,
+                'number': 2,
+                'of_number': 1,
+            }
+            self.assertEqual(got, expect)
+
+        # Test invalid creator
+        self._book.update_record(
+            book_type_id=types_by_name[DEFAULT_BOOK_TYPE].id,
+            number=1,
+            of_number=1
+        )
+        db.commit()
+
+        got = defaults(db, self._book.name, -1)
+        self.assertEqual(got, {})
 
     def test__publication_year_range(self):
         start, end = publication_year_range()

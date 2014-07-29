@@ -1,5 +1,5 @@
 {{import datetime}}
-{{from applications.zcomix.modules.books import publication_years}}
+{{from applications.zcomix.modules.books import book_types, publication_years}}
 <div id="book_edit_section">
 
 {{if book and not book.status:}}
@@ -22,6 +22,33 @@
 </div>
 <script>
 //<![CDATA[
+
+    function pad(n, width, z) {
+        z = z || '0';
+        n = n + '';
+        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+    }
+
+    function numbers(start, end) {
+        var values = [];
+        var width = end.toString().length;
+        for (var i = start; i <= end; i++) {
+            values.push({value: i, text: pad(i, width, '0')});
+        }
+        return values;
+    }
+
+    function numbers_99(scope) {
+        console.log('scope: %o', scope);
+        return numbers(1, 99);
+    }
+
+    function numbers_999(scope) {
+        console.log('scope: %o', scope);
+        return numbers(1, 999);
+    }
+
+
     var book_data = {
         'name': {
             'label': '{{=db.book.name.label}}',
@@ -39,6 +66,28 @@
     {{if book:}}
         {{# Edit mode}}
         book_data_extra = {
+            'book_type_id': {
+                'label': '{{=db.book.book_type_id.label}}',
+                'value': "{{try:}}{{=db(db.book_type.id == book.book_type_id).select(db.book_type.description).first()['description']}}{{except:}}{{='n/a'}}{{pass}}",
+                'x_editable_settings': {
+                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'inputclass': 'inplace_crud book_type_id_input',
+                    'source': [ {{=book_types(db)}} ],
+                    'type': 'radiolist',
+                    'value': '{{=book.book_type_id if book else 0}}',
+                },
+            },
+            'number': {
+                'label': '{{=db.book.number.label}}',
+                'value': '{{="{x:03d}".format(x=book.number if book else 1)}}',
+                'x_editable_settings': {
+                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'inputclass': 'inplace_crud book_number_input',
+                    'source': numbers_999,
+                    'type': 'select',
+                    'value': '{{=book.number or 1 if book else 1}}',
+                },
+            },
             'publication_year': {
                 'label': '{{=db.book.publication_year.label}}',
                 'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
@@ -51,7 +100,7 @@
             },
             'description': {
                 'label': '{{=db.book.description.label}}',
-                'value': '{{try:}}{{=book.description.encode('string_escape') or ""}}{{except:}}{{=""}}{{pass}}',
+                'value': "{{try:}}{{=book.description.encode('string_escape') or ''}}{{except:}}{{=''}}{{pass}}",
                 'x_editable_settings': {
                     'inputclass': 'inplace_crud book_description_input',
                     'type': 'textarea',
@@ -92,7 +141,6 @@
                 'value': '{{=book.background_colour if book else db.book.background_colour.default}}',
                 'x_editable_settings': {
                     'placement': 'bottom',
-                    'showbuttons': false,
                     'title': 'Enter a color for the background',
                     'type': 'colour_picker',
                 },
@@ -102,7 +150,6 @@
                 'value': '{{=book.border_colour if book else db.book.border_colour.default}}',
                 'x_editable_settings': {
                     'placement': 'bottom',
-                    'showbuttons': false,
                     'title': 'Enter a color for the border',
                     'type': 'colour_picker',
                 },
@@ -125,6 +172,20 @@
     {{pass}}
     $.extend(true, book_data, book_data_extra);
 
+    var book_of_number_data = {
+        'of_number': {
+            'label': '{{=db.book.of_number.label}}',
+            'value': '{{="{x:02d}".format(x=book.of_number if book else 1)}}',
+            'x_editable_settings': {
+                'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                'inputclass': 'inplace_crud book_of_number_input',
+                'source': numbers_99,
+                'type': 'select',
+                'value': '{{=book.of_number or 1 if book else 1}}',
+            },
+        }
+    };
+
 //]]>
 </script>
 <script>
@@ -136,6 +197,35 @@
         dialog.setData('book_id', record_id);
         dialog.setData('title', newValue);
         dialog.close();
+    }
+
+    function set_number_containers(numbers) {
+        if (numbers.number) {
+            $('#row_container_number').fadeIn();
+        } else {
+            $('#row_container_number').fadeOut();
+        }
+        if (numbers.of_number) {
+            if($('#of_number_container').length) {
+                $('#of_number_container').fadeIn();
+            } else {
+                $('<span id="of_number_container"> of </span>').appendTo($('.field_container_number'));
+                $('#of_number_container').inplace_crud(
+                    '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+                    '{{=book.id if book else "0"}}',
+                    {
+                        'row_container': false,
+                        source_data: book_of_number_data,
+                    }
+                );
+            }
+            $('a#number').editable('option', 'source', numbers_99);
+            $('a#number').text(pad(parseInt($('a#number').text(), 10), 2, '0'));
+        } else {
+            $('#of_number_container').fadeOut();
+            $('a#number').editable('option', 'source', numbers_999);
+            $('a#number').text(pad(parseInt($('a#number').text(), 10), 3, '0'));
+        }
     }
 
     $(document).ready(function(){
@@ -158,6 +248,11 @@
             }, 300);
         {{pass}}
 
+        $('#book_type_id').on('save', function(e, params) {
+            set_number_containers(params.response.numbers);
+        });
+
+        set_number_containers({{=XML(numbers)}});
     });
 
 //]]>

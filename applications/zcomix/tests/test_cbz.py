@@ -132,8 +132,15 @@ class TestCBZCreator(ImageTestCase):
         self.assertEqual(creator.book.name, self._book.name)
 
     def test__cbz_filename(self):
+        types_by_name = {}
+        for row in db(db.book_type).select(db.book_type.ALL):
+            types_by_name[row.name] = row
+
+        # One-shot
+        book_type_id = types_by_name['one-shot'].id
         tests = [
             #(name, year, creator_id, expect)
+            ('My Book', 1999, 1, 'My Book (1999) (1.zcomix.com).cbz'),
             ('My Book', 1999, 123, 'My Book (1999) (123.zcomix.com).cbz'),
             (r'A !@#$%^&*?/\[]{};:" B', 1999, 123,
                 r'A !@#$^&[]{}; -  B (1999) (123.zcomix.com).cbz'),
@@ -161,13 +168,62 @@ class TestCBZCreator(ImageTestCase):
         ]
 
         for t in tests:
-            book = Row(dict(
+            self._book.update_record(
                 name=t[0],
+                book_type_id=book_type_id,
+                number=1,
+                of_number=1,
                 publication_year=t[1],
                 creator_id=t[2],
-            ))
-            cbz_creator = CBZCreator(book)
+            )
+            cbz_creator = CBZCreator(self._book)
             self.assertEqual(cbz_creator.cbz_filename(), t[3])
+
+        # Ongoing
+        book_type_id = types_by_name['ongoing'].id
+        tests = [
+            #(name, number, year, creator_id, expect)
+            ('My Book', 1, 1999, 1, 'My Book 001 (1999) (1.zcomix.com).cbz'),
+            ('My Book', 2, 1999, 1, 'My Book 002 (1999) (1.zcomix.com).cbz'),
+            ('My Book', 999, 1999, 1, 'My Book 999 (1999) (1.zcomix.com).cbz'),
+        ]
+
+        for t in tests:
+            self._book.update_record(
+                name=t[0],
+                book_type_id=book_type_id,
+                number=t[1],
+                of_number=1,
+                publication_year=t[2],
+                creator_id=t[3],
+            )
+            cbz_creator = CBZCreator(self._book)
+            self.assertEqual(cbz_creator.cbz_filename(), t[4])
+
+        # Mini-series
+        book_type_id = types_by_name['mini-series'].id
+        tests = [
+            #(name, number, of_number, year, creator_id, expect)
+            ('My Book', 1, 4, 1999, 1, 'My Book 01 (of 04) (1999) (1.zcomix.com).cbz'),
+            ('My Book', 2, 9, 1999, 1, 'My Book 02 (of 09) (1999) (1.zcomix.com).cbz'),
+            ('My Book', 99, 99, 1999, 1, 'My Book 99 (of 99) (1999) (1.zcomix.com).cbz'),
+        ]
+
+        for t in tests:
+            self._book.update_record(
+                name=t[0],
+                book_type_id=book_type_id,
+                number=t[1],
+                of_number=t[2],
+                publication_year=t[3],
+                creator_id=t[4],
+            )
+            cbz_creator = CBZCreator(self._book)
+            self.assertEqual(cbz_creator.cbz_filename(), t[5])
+
+        # Reset the book creator
+        self._book.update_record(creator_id=self._creator.id)
+        db.commit()
 
     def test__image_filename(self):
         creator = CBZCreator(self._book)

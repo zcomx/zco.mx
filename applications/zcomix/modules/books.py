@@ -13,6 +13,10 @@ from gluon.contrib.simplejson import dumps
 from applications.zcomix.modules.images import \
     ThumbnailSizer, \
     img_tag
+from applications.zcomix.modules.utils import entity_to_row
+
+
+DEFAULT_BOOK_TYPE = 'one-shot'
 
 
 def book_pages_as_json(db, book_id, book_page_ids=None):
@@ -109,6 +113,22 @@ def book_page_for_json(db, book_page_id):
     )
 
 
+def book_types(db):
+    """Return a XML instance representing book types suitable for
+    an HTML radio button input.
+
+    Args:
+        db: gluon.dal.DAL instance
+    """
+    # {'value': record_id, 'text': description}, ...
+    types = db(db.book_type).select(db.book_type.ALL, orderby=db.book_type.sequence)
+    return XML(
+        ','.join(
+            ["{{'value':'{x.id}', 'text':'{x.description}'}}".format(x=x) \
+                    for x in types])
+    )
+
+
 def cover_image(db, book_id, size='original', img_attributes=None):
     """Return html code suitable for the cover image.
 
@@ -176,12 +196,7 @@ def default_contribute_amount(db, book_entity):
     maximum = 20
     rate_per_page = 1.0 / 20
 
-    book = None
-    if hasattr(book_entity, 'id'):
-        book = book_entity
-    else:
-        # Assume book is an id
-        book = db(db.book.id == book_entity).select().first()
+    book = entity_to_row(db.book, book_entity)
 
     page_count = db(db.book_page.book_id == book.id).count()
     amount = round(rate_per_page * page_count)
@@ -190,6 +205,90 @@ def default_contribute_amount(db, book_entity):
     if amount > maximum:
         amount = maximum
     return amount
+
+
+def defaults(db, name, creator_entity):
+    """Return a dict representing default values for a book.
+
+    Args:
+        db: gluon.dal.DAL instance
+        name: string, name of book
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator record.
+
+    Returns:
+        dict: representing book fields and values.
+    """
+    data = {}
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        return {}
+
+    data['creator_id'] = creator.id
+
+    # Check if a book with the same name exists.
+    query = (db.book.creator_id == creator.id) & (db.book.name == name)
+    orderby = ~db.book.number
+    book = db(query).select(db.book.ALL, orderby=orderby).first()
+    if book:
+        data['book_type_id'] = book.book_type_id
+        data['number'] = book.number + 1                # Must be unique
+        data['of_number'] = book.of_number
+    else:
+        book_type_record = db(db.book_type.name == DEFAULT_BOOK_TYPE).select(
+                db.book_type.ALL).first()
+        if book_type_record:
+            data['book_type_id'] = book_type_record.id
+    return data
+
+
+def formatted_name(db, book_entity):
+    """Return the formatted name of the book
+
+    Args:
+        db: gluon.dal.DAL instance
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+    """
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return ''
+    book_type = entity_to_row(db.book_type, book.book_type_id)
+
+    fmt = '{name} ({year})'
+    data = {
+        'name': book.name,
+        'year': book.publication_year,
+    }
+
+    if book_type.name == 'ongoing':
+        fmt = '{name} {num:03d} ({year})'
+        data['num'] = book.number
+    elif book_type.name == 'mini-series':
+        fmt = '{name} {num:02d} (of {of:02d}) ({year})'
+        data['num'] = book.number
+        data['of'] = book.of_number
+    return fmt.format(**data)
+
+
+def numbers_for_book_type(db, book_type_id):
+    """Return a dict for the number settings for a book_type_id.
+
+    Args:
+        db: gluon.dal.DAL instance
+        book_type_id: integer, id of book_type record
+    """
+    default = {'number': False, 'of_number': False}
+    query = (db.book_type.id == book_type_id)
+    book_type = db(query).select(db.book_type.ALL).first()
+    if not book_type:
+        return default
+    elif book_type.name == 'ongoing':
+        return {'number': True, 'of_number': False}
+    elif book_type.name == 'mini-series':
+        return {'number': True, 'of_number': True}
+    else:
+        return default
 
 
 def publication_years():
@@ -222,13 +321,7 @@ def read_link(db, book_entity, components=None, **attributes):
     """
     empty = SPAN('')
 
-    book = None
-    if hasattr(book_entity, 'id'):
-        book = book_entity
-    else:
-        # Assume book is an id
-        book = db(db.book.id == book_entity).select().first()
-
+    book = entity_to_row(db.book, book_entity)
     if not book:
         return empty
 

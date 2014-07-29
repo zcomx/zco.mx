@@ -10,9 +10,10 @@ import os
 import subprocess
 import sys
 from gluon import *
+from applications.zcomix.modules.books import formatted_name
 from applications.zcomix.modules.files import TitleFileName
 from applications.zcomix.modules.images import CBZImage
-from applications.zcomix.modules.utils import temp_directory
+from applications.zcomix.modules.utils import entity_to_row, temp_directory
 
 
 class CBZCreateError(Exception):
@@ -29,20 +30,16 @@ class CBZCreator(object):
         Args:
             book: Row instance of book or integer, id of book record.
         """
-        if hasattr(book, 'name'):
-            self.book = book
-        else:
-            # Assume book is an integer
-            db = current.app.db
-            self.book = db(db.book.id == book).select(db.book.ALL).first()
+        db = current.app.db
+        self.book = entity_to_row(db.book, book)
         self._working_directory = None
 
     def cbz_filename(self):
         """Return the name for the cbz file."""
-        fmt = '{name} ({year}) ({cid}.zcomix.com).cbz'
+        db = current.app.db
+        fmt = '{name} ({cid}.zcomix.com).cbz'
         return fmt.format(
-            name=TitleFileName(self.book.name).scrubbed(),
-            year=self.book.publication_year,
+            name=TitleFileName(formatted_name(db, self.book)).scrubbed(),
             cid=self.book.creator_id,
         )
 

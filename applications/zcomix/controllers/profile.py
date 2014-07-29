@@ -6,6 +6,8 @@ from gluon.contrib.simplejson import dumps
 from applications.zcomix.modules.book_upload import BookPageUploader
 from applications.zcomix.modules.books import \
     book_pages_as_json, \
+    defaults as book_defaults, \
+    numbers_for_book_type, \
     read_link
 from applications.zcomix.modules.creators import image_as_json
 from applications.zcomix.modules.images import UploadImage
@@ -117,10 +119,12 @@ def book_crud():
             return do_error('Invalid data provided.')
 
     if action == 'create':
+        data = {}
         # Validate all fields.
-        data = {'creator_id': creator_record.id}
         if request.vars.name is not None and request.vars.value is not None:
-            data[request.vars.name] = request.vars.value
+            book_name = request.vars.value.strip()
+            data = book_defaults(db, book_name, creator_record)
+            data[request.vars.name] = book_name
         ret = db.book.validate_and_insert(**data)
 
         if ret.errors:
@@ -190,8 +194,9 @@ def book_crud():
                     'status': 'error',
                     'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
                 }
-        return {'status': 'ok'}
-
+        numbers = numbers_for_book_type(db, request.vars.value) \
+                if request.vars.name == 'book_type_id' else None
+        return {'status': 'ok', 'numbers': numbers}
     return {'status': 'ok'}
 
 
@@ -236,7 +241,10 @@ def book_edit():
             db.book.ALL
         ).first()
 
-    return dict(book=book_record)
+    book_type_id = book_record.book_type_id if book_record else 0
+    numbers = numbers_for_book_type(db, book_type_id)
+
+    return dict(book=book_record, numbers=dumps(numbers))
 
 
 @auth.requires_login()
@@ -266,7 +274,7 @@ def book_list():
     elif request.args(0) == 'disabled':
         query = creator_query & (db.book.status == False)
     if query:
-        book_records = db(query).select(db.book.ALL, orderby=db.book.name)
+        book_records = db(query).select(db.book.ALL, orderby=[db.book.name, db.book.number])
     return dict(books=book_records)
 
 

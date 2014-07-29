@@ -79,6 +79,25 @@ class ItemDescription(object):
         return DIV(*divs, **kwargs)
 
 
+def entity_to_row(table, entity):
+    """Return a Row instance for the entity.
+
+    Args:
+        table: gluon.dal.Table instance
+        entity: Row instance or integer, if integer, this is the id of the
+            record. The record is read from the table.
+    """
+    if hasattr(entity, 'id'):
+        # The entity is assumed already a Row instance, nothing to do
+        return entity
+
+    # Assume entity is an id
+    # W0212 (protected-access): *Access to a protected member
+    # pylint: disable=W0212
+    db = table._db
+    return db(table.id == entity).select().first()
+
+
 def markmin_content(filename):
     """Return markmin content."""
     content = ''

@@ -357,6 +357,16 @@ div.centered table {
     color: #999999;
 }
 
+.editable-radiolist label {
+    display: block;
+    font-weight: normal;
+    margin-bottom: 0;
+}
+
+.editable-radiolist label > span {
+    margin-left: 0.4em;
+}
+
 a.modal-link-btn, a.modal-link-btn:hover {
     border-bottom: 1px dashed #0088CC;
     text-decoration: none;
@@ -1458,7 +1468,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-weight: normal;
 }
 
-.row_container .field_container input:not(.sp-input) {
+.row_container .field_container input:not(.sp-input):not([type=radio]) {
     border: 1px solid #333333;
     border-radius: 0;
     min-width: 12em;
@@ -1687,10 +1697,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     .row_container .field_container,
     .row_container .field_label {
         max-width: 24em;
-        vertical-align: middle;
+        vertical-align: top;
     }
 
-    .row_container .field_container:not(.field_label) input:not(.sp-input) {
+    .row_container .field_container:not(.field_label) input:not(.sp-input):not([type=radio]) {
         min-width: 24em;
     }
 

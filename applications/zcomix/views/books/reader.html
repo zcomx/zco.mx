@@ -1,3 +1,4 @@
+{{from applications.zcomix.modules.books import formatted_name}}
 {{extend 'layout.html'}}
 <style type="text/css" media="screen">
     {{if request.function == 'slider':}}
@@ -29,7 +30,7 @@
                     <div class="row" id="name_creator">
                         <div id="book_name" class="col-sm-8">
                             <a href="{{=URL(c='books', f='book', args=book.id)}}">
-                            {{=book.name}} ({{=db.book.publication_year.represent(book.publication_year, book)}})
+                            {{=formatted_name(db, book)}}
                             </a>
                         </div>
                         <div id="creator" class="col-sm-8">

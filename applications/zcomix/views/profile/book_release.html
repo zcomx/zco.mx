@@ -1,3 +1,4 @@
+{{from applications.zcomix.modules.books import formatted_name}}
 <div id="book_release_section">
 
 <div>
@@ -26,13 +27,13 @@
 
 {{if page_count > 0:}}
     <div class="instruction">
-        Click the <em>Release</em> button to release <em>{{=book.name}}</em>.
+        Click the <em>Release</em> button to release <em>{{=formatted_name(db, book)}}</em>.
         Click the <em>Cancel</em> button if you've changed your mind.
     </div>
 {{else:}}
     <div class="panel panel-danger">
         <div class="panel-heading">
-            The book <em>{{=book.name}}</em> has no pages. It cannot be released at this time.
+            The book <em>{{=formatted_name(db, book)}}</em> has no pages. It cannot be released at this time.
         </div>
         <div class="panel-body">
             <ul>
