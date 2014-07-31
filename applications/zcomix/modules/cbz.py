@@ -37,7 +37,7 @@ class CBZCreator(object):
     def cbz_filename(self):
         """Return the name for the cbz file."""
         db = current.app.db
-        fmt = '{name} ({cid}.zcomix.com).cbz'
+        fmt = '{name} ({cid}.zco.mx).cbz'
         return fmt.format(
             name=TitleFileName(formatted_name(db, self.book)).scrubbed(),
             cid=self.book.creator_id,

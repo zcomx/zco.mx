@@ -32,10 +32,6 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'account': '<div class="well well-sm" id="account">',
-        'book_add': [
-            '<div id="book_edit_section">',
-            "'value': '__Untitled-",
-        ],
         'book_delete': '<div id="book_delete_section">',
         'book_edit': '<div id="book_edit_section">',
         'book_pages': '<div id="profile_book_pages_page">',
@@ -146,34 +142,6 @@ class TestFunctions(LocalTestCase):
                 '{url}/account'.format(url=self.url),
                 self.titles['account']
             )
-        )
-
-    def test__book_add(self):
-        # This test will create a book.
-
-        def book_ids(creator_id):
-            return [
-                x.id for x in
-                db(db.book.creator_id == creator_id).select(db.book.id)
-            ]
-
-        before_ids = book_ids(self._creator.id)
-        self.assertTrue(
-            web.test(
-                '{url}/book_add'.format(url=self.url),
-                self.titles['book_add']
-            )
-        )
-        after_ids = book_ids(self._creator.id)
-        self.assertEqual(set(before_ids).difference(set(after_ids)), set())
-        diff_set = set(after_ids).difference(set(before_ids))
-        self.assertEqual(len(diff_set), 1)
-        new_book = db(db.book.id == list(diff_set)[0]).select().first()
-        self._objects.append(new_book)
-        self.assertEqual(new_book.creator_id, self._creator.id)
-        self.assertRegexpMatches(
-            new_book.name,
-            re.compile(r'__Untitled-[0-9]{2}__')
         )
 
     def test__book_crud(self):

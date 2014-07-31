@@ -328,35 +328,6 @@ div.centered table {
     margin-left: 0;
 }
 
-.editable_combolink_container input {
-    display: inline-block;
-}
-
-.editable_combolink_container label {
-    display: inline-block;
-    min-width: 4em;
-    text-align: right;
-}
-
-.editable_combolink_container .dl-horizontal dd {
-    margin-left: 4.4em;
-}
-
-.editable_combolink_container .dl-horizontal dt {
-    width: 4em;
-}
-
-.editable_combolink_container .instruction {
-    clear: both;
-    padding: 0 0 0.9em 0;
-    max-width: 44em;
-    margin-top: 2em;
-}
-
-.editable_combolink_container .panel-title {
-    color: #999999;
-}
-
 .editable-radiolist label {
     display: block;
     font-weight: normal;

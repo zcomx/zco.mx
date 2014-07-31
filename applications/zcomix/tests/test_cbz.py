@@ -13,6 +13,7 @@ import unittest
 from PIL import Image
 from gluon import *
 from gluon.dal import Row
+from applications.zcomix.modules.books import DEFAULT_BOOK_TYPE
 from applications.zcomix.modules.cbz import \
     CBZCreateError, \
     CBZCreator
@@ -74,9 +75,11 @@ class ImageTestCase(LocalTestCase):
                 stored_filename = db.book_page.image.store(f)
             return stored_filename
 
+        book_type_id = db(db.book_type.name == DEFAULT_BOOK_TYPE).select().first().id
         book_id = db.book.insert(
             name='Image Test Case',
-            creator_id=cls._creator.id
+            creator_id=cls._creator.id,
+            book_type_id=book_type_id
         )
         db.commit()
         cls._book = db(db.book.id == book_id).select().first()
@@ -140,31 +143,31 @@ class TestCBZCreator(ImageTestCase):
         book_type_id = types_by_name['one-shot'].id
         tests = [
             #(name, year, creator_id, expect)
-            ('My Book', 1999, 1, 'My Book (1999) (1.zcomix.com).cbz'),
-            ('My Book', 1999, 123, 'My Book (1999) (123.zcomix.com).cbz'),
+            ('My Book', 1999, 1, 'My Book (1999) (1.zco.mx).cbz'),
+            ('My Book', 1999, 123, 'My Book (1999) (123.zco.mx).cbz'),
             (r'A !@#$%^&*?/\[]{};:" B', 1999, 123,
-                r'A !@#$^&[]{}; -  B (1999) (123.zcomix.com).cbz'),
-            ('A B', 1999, 123, 'A B (1999) (123.zcomix.com).cbz'),
-            ('A  B', 1999, 123, 'A  B (1999) (123.zcomix.com).cbz'),
-            ('A   B', 1999, 123, 'A   B (1999) (123.zcomix.com).cbz'),
-            ('A...B', 1999, 123, 'A...B (1999) (123.zcomix.com).cbz'),
-            ('A---B', 1999, 123, 'A---B (1999) (123.zcomix.com).cbz'),
-            ('A___B', 1999, 123, 'A___B (1999) (123.zcomix.com).cbz'),
-            ('A:B', 1999, 123, 'A - B (1999) (123.zcomix.com).cbz'),
-            ('A: B', 1999, 123, 'A - B (1999) (123.zcomix.com).cbz'),
-            ('A : B', 1999, 123, 'A - B (1999) (123.zcomix.com).cbz'),
-            ('A :B', 1999, 123, 'A - B (1999) (123.zcomix.com).cbz'),
-            ("A'B", 1999, 123, "A'B (1999) (123.zcomix.com).cbz"),
+                r'A !@#$^&[]{}; -  B (1999) (123.zco.mx).cbz'),
+            ('A B', 1999, 123, 'A B (1999) (123.zco.mx).cbz'),
+            ('A  B', 1999, 123, 'A  B (1999) (123.zco.mx).cbz'),
+            ('A   B', 1999, 123, 'A   B (1999) (123.zco.mx).cbz'),
+            ('A...B', 1999, 123, 'A...B (1999) (123.zco.mx).cbz'),
+            ('A---B', 1999, 123, 'A---B (1999) (123.zco.mx).cbz'),
+            ('A___B', 1999, 123, 'A___B (1999) (123.zco.mx).cbz'),
+            ('A:B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
+            ('A: B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
+            ('A : B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
+            ('A :B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
+            ("A'B", 1999, 123, "A'B (1999) (123.zco.mx).cbz"),
             ('Berserk Alert!', 2014, 6,
-                'Berserk Alert! (2014) (6.zcomix.com).cbz'),
+                'Berserk Alert! (2014) (6.zco.mx).cbz'),
             ('SUPER-ENIGMATIX', 2014, 11,
-                'SUPER-ENIGMATIX (2014) (11.zcomix.com).cbz'),
+                'SUPER-ENIGMATIX (2014) (11.zco.mx).cbz'),
             ('Tarzan Comic #v2#7', 2014, 123,
-                'Tarzan Comic #v2#7 (2014) (123.zcomix.com).cbz'),
+                'Tarzan Comic #v2#7 (2014) (123.zco.mx).cbz'),
             ('Hämähäkkimies #11/1986', 1986, 123,
-                'Hämähäkkimies #111986 (1986) (123.zcomix.com).cbz'),
+                'Hämähäkkimies #111986 (1986) (123.zco.mx).cbz'),
             ('Warcraft: Legends', 2008, 123,
-                'Warcraft - Legends (2008) (123.zcomix.com).cbz'),
+                'Warcraft - Legends (2008) (123.zco.mx).cbz'),
         ]
 
         for t in tests:
@@ -183,9 +186,9 @@ class TestCBZCreator(ImageTestCase):
         book_type_id = types_by_name['ongoing'].id
         tests = [
             #(name, number, year, creator_id, expect)
-            ('My Book', 1, 1999, 1, 'My Book 001 (1999) (1.zcomix.com).cbz'),
-            ('My Book', 2, 1999, 1, 'My Book 002 (1999) (1.zcomix.com).cbz'),
-            ('My Book', 999, 1999, 1, 'My Book 999 (1999) (1.zcomix.com).cbz'),
+            ('My Book', 1, 1999, 1, 'My Book 001 (1999) (1.zco.mx).cbz'),
+            ('My Book', 2, 1999, 1, 'My Book 002 (1999) (1.zco.mx).cbz'),
+            ('My Book', 999, 1999, 1, 'My Book 999 (1999) (1.zco.mx).cbz'),
         ]
 
         for t in tests:
@@ -204,9 +207,9 @@ class TestCBZCreator(ImageTestCase):
         book_type_id = types_by_name['mini-series'].id
         tests = [
             #(name, number, of_number, year, creator_id, expect)
-            ('My Book', 1, 4, 1999, 1, 'My Book 01 (of 04) (1999) (1.zcomix.com).cbz'),
-            ('My Book', 2, 9, 1999, 1, 'My Book 02 (of 09) (1999) (1.zcomix.com).cbz'),
-            ('My Book', 99, 99, 1999, 1, 'My Book 99 (of 99) (1999) (1.zcomix.com).cbz'),
+            ('My Book', 1, 4, 1999, 1, 'My Book 01 (of 04) (1999) (1.zco.mx).cbz'),
+            ('My Book', 2, 9, 1999, 1, 'My Book 02 (of 09) (1999) (1.zco.mx).cbz'),
+            ('My Book', 99, 99, 1999, 1, 'My Book 99 (of 99) (1999) (1.zco.mx).cbz'),
         ]
 
         for t in tests:
