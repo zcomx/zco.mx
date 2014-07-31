@@ -2,11 +2,11 @@
 VERSION 1
 [x] bugs/changes
 
-[O] UX/UI
-    [ ] css
+[ ] UX/UI
+    [x] css
         Check css for xs, sm and med on all pages
 
-    [ ] front page -> newest
+    [x] front page -> newest
         s/added/page added/
 
     [ ] login -> books -> Add/Edit
@@ -28,18 +28,29 @@ VERSION 1
         Add div to 'Description' for vertical-align: top
         Add div to 'Numbering' for vertical-align: top
 
-    [ ] creators page
+    [x] creators page
         min-width for Title for Released and Ongoing
-    [ ] front page -> newest
+    [x] front page -> newest
         make default
-    [ ] reader page -> slider
+    [x] reader page -> slider
         prev/next will cause page jump
-    [ ] reader page
+    [x] reader page
         page_nav_container shows link underline on hover
+
+    ---
+    [ ] scroller
+        set background to view port size but do not center
+    [ ] slider
+        resize to height is off slightly
+    [ ] keep original images
+    [ ] login -> books -> Add/Edit
+        add iframe code for each book
+    [ ] resizing images with similar dimensions
 
 
 VERSION 2 - Before Going Live
-[ ] Front Page - 'newest released' or 'released'? (add this report)
+[ ] Front Page
+    add report 'newest released' (or 'released' ?)
 [ ] Front Page - Get view stats working
 
 [O] Scrub and resize files for html version
@@ -123,4 +134,8 @@ IDEAS
 [ ] bio and book description - wikipedia api?
 [ ] user comments? - disqus api?
 [ ] how best to promote micro-publisher and things like the Muster List
+
+---
+* site for original art
+* youtube/google hangout the drawing of a page live
 ``
