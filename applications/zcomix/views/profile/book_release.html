@@ -1,4 +1,4 @@
-{{from applications.zcomix.modules.books import formatted_name}}
+{{from applications.zcomix.modules.books import formatted_name, publication_years}}
 <div id="book_release_section">
 
 <div>
@@ -27,6 +27,11 @@
 
 {{if page_count > 0:}}
     <div class="instruction">
+        Edit the year of publication if necessary.
+        <div id="editable_fields_container"></div>
+    </div>
+
+    <div class="instruction">
         Click the <em>Release</em> button to release <em>{{=formatted_name(db, book)}}</em>.
         Click the <em>Cancel</em> button if you've changed your mind.
     </div>
@@ -49,3 +54,29 @@
 </div>
 
 </div>
+<script>
+//<![CDATA[
+    book_data = {
+        'publication_year': {
+            'label': '{{=db.book.publication_year.label}}',
+            'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
+            'x_editable_settings': {
+                'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                'inputclass': 'inplace_crud book_publication_year_input',
+                'source': [ {{=publication_years()}} ],
+                'type': 'select',
+            },
+        },
+    };
+
+    $(document).ready(function(){
+        $('#editable_fields_container').inplace_crud(
+            '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+            '{{=book.id if book else "0"}}',
+            {
+                source_data: book_data,
+            }
+        );
+    });
+//]]>
+</script>

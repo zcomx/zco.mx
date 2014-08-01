@@ -1,5 +1,5 @@
 {{import datetime}}
-{{from applications.zcomix.modules.books import book_types, publication_years}}
+{{from applications.zcomix.modules.books import book_types}}
 <div id="book_edit_section">
 
 {{if book and not book.status:}}
@@ -86,16 +86,6 @@
                     'source': numbers_999,
                     'type': 'select',
                     'value': '{{=book.number or 1 if book else 1}}',
-                },
-            },
-            'publication_year': {
-                'label': '{{=db.book.publication_year.label}}',
-                'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
-                'x_editable_settings': {
-                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
-                    'inputclass': 'inplace_crud book_publication_year_input',
-                    'source': [ {{=publication_years()}} ],
-                    'type': 'select',
                 },
             },
             'description': {
