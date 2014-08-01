@@ -53,4 +53,6 @@ applications/*/uploads/*
 applications/*/*.py[oc]
 applications/*/static/epydoc
 applications/*/static/sphinx
+applications/*/static/files/*
+!applications/*/static/files/.gitignore
 applications/*/cron/cron.master
