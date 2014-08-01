@@ -9,7 +9,7 @@ VERSION 1
     [x] front page -> newest
         s/added/page added/
 
-    [ ] login -> books -> Add/Edit
+    [x] login -> books -> Add/Edit
         Numbering   () ongoing (eg 001, 002, 003, etc)
                     () mini-series (eg 01 of 04)
                     () One-shot/Graphic Novel
@@ -24,7 +24,7 @@ VERSION 1
             Selecting 'mini-series' shows an input field and a dropdown with
             'of' in between  [01] of [04], where the example was
 
-    [ ] login -> books -> Add/Edit
+    [x] login -> books -> Add/Edit
         Add div to 'Description' for vertical-align: top
         Add div to 'Numbering' for vertical-align: top
 
@@ -38,19 +38,29 @@ VERSION 1
         page_nav_container shows link underline on hover
 
     ---
+    [ ] dev/zcomix.com/files
+
+    [ ] https://dev.zcomix.com/creators/creator/11
+        hide 'release' section
+        remove publish column
+
+    [ ] unique div's
+        .row_container .field_container, .row_container .field_label (Description)
+        #add_link_container .link_url (input box)
+
     [ ] scroller
         set background to view port size but do not center
+
     [ ] slider
-        resize to height is off slightly
-    [ ] keep original images
+        the resize to height is off slightly
+
     [ ] login -> books -> Add/Edit
         add iframe code for each book
-    [ ] resizing images with similar dimensions
+
+    [ ] problem: resizing images with slightly different dimensions
 
 
 VERSION 2 - Before Going Live
-[ ] Front Page
-    add report 'newest released' (or 'released' ?)
 [ ] Front Page - Get view stats working
 
 [O] Scrub and resize files for html version
@@ -87,6 +97,8 @@ VERSION 2 - Before Going Live
     "Name of Comic 001 (2012) (digital) (Son of Ultron-Empire).cbr"
 
 [ ] Add torrent and dc functionality
+[ ] Front Page
+    add report 'newest released' (or 'released' ?)
 [O] (i) info popups
 [O] Mature Content icon
 [ ] Check for duplicate file/book names
