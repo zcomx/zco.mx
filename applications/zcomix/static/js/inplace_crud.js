@@ -486,55 +486,22 @@
             _load: function(elem) {
                 $.each(settings.source_data, function(k, v) {
                     if (! v.hasOwnProperty('readable') || v.readable) {
-                        var anchor = '<a href="#" id="' + k + '">' + v.value + '</a>';
-                        var link = null;
-                        if (settings.row_container) {
-                            link = methods._row_container(anchor, k, v);
-                        } else {
-                            link = $(anchor);
-                        }
-                        link.appendTo(elem);
-                        $.fn.inplace_crud_utils.set_editable(
-                            $('#' + k),
-                            settings.auto_open,
-                            {
-                                url: settings.url,
-                                pk: settings.record_id || null,
-                                params: {
-                                    '_action': (! settings.record_id || settings.record_id === "0") ? 'create' : 'update',
-                                },
-                            },
-                            settings.x_editable_settings,
-                            {'name': k, 'value': v.value},
-                            v.x_editable_settings
-                        );
-                        if (v.callback) {
-                            v.callback(link);
-                        }
+                        methods._load_field(elem, k, v);
                     }
                 });
             },
 
-            _load_field: function(label, value, info, x_editable_settings) {
-                anchor = '<a href="#" id="' + x_editable_settings.name + '">' + value + '</a>';
-                var link = $(
-                            '<div id="row_container_' + x_editable_settings.name + '" class="row_container">'
-                          + '    <div class="arrow_container"></div>'
-                          + '    <div class="field_label">' + label + '</div>'
-                          + '    <div class="field_container">'
-                          + anchor
-                          + '    </div>'
-                          + '    <div class="field_info"></div>'
-                          + '</div>'
-                        );
-                var container = link.find('.field_container').eq(0);
-                container.addClass('field_container_' + x_editable_settings.name);
-                if (info) {
-                    link.find('.field_info').html(info);
+            _load_field: function(elem, field, data) {
+                var anchor = '<a href="#" id="' + field + '" title="Click to edit">' + data.value + '</a>';
+                var link = null;
+                if (settings.row_container) {
+                    link = methods._row_container(anchor, field, data);
+                } else {
+                    link = $(anchor);
                 }
-                var editable_elem = link.find('.field_container > a').eq(0);
+                link.appendTo(elem);
                 $.fn.inplace_crud_utils.set_editable(
-                    editable_elem,
+                    $('#' + field),
                     settings.auto_open,
                     {
                         url: settings.url,
@@ -544,9 +511,12 @@
                         },
                     },
                     settings.x_editable_settings,
-                    x_editable_settings
+                    {'name': field, 'value': data.value},
+                    data.x_editable_settings
                 );
-                return link;
+                if (data.callback) {
+                    data.callback(link);
+                }
             },
 
             _row_container: function(anchor, name, options) {

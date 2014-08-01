@@ -191,13 +191,14 @@
 
     function set_number_containers(numbers) {
         if (numbers.number) {
-            $('#row_container_number').fadeIn();
+            $('#row_container_number').fadeIn(700);
         } else {
-            $('#row_container_number').fadeOut();
+            $('#row_container_number').fadeOut(700);
+            $('#of_number_container').fadeOut(700);
         }
         if (numbers.of_number) {
             if($('#of_number_container').length) {
-                $('#of_number_container').fadeIn();
+                $('#of_number_container').fadeIn(700);
             } else {
                 $('<span id="of_number_container"> of </span>').appendTo($('.field_container_number'));
                 $('#of_number_container').inplace_crud(
@@ -212,7 +213,7 @@
             $('a#number').editable('option', 'source', numbers_99);
             $('a#number').text(pad(parseInt($('a#number').text(), 10), 2, '0'));
         } else {
-            $('#of_number_container').fadeOut();
+            $('#of_number_container').fadeOut(700);
             $('a#number').editable('option', 'source', numbers_999);
             $('a#number').text(pad(parseInt($('a#number').text(), 10), 3, '0'));
         }
@@ -239,7 +240,9 @@
         {{pass}}
 
         $('#book_type_id').on('save', function(e, params) {
-            set_number_containers(params.response.numbers);
+            setTimeout( function() {
+                set_number_containers(params.response.numbers);
+            }, 400);
         });
 
         set_number_containers({{=XML(numbers)}});

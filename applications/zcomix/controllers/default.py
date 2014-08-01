@@ -208,6 +208,13 @@ def faqc():
     return dict(text=markmin_content('faqc.mkd'))
 
 
+def files():
+    """Logos page"""
+    base_path = os.path.join(request.folder, 'static', 'files')
+    expose = ExposeImproved(base=base_path, display_breadcrumbs=False)
+    return dict(expose=expose)
+
+
 def goodwill():
     """Goodwill page"""
     return dict(text=markmin_content('goodwill.mkd'))

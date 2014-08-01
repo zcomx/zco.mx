@@ -1893,6 +1893,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: inline;
 }
 
+#book_edit_section #row_container_number,
+#book_edit_section #row_container_of_number {
+    display: none;
+}
+
 @media screen and (max-width: 992px) {
     #book_edit_section .book_name_input {
         min-width: 20em;
