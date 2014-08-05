@@ -189,34 +189,79 @@
         dialog.close();
     }
 
-    function set_number_containers(numbers) {
-        if (numbers.number) {
-            $('#row_container_number').fadeIn(700);
-        } else {
-            $('#row_container_number').fadeOut(700);
-            $('#of_number_container').fadeOut(700);
+    function create_of_number() {
+        if($('#of_number_container').length) {
+            return;
         }
-        if (numbers.of_number) {
-            if($('#of_number_container').length) {
-                $('#of_number_container').fadeIn(700);
-            } else {
-                $('<span id="of_number_container"> of </span>').appendTo($('.field_container_number'));
-                $('#of_number_container').inplace_crud(
-                    '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
-                    '{{=book.id if book else "0"}}',
-                    {
-                        'row_container': false,
-                        source_data: book_of_number_data,
-                    }
-                );
+        $('<span id="of_number_container"> of </span>').appendTo($('.field_container_number'));
+        $('#of_number_container').inplace_crud(
+            '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+            '{{=book.id if book else "0"}}',
+            {
+                'row_container': false,
+                source_data: book_of_number_data,
             }
-            $('a#number').editable('option', 'source', numbers_99);
-            $('a#number').text(pad(parseInt($('a#number').text(), 10), 2, '0'));
-        } else {
-            $('#of_number_container').fadeOut(700);
-            $('a#number').editable('option', 'source', numbers_999);
-            $('a#number').text(pad(parseInt($('a#number').text(), 10), 3, '0'));
+        );
+    }
+    function set_number(length) {
+        var source = length === 3 ? numbers_999 : numbers_99;
+        $('a#number').editable('option', 'source', source);
+        $('a#number').text(pad(parseInt($('a#number').text(), 10), length, '0'));
+    }
+
+    function set_number_containers(numbers) {
+        var duration = 400;
+        var want = numbers;
+        var have = $('#row_container_number').data('numbers');
+        if (!have) {
+            have = {
+                'number': false,
+                'of_number': false,
+            };
         }
+        if (have.number == want.number && have.of_number == want.of_number) {
+            return;
+        }
+        if (want.of_number) {
+            create_of_number();
+        }
+        if (!have.number && !have.of_number) {
+            if (want.number && !want.of_number) {
+                $('#row_container_number').fadeIn(duration);
+                $('.field_container_number').fadeIn(duration);
+            }
+            if (want.number && want.of_number) {
+                set_number(2);
+                $('#row_container_number').fadeIn(duration);
+                $('.field_container_number').fadeIn(duration);
+                $('#of_number_container').fadeIn(duration);
+            }
+        }
+        if (have.number && !have.of_number) {
+            if (!want.number && !want.of_number) {
+                $('.field_container_number').fadeOut(duration);
+                $('#row_container_number').fadeOut(duration);
+            }
+            if (want.number && want.of_number) {
+                set_number(2);
+                $('#of_number_container').fadeIn(duration);
+            }
+        }
+        if (have.number && have.of_number) {
+            if (!want.number && !want.of_number) {
+                $('#of_number_container').fadeOut(duration);
+                $('.field_container_number').fadeOut(duration);
+                $('#row_container_number').fadeOut(duration, function() {
+                    set_number(3);
+                });
+            }
+            if (want.number && !want.of_number) {
+                $('#of_number_container').fadeOut(duration, function(){
+                    set_number(3);
+                });
+            }
+        }
+        $('#row_container_number').data('numbers', want);
     }
 
     $(document).ready(function(){
