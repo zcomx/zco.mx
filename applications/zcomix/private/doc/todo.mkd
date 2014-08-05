@@ -37,22 +37,43 @@ VERSION 1
     [x] reader page
         page_nav_container shows link underline on hover
 
-    ---
-    [ ] dev/zcomix.com/files
+    [x] dev/zcomix.com/files
 
+    ---
     [ ] https://dev.zcomix.com/creators/creator/11
         hide 'release' section
         remove publish column
 
-    [ ] unique div's
-        .row_container .field_container, .row_container .field_label (Description)
-        #add_link_container .link_url (input box)
-
     [ ] scroller
-        set background to view port size but do not center
+        set background to view port size but start at top of page
+        center button + js?
 
     [ ] slider
         the resize to height is off slightly
+        fit-to-height
+        eg https://dev.zcomix.com/books/slider/7
+
+    ---
+    [x] unique div's
+        .row_container .field_container, .row_container .field_label (Description)
+        #book_edit_section .field_container_description
+        #book_edit_section .book_description_input
+
+        #add_link_container .link_url
+
+    [ ] Scrub and resize files for html version
+        * optimum convert command?
+        * current convert command bloats pngs
+        $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"
+        $ convert "$input" -limit memory 200MB -limit map 200MB -quiet ${resize:+-resize "$resize"} "$output"
+
+    [ ] Switch everything over to zco.mx
+        setup CNAME for zcomix.com
+
+    [ ] Theme twitter
+
+    [ ] Redo logo
+        update main site
 
     [ ] login -> books -> Add/Edit
         add iframe code for each book
@@ -60,15 +81,9 @@ VERSION 1
     [ ] problem: resizing images with slightly different dimensions
 
 
+
 VERSION 2 - Before Going Live
 [ ] Front Page - Get view stats working
-
-[O] Scrub and resize files for html version
-    * optimum convert command?
-    * current convert command bloats pngs
-    $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"
-    $ convert "$input" -limit memory 200MB -limit map 200MB -quiet ${resize:+-resize "$resize"} "$output"
-
 [ ] Indica Page
     * last page of comic
     * call to action (last page (jpg in cbz and html in scroll/slider))
@@ -112,8 +127,8 @@ VERSION 2 - Before Going Live
 [ ] Tags (kids, by genre ??)
 [ ] Url checker
 [ ] Keyboard control for slider - L, R (and maybe U for back to artist page)
-[ ] Links to Cartoonist Articles/interviews?
-[ ] Links to Book Reivews ?
+[ ] Creator page -> Links to Cartoonist Articles/interviews?
+[ ] Book page -> Links to Book Reivews ?
 
 IDEAS
 [s] zcomix: Creative Commons Licence
@@ -142,7 +157,13 @@ IDEAS
 [ ] Front Page - Add 'download' report
 [ ] How best to use the front page?
 [ ] How to best leverage goodwill?
+    $10/page + ($15*pages) on release
 [ ] Guided view using Perfect Viewer ?
+    The main dev, Lin Rookie (rookiestudio@gmail.com), suggests guided view is
+    possible with opencv but he believes the feature is not useful and it is a
+    low priority.  He said the source is closed and he does not take bounties
+    towards new features.
+
 [ ] bio and book description - wikipedia api?
 [ ] user comments? - disqus api?
 [ ] how best to promote micro-publisher and things like the Muster List

@@ -1501,13 +1501,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border: 1px solid #333333;
 //    margin-left: 0.15em;
     margin-right: 0;
-    min-width: 24em;
+    min-width: 28em;
 }
 
 @media screen and (max-width: 992px) {
     #add_link_container .link_url {
-        min-width: 20em;
-        max-width: 30em;
+        min-width: 24em;
+        max-width: 38em;
     }
 }
 
@@ -1886,7 +1886,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border-color: #999999;
     color: #333333;
     transition: none;
-    width: 24em;
+    width: 28em;
 }
 
 #book_edit_section .field_info {
@@ -1906,7 +1906,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
         max-width: 20em;
     }
     #book_edit_section .book_description_input {
-        width: 20em;
+        width: 24em;
     }
     #edit_links_container .field_container {
         line-height: 1.8em;
@@ -1926,6 +1926,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #book_edit_section .field_container_description {
     line-height: 1.2em;
     padding: 2px 0;
+    min-width: 28em;
+}
+@media screen and (max-width: 992px){
+    #book_edit_section .field_container_description {
+        min-width: 24em;
+        max-width: 38em;
+    }
 }
 
 #book_edit_section .field_container_reader {
