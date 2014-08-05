@@ -139,6 +139,10 @@ class Search(object):
         db.book.number.writable = False
         db.book.of_number.readable = False
         db.book.of_number.writable = False
+        if request.vars.released == '0':
+            # Ongoing books won't be published.
+            db.book.publication_year.readable = False
+            db.book.publication_year.writable = False
         db.creator.id.readable = False
         db.creator.id.writable = False
         db.auth_user.name.represent = lambda v, row: A(v, _href=URL(c='creators', f='creator', args=row.creator.id, extension=False))

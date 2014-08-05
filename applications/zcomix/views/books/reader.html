@@ -40,6 +40,7 @@
                         </div>
                     </div>
                     <div class="scroll_slide_options">
+                        <a id="vertical_align_button" href="#reader_section" title="Center book page in window."><i class="glyphicon glyphicon-resize-vertical"></i></a>
                         <div class="btn-group">
                             {{for s in ['slider', 'scroller']:}}
                                 {{status = 'disabled' if request.function == s else 'active'}}
@@ -60,9 +61,9 @@
 </div>
 
 <div id="reader_section">
+<a name="reader_section"></a>
 {{include}}
 </div>
-
 
 <div class="container">
     <div id="reader_page_footer_margin">

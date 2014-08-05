@@ -18,16 +18,20 @@
             {{pass}}
             </div>
         </div>
+        {{if request.vars.can_release:}}
         <div class="grid_section_header"><h4>Released</h4></div>
+        {{pass}}
     </div>
 </div>
 
-<div class="grid_section">
 {{func = 'cover_grid' if request.vars.view == 'tile' else 'list_grid'}}
+{{if request.vars.can_release:}}
+<div class="grid_section">
 {{=LOAD(c='search', f=func, vars={'creator_id': request.args(0), 'released': 1}, extension='load', ajax=True)}}
 </div>
 
 <div class="row grid_section_header"><h4>Ongoing</h4></div>
+{{pass}}
 <div class="grid_section">
 {{=LOAD(c='search', f=func, vars={'creator_id': request.args(0), 'released': 0}, extension='load', ajax=True)}}
 </div>

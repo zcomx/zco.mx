@@ -41,14 +41,8 @@
         $('#reader_section .slide').hide();
         $('#reader_section').height('100%');
 
-        /* Resize the container div */
-        var window_h = $(window).height();
-        var header_h = $('#reader_page_header').parents('.container').first().height();
-        var footer_h = $('#reader_page_footer').parents('.container').first().height();
-        var section_h = window_h - (header_h + footer_h);
-        if (section_h < 600) {
-            section_h = 600;
-        }
+        /* Resize the container div to fit viewport. */
+        var section_h = $(window).height();
 
         $('#reader_section').height(section_h);
         $('#reader_section #img-' + num).css( "display", "inline-block")
