@@ -1,67 +1,389 @@
+(function ($) {
+    "use strict";
+
+    //utils
+    $.fn.modalize_utils = {
+        /**
+        * classic JS inheritance function
+        */
+        inherit: function (Child, Parent) {
+            var F = function() { };
+            F.prototype = Parent.prototype;
+            Child.prototype = new F();
+            Child.prototype.constructor = Child;
+            Child.superclass = Parent.prototype;
+        },
+
+        toTitleCase: function (str) {
+            return str.replace(/\b\w/g, function (txt) { return txt.toUpperCase(); });
+        }
+    };
+}(window.jQuery));
+
+
+(function ($) {
+    "use strict";
+
+    var Modalize = function (element, action, options) {
+        this.init(element, action, options);
+    };
+
+    Modalize.prototype = {
+        constructor: Modalize,
+
+        add_click_listener: function() {
+            this.$element.data(this.$click_listener_key, true);
+        },
+
+        buttons: function() {
+            return [this.close_button()];
+        },
+
+        close_button: function(label) {
+            label = typeof label !== 'undefined' ? label : 'Close';
+            return {
+                id: 'close_button',
+                label: label,
+                action : function(dialog){
+                    dialog.close();
+                }
+            };
+        },
+
+        display_message: function(title, msg, panel_class) {
+            var panel_classes = [
+                'panel-default',
+                'panel-primary',
+                'panel-success',
+                'panel-info',
+                'panel-warning',
+                'panel-danger'
+            ];
+
+            var message_panel = $(this.options.message_panel);
+            if (!message_panel) {
+                return;
+            }
+            message_panel.find('.panel-title').first().text(title);
+            message_panel.find('div.panel-body').first().html(msg);
+
+            var new_class = panel_classes[0];
+            if (panel_classes.indexOf(panel_class) >= 0) {
+                new_class = panel_class;
+            }
+            for(var i = 0; i < panel_classes.length; i++) {
+                message_panel.removeClass(panel_classes[i])
+            }
+            message_panel.addClass(new_class).show();
+        },
+
+        get_book_id: function() {
+            if (!this.$book_id) {
+                if (this.options.book_id) {
+                    this.$book_id = this.options.book_id;
+                } else {
+                    var link_func = 'book_' + this.$action;
+                    var href_parts = this.$element.attr('href').split('/');
+                    if (href_parts[2] === link_func) {
+                        this.$book_id = href_parts[3];
+                    }
+                }
+            }
+            return this.$book_id;
+        },
+
+        get_book_title: function() {
+            if (!this.$book_title) {
+                if (this.options.book_title) {
+                    this.$book_title = this.options.book_title;
+                } else {
+                    var tr = this.$element.closest('tr');
+                    var td = tr.find('td').first();
+                    this.$book_title = td.text();
+                }
+            }
+            return this.$book_title;
+        },
+
+        get_dialog: function() {
+            var that = this;
+            if (!this.$dialog) {
+                var params = $.extend(
+                    true,
+                    {},
+                    {
+                        title: this.options.title || this.modal_title(),
+                        message: this.get_message(),
+                        onhidden: function(dialog) {
+                            that.onhidden(dialog);
+                            if ($.isFunction(that.options.onhidden)) {
+                                that.options.onhidden.call(dialog);
+                            }
+                        },
+                        onshow: function(dialog) {
+                            that.onshow(dialog);
+                            if ($.isFunction(that.options.onshow)) {
+                                that.options.onshow.call(dialog);
+                            }
+                        },
+                        buttons: this.buttons(),
+                    },
+                    this.options.bootstrap_dialog_options
+                );
+                this.$dialog = new BootstrapDialog(params);
+            }
+            return this.$dialog;
+        },
+
+        get_message: function() {
+            return this.get_message_by_url(this.get_url());
+        },
+
+        get_message_by_url: function(url) {
+            return $('<div></div>').load(url);
+        },
+
+        get_url: function() {
+            if (!this.$url) {
+                this.$url = this.options.url || this.$element.attr('href');
+            }
+            return this.$url;
+        },
+
+        has_click_listener: function() {
+            return this.$element.data(this.$click_listener_key) ? true : false;
+        },
+
+        init: function (element, action, options) {
+            this.$element = $(element);
+            this.options = $.extend(
+                {},
+                $.fn.modalize.defaults,
+                options
+            );
+            this.$action = action;
+            this.$dialog = null;
+            this.$book_id = null;
+            this.$book_title = null;
+            this.$click_listener_key = 'has_modal_' + action + '_btn';
+            this.$url = null;
+
+            var that = this;
+            this.$book_id = that.get_book_id();
+            this.$book_title = that.get_book_title();
+            if (!that.has_click_listener()) {
+                that.$element.on('click', function(event) {
+                    that.get_dialog().open();
+                    that.$element.data({'dialog': that.$dialog});
+                    event.preventDefault();
+                });
+                that.add_click_listener();
+            }
+        },
+
+        modal_title: function() {
+            var title = '';
+            if (this.$action) {
+                title += $.fn.modalize_utils.toTitleCase(this.$action) + ': ';
+            }
+            title += this.get_book_title();
+            return title;
+        },
+
+        onhidden: function(dialog) {
+            this.$dialog = null;
+        },
+
+        onshow: function(dialog) {
+            dialog.getModalDialog().addClass('modal-lg');
+        },
+
+        update: function() {
+            var that = this;
+            var url = '/zcomix/profile/book_crud.json';
+
+            if (!this.$book_id) {
+                return;
+            }
+
+            var message_panel = $(this.options.message_panel);
+            if (message_panel) {
+                message_panel.hide();
+            }
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    '_action': this.$action,
+                    'pk': this.$book_id,
+                },
+                success: function (data, textStatus, jqXHR) {
+                    if (data.status === 'error') {
+                        var msg = 'ERROR: ' + data.msg || 'Server request failed';
+                        that.display_message('', msg, 'panel-danger');
+                    }
+                    else {
+                        that.$dialog.close();
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var msg = 'ERROR: Unable to ' + action + ' record. Server request failed.';
+                    that.display_message('', msg, 'panel-danger');
+                }
+            });
+        },
+    };
+
+    var AddModalize = function (element, action, options) {
+        this.init(element, action, options);
+    }
+    $.fn.modalize_utils.inherit(AddModalize, Modalize);
+    $.extend(AddModalize.prototype, {
+        onhidden: function(dialog) {
+            this.$book_id = dialog.getData('book_id');
+            if (this.$book_id) {
+                var url = '/profile/book_edit/' + this.$book_id;
+                var modal = new EditModalize(null, 'edit', {
+                    'book_id': this.$book_id,
+                    'book_title': dialog.getData('title'),
+                    'onhidden': this.options.onhidden,
+                    'url': url
+                });
+                modal.get_dialog().open();
+            }
+            AddModalize.superclass.onhidden.call(this, dialog);
+        }
+    });
+
+    var DeleteModalize = function (element, action, options) {
+        this.init(element, action, options);
+    }
+    $.fn.modalize_utils.inherit(DeleteModalize, Modalize);
+    $.extend(DeleteModalize.prototype, {
+        buttons: function() {
+            var that = this;
+            var btns = [];
+            btns.push({
+                label: 'Delete',
+                action : function(dialog){
+                    that.update();
+                }
+            });
+            btns.push(this.close_button('Cancel'));
+            return btns;
+        }
+    });
+
+    var EditModalize = function (element, action, options) {
+        this.init(element, action, options);
+    }
+    $.fn.modalize_utils.inherit(EditModalize, Modalize);
+    $.extend(EditModalize.prototype, {
+        buttons: function() {
+            var that = this;
+            var btns = [];
+            btns.push({
+                label: 'Upload Images',
+                cssClass: 'btn-default pull-left',
+                action : function(dialog){
+                    dialog.close();
+                    var url = '/profile/book_pages/' + that.$book_id;
+                    var modal = new UploadModalize(null, 'upload', {
+                        'book_id': that.$book_id,
+                        'book_title': that.$book_title,
+                        'url': url
+                    });
+                    modal.get_dialog().open();
+                }
+            });
+            btns.push(this.close_button());
+            return btns;
+        }
+    });
+
+    var ReleaseModalize = function (element, action, options) {
+        this.init(element, action, options);
+    }
+    $.fn.modalize_utils.inherit(ReleaseModalize, Modalize);
+    $.extend(ReleaseModalize.prototype, {
+        buttons: function() {
+            var that = this;
+            var btns = [];
+            if (!this.$element.hasClass('release_not_available')) {
+                btns.push({
+                    label: 'Release',
+                    action : function(dialog){
+                        that.update();
+                    }
+                });
+            }
+            btns.push(this.close_button('Cancel'));
+            return btns;
+        }
+    });
+
+    var UploadModalize = function (element, action, options) {
+        this.init(element, action, options);
+    }
+    $.fn.modalize_utils.inherit(UploadModalize, Modalize);
+
+    $.fn.modalize = function (action, options) {
+        var datakey = 'modalize';
+        return this.each(function () {
+            var $this = $(this),
+                data = $this.data(datakey)
+
+            if (!data) {
+                var obj = null;
+                switch(action) {
+                    case 'add':
+                        obj = new AddModalize(this, action, options);
+                        break;
+                    case 'delete':
+                        obj = new DeleteModalize(this, action, options);
+                        break;
+                    case 'edit':
+                        obj = new EditModalize(this, action, options);
+                        break;
+                    case 'release':
+                        obj = new ReleaseModalize(this, action, options);
+                        break;
+                    case 'upload':
+                        obj = new UploadModalize(this, action, options);
+                        break;
+                    default:
+                        obj = new Modalize(this, action, options);
+                }
+                $this.data(datakey, (data = obj));
+            }
+        });
+    };
+
+    $.fn.modalize.defaults = {
+        book_id: null,
+        book_title: null,
+        bootstrap_dialog_options: {},
+        message_panel: '#message_panel',
+        onhidden: null,
+        onshow: null,
+        title: null,
+        url: null,
+    };
+
+}(window.jQuery));
+
 (function () {
     "use strict";
 
-    function book_id_from_link(link, link_func) {
-        var book_id = 0;
-        var href_parts = link.attr('href').split('/');
-        if (href_parts[2] === link_func) {
-            book_id = href_parts[3];
-        }
-        return book_id;
-    }
-
-    function close_button(label) {
-        label = typeof label !== 'undefined' ? label : 'Close';
-        return {
-            id: 'close_button',
-            label: label,
-            action : function(dialog){
-                dialog.close();
+    function display_book_lists() {
+        $.each(book_list_urls, function(key, url) {
+            var target =  key + '_book_list';
+            if ($('#' + target).length) {
+                web2py_component(url, target);
             }
-        };
-    }
-
-    function display_message(title, msg, panel_class) {
-        var panel_classes = [
-            'panel-default',
-            'panel-primary',
-            'panel-success',
-            'panel-info',
-            'panel-warning',
-            'panel-danger'
-        ];
-
-        $('#message_panel').find('.panel-title').first().text(title);
-        $('#message_panel div.panel-body').html(msg);
-
-        var new_class = panel_classes[0];
-        if (panel_classes.indexOf(panel_class) >= 0) {
-            new_class = panel_class;
-        }
-        for(var i = 0; i < panel_classes.length; i++) {
-            $('#message_panel').removeClass(panel_classes[i])
-        }
-        $('#message_panel').addClass(new_class).show();
-    }
-
-    function get_message_by_url(url) {
-        return $('<div></div>').load(url);
-    }
-
-    function get_message(elem) {
-        var url = elem.attr('href');
-        return get_message_by_url(url);
-    }
-
-    function get_title(elem, action) {
-        var title = '';
-        if (action) {
-            title += action + ': ';
-        }
-        var tr = elem.closest('tr');
-        var td = tr.find('td').first();
-        title += td.text();
-        return title;
+        });
     }
 
     function reorder_pages(dialog) {
@@ -93,218 +415,18 @@
         })
     }
 
-    function open_edit_modal(link, url, title, book_id) {
-        var action = 'Edit';
-        title = title || get_title(link, action),
-        new BootstrapDialog({
-            title: title,
-            message: url ? get_message_by_url(url) : get_message(link),
-            onhidden: function(dialog) {
-                display_book_lists();
-            },
-            onshow: onshow_callback,
-            buttons: [
-                {
-                    label: 'Upload Images',
-                    cssClass: 'btn-default pull-left',
-                    action : function(dialog){
-                        dialog.close();
-                        var url = '/profile/book_pages/' + dialog.getData('book_id');
-                        var new_title = title.replace('Edit: ', 'Upload: ');
-                        open_upload_modal(null, url, new_title);
-                    }
-                },
-                close_button(),
-            ],
-            data: {
-                'book_id': book_id || book_id_from_link(link, 'book_edit'),
-            },
-        }).open();
-    }
-
-    function open_upload_modal(link, url, title) {
-        var action = 'Upload';
-        new BootstrapDialog({
-            title: title || get_title(link, action),
-            message: url ? get_message_by_url(url) : get_message(link),
-            onshow: onshow_callback,
-            onhidden: reorder_pages,
-            buttons: [
-                close_button(),
-            ],
-        }).open();
-    }
-
-    function onshow_callback(dialog) {
-        dialog.getModalDialog().addClass('modal-lg');
-    }
-
-    function submit_form(elem) {
-        var form = elem.find('form').first();
-        form.submit();
-    }
-
-    function update_book(action, dialog) {
-        var that = $(this);
-        var url = '/zcomix/profile/book_crud.json';
-
-        var book_id = dialog.getData('book_id');
-        if (!book_id) {
-            return;
-        }
-
-        $('#message_panel').hide();
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                '_action': action,
-                'pk': book_id,
-            },
-            success: function (data, textStatus, jqXHR) {
-                if (data.status === 'error') {
-                    var msg = 'ERROR: ' + data.msg || 'Server request failed';
-                    display_message('', msg, 'panel-danger');
-                }
-                else {
-                    dialog.close();
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                var msg = 'ERROR: Unable to ' + action + ' record. Server request failed.';
-                display_message('', msg, 'panel-danger');
-            }
-        });
-    }
-
-
     $.fn.set_modal_events = function() {
-        $('.modal-add-btn').each( function(indx, elem) {
-            var that = $(this);
-            if (!that.data('has_modal_add_btn')) {
-                that.on('click', function(event) {
-                    var action = 'Add book';
-                    var link = that;
-                    var add_dialog = new BootstrapDialog({
-                        title: action,
-                        message: get_message(link),
-                        onhidden: function(dialog) {
-                            var book_id = dialog.getData('book_id');
-                            if (book_id) {
-                                var url = '/profile/book_edit/' + book_id;
-                                var title = 'Edit: ' + dialog.getData('title');
-                                open_edit_modal(null, url, title, book_id);
-                            } else {
-                                display_book_lists();
-                            }
-                        },
-                        onshow: onshow_callback,
-                        buttons: [
-                            close_button(),
-                        ],
-                    }).open();
-                    that.data({'dialog': add_dialog});
-                    event.preventDefault();
-                });
-                that.data('has_modal_add_btn', true);
-            }
+        $('.modal-add-btn').modalize('add', {
+            'onhidden': display_book_lists,
+            'title': 'Add book'
         });
-
-        $('.modal-delete-btn').each( function(indx, elem) {
-            var that = $(this);
-            if (!that.data('has_modal_delete_btn')) {
-                that.on('click', function(event) {
-                    var action = 'Delete';
-                    var link = that;
-                    new BootstrapDialog({
-                        title: get_title(link, action),
-                        message: get_message(link),
-                        onhidden: function(dialog) {
-                            display_book_lists();
-                        },
-                        onshow: onshow_callback,
-                        buttons: [
-                            {
-                                label: 'Delete',
-                                action : function(dialog){
-                                    update_book('delete', dialog);
-                                }
-                            },
-                            close_button('Cancel'),
-                        ],
-                        data: {
-                            'book_id': book_id_from_link(link, 'book_delete')
-                        },
-                    }).open();
-                    event.preventDefault();
-                });
-                that.data('has_modal_delete_btn', true);
-            }
-        });
-
-        $('.modal-edit-btn').each( function(indx, elem) {
-            var that = $(this);
-            if (!that.data('has_modal_edit_btn')) {
-                that.on('click', function(event) {
-                    open_edit_modal(that);
-                    event.preventDefault();
-                });
-                that.data('has_modal_edit_btn', true);
-            }
-        });
-
-        $('.modal-release-btn').each( function(indx, elem) {
-            var that = $(this);
-            if (!that.data('has_modal_release_btn')) {
-                that.on('click', function(event) {
-                    var action = 'Release';
-                    var link = that;
-                    new BootstrapDialog({
-                        title: get_title(link, action),
-                        message: get_message(link),
-                        onhidden: function(dialog) {
-                            display_book_lists();
-                        },
-                        onshow: onshow_callback,
-                        buttons: (function() {
-                            if (link.hasClass('release_not_available')) {
-                                return [
-                                    close_button(),
-                                ];
-                            }
-                            else {
-                                return [
-                                    {
-                                        label: 'Release',
-                                        action : function(dialog){
-                                            update_book('release', dialog);
-                                        }
-                                    },
-                                    close_button('Cancel'),
-                                ];
-                            }
-                        })(),
-                        data: {
-                            'book_id': book_id_from_link(link, 'book_release')
-                        },
-                    }).open();
-                    event.preventDefault();
-                });
-                that.data('has_modal_release_btn', true);
-            }
-        });
-
-        $('.modal-upload-btn').each( function(indx, elem) {
-            var that = $(this);
-            if (!that.data('has_modal_upload_btn')) {
-                that.on('click', function(event) {
-                    open_upload_modal(that);
-                    event.preventDefault();
-                });
-                that.data('has_modal_upload_btn', true);
-            }
-        });
+        $('.modal-delete-btn').modalize('delete', {'onhidden': display_book_lists});
+        $('.modal-edit-btn').modalize('edit', {'onhidden': display_book_lists});
+        $('.modal-release-btn').modalize('release', {'onhidden': display_book_lists});
+        $('.modal-upload-btn').modalize('upload', {'onhidden': reorder_pages});
     }
+
+    $(document).ready(function(){
+        display_book_lists();
+    });
 }());
