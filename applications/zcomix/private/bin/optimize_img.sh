@@ -97,10 +97,11 @@ if type convert &>/dev/null; then
         -limit memory 200MB \
         -limit map 200MB \
         -quiet \
-        -colorspace Lab \
-        ${resize:+-resize "$resize"} \
-        -interpolate catrom \
-        -set colorspace Lab \
+        -colorspace RGB \
+        +sigmoidal-contrast 7.5 \
+        -define filter:window=Quadratic \
+        ${resize:+-distort Resize "$resize"} \
+        -sigmoidal-contrast 7.5 \
         -colorspace sRGB \
         "$output" || exit 1
 else
