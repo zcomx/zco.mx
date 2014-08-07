@@ -39,19 +39,32 @@ VERSION 1
 
     [x] dev/zcomix.com/files
 
-    ---
-    [ ] https://dev.zcomix.com/creators/creator/11
+    [x] https://dev.zcomix.com/creators/creator/11
         hide 'release' section
+        hide 'Ongoing' header
         remove publish column
 
-    [ ] scroller
-        set background to view port size but start at top of page
-        center button + js?
-
-    [ ] slider
+    [x] slider
         the resize to height is off slightly
         fit-to-height
         eg https://dev.zcomix.com/books/slider/7
+
+
+    [/] slider
+        set background to view port size but start at top of page
+        center button + js?
+
+        [ ] slider icon
+            - flip flop  slider | scroll.     scroll | slider [X]
+            - then when slider is selected, [X] will become dark grey
+            - use 'arrows-out' from the foundation set
+
+    [ ] change default convert command
+        $ convert infile.jpg -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB outfile.jpg
+
+        [s] re-upload jordan's images
+
+
 
     ---
     [x] unique div's
@@ -61,19 +74,22 @@ VERSION 1
 
         #add_link_container .link_url
 
-    [ ] Scrub and resize files for html version
-        * optimum convert command?
+    [O] Test Downsampling Filters
         * current convert command bloats pngs
-        $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"
-        $ convert "$input" -limit memory 200MB -limit map 200MB -quiet ${resize:+-resize "$resize"} "$output"
+        $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"    ## current command
+        $ convert "$input" -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB "$output"    ## possible replacement
+
+    [ ] Resize Script
+
+    [ ] File Scrub Script
+
+    [ ] Redo logo
+        and update main site
 
     [ ] Switch everything over to zco.mx
         setup CNAME for zcomix.com
 
     [ ] Theme twitter
-
-    [ ] Redo logo
-        update main site
 
     [ ] login -> books -> Add/Edit
         add iframe code for each book
