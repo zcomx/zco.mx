@@ -40,9 +40,8 @@
                         </div>
                     </div>
                     <div class="scroll_slide_options">
-                        <a id="vertical_align_button" href="#reader_section" title="Center book page in window."><i class="glyphicon glyphicon-resize-vertical"></i></a>
                         <div class="btn-group">
-                            {{for s in ['slider', 'scroller']:}}
+                            {{for s in ['scroller', 'slider']:}}
                                 {{status = 'disabled' if request.function == s else 'active'}}
                                 {{=A(
                                     SPAN(s if s == 'slider' else 'scroll'),
@@ -53,6 +52,8 @@
                                 )}}
                             {{pass}}
                         </div>
+                        {{status = 'active' if request.function == 'slider' else 'disabled'}}
+                        <a id="vertical_align_button" class="{{=status}}" href="#reader_section" title="Center book page in window."><i class="icon fi-arrows-out size-14"></i></a>
                     </div>
                 </div>
             </div>
@@ -118,3 +119,14 @@
         </div>
     </div>
 </div>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('#vertical_align_button').click(function(e) {
+            if ($(this).hasClass('disabled')) {
+                e.preventDefault();
+            }
+        });
+    });
+//]]>
+</script>

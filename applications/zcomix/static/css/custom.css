@@ -1139,6 +1139,16 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .scroll_slide_options a#vertical_align_button {
     color: #666666;
+    padding-left: 0.2em;
+    text-decoration: none;
+}
+
+.scroll_slide_options a#vertical_align_button.disabled {
+    color: #DDDDDD;
+}
+
+.scroll_slide_options a#vertical_align_button.disabled:hover {
+    cursor: default;
 }
 
 .scroll_slide_options .btn-lg, .btn-group-lg > .btn {
