@@ -117,13 +117,13 @@
                         onhidden: function(dialog) {
                             that.onhidden(dialog);
                             if ($.isFunction(that.options.onhidden)) {
-                                that.options.onhidden.call(dialog);
+                                that.options.onhidden.call(that, dialog);
                             }
                         },
                         onshow: function(dialog) {
                             that.onshow(dialog);
                             if ($.isFunction(that.options.onshow)) {
-                                that.options.onshow.call(dialog);
+                                that.options.onshow.call(that, dialog);
                             }
                         },
                         buttons: this.buttons(),
