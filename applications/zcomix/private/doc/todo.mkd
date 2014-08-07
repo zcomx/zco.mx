@@ -55,12 +55,13 @@ VERSION 1
         center button + js?
 
         [ ] slider icon
-            - flip flop  slider | scroll.     scroll | slider [X]
-            - then when slider is selected, [X] will become dark grey
             - use 'arrows-out' from the foundation set
+            - flip flop  slider | scroll.     scroll | slider [X]
+            - when slider is selected, [X] is dark grey (active)
+            - when scroll is selected, [X] is light grey (inactive) button disabled
 
     [ ] change default convert command
-        $ convert infile.jpg -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB outfile.jpg
+        $ convert "$input" -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB "$output"
 
         [s] re-upload jordan's images
 
@@ -84,7 +85,12 @@ VERSION 1
     [ ] File Scrub Script
 
     [ ] Redo logo
-        and update main site
+        [x] hand colour 'Z'
+        [ ] hand colour url
+        [ ] hand colour word balloon
+        [ ] wavy line for 'Z' outline
+        [ ] wavy line for word balloon
+        [ ] update main site
 
     [ ] Switch everything over to zco.mx
         setup CNAME for zcomix.com
