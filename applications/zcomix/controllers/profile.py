@@ -7,6 +7,7 @@ from applications.zcomix.modules.book_upload import BookPageUploader
 from applications.zcomix.modules.books import \
     book_pages_as_json, \
     defaults as book_defaults, \
+    is_releasable, \
     numbers_for_book_type, \
     read_link
 from applications.zcomix.modules.creators import image_as_json
@@ -128,6 +129,9 @@ def book_crud():
         return {'status': 'ok'}
 
     if action == 'release':
+        if not is_releasable(db, book_record):
+            return do_error('This book cannot be released.')
+
         book_record.update_record(
             release_date=datetime.datetime.today()
         )
@@ -404,11 +408,9 @@ def book_release():
         redirect(
             URL('modal_error', vars={'message': 'Invalid data provided.'}))
 
-    page_count = db(db.book_page.book_id == book_record.id).count()
-
     return dict(
         book=book_record,
-        page_count=page_count,
+        releasable=is_releasable(db, book_record),
     )
 
 

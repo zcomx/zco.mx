@@ -44,6 +44,7 @@
             return {
                 id: 'close_button',
                 label: label,
+                cssClass: 'btn_close',
                 action : function(dialog){
                     dialog.close();
                 }
@@ -267,6 +268,7 @@
             var btns = [];
             btns.push({
                 label: 'Delete',
+                cssClass: 'btn_delete',
                 action : function(dialog){
                     that.update();
                 }
@@ -286,7 +288,7 @@
             var btns = [];
             btns.push({
                 label: 'Upload Images',
-                cssClass: 'btn-default pull-left',
+                cssClass: 'btn-default pull-left btn_upload',
                 action : function(dialog){
                     dialog.close();
                     var url = '/profile/book_pages/' + that.$book_id;
@@ -311,14 +313,13 @@
         buttons: function() {
             var that = this;
             var btns = [];
-            if (!this.$element.hasClass('release_not_available')) {
-                btns.push({
-                    label: 'Release',
-                    action : function(dialog){
-                        that.update();
-                    }
-                });
-            }
+            btns.push({
+                label: 'Release',
+                cssClass: 'btn_release',
+                action : function(dialog){
+                    that.update();
+                }
+            });
             btns.push(this.close_button('Cancel'));
             return btns;
         }
@@ -422,7 +423,14 @@
         });
         $('.modal-delete-btn').modalize('delete', {'onhidden': display_book_lists});
         $('.modal-edit-btn').modalize('edit', {'onhidden': display_book_lists});
-        $('.modal-release-btn').modalize('release', {'onhidden': display_book_lists});
+        $('.modal-release-btn').modalize('release', {
+            'onhidden': display_book_lists,
+            'bootstrap_dialog_options':  {
+                'onshown': function(dialog) {
+                    $('.btn_release').prop('disabled', !release_enabled).toggleClass('disabled', !release_enabled);
+                }
+            }
+            });
         $('.modal-upload-btn').modalize('upload', {'onhidden': reorder_pages});
     }
 
