@@ -21,6 +21,7 @@ from applications.zcomix.modules.books import \
     cover_image, \
     default_contribute_amount, \
     defaults, \
+    is_releasable, \
     publication_year_range, \
     read_link
 from applications.zcomix.modules.test_runner import LocalTestCase
@@ -127,7 +128,8 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(data['files'][1]['name'], 'file_2.jpg')
 
         # Test book_page_ids param.
-        as_json = book_pages_as_json(db, self._book.id, book_page_ids=[self._book_page.id])
+        as_json = book_pages_as_json(
+            db, self._book.id, book_page_ids=[self._book_page.id])
         data = loads(as_json)
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 1)
@@ -135,14 +137,16 @@ class TestFunctions(ImageTestCase):
 
     def test__book_page_for_json(self):
 
-        filename, original_fullname = db.book_page.image.retrieve(
+        filename, unused_original_fullname = db.book_page.image.retrieve(
             self._book_page.image,
             nameonly=True,
         )
 
         url = '/images/download/{img}'.format(img=self._book_page.image)
-        thumb = '/images/download/{img}?size=thumb'.format(img=self._book_page.image)
-        delete_url = '/profile/book_pages_handler/{bid}?book_page_id={pid}'.format(
+        thumb = '/images/download/{img}?size=thumb'.format(
+            img=self._book_page.image)
+        fmt = '/profile/book_pages_handler/{bid}?book_page_id={pid}'
+        delete_url = fmt.format(
             bid=self._book_page.book_id,
             pid=self._book_page.id
         )
@@ -272,7 +276,6 @@ class TestFunctions(ImageTestCase):
         }
         self.assertEqual(got, expect)
 
-
         # Test: various book_types
         for book_type in ['one-shot', 'ongoing', 'mini-series']:
             self._book.update_record(
@@ -301,6 +304,38 @@ class TestFunctions(ImageTestCase):
 
         got = defaults(db, self._book.name, -1)
         self.assertEqual(got, {})
+
+    def test__is_releasable(self):
+        book_id = db.book.insert(
+            name='test__is_releasable',
+        )
+        db.commit()
+        book = db(db.book.id == book_id).select().first()
+        self._objects.append(book)
+
+        book_page_id = db.book_page.insert(
+            book_id=book.id,
+            page_no=1,
+        )
+        db.commit()
+        book_page = db(db.book_page.id == book_page_id).select().first()
+
+        # Has name and pages.
+        self.assertTrue(is_releasable(db, book))
+
+        # As id
+        self.assertTrue(is_releasable(db, book.id))
+
+        # No name
+        book.name = ''
+        self.assertFalse(is_releasable(db, book))
+        book.name = 'test__is_releasable'
+        self.assertTrue(is_releasable(db, book))
+
+        # No pages
+        db(db.book_page.id == book_page.id).update(book_id=-1)
+        db.commit()
+        self.assertFalse(is_releasable(db, book))
 
     def test__publication_year_range(self):
         start, end = publication_year_range()

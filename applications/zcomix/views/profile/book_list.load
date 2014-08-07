@@ -70,11 +70,9 @@
             </td>
             {{if request.vars.can_release is not None:}}
             <td>
-                {{page_count = db(db.book_page.book_id == book.id).count()}}
-                {{not_available = 'release_not_available' if page_count <=0 else ''}}
                 {{=A(
                     'Release',
-                    _class='btn btn-default modal-release-btn' + ' ' + not_available,
+                    _class='btn btn-default modal-release-btn',
                     _href=URL(c='profile', f='book_release', args=book.id, extension=False),
                     _type='button',
                 )}}

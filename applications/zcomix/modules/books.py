@@ -271,6 +271,23 @@ def formatted_name(db, book_entity):
     return fmt.format(**data)
 
 
+def is_releasable(db, book_entity):
+    """Return whether the book can be released.
+
+    Args:
+        db: gluon.dal.DAL instance
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+    """
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return False
+    if not book.name:
+        return False
+    page_count = db(db.book_page.book_id == book.id).count()
+    return True if page_count > 0 else False
+
+
 def numbers_for_book_type(db, book_type_id):
     """Return a dict for the number settings for a book_type_id.
 
