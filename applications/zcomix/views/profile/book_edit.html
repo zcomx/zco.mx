@@ -109,7 +109,7 @@
             'reader': {
                 'label': '{{=db.book.reader.label}}',
                 'value': '{{=book.reader if book else db.book.reader.default}}',
-                'info': '<i id="book_reader_info" class="icon fi-info"></i>',
+                'info': '<img id="book_reader_info" src="../static/images/icon-info.svg"/>',
                 'callback': function(elem) {
                         $('#book_reader_info').tooltip({
                             'html': true,
