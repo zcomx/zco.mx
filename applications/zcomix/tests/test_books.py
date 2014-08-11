@@ -15,9 +15,13 @@ from PIL import Image
 from gluon import *
 from gluon.contrib.simplejson import loads
 from applications.zcomix.modules.books import \
+    BookEvent, \
+    ContributionEvent, \
+    RatingEvent, \
+    ViewEvent, \
     DEFAULT_BOOK_TYPE, \
-    book_pages_as_json, \
     book_page_for_json, \
+    book_pages_as_json, \
     cover_image, \
     default_contribute_amount, \
     defaults, \
@@ -29,6 +33,106 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
+
+class EventTestCase(LocalTestCase):
+    """ Base class for Event test cases. Sets up test data."""
+    _book = None
+    _user = None
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUp(cls):
+        book_id = db.book.insert(
+            name='Event Test Case',
+        )
+        db.commit()
+        cls._book = db(db.book.id == book_id).select().first()
+        cls._objects.append(cls._book)
+
+        email = web.username
+        cls._user = db(db.auth_user.email == email).select().first()
+        if not cls._user:
+            raise SyntaxError('No user with email: {e}'.format(e=email))
+
+
+class TestBookEvent(EventTestCase):
+    def test____init__(self):
+        event = BookEvent(self._book, self._user.id)
+        self.assertTrue(event)
+
+    def test__log(self):
+        event = BookEvent(self._book, self._user.id)
+        self.assertRaises(NotImplementedError, event.log, None)
+
+
+class TestContributionEvent(EventTestCase):
+    def test____init__(self):
+        event = ContributionEvent(self._book, self._user.id)
+        self.assertTrue(event)
+
+    def test__log(self):
+        event = ContributionEvent(self._book, self._user.id)
+
+        # no value
+        event_id = event.log()
+        self.assertFalse(event_id)
+
+        event_id = event.log(123.45)
+        contribution = db(db.contribution.id == event_id).select(
+            db.contribution.ALL).first()
+        self.assertEqual(contribution.id, event_id)
+        self.assertAlmostEqual(
+            contribution.time_stamp,
+            datetime.datetime.now(),
+            delta=datetime.timedelta(minutes=1)
+        )
+        self.assertEqual(contribution.amount, 123.45)
+        self._objects.append(contribution)
+
+
+class TestRatingEvent(EventTestCase):
+    def test____init__(self):
+        event = RatingEvent(self._book, self._user.id)
+        self.assertTrue(event)
+
+    def test__log(self):
+        event = RatingEvent(self._book, self._user.id)
+
+        # no value
+        event_id = event.log()
+        self.assertFalse(event_id)
+
+        event_id = event.log(5)
+        rating = db(db.rating.id == event_id).select(db.rating.ALL).first()
+        self.assertEqual(rating.id, event_id)
+        self.assertAlmostEqual(
+            rating.time_stamp,
+            datetime.datetime.now(),
+            delta=datetime.timedelta(minutes=1)
+        )
+        self.assertEqual(rating.amount, 5)
+        self._objects.append(rating)
+
+
+class TestViewEvent(EventTestCase):
+    def test____init__(self):
+        event = ViewEvent(self._book, self._user.id)
+        self.assertTrue(event)
+
+    def test__log(self):
+        event = ViewEvent(self._book, self._user.id)
+        event_id = event.log()
+
+        view = db(db.book_view.id == event_id).select(db.book_view.ALL).first()
+        self.assertEqual(view.id, event_id)
+        self.assertAlmostEqual(
+            view.time_stamp,
+            datetime.datetime.now(),
+            delta=datetime.timedelta(minutes=1)
+        )
+        self._objects.append(view)
 
 
 class ImageTestCase(LocalTestCase):

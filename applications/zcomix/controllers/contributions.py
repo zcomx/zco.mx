@@ -3,8 +3,9 @@
 Controllers for contributions.
 """
 
-from applications.zcomix.modules.books import default_contribute_amount
-from applications.zcomix.modules.stickon.sqlhtml import LocalSQLFORM
+from applications.zcomix.modules.books import \
+    ContributionEvent, \
+    default_contribute_amount
 
 
 def contribute_widget():
@@ -18,21 +19,22 @@ def contribute_widget():
     book_record = None
     if request.args(0):
         book_record = db(db.book.id == request.args(0)).select(
-                db.book.ALL).first()
+            db.book.ALL).first()
 
     creator = None
     if book_record:
         creator = db(db.creator.id == book_record.creator_id).select(
-                db.creator.ALL).first()
-        amount = '{a:0.2f}'.format(a=default_contribute_amount(db, book_record))
+            db.creator.ALL).first()
+        amount = '{a:0.2f}'.format(
+            a=default_contribute_amount(db, book_record))
     else:
         amount = 1.00
 
     return dict(
-            amount=amount,
-            book=book_record,
-            creator=creator,
-            )
+        amount=amount,
+        book=book_record,
+        creator=creator,
+    )
 
 
 def index():
@@ -48,11 +50,11 @@ def paypal():
     if request.args(0):
         # Contribute to a creator's book.
         book_record = db(db.book.id == request.args(0)).select(
-                db.book.ALL).first()
+            db.book.ALL).first()
         creator = None
         if book_record:
             creator = db(db.creator.id == book_record.creator_id).select(
-                    db.creator.ALL).first()
+                db.creator.ALL).first()
 
         business = creator.paypal_email or ''
         item_name = book_record.name or ''
@@ -66,11 +68,11 @@ def paypal():
         amount = ''
 
     return dict(
-            business=business,
-            item_name=item_name,
-            item_number=item_number,
-            amount=amount,
-            )
+        business=business,
+        item_name=item_name,
+        item_number=item_number,
+        amount=amount,
+    )
 
 
 def record():
@@ -81,12 +83,6 @@ def record():
 
     """
     if request.args(0) and request.vars.amount:
-        db.contribution.insert(
-            auth_user_id=auth.user_id or 0,
-            book_id=request.args(0),
-            time_stamp=request.now,
-            amount=request.vars.amount,
-            )
-        db.commit()
-
+        ContributionEvent(request.args(0), auth.user_id or 0).log(
+            request.vars.amount)
     redirect(URL('paypal', args=request.args, vars=request.vars))

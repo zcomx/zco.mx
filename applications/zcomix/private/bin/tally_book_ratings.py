@@ -95,25 +95,31 @@ def main():
 
     LOG.info('Started.')
 
-    for rating in RATINGS:
-        field, data_field, period, func = rating
-        LOG.debug('Updating: {f}'.format(f=field))
-        data_table = data_field.table
-        days = PERIODS[period]
-        min_date = datetime.datetime.now() - datetime.timedelta(days=days)
-        query = (data_table.time_stamp >= min_date)
-        if func == 'sum':
-            tally = data_field.sum()
-        elif func == 'avg':
-            tally = data_field.avg()
-        elif func == 'count':
-            tally = data_field.count()
-        rows = db(query).select(data_table.book_id, tally, groupby=data_table.book_id)
-        for r in rows:
-            book_id = r[data_table._tablename]['book_id']
-            value = r[tally] or 0
-            db(db.book.id == book_id).update(**{field.name: value})
-
+    for book in db(db.book).select(db.book.ALL):
+        LOG.debug('book.name: {var}'.format(var=book.name))
+        book_query = (db.book.id == book.id)
+        for rating in RATINGS:
+            field, data_field, period, func = rating
+            LOG.debug('Updating: {f}'.format(f=field))
+            data_table = data_field.table
+            days = PERIODS[period]
+            min_date = datetime.datetime.now() - datetime.timedelta(days=days)
+            time_query = (data_table.time_stamp >= min_date)
+            if func == 'sum':
+                tally = data_field.sum()
+            elif func == 'avg':
+                tally = data_field.avg()
+            elif func == 'count':
+                tally = data_field.count()
+            query = book_query & time_query
+            rows = db(query).select(
+                tally,
+                left=[data_table.on(data_table.book_id == db.book.id)],
+                groupby=data_table.book_id
+            ).first()
+            value = rows[tally] or 0 if rows else 0
+            db(db.book.id == book.id).update(**{field.name: value})
+        db.commit()
     LOG.info('Done.')
 
 

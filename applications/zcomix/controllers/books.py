@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+"""Book controller functions"""
 
 from gluon.contrib import user_agent_parser
 from applications.zcomix.modules.books import \
+    ViewEvent, \
     cover_image, \
     read_link
 from applications.zcomix.modules.links import CustomLinks
-from applications.zcomix.modules.stickon.sqlhtml import LocalSQLFORM
 
 
 def book():
@@ -31,7 +32,12 @@ def book():
     cover = read_link(
         db,
         book_record,
-        [cover_image(db, book_record.id, size='medium', img_attributes={'_class': 'img-responsive'})]
+        [cover_image(
+            db,
+            book_record.id,
+            size='medium',
+            img_attributes={'_class': 'img-responsive'}
+        )]
     )
 
     read_button = read_link(
@@ -47,14 +53,16 @@ def book():
     if creator.tumblr:
         pre_links.append(A('tumblr', _href=creator.tumblr, _target='_blank'))
     if creator.wikipedia:
-        pre_links.append(A('wikipedia', _href=creator.wikipedia, _target='_blank'))
+        pre_links.append(
+            A('wikipedia', _href=creator.wikipedia, _target='_blank'))
 
     return dict(
         auth_user=auth_user,
         book=book_record,
         cover_image=cover,
         creator=creator,
-        creator_links=CustomLinks(db.creator, creator.id).represent(pre_links=pre_links),
+        creator_links=CustomLinks(db.creator, creator.id).represent(
+            pre_links=pre_links),
         links=CustomLinks(db.book, book_record.id).represent(),
         page_count=db(db.book_page.book_id == book_record.id).count(),
         read_button=read_button,
@@ -107,10 +115,13 @@ def reader():
     except (TypeError, ValueError):
         current_page = 0
     next_page = current_page + 1 if current_page + 1 < len(page_images) else 0
-    prev_page = current_page - 1 if current_page - 1 >= 0 else len(page_images) - 1
+    prev_page = current_page - 1 \
+        if current_page - 1 >= 0 else len(page_images) - 1
 
     ua = user_agent_parser.detect(request.env.http_user_agent)
     size = 'medium' if ua['is_mobile'] else 'large'
+
+    ViewEvent(book_record, auth.user_id).log()
 
     return dict(
         auth_user=auth_user,

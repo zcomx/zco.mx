@@ -19,6 +19,85 @@ from applications.zcomix.modules.utils import entity_to_row
 DEFAULT_BOOK_TYPE = 'one-shot'
 
 
+class BookEvent(object):
+    """Class representing a loggable book event"""
+
+    def __init__(self, book_entity, user_id):
+        """Constructor
+
+        Args:
+            book_entity: Row instance or integer, if integer, this is the id of
+                the book. The book record is read.
+            user_id: integer, id of user triggering event.
+        """
+        db = current.app.db
+        self.book_entity = book_entity
+        self.book = entity_to_row(db.book, book_entity)
+        self.user_id = user_id
+
+    def log(self, value=None):
+        raise NotImplementedError
+
+
+class ContributionEvent(BookEvent):
+    """Class representing a book contribution event."""
+
+    def __init__(self, book_entity, user_id):
+        BookEvent.__init__(self, book_entity, user_id)
+
+    def log(self, value=None):
+        if value is None:
+            return
+        db = current.app.db
+        event_id = db.contribution.insert(
+            auth_user_id=self.user_id or 0,
+            book_id=self.book.id,
+            time_stamp=datetime.datetime.now(),
+            amount=value
+        )
+        db.commit()
+        return event_id
+
+
+class RatingEvent(BookEvent):
+    """Class representing a book rating event."""
+
+    def __init__(self, book_entity, user_id):
+        BookEvent.__init__(self, book_entity, user_id)
+
+    def log(self, value=None):
+        if value is None:
+            return
+        db = current.app.db
+        event_id = db.rating.insert(
+            auth_user_id=self.user_id or 0,
+            book_id=self.book.id,
+            time_stamp=datetime.datetime.now(),
+            amount=value
+        )
+        db.commit()
+        return event_id
+
+
+class ViewEvent(BookEvent):
+    """Class representing a book view event."""
+
+    def __init__(self, book_entity, user_id):
+        BookEvent.__init__(self, book_entity, user_id)
+
+    def log(self, value=None):
+        db = current.app.db
+        event_id = db.book_view.insert(
+            auth_user_id=self.user_id or 0,
+            book_id=self.book.id,
+            time_stamp=datetime.datetime.now()
+        )
+        db.commit()
+        return event_id
+
+
+
+
 def book_pages_as_json(db, book_id, book_page_ids=None):
     """Return the book pages formated as json suitable for jquery-file-upload.
 
