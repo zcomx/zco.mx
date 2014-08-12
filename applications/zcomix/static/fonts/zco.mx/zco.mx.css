@@ -3,18 +3,18 @@
  */
 
 @font-face {
-  font-family: "zcomix_font";
-  src: url("zcomix_font.eot");
-  src: url("zcomix_font.eot?#iefix") format("embedded-opentype"),
-       url("zcomix_font.woff") format("woff"),
-       url("zcomix_font.ttf") format("truetype"),
-       url("zcomix_font.svg#fontcustom") format("svg");
+  font-family: "zco.mx";
+  src: url("zco.mx.eot");
+  src: url("zco.mx.eot?#iefix") format("embedded-opentype"),
+       url("zco.mx.woff") format("woff"),
+       url("zco.mx.ttf") format("truetype"),
+       url("zco.mx.svg#fontcustom") format("svg");
   font-weight: normal;
   font-style: normal;
 }
 
 .zco-info:before {
-  font-family: "zcomix_font";
+  font-family: "zco.mx";
   font-style: normal;
   font-weight: normal;
   font-variant: normal;

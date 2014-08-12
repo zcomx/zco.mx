@@ -1948,6 +1948,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-top: 2px;
 }
 
+#book_edit_section .info_icon_container {
+    margin: 0;
+    padding: 0;
+    padding-bottom: 0.6em;
+}
+
 #book_edit_section #description {
     color: #999999;
     font-size: 9pt;
@@ -1969,10 +1975,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #profile_book_pages_page #add_files_info {
     color: #666666;
-    margin-left: 8px;
-    margin-top: 2px;
-    vertical-align: top;
 }
+
+#profile_book_pages_page .info_icon_container {
+    margin: 0;
+    padding: 0 0 0.8em 0.8em;
+}
+
 
 .tooltip.in {
     opacity: 1;
