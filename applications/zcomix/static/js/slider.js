@@ -54,7 +54,7 @@
         $('#page_nav_total').text((image_count() + 1).toString());
 
         $('#reader_section .slide').click(function(e) {
-            next_slide(ROTATE);
+            next_slide(NO_ROTATE);
             e.preventDefault();
         });
 
