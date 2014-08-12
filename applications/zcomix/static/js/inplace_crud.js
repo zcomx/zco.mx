@@ -536,21 +536,6 @@
                     link.find('.field_info').html(options.info);
                 }
                 return link;
-                var editable_elem = link.find('.field_container > a').eq(0);
-                $.fn.inplace_crud_utils.set_editable(
-                    editable_elem,
-                    settings.auto_open,
-                    {
-                        url: settings.url,
-                        pk: settings.record_id || null,
-                        params: {
-                            '_action': (! settings.record_id || settings.record_id === "0") ? 'create' : 'update',
-                        },
-                    },
-                    settings.x_editable_settings,
-                    x_editable_settings
-                );
-                return link;
             },
 
             /* Public methods */
