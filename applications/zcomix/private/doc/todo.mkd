@@ -3,71 +3,6 @@ VERSION 1
 [x] bugs/changes
 
 [ ] UX/UI
-    [x] css
-        Check css for xs, sm and med on all pages
-
-    [x] front page -> newest
-        s/added/page added/
-
-    [x] login -> books -> Add/Edit
-        Numbering   () ongoing (eg 001, 002, 003, etc)
-                    () mini-series (eg 01 of 04)
-                    () One-shot/Graphic Novel
-
-        SB 2014-07-23 16:58
-        - ongoing
-          Selecting 'ongoing' shows a input field where the example was which
-          as the next number in the series as a placeholder in light grey ?
-          (default 001)
-
-        - mini-series
-            Selecting 'mini-series' shows an input field and a dropdown with
-            'of' in between  [01] of [04], where the example was
-
-    [x] login -> books -> Add/Edit
-        Add div to 'Description' for vertical-align: top
-        Add div to 'Numbering' for vertical-align: top
-
-    [x] creators page
-        min-width for Title for Released and Ongoing
-    [x] front page -> newest
-        make default
-    [x] reader page -> slider
-        prev/next will cause page jump
-    [x] reader page
-        page_nav_container shows link underline on hover
-
-    [x] dev/zcomix.com/files
-
-    [x] https://dev.zcomix.com/creators/creator/11
-        hide 'release' section
-        hide 'Ongoing' header
-        remove publish column
-
-    [x] slider
-        the resize to height is off slightly
-        fit-to-height
-        eg https://dev.zcomix.com/books/slider/7
-
-
-    [/] slider
-        set background to view port size but start at top of page
-        center button + js?
-
-        [ ] slider icon
-            - use 'arrows-out' from the foundation set
-            - flip flop  slider | scroll.     scroll | slider [X]
-            - when slider is selected, [X] is dark grey (active)
-            - when scroll is selected, [X] is light grey (inactive) button disabled
-
-    [ ] change default convert command
-        $ convert "$input" -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB "$output"
-
-        [s] re-upload jordan's images
-
-
-
-    ---
     [x] unique div's
         .row_container .field_container, .row_container .field_label (Description)
         #book_edit_section .field_container_description
@@ -75,43 +10,60 @@ VERSION 1
 
         #add_link_container .link_url
 
+    [ ] Slider
+        Disable looping.  Clicking on the last image does nothing, it doesn't
+        go back to the first image.
+
+    [ ] Front Page
+        'views' stats are not working
+        https://dev.zcomix.com/search?o=views
+
+    ---
+    [ ] login -> profile
+        add (i) for links
+        https://maps.gstatic.com/tactile/omnibox/ad_info-1x.png
+
     [O] Test Downsampling Filters
         * current convert command bloats pngs
         $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"    ## current command
         $ convert "$input" -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB "$output"    ## possible replacement
 
     [ ] Resize Script
+        problem: resizing images with slightly different dimensions
+        [s] re-upload jordan's images
+            requires resize script
 
-    [ ] File Scrub Script
+    [ ] Optimize and Scrub Files
 
     [ ] Redo logo
         [x] hand colour 'Z'
-        [ ] hand colour url
-        [ ] hand colour word balloon
-        [ ] wavy line for 'Z' outline
-        [ ] wavy line for word balloon
-        [ ] update main site
+        [x] hand colour url
+        [x] hand colour word balloon
+        [x] wavy line for 'Z' outline
+        [x] wavy line for word balloon
+        [ ] update main site with new logo
 
     [ ] Switch everything over to zco.mx
         setup CNAME for zcomix.com
+        paypal
 
     [ ] Theme twitter
 
     [ ] login -> books -> Add/Edit
         add iframe code for each book
 
-    [ ] problem: resizing images with slightly different dimensions
 
 
 
 VERSION 2 - Before Going Live
-[ ] Front Page - Get view stats working
-[ ] Indica Page
+[ ] Indica Page - html
     * last page of comic
     * call to action (last page (jpg in cbz and html in scroll/slider))
         + donate, download, social media, copyright
     * creative commons licence
     * for jpg indica https://101.zco.mx/Name_of_Comic_001/  ?
+
+[ ] Indica Page - jpg
 
 [ ] wildcard ssl cert for zcomix.com
 [ ] wildcard ssl cert for zco.mx
@@ -123,10 +75,16 @@ VERSION 2 - Before Going Live
     https://101.zcomix.com/Name_of_Comic_001/
     https://101.zcomix.com/Name_of_Comic_001/001.jpg
     https://101.zcomix.com/Name_of_Comic_001.torrent
-    https://zcomix.com/Artist_Name/
-    https://zcomix.com/Artist_Name/Name_of_Comic_001_(2014)/001.jpg
+    https://101.zcomix.com/Name_of_Comic_01_of_04/
+    https://101.zcomix.com/Name_of_Comic_01_of_04/001.jpg
+    https://101.zcomix.com/Name_of_Comic_01_of_04.torrent
+    https://zcomix.com/Cartoonist_Name/
+    https://zcomix.com/Cartoonist_Name/Name_of_Comic_001_(2014)/001.jpg
     https://zcomix.com/faq
     https://zcomix.com/ALL.torrent
+
+    https://zcomix.com/101/             ??
+    https://Cartoonist_Name.zcomix.com  ??
 
     "Name of Comic 001 (2014) (101.zco.mx).cbz"
     "Name of Comic 001 (2014) (101.zcomix.com).cbz"
@@ -151,6 +109,8 @@ VERSION 2 - Before Going Live
 [ ] Keyboard control for slider - L, R (and maybe U for back to artist page)
 [ ] Creator page -> Links to Cartoonist Articles/interviews?
 [ ] Book page -> Links to Book Reivews ?
+[ ] Front Page
+    reports - by month? by year?
 
 IDEAS
 [s] zcomix: Creative Commons Licence
@@ -194,3 +154,4 @@ IDEAS
 * site for original art
 * youtube/google hangout the drawing of a page live
 ``
+# vim:set ft=dm:
