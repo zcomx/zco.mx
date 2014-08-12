@@ -1,0 +1,33 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<!--
+2014-8-11: Created.
+-->
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>
+Created by FontForge 20110222 at Mon Aug 11 21:52:55 2014
+ By Ubuntu
+Created by Ubuntu with FontForge 2.0 (http://fontforge.sf.net)
+</metadata>
+<defs>
+<font id="zcomix_font" horiz-adv-x="512" >
+  <font-face
+    font-family="zcomix_font"
+    font-weight="500"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 6 9 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0.0283203 -63.9492 512.15 448.034"
+    underline-thickness="25.6"
+    underline-position="-51.2"
+    unicode-range="U+F100-F100"
+  />
+    <missing-glyph />
+    <glyph glyph-name="uniF100" unicode="&#xf100;"
+d="M459.664 192.027c0 -112.393 -91.2529 -203.66 -203.676 -203.66c-112.389 0 -203.644 91.2305 -203.644 203.676c0 112.426 91.2266 203.675 203.644 203.675c112.422 0 203.676 -91.2656 203.676 -203.69zM512.15 192.027
+c-5.09668 141.272 -111.21 256.007 -256.162 256.007c-141.321 0 -255.96 -114.68 -255.96 -255.991c0 -141.346 114.674 -255.992 255.96 -255.992c138.281 0 250.594 101.656 256.162 255.977zM214.349 266.492h84.3711v-243.394h-84.3711v243.394zM214.349 361.242
+h84.3711v-63.457h-84.3711v63.457z" />
+  </font>
+</defs></svg>
