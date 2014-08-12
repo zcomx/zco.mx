@@ -20,7 +20,7 @@
             <td>
                 {{=A(
                     I('',
-                    _class='icon fi-trash size-18'),
+                    _class='icon zc-trash size-18'),
                     _href=URL(c='profile', f='book_delete', args=book.id, extension=False),
                     _class='btn btn-default btn-xs modal-delete-btn',
                     _type='button',
@@ -63,7 +63,7 @@
             </td>
             <td>
                 {{=A(
-                    I('', _class='icon fi-trash size-18'),
+                    I('', _class='icon zc-trash size-18'),
                     _href=URL(c='profile', f='book_delete', args=book.id, extension=False),
                     _class='btn btn-default btn-xs modal-delete-btn',
                 )}}
@@ -105,7 +105,7 @@
             <td>
                 {{=A(
                     I('',
-                    _class='icon fi-trash size-18'),
+                    _class='icon zc-trash size-18'),
                     _href=URL(c='profile', f='book_delete', args=book.id, extension=False),
                     _class='btn btn-default btn-xs modal-delete-btn',
                     _type='button',

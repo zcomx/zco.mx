@@ -1,0 +1,22 @@
+{
+  "fonts": [
+    "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd.ttf",
+    "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd.woff",
+    "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd.eot",
+    "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd.svg"
+  ],
+  "templates": [
+    "iconvault-preview.html",
+    "iconvault-preview.css"
+  ],
+  "file_name": "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd",
+  "glyphs": [
+    "zc-info",
+    "zc-trash",
+    "zc-logo-sm",
+    "zc-arrows-out",
+    "zc-arrow-down",
+    "zc-arrow-up",
+    "zc-torso"
+  ]
+}
