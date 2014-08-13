@@ -13,7 +13,13 @@
   font-style: normal;
 }
 
-.zco-info:before {
+.zc-info:before,
+.zc-trash:before,
+.zc-logo-sm:before,
+.zc-arrows-out:before,
+.zc-arrow-down:before,
+.zc-arrow-up:before,
+.zc-torso:before {
   font-family: "zco.mx";
   font-style: normal;
   font-weight: normal;
@@ -25,4 +31,10 @@
   text-decoration: inherit;
 }
 
-.zco-info:before { content: "\f100"; }
+.zc-info:before { content: "\f100"; }
+.zc-trash:before { content: "\f101"; }
+.zc-logo-sm:before { content: "\f102"; }
+.zc-arrows-out:before { content: "\f103"; }
+.zc-arrow-down:before { content: "\f104"; }
+.zc-arrow-up:before { content: "\f105"; }
+.zc-torso:before { content: "\f106"; }

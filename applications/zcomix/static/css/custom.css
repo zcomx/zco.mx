@@ -1572,7 +1572,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 
-/* foundation-icons start */
+/* icon sizes start */
 .size-12 { font-size: 12px; }
 .size-14 { font-size: 14px; }
 .size-16 { font-size: 16px; }
@@ -1583,7 +1583,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .size-48 { font-size: 48px; }
 .size-60 { font-size: 60px; }
 .size-72 { font-size: 72px; }
-/* foundation-icons end */
+/* icon sizes end */
 
 .image_widget_container {
     margin: 0;
@@ -1630,7 +1630,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     line-height: 0.8em;
 }
 
-.fi-torso:before {
+.zc-torso:before {
     line-height: 0.8em;
 }
 
