@@ -18,6 +18,14 @@ VERSION 1
         'views' stats are not working
         https://dev.zcomix.com/search?o=views
 
+    [ ] Read
+        prev/next to > and <  not |<  >|
+        glyphicon glyphicon-chevron-left
+        glyphicon glyphicon-chevron-right
+
+    [ ] Read
+        Animation when centering?
+
     ---
     [ ] login -> profile
         add (i) for links
