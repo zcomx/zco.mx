@@ -1139,7 +1139,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .scroll_slide_options a#vertical_align_button {
     color: #666666;
-    padding-left: 0.2em;
+    padding-left: 0.6em;
     text-decoration: none;
 }
 
@@ -1949,6 +1949,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #book_edit_section .info_icon_container {
+    font-size: 13px;
     margin: 0;
     padding: 0;
     padding-bottom: 0.6em;
