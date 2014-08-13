@@ -1625,13 +1625,9 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #mug_shot .row_container .placeholder_torso i {
-    font-size: 15em;
+    font-size: 11em;
     color: #DDDDDD;
-    line-height: 0.8em;
-}
-
-.zc-torso:before {
-    line-height: 0.8em;
+    line-height: 1.1em;
 }
 
 @media (min-width: 768px) {
