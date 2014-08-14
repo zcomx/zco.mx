@@ -253,11 +253,6 @@ db.define_table('book_page',
         'integer',
         default=0,
     ),
-    Field(
-        'thumb_shrink',
-        'double',
-        default=1,
-    ),
     format='%(page_no)s',
     migrate=True,
 )

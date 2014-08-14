@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Book controller functions"""
 
-from gluon.contrib import user_agent_parser
 from applications.zcomix.modules.books import \
     ViewEvent, \
     cover_image, \
@@ -35,7 +34,7 @@ def book():
         [cover_image(
             db,
             book_record.id,
-            size='medium',
+            size='large',
             img_attributes={'_class': 'img-responsive'}
         )]
     )
@@ -118,8 +117,7 @@ def reader():
     prev_page = current_page - 1 \
         if current_page - 1 >= 0 else len(page_images) - 1
 
-    ua = user_agent_parser.detect(request.env.http_user_agent)
-    size = 'medium' if ua['is_mobile'] else 'large'
+    size = 'large'
 
     ViewEvent(book_record, auth.user_id).log()
 

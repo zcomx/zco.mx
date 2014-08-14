@@ -116,10 +116,18 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=W0212
         if cls._tmp_backup is None:
             cls._tmp_backup = os.path.join(
-                db._adapter.folder, '..', 'uploads', 'tmp_bak')
+                db._adapter.folder,
+                '..',
+                'uploads',
+                'tmp_bak'
+            )
         if cls._tmp_dir is None:
             cls._tmp_dir = os.path.join(
-                db._adapter.folder, '..', 'uploads', 'tmp')
+                db._adapter.folder,
+                '..',
+                'uploads',
+                'tmp'
+            )
 
     @classmethod
     def tearDown(cls):

@@ -8,36 +8,32 @@ Test suite for zcomix/modules/utils.py
 """
 import inspect
 import os
+import re
 import shutil
-import sys
 import unittest
 from BeautifulSoup import BeautifulSoup
 from PIL import Image
-from cStringIO import StringIO
 from gluon import *
 from gluon.http import HTTP
 from gluon.storage import List
 from applications.zcomix.modules.images import \
-    CBZImage, \
-    CBZSizer, \
     Downloader, \
     ImageOptimizeError, \
-    LargeSizer, \
-    MaxAreaSizer, \
-    MediumSizer, \
-    SIZERS, \
-    Sizer, \
-    ThumbnailSizer, \
+    ResizeImgError, \
+    ResizeImg, \
     UploadImage, \
-    classified_sizer, \
+    filename_for_size, \
     img_tag, \
     is_image, \
-    set_thumb_dimensions
+    set_thumb_dimensions, \
+    store
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+# W0212 (protected-access): *Access to a protected member
+ # pylint: disable=W0212
 
 
 class ImageTestCase(LocalTestCase):
@@ -53,27 +49,70 @@ class ImageTestCase(LocalTestCase):
 
     _objects = []
 
+    @classmethod
+    def _prep_image(cls, img, working_directory=None, to_name=None):
+        """Prepare an image for testing.
+        Copy an image from private/test/data to a working directory.
+
+        Args:
+            img: string, name of source image, eg file.jpg
+                must be in cls._test_data_dir
+            working_directory: string, path of working directory to copy to.
+                If None, uses cls._image_dir
+            to_name: string, optional, name of image to copy file to.
+                If None, img is used.
+        """
+        src_filename = os.path.join(
+            os.path.abspath(cls._test_data_dir),
+            img
+        )
+
+        if working_directory is None:
+            working_directory = os.path.abspath(cls._image_dir)
+
+        if to_name is None:
+            to_name = img
+
+        filename = os.path.join(working_directory, to_name)
+        shutil.copy(src_filename, filename)
+        return filename
+
+    @classmethod
+    def _set_image(cls, field, record, img):
+        """Set the image for a record field.
+
+        Args:
+            field: gluon.dal.Field instance
+            record: Row instance.
+            img: string, path/to/name of image.
+        """
+        # Delete images if record field is set.
+        if record[field.name]:
+            up_image = UploadImage(field, record[field.name])
+            up_image.delete_all()
+        stored_filename = store(field, img)
+        data = {field.name: stored_filename}
+        record.update_record(**data)
+        db.commit()
+
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     @classmethod
     def setUp(cls):
+        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+
         if not os.path.exists(cls._image_original):
             os.makedirs(cls._image_original)
 
+        src_filename = os.path.join(cls._test_data_dir, 'cbz_plus.jpg')
         image_filename = os.path.join(cls._image_dir, cls._image_name)
-
-        # Create an image to test with.
-        im = Image.new('RGB', (1200, 1200))
-        with open(image_filename, 'wb') as f:
-            im.save(f)
+        shutil.copy(src_filename, image_filename)
 
         # Store the image in the uploads/original directory
-        db.creator.image.uploadfolder = cls._image_original
-        with open(image_filename, 'rb') as f:
-            stored_filename = db.creator.image.store(f)
+        stored_filename = store(db.creator.image, image_filename)
 
         # Create a creator and set the image
-        email = 'resizer@example.com'
+        email = 'up_image@example.com'
         auth_user_id = db.auth_user.insert(
             name='Image UploadImage',
             email=email,
@@ -93,96 +132,13 @@ class ImageTestCase(LocalTestCase):
         cls._creator = db(db.creator.id == creator_id).select().first()
         cls._objects.append(cls._creator)
 
-        cls._uuid_key = cls._creator.image.split('.')[2][:2]
-
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
-
     @classmethod
     def tearDown(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
-
-
-class SizerTestCase(LocalTestCase):
-    """ Base class for Sizer  test cases. Sets up test directories."""
-    _image_dir = '/tmp/image_resizer'
-
-    @classmethod
-    def setUp(cls):
-        if not os.path.exists(cls._image_dir):
-            os.makedirs(cls._image_dir)
-
-    @classmethod
-    def tearDown(cls):
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
-
-
-class TestCBZImage(ImageTestCase):
-
-    def test____init__(self):
-        cbz_image = CBZImage(self._image_name)
-        self.assertTrue(cbz_image)
-
-    def test__optimize(self):
-        test_file = os.path.join(self._test_data_dir, 'file.jpg')
-        im = Image.open(test_file)
-        original_dimensions = im.size
-        original_size = os.stat(test_file).st_size
-        cbz_image = CBZImage(test_file)
-        out_filename = os.path.join(
-            self._image_dir, os.path.basename(test_file))
-        cbz_image.optimize(out_filename)
-        optimized_size = os.stat(out_filename).st_size
-        self.assertTrue(optimized_size < original_size)
-        im = Image.open(out_filename)
-        self.assertEqual(im.size, original_dimensions)
-
-        # Test size option
-        cbz_image.optimize(out_filename, size='thumb')
-        resized_size = os.stat(out_filename).st_size
-        self.assertTrue(resized_size < optimized_size)
-        im = Image.open(out_filename)
-        self.assertEqual(im.size[0], 170)        # scale is maintained
-        self.assertEqual(im.size[1], 170)
-
-        # Test invalid, non-existent file
-        test_file = os.path.join(self._test_data_dir, '_not_exists_.jpg')
-        cbz_image = CBZImage(test_file)
-        with self.assertRaises(ImageOptimizeError) as cm:
-            cbz_image.optimize(out_filename)
-        self.assertTrue('No such file or directory' in str(cm.exception))
-
-
-class TestCBZSizer(SizerTestCase):
-
-    def test____init__(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = CBZSizer(im)
-        self.assertTrue(sizer)
-
-    def test_parent_size(self):
-        tests = [
-            # original dimensions (w, h), expect dimensions (w, h)
-            ((2560, 1600), (2560, 1600)),    # landscape
-            ((5120, 3200), (2560, 1600)),    # large landscape
-            ((600, 375), (600, 375)),        # small landscape
-            ((1600, 2560), (1600, 2560)),    # portrait
-            ((3200, 5120), (1600, 2560)),    # large portrait
-            ((375, 600), (375, 600)),        # small portrait
-            ((2023, 2023), (2023, 2023)),        # square
-            ((3000, 3000), (2023, 2023)),      # large square
-            ((400, 400), (400, 400)),        # small square
-        ]
-
-        image_filename = os.path.join(self._image_dir, 'test.jpg')
-
-        for t in tests:
-            im = Image.new('RGB', t[0])
-            with open(image_filename, 'wb') as f:
-                im.save(f)
-            sizer = CBZSizer(im)
-            self.assertEqual(sizer.size(), t[1])
+        if cls._creator.image:
+            up_image = UploadImage(db.creator.image, cls._creator.image)
+            up_image.delete_all()
 
 
 class TestDownloader(ImageTestCase):
@@ -192,41 +148,57 @@ class TestDownloader(ImageTestCase):
         self.assertTrue(downloader)
         env = globals()
         request = env['request']
-        request.args = List([self._creator.image])
 
-        lengths = {
-            # size: bytes
-            'original': 23127,
-            'medium': 4723,
-            'thumb': 1111,
-        }
+        def set_lengths():
+            lengths = {}
+            for size in ['original', 'cbz', 'large', 'thumb']:
+                unused_name, fullname = db.creator.image.retrieve(
+                    self._creator.image, nameonly=True)
+                filename = filename_for_size(fullname, size)
+                if os.path.exists(filename):
+                    lengths[size] = os.stat(filename).st_size
+            return lengths
 
         def test_http(expect_size):
+            request.args = List([self._creator.image])
             try:
-                stream = downloader.download(request, db)
+                downloader.download(request, db)
             except HTTP as http:
                 self.assertEqual(http.status, 200)
                 self.assertEqual(http.headers['Content-Type'], 'image/jpeg')
-                self.assertEqual(http.headers['Content-Disposition'], 'attachment; filename="file.jpg"')
-                self.assertEqual(http.headers['Content-Length'], lengths[expect_size])
+                self.assertEqual(
+                    http.headers['Content-Disposition'],
+                    'attachment; filename="file.jpg"'
+                )
+                self.assertEqual(
+                    http.headers['Content-Length'],
+                    lengths[expect_size]
+                )
 
-        test_http('original')
-
-        # Image not resized, should default to original
-        request.vars.size = 'medium'
-        test_http('original')
-        request.vars.size = 'thumb'
-        test_http('original')
-
-        resizer = UploadImage(db.creator.image, self._creator.image)
-        resizer.resize_all()
-
-        request.vars.size = None
-        test_http('original')
-        request.vars.size = 'medium'
-        test_http('medium')
+        # tbn.jpg is tiny, only the thumbnail should be created.
+        filename = self._prep_image('tbn.jpg', to_name='file.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
+        lengths = set_lengths()
         request.vars.size = 'thumb'
         test_http('thumb')
+        request.vars.size = 'large'
+        test_http('original')
+        request.vars.size = 'cbz'
+        test_http('original')
+        request.vars.size = 'original'
+        test_http('original')
+
+        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
+        lengths = set_lengths()
+        request.vars.size = 'thumb'
+        test_http('thumb')
+        request.vars.size = 'large'
+        test_http('large')
+        request.vars.size = 'cbz'
+        test_http('cbz')
+        request.vars.size = 'original'
+        test_http('original')
 
 
 class TestImageOptimizeError(LocalTestCase):
@@ -240,91 +212,193 @@ class TestImageOptimizeError(LocalTestCase):
             self.fail('ImageOptimizeError not raised')
 
 
-class TestLargeSizer(SizerTestCase):
+class TestResizeImg(ImageTestCase):
 
     def test____init__(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = LargeSizer(im)
-        self.assertTrue(sizer)
+        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        resize_img = ResizeImg(filename)
+        self.assertTrue(resize_img)
+        self.assertEqual(resize_img.filename_base, 'file.jpg')
+        self.assertEqual(resize_img._temp_directory, None)
+        self.assertEqual(
+            resize_img.filenames,
+            {
+                'cbz': None,
+                'ori': None,
+                'tbn': None,
+                'web': None,
+            }
+        )
 
-    def test_parent_size(self):
-        tests = [
-            # original dimensions (w, h), expect dimensions (w, h)
-            ((1200, 750), (1200, 750)),     # landscape
-            ((2400, 1500), (1200, 750)),    # large landscape
-            ((600, 375), (600, 375)),       # small landscape
-            ((750, 1200), (750, 1200)),     # portrait
-            ((1500, 2400), (750, 1200)),    # large portrait
-            ((375, 600), (375, 600)),       # small portrait
-            ((948, 948), (948, 948)),       # square
-            ((1000, 1000), (948, 948)),     # large square
-            ((400, 400), (400, 400)),       # small square
-        ]
+    def test__run(self):
+        # !!!! ResizeImg.run() moves the image to a working directory.
+        # Make copies of test data images before using so they don't get
+        # removed from test data.
 
-        image_filename = os.path.join(self._image_dir, 'test.jpg')
+        # Test: standard jpg
+        filename = self._prep_image('cbz_plus.jpg')
+        resize_img = ResizeImg(filename)
+        resize_img.run()
+        tmp_dir = resize_img.temp_directory()
+        for prefix in ['ori', 'cbz', 'tbn', 'web']:
+            self.assertTrue(prefix in resize_img.filenames)
+            self.assertEqual(
+                resize_img.filenames[prefix],
+                os.path.join(tmp_dir, '{typ}-cbz_plus.jpg'.format(typ=prefix))
+            )
 
-        for t in tests:
-            im = Image.new('RGB', t[0])
-            with open(image_filename, 'wb') as f:
-                im.save(f)
-            sizer = LargeSizer(im)
-            self.assertEqual(sizer.size(), t[1])
+        # Test: file with no extension
+        filename = self._prep_image('image_with_no_ext')      # This is a jpg
+        resize_img = ResizeImg(filename)
+        resize_img.run()
+        tmp_dir = resize_img.temp_directory()
+        # image_with_no_ext is not big enough to produce a cbz file.
+        for prefix in ['ori', 'web', 'tbn']:
+            self.assertTrue(prefix in resize_img.filenames)
+            self.assertEqual(
+                resize_img.filenames[prefix],
+                os.path.join(
+                    tmp_dir,
+                    '{typ}-image_with_no_ext.jpg'.format(typ=prefix)
+                )
+            )
+
+        # Test: convert gif to png
+        filename = self._prep_image('eg.gif')
+        resize_img = ResizeImg(filename)
+        resize_img.run()
+        tmp_dir = resize_img.temp_directory()
+        # The original file extension is not changed
+        for prefix in ['ori']:
+            self.assertTrue(prefix in resize_img.filenames)
+            self.assertEqual(
+                resize_img.filenames[prefix],
+                os.path.join(tmp_dir, '{typ}-eg.gif'.format(typ=prefix))
+            )
+
+        # eg.gif is small so only a thumbnail should be produced.
+        for prefix in ['tbn']:
+            self.assertTrue(prefix in resize_img.filenames)
+            self.assertEqual(
+                resize_img.filenames[prefix],
+                os.path.join(tmp_dir, '{typ}-eg.png'.format(typ=prefix))
+            )
+
+        # Test: animated.gif
+        filename = self._prep_image('animated.gif')
+        resize_img = ResizeImg(filename)
+        resize_img.run()
+        tmp_dir = resize_img.temp_directory()
+        # The original file extension is not changed
+        for prefix in ['ori']:
+            self.assertTrue(prefix in resize_img.filenames)
+            self.assertEqual(
+                resize_img.filenames[prefix],
+                os.path.join(tmp_dir, '{typ}-animated.gif'.format(typ=prefix))
+            )
+
+        # animated.gif is small so only a thumbnail should be produced.
+        for prefix in ['tbn']:
+            self.assertTrue(prefix in resize_img.filenames)
+            self.assertEqual(
+                resize_img.filenames[prefix],
+                os.path.join(tmp_dir, '{typ}-animated.png'.format(typ=prefix))
+            )
+
+        # Test: cmyk
+        filename = self._prep_image('cmyk.jpg')
+        resize_img = ResizeImg(filename)
+        resize_img.run()
+        tmp_dir = resize_img.temp_directory()
+        # cmyk.jpg is small so only a thumbnail should be produced.
+        for prefix in ['ori', 'tbn']:
+            self.assertTrue(prefix in resize_img.filenames)
+            self.assertEqual(
+                resize_img.filenames[prefix],
+                os.path.join(tmp_dir, '{typ}-cmyk.jpg'.format(typ=prefix))
+            )
 
 
-class TestMaxAreaSizer(LocalTestCase):
+        # Test: file with incorrect extension
+        filename = self._prep_image('jpg_with_wrong_ext.png')
+        resize_img = ResizeImg(filename)
+        resize_img.run()
+        tmp_dir = resize_img.temp_directory()
+        for prefix in ['ori', 'web', 'tbn']:
+            self.assertTrue(prefix in resize_img.filenames)
+            self.assertEqual(
+                resize_img.filenames[prefix],
+                os.path.join(
+                    tmp_dir,
+                    '{typ}-jpg_with_wrong_ext.jpg'.format(typ=prefix)
+                )
+            )
 
-    def test____init__(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = MaxAreaSizer(im)
-        self.assertTrue(sizer)
+        # Test: files with prefixes
+        for dest in ['ori-file.png', 'web-file.png', 'tbn-file.png']:
+            filename = self._prep_image('file.png', to_name=dest)
+            resize_img = ResizeImg(filename)
+            resize_img.run()
+            tmp_dir = resize_img.temp_directory()
+            for prefix in ['ori', 'web', 'tbn']:
+                self.assertTrue(prefix in resize_img.filenames)
+                self.assertEqual(
+                    resize_img.filenames[prefix],
+                    os.path.join(
+                        tmp_dir,
+                        '{typ}-{dest}'.format(typ=prefix, dest=dest)
+                    )
+                )
 
-    def test__size(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = MaxAreaSizer(im)
-        self.assertRaises(NotImplementedError, sizer.size)
+        # Exception: No args
+        resize_img = ResizeImg('')
+        try:
+            resize_img.run()
+        except ResizeImgError as err:
+            self.assertTrue('usage: resize_img.sh' in str(err))
+        else:
+            self.fail('ResizeImgError not raised.')
 
+        # Exception: image doesn't exist
+        filename = '/tmp/_fake_.jpg'
+        resize_img = ResizeImg(filename)
+        try:
+            resize_img.run()
+        except ResizeImgError as err:
+            self.assertTrue('is not an image or image is corrupt' in str(err))
+        else:
+            self.fail('ResizeImgError not raised.')
 
-class TestMediumSizer(LocalTestCase):
+        # Exception: image is corrupt
+        filename = self._prep_image('corrupt.jpg')
+        resize_img = ResizeImg(filename)
+        try:
+            resize_img.run()
+        except ResizeImgError as err:
+            self.assertTrue('corrupt.jpg is corrupt' in str(err))
+        else:
+            self.fail('ResizeImgError not raised.')
 
-    def test____init__(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = MediumSizer(im)
-        self.assertTrue(sizer)
+        filename = self._prep_image('corrupt.png')
+        resize_img = ResizeImg(filename)
+        try:
+            resize_img.run()
+        except ResizeImgError as err:
+            expect = 'corrupt.png is not an image or image is corrupt'
+            self.assertTrue(expect in str(err))
+        else:
+            self.fail('ResizeImgError not raised.')
 
-    def test__size(self):
-        im = Image.new('RGBA', (1000, 1000))
-        sizer = MediumSizer(im)
-        self.assertEqual(sizer.size(), MediumSizer.dimensions)
-
-        im = Image.new('RGBA', (400, 400))
-        sizer = MediumSizer(im)
-        self.assertEqual(sizer.size(), MediumSizer.dimensions)
-
-
-class TestSizer(LocalTestCase):
-
-    def test____init__(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = Sizer(im)
-        self.assertTrue(sizer)
-
-    def test__size(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = Sizer(im)
-        self.assertEqual(sizer.size(), (400, 400))
-
-
-class TestThumbnailSizer(LocalTestCase):
-
-    def test____init__(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = ThumbnailSizer(im)
-        self.assertTrue(sizer)
-
-    def test__size(self):
-        im = Image.new('RGBA', (400, 400))
-        sizer = ThumbnailSizer(im)
-        self.assertEqual(sizer.size(), ThumbnailSizer.dimensions)
+        # Exception: not a gif, jpg or png image, eg tiff
+        filename = self._prep_image('eg.tiff')
+        resize_img = ResizeImg(filename)
+        try:
+            resize_img.run()
+        except ResizeImgError as err:
+            expect = 'eg.tiff is not a GIF, PNG or JPEG image'
+            self.assertTrue(expect in str(err))
+        else:
+            self.fail('ResizeImgError not raised.')
 
 
 class TestUploadImage(ImageTestCase):
@@ -340,158 +414,149 @@ class TestUploadImage(ImageTestCase):
             nameonly=True,
         )
         for size in have:
-            file_name = original_fullname.replace('/original/', '/{s}/'.format(s=size))
-            self.assertTrue(os.path.exists(file_name))
+            self.assertTrue(os.path.exists(filename_for_size(
+                original_fullname, size)))
         for size in have_not:
-            file_name = original_fullname.replace('/original/', '/{s}/'.format(s=size))
-            self.assertTrue(not os.path.exists(file_name))
+            self.assertTrue(not os.path.exists(filename_for_size(
+                original_fullname, size)))
 
     def test____init__(self):
-        resizer = UploadImage(db.creator.image, self._image_name)
-        self.assertTrue(resizer)
-        file_name, fullname = db.creator.image.retrieve(
+        up_image = UploadImage(db.creator.image, self._image_name)
+        self.assertTrue(up_image)
+        file_name, unused_fullname = db.creator.image.retrieve(
             self._creator.image,
             nameonly=True,
         )
         self.assertEqual(self._image_name, file_name)
-        self.assertEqual(resizer._images, {})
-        self.assertEqual(resizer._dimensions, {})
+        self.assertEqual(up_image._images, {})
+        self.assertEqual(up_image._dimensions, {})
 
     def test__delete(self):
-        resizer = UploadImage(db.creator.image, self._creator.image)
-        resizer.resize_all()
+        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
 
-        self._exist(have=['original', 'medium', 'thumb'])
-        resizer.delete('medium')
-        self._exist(have=['original', 'thumb'], have_not=['medium'])
-        resizer.delete('thumb')
-        self._exist(have=['original'], have_not=['medium', 'thumb'])
-        resizer.delete('thumb')     # Handle subsequent delete gracefully
-        self._exist(have=['original'], have_not=['medium', 'thumb'])
-        resizer.delete('original')
-        self._exist(have_not=['original', 'medium', 'thumb'])
+        up_image = UploadImage(db.creator.image, self._creator.image)
+
+        self._exist(have=['original', 'cbz', 'large', 'thumb'])
+        up_image.delete('large')
+        self._exist(have=['original', 'cbz', 'thumb'], have_not=['large'])
+        up_image.delete('thumb')
+        self._exist(have=['original', 'cbz'], have_not=['large', 'thumb'])
+        up_image.delete('thumb')     # Handle subsequent delete gracefully
+        up_image.delete('cbz')
+        self._exist(have=['original'], have_not=['cbz', 'large', 'thumb'])
+        up_image.delete('original')
+        self._exist(have_not=['original', 'cbz', 'large', 'thumb'])
 
     def test__delete_all(self):
-        resizer = UploadImage(db.creator.image, self._creator.image)
-        resizer.resize_all()
+        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
 
-        self._exist(have=['original', 'medium', 'thumb'])
-        resizer.delete_all()
-        self._exist(have_not=['original', 'medium', 'thumb'])
-        resizer.delete_all()        # Handle subsequent delete gracefully
-        self._exist(have_not=['original', 'medium', 'thumb'])
+        up_image = UploadImage(db.creator.image, self._creator.image)
+
+        self._exist(have=['original', 'cbz', 'large', 'thumb'])
+        up_image.delete_all()
+        self._exist(have_not=['original', 'cbz', 'large', 'thumb'])
+        up_image.delete_all()        # Handle subsequent delete gracefully
+        self._exist(have_not=['original', 'cbz', 'large', 'thumb'])
 
     def test__dimensions(self):
-        resizer = UploadImage(db.creator.image, self._creator.image)
-        self.assertEqual(resizer._dimensions, {})
+        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
 
-        dims = resizer.dimensions()
-        self.assertTrue('original' in resizer._dimensions)
-        self.assertEqual(dims, resizer._dimensions['original'])
+        up_image = UploadImage(db.creator.image, self._creator.image)
+        self.assertEqual(up_image._dimensions, {})
+
+        dims = up_image.dimensions()
+        self.assertTrue('original' in up_image._dimensions)
+        self.assertEqual(dims, up_image._dimensions['original'])
 
         # Should get from cache.
-        resizer._dimensions['original'] = (1, 1)
-        dims_2 = resizer.dimensions()
+        up_image._dimensions['original'] = (1, 1)
+        dims_2 = up_image.dimensions()
         self.assertEqual(dims_2, (1, 1))
 
-        dims_3 = resizer.dimensions(size='medium')
-        self.assertTrue('medium' in resizer._dimensions)
-        self.assertEqual(dims_3, None)
+        dims_3 = up_image.dimensions(size='large')
+        self.assertTrue('large' in up_image._dimensions)
+        self.assertEqual(dims_3, (750, 1125))
 
-        del resizer._images['medium']
-        del resizer._dimensions['medium']
-        medium = resizer.resize('medium')
-        dims_4 = resizer.dimensions(size='medium')
-        self.assertEqual(dims_4, (500, 500))
+        dims_4 = up_image.dimensions(size='thumb')
+        self.assertTrue('thumb' in up_image._dimensions)
+        self.assertEqual(dims_4, (112, 168))
 
     def test__fullname(self):
-        resizer = UploadImage(db.creator.image, self._creator.image)
+        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
+        uuid_key = self._creator.image.split('.')[2][:2]
+
+        up_image = UploadImage(db.creator.image, self._creator.image)
+        fmt = 'applications/zcomix/uploads/{s}/creator.image/{u}/{i}'
         self.assertEqual(
-            resizer.fullname(),
-            '/tmp/image_resizer/original/creator.image/{u}/{i}'.format(
-                u=self._uuid_key,
+            up_image.fullname(),
+            fmt.format(
+                s='original',
+                u=uuid_key,
                 i=self._creator.image,
             ),
         )
         self.assertEqual(
-            resizer.fullname(size='medium'),
-            '/tmp/image_resizer/medium/creator.image/{u}/{i}'.format(
-                u=self._uuid_key,
+            up_image.fullname(size='large'),
+            fmt.format(
+                s='large',
+                u=uuid_key,
                 i=self._creator.image,
             ),
         )
         self.assertEqual(
-            resizer.fullname(size='_fake_'),
-            '/tmp/image_resizer/_fake_/creator.image/{u}/{i}'.format(
-                u=self._uuid_key,
+            up_image.fullname(size='_fake_'),
+            fmt.format(
+                s='_fake_',
+                u=uuid_key,
                 i=self._creator.image,
             ),
         )
 
     def test__pil_image(self):
-        resizer = UploadImage(db.creator.image, self._creator.image)
-        self.assertEqual(resizer._images, {})
+        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
 
-        im = resizer.pil_image()
-        self.assertTrue('original' in resizer._images)
-        self.assertEqual(im, resizer._images['original'])
+        up_image = UploadImage(db.creator.image, self._creator.image)
+        self.assertEqual(up_image._images, {})
+
+        im = up_image.pil_image()
+        self.assertTrue('original' in up_image._images)
+        self.assertEqual(im, up_image._images['original'])
 
         # Should get from cache.
-        resizer._images['original'] = '_stub_'
-        im_2 = resizer.pil_image()
-        self.assertEqual(im_2, resizer._images['original'])
+        up_image._images['original'] = '_stub_'
+        im_2 = up_image.pil_image()
+        self.assertEqual(im_2, up_image._images['original'])
 
-        im_3 = resizer.pil_image(size='medium')
-        self.assertTrue('medium' in resizer._images)
-        self.assertEqual(im_3, None)
-
-        medium = resizer.resize('medium')
-        im_4 = resizer.pil_image(size='medium')
-        self.assertEqual(im_4, resizer._images['medium'])
-
-    def test__resize(self):
-        resizer = UploadImage(db.creator.image, self._creator.image)
-        medium = resizer.resize('medium')
-        im = Image.open(medium)
-        self.assertEqual(im.size, MediumSizer.dimensions)
-        thumb = resizer.resize('thumb')
-        im = Image.open(thumb)
-        self.assertEqual(im.size, ThumbnailSizer.dimensions)
-
-    def test__resize_all(self):
-        resizer = UploadImage(db.creator.image, self._creator.image)
-        resizer.resize_all()
-        unused_filename, original_fullname = db.creator.image.retrieve(
-            self._creator.image,
-            nameonly=True,
-        )
-        for size in ['medium', 'thumb']:
-            file_name = original_fullname.replace('/original/', '/{s}/'.format(s=size))
-            self.assertTrue(os.path.exists(file_name))
+        im_3 = up_image.pil_image(size='large')
+        self.assertTrue('large' in up_image._images)
+        self.assertTrue(hasattr(im_3, 'size'))
 
 
-class TestFunctions(LocalTestCase):
+class TestFunctions(ImageTestCase):
 
-    _images = '/tmp/test__image_dir'
+    def test__filename_for_size(self):
+        tests = [
+            #(original, size, expect),
+            ('/path/original/file.jpg', 'cbz', '/path/cbz/file.jpg'),
+            ('/path/original/file.jpg', 'web', '/path/large/file.jpg'),
+            ('/path/original/file.jpg', 'large', '/path/large/file.jpg'),
+            ('/path/original/file.jpg', 'tbn', '/path/thumb/file.jpg'),
+            ('/path/original/file.jpg', 'thumb', '/path/thumb/file.jpg'),
+            ('/path/original/file.jpg', 'thumbnail', '/path/thumb/file.jpg'),
+            ('/path/original/file.jpg', '_fake_', '/path/_fake_/file.jpg'),
+            ('/path/_fake_/file.jpg', 'cbz', '/path/_fake_/file.jpg'),
+            ('/path/original/file.png', 'cbz', '/path/cbz/file.png'),
+            ('/path/original/file.gif', 'cbz', '/path/cbz/file.png'),
+        ]
 
-    @classmethod
-    def setUp(cls):
-        if not os.path.exists(cls._images):
-            os.makedirs(cls._images)
-
-    @classmethod
-    def tearDown(cls):
-        if os.path.exists(cls._images):
-            shutil.rmtree(cls._images)
-
-    def test__classified_sizer(self):
-        self.assertTrue('large' in SIZERS)
-        self.assertTrue('medium' in SIZERS)
-        self.assertTrue('thumb' in SIZERS)
-        self.assertEqual(classified_sizer('large'), LargeSizer)
-        self.assertEqual(classified_sizer('medium'), MediumSizer)
-        self.assertEqual(classified_sizer('thumb'), ThumbnailSizer)
-        self.assertEqual(classified_sizer('_fake_'), Sizer)
+        for t in tests:
+            got = filename_for_size(t[0], t[1])
+            self.assertEqual(got, t[2])
 
     def test__img_tag(self):
         def get_tag(tag, tag_type):
@@ -531,7 +596,7 @@ class TestFunctions(LocalTestCase):
 
     def test__is_image(self):
         # Test common image types.
-        original_filename = os.path.join(self._images, 'original.jpg')
+        original_filename = os.path.join(self._image_dir, 'original.jpg')
 
         # Create an image to test with.
         im = Image.new('RGB', (1200, 1200))
@@ -552,7 +617,8 @@ class TestFunctions(LocalTestCase):
         only_bmp = ['bmp']
         for t in tests:
             with open(original_filename, 'rb') as f:
-                outfile = os.path.join(os.path.dirname(original_filename), t[0])
+                outfile = os.path.join(
+                    os.path.dirname(original_filename), t[0])
                 im.save(outfile, format=t[1])
                 self.assertEqual(is_image(outfile), t[2])
 
@@ -573,29 +639,52 @@ class TestFunctions(LocalTestCase):
             page_no=1,
             thumb_w=0,
             thumb_h=0,
-            thumb_shrink=0,
         )
         db.commit()
         book_page = db(db.book_page.id == book_page_id).select().first()
         self._objects.append(book_page)
 
         tests = [
-            # dimensions, expect
-            ((170, 170), 0.80),
-            ((170, 121), 0.80),
-            ((170, 120), 1),
-            ((121, 170), 0.80),
-            ((120, 170), 1),
-            ((120, 120), 1),
-            ((121, 121), 0.80),
+            # dimensions
+            (170, 170),
+            (170, 121),
         ]
 
         for t in tests:
-            set_thumb_dimensions(db, book_page.id, t[0])
+            set_thumb_dimensions(db, book_page.id, t)
             book_page = db(db.book_page.id == book_page_id).select().first()
-            self.assertEqual(book_page.thumb_w, t[0][0])
-            self.assertEqual(book_page.thumb_h, t[0][1])
-            self.assertEqual(book_page.thumb_shrink, t[1])
+            self.assertEqual(book_page.thumb_w, t[0])
+            self.assertEqual(book_page.thumb_h, t[1])
+
+    def test__store(self):
+        working_image = self._prep_image('cbz_plus.jpg')
+        got = store(db.book_page.image, working_image)
+        re_store = re.compile(
+            r'book_page\.image\.[a-f0-9]{16}\.[a-f0-9]+\.jpg')
+        # Eg book_page.image.ad8557025bd26287.66696c652e6a7067.jpg
+        #    book_page.image.810bab749df4eaeb.63627a5f706c75732e6a7067.jpg
+        self.assertTrue(re_store.match(got))
+
+        # Check that files exists for all sizes
+        up_image = UploadImage(db.book_page.image, got)
+        for size in ['original', 'cbz', 'large', 'thumb']:
+            filename = up_image.fullname(size=size)
+            self.assertTrue(os.path.exists(filename))
+
+        # Cleanup: Remove all files
+        up_image.delete_all()
+        for size in ['original', 'cbz', 'large', 'thumb']:
+            filename = up_image.fullname(size=size)
+            # os.unlink(filename)
+            self.assertFalse(os.path.exists(filename))
+
+        # Prove original filename is preserved.
+        working_image = self._prep_image('image_with_no_ext')
+        got = store(db.book_page.image, working_image)
+        original_filename, _ = db.book_page.image.retrieve(got, nameonly=True)
+        self.assertEqual(original_filename, 'image_with_no_ext')
+        up_image = UploadImage(db.book_page.image, got)
+        up_image.delete_all()
 
 
 def setUpModule():

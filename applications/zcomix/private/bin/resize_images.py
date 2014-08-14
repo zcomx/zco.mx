@@ -6,18 +6,22 @@ resize_images.py
 
 Script to create and maintain images and their sizes.
 """
-import datetime
 import logging
 import os
+import shutil
 import sys
 import traceback
 from gluon import *
 from gluon.shell import env
+from gluon.dal import REGEX_UPLOAD_PATTERN
 from optparse import OptionParser
 from applications.zcomix.modules.images import \
-    SIZERS, \
+    SIZES, \
     UploadImage, \
-    set_thumb_dimensions
+    set_thumb_dimensions, \
+    store
+from applications.zcomix.modules.shell_utils import \
+    temp_directory
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -39,7 +43,6 @@ class ImageHandler(object):
     def __init__(
             self,
             filenames,
-            size=None,
             field=None,
             record_id=None,
             dry_run=False):
@@ -48,13 +51,11 @@ class ImageHandler(object):
         Args:
             filenames: list of image filenames, if empty all images are
                 resized.
-            size: string, one of SIZERS.keys()
             field: string, one of FIELDS
             record_id: integer, id of database record.
             dry_run: If True, make no changes.
         """
         self.filenames = filenames
-        self.size = size
         self.field = field
         self.record_id = record_id
         self.dry_run = dry_run
@@ -90,31 +91,53 @@ class ImageHandler(object):
 
     def purge(self):
         """Purge orphanned images."""
-        LOG.warn('NOTICE: The purge feature is not implemented yet.')
-        return
+        original_dir = db.book_page.image.uploadfolder
+        for unused_root, unused_dirs, files in os.walk(original_dir):
+            for filename in files:
+                # Eg creator.image.ac95985a97d9910d.66696c652e6a7067.jpg
+                m = REGEX_UPLOAD_PATTERN.match(filename)
+                table = m.group('table')
+                field = m.group('field')
+                query = (db[table][field] == filename)
+                r = db(query).select(db[table].id).first()
+                if not r:
+                    action = 'Dry run' if self.dry_run else 'Deleting'
+                    LOG.debug('{a}: {f}'.format(a=action, f=filename))
+                    if not self.dry_run:
+                        db_field = db[table][field]
+                        up_image = UploadImage(db_field, filename)
+                        up_image.delete_all()
 
     def resize(self):
         """Resize images."""
-        LOG.debug('{a}: {t} {i} {f} {s}'.format(
-            a='Action', t='table', i='id', f='image', s='size'))
-        sizes = [self.size] if self.size else SIZERS.keys()
+        LOG.debug('{a}: {t} {i} {f}'.format(
+            a='Action', t='table', i='id', f='image'))
         for field, record_id, image_name, original in self.image_generator():
-            resizer = UploadImage(field, image_name)
-            for size in sizes:
-                action = 'Dry run' if self.dry_run else 'Resizing'
-                LOG.debug('{a}: {t} {i} {f} {s}'.format(
-                    a=action, t=field.table, i=record_id, f=original, s=size))
-                if not self.dry_run:
-                    try:
-                        resizer.resize(size)
-                    except IOError as err:
-                        LOG.error('Unable to resize: {f} {i} {s} - {e}'.format(
-                            f=field, i=record_id, s=size, e=err))
-                        continue
-                    if str(field) == 'book_page.image' and size == 'thumb':
-                            set_thumb_dimensions(
-                                db, record_id, resizer.dimensions(size='thumb')
-                            )
+            action = 'Dry run' if self.dry_run else 'Resizing'
+            LOG.debug('{a}: {t} {i} {f}'.format(
+                a=action, t=field.table, i=record_id, f=original))
+            up_image = UploadImage(field, image_name)
+            src_filename = os.path.abspath(up_image.fullname())
+            if not os.path.exists(src_filename):
+                LOG.error('File not found: {fn}'.format(fn=src_filename))
+                continue
+            if self.dry_run:
+                continue
+            tmp_dir = temp_directory()
+            filename = os.path.join(tmp_dir, original)
+            shutil.copy(src_filename, filename)
+            up_image = UploadImage(field, image_name)
+            up_image.delete_all()
+            stored_filename = store(field, filename)
+            data = {field.name: stored_filename}
+            db(field.table.id == record_id).update(**data)
+            db.commit()
+            if str(field) == 'book_page.image':
+                set_thumb_dimensions(
+                    db, record_id, up_image.dimensions(size='thumb')
+                )
+            if tmp_dir:
+                shutil.rmtree(tmp_dir)
 
 
 def man_page():
@@ -134,9 +157,6 @@ USAGE
 
     # Create sizes for an image associated with a specific record.
     resize_images.py --field creator.image --id 123
-
-    # Create medium sized images for all images as necessary.
-    resize_images.py --size medium
 
     # Purge orphaned images and exit.
     resize_images.py --purge
@@ -167,11 +187,6 @@ OPTIONS
     -p, --purge
         Delete orphaned images and exit. An orphaned image is a resized image
         where the original image it was based on no longer exists.
-
-    -s SIZE, --size=SIZE
-        By default, images are resized to each of the standard sizes. With
-        this option, images are resized to SIZE only. Use --sizes option to
-        list valid values for SIZE.
 
     --sizes
         List all available image sizes.
@@ -223,12 +238,6 @@ def main():
         help='Purge orphaned images.',
     )
     parser.add_option(
-        '-s', '--size',
-        choices=SIZERS.keys(),
-        dest='size', default=None,
-        help='Resize images to this size only.',
-    )
-    parser.add_option(
         '--sizes',
         action='store_true', dest='sizes', default=False,
         help='List all available image sizes and exit.',
@@ -267,12 +276,8 @@ def main():
 
     if options.sizes:
         print 'Image sizes:'
-        for name, sizer_class in SIZERS.items():
-            if hasattr(sizer_class, 'dimensions'):
-                w, h = getattr(sizer_class, 'dimensions')
-                print '    {n}: ({w} x {h})'.format(n=name, w=w, h=h)
-            else:
-                print '    {n}: (variable)'.format(n=name)
+        for name in SIZES:
+            print name
         quick_exit = True
 
     if quick_exit:
@@ -283,7 +288,6 @@ def main():
 
     handler = ImageHandler(
         filenames,
-        size=options.size,
         field=options.field,
         record_id=options.id,
         dry_run=options.dry_run,

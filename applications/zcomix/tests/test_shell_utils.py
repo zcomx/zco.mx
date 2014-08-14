@@ -11,8 +11,11 @@ import os
 import pwd
 import re
 import shutil
+import subprocess
 import unittest
 from applications.zcomix.modules.shell_utils import \
+    Cwd, \
+    TempDirectoryMixin, \
     TemporaryDirectory, \
     UnixFile, \
     temp_directory
@@ -21,6 +24,57 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
+
+class TestCwd(LocalTestCase):
+
+    def test____init__(self):
+        dirname = '/tmp'
+        filename = 'test_cwd__init__'
+        fullname = os.path.join(dirname, filename)
+        with open(fullname, 'w') as f:
+            f.write('testing')
+
+        with Cwd('/tmp'):
+            p = subprocess.Popen(
+                ['ls'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            out, err = p.communicate()
+            self.assertTrue(filename in out)
+            self.assertEqual(err, '')
+
+    def test____enter__(self):
+        # This is tested by test____init__
+        pass
+
+    def test____exit__(self):
+        # This is tested by test____init__
+        pass
+
+
+class TestTempDirectoryMixin(LocalTestCase):
+
+    def test____del__(self):
+        mixin = TempDirectoryMixin()
+        tmp_dir = mixin.temp_directory()
+        self.assertTrue(os.path.exists(tmp_dir))
+        del mixin
+        self.assertFalse(os.path.exists(tmp_dir))
+
+    def test__cleanup(self):
+        mixin = TempDirectoryMixin()
+        # W0212 (protected-access): *Access to a protected member %%s
+        # pylint: disable=W0212
+        self.assertTrue(mixin._temp_directory is None)
+        tmp_dir = mixin.temp_directory()
+        self.assertTrue(os.path.exists(tmp_dir))
+        mixin.cleanup()
+        self.assertFalse(os.path.exists(tmp_dir))
+
+    def test__temp_directory(self):
+        pass        # test_cleanup tests this.
 
 
 class TestTemporaryDirectory(LocalTestCase):
@@ -55,6 +109,8 @@ class TestUnixFile(LocalTestCase):
     def test__file(self):
         filename = inspect.getfile(inspect.currentframe())
         unix_file = UnixFile(filename)
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         self.assertEqual(
             unix_file.file(),
             ('applications/zcomix/tests/test_shell_utils.py: Python script, ASCII text executable\n', '')
@@ -98,7 +154,9 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(dirs[-2], 'tmp')
             self.assertRegexpMatches(dirs[-1], re.compile(r'tmp[a-zA-Z0-9].*'))
 
-        valid_tmp_dir(temp_directory())
+        got = temp_directory()
+        valid_tmp_dir(got)
+        os.rmdir(got)          # Cleanup
 
         # Test: tmp directory does not exist.
         if os.path.exists(self._tmp_dir):

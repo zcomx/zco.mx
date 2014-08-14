@@ -10,7 +10,6 @@ import os
 import shutil
 import unittest
 from applications.zcomix.modules.book_upload import \
-    BookPageFile, \
     BookPageUploader, \
     FileTypeError, \
     FileTyper, \
@@ -22,7 +21,8 @@ from applications.zcomix.modules.book_upload import \
     UploadedArchive, \
     UploadedImage, \
     UploadedUnsupported, \
-    classify_uploaded_file
+    classify_uploaded_file, \
+    create_book_page
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -32,63 +32,58 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 
 class BaseTestCase(LocalTestCase):
     _test_data_dir = None
+    _image_dir = '/tmp/test_book_upload'
+
+    @classmethod
+    def _prep_image(cls, img, working_directory=None, to_name=None):
+        """Prepare an image for testing.
+        Copy an image from private/test/data to a working directory.
+
+        Args:
+            img: string, name of source image, eg file.jpg
+                must be in cls._test_data_dir
+            working_directory: string, path of working directory to copy to.
+                If None, uses cls._image_dir
+            to_name: string, optional, name of image to copy file to.
+                If None, img is used.
+        """
+        src_filename = os.path.join(
+            os.path.abspath(cls._test_data_dir),
+            img
+        )
+
+        if working_directory is None:
+            working_directory = os.path.abspath(cls._image_dir)
+
+        if to_name is None:
+            to_name = img
+
+        filename = os.path.join(working_directory, to_name)
+        shutil.copy(src_filename, filename)
+        return filename
 
     @classmethod
     def setUp(cls):
+        # C0103 (invalid-name): *Invalid name "%%s" for type %%s
+        # pylint: disable=C0103
         cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+        if not os.path.exists(cls._image_dir):
+            os.makedirs(cls._image_dir)
 
-
-class TestBookPageFile(BaseTestCase):
-
-    def test____init__(self):
-        sample_file = os.path.join(self._test_data_dir, 'file.jpg')
-        with open(sample_file, 'rb') as f:
-            page_file = BookPageFile(f)
-            self.assertTrue(page_file)
-
-    def test__add(self):
-        book_id = db.book.insert(name='test__add')
-        db.commit()
-        book = db(db.book.id == book_id).select().first()
-        self._objects.append(book)
-
-        def pages(book_id):
-            """Get pages of book"""
-            return db(db.book_page.book_id == book_id).select(
-                orderby=[db.book_page.page_no, db.book_page.id]
-            )
-
-        self.assertEqual(len(pages(book_id)), 0)
-
-        for filename in ['file.jpg', 'file.png']:
-            sample_file = os.path.join(self._test_data_dir, filename)
-            with open(sample_file, 'rb') as f:
-                page_file = BookPageFile(f)
-                self.assertTrue(page_file)
-                book_page_id = page_file.add(book_id)
-                self.assertTrue(book_page_id)
-
-        book_pages = pages(book_id)
-        self.assertEqual(len(book_pages), 2)
-
-        for i, filename in enumerate(['file.jpg', 'file.png']):
-            self.assertEqual(book_pages[i].book_id, book.id)
-            self.assertEqual(book_pages[i].page_no, i + 1)
-
-            original_filename, unused_fullname = db.book_page.image.retrieve(
-                book_pages[i].image,
-                nameonly=True,
-            )
-            self.assertEqual(original_filename, filename)
+    @classmethod
+    def tearDown(cls):
+        # C0103 (invalid-name): *Invalid name "%%s" for type %%s
+        # pylint: disable=C0103
+        if os.path.exists(cls._image_dir):
+            shutil.rmtree(cls._image_dir)
 
 
 class TestBookPageUploader(BaseTestCase):
 
     def test____init__(self):
         sample_file = os.path.join(self._test_data_dir, 'file.jpg')
-        with open(sample_file, 'rb') as f:
-            uploader = BookPageUploader(0, [sample_file])
-            self.assertTrue(uploader)
+        uploader = BookPageUploader(0, [sample_file])
+        self.assertTrue(uploader)
 
     def test__as_json(self):
         pass            # FIXME
@@ -154,15 +149,9 @@ class TestUnpacker(BaseTestCase):
         filename = os.path.join(self._test_data_dir, 'sampler.cbz')
         unpacker = Unpacker(filename)
         self.assertEqual(unpacker.filename, filename)
+        # W0212 (protected-access): *Access to a protected member %%s
+        # pylint: disable=W0212
         self.assertEqual(unpacker._temp_directory, None)
-
-    def test__cleanup(self):
-        filename = os.path.join(self._test_data_dir, 'sampler.cbz')
-        unpacker = Unpacker(filename)
-        tmp_dir = unpacker.temp_directory()
-        self.assertTrue(os.path.exists(tmp_dir))
-        unpacker.cleanup()
-        self.assertFalse(os.path.exists(tmp_dir))
 
     def test__image_files(self):
         filename = os.path.join(self._test_data_dir, 'sampler.cbz')
@@ -182,19 +171,6 @@ class TestUnpacker(BaseTestCase):
         files = unpacker.image_files()
         expect = [os.path.join(tmp_dir, x) for x in img_files]
         self.assertEqual(files, expect)
-        unpacker.cleanup()
-
-    def test__temp_directory(self):
-        filename = os.path.join(self._test_data_dir, 'sampler.cbz')
-        unpacker = Unpacker(filename)
-        tmp_dir = unpacker.temp_directory()
-        expect = os.path.join(request.folder, 'uploads', 'tmp')
-        self.assertEqual(
-            os.path.realpath(os.path.dirname(tmp_dir)),
-            os.path.realpath(expect)
-        )
-        self.assertEqual(unpacker._temp_directory, tmp_dir)
-
         unpacker.cleanup()
 
 
@@ -259,7 +235,7 @@ class TestUploadedFile(BaseTestCase):
         pages = db(db.book_page.book_id == book_id).select()
         self.assertEqual(len(pages), 0)
 
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedFile(filename)
         uploaded.image_filenames.append(filename)
         uploaded.create_book_pages(book_id)
@@ -270,7 +246,7 @@ class TestUploadedFile(BaseTestCase):
         self._objects.append(book_page)
 
     def test__for_json(self):
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedFile(filename)
         self.assertRaises(NotImplementedError, uploaded.for_json)
 
@@ -280,7 +256,7 @@ class TestUploadedFile(BaseTestCase):
         book = db(db.book.id == book_id).select().first()
         self._objects.append(book)
 
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         # Use UploadedImage as UploadedFile won't have methods implemented
         uploaded = UploadedImage(filename)
         uploaded.load(book_id)
@@ -291,7 +267,7 @@ class TestUploadedFile(BaseTestCase):
         self._objects.append(book_page)
 
     def test__unpack(self):
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedFile(filename)
         self.assertRaises(NotImplementedError, uploaded.unpack)
 
@@ -324,7 +300,7 @@ class TestUploadedArchive(BaseTestCase):
 class TestUploadedImage(BaseTestCase):
 
     def test____init__(self):
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedImage(filename)
         self.assertTrue(uploaded)
         self.assertEqual(uploaded.filename, filename)
@@ -335,7 +311,7 @@ class TestUploadedImage(BaseTestCase):
         book = db(db.book.id == book_id).select().first()
         self._objects.append(book)
 
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedImage(filename)
         uploaded.image_filenames.append(filename)
         uploaded.create_book_pages(book_id)
@@ -350,7 +326,7 @@ class TestUploadedImage(BaseTestCase):
         self._objects.append(book_page)
 
     def test__unpack(self):
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedImage(filename)
         self.assertEqual(len(uploaded.image_filenames), 0)
         uploaded.unpacker = None
@@ -361,19 +337,19 @@ class TestUploadedImage(BaseTestCase):
 class TestUploadedUnsupported(BaseTestCase):
 
     def test____init__(self):
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedUnsupported(filename)
         self.assertTrue(uploaded)
         self.assertEqual(uploaded.filename, filename)
 
     def test__create_book_pages(self):
         # This is a stub method, prove it's handled gracefully
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedUnsupported(filename)
         uploaded.create_book_pages(-1)
 
     def test__for_json(self):
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedUnsupported(filename)
         json = uploaded.for_json()
         self.assertEqual(json['name'], 'file.jpg')
@@ -381,13 +357,13 @@ class TestUploadedUnsupported(BaseTestCase):
 
     def test__load(self):
         # This is a stub method, prove it's handled gracefully
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedUnsupported(filename)
         uploaded.load(-1)
 
     def test__unpack(self):
         # This is a stub method, prove it's handled gracefully
-        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        filename = self._prep_image('file.jpg')
         uploaded = UploadedUnsupported(filename)
         uploaded.unpack()
 
@@ -412,6 +388,40 @@ class TestFunctions(BaseTestCase):
             else:
                 self.assertTrue(uploaded.unpacker is None)
             self.assertEqual(uploaded.errors, t[3])
+
+    def test__create_book_page(self):
+        book_id = db.book.insert(name='test__add')
+        db.commit()
+        book = db(db.book.id == book_id).select().first()
+        self._objects.append(book)
+
+        def pages(book_id):
+            """Get pages of book"""
+            return db(db.book_page.book_id == book_id).select(
+                orderby=[db.book_page.page_no, db.book_page.id]
+            )
+
+        self.assertEqual(len(pages(book_id)), 0)
+
+        for filename in ['file.jpg', 'file.png']:
+            sample_file = self._prep_image(filename)
+            book_page_id = create_book_page(db, book_id, sample_file)
+            self.assertTrue(book_page_id)
+
+        book_pages = pages(book_id)
+        self.assertEqual(len(book_pages), 2)
+        for book_page in book_pages:
+            self._objects.append(book_page)
+
+        for i, filename in enumerate(['file.jpg', 'file.png']):
+            self.assertEqual(book_pages[i].book_id, book.id)
+            self.assertEqual(book_pages[i].page_no, i + 1)
+
+            original_filename, unused_fullname = db.book_page.image.retrieve(
+                book_pages[i].image,
+                nameonly=True,
+            )
+            self.assertEqual(original_filename, filename)
 
 
 def setUpModule():
