@@ -1,15 +1,15 @@
 {
   "fonts": [
-    "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd.ttf",
-    "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd.woff",
-    "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd.eot",
-    "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd.svg"
+    "iconvault_202bebd8f3ce389cc0c1f24f73019160.ttf",
+    "iconvault_202bebd8f3ce389cc0c1f24f73019160.woff",
+    "iconvault_202bebd8f3ce389cc0c1f24f73019160.eot",
+    "iconvault_202bebd8f3ce389cc0c1f24f73019160.svg"
   ],
   "templates": [
     "iconvault-preview.html",
     "iconvault-preview.css"
   ],
-  "file_name": "iconvault_3d746d40aedaeb8f604048bb5e1ddcdd",
+  "file_name": "iconvault_202bebd8f3ce389cc0c1f24f73019160",
   "glyphs": [
     "zc-info",
     "zc-trash",
