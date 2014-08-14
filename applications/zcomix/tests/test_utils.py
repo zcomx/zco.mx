@@ -7,11 +7,8 @@ Test suite for zcomix/modules/utils.py
 
 """
 import os
-import pwd
-import re
 import shutil
 import unittest
-from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.storage import \
     List, \
@@ -21,8 +18,7 @@ from applications.zcomix.modules.utils import \
     markmin_content, \
     move_record, \
     profile_wells, \
-    reorder, \
-    temp_directory
+    reorder
 
 from applications.zcomix.modules.test_runner import LocalTestCase
 
@@ -64,6 +60,8 @@ class TestItemDescription(LocalTestCase):
         # Test long item, break on space
         item = ItemDescription(self._description)
         item.truncate_length = 10
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         self.assertEqual(
             str(item.as_html()),
             '<div><div class="short_description" title="123456789 123456789 ">123456789 ... <a class="desc_more_link" data-w2p_disable_with="default" href="#">more</a></div><div class="full_description hidden">123456789 123456789 </div></div>'
@@ -114,10 +112,14 @@ class TestFunctions(LocalTestCase):
             db.commit()
             cls._by_name[f] = record_id
 
+        # W0212 (protected-access): *Access to a protected member
+        # pylint: disable=W0212
         if cls._tmp_backup is None:
-            cls._tmp_backup = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp_bak')
+            cls._tmp_backup = os.path.join(
+                db._adapter.folder, '..', 'uploads', 'tmp_bak')
         if cls._tmp_dir is None:
-            cls._tmp_dir = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
+            cls._tmp_dir = os.path.join(
+                db._adapter.folder, '..', 'uploads', 'tmp')
 
     @classmethod
     def tearDown(cls):
@@ -136,6 +138,8 @@ class TestFunctions(LocalTestCase):
 
     def _ordered_values(self, field='name'):
         """Get the field values in order."""
+        # R0201 (no-self-use): *Method could be a function*
+        # pylint: disable=R0201
         values = db().select(
             db.test__reorder[field],
             orderby=[db.test__reorder.order_no, db.test__reorder.id],
@@ -144,7 +148,7 @@ class TestFunctions(LocalTestCase):
 
     def test__markmin_content(self):
         faq = markmin_content('faq.mkd')
-        self.assertTrue('#### What is zcomix.com?' in faq)
+        self.assertTrue('#### What is zcomix?' in faq)
 
     def test__move_record(self):
         self._reset()
@@ -197,16 +201,19 @@ class TestFunctions(LocalTestCase):
                 'account': 'link',
                 'creator': 'link',
                 'books': 'link',
+                'faq': 'link',
             }),
             ('creator', {
                 'account': 'link',
                 'creator': 'text',
                 'books': 'link',
+                'faq': 'link',
             }),
             ('books', {
                 'account': 'link',
                 'creator': 'link',
                 'books': 'text',
+                'faq': 'link',
             }),
         ]
 
@@ -245,7 +252,10 @@ class TestFunctions(LocalTestCase):
         self._reset()
         reorder(db.test__reorder.order_no, start=100)
         self.assertEqual(self._ordered_values(), ['a', 'b', 'c'])
-        self.assertEqual(self._ordered_values(field='order_no'), [100, 101, 102])
+        self.assertEqual(
+            self._ordered_values(field='order_no'),
+            [100, 101, 102]
+        )
 
         # Add record to table
         self._reset()
@@ -264,32 +274,6 @@ class TestFunctions(LocalTestCase):
         reorder(db.test__reorder.order_no)
         self.assertEqual(self._ordered_values(), ['a', 'c', 'd'])
         self.assertEqual(self._ordered_values(field='order_no'), [1, 2, 3])
-
-    def test__temp_directory(self):
-        def valid_tmp_dir(path):
-            """Return if path is tmp dir."""
-            # Typical path:
-            # 'applications/zcomix/uploads/original/../tmp/tmprHbFAM
-            dirs = path.split('/')
-            self.assertEqual(dirs[0], 'applications')
-            self.assertEqual(dirs[1], 'zcomix')
-            self.assertEqual(dirs[2], 'uploads')
-            self.assertEqual(dirs[-2], 'tmp')
-            self.assertRegexpMatches(dirs[-1], re.compile(r'tmp[a-zA-Z0-9].*'))
-
-        valid_tmp_dir(temp_directory())
-
-        # Test: tmp directory does not exist.
-        if os.path.exists(self._tmp_dir):
-            os.rename(self._tmp_dir, self._tmp_backup)
-
-        valid_tmp_dir(temp_directory())
-        # Check permissions on tmp subdirectory
-        tmp_path = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
-        self.assertTrue(os.path.exists(tmp_path))
-        stats = os.stat(tmp_path)
-        self.assertEqual(stats.st_uid, pwd.getpwnam('http').pw_uid)
-        self.assertEqual(stats.st_gid, pwd.getpwnam('http').pw_gid)
 
 
 def setUpModule():
