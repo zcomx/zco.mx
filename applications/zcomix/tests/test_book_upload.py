@@ -14,7 +14,6 @@ from applications.zcomix.modules.book_upload import \
     BookPageUploader, \
     FileTypeError, \
     FileTyper, \
-    TemporaryDirectory, \
     UnpackError, \
     Unpacker, \
     UnpackerRAR, \
@@ -136,28 +135,6 @@ class TestFileTyper(BaseTestCase):
         filename = os.path.join(self._test_data_dir, 'not_exists.txt')
         typer = FileTyper(filename)
         self.assertRaises(FileTypeError, typer.type)
-
-
-class TestTemporaryDirectory(BaseTestCase):
-
-    def test____init__(self):
-        tmp_dir = TemporaryDirectory()
-        self.assertTrue(tmp_dir)
-        self.assertEqual(tmp_dir.name, None)
-
-    def test____enter__(self):
-        with TemporaryDirectory() as tmp_dir:
-            self.assertTrue(
-                os.path.exists(tmp_dir)
-            )
-
-    def test____exit__(self):
-        temp_directory = ''
-        with TemporaryDirectory() as tmp_dir:
-            temp_directory = tmp_dir
-        self.assertFalse(
-            os.path.exists(temp_directory)
-        )
 
 
 class TestUnpackError(LocalTestCase):

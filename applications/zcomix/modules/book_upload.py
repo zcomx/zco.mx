@@ -44,8 +44,10 @@ from applications.zcomix.modules.images import \
     UploadImage, \
     is_image, \
     set_thumb_dimensions
-from applications.zcomix.modules.unix_file import UnixFile
-from applications.zcomix.modules.utils import temp_directory
+from applications.zcomix.modules.shell_utils import \
+    TemporaryDirectory, \
+    UnixFile, \
+    temp_directory
 
 
 class BookPageFile(object):
@@ -189,20 +191,6 @@ class FileTyper(UnixFile):
                 if t in output:
                     return k
         raise FileTypeError('Unsupported file type.')
-
-
-class TemporaryDirectory(object):
-    """tempfile.mkdtemp() usable with "with" statement."""
-
-    def __init__(self):
-        self.name = None
-
-    def __enter__(self):
-        self.name = temp_directory()
-        return self.name
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        shutil.rmtree(self.name)
 
 
 class UnpackError(Exception):

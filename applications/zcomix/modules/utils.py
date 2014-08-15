@@ -7,8 +7,6 @@ Utilty classes and functions.
 """
 import collections
 import os
-import pwd
-import tempfile
 from gluon import *
 
 
@@ -248,17 +246,3 @@ def reorder(sequential_field, record_ids=None, query=None, start=1):
         db.commit()
 
 
-def temp_directory():
-    """Return a temp directory"""
-    db = current.app.db
-    # W0212: *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
-    tmp_path = os.path.join(db.book_page.image.uploadfolder, '..', 'tmp')
-    if not os.path.exists(tmp_path):
-        os.makedirs(tmp_path)
-        os.chown(
-            tmp_path,
-            pwd.getpwnam('http').pw_uid,
-            pwd.getpwnam('http').pw_gid,
-        )
-    return tempfile.mkdtemp(dir=tmp_path)
