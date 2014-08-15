@@ -1,8 +1,10 @@
 ``
 VERSION 1
-[x] bugs/changes
-
 [ ] UX/UI
+    [x] login -> profile
+        add (i) for links
+        https://maps.gstatic.com/tactile/omnibox/ad_info-1x.png
+
     [x] unique div's
         .row_container .field_container, .row_container .field_label (Description)
         #book_edit_section .field_container_description
@@ -27,11 +29,7 @@ VERSION 1
         Animation when centering?
 
     ---
-    [ ] login -> profile
-        add (i) for links
-        https://maps.gstatic.com/tactile/omnibox/ad_info-1x.png
-
-    [O] Test Downsampling Filters
+    [ ] Test Downsampling Filters
         * current convert command bloats pngs
         $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"    ## current command
         $ convert "$input" -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB "$output"    ## possible replacement
@@ -39,7 +37,6 @@ VERSION 1
     [ ] Resize Script
         problem: resizing images with slightly different dimensions
         [s] re-upload jordan's images
-            requires resize script
 
     [ ] Optimize and Scrub Files
 
@@ -145,6 +142,8 @@ IDEAS
         [ ] maybe a list of printers and approximate pricing
 
 [ ] Front Page - Add 'download' report
+    downloading all.torrent gives +1 to all books
+    downloading cartoonist.torrent gives +1 to all that cartoonist's books
 [ ] How best to use the front page?
 [ ] How to best leverage goodwill?
     $10/page + ($15*pages) on release
