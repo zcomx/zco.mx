@@ -12,7 +12,7 @@ VERSION 1
 
         #add_link_container .link_url
 
-    [ ] Slider
+    [x] Slider
         Disable looping.  Clicking on the last image does nothing, it doesn't
         go back to the first image.
 
@@ -28,17 +28,23 @@ VERSION 1
     [ ] Read
         Animation when centering?
 
+    [ ] Book Page
+        https://dev.zcomix.com/books/book/38
+        using double frame, should be torso
+
     ---
-    [ ] Test Downsampling Filters
+    [x] Test Downsampling Filters
         * current convert command bloats pngs
         $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"    ## current command
         $ convert "$input" -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB "$output"    ## possible replacement
+        $ convert "$f[0]" -quiet -colorspace "$cs" -filter Lanczos2 -distort Resize $res -colorspace sRGB +repage "$nf"     ## lanczos2 looks like the winner
 
-    [ ] Resize Script
+    [/] Resize Script
         problem: resizing images with slightly different dimensions
         [s] re-upload jordan's images
 
     [ ] Optimize and Scrub Files
+        $ vips copy infile.jpg outfile.jpg[optimize_coding,strip]
 
     [ ] Redo logo
         [x] hand colour 'Z'
@@ -54,9 +60,8 @@ VERSION 1
 
     [ ] Theme twitter
 
-    [ ] login -> books -> Add/Edit
+    [ ] login -> books
         add iframe code for each book
-
 
 
 
@@ -70,7 +75,6 @@ VERSION 2 - Before Going Live
 
 [ ] Indica Page - jpg
 
-[ ] wildcard ssl cert for zcomix.com
 [ ] wildcard ssl cert for zco.mx
 [ ] Rewrite urls
     https://zcomix.com
