@@ -134,7 +134,7 @@ class ImageHandler(object):
             db.commit()
             if str(field) == 'book_page.image':
                 set_thumb_dimensions(
-                    db, record_id, up_image.dimensions(size='thumb')
+                    db, record_id, up_image.dimensions(size='tbn')
                 )
             if tmp_dir:
                 shutil.rmtree(tmp_dir)

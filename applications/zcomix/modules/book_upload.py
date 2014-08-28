@@ -295,7 +295,7 @@ class UploadedArchive(UploadedFile):
                 c='images',
                 f='download',
                 args=cover_page.image,
-                vars={'size': 'thumb'},
+                vars={'size': 'tbn'},
             )
 
         json_data = dict(
@@ -449,5 +449,5 @@ def create_book_page(db, book_id, image_filename):
 
     up_image = UploadImage(db.book_page.image, stored_filename)
     set_thumb_dimensions(
-        db, book_page_id, up_image.dimensions(size='thumb'))
+        db, book_page_id, up_image.dimensions(size='tbn'))
     return book_page_id

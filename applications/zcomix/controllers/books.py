@@ -34,7 +34,7 @@ def book():
         [cover_image(
             db,
             book_record.id,
-            size='large',
+            size='web',
             img_attributes={'_class': 'img-responsive'}
         )]
     )
@@ -117,7 +117,7 @@ def reader():
     prev_page = current_page - 1 \
         if current_page - 1 >= 0 else len(page_images) - 1
 
-    size = 'large'
+    size = 'web'
 
     ViewEvent(book_record, auth.user_id).log()
 

@@ -27,8 +27,8 @@ LOG = logging.getLogger('app')
 SIZES = [
     'original',
     'cbz',
-    'large',
-    'thumb',
+    'web',
+    'tbn',
 ]
 
 
@@ -231,15 +231,9 @@ def filename_for_size(original_filename, size):
             /path/to/uploads/original/book_page.image/bf/bf1234.jpg
         size: string, size of file
     """
-    size_dir = size
-    if size in ['tbn', 'thumb', 'thumbnail']:
-        size_dir = 'thumb'
-    if size in ['web', 'large']:
-        size_dir = 'large'
-
     new_name = original_filename
-    if size_dir != 'original' and '/original/' in original_filename:
-        new_name = new_name.replace('/original/', '/{s}/'.format(s=size_dir))
+    if size != 'original' and '/original/' in original_filename:
+        new_name = new_name.replace('/original/', '/{s}/'.format(s=size))
 
         # Resized gif files are png's
         name, ext = os.path.splitext(new_name)
@@ -279,7 +273,7 @@ def img_tag(field, size='original', img_attributes=None):
 
     if not field:
         class_name = 'placeholder_170x170' \
-            if size == 'thumb' else 'portrait_placeholder'
+            if size == 'tbn' else 'portrait_placeholder'
         if '_class' in attributes:
             attributes['_class'] = '{c1} {c2}'.format(
                 c1=attributes['_class'],

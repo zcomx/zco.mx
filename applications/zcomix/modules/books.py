@@ -169,7 +169,7 @@ def book_page_for_json(db, book_page_id):
         c='images',
         f='download',
         args=book_page.image,
-        vars={'size': 'thumb'},
+        vars={'size': 'tbn'},
     )
 
     delete_url = URL(
@@ -225,7 +225,7 @@ def cover_image(db, book_id, size='original', img_attributes=None):
 
     attributes = {}
 
-    if size == 'thumb':
+    if size == 'tbn':
         thumb_w = thumb_h = 170
         if not first_page:
             # Create a dummy book_page record

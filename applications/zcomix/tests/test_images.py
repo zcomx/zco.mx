@@ -151,7 +151,7 @@ class TestDownloader(ImageTestCase):
 
         def set_lengths():
             lengths = {}
-            for size in ['original', 'cbz', 'large', 'thumb']:
+            for size in ['original', 'cbz', 'web', 'tbn']:
                 unused_name, fullname = db.creator.image.retrieve(
                     self._creator.image, nameonly=True)
                 filename = filename_for_size(fullname, size)
@@ -179,9 +179,9 @@ class TestDownloader(ImageTestCase):
         filename = self._prep_image('tbn.jpg', to_name='file.jpg')
         self._set_image(db.creator.image, self._creator, filename)
         lengths = set_lengths()
-        request.vars.size = 'thumb'
-        test_http('thumb')
-        request.vars.size = 'large'
+        request.vars.size = 'tbn'
+        test_http('tbn')
+        request.vars.size = 'web'
         test_http('original')
         request.vars.size = 'cbz'
         test_http('original')
@@ -191,10 +191,10 @@ class TestDownloader(ImageTestCase):
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(db.creator.image, self._creator, filename)
         lengths = set_lengths()
-        request.vars.size = 'thumb'
-        test_http('thumb')
-        request.vars.size = 'large'
-        test_http('large')
+        request.vars.size = 'tbn'
+        test_http('tbn')
+        request.vars.size = 'web'
+        test_http('web')
         request.vars.size = 'cbz'
         test_http('cbz')
         request.vars.size = 'original'
@@ -401,16 +401,16 @@ class TestUploadImage(ImageTestCase):
 
         up_image = UploadImage(db.creator.image, self._creator.image)
 
-        self._exist(have=['original', 'cbz', 'large', 'thumb'])
-        up_image.delete('large')
-        self._exist(have=['original', 'cbz', 'thumb'], have_not=['large'])
-        up_image.delete('thumb')
-        self._exist(have=['original', 'cbz'], have_not=['large', 'thumb'])
-        up_image.delete('thumb')     # Handle subsequent delete gracefully
+        self._exist(have=['original', 'cbz', 'web', 'tbn'])
+        up_image.delete('web')
+        self._exist(have=['original', 'cbz', 'tbn'], have_not=['web'])
+        up_image.delete('tbn')
+        self._exist(have=['original', 'cbz'], have_not=['web', 'tbn'])
+        up_image.delete('tbn')     # Handle subsequent delete gracefully
         up_image.delete('cbz')
-        self._exist(have=['original'], have_not=['cbz', 'large', 'thumb'])
+        self._exist(have=['original'], have_not=['cbz', 'web', 'tbn'])
         up_image.delete('original')
-        self._exist(have_not=['original', 'cbz', 'large', 'thumb'])
+        self._exist(have_not=['original', 'cbz', 'web', 'tbn'])
 
     def test__delete_all(self):
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
@@ -418,11 +418,11 @@ class TestUploadImage(ImageTestCase):
 
         up_image = UploadImage(db.creator.image, self._creator.image)
 
-        self._exist(have=['original', 'cbz', 'large', 'thumb'])
+        self._exist(have=['original', 'cbz', 'web', 'tbn'])
         up_image.delete_all()
-        self._exist(have_not=['original', 'cbz', 'large', 'thumb'])
+        self._exist(have_not=['original', 'cbz', 'web', 'tbn'])
         up_image.delete_all()        # Handle subsequent delete gracefully
-        self._exist(have_not=['original', 'cbz', 'large', 'thumb'])
+        self._exist(have_not=['original', 'cbz', 'web', 'tbn'])
 
     def test__dimensions(self):
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
@@ -440,12 +440,12 @@ class TestUploadImage(ImageTestCase):
         dims_2 = up_image.dimensions()
         self.assertEqual(dims_2, (1, 1))
 
-        dims_3 = up_image.dimensions(size='large')
-        self.assertTrue('large' in up_image._dimensions)
+        dims_3 = up_image.dimensions(size='web')
+        self.assertTrue('web' in up_image._dimensions)
         self.assertEqual(dims_3, (750, 1125))
 
-        dims_4 = up_image.dimensions(size='thumb')
-        self.assertTrue('thumb' in up_image._dimensions)
+        dims_4 = up_image.dimensions(size='tbn')
+        self.assertTrue('tbn' in up_image._dimensions)
         self.assertEqual(dims_4, (112, 168))
 
     def test__fullname(self):
@@ -464,9 +464,9 @@ class TestUploadImage(ImageTestCase):
             ),
         )
         self.assertEqual(
-            up_image.fullname(size='large'),
+            up_image.fullname(size='web'),
             fmt.format(
-                s='large',
+                s='web',
                 u=uuid_key,
                 i=self._creator.image,
             ),
@@ -496,8 +496,8 @@ class TestUploadImage(ImageTestCase):
         im_2 = up_image.pil_image()
         self.assertEqual(im_2, up_image._images['original'])
 
-        im_3 = up_image.pil_image(size='large')
-        self.assertTrue('large' in up_image._images)
+        im_3 = up_image.pil_image(size='web')
+        self.assertTrue('web' in up_image._images)
         self.assertTrue(hasattr(im_3, 'size'))
 
 
@@ -507,11 +507,8 @@ class TestFunctions(ImageTestCase):
         tests = [
             #(original, size, expect),
             ('/path/original/file.jpg', 'cbz', '/path/cbz/file.jpg'),
-            ('/path/original/file.jpg', 'web', '/path/large/file.jpg'),
-            ('/path/original/file.jpg', 'large', '/path/large/file.jpg'),
-            ('/path/original/file.jpg', 'tbn', '/path/thumb/file.jpg'),
-            ('/path/original/file.jpg', 'thumb', '/path/thumb/file.jpg'),
-            ('/path/original/file.jpg', 'thumbnail', '/path/thumb/file.jpg'),
+            ('/path/original/file.jpg', 'web', '/path/web/file.jpg'),
+            ('/path/original/file.jpg', 'tbn', '/path/tbn/file.jpg'),
             ('/path/original/file.jpg', '_fake_', '/path/_fake_/file.jpg'),
             ('/path/_fake_/file.jpg', 'cbz', '/path/_fake_/file.jpg'),
             ('/path/original/file.png', 'cbz', '/path/cbz/file.png'),
@@ -538,8 +535,8 @@ class TestFunctions(ImageTestCase):
         tag = img_tag(db.creator.image, size='original')
         has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=original')
 
-        tag = img_tag(db.creator.image, size='thumb')
-        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=thumb')
+        tag = img_tag(db.creator.image, size='tbn')
+        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=tbn')
 
         tag = img_tag(db.creator.image, size='_fake_')
         has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=original')
@@ -631,13 +628,13 @@ class TestFunctions(ImageTestCase):
 
         # Check that files exists for all sizes
         up_image = UploadImage(db.book_page.image, got)
-        for size in ['original', 'cbz', 'large', 'thumb']:
+        for size in ['original', 'cbz', 'web', 'tbn']:
             filename = up_image.fullname(size=size)
             self.assertTrue(os.path.exists(filename))
 
         # Cleanup: Remove all files
         up_image.delete_all()
-        for size in ['original', 'cbz', 'large', 'thumb']:
+        for size in ['original', 'cbz', 'web', 'tbn']:
             filename = up_image.fullname(size=size)
             # os.unlink(filename)
             self.assertFalse(os.path.exists(filename))
