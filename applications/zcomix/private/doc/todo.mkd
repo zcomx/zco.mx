@@ -16,21 +16,25 @@ VERSION 1
         Disable looping.  Clicking on the last image does nothing, it doesn't
         go back to the first image.
 
-    [ ] Front Page
+    [x] Front Page
         'views' stats are not working
         https://dev.zcomix.com/search?o=views
+        [x] needs a cronjob
 
     [ ] Read
-        prev/next to > and <  not |<  >|
+        change prev/next to < and > from |<  >|
         glyphicon glyphicon-chevron-left
         glyphicon glyphicon-chevron-right
-
-    [ ] Read
-        Animation when centering?
 
     [ ] Book Page
         https://dev.zcomix.com/books/book/38
         using double frame, should be torso
+
+        [ ] Login -> Profile page
+            custom.css line 1627 -- change width: 110% to 112%
+
+    [ ] Read page
+        slider: Animate when centering the page
 
     ---
     [x] Test Downsampling Filters
@@ -38,6 +42,11 @@ VERSION 1
         $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"    ## current command
         $ convert "$input" -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB "$output"    ## possible replacement
         $ convert "$f[0]" -quiet -colorspace "$cs" -filter Lanczos2 -distort Resize $res -colorspace sRGB +repage "$nf"     ## lanczos2 looks like the winner
+        $ convert \( "$input[0]" -quiet -define jpeg:preserve-settings -colorspace "$cs" \) \
+            \( -clone 0 -gamma 1.666666666666666 -filter RobidouxSharp -distort Resize $res -gamma 0.6 \) \
+            \( -clone 0 -filter RobidouxSharp -distort Resize $res \) -delete 0 \
+            \( -clone 1 -colorspace gray -auto-level \) -compose over -composite -colorspace sRGB -depth 8 +repage "$output"
+
 
     [/] Resize Script
         problem: resizing images with slightly different dimensions
@@ -52,8 +61,8 @@ VERSION 1
         $ jpegtran -copy none -optimize -progressive -outfile outfile.jpg infile.jpg
 
         [ ] Imagemagick Error
-            convert doesn't work and errors when mozjpeg is installed
-            it needs to be re-compiled
+            * convert doesn't work and errors when mozjpeg is installed
+            * it needs to be re-compiled
 
     [ ] Switch everything over to zco.mx
         [x] google domain
@@ -66,13 +75,13 @@ VERSION 1
             [x] edit .fdm.conf and .netrc for show.me@zco.mx
         [x] ssl cert
             see dm 30427
-        [/] nginx config
+        [x] nginx config
         [-] github
             I think we should leave the username as 'zcomix' for now as github
             doesn't allow '.' in usernames
         [ ] paypal
             show.me@zcomix.com to show.me@zco.mx
-        [ ] setup CNAME for zcomix.com
+        [x] setup CNAME for zcomix.com
 
     [ ] Redo logo
         [x] hand colour 'Z'
