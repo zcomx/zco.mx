@@ -235,120 +235,84 @@ class TestResizeImg(ImageTestCase):
         # Make copies of test data images before using so they don't get
         # removed from test data.
 
-        # Test: standard jpg
-        filename = self._prep_image('cbz_plus.jpg')
-        resize_img = ResizeImg(filename)
-        resize_img.run()
-        tmp_dir = resize_img.temp_directory()
-        for prefix in ['ori', 'cbz', 'tbn', 'web']:
-            self.assertTrue(prefix in resize_img.filenames)
-            self.assertEqual(
-                resize_img.filenames[prefix],
-                os.path.join(tmp_dir, '{typ}-cbz_plus.jpg'.format(typ=prefix))
-            )
-
-        # Test: file with no extension
-        filename = self._prep_image('image_with_no_ext')      # This is a jpg
-        resize_img = ResizeImg(filename)
-        resize_img.run()
-        tmp_dir = resize_img.temp_directory()
-        # image_with_no_ext is not big enough to produce a cbz file.
-        for prefix in ['ori', 'web', 'tbn']:
-            self.assertTrue(prefix in resize_img.filenames)
-            self.assertEqual(
-                resize_img.filenames[prefix],
-                os.path.join(
-                    tmp_dir,
-                    '{typ}-image_with_no_ext.jpg'.format(typ=prefix)
-                )
-            )
-
-        # Test: convert gif to png
-        filename = self._prep_image('eg.gif')
-        resize_img = ResizeImg(filename)
-        resize_img.run()
-        tmp_dir = resize_img.temp_directory()
-        # The original file extension is not changed
-        for prefix in ['ori']:
-            self.assertTrue(prefix in resize_img.filenames)
-            self.assertEqual(
-                resize_img.filenames[prefix],
-                os.path.join(tmp_dir, '{typ}-eg.gif'.format(typ=prefix))
-            )
-
-        # eg.gif is small so only a thumbnail should be produced.
-        for prefix in ['tbn']:
-            self.assertTrue(prefix in resize_img.filenames)
-            self.assertEqual(
-                resize_img.filenames[prefix],
-                os.path.join(tmp_dir, '{typ}-eg.png'.format(typ=prefix))
-            )
-
-        # Test: animated.gif
-        filename = self._prep_image('animated.gif')
-        resize_img = ResizeImg(filename)
-        resize_img.run()
-        tmp_dir = resize_img.temp_directory()
-        # The original file extension is not changed
-        for prefix in ['ori']:
-            self.assertTrue(prefix in resize_img.filenames)
-            self.assertEqual(
-                resize_img.filenames[prefix],
-                os.path.join(tmp_dir, '{typ}-animated.gif'.format(typ=prefix))
-            )
-
-        # animated.gif is small so only a thumbnail should be produced.
-        for prefix in ['tbn']:
-            self.assertTrue(prefix in resize_img.filenames)
-            self.assertEqual(
-                resize_img.filenames[prefix],
-                os.path.join(tmp_dir, '{typ}-animated.png'.format(typ=prefix))
-            )
-
-        # Test: cmyk
-        filename = self._prep_image('cmyk.jpg')
-        resize_img = ResizeImg(filename)
-        resize_img.run()
-        tmp_dir = resize_img.temp_directory()
-        # cmyk.jpg is small so only a thumbnail should be produced.
-        for prefix in ['ori', 'tbn']:
-            self.assertTrue(prefix in resize_img.filenames)
-            self.assertEqual(
-                resize_img.filenames[prefix],
-                os.path.join(tmp_dir, '{typ}-cmyk.jpg'.format(typ=prefix))
-            )
-
-
-        # Test: file with incorrect extension
-        filename = self._prep_image('jpg_with_wrong_ext.png')
-        resize_img = ResizeImg(filename)
-        resize_img.run()
-        tmp_dir = resize_img.temp_directory()
-        for prefix in ['ori', 'web', 'tbn']:
-            self.assertTrue(prefix in resize_img.filenames)
-            self.assertEqual(
-                resize_img.filenames[prefix],
-                os.path.join(
-                    tmp_dir,
-                    '{typ}-jpg_with_wrong_ext.jpg'.format(typ=prefix)
-                )
-            )
-
-        # Test: files with prefixes
-        for dest in ['ori-file.png', 'web-file.png', 'tbn-file.png']:
-            filename = self._prep_image('file.png', to_name=dest)
+        def test_it(image_name, expect, to_name=None):
+            filename = self._prep_image(image_name, to_name=to_name)
             resize_img = ResizeImg(filename)
             resize_img.run()
             tmp_dir = resize_img.temp_directory()
-            for prefix in ['ori', 'web', 'tbn']:
-                self.assertTrue(prefix in resize_img.filenames)
-                self.assertEqual(
-                    resize_img.filenames[prefix],
-                    os.path.join(
-                        tmp_dir,
-                        '{typ}-{dest}'.format(typ=prefix, dest=dest)
+            for fmt, prefixes in expect.items():
+                for prefix in prefixes:
+                    self.assertTrue(prefix in resize_img.filenames)
+                    self.assertEqual(
+                        resize_img.filenames[prefix],
+                        os.path.join(tmp_dir, fmt.format(typ=prefix))
                     )
-                )
+
+        # Test: standard jpg
+        test_it(
+            'cbz_plus.jpg',
+            {
+                '{typ}-cbz_plus.jpg': ['ori', 'cbz', 'web', 'tbn'],
+            }
+        )
+
+        # Test: file with no extension
+        test_it(
+            'image_with_no_ext',
+            {
+                # Image is not big enough to produce a cbz file.
+                '{typ}-image_with_no_ext.jpg': ['ori', 'web', 'tbn'],
+            }
+        )
+
+        # Test: convert gif to png
+        test_it(
+            'eg.gif',
+            {
+                '{typ}-eg.gif': ['ori'],
+                # Image is small so only a thumbnail should be produced.
+                '{typ}-eg.png': ['tbn'],
+            }
+        )
+
+        # Test: animated.gif
+        test_it(
+            'animated.gif',
+            {
+                '{typ}-animated.gif': ['ori'],
+                # Image is small so only a thumbnail should be produced.
+                '{typ}-animated.png': ['tbn'],
+            }
+        )
+
+        # Test: cmyk
+        test_it(
+            'cmyk.jpg',
+            {
+                # Image is small so only a thumbnail should be produced.
+                '{typ}-cmyk.jpg': ['ori', 'tbn'],
+            }
+        )
+
+        # Test: file with incorrect extension
+        test_it(
+            'jpg_with_wrong_ext.png',
+            {
+                # Image is not big enough to produce a cbz file.
+                '{typ}-jpg_with_wrong_ext.jpg': ['ori', 'web', 'tbn'],
+            }
+        )
+
+        # Test: files with prefixes
+        for dest in ['ori-file.png', 'web-file.png', 'tbn-file.png']:
+            fmt = '{{typ}}-{dest}'.format(dest=dest)
+            test_it(
+                'file.png',
+                {
+                    fmt: ['ori', 'web', 'tbn'],
+                },
+                to_name=dest,
+            )
 
         # Exception: No args
         resize_img = ResizeImg('')
