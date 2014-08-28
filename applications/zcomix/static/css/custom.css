@@ -1618,16 +1618,18 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #mug_shot .row_container .placeholder_torso {
     height: 12em;
-    max-width: 10.7em;
+    max-width: 10em;
     overflow: hidden;
     padding: 0em;
     border: 8px solid #DDDDDD;
 }
 
 #mug_shot .row_container .placeholder_torso i {
+    float: right;
     font-size: 11em;
     color: #DDDDDD;
     line-height: 1.1em;
+    width: 110%;
 }
 
 @media (min-width: 768px) {

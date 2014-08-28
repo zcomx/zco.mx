@@ -41,10 +41,38 @@ VERSION 1
 
     [/] Resize Script
         problem: resizing images with slightly different dimensions
-        [s] re-upload jordan's images
+        [s] test by re-uploading jordan's images
 
     [ ] Optimize and Scrub Files
-        $ vips copy infile.jpg outfile.jpg[optimize_coding,strip]
+        Use mozjpeg
+        $ mkdir /var/abs/local/mozjpeg; cd !$
+        $ aurget -Sp mozjpeg > PKGBUILD
+        $ makepkg -o mozjpeg     ## comment out check() function
+        $ makepkg -ei mozjpeg
+        $ jpegtran -copy none -optimize -progressive -outfile outfile.jpg infile.jpg
+
+        [ ] Imagemagick Error
+            convert doesn't work and errors when mozjpeg is installed
+            it needs to be re-compiled
+
+    [ ] Switch everything over to zco.mx
+        [x] google domain
+            http://www.google.com/a/cpanel/domain/new
+            domains -> 'Add a domain or a domain alias'
+            users -> add user
+        [x] email with google
+            - dashboard of zsw
+            - 'setup mx records'
+            [x] edit .fdm.conf and .netrc for show.me@zco.mx
+        [x] ssl cert
+            see dm 30427
+        [/] nginx config
+        [-] github
+            I think we should leave the username as 'zcomix' for now as github
+            doesn't allow '.' in usernames
+        [ ] paypal
+            show.me@zcomix.com to show.me@zco.mx
+        [ ] setup CNAME for zcomix.com
 
     [ ] Redo logo
         [x] hand colour 'Z'
@@ -54,15 +82,15 @@ VERSION 1
         [x] wavy line for word balloon
         [ ] update main site with new logo
 
-    [ ] Switch everything over to zco.mx
-        setup CNAME for zcomix.com
-        paypal
-
     [ ] Theme twitter
 
     [ ] login -> books
         add iframe code for each book
 
+    [ ] Change Square Image Res ?
+        web - from 1200px to  975px (1200+ 750)/2 ?
+        cbz - from 2560px to 2070px (2560+1600)/2
+        tbn - leave at 140px
 
 
 VERSION 2 - Before Going Live
@@ -120,6 +148,10 @@ VERSION 2 - Before Going Live
 [ ] Book page -> Links to Book Reivews ?
 [ ] Front Page
     reports - by month? by year?
+[ ] Read Page
+    Navigate with mouse scroll as well
+    http://geekwagon.net/projects/xkcd1190/
+    h-scroll - http://danielschafferbrooklyncomics.com/books/uncategorized/all-you-need/
 
 IDEAS
 [s] zcomix: Creative Commons Licence
