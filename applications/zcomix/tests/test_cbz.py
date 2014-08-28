@@ -17,6 +17,9 @@ from applications.zcomix.modules.books import DEFAULT_BOOK_TYPE
 from applications.zcomix.modules.cbz import \
     CBZCreateError, \
     CBZCreator
+from applications.zcomix.modules.images import \
+    UploadImage, \
+    store
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -30,19 +33,67 @@ class ImageTestCase(LocalTestCase):
     _book = None
     _book_page = None
     _creator = None
-    _image_dir = os.path.join(
-        current.request.folder, 'uploads', 'tmp', 'image_for_books'
-    )
+    _image_dir = '/tmp/test_cbz'
     _image_original = os.path.join(_image_dir, 'original')
     _image_name = 'file.jpg'
     _image_name_2 = 'file_2.jpg'
+    _test_data_dir = None
 
     _objects = []
+
+    @classmethod
+    def _prep_image(cls, img, working_directory=None, to_name=None):
+        """Prepare an image for testing.
+        Copy an image from private/test/data to a working directory.
+
+        Args:
+            img: string, name of source image, eg file.jpg
+                must be in cls._test_data_dir
+            working_directory: string, path of working directory to copy to.
+                If None, uses cls._image_dir
+            to_name: string, optional, name of image to copy file to.
+                If None, img is used.
+        """
+        src_filename = os.path.join(
+            os.path.abspath(cls._test_data_dir),
+            img
+        )
+
+        if working_directory is None:
+            working_directory = os.path.abspath(cls._image_dir)
+
+        if to_name is None:
+            to_name = img
+
+        filename = os.path.join(working_directory, to_name)
+        shutil.copy(src_filename, filename)
+        return filename
+
+    @classmethod
+    def _set_image(cls, field, record, img):
+        """Set the image for a record field.
+
+        Args:
+            field: gluon.dal.Field instance
+            record: Row instance.
+            img: string, path/to/name of image.
+        """
+        # Delete images if record field is set.
+        if record[field.name]:
+            up_image = UploadImage(field, record[field.name])
+            up_image.delete_all()
+        stored_filename = store(field, img)
+        data = {field.name: stored_filename}
+        record.update_record(**data)
+        db.commit()
+
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     @classmethod
     def setUp(cls):
+        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+
         email = web.username
         cls._user = db(db.auth_user.email == email).select().first()
         if not cls._user:
@@ -56,25 +107,6 @@ class ImageTestCase(LocalTestCase):
         if not os.path.exists(cls._image_original):
             os.makedirs(cls._image_original)
 
-        # Store images in tmp directory
-        db.book_page.image.uploadfolder = cls._image_original
-        if not os.path.exists(db.book_page.image.uploadfolder):
-            os.makedirs(db.book_page.image.uploadfolder)
-
-        def create_image(image_name):
-            image_filename = os.path.join(cls._image_dir, image_name)
-
-            # Create an image to test with.
-            im = Image.new('RGB', (1200, 1200))
-            with open(image_filename, 'wb') as f:
-                im.save(f)
-
-            # Store the image in the uploads/original directory
-            stored_filename = None
-            with open(image_filename, 'rb') as f:
-                stored_filename = db.book_page.image.store(f)
-            return stored_filename
-
         book_type_id = db(db.book_type.name == DEFAULT_BOOK_TYPE).select().first().id
         book_id = db.book.insert(
             name='Image Test Case',
@@ -85,24 +117,28 @@ class ImageTestCase(LocalTestCase):
         cls._book = db(db.book.id == book_id).select().first()
         cls._objects.append(cls._book)
 
+
         book_page_id = db.book_page.insert(
             book_id=book_id,
             page_no=1,
-            image=create_image('file.jpg'),
         )
         db.commit()
         cls._book_page = db(db.book_page.id == book_page_id).select().first()
         cls._objects.append(cls._book_page)
 
+        filename = cls._prep_image('cbz_plus.jpg', to_name='file_1.jpg')
+        cls._set_image(db.book_page.image, cls._book_page, filename)
+
         # Create a second page to test with.
         book_page_id_2 = db.book_page.insert(
             book_id=book_id,
             page_no=2,
-            image=create_image('file_2.jpg'),
         )
         db.commit()
         book_page_2 = db(db.book_page.id == book_page_id_2).select().first()
         cls._objects.append(book_page_2)
+        filename = cls._prep_image('file.jpg', to_name='file_2.jpg')
+        cls._set_image(db.book_page.image, book_page_2, filename)
 
     @classmethod
     def tearDown(cls):
@@ -274,6 +310,10 @@ class TestCBZCreator(ImageTestCase):
         self.assertFalse(p.returncode)
         self.assertTrue('Everything is Ok' in p_stdout)
         self.assertEqual(p_stderr, '')
+
+        pages = db(db.book_page.book_id == self._book.id).count()
+        files_comment = 'Files: {c}'.format(c=pages)
+        self.assertTrue(files_comment in p_stdout)
 
     def test__working_directory(self):
         creator = CBZCreator(self._book)
