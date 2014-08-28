@@ -1616,7 +1616,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     min-width: 6em;
 }
 
-#mug_shot .row_container .placeholder_torso {
+.placeholder_torso {
     height: 12em;
     max-width: 10em;
     overflow: hidden;
@@ -1624,12 +1624,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border: 8px solid #DDDDDD;
 }
 
-#mug_shot .row_container .placeholder_torso i {
+.placeholder_torso i {
     float: right;
     font-size: 11em;
     color: #DDDDDD;
     line-height: 1.1em;
-    width: 110%;
+    width: 112%;
 }
 
 @media (min-width: 768px) {
@@ -1706,10 +1706,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
         padding-right: 1em;
     }
 
-    #mug_shot .row_container .placeholder_torso {
-        display: inline-block;
-    }
-
     #mug_shot .row_container .arrow_container {
         display: inline-block;
     }
@@ -1732,9 +1728,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
         display: inline-block;
         vertical-align: top;
     }
+
     #mug_shot .template-upload .progress_buttons_container .progress-striped {
         min-width: 20em;
     }
+
+    .placeholder_torso {
+        display: inline-block;
+    }
+
 }
 
 #edit_links_container .field_container {

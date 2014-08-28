@@ -10,8 +10,7 @@ import os
 from gluon import *
 from gluon.storage import Storage
 from gluon.contrib.simplejson import dumps
-from applications.zcomix.modules.images import \
-    img_tag
+from applications.zcomix.modules.images import ImgTag
 from applications.zcomix.modules.utils import entity_to_row
 
 
@@ -255,7 +254,7 @@ def cover_image(db, book_id, size='original', img_attributes=None):
     if img_attributes:
         attributes.update(img_attributes)
 
-    return img_tag(image, size=size, img_attributes=attributes)
+    return ImgTag(image, size=size, attributes=attributes)()
 
 
 def default_contribute_amount(db, book_entity):

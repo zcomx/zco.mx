@@ -1,5 +1,5 @@
 {{from applications.zcomix.modules.books import formatted_name}}
-{{from applications.zcomix.modules.images import img_tag}}
+{{from applications.zcomix.modules.images import CreatorImgTag}}
 {{from applications.zcomix.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
 <div id="book_page">
@@ -54,7 +54,7 @@
                 <div class="row">
                     <div class="creator_img_container">
                         <a href="{{=URL(c='creators', f='creator', args=creator.id)}}">
-                        {{=img_tag(creator.image, size='tbn', img_attributes={'_class': 'img-responsive'})}}
+                        {{=CreatorImgTag(creator.image, size='tbn', attributes={'_class': 'img-responsive'})()}}
                         </a>
                     </div>
                     <div class="creator_links_container">
