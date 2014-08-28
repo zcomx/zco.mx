@@ -1,11 +1,11 @@
-{{from applications.zcomix.modules.images import img_tag}}
+{{from applications.zcomix.modules.images import ImgTag}}
 {{extend 'books/reader.html'}}
 <div id="scroller_page">
     <div id="reader_container">
         {{if pages:}}
             {{for count, page in enumerate(pages):}}
             <div id="img-{{=count}}" class="scroller">
-                {{=img_tag(page.image, size=size)}}
+                {{=ImgTag(page.image, size=size)()}}
             </div>
             {{pass}}
         {{else:}}

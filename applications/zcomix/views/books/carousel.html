@@ -1,4 +1,4 @@
-{{from applications.zcomix.modules.images import img_tag}}
+{{from applications.zcomix.modules.images import ImgTag}}
 {{extend 'books/reader.html'}}
 <div id="carousel_page">
     <div id="myCarousel" class="carousel slide">
@@ -11,7 +11,7 @@
         <div class="carousel-inner">
             {{for count, page in enumerate(pages):}}
                 <div class="item {{='active' if count == 0 else ''}}">
-                    {{=img_tag(page.image, size=size)}}
+                    {{=ImgTag(page.image, size=size)()}}
                 </div>
             {{pass}}
         </div>

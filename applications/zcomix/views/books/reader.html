@@ -53,7 +53,7 @@
                             {{pass}}
                         </div>
                         {{status = 'active' if request.function == 'slider' else 'disabled'}}
-                        <a id="vertical_align_button" class="{{=status}}" href="#reader_section" title="Center book page in window."><i class="icon zc-arrows-out size-14"></i></a>
+                        <a id="vertical_align_button" class="{{=status}}" href="#" title="Center book page in window."><i class="icon zc-arrows-out size-14"></i></a>
                     </div>
                 </div>
             </div>
@@ -75,7 +75,7 @@
                     <ul id="page_nav_list">
                     <li>
                         <a href="#" title="Previous page">
-                            <i class="glyphicon glyphicon-step-backward" id="page_nav_prev"></i>
+                            <i class="glyphicon glyphicon-chevron-left" id="page_nav_prev"></i>
                         </a>
                     </li>
                     <li>
@@ -95,7 +95,7 @@
                     </li>
                     <li>
                         <a href="#" title="Next page">
-                            <i class="glyphicon glyphicon-step-forward" id="page_nav_next"></i>
+                            <i class="glyphicon glyphicon-chevron-right" id="page_nav_next"></i>
                         </a>
                     </li>
                     </ul>
@@ -121,11 +121,19 @@
 </div>
 <script>
 //<![CDATA[
+    function scrollToAnchor(anchor_id){
+        var tag = $("a[name='"+ anchor_id +"']");
+        $('html,body').animate({scrollTop: tag.offset().top},'slow');
+    }
+
     $(document).ready(function(){
         $('#vertical_align_button').click(function(e) {
             if ($(this).hasClass('disabled')) {
                 e.preventDefault();
+                return;
             }
+            scrollToAnchor('reader_section');
+            e.preventDefault();
         });
     });
 //]]>

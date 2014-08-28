@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import subprocess
+from BeautifulSoup import BeautifulSoup
 from PIL import Image
 from gluon import *
 from gluon.globals import Response
@@ -19,8 +20,7 @@ from gluon.streamer import DEFAULT_CHUNK_SIZE
 from gluon.contenttype import contenttype
 from applications.zcomix.modules.shell_utils import \
     Cwd, \
-    TempDirectoryMixin, \
-    temp_directory
+    TempDirectoryMixin
 
 LOG = logging.getLogger('app')
 
@@ -90,6 +90,78 @@ class Downloader(Response):
             headers['Content-Disposition'] = \
                 fmt % download_filename.replace('"', '\"')
         return self.stream(stream, chunk_size=chunk_size, request=request)
+
+
+class ImgTag(object):
+    """Class representing an image TAG"""
+
+    placeholder_tag = DIV
+
+    def __init__(self, image, size='original', tag=None, components=None, attributes=None):
+        """Constructor
+
+        Args:
+            image: string, name of image (as stored in db.field.image)
+            size: string, the size of image to use.
+            tag: XmlComponent class, default IMG
+            components: list of XmlComponents for innerHTML of tag.
+            attributes: dict of attributes for tag.
+        """
+        self.image = image
+        self.size = size if size in SIZES else 'original'
+        self.tag = tag
+        self.components = components if components is not None else []
+        self.attributes = attributes if attributes is not None else {}
+
+    def __call__(self):
+        """Return the TAG representing the image. """
+
+        tag = self.tag if self.tag is not None \
+                else IMG if self.image \
+                else self.placeholder_tag
+
+        if self.image:
+            if '_src' not in self.attributes:
+                self.attributes.update(dict(
+                    _src=URL(
+                        c='images',
+                        f='download',
+                        args=self.image,
+                        vars={'size': self.size},
+                    ),
+                ))
+        else:
+            self.set_placeholder()
+
+        return tag(*self.components, **self.attributes)
+
+    def set_placeholder(self):
+        """Set the attributes for the placeholder."""
+        class_name = 'placeholder_170x170' \
+                if self.size == 'tbn' else 'portrait_placeholder'
+        if '_class' in self.attributes:
+            self.attributes['_class'] = '{c1} {c2}'.format(
+                c1=self.attributes['_class'],
+                c2=class_name
+            ).replace('img-responsive', '').strip()
+        else:
+            self.attributes['_class'] = class_name
+
+
+class CreatorImgTag(ImgTag):
+
+    def set_placeholder(self):
+        """Set the attributes for the placeholder."""
+        # Use a torso for the creator.
+        self.components.append(TAG['i'](**{'_class': 'icon zc-torso'}))
+        class_name = 'preview placeholder_torso'
+        if '_class' in self.attributes:
+            self.attributes['_class'] = '{c1} {c2}'.format(
+                c1=self.attributes['_class'],
+                c2=class_name
+            ).replace('img-responsive', '').strip()
+        else:
+            self.attributes['_class'] = class_name
 
 
 class ResizeImgError(Exception):
@@ -250,6 +322,7 @@ def img_tag(field, size='original', img_attributes=None):
         size: string, the image size
         img_attributes: dict, passed on as IMG(**img_attributes)
     """
+    components = []
     attributes = {}
 
     if field:
@@ -272,8 +345,13 @@ def img_tag(field, size='original', img_attributes=None):
         attributes.update(img_attributes)
 
     if not field:
-        class_name = 'placeholder_170x170' \
-            if size == 'tbn' else 'portrait_placeholder'
+        if field and field.update_record.tablename == 'creator':
+            # Use a torso for the creator.
+            class_name = 'preview placeholder_torso'
+            components.append(TAG['i'](**{'_class': 'icon zc-torso'}))
+        else:
+            class_name = 'placeholder_170x170' \
+                if size == 'tbn' else 'portrait_placeholder'
         if '_class' in attributes:
             attributes['_class'] = '{c1} {c2}'.format(
                 c1=attributes['_class'],
@@ -282,7 +360,7 @@ def img_tag(field, size='original', img_attributes=None):
         else:
             attributes['_class'] = class_name
 
-    return tag(**attributes)
+    return tag(*components, **attributes)
 
 
 def is_image(filename, image_types=None):

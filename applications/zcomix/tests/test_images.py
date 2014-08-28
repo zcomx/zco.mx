@@ -14,16 +14,19 @@ import unittest
 from BeautifulSoup import BeautifulSoup
 from PIL import Image
 from gluon import *
+from gluon.html import DIV, IMG
 from gluon.http import HTTP
 from gluon.storage import List
 from applications.zcomix.modules.images import \
+    CreatorImgTag, \
     Downloader, \
     ImageOptimizeError, \
+    ImgTag, \
     ResizeImgError, \
     ResizeImg, \
+    SIZES, \
     UploadImage, \
     filename_for_size, \
-    img_tag, \
     is_image, \
     set_thumb_dimensions, \
     store
@@ -141,6 +144,44 @@ class ImageTestCase(LocalTestCase):
             up_image.delete_all()
 
 
+class TestCreatorImgTag(ImageTestCase):
+
+    def test_parent__init__(self):
+        img_tag = CreatorImgTag('')
+        self.assertTrue(img_tag)
+        self.assertEqual(img_tag.placeholder_tag, DIV)
+
+    def test__set_placeholder(self):
+        img_tag = CreatorImgTag(None)
+        self.assertEqual(img_tag.attributes, {})
+        img_tag.set_placeholder()
+        self.assertEqual(len(img_tag.components), 1)
+        self.assertEqual(
+            str(img_tag.components[0]),
+            '<i class="icon zc-torso"></i>'
+        )
+        self.assertEqual(
+            img_tag.attributes,
+            {'_class': 'preview placeholder_torso'}
+        )
+
+        img_tag = CreatorImgTag(None, size='tbn')
+        self.assertEqual(img_tag.attributes, {})
+        img_tag.set_placeholder()
+        self.assertEqual(
+            img_tag.attributes,
+            {'_class': 'preview placeholder_torso'}
+        )
+
+        attrs = {'_id': 'img_id', '_class': 'img_class'}
+        img_tag = CreatorImgTag(None, attributes=attrs)
+        self.assertEqual(img_tag.attributes, attrs)
+        img_tag.set_placeholder()
+        self.assertEqual(
+            img_tag.attributes,
+            {'_class': 'img_class preview placeholder_torso', '_id': 'img_id'})
+
+
 class TestDownloader(ImageTestCase):
 
     def test__download(self):
@@ -210,6 +251,107 @@ class TestImageOptimizeError(LocalTestCase):
             self.assertEqual(str(err), msg)
         else:
             self.fail('ImageOptimizeError not raised')
+
+
+class TestImgTag(ImageTestCase):
+
+    def test____init__(self):
+        img_tag = ImgTag('')
+        self.assertTrue(img_tag)
+        self.assertEqual(img_tag.placeholder_tag, DIV)
+        self.assertEqual(img_tag.size, 'original')
+        self.assertEqual(img_tag.tag, None)
+        self.assertEqual(img_tag.components, [])
+        self.assertEqual(img_tag.attributes, {})
+
+        for size in SIZES:
+            img_tag = ImgTag(db.creator.image, size=size)
+            self.assertEqual(img_tag.size, size)
+
+        img_tag = ImgTag(db.creator.image, size='_fake_')
+        self.assertEqual(img_tag.size, 'original')
+
+    def test____call__(self):
+
+        def get_tag(tag, tag_type):
+            soup = BeautifulSoup(str(tag))
+            return soup.find(tag_type)
+
+        def has_attr(element, attr, value, oper='equal'):
+            self.assertTrue(element)
+            self.assertTrue(hasattr(element, attr))
+            if oper == 'equal':
+                self.assertEqual(element[attr], value)
+            elif oper == 'in':
+                self.assertTrue(value in element[attr])
+
+        img_tag = ImgTag(self._creator.image)
+        tag = img_tag()
+        has_attr(get_tag(tag, 'img'), 'src', self._creator.image, oper='in')
+        has_attr(get_tag(tag, 'img'), 'src', 'size=original', oper='in')
+
+        img_tag = ImgTag(self._creator.image, size='tbn')
+        tag = img_tag()
+        has_attr(get_tag(tag, 'img'), 'src', 'size=tbn', oper='in')
+
+        # Test no image
+        img_tag = ImgTag(None)
+        tag = img_tag()
+        has_attr(get_tag(tag, 'div'), 'class', 'portrait_placeholder')
+        img_tag = ImgTag(None, size='tbn')
+        tag = img_tag()
+        has_attr(get_tag(tag, 'div'), 'class', 'placeholder_170x170')
+
+        # Test: provide tag
+        img_tag = ImgTag(self._creator.image, tag=SPAN)
+        tag = img_tag()
+        has_attr(get_tag(tag, 'span'), '', '', oper='')
+
+        # Test: provide components
+        components = [DIV('_test_imgtag_')]
+        img_tag = ImgTag(self._creator.image, tag=DIV, components=components)
+        tag = img_tag()
+        soup = BeautifulSoup(str(tag))
+        div = soup.find('div')
+        self.assertTrue(div)
+        div_2 = div.find('div')
+        self.assertTrue(div_2)
+        self.assertEqual(div_2.string, '_test_imgtag_')
+
+        # Test: provide attributes
+        attrs = {
+            '_id': 'img_id',
+            '_class': 'img_class',
+            '_src': 'http://www.aaa.com'
+        }
+        img_tag = ImgTag(self._creator.image, attributes=attrs)
+        tag = img_tag()
+        has_attr(get_tag(tag, 'img'), 'class', 'img_class')
+        has_attr(get_tag(tag, 'img'), 'id', 'img_id')
+        has_attr(get_tag(tag, 'img'), 'src', 'http://www.aaa.com')
+
+    def test__set_placeholder(self):
+        img_tag = ImgTag(None)
+        self.assertEqual(img_tag.attributes, {})
+        img_tag.set_placeholder()
+        self.assertEqual(
+            img_tag.attributes,
+            {'_class': 'portrait_placeholder'}
+        )
+
+        img_tag = ImgTag(None, size='tbn')
+        self.assertEqual(img_tag.attributes, {})
+        img_tag.set_placeholder()
+        self.assertEqual(img_tag.attributes, {'_class': 'placeholder_170x170'})
+
+        attrs = {'_id': 'img_id', '_class': 'img_class'}
+        img_tag = ImgTag(None, attributes=attrs)
+        self.assertEqual(img_tag.attributes, attrs)
+        img_tag.set_placeholder()
+        self.assertEqual(
+            img_tag.attributes,
+            {'_class': 'img_class portrait_placeholder', '_id': 'img_id'}
+        )
 
 
 class TestResizeImg(ImageTestCase):
@@ -518,42 +660,6 @@ class TestFunctions(ImageTestCase):
         for t in tests:
             got = filename_for_size(t[0], t[1])
             self.assertEqual(got, t[2])
-
-    def test__img_tag(self):
-        def get_tag(tag, tag_type):
-            soup = BeautifulSoup(str(tag))
-            return soup.find(tag_type)
-
-        def has_attr(element, attr, value):
-            self.assertTrue(element)
-            self.assertTrue(hasattr(element, attr))
-            self.assertEqual(element[attr], value)
-
-        tag = img_tag(None)
-        has_attr(get_tag(tag, 'div'), 'class', 'portrait_placeholder')
-
-        tag = img_tag(db.creator.image, size='original')
-        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=original')
-
-        tag = img_tag(db.creator.image, size='tbn')
-        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=tbn')
-
-        tag = img_tag(db.creator.image, size='_fake_')
-        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=original')
-
-        # Test img_attributes parameter
-        attrs = dict(_class='img_class', _id='img_id', _style='height: 1px;')
-        tag = img_tag(db.creator.image, img_attributes=attrs)
-        has_attr(get_tag(tag, 'img'), 'src', '/images/download?size=original')
-        has_attr(get_tag(tag, 'img'), 'class', 'img_class')
-        has_attr(get_tag(tag, 'img'), 'id', 'img_id')
-        has_attr(get_tag(tag, 'img'), 'style', 'height: 1px;')
-
-        # If _src is among img_attributes, it should supercede.
-        attrs = dict(_src='http://www.src.com', _id='img_id')
-        tag = img_tag(db.creator.image, img_attributes=attrs)
-        has_attr(get_tag(tag, 'img'), 'src', 'http://www.src.com')
-        has_attr(get_tag(tag, 'img'), 'id', 'img_id')
 
     def test__is_image(self):
         # Test common image types.

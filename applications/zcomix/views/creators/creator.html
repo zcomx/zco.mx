@@ -1,4 +1,4 @@
-{{from applications.zcomix.modules.images import img_tag}}
+{{from applications.zcomix.modules.images import CreatorImgTag}}
 {{from applications.zcomix.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
 <div id="creator_page">
@@ -20,7 +20,7 @@
     <div class="col-sm-12" >
         <div class="row">
             <div class="creator_img_container">
-                {{=img_tag(creator.image, size='tbn')}}
+                {{=CreatorImgTag(creator.image, size='tbn')()}}
             </div>
             <div class="creator_links_container">
                 <dl class="dl-horizontal">

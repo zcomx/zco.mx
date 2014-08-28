@@ -1,4 +1,4 @@
-{{from applications.zcomix.modules.images import img_tag}}
+{{from applications.zcomix.modules.images import ImgTag}}
 {{extend 'books/reader.html'}}
 
 <!-- The Gallery as inline carousel, can be positioned anywhere on the page -->
@@ -13,7 +13,7 @@
 
 <div id="links">
     {{for count, page in enumerate(pages):}}
-        {{=img_tag(page.image, size=size)}}
+        {{=ImgTag(page.image, size=size)()}}
     {{pass}}
 </div>
 
