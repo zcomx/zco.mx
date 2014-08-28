@@ -244,5 +244,3 @@ def reorder(sequential_field, record_ids=None, query=None, start=1):
             (sequential_field != count)       # Only update if value is changed
         db(update_query).update(**{sequential_field.name: count})
         db.commit()
-
-

@@ -177,6 +177,7 @@ class ImageTestCase(LocalTestCase):
         creator_id = db.creator.insert(email='image_test_case@example.com')
         db.commit()
         cls._creator = db(db.creator.id == creator_id).select().first()
+        cls._objects.append(cls._creator)
 
         book_id = db.book.insert(
             name='Image Test Case',
@@ -423,6 +424,7 @@ class TestFunctions(ImageTestCase):
         )
         db.commit()
         book_page = db(db.book_page.id == book_page_id).select().first()
+        self._objects.append(book_page)
 
         # Has name and pages.
         self.assertTrue(is_releasable(db, book))

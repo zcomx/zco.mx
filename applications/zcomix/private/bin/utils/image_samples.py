@@ -6,7 +6,6 @@ image_samples.py
 
 Script to create image samples.
 """
-import datetime
 import logging
 import os
 import subprocess
@@ -16,7 +15,6 @@ from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
 from PIL import Image, ImageDraw, ImageFont
-from applications.zcomix.modules.images import UploadImage
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -81,7 +79,8 @@ class ImageCreator(object):
                 e=self.extension
             )
             image_filename = os.path.join(self.path, name)
-            LOG.info('{action}: {name}'.format(action=action, name=image_filename))
+            LOG.info('{action}: {name}'.format(
+                action=action, name=image_filename))
             if not self.dry_run:
                 im = Image.new('RGB', size, color=self.color)
                 font = None
@@ -270,7 +269,8 @@ def main():
         exit(1)
 
     if options.font_ttf and not os.path.exists(options.font_ttf):
-        LOG.error('TrueType font file not found: {path}'.format(path=options.font_ttf))
+        LOG.error('TrueType font file not found: {path}'.format(
+            path=options.font_ttf))
         exit(1)
 
     LOG.debug('path: {var}'.format(var=path))

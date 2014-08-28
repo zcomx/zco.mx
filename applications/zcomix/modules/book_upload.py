@@ -22,16 +22,13 @@ class UploadedFile: A class representing a single file uploaded.
 class Unpacker: A class representing an unpacker, eg unrar or unzip
     class UnpackerRAR: unrar unpacker
     class UnpackerZip: unzip unpacker
-class BookPageFile: A class representing an image file used for a book page.
 
-If an image is uploaded there is one UploadedImage instance and one
-BookPageFile.
+If an image is uploaded there is one UploadedImage instance and one book_page
+record.
 
 If an archive file is uploaded, there is one UploadedArchive instance and many
-BookPageFile instances, one for each image file extracted from the archive.
-
+book_page records, one for each image file extracted from the archive.
 """
-import cgi
 import os
 import shutil
 import subprocess
@@ -43,63 +40,12 @@ from applications.zcomix.modules.books import book_page_for_json
 from applications.zcomix.modules.images import \
     UploadImage, \
     is_image, \
-    set_thumb_dimensions
+    set_thumb_dimensions, \
+    store
 from applications.zcomix.modules.shell_utils import \
+    TempDirectoryMixin, \
     TemporaryDirectory, \
-    UnixFile, \
-    temp_directory
-
-
-class BookPageFile(object):
-    """Class representing a book page file."""
-
-    def __init__(self, page_file):
-        """Constructor
-
-        Args:
-            page_file: file object or cgi.FieldStorage instance
-        """
-        self.page_file = page_file
-        self.stored_filename = None
-
-    def add(self, book_id):
-        """Add the file to the book pages.
-
-        Args:
-            book_id: integer, id of book record the files belong to
-        """
-        # C0103: *Invalid name "%%s" (should match %%s)*      - db
-        # pylint: disable=C0103
-        db = current.app.db
-
-        if isinstance(self.page_file, cgi.FieldStorage):
-            self.stored_filename = db.book_page.image.store(
-                self.page_file, self.page_file.filename)
-        else:
-            self.stored_filename = db.book_page.image.store(self.page_file)
-
-        max_page = db.book_page.page_no.max()
-        query = (db.book_page.book_id == book_id)
-        try:
-            page_no = db(query).select(max_page)[0][max_page] + 1
-        except TypeError:
-            page_no = 1
-
-        book_page_id = db.book_page.insert(
-            book_id=book_id,
-            page_no=page_no,
-            image=self.stored_filename,
-            thumb_shrink=1,
-        )
-        db.commit()
-        try:
-            resizer = UploadImage(db.book_page.image, self.stored_filename)
-            resizer.resize_all()
-            set_thumb_dimensions(
-                db, book_page_id, resizer.dimensions(size='thumb'))
-        except IOError as err:
-            print >> sys.stderr, 'IOError: {err}'.format(err=err)
-        return book_page_id
+    UnixFile
 
 
 class BookPageUploader(object):
@@ -133,6 +79,7 @@ class BookPageUploader(object):
         """Load files into database."""
         local_filename = os.path.join(self.temp_directory, up_file.filename)
         with open(local_filename, 'w+b') as lf:
+            # This will convert cgi.FieldStorage to a regular file.
             shutil.copyfileobj(up_file.file, lf)
 
         uploaded_file = classify_uploaded_file(local_filename)
@@ -198,7 +145,7 @@ class UnpackError(Exception):
     pass
 
 
-class Unpacker(object):
+class Unpacker(TempDirectoryMixin):
     """Base unpacker class representing an unpacker, eg unrar or unzip"""
 
     def __init__(self, filename):
@@ -208,14 +155,6 @@ class Unpacker(object):
             filename: string, name of archive file
         """
         self.filename = filename
-        self._temp_directory = None
-
-    def cleanup(self):
-        """Cleanup """
-        tmp_dir = self.temp_directory()
-        if tmp_dir:
-            shutil.rmtree(tmp_dir)
-            self._temp_directory = None
 
     def image_files(self):
         """Find image files amoung extracted files."""
@@ -229,12 +168,6 @@ class Unpacker(object):
                 if is_image(fullname):
                     image_files.append(fullname)
         return sorted(image_files)
-
-    def temp_directory(self):
-        """Return a temporary directory where files will be extracted to."""
-        if self._temp_directory is None:
-            self._temp_directory = temp_directory()
-        return self._temp_directory
 
 
 class UnpackerRAR(Unpacker):
@@ -312,11 +245,10 @@ class UploadedFile(object):
         Args:
             book_id: integer, id of book record the files belong to
         """
+        db = current.app.db
         for image_filename in self.image_filenames:
-            with open(image_filename, 'r+b') as f:
-                book_page_file = BookPageFile(f)
-                book_page_id = book_page_file.add(book_id)
-                self.book_page_ids.append(book_page_id)
+            book_page_id = create_book_page(db, book_id, image_filename)
+            self.book_page_ids.append(book_page_id)
 
     def for_json(self):
         """Return uploaded files as json appropriate for jquery-file-upload."""
@@ -486,3 +418,36 @@ def classify_uploaded_file(filename):
     uploaded_file.unpacker = unpacker(filename) if unpacker else None
     uploaded_file.errors = errors
     return uploaded_file
+
+
+def create_book_page(db, book_id, image_filename):
+    """Add the file to the book pages.
+
+    Args:
+        book_id: integer, id of book record the files belong to
+        image_filename: /path/to/name of image file
+    """
+    try:
+        stored_filename = store(db.book_page.image, image_filename)
+    except IOError as err:
+        print >> sys.stderr, 'IOError: {err}'.format(err=err)
+        return
+
+    max_page = db.book_page.page_no.max()
+    query = (db.book_page.book_id == book_id)
+    try:
+        page_no = db(query).select(max_page)[0][max_page] + 1
+    except TypeError:
+        page_no = 1
+
+    book_page_id = db.book_page.insert(
+        book_id=book_id,
+        page_no=page_no,
+        image=stored_filename,
+    )
+    db.commit()
+
+    up_image = UploadImage(db.book_page.image, stored_filename)
+    set_thumb_dimensions(
+        db, book_page_id, up_image.dimensions(size='thumb'))
+    return book_page_id

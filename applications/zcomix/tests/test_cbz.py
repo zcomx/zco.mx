@@ -261,30 +261,6 @@ class TestCBZCreator(ImageTestCase):
             ))
             self.assertEqual(creator.image_filename(book_page), t[3])
 
-    def test__optimize(self):
-        creator = CBZCreator(self._book)
-        creator.optimize()
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
-        self.assertTrue(os.path.exists(creator._working_directory))
-        self.assertEqual(
-            sorted(os.listdir(creator._working_directory)),
-            ['001.jpg', '002.jpg']
-        )
-
-        self.assertLess(
-            os.stat(
-                os.path.join(creator._working_directory, '001.jpg')
-            ).st_size,
-            os.stat(os.path.join(self._image_dir, 'file.jpg')).st_size
-        )
-        self.assertLess(
-            os.stat(
-                os.path.join(creator._working_directory, '002.jpg')
-            ).st_size,
-            os.stat(os.path.join(self._image_dir, 'file_2.jpg')).st_size
-        )
-
     def test__run(self):
         creator = CBZCreator(self._book)
         zip_file = creator.run()

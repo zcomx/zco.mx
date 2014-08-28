@@ -12,8 +12,8 @@ import sys
 from gluon import *
 from applications.zcomix.modules.books import formatted_name
 from applications.zcomix.modules.files import TitleFileName
-from applications.zcomix.modules.images import CBZImage
-from applications.zcomix.modules.utils import entity_to_row, temp_directory
+from applications.zcomix.modules.shell_utils import temp_directory
+from applications.zcomix.modules.utils import entity_to_row
 
 
 class CBZCreateError(Exception):
@@ -61,28 +61,8 @@ class CBZCreator(object):
         fmt = '{{c:{w:02d}d}}{{e}}'.format(w=dec_width)
         return fmt.format(c=page.page_no, e=extension)
 
-    def optimize(self):
-        """Optimize book page images."""
-        db = current.app.db
-        pages = db(db.book_page.book_id == self.book.id).select(
-            db.book_page.ALL,
-            orderby=db.book_page.page_no
-        )
-        for page in pages:
-            unused_file_name, fullname = db.book_page.image.retrieve(
-                page.image,
-                nameonly=True,
-            )
-            cbz_img = CBZImage(fullname)
-            out_filename = os.path.join(
-                self.working_directory(),
-                self.image_filename(page)
-            )
-            cbz_img.optimize(out_filename, size='cbz')
-
     def run(self):
         """Create the cbz file."""
-        self.optimize()
         return self.zip()
 
     def working_directory(self):

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Creator profile controller functions"""
-
+import os
+import shutil
 import datetime
 from gluon.contrib.simplejson import dumps
 from applications.zcomix.modules.book_upload import BookPageUploader
@@ -11,8 +12,12 @@ from applications.zcomix.modules.books import \
     numbers_for_book_type, \
     read_link
 from applications.zcomix.modules.creators import image_as_json
-from applications.zcomix.modules.images import UploadImage
+from applications.zcomix.modules.images import \
+    UploadImage, \
+    store
 from applications.zcomix.modules.links import CustomLinks
+from applications.zcomix.modules.shell_utils import \
+    TemporaryDirectory
 from applications.zcomix.modules.utils import \
     markmin_content, \
     reorder
@@ -332,8 +337,8 @@ def book_pages_handler():
             book_page.image,
             nameonly=True,
         )
-        resizer = UploadImage(db.book_page.image, book_page.image)
-        resizer.delete_all()
+        up_image = UploadImage(db.book_page.image, book_page.image)
+        up_image.delete_all()
         book_page.delete_record()
         return dumps({"files": [{filename: True}]})
     else:
@@ -547,10 +552,16 @@ def creator_img_handler():
             files = [files]
         file = files[0]
 
-        try:
-            stored_filename = db.creator.image.store(file, file.filename)
-        except:
-            stored_filename = None
+        with TemporaryDirectory() as tmp_dir:
+            local_filename = os.path.join(tmp_dir, file.filename)
+            with open(local_filename, 'w+b') as lf:
+                # This will convert cgi.FieldStorage to a regular file.
+                shutil.copyfileobj(file.file, lf)
+
+            try:
+                stored_filename = store(db.creator.image, local_filename)
+            except:
+                stored_filename = None
 
         if not stored_filename:
             return do_error('File upload failed.')
@@ -562,16 +573,13 @@ def creator_img_handler():
             )
             db(db.creator.id == creator_record.id).update(image=None)
             db.commit()
-            resizer = UploadImage(db.creator.image, creator_record.image)
-            resizer.delete_all()
+            up_image = UploadImage(db.creator.image, creator_record.image)
+            up_image.delete_all()
 
         db(db.creator.id == creator_record.id).update(
             image=stored_filename,
         )
         db.commit()
-        resizer = UploadImage(db.creator.image, stored_filename)
-        resizer.resize_all()
-
         return image_as_json(db, creator_record.id)
 
     elif request.env.request_method == 'DELETE':
@@ -585,8 +593,8 @@ def creator_img_handler():
         )
         db(db.creator.id == creator_record.id).update(image=None)
         db.commit()
-        resizer = UploadImage(db.creator.image, creator_record.image)
-        resizer.delete_all()
+        up_image = UploadImage(db.creator.image, creator_record.image)
+        up_image.delete_all()
         return dumps({"files": [{filename: 'true'}]})
 
     # GET

@@ -5,16 +5,31 @@
 
 Classes and functions related to images.
 """
+import glob
 import imghdr
-import math
+import logging
 import os
 import re
+import shutil
 import subprocess
 from PIL import Image
 from gluon import *
 from gluon.globals import Response
 from gluon.streamer import DEFAULT_CHUNK_SIZE
 from gluon.contenttype import contenttype
+from applications.zcomix.modules.shell_utils import \
+    Cwd, \
+    TempDirectoryMixin, \
+    temp_directory
+
+LOG = logging.getLogger('app')
+
+SIZES = [
+    'original',
+    'cbz',
+    'large',
+    'thumb',
+]
 
 
 class ImageOptimizeError(Exception):
@@ -22,58 +37,17 @@ class ImageOptimizeError(Exception):
     pass
 
 
-class CBZImage(object):
-    """Class representing an image for a CBZ file."""
-
-    def __init__(self, filename):
-        """Constructor
-
-        Args:
-            filename: string, name of image file.
-        """
-        self.filename = filename
-
-    def optimize(self, out_filename, size=''):
-        """Optimize the file to reduce size.
-
-        Args:
-            out_filename: string, name of optimized image file.
-            size: string, name of size, must one of the keys of the SIZERS
-                    dict
-        """
-        optimize_script = os.path.join(
-            current.request.folder, 'private', 'bin', 'optimize_img.sh')
-        args = [optimize_script]
-        if size:
-            sizer = classified_sizer(size)(Image.open(self.filename))
-            w, h = sizer.size()
-            resize = '{w}x{h}'.format(w=w, h=h)
-            args.append('-r')
-            args.append(resize)
-        args.append(self.filename)
-        args.append(out_filename)
-        p = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        unused_stdout, p_stderr = p.communicate()
-        if p.returncode:
-            msg = 'optimize_img.sh failed, file: {f}, err: {e}'.format(
-                f=self.filename,
-                e=p_stderr,
-            )
-            raise ImageOptimizeError(msg)
-
-
 class Downloader(Response):
     """Class representing an image downloader"""
 
-    def download(self, request, db, chunk_size=DEFAULT_CHUNK_SIZE,
-            attachment=True, download_filename=None):
+    def download(
+            self, request, db, chunk_size=DEFAULT_CHUNK_SIZE, attachment=True,
+            download_filename=None):
         """
         Adapted from Response.download.
 
-        request.vars.size: string, one of 'original' (default), 'medium', or
-                'thumb'. If provided the image is streamed from a subdirectory
-                 with that name.
+        request.vars.size: string, one of SIZES. If provided the image is
+                streamed from a subdirectory with that name.
         """
         # C0103: *Invalid name "%%s" (should match %%s)*
         # pylint: disable=C0103
@@ -83,6 +57,8 @@ class Downloader(Response):
         if not request.args:
             raise HTTP(404)
         name = request.args[-1]
+        # W1401 (anomalous-backslash-in-string): *Anomalous backslash in string
+        # pylint: disable=W1401
         items = re.compile('(?P<table>.*?)\.(?P<field>.*?)\..*')\
             .match(name)
         if not items:
@@ -98,11 +74,9 @@ class Downloader(Response):
             raise HTTP(404)
 
         # Customization: start
-        if request.vars.size and request.vars.size in SIZERS.keys():
-            resized = stream.replace(
-                '/original/',
-                '/{s}/'.format(s=request.vars.size)
-            )
+        if request.vars.size and request.vars.size in SIZES \
+                and request.vars.size != 'original':
+            resized = filename_for_size(stream, request.vars.size)
             if os.path.exists(resized):
                 stream = resized
         # Customization: end
@@ -118,123 +92,69 @@ class Downloader(Response):
         return self.stream(stream, chunk_size=chunk_size, request=request)
 
 
-class Sizer(object):
-    """Base class representing an image Sizer"""
+class ResizeImgError(Exception):
+    """Exception class for ResizeImg errors."""
+    pass
 
-    def __init__(self, im):
+
+class ResizeImg(TempDirectoryMixin):
+    """Class representing a handler for interaction with resize_img.sh"""
+
+    def __init__(self, filename):
         """Constructor
 
         Args:
-            im: Image instance.
+            filename: string, name of original image file
         """
-        self.im = im
+        self.filename = filename
+        self.filename_base = os.path.basename(self.filename)
+        self.filenames = {'ori': None, 'cbz': None, 'web': None, 'tbn': None}
 
-    def size(self):
-        """Return (w, h) tuple representing max width and max height size of
-        image.
+    def run(self):
+        """Run the shell script and get the output."""
+        resize_script = os.path.abspath(
+            os.path.join(
+                current.request.folder, 'private', 'bin', 'resize_img.sh')
+        )
 
-        Returns:
-            tuple (w integer, h integer)
-        """
-        return self.im.size
+        real_filename = os.path.abspath(self.filename)
 
+        # The images created by resize_img.sh are placed in the current
+        # directory. Change to the temp directory so they are created there.
+        with Cwd(self.temp_directory()):
+            args = [resize_script]
+            if self.filename:
+                args.append(real_filename)
+            p = subprocess.Popen(
+                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p_stdout, p_stderr = p.communicate()
+            # Generally there should be no output. Log to help troubleshoot.
+            if p_stdout:
+                LOG.warn('ResizeImg run stdout: {out}'.format(out=p_stdout))
+            if p_stderr:
+                LOG.error('ResizeImg run stderr: {err}'.format(err=p_stderr))
 
-class MaxAreaSizer(Sizer):
-    """Base class representing a sizer that resizes based on max area."""
+            # E1101 (no-member): *%%s %%r has no %%r member*
+            # pylint: disable=E1101
+            if p.returncode:
+                raise ResizeImgError('Resize failed: {err}'.format(
+                    err=p_stderr or p_stdout))
 
-    _max_area = None             # in pixels, w x h
-
-    def __init__(self, im):
-        """Constructor """
-        Sizer.__init__(self, im)
-
-    def size(self):
-        """Return (w, h) tuple representing max width and max height size of
-        image.
-
-        Returns:
-            tuple (w integer, h integer)
-        """
-        if self._max_area is None:
-            raise NotImplementedError
-
-        w, h = self.im.size
-        area = w * h
-        new_w, new_h = w, h
-        if area > self._max_area:
-            new_w = int(math.sqrt(1.0 * w * self._max_area / h))
-            new_h = int(math.sqrt(1.0 * h * self._max_area / w))
-        return (new_w, new_h)
-
-
-class CBZSizer(MaxAreaSizer):
-    """Class representing a sizer for images for cbz files."""
-
-    _max_area = 4096000             # in pixels, 2560w x 1600h
-
-    def __init__(self, im):
-        """Constructor """
-        MaxAreaSizer.__init__(self, im)
-
-
-class LargeSizer(MaxAreaSizer):
-    """Class representing a sizer for large images."""
-
-    _max_area = 900000              # in pixels, 1200w x 750h
-
-    def __init__(self, im):
-        """Constructor """
-        MaxAreaSizer.__init__(self, im)
-
-
-class MediumSizer(Sizer):
-    """Class representing a sizer for medium images."""
-    dimensions = (500, 500)
-
-    def __init__(self, im):
-        """Constructor """
-        Sizer.__init__(self, im)
-
-    def size(self):
-        """Return (w, h) tuple representing max width and max height size of
-        image.
-
-        Returns:
-            tuple (w integer, h integer)
-        """
-        return self.dimensions
-
-
-class ThumbnailSizer(Sizer):
-    """Class representing a sizer for thumbnail images."""
-    dimensions = (170, 170)
-    shrink_threshold = 120
-    shrink_multiplier = 0.80
-
-    def __init__(self, im):
-        """Constructor """
-        Sizer.__init__(self, im)
-
-    def size(self):
-        """Return (w, h) tuple representing max width and max height size of
-        image.
-
-        Returns:
-            tuple (w integer, h integer)
-        """
-        return self.dimensions
-
-
-SIZERS = {
-    'cbz': CBZSizer,
-    'large': LargeSizer,
-    'medium': MediumSizer,
-    'thumb': ThumbnailSizer,
-}
+        for prefix in ['ori', 'cbz', 'web', 'tbn']:
+            path = os.path.join(
+                self.temp_directory(),
+                '{pfx}-*'.format(pfx=prefix)
+            )
+            matches = glob.glob(path)
+            if matches:
+                self.filenames[prefix] = matches[0]
 
 
 class UploadImage(object):
-    """Class representing an uploaded image."""
+    """Class representing an uploaded image.
+
+    Uploaded images are stored in an uploads/original subdirectory.
+    """
 
     def __init__(self, field, image_name):
         """Constructor
@@ -253,8 +173,7 @@ class UploadImage(object):
         """Delete a version of the image
 
         Args:
-            size: string, name of size, must one of the keys of the SIZERS
-                    dict
+            size: string, name of size, must one of SIZES
         """
         fullname = self.fullname(size=size)
         if os.path.exists(fullname):
@@ -262,7 +181,7 @@ class UploadImage(object):
 
     def delete_all(self):
         """Delete all sizes."""
-        for size in SIZERS.keys():
+        for size in SIZES:
             self.delete(size)
         self.delete('original')
 
@@ -270,8 +189,7 @@ class UploadImage(object):
         """Return the dimensions of the image of the indicated size.
 
         Args:
-            size: string, name of size, must one of the keys of the SIZERS
-                    dict
+            size: string, name of size, must one of SIZES
         """
         if not self._dimensions or size not in self._dimensions:
             im = self.pil_image(size=size)
@@ -287,16 +205,13 @@ class UploadImage(object):
             self.image_name,
             nameonly=True,
         )
-        if size != 'original':
-            fullname = fullname.replace('/original/', '/{s}/'.format(s=size))
-        return fullname
+        return filename_for_size(fullname, size)
 
     def pil_image(self, size='original'):
         """Return a PIL Image instance representing the image.
 
         Args:
-            size: string, name of size, must one of the keys of the SIZERS
-                    dict
+            size: string, name of size, must one of SIZES
         """
         if not self._images or size not in self._images:
             filename = self.fullname(size=size)
@@ -306,43 +221,31 @@ class UploadImage(object):
                 self._images[size] = None
         return self._images[size]
 
-    def resize(self, size):
-        """Resize the image.
 
-        Args:
-            size: string, name of size, must one of the keys of the SIZERS
-                    dict
-        """
-        original_filename = self.fullname(size='original')
-        sized_filename = self.fullname(size=size)
-        sized_path = os.path.dirname(sized_filename)
-        if not os.path.exists(sized_path):
-            os.makedirs(sized_path)
-        im = Image.open(original_filename)
-        sizer = classified_sizer(size)
-        im.thumbnail(sizer(im).size(), Image.ANTIALIAS)
-        im.save(sized_filename)
-        # self.dimensions[size] = im.size
-        return sized_filename
-
-    def resize_all(self):
-        """Resize all sizes."""
-        for size in SIZERS.keys():
-            self.resize(size)
-
-
-def classified_sizer(size):
-    """Return the approapriate class for the given size.
+def filename_for_size(original_filename, size):
+    """Return the name of the file that is a resized version of
+    original_filename.
 
     Args:
-        size: string, eg 'medium', 'large', 'thumb'
-
-    Returns:
-        Sizer class or subclass
+        original_filename: string, name of original file. eg
+            /path/to/uploads/original/book_page.image/bf/bf1234.jpg
+        size: string, size of file
     """
-    if size in SIZERS:
-        return SIZERS[size]
-    return Sizer
+    size_dir = size
+    if size in ['tbn', 'thumb', 'thumbnail']:
+        size_dir = 'thumb'
+    if size in ['web', 'large']:
+        size_dir = 'large'
+
+    new_name = original_filename
+    if size_dir != 'original' and '/original/' in original_filename:
+        new_name = new_name.replace('/original/', '/{s}/'.format(s=size_dir))
+
+        # Resized gif files are png's
+        name, ext = os.path.splitext(new_name)
+        if ext == '.gif':
+            new_name = name + '.png'
+    return new_name
 
 
 def img_tag(field, size='original', img_attributes=None):
@@ -357,7 +260,7 @@ def img_tag(field, size='original', img_attributes=None):
 
     if field:
         tag = IMG
-        if size != 'original' and size not in SIZERS.keys():
+        if size != 'original' and size not in SIZES:
             size = 'original'
 
         attributes.update(dict(
@@ -433,15 +336,43 @@ def set_thumb_dimensions(db, book_page_id, dimensions):
         return
     w = dimensions[0]
     h = dimensions[1]
-    shrink = True if h > ThumbnailSizer.shrink_threshold \
-        and w > ThumbnailSizer.shrink_threshold \
-        else False
-
-    thumb_shrink = ThumbnailSizer.shrink_multiplier if shrink else 1
 
     db(db.book_page.id == book_page_id).update(
         thumb_w=w,
         thumb_h=h,
-        thumb_shrink=thumb_shrink
     )
     db.commit()
+
+
+def store(field, filename):
+    """Store an image file in an uploads directory.
+    This will create all sizes of the image file.
+
+    Args:
+        field: gluon.dal.Field instance (this should be a field of type 'upload'
+        filename: name of file to store.
+
+    Return:
+        string, the name of the file in storage.
+    """
+    resize_img = ResizeImg(filename)
+    resize_img.run()
+    original_filename = resize_img.filenames['ori']
+    with open(original_filename, 'r+b') as f:
+        stored_filename = field.store(f, filename=filename)
+    # stored_filename doesn't have a full path. Use retreive to get
+    # file name will full path.
+    unused_name, fullname = field.retrieve(stored_filename, nameonly=True)
+    for size, name in resize_img.filenames.items():
+        if size == 'ori':
+            continue
+        if name is None:
+            continue
+        sized_filename = filename_for_size(fullname, size)
+        sized_path = os.path.dirname(sized_filename)
+        if not os.path.exists(sized_path):
+            os.makedirs(sized_path)
+        # $ mv name sized_filename
+        shutil.move(name, sized_filename)
+    resize_img.cleanup()
+    return stored_filename
