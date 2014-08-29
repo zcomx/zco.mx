@@ -381,6 +381,12 @@ def numbers_for_book_type(db, book_type_id):
         return default
 
 
+def publication_year_range():
+    """Return a tuple representing the start and end range of publication years
+    """
+    return (1900, datetime.date.today().year + 5)
+
+
 def publication_years():
     """Return a XML instance representing publication years suitable for
     drop down menu.
@@ -391,12 +397,6 @@ def publication_years():
             ["{{'value':'{x}', 'text':'{x}'}}".format(x=x) \
                     for x in range(*publication_year_range())])
     )
-
-
-def publication_year_range():
-    """Return a tuple representing the start and end range of publication years
-    """
-    return (1900, datetime.date.today().year + 5)
 
 
 def read_link(db, book_entity, components=None, **attributes):

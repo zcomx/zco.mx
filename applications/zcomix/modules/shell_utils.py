@@ -5,6 +5,7 @@
 
 Classes and functions related to shell utilities
 """
+import grp
 import os
 import pwd
 import shutil
@@ -95,6 +96,38 @@ class UnixFile(object):
             stderr=subprocess.PIPE
         )
         return p.communicate()
+
+
+def get_owner(filename):
+    """Return the owner of the file.
+
+    Args:
+        filename: string, path/to/file
+
+    Returns:
+        tuple, (user, group)
+
+    """
+    stat_info = os.stat(filename)
+    uid = stat_info.st_uid
+    gid = stat_info.st_gid
+    user = pwd.getpwuid(uid)[0]
+    group = grp.getgrgid(gid)[0]
+    return (user, group)
+
+
+def set_owner(filename, user='http', group='http'):
+    """Set ownership on a file.
+    Args:
+        filename: string, path/to/file
+        user: string, name of user to set file to
+        group: string, name of group to set file to
+    """
+    os.chown(
+        filename,
+        pwd.getpwnam(user).pw_uid,
+        pwd.getpwnam(group).pw_gid
+    )
 
 
 def temp_directory():

@@ -30,10 +30,20 @@ class TestFunctions(LocalTestCase):
     _test_data_dir = None
 
     titles = {
-        'account': '<div class="well well-sm" id="account">',
+        'account': ['account_profile_container', 'change_password_container'],
         'book_delete': '<div id="book_delete_section">',
-        'book_edit': '<div id="book_edit_section">',
+        'book_delete_invalid': 'Invalid data provided.',
+        'book_edit_no_id': '<div id="book_edit_section">',
+        'book_edit': [
+            '<div id="book_edit_section">',
+            "'label': 'Reader Background'"
+        ],
+        'book_list': '<h2>Book List</h2>',
+        'book_list_disabled': '<div id="disabled_container">',
+        'book_list_ongoing': '<div id="ongoing_container">',
+        'book_list_released': '<div id="released_container">',
         'book_pages': '<div id="profile_book_pages_page">',
+        'book_pages_invalid': 'Invalid data provided.',
         'book_pages_handler_fail': [
             '{"files":',
             'Upload service unavailable',
@@ -50,10 +60,10 @@ class TestFunctions(LocalTestCase):
             '"success": true',
         ],
         'book_release': '<div id="book_release_section">',
-        'books': '<div class="well well-sm" id="books">',
-        'creator': '<div class="well well-sm" id="creator">',
+        'book_release_invalid': 'Invalid data provided.',
+        'books': '<div id="ongoing_book_list" class="book_list">',
+        'creator': '<div id="creator_section">',
         'default': 'zcomix.com is a not-for-profit comic-sharing website',
-        'index': '<div class="well well-sm" id="account">',
         'links': [
             'href="/zcomix/profile/links.load/new/link',
             'Add</span>',
@@ -160,9 +170,29 @@ class TestFunctions(LocalTestCase):
 
         web.login()
 
+        # Create book
+        url = '{url}/book_crud.json'.format(url=self.url)
+        data = {
+            '_action': 'create',
+            'name': 'name',
+            'value': '_Untitled_',
+        }
+        web.post(url, data=data)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+        book_id = int(result['id'])
+        self.assertTrue(book_id > 0)
+
+        book = get_book(book_id)
+        self.assertEqual(book.name, '_Untitled_')
+        self.assertEqual(book.creator_id, self._creator.id)
+
+        # Update
         url = '{url}/book_crud.json/{bid}'.format(bid=book_id, url=self.url)
         data = {
-            'field': 'name',
+            '_action': 'update',
+            'name': 'name',
+            'pk': book_id,
             'value': 'Test Book CRUD',
         }
         web.post(url, data=data)
@@ -173,39 +203,71 @@ class TestFunctions(LocalTestCase):
         # No book id
         url = '{url}/book_crud.json'.format(url=self.url)
         data = {
+            '_action': 'update',
             'field': 'name',
             'value': 'No book id',
         }
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"errors": {"url": "Invalid data provided."}}\n'
+            '{"status": "error", "msg": "Invalid data provided."}\n'
         )
         book = get_book(book_id)
         self.assertEqual(book.name, 'Test Book CRUD')
 
-        # Invalid book id
-        url = '{url}/book_crud.json/999999'.format(url=self.url)
+        # No action
+        url = '{url}/book_crud.json'.format(url=self.url)
         data = {
             'field': 'name',
+            'pk': book_id,
+            'value': 'No action',
+        }
+        web.post(url, data=data)
+        self.assertEqual(
+            web.text,
+            '{"status": "error", "msg": "Invalid data provided."}\n'
+        )
+
+        # Invalid action
+        url = '{url}/book_crud.json'.format(url=self.url)
+        data = {
+            '_action': '_fake_',
+            'field': 'name',
+            'pk': book_id,
+            'value': 'Invalid action',
+        }
+        web.post(url, data=data)
+        self.assertEqual(
+            web.text,
+            '{"status": "error", "msg": "Invalid data provided."}\n'
+        )
+
+        # Invalid book id
+        url = '{url}/book_crud.json'.format(url=self.url)
+        data = {
+            '_action': 'update',
+            'field': 'name',
+            'pk': 9999999,
             'value': 'Invalid book id',
         }
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"errors": {"url": "Invalid data provided."}}\n'
+            '{"status": "error", "msg": "Invalid data provided."}\n'
         )
 
         # Invalid data
-        url = '{url}/book_crud.json/{bid}'.format(bid=book_id, url=self.url)
+        url = '{url}/book_crud.json'.format(url=self.url)
         data = {
+            '_action': 'update',
             'field': '_invalid_field_',
+            'pk': book_id,
             'value': 'Invalid book id',
         }
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"errors": {"url": "Invalid data provided."}}\n'
+            '{"status": "error", "msg": "Invalid data provided."}\n'
         )
 
         # No data
@@ -213,15 +275,28 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"errors": {"url": "Invalid data provided."}}\n'
+            '{"status": "error", "msg": "Invalid data provided."}\n'
         )
+
+        # Delete book
+        url = '{url}/book_crud.json/{bid}'.format(bid=book_id, url=self.url)
+        data = {
+            '_action': 'delete',
+            'pk': book_id,
+        }
+        web.post(url, data=data)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+
+        book = get_book(book_id)
+        self.assertFalse(book)
 
     def test__book_delete(self):
         # No book id, redirect to books
         self.assertTrue(
             web.test(
                 '{url}/book_delete'.format(url=self.url),
-                self.titles['books']
+                self.titles['book_delete_invalid']
             )
         )
 
@@ -238,7 +313,7 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(
             web.test(
                 '{url}/book_edit'.format(url=self.url),
-                self.titles['books']
+                self.titles['book_edit_no_id']
             )
         )
 
@@ -250,12 +325,45 @@ class TestFunctions(LocalTestCase):
             )
         )
 
+    def test__book_list(self):
+        # No type indicator
+        self.assertTrue(
+            web.test(
+                '{url}/book_list'.format(url=self.url),
+                self.titles['book_list']
+            )
+        )
+
+        # Released
+        self.assertTrue(
+            web.test(
+                '{url}/book_list.load/released'.format(url=self.url),
+                self.titles['book_list_released']
+            )
+        )
+
+        # Ongoing
+        self.assertTrue(
+            web.test(
+                '{url}/book_list.load/ongoing'.format(url=self.url),
+                self.titles['book_list_ongoing']
+            )
+        )
+
+        # Disabled
+        self.assertTrue(
+            web.test(
+                '{url}/book_list.load/disabled'.format(url=self.url),
+                self.titles['book_list_disabled']
+            )
+        )
+
     def test__book_pages(self):
         # No book_id, redirects to books page
         self.assertTrue(
             web.test(
                 '{url}/book_pages'.format(url=self.url),
-                self.titles['books']
+                self.titles['book_pages_invalid']
             )
         )
 
@@ -332,7 +440,7 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(
             web.test(
                 '{url}/book_release'.format(url=self.url),
-                self.titles['books']
+                self.titles['book_release_invalid']
             )
         )
 
@@ -373,23 +481,26 @@ class TestFunctions(LocalTestCase):
 
         url = '{url}/creator_crud.json'.format(url=self.url)
         data = {
-            'field': 'email',
+            'name': 'paypal_email',
             'value': 'test__creator_crud@example.com',
         }
         web.post(url, data=data)
 
         creator = get_creator()
-        self.assertEqual(creator.email, 'test__creator_crud@example.com')
+        self.assertEqual(
+            creator.paypal_email,
+            'test__creator_crud@example.com'
+        )
 
-        # Invalid field
+        # Invalid name
         data = {
-            'field': '_invalid_field_',
+            'name': '_invalid_field_',
             'value': 'test__creator_crud@example.com',
         }
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"errors": {"url": "Invalid data provided."}}\n'
+            '{"status": "error", "msg": "Invalid data provided."}\n'
         )
 
         # No data
@@ -397,7 +508,7 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"errors": {"url": "Invalid data provided."}}\n'
+            '{"status": "error", "msg": "Invalid data provided."}\n'
         )
 
         db(db.creator.id == old_creator.id).update(**old_creator.as_dict())
@@ -450,7 +561,7 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(
             web.test(
                 '{url}/index'.format(url=self.url),
-                self.titles['index']
+                self.titles['books']
             )
         )
 
@@ -469,8 +580,12 @@ class TestFunctions(LocalTestCase):
                 self.assertTrue('rows' in result)
                 names = [x['name'] for x in result['rows']]
                 self.assertEqual(names, expect_names)
-            self.assertTrue('errors' in result)
-            self.assertEqual(result['errors'], expect_errors)
+                self.assertEqual(result['errors'], expect_errors)
+            else:
+                self.assertTrue('status' in result)
+                self.assertEqual(result['status'], 'error')
+                self.assertEqual(result['msg'], expect_errors)
+
             return result
 
         def reset(record_id, keep_names):
@@ -569,7 +684,7 @@ class TestFunctions(LocalTestCase):
                 'field': 'url',
                 'value': 'http://www.linkcrud2.com',
             }
-            do_test(record_id, data, [], {'url': 'Invalid data provided.'})
+            do_test(record_id, data, [], 'Invalid data provided.')
 
             # Action: update, Invalid url
             data = {
@@ -578,7 +693,7 @@ class TestFunctions(LocalTestCase):
                 'field': 'url',
                 'value': '_bad_url_',
             }
-            do_test(record_id, data, [], {'url': 'enter a valid URL'})
+            do_test(record_id, data, [], 'Enter a valid URL')
 
             # Action: update, Invalid name
             data = {
@@ -591,7 +706,7 @@ class TestFunctions(LocalTestCase):
                 record_id,
                 data,
                 [],
-                {'name': 'enter from 1 to 40 characters'}
+                'Enter 1 to 40 characters'
             )
 
             # Action: move
@@ -623,7 +738,7 @@ class TestFunctions(LocalTestCase):
                 'action': 'delete',
                 'link_id': 0,
             }
-            do_test(record_id, data, [], {'url': 'Invalid data provided.'})
+            do_test(record_id, data, [], 'Invalid data provided.')
 
             reset(record_id, 'test_do_not_delete')
 

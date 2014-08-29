@@ -9,7 +9,6 @@ import glob
 import imghdr
 import logging
 import os
-import pwd
 import re
 import shutil
 import subprocess
@@ -20,7 +19,8 @@ from gluon.streamer import DEFAULT_CHUNK_SIZE
 from gluon.contenttype import contenttype
 from applications.zcomix.modules.shell_utils import \
     Cwd, \
-    TempDirectoryMixin
+    TempDirectoryMixin, \
+    set_owner
 
 LOG = logging.getLogger('app')
 
@@ -97,7 +97,14 @@ class ImgTag(object):
 
     placeholder_tag = DIV
 
-    def __init__(self, image, size='original', tag=None, components=None, attributes=None):
+    def __init__(
+        self,
+        image,
+        size='original',
+        tag=None,
+        components=None,
+        attributes=None
+    ):
         """Constructor
 
         Args:
@@ -117,8 +124,8 @@ class ImgTag(object):
         """Return the TAG representing the image. """
 
         tag = self.tag if self.tag is not None \
-                else IMG if self.image \
-                else self.placeholder_tag
+            else IMG if self.image \
+            else self.placeholder_tag
 
         if self.image:
             if '_src' not in self.attributes:
@@ -138,7 +145,7 @@ class ImgTag(object):
     def set_placeholder(self):
         """Set the attributes for the placeholder."""
         class_name = 'placeholder_170x170' \
-                if self.size == 'tbn' else 'portrait_placeholder'
+            if self.size == 'tbn' else 'portrait_placeholder'
         if '_class' in self.attributes:
             self.attributes['_class'] = '{c1} {c2}'.format(
                 c1=self.attributes['_class'],
@@ -149,6 +156,7 @@ class ImgTag(object):
 
 
 class CreatorImgTag(ImgTag):
+    """Class representing a creator image TAG"""
 
     def set_placeholder(self):
         """Set the attributes for the placeholder."""
@@ -314,55 +322,6 @@ def filename_for_size(original_filename, size):
     return new_name
 
 
-def img_tag(field, size='original', img_attributes=None):
-    """Return an image HTML tag suitable for an resizeable image.
-
-    Args:
-        field: gluon.dal.Field instance, eg db.creator.image
-        size: string, the image size
-        img_attributes: dict, passed on as IMG(**img_attributes)
-    """
-    components = []
-    attributes = {}
-
-    if field:
-        tag = IMG
-        if size != 'original' and size not in SIZES:
-            size = 'original'
-
-        attributes.update(dict(
-            _src=URL(
-                c='images',
-                f='download',
-                args=field,
-                vars={'size': size},
-            ),
-        ))
-    else:
-        tag = DIV
-
-    if img_attributes:
-        attributes.update(img_attributes)
-
-    if not field:
-        if field and field.update_record.tablename == 'creator':
-            # Use a torso for the creator.
-            class_name = 'preview placeholder_torso'
-            components.append(TAG['i'](**{'_class': 'icon zc-torso'}))
-        else:
-            class_name = 'placeholder_170x170' \
-                if size == 'tbn' else 'portrait_placeholder'
-        if '_class' in attributes:
-            attributes['_class'] = '{c1} {c2}'.format(
-                c1=attributes['_class'],
-                c2=class_name
-            ).replace('img-responsive', '').strip()
-        else:
-            attributes['_class'] = class_name
-
-    return tag(*components, **attributes)
-
-
 def is_image(filename, image_types=None):
     """Determine if a file is an image.
 
@@ -427,14 +386,6 @@ def store(field, filename):
     Return:
         string, the name of the file in storage.
     """
-    def set_owner(filename):
-        """Set ownership on a file."""
-        os.chown(
-            filename,
-            pwd.getpwnam('http').pw_uid,
-            pwd.getpwnam('http').pw_gid
-        )
-
     resize_img = ResizeImg(filename)
     resize_img.run()
     original_filename = resize_img.filenames['ori']

@@ -15,6 +15,7 @@ from gluon.storage import \
     Storage
 from applications.zcomix.modules.utils import \
     ItemDescription, \
+    entity_to_row, \
     markmin_content, \
     move_record, \
     profile_wells, \
@@ -153,6 +154,16 @@ class TestFunctions(LocalTestCase):
             orderby=[db.test__reorder.order_no, db.test__reorder.id],
         )
         return [x[field] for x in values]
+
+    def test__entity_to_row(self):
+        book_id = db.book.insert(name='test__entity_to_row')
+        db.commit()
+        book = db(db.book.id == book_id).select().first()
+        self._objects.append(book)
+
+        for entity in [book, book_id]:
+            got = entity_to_row(db.book, entity)
+            self.assertEqual(book.as_dict(), got.as_dict())
 
     def test__markmin_content(self):
         faq = markmin_content('faq.mkd')

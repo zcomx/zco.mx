@@ -18,6 +18,8 @@ from applications.zcomix.modules.shell_utils import \
     TempDirectoryMixin, \
     TemporaryDirectory, \
     UnixFile, \
+    get_owner, \
+    set_owner, \
     temp_directory
 from applications.zcomix.modules.test_runner import LocalTestCase
 
@@ -141,6 +143,25 @@ class TestFunctions(LocalTestCase):
             if os.path.exists(cls._tmp_dir):
                 shutil.rmtree(cls._tmp_dir)
             os.rename(cls._tmp_backup, cls._tmp_dir)
+
+    def test__get_owner(self):
+        pass        # test__set_owner tests this.
+
+    def test__set_owner(self):
+        filename = os.path.join(self._tmp_dir, 'test__set_owner.txt')
+        with open(filename, 'w') as f:
+            f.write('test__set_owner testing!')
+        self.assertTrue(os.path.exists(filename))
+
+        self.assertEqual(get_owner(filename), ('root', 'root'))
+        set_owner(filename)
+        self.assertEqual(get_owner(filename), ('http', 'http'))
+        set_owner(filename, user='daemon', group='nobody')
+        self.assertEqual(get_owner(filename), ('daemon', 'nobody'))
+
+        # Cleanup
+        os.unlink(filename)
+        self.assertFalse(os.path.exists(filename))
 
     def test__temp_directory(self):
         def valid_tmp_dir(path):

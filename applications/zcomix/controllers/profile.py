@@ -40,8 +40,6 @@ def account():
 def book_crud():
     """Handler for ajax book CRUD calls.
 
-    request.args(0): integer, id of book
-
     request.vars._action: string, 'create', 'update', etc
 
     create:
@@ -225,9 +223,10 @@ def book_edit():
 
 @auth.requires_login()
 def book_list():
-    """Book list component controller."""
+    """Book list component controller.
 
-
+    request.args(0): string, optional, one of 'released', 'ongoing', 'disabled'
+    """
     # Verify user is legit
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
@@ -501,8 +500,7 @@ def creator_crud():
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
-        errors = {'url': msg or 'Server request failed.'}
-        return {'errors': errors}
+        return {'status': 'error', 'msg': msg or 'Server request failed.'}
 
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL

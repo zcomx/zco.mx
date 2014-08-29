@@ -6,6 +6,7 @@
 Test suite for zcomix/modules/books.py
 
 """
+import ast
 import datetime
 import os
 import shutil
@@ -22,11 +23,15 @@ from applications.zcomix.modules.books import \
     DEFAULT_BOOK_TYPE, \
     book_page_for_json, \
     book_pages_as_json, \
+    book_types, \
     cover_image, \
     default_contribute_amount, \
     defaults, \
+    formatted_name, \
     is_releasable, \
+    numbers_for_book_type, \
     publication_year_range, \
+    publication_years, \
     read_link
 from applications.zcomix.modules.test_runner import LocalTestCase
 
@@ -248,7 +253,7 @@ class TestFunctions(ImageTestCase):
         )
 
         url = '/images/download/{img}'.format(img=self._book_page.image)
-        thumb = '/images/download/{img}?size=thumb'.format(
+        thumb = '/images/download/{img}?size=tbn'.format(
             img=self._book_page.image)
         fmt = '/profile/book_pages_handler/{bid}?book_page_id={pid}'
         delete_url = fmt.format(
@@ -269,6 +274,15 @@ class TestFunctions(ImageTestCase):
                 'deleteType': 'DELETE',
             }
         )
+
+    def test__book_types(self):
+        xml = book_types(db)
+        expect = (
+            """{'value':'1', 'text':'Ongoing (eg 001, 002, 003, etc)'},"""
+            """{'value':'2', 'text':'Mini-series (eg 01 of 04)'},"""
+            """{'value':'3', 'text':'One-shot/Graphic Novel'}"""
+        )
+        self.assertEqual(xml.xml(), expect)
 
     def test__cover_image(self):
 
@@ -298,6 +312,8 @@ class TestFunctions(ImageTestCase):
             page = db(db.book_page.id == page_id).select().first()
             self._objects.append(page)
 
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         self.assertEqual(
             str(cover_image(db, book_id)),
             '<img src="/images/download/book_page.image.page_trees.png?size=original" />'
@@ -410,6 +426,37 @@ class TestFunctions(ImageTestCase):
         got = defaults(db, self._book.name, -1)
         self.assertEqual(got, {})
 
+    def test__formatted_name(self):
+        book_id = db.book.insert(name='My Book')
+        db.commit()
+        book = db(db.book.id == book_id).select().first()
+        self._objects.append(book)
+
+        type_id_by_name = {}
+        for t in db(db.book_type).select():
+            type_id_by_name[t.name] = t.id
+
+        tests = [
+            #(name, pub year, type, number, of_number, expect),
+            ('My Book', 1999, 'one-shot', 1, 999,
+                'My Book (1999)'),
+            ('My Book', 1999, 'ongoing', 12, 999,
+                'My Book 012 (1999)'),
+            ('My Book', 1999, 'mini-series', 2, 9,
+                'My Book 02 (of 09) (1999)'),
+        ]
+        for t in tests:
+            book.update_record(
+                name=t[0],
+                publication_year=t[1],
+                book_type_id=type_id_by_name[t[2]],
+                number=t[3],
+                of_number=t[4],
+            )
+            db.commit()
+            self.assertEqual(formatted_name(db, book), t[5])
+            self.assertEqual(formatted_name(db, book.id), t[5])
+
     def test__is_releasable(self):
         book_id = db.book.insert(
             name='test__is_releasable',
@@ -443,10 +490,44 @@ class TestFunctions(ImageTestCase):
         db.commit()
         self.assertFalse(is_releasable(db, book))
 
+    def test__numbers_for_book_type(self):
+        type_id_by_name = {}
+        for t in db(db.book_type).select():
+            type_id_by_name[t.name] = t.id
+
+        tests = [
+            #(name, expect)
+            ('ongoing', {'of_number': False, 'number': True}),
+            ('mini-series', {'of_number': True, 'number': True}),
+            ('one-shot', {'of_number': False, 'number': False}),
+        ]
+
+        for t in tests:
+            self.assertEqual(
+                numbers_for_book_type(db, type_id_by_name[t[0]]),
+                t[1]
+            )
+        self.assertEqual(
+            numbers_for_book_type(db, -1),
+            {'of_number': False, 'number': False}
+        )
+
     def test__publication_year_range(self):
         start, end = publication_year_range()
         self.assertEqual(start, 1900)
         self.assertEqual(end, datetime.date.today().year + 5)
+
+    def test__publication_years(self):
+        xml = publication_years()
+        got = ast.literal_eval(xml.xml())
+        self.assertEqual(got[0], {'value':'1900', 'text':'1900'})
+        self.assertEqual(got[1], {'value':'1901', 'text':'1901'})
+        self.assertEqual(got[100], {'value':'2000', 'text':'2000'})
+        final_year = datetime.date.today().year + 5 - 1
+        self.assertEqual(
+            got[-1],
+            {'value':str(final_year), 'text':str(final_year)}
+        )
 
     def test__read_link(self):
         empty = '<span></span>'
@@ -459,7 +540,8 @@ class TestFunctions(ImageTestCase):
 
         # As integer, book_id
         link = read_link(db, book_id)
-        # Eg <a data-w2p_disable_with="default" href="/zcomix/books/slider/57">Read</a>
+        # Eg <a data-w2p_disable_with="default"
+        #       href="/zcomix/books/slider/57">Read</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')

@@ -8,12 +8,14 @@ Test suite for zcomix/modules/stickon/tools.py
 """
 import os
 import unittest
+from BeautifulSoup import BeautifulSoup
 from ConfigParser import NoSectionError
 from gluon.shell import env
 from gluon.storage import Storage
 from applications.zcomix.modules.stickon.tools import \
-        ModelDb, \
-        SettingsLoader
+    ExposeImproved, \
+    ModelDb, \
+    SettingsLoader
 from applications.zcomix.modules.test_runner import LocalTestCase
 
 # R0904: Too many public methods
@@ -21,6 +23,65 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 
 APPLICATION = __file__.split(os.sep)[-4]
 APP_ENV = env(APPLICATION, import_models=False)
+
+
+class TestExposeImproved(LocalTestCase):
+
+    def test____init__(self):
+        expose = ExposeImproved()
+        self.assertTrue('.svg' in expose.image_extensions)
+
+    def test__isimage(self):
+        tests = [
+            #(path, expect),
+            ('/path/to/file.bmp', True),
+            ('/path/to/file.png', True),
+            ('/path/to/file.jpg', True),
+            ('/path/to/file.jpeg', True),
+            ('/path/to/file.gif', True),
+            ('/path/to/file.tiff', True),
+            ('/path/to/file.svg', True),
+            ('/path/to/file.doc', False),
+            ('/path/to/file.txt', False),
+            ('/path/to/file', False),
+        ]
+        for t in tests:
+            self.assertEqual(ExposeImproved.isimage(t[0]), t[1])
+
+    def test__xml(self):
+        base = 'applications/zcomix/static'
+        basename = 'Test Xml'
+        expose = ExposeImproved(base=base, basename=basename)
+        xml = expose.xml()
+        soup = BeautifulSoup(str(xml))
+        # print soup.prettify()
+
+        h2 = soup.find('h2')
+        self.assertEqual(h2.span.a.string, basename)
+
+        h3s = soup.findAll('h3')
+        self.assertEqual(len(h3s), 2)
+        self.assertEqual(h3s[0].string, 'Folders')
+        self.assertEqual(h3s[1].string, 'Files')
+
+        folders_table = h3s[0].nextSibling
+        anchors = folders_table.findAll('a')
+        folder_names = [x.string for x in anchors]
+        self.assertTrue('css' in folder_names)
+
+        files_table = h3s[1].nextSibling
+        anchors = files_table.findAll('a')
+        file_names = [x.string for x in anchors]
+        self.assertTrue('404.html' in file_names)
+
+        expose = ExposeImproved(
+            base=base, basename=basename, display_breadcrumbs=False)
+        xml = expose.xml()
+        soup = BeautifulSoup(str(xml))
+        # print soup.prettify()
+
+        h2s = soup.findAll('h2')
+        self.assertEqual(len(h2s), 0)
 
 
 class TestModelDb(LocalTestCase):
@@ -38,8 +99,8 @@ class TestModelDb(LocalTestCase):
         # response.static_version is set
         self.assertRegexpMatches(
             model_db.environment['response'].static_version,
-            '\d+\.\d+\.\d+'
-            )
+            r'\d+\.\d+\.\d+'
+        )
 
         #
         # Test with custom config file.
@@ -66,8 +127,8 @@ version = '0.1'
         model_db = ModelDb(APP_ENV, config_file=f_text, init_all=False)
         self.assertTrue(model_db)
 
-        self.assertEqual(model_db.environment['response'].static_version,
-            '2013.11.291')
+        self.assertEqual(
+            model_db.environment['response'].static_version, '2013.11.291')
 
         os.unlink(f_text)
 
@@ -101,8 +162,10 @@ class TestSettingsLoader(LocalTestCase):
 
     def test____repr__(self):
         settings_loader = SettingsLoader(config_file=None, application='app')
-        self.assertEqual(settings_loader.__repr__(),
-            """SettingsLoader(config_file=None, application='app'""")
+        self.assertEqual(
+            settings_loader.__repr__(),
+            """SettingsLoader(config_file=None, application='app'"""
+        )
 
     def test__get_settings(self):
         settings_loader = SettingsLoader()
@@ -116,7 +179,7 @@ class TestSettingsLoader(LocalTestCase):
                 'expect': {},
                 'raise': NoSectionError,
                 'text': '',
-                },
+            },
             {
                 'label': 'no web2py section',
                 'expect': {},
@@ -125,7 +188,7 @@ class TestSettingsLoader(LocalTestCase):
 [fake_section]
 setting = value
 """,
-                },
+            },
             {
                 'label': 'web2py section empty',
                 'expect': {},
@@ -133,7 +196,7 @@ setting = value
                 'text': """
 [web2py]
 """,
-                },
+            },
             {
                 'label': 'web2py one local setting',
                 'expect': {'local': {'version': '1.11'}},
@@ -142,18 +205,20 @@ setting = value
 [web2py]
 version = '1.11'
 """,
-                },
+            },
             {
                 'label': 'web2py two local setting',
-                'expect': {'local':
-                    {'username': 'jimk', 'version': '1.11'}},
+                'expect': {
+                    'local':
+                    {'username': 'jimk', 'version': '1.11'}
+                },
                 'raise': None,
                 'text': """
 [web2py]
 username = jimk
 version = '1.11'
 """,
-                },
+            },
             {
                 'label': 'app section',
                 'expect': {'local': {'email': 'abc@gmail.com',
@@ -168,14 +233,18 @@ version = '1.11'
 version = '2.22'
 email = abc@gmail.com
 """,
-                },
+            },
             {
                 'label': 'app section auth/mail',
                 'expect': {
                     'auth': {'username': 'admin', 'version': '5.55'},
                     'mail': {'username': 'mailer', 'version': '6.66'},
-                    'local': {'email': 'abc@gmail.com', 'username': 'jimk',
-                           'version': '2.22'}},
+                    'local': {
+                        'email': 'abc@gmail.com',
+                        'username': 'jimk',
+                        'version': '2.22'
+                    }
+                },
                 'raise': None,
                 'text': """
 [web2py]
@@ -192,8 +261,8 @@ mail.version = '6.66'
 version = '2.22'
 email = abc@gmail.com
 """,
-                },
-            ]
+            },
+        ]
 
         f_text = '/tmp/settings_loader_config.txt'
         for t in tests:
@@ -230,7 +299,8 @@ s09_str_float = '123.45'
         settings_loader.application = 'app'
         settings_loader.get_settings()
 
-        self.assertEqual(sorted(settings_loader.settings['local'].keys()),
+        self.assertEqual(
+            sorted(settings_loader.settings['local'].keys()),
             [
                 's01_true',
                 's02_false',
@@ -241,7 +311,8 @@ s09_str_float = '123.45'
                 's07_str_true',
                 's08_str_int',
                 's09_str_float',
-            ])
+            ]
+        )
 
         slocal = settings_loader.settings['local']
         self.assertEqual(slocal['s01_true'], True)
