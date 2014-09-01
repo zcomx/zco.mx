@@ -21,20 +21,33 @@ VERSION 1
         https://dev.zcomix.com/search?o=views
         [x] needs a cronjob
 
+    [x] Book Page
+        https://dev.zcomix.com/books/book/38
+        using double frame, should be torso
+
+        [x] Login -> Profile page
+            custom.css line 1627 -- change width: 110% to 112%
+
+    [x] Read page
+        slider: Animate when centering the page
+
+    [ ] Front Page
+        thumbnails are upscaling
+
     [ ] Read
         change prev/next to < and > from |<  >|
         glyphicon glyphicon-chevron-left
         glyphicon glyphicon-chevron-right
 
-    [ ] Book Page
-        https://dev.zcomix.com/books/book/38
-        using double frame, should be torso
+        [/] redo < and > icons
 
-        [ ] Login -> Profile page
-            custom.css line 1627 -- change width: 110% to 112%
+    [ ] howto paginate long gn
 
-    [ ] Read page
-        slider: Animate when centering the page
+    [ ] login -> books
+        add iframe code for each book
+        <embed/>
+        <iframe/>
+        SB 2014-08-29 11:24  This needs more thought
 
     ---
     [x] Test Downsampling Filters
@@ -47,22 +60,13 @@ VERSION 1
             \( -clone 0 -filter RobidouxSharp -distort Resize $res \) -delete 0 \
             \( -clone 1 -colorspace gray -auto-level \) -compose over -composite -colorspace sRGB -depth 8 +repage "$output"
 
-
-    [/] Resize Script
-        problem: resizing images with slightly different dimensions
-        [s] test by re-uploading jordan's images
-
-    [ ] Optimize and Scrub Files
+    [x] Optimize and Scrub Files
         Use mozjpeg
         $ mkdir /var/abs/local/mozjpeg; cd !$
         $ aurget -Sp mozjpeg > PKGBUILD
         $ makepkg -o mozjpeg     ## comment out check() function
         $ makepkg -ei mozjpeg
         $ jpegtran -copy none -optimize -progressive -outfile outfile.jpg infile.jpg
-
-        [ ] Imagemagick Error
-            * convert doesn't work and errors when mozjpeg is installed
-            * it needs to be re-compiled
 
     [ ] Switch everything over to zco.mx
         [x] google domain
@@ -93,9 +97,6 @@ VERSION 1
 
     [ ] Theme twitter
 
-    [ ] login -> books
-        add iframe code for each book
-
     [ ] Change Square Image Res ?
         web - from 1200px to  975px (1200+ 750)/2 ?
         cbz - from 2560px to 2070px (2560+1600)/2
@@ -110,7 +111,7 @@ VERSION 2 - Before Going Live
     * creative commons licence
     * for jpg indica https://101.zco.mx/Name_of_Comic_001/  ?
 
-[ ] Indica Page - jpg
+[ ] Indica Page - png
 
 [ ] wildcard ssl cert for zco.mx
 [ ] Rewrite urls
