@@ -85,6 +85,7 @@ _resize() {
 #        IFS=x read -r nw nh < <(identify -format '%P' "$nf")
 #        printf "%s %04s %04s %s\n" $fmt $nw $nh $nf
     done <<< "$d1"
+    return 0
 }
 
 _rename() {
@@ -100,9 +101,9 @@ _rename() {
 
 for i in convert identify jpegtran pngcrush; do command -v "$i" &>/dev/null || _me "$i not installed"; done
 (( $# == 0 )) && { _u; exit 1; }
-for i in $@; do _check_files; done
-for f in $@; do _resize; done
-for j in $@; do _rename; done
+for i in "$@"; do _check_files; done
+for f in "$@"; do _resize; done
+for j in "$@"; do _rename; done
 
 
 #####################################
