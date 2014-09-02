@@ -31,25 +31,28 @@ VERSION 1
     [x] Read page
         slider: Animate when centering the page
 
-    [ ] Front Page
-        thumbnails are upscaling
-
-    [ ] Read
+    [x] Read
         change prev/next to < and > from |<  >|
         glyphicon glyphicon-chevron-left
         glyphicon glyphicon-chevron-right
 
-        [/] redo < and > icons
+        [x] redo < and > icons
 
-    [ ] howto paginate long gn
+    [x] (i) mouse-over on Upload page
+        Changed max-width to 60em
 
-    [ ] login -> books
-        add iframe code for each book
-        <embed/>
-        <iframe/>
-        SB 2014-08-29 11:24  This needs more thought
+    [x] Change Square Image Res ?
+        web - from 1200px to  975px (1200+ 750)/2 ?
+        cbz - from 2560px to 2070px (2560+1600)/2
+        tbn - leave at 140px
 
-    ---
+    [j] Upload
+        "An error occured, please reload the page"
+        test luvsucker images from cli
+
+    [j] Front Page
+        thumbnails are upscaling
+
     [x] Test Downsampling Filters
         * current convert command bloats pngs
         $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"    ## current command
@@ -83,9 +86,13 @@ VERSION 1
         [-] github
             I think we should leave the username as 'zcomix' for now as github
             doesn't allow '.' in usernames
+        [x] setup CNAME for zcomix.com
+        [x] Front page
+        [x] FAQs
+        [x] bt.zco.mx and dc.zco.mx
+        [j] code
         [ ] paypal
             show.me@zcomix.com to show.me@zco.mx
-        [x] setup CNAME for zcomix.com
 
     [ ] Redo logo
         [x] hand colour 'Z'
@@ -97,13 +104,17 @@ VERSION 1
 
     [ ] Theme twitter
 
-    [ ] Change Square Image Res ?
-        web - from 1200px to  975px (1200+ 750)/2 ?
-        cbz - from 2560px to 2070px (2560+1600)/2
-        tbn - leave at 140px
-
 
 VERSION 2 - Before Going Live
+[ ] Read Page -> Scroll
+    howto paginate long gn's -- modulo 30?
+
+[ ] login -> books
+    add iframe code for each book
+    <embed/>
+    <iframe/>
+    SB 2014-08-29 11:24  This needs more thought
+
 [ ] Indica Page - html
     * last page of comic
     * call to action (last page (jpg in cbz and html in scroll/slider))

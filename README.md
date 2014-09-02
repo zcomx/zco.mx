@@ -1,7 +1,7 @@
-zcomix.com
+zco.mx
 ==========
 
-zcomix.com code base.
+zco.mx code base.
 
 Requirements
 ------------
