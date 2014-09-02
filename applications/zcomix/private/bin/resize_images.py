@@ -133,6 +133,7 @@ class ImageHandler(object):
             db(field.table.id == record_id).update(**data)
             db.commit()
             if str(field) == 'book_page.image':
+                up_image = UploadImage(field, stored_filename)
                 set_thumb_dimensions(
                     db, record_id, up_image.dimensions(size='tbn')
                 )
