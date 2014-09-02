@@ -9,10 +9,10 @@ import glob
 import imghdr
 import logging
 import os
+import pwd
 import re
 import shutil
 import subprocess
-from BeautifulSoup import BeautifulSoup
 from PIL import Image
 from gluon import *
 from gluon.globals import Response
@@ -427,6 +427,14 @@ def store(field, filename):
     Return:
         string, the name of the file in storage.
     """
+    def set_owner(filename):
+        """Set ownership on a file."""
+        os.chown(
+            filename,
+            pwd.getpwnam('http').pw_uid,
+            pwd.getpwnam('http').pw_gid
+        )
+
     resize_img = ResizeImg(filename)
     resize_img.run()
     original_filename = resize_img.filenames['ori']
@@ -435,6 +443,7 @@ def store(field, filename):
     # stored_filename doesn't have a full path. Use retreive to get
     # file name will full path.
     unused_name, fullname = field.retrieve(stored_filename, nameonly=True)
+    set_owner(fullname)
     for size, name in resize_img.filenames.items():
         if size == 'ori':
             continue
@@ -446,5 +455,7 @@ def store(field, filename):
             os.makedirs(sized_path)
         # $ mv name sized_filename
         shutil.move(name, sized_filename)
+        set_owner(sized_filename)
+
     resize_img.cleanup()
     return stored_filename
