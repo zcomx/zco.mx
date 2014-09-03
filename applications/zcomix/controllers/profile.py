@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """Creator profile controller functions"""
+import datetime
 import os
 import shutil
-import datetime
+import sys
 from gluon.contrib.simplejson import dumps
 from applications.zcomix.modules.book_upload import BookPageUploader
 from applications.zcomix.modules.books import \
@@ -325,7 +326,12 @@ def book_pages_handler():
         files = request.vars['up_files[]']
         if not isinstance(files, list):
             files = [files]
-        return BookPageUploader(book_record.id, files).upload()
+        try:
+            result = BookPageUploader(book_record.id, files).upload()
+        except Exception as err:
+            print >> sys.stderr, 'Upload failed, err: {err}'.format(err=err)
+            return do_error('The upload was not successful.')
+        return result
     elif request.env.request_method == 'DELETE':
         book_page_id = request.vars.book_page_id
         book_page = db(db.book_page.id == book_page_id).select().first()
