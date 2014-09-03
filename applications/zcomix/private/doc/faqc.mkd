@@ -1,8 +1,8 @@
-##### [[As a cartoonist, why would I want to use zcomix? #use]]
+##### [[As a cartoonist, why would I want to use zco.mx? #use]]
 ##### [[Why would I not use my own website? #own]]
 ##### [[How can goodwill be created? #goodwill]]
 ##### [[Doesn't paper offer a superior reading experience? #paper]]
-##### [[I run a successful webcomic, wouldn't zcomix lower my web traffic? #traffic]]
+##### [[I run a successful webcomic, wouldn't zco.mx lower my web traffic? #traffic]]
 ##### [[As an established artist, why would I want to associate my work with others? #associate]]
 ##### [[Why use P2P networks to distribute the files? #p2p]]
 ##### [[Do digital comics take away from paper sales? #digital]]
@@ -14,7 +14,7 @@
 -----
 
 [[use]]
-#### As a cartoonist, why would I want to use zcomix?
+#### As a cartoonist, why would I want to use zco.mx?
 People love to share their culture with others.  Virtually every popular
 comic is freely available online.  In this digital age it's impossible
 for the self-publishing cartoonist industry to stop sharing, nor should
@@ -55,7 +55,7 @@ to support creators with purchases of their material.
 
 [[goodwill]]
 #### How can goodwill be created?
-[[Goodwill https://dev.zcomix.com/goodwill]]
+[[Goodwill https://dev.zco.mx/goodwill]]
 
 
 [[paper]]
@@ -75,15 +75,15 @@ natural.  The demand for digital content should increase immensely.
 
 
 [[traffic]]
-#### I run a successful webcomic, wouldn't zcomix lower my web traffic?
-The design of zcomix is intentionally simple and unassuming. zcomix.com
-is about making content available.  Each creator on zcomix has a page
+#### I run a successful webcomic, wouldn't zco.mx lower my web traffic?
+The design of zco.mx is intentionally simple and unassuming. zco.mx
+is about making content available.  Each creator on zco.mx has a page
 with a brief description and a list of all their material. Creators can
 add custom links including their home page, social channels (blogs,
 twitter, tumblr, etc), and any webpages where their material can be
 found -- both digital and print.
 
-If zcomix can increase the audience size, and give readers access to
+If zco.mx can increase the audience size, and give readers access to
 creators' material in a consistent, familiar way, this should drive even
 more traffic to personal sites and increase the volume on social
 channels (eg tumblr, blogs, twitter, facebook, etc).
@@ -91,7 +91,7 @@ channels (eg tumblr, blogs, twitter, facebook, etc).
 
 [[associate]]
 #### As an established artist, why would I want to associate my work with others?
-If there are many comics hosted on zcomix, then there should be no
+If there are many comics hosted on zco.mx, then there should be no
 positive or negative association with the content (similar to Youtube).
 
 
@@ -100,7 +100,7 @@ positive or negative association with the content (similar to Youtube).
 From a technical standpoint P2P networks save on bandwidth and reduce
 network congestion. As well, these networks ensure there are multiple
 copies of the files available.  This has the benefit of acting like a
-file backup.  If the zcomix server (or any user) were to lose their
+file backup.  If the zco.mx server (or any user) were to lose their
 data, it could be rebuilt via P2P networks.
 
 More importantly the P2P communities, especially the Direct Connect (DC)

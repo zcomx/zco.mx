@@ -1,68 +1,10 @@
 ``
 VERSION 1
 [ ] UX/UI
-    [x] login -> profile
-        add (i) for links
-        https://maps.gstatic.com/tactile/omnibox/ad_info-1x.png
-
-    [x] unique div's
-        .row_container .field_container, .row_container .field_label (Description)
-        #book_edit_section .field_container_description
-        #book_edit_section .book_description_input
-
-        #add_link_container .link_url
-
-    [x] Slider
-        Disable looping.  Clicking on the last image does nothing, it doesn't
-        go back to the first image.
-
-    [x] Front Page
-        'views' stats are not working
-        https://dev.zcomix.com/search?o=views
-        [x] needs a cronjob
-
-    [ ] Read
-        change prev/next to < and > from |<  >|
-        glyphicon glyphicon-chevron-left
-        glyphicon glyphicon-chevron-right
-
-    [ ] Book Page
-        https://dev.zcomix.com/books/book/38
-        using double frame, should be torso
-
-        [ ] Login -> Profile page
-            custom.css line 1627 -- change width: 110% to 112%
-
-    [ ] Read page
-        slider: Animate when centering the page
-
-    ---
-    [x] Test Downsampling Filters
-        * current convert command bloats pngs
-        $ convert "$input" -limit memory 200MB -limit map 200MB -quiet -colorspace Lab ${resize:+-resize "$resize"} -interpolate catrom -set colorspace Lab -colorspace sRGB "$output"    ## current command
-        $ convert "$input" -colorspace RGB +sigmoidal-contrast 7.5 -define filter:window=Quadratic -distort Resize "$res" -sigmoidal-contrast 7.5 -colorspace sRGB "$output"    ## possible replacement
-        $ convert "$f[0]" -quiet -colorspace "$cs" -filter Lanczos2 -distort Resize $res -colorspace sRGB +repage "$nf"     ## lanczos2 looks like the winner
-        $ convert \( "$input[0]" -quiet -define jpeg:preserve-settings -colorspace "$cs" \) \
-            \( -clone 0 -gamma 1.666666666666666 -filter RobidouxSharp -distort Resize $res -gamma 0.6 \) \
-            \( -clone 0 -filter RobidouxSharp -distort Resize $res \) -delete 0 \
-            \( -clone 1 -colorspace gray -auto-level \) -compose over -composite -colorspace sRGB -depth 8 +repage "$output"
-
-
-    [/] Resize Script
-        problem: resizing images with slightly different dimensions
-        [s] test by re-uploading jordan's images
-
-    [ ] Optimize and Scrub Files
-        Use mozjpeg
-        $ mkdir /var/abs/local/mozjpeg; cd !$
-        $ aurget -Sp mozjpeg > PKGBUILD
-        $ makepkg -o mozjpeg     ## comment out check() function
-        $ makepkg -ei mozjpeg
-        $ jpegtran -copy none -optimize -progressive -outfile outfile.jpg infile.jpg
-
-        [ ] Imagemagick Error
-            * convert doesn't work and errors when mozjpeg is installed
-            * it needs to be re-compiled
+    [j] Upload
+        - "An error occured, please reload the page"
+        - test luvsucker images from cli
+        SB 2014-09-02 12:04  sent jim an email
 
     [ ] Switch everything over to zco.mx
         [x] google domain
@@ -79,9 +21,13 @@ VERSION 1
         [-] github
             I think we should leave the username as 'zcomix' for now as github
             doesn't allow '.' in usernames
-        [ ] paypal
-            show.me@zcomix.com to show.me@zco.mx
         [x] setup CNAME for zcomix.com
+        [x] Front page
+        [x] FAQs
+        [x] bt.zco.mx and dc.zco.mx
+        [x] paypal
+            show.me@zcomix.com to show.me@zco.mx
+        [j] code
 
     [ ] Redo logo
         [x] hand colour 'Z'
@@ -93,14 +39,6 @@ VERSION 1
 
     [ ] Theme twitter
 
-    [ ] login -> books
-        add iframe code for each book
-
-    [ ] Change Square Image Res ?
-        web - from 1200px to  975px (1200+ 750)/2 ?
-        cbz - from 2560px to 2070px (2560+1600)/2
-        tbn - leave at 140px
-
 
 VERSION 2 - Before Going Live
 [ ] Indica Page - html
@@ -110,45 +48,47 @@ VERSION 2 - Before Going Live
     * creative commons licence
     * for jpg indica https://101.zco.mx/Name_of_Comic_001/  ?
 
-[ ] Indica Page - jpg
+[ ] Indica Page - png
 
 [ ] wildcard ssl cert for zco.mx
 [ ] Rewrite urls
-    https://zcomix.com
     https://zco.mx
-    https://login.zcomix.com
-    https://101.zcomix.com
-    https://101.zcomix.com/Name_of_Comic_001/
-    https://101.zcomix.com/Name_of_Comic_001/001.jpg
-    https://101.zcomix.com/Name_of_Comic_001.torrent
-    https://101.zcomix.com/Name_of_Comic_01_of_04/
-    https://101.zcomix.com/Name_of_Comic_01_of_04/001.jpg
-    https://101.zcomix.com/Name_of_Comic_01_of_04.torrent
-    https://zcomix.com/Cartoonist_Name/
-    https://zcomix.com/Cartoonist_Name/Name_of_Comic_001_(2014)/001.jpg
-    https://zcomix.com/faq
-    https://zcomix.com/ALL.torrent
+    https://login.zco.mx
+    https://101.zco.mx
+    https://101.zco.mx/Name_of_Comic_001/
+    https://101.zco.mx/Name_of_Comic_001/001.jpg
+    https://101.zco.mx/Name_of_Comic_001.torrent
+    https://101.zco.mx/Name_of_Comic_01_of_04/
+    https://101.zco.mx/Name_of_Comic_01_of_04/001.jpg
+    https://101.zco.mx/Name_of_Comic_01_of_04.torrent
+    https://zco.mx/Cartoonist_Name/
+    https://zco.mx/Cartoonist_Name/Name_of_Comic_001_(2014)/001.jpg
+    https://zco.mx/faq
+    https://zco.mx/ALL.torrent
 
-    https://zcomix.com/101/             ??
-    https://Cartoonist_Name.zcomix.com  ??
+    https://zco.mx/101/             ??
+    https://Cartoonist_Name.zco.mx  ??
 
     "Name of Comic 001 (2014) (101.zco.mx).cbz"
-    "Name of Comic 001 (2014) (101.zcomix.com).cbz"
     "Name of Comic 001 (2012) (digital-Empire).cbr"
     "Name of Comic 001 (2012) (digital) (Son of Ultron-Empire).cbr"
 
 [ ] Add torrent and dc functionality
 [ ] Front Page
     add report 'newest released' (or 'released' ?)
-[O] (i) info popups
+[ ] Read Page -> Scroll
+    howto paginate long gn's -- modulo 30?
+[ ] login -> books
+    add iframe code for each book
+    <embed/>
+    <iframe/>
+    SB 2014-08-29 11:24  This needs more thought
 [O] Mature Content icon
 [ ] Check for duplicate file/book names
 [ ] login -> books page - paginate 'released' and 'ongoing' books
 [ ] Reader notifications of new material (rss? and mailing list?)
-
 [ ] Copyright material
     DMCA / C&D disclaimer button would work
-
 [ ] Social media links other than on the indica ??
 [ ] Tags (kids, by genre ??)
 [ ] Url checker

@@ -1,6 +1,6 @@
-##### [[What is zcomix? #zcomix]]
+##### [[What is zco.mx? #zco.mx]]
 ##### [[Can anyone upload content? #upload]]
-##### [[How does zcomix pay its expenses? #expenses]]
+##### [[How does zco.mx pay its expenses? #expenses]]
 ##### [[What is up with the design of the site? #design]]
 ##### [[What is a cbr/cbz file? #cbz]]
 ##### [[What is the Direct Connect (DC) network? #dc]]
@@ -13,9 +13,9 @@
 
 -----
 
-[[zcomix]]
-#### What is zcomix?
-zcomix is a curated, not-for-profit comic-sharing website for
+[[zco.mx]]
+#### What is zco.mx?
+zco.mx is a curated, not-for-profit comic-sharing website for
 self-publishing cartoonists and their readers.
 
 Readers can browse a large library of comics, read them online or
@@ -33,8 +33,8 @@ To start, due to scalability, the site will be curated.
 
 
 [[expenses]]
-#### How does zcomix pay its expenses?
-zcomix is not-for-profit.  It raises money for hosting expenses the
+#### How does zco.mx pay its expenses?
+zco.mx is not-for-profit.  It raises money for hosting expenses the
 same way cartoonists raise money, via
 [[donations [Contribute via paypal] /contribute popup]].
 The time to create and maintain the site is donated free of charge --
@@ -45,13 +45,13 @@ source https://github.com/zcomix]].
 [[design]]
 #### What is up with the design of the site?
 We've tried to keep the look generic and neutral, wikipedia-like,
-without imposing any brand or image. The goal is not to promote zcomix
+without imposing any brand or image. The goal is not to promote zco.mx
 itself, but to put cartoonists and their work front and centre.
 
 Most sites use their own comic veiwer.  Some sites use a scroll method,
 others a slider. Many sites use Flash viewers which do not allow reader
 to direct links to pages of a book.  This creates a unpredictable and
-unsettling user experience. The aim for zcomix is for a consistent,
+unsettling user experience. The aim for zco.mx is for a consistent,
 simple interface.
 
 
@@ -78,7 +78,7 @@ Windows | [[Apex http://www.apexdc.net]]
 Mac     | [[EiskaltDC++ https://code.google.com/p/eiskaltdc/]]
 Linux   | [[Linuxdc++ https://launchpad.net/linuxdcpp]]
 ---------
-######Server Address: adc://dc.zcomix.com:1511
+######Server Address: adc://dc.zco.mx:1511
 
 
 [[bittorrent]]
@@ -100,7 +100,7 @@ Linux   | [[Deluge http://deluge-torrent.org]]
 #### Why use P2P networks to distribute the files?
 P2P networks save on bandwidth and alleviate network congestion. These
 networks also ensure there are multiple copies of the files available.
-This has the benefit of acting as a file backup.  If the zcomix server
+This has the benefit of acting as a file backup.  If the zco.mx server
 (or any user) were to lose their data, files could be restored via the
 P2P networks.
 
@@ -117,4 +117,4 @@ iPad/iPhone | [[SideBooks https://itunes.apple.com/us/app/sidebooks/id409777225?
 
 [[logo]]
 #### I'd like to link back to your site, do you have a logo I can use?
-Logos can be found [[here https://dev.zcomix.com/logos]].
+Logos can be found [[here https://dev.zco.mx/logos]].
