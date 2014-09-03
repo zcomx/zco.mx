@@ -1,4 +1,5 @@
 #!/bin/bash
+export MAGICK_THREAD_LIMIT=4
 
 r1='GIF|JPEG|PNG'
 d1='cbz 1600 2560 625 1600
@@ -71,13 +72,12 @@ _resize() {
         fi
 
         filter=RobidouxSharp
-        _colourmap
+        [[ ! -f colourmap.png ]] && _colourmap
         convert \( "$f[0]" -quiet -define jpeg:preserve-settings -colorspace $cs \) \
             \( -clone 0 -gamma 1.666666666666666 -filter $filter -distort Resize $res -gamma 0.6 \) \
             \( -clone 0 -filter $filter -distort Resize $res \) -delete 0 \
             \( -clone 1 -colorspace gray -auto-level \) -compose over -composite \
             -set colorspace $cs -colorspace sRGB -depth 8 $cm +repage "$nf"
-        rm colourmap.png &>/dev/null
 
         [[ ${nf##*.} == png ]] && pngcrush -q -ow "$nf"
         [[ ${nf##*.} == jpg ]] && jpegtran -copy none -optimize -progressive "$nf" > foo.jpg && mv foo.jpg "$nf"
@@ -85,6 +85,7 @@ _resize() {
 #        IFS=x read -r nw nh < <(identify -format '%P' "$nf")
 #        printf "%s %04s %04s %s\n" $fmt $nw $nh $nf
     done <<< "$d1"
+    rm colourmap.png &>/dev/null
     return 0
 }
 
