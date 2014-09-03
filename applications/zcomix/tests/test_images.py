@@ -6,8 +6,10 @@
 Test suite for zcomix/modules/utils.py
 
 """
+import grp
 import inspect
 import os
+import pwd
 import re
 import shutil
 import unittest
@@ -724,6 +726,16 @@ class TestFunctions(ImageTestCase):
             self.assertEqual(book_page.thumb_h, t[1])
 
     def test__store(self):
+
+        def owner(filename):
+            """Return the owner (user, group) of the file."""
+            stat_info = os.stat(filename)
+            uid = stat_info.st_uid
+            gid = stat_info.st_gid
+            user = pwd.getpwuid(uid)[0]
+            group = grp.getgrgid(gid)[0]
+            return (user, group)
+
         working_image = self._prep_image('cbz_plus.jpg')
         got = store(db.book_page.image, working_image)
         re_store = re.compile(
@@ -737,6 +749,7 @@ class TestFunctions(ImageTestCase):
         for size in ['original', 'cbz', 'web', 'tbn']:
             filename = up_image.fullname(size=size)
             self.assertTrue(os.path.exists(filename))
+            self.assertEqual(owner(filename), ('http', 'http'))
 
         # Cleanup: Remove all files
         up_image.delete_all()
