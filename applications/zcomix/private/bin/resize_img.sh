@@ -22,13 +22,13 @@ EOF
 
 _check_files() {
     identify "$i" &>/dev/null || _me "$i is not an image or image is corrupt"
-    identify -verbose "$i" 2>&1 | grep -Pq '^identify: Corrupt' && _me "$i is corrupt"
+    identify -regard-warnings -format "%g" "$i" &>/dev/null || _me "$i is corrupt"
     ext=$(identify -format '%m' "$i"[0] 2>/dev/null)
     [[ $ext =~ $r1 ]] || _me "$i is not a GIF, PNG or JPEG image"
 }
 
 _colourmap() {
-    unset cj cm nc
+    [[ -f colourmap.png ]] && { nf=${nf%.*}.png; return; }      ## skip colourmap if it exists
     if [[ ${f##*.} == jpg ]]; then
         nc=$(identify -format '%k' "$f"[0])
         (( $nc > 256 )) && return
@@ -72,15 +72,14 @@ _resize() {
         fi
 
         filter=RobidouxSharp
-        [[ ! -f colourmap.png ]] && _colourmap
         convert \( "$f[0]" -quiet -define jpeg:preserve-settings -colorspace $cs \) \
             \( -clone 0 -gamma 1.666666666666666 -filter $filter -distort Resize $res -gamma 0.6 \) \
             \( -clone 0 -filter $filter -distort Resize $res \) -delete 0 \
             \( -clone 1 -colorspace gray -auto-level \) -compose over -composite \
             -set colorspace $cs -colorspace sRGB -depth 8 $cm +repage "$nf"
 
-        [[ ${nf##*.} == png ]] && pngcrush -q -ow "$nf"
-        [[ ${nf##*.} == jpg ]] && jpegtran -copy none -optimize -progressive "$nf" > foo.jpg && mv foo.jpg "$nf"
+        [[ ${nf##*.} == png ]] && pngcrush -q -ow "$nf" &
+        [[ ${nf##*.} == jpg ]] && { jpegtran -copy none -optimize -progressive "$nf" > foo.jpg && mv foo.jpg "$nf"; } &
 
 #        IFS=x read -r nw nh < <(identify -format '%P' "$nf")
 #        printf "%s %04s %04s %s\n" $fmt $nw $nh $nf
@@ -104,7 +103,7 @@ for i in convert identify jpegtran pngcrush; do command -v "$i" &>/dev/null || _
 (( $# == 0 )) && { _u; exit 1; }
 for i in "$@"; do _check_files; done
 for f in "$@"; do _resize; done
-for j in "$@"; do _rename; done
+for j in "$@"; do _rename; done &
 
 
 #####################################
