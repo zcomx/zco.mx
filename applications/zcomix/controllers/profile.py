@@ -60,6 +60,7 @@ def book_crud():
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
+        """Error handler."""
         return {'status': 'error', 'msg': msg or 'Server request failed.'}
 
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
@@ -303,8 +304,12 @@ def book_pages_handler():
     request.vars.book_page_id: integer, id of book_page to delete
 
     """
-    def do_error(msg):
-        return dumps({'files': [{'error': msg}]})
+    def do_error(msg, files=None):
+        """Error handler."""
+        if files == None:
+            files = ['']
+        messages = [{'name': x, 'error': msg} for x in files]
+        return dumps({'files': messages})
 
     # Verify user is legit
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
@@ -329,7 +334,10 @@ def book_pages_handler():
             result = BookPageUploader(book_record.id, files).upload()
         except Exception as err:
             print >> sys.stderr, 'Upload failed, err: {err}'.format(err=err)
-            return do_error('The upload was not successful.')
+            return do_error(
+                'The upload was not successful.',
+                files=[x.filename for x in files]
+            )
         return result
     elif request.env.request_method == 'DELETE':
         book_page_id = request.vars.book_page_id
@@ -359,6 +367,7 @@ def book_pages_reorder():
     request.vars.book_page_ids[], list of book page ids.
     """
     def do_error(msg):
+        """Error handler."""
         return dumps({'success': False, 'error': msg})
 
     # Verify user is legit
@@ -500,6 +509,7 @@ def creator_crud():
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
+        """Error handler."""
         return {'status': 'error', 'msg': msg or 'Server request failed.'}
 
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
@@ -539,8 +549,12 @@ def creator_img_handler():
     # POST
     request.vars.up_files: list of files representing creator image.
     """
-    def do_error(msg):
-        return dumps({'files': [{'error': msg}]})
+    def do_error(msg, files=None):
+        """Error handler."""
+        if files == None:
+            files = ['']
+        messages = [{'name': x, 'error': msg} for x in files]
+        return dumps({'files': messages})
 
     # Verify user is legit
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
@@ -554,13 +568,13 @@ def creator_img_handler():
         files = request.vars.up_files
         if not isinstance(files, list):
             files = [files]
-        file = files[0]
+        up_file = files[0]
 
         with TemporaryDirectory() as tmp_dir:
-            local_filename = os.path.join(tmp_dir, file.filename)
+            local_filename = os.path.join(tmp_dir, up_file.filename)
             with open(local_filename, 'w+b') as lf:
                 # This will convert cgi.FieldStorage to a regular file.
-                shutil.copyfileobj(file.file, lf)
+                shutil.copyfileobj(up_file.file, lf)
 
             try:
                 stored_filename = store(db.creator.image, local_filename)
@@ -568,7 +582,10 @@ def creator_img_handler():
                 stored_filename = None
 
         if not stored_filename:
-            return do_error('File upload failed.')
+            return do_error(
+                'File upload failed.',
+                files=[up_file.filename]
+            )
 
         if creator_record.image and creator_record.image != stored_filename:
             filename, _ = db.creator.image.retrieve(
@@ -666,6 +683,7 @@ def link_crud():
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
+        """Error handler."""
         return {'status': 'error', 'msg': msg or 'Server request failed.'}
 
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(

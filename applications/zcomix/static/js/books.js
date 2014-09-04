@@ -430,8 +430,11 @@
                     $('.btn_release').prop('disabled', !release_enabled).toggleClass('disabled', !release_enabled);
                 }
             }
-            });
-        $('.modal-upload-btn').modalize('upload', {'onhidden': reorder_pages});
+        });
+        $('.modal-upload-btn').modalize('upload', {
+            'onhidden': reorder_pages,
+            'bootstrap_dialog_options':  {'closable': false},
+        });
     }
 
     $(document).ready(function(){

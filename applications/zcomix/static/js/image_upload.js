@@ -36,6 +36,7 @@
                 }).done(function (result) {
                     $(this).fileupload('option', 'done')
                         .call(this, $.Event('done'), {result: result});
+                    $('span.preview').removeClass('hidden');
                 });
             },
 
@@ -48,7 +49,6 @@
                     return translation[raw_msg];
                 }
                 return raw_msg;
-                return 'The file upload failed.';
             },
 
             _run: function(elem) {
@@ -56,8 +56,11 @@
                     url: settings.url,
                     autoUpload: true,
                     limitConcurrentUploads: 3,
+                    previewMaxWidth:  170,
+                    previewMaxHeight: 170,
                     completed: methods._completed_callback,
                     destroyed: methods._deleted_callback,
+                    stopped: methods._stopped_callback,
                     _error_scrub: methods._error_scrub,
                     });
 
@@ -90,6 +93,16 @@
                     $('#fileupload').removeClass('fileupload-processing');
                 });
             },
+
+            _stopped_callback: function(e, data) {
+                /* Some preview images don't load, reload */
+                $('span.preview a img').each(function(idx, e) {
+                    var src = $(this).attr('src');
+                    $(this).attr({'src': src});
+                });
+                $('span.preview').removeClass('hidden');
+            },
+
         };
 
         return this.each( function(index, elem) {
