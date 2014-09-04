@@ -185,13 +185,18 @@ class ResizeImg(TempDirectoryMixin):
 
         Args:
             filename: string, name of original image file
+            nice: If True, run resize script with nice.
         """
         self.filename = filename
         self.filename_base = os.path.basename(self.filename)
         self.filenames = {'ori': None, 'cbz': None, 'web': None, 'tbn': None}
 
-    def run(self):
-        """Run the shell script and get the output."""
+    def run(self, nice=False):
+        """Run the shell script and get the output.
+
+        Args:
+            nice: If True, run resize script with nice.
+        """
         resize_script = os.path.abspath(
             os.path.join(
                 current.request.folder, 'private', 'bin', 'resize_img.sh')
@@ -202,7 +207,10 @@ class ResizeImg(TempDirectoryMixin):
         # The images created by resize_img.sh are placed in the current
         # directory. Change to the temp directory so they are created there.
         with Cwd(self.temp_directory()):
-            args = [resize_script]
+            args = []
+            if nice:
+                args.append('nice')
+            args.append(resize_script)
             if self.filename:
                 args.append(real_filename)
             p = subprocess.Popen(
@@ -353,17 +361,21 @@ def is_image(filename, image_types=None):
     return True
 
 
-def optimize(filename):
+def optimize(filename, nice=False):
     """Optimize an image file in place.
 
     Args:
         filename: string, name of file.
+        nice: If True, run optimize script with nice.
     """
     optimize_script = os.path.abspath(
         os.path.join(
             current.request.folder, 'private', 'bin', 'optimize_img.sh')
     )
-    args = [optimize_script]
+    args = []
+    if nice:
+        args.append('nice')
+    args.append(optimize_script)
     args.append(os.path.abspath(filename))
 
     # Background the process
@@ -405,7 +417,7 @@ def store(field, filename):
         string, the name of the file in storage.
     """
     resize_img = ResizeImg(filename)
-    resize_img.run()
+    resize_img.run(nice=True)
     original_filename = resize_img.filenames['ori']
     with open(original_filename, 'r+b') as f:
         stored_filename = field.store(f, filename=filename)
@@ -425,7 +437,7 @@ def store(field, filename):
         # $ mv name sized_filename
         shutil.move(name, sized_filename)
         set_owner(sized_filename)
-        optimize(sized_filename)
+        optimize(sized_filename, nice=True)
 
     resize_img.cleanup()
     return stored_filename
