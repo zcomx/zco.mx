@@ -13,9 +13,9 @@ _me() { [[ -t 1 ]] && local r=$RED coff=$COLOUROFF; printf "$r===> ERROR: %s$cof
 _u() { script=${0##*/}; cat << EOF
 usage: $script [file1, file2... fileN]
 
-This script resizes and optimizes GIF, JPG and PNG files.  If the input
-image is large enough, the script outputs images suitable for cbz files,
-for use on the web as well as thumbnails.
+This script resizes GIF, JPG and PNG files.  If the input image is large
+enough, the script outputs images suitable for cbz files, for use on the
+web as well as thumbnails.
 
 EOF
 }
@@ -78,9 +78,6 @@ _resize() {
             \( -clone 1 -colorspace gray -auto-level \) -compose over -composite \
             -set colorspace $cs -colorspace sRGB -depth 8 $cm +repage "$nf"
 
-        [[ ${nf##*.} == png ]] && pngcrush -q -ow "$nf" &
-        [[ ${nf##*.} == jpg ]] && { jpegtran -copy none -optimize -progressive "$nf" > foo.jpg && mv foo.jpg "$nf"; } &
-
 #        IFS=x read -r nw nh < <(identify -format '%P' "$nf")
 #        printf "%s %04s %04s %s\n" $fmt $nw $nh $nf
     done <<< "$d1"
@@ -89,21 +86,18 @@ _resize() {
 }
 
 _rename() {
-    ext=$(identify -format '%m' "$i"[0] 2>/dev/null)
+    ext=$(identify -format '%m' "$j"[0] 2>/dev/null)
     [[ $ext == JPEG ]] && ext=jpg
-    k=${j##*/}      ## strip off path
-    ori=ori-${k%.*}.${ext,,}
+    ori=${j##*/}; ori=ori-${ori%.*}.${ext,,}    ## strip off path and ensure ext is correct
     mv "$j" "$ori"  ## ensure ext is correct
-    [[ ${ori##*.} == png ]] && pngcrush -q -ow "$ori"
-    [[ ${ori##*.} == jpg ]] && jpegtran -copy none -optimize -progressive "$ori" > foo.jpg && mv foo.jpg "$ori"
     return 0
 }
 
-for i in convert identify jpegtran pngcrush; do command -v "$i" &>/dev/null || _me "$i not installed"; done
+for i in convert identify; do command -v "$i" &>/dev/null || _me "$i not installed"; done
 (( $# == 0 )) && { _u; exit 1; }
 for i in "$@"; do _check_files; done
 for f in "$@"; do _resize; done
-for j in "$@"; do _rename; done &
+for j in "$@"; do _rename; done
 
 
 #####################################

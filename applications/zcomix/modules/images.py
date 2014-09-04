@@ -32,11 +32,6 @@ SIZES = [
 ]
 
 
-class ImageOptimizeError(Exception):
-    """Exception class for an image optimize errors."""
-    pass
-
-
 class Downloader(Response):
     """Class representing an image downloader"""
 
@@ -90,6 +85,11 @@ class Downloader(Response):
             headers['Content-Disposition'] = \
                 fmt % download_filename.replace('"', '\"')
         return self.stream(stream, chunk_size=chunk_size, request=request)
+
+
+class ImageOptimizeError(Exception):
+    """Exception class for an image optimize errors."""
+    pass
 
 
 class ImgTag(object):
@@ -353,6 +353,24 @@ def is_image(filename, image_types=None):
     return True
 
 
+def optimize(filename):
+    """Optimize an image file in place.
+
+    Args:
+        filename: string, name of file.
+    """
+    optimize_script = os.path.abspath(
+        os.path.join(
+            current.request.folder, 'private', 'bin', 'optimize_img.sh')
+    )
+    args = [optimize_script]
+    args.append(os.path.abspath(filename))
+
+    # Background the process
+    subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+
 def set_thumb_dimensions(db, book_page_id, dimensions):
     """Set the db.book_page.thumb_* dimension values for a page.
 
@@ -407,6 +425,7 @@ def store(field, filename):
         # $ mv name sized_filename
         shutil.move(name, sized_filename)
         set_owner(sized_filename)
+        optimize(sized_filename)
 
     resize_img.cleanup()
     return stored_filename

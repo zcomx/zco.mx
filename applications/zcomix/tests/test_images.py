@@ -12,6 +12,7 @@ import os
 import pwd
 import re
 import shutil
+import time
 import unittest
 from BeautifulSoup import BeautifulSoup
 from PIL import Image
@@ -30,6 +31,7 @@ from applications.zcomix.modules.images import \
     UploadImage, \
     filename_for_size, \
     is_image, \
+    optimize, \
     set_thumb_dimensions, \
     store
 from applications.zcomix.modules.test_runner import LocalTestCase
@@ -702,6 +704,15 @@ class TestFunctions(ImageTestCase):
         # This file is a python ASCII text, test it.
         this_filename = inspect.getfile(inspect.currentframe())
         self.assertFalse(is_image(this_filename))
+
+    def test__optimize(self):
+        for img in ['unoptimized.png', 'unoptimized.jpg']:
+            working_image = self._prep_image(img)
+            size_bef = os.stat(working_image).st_size
+            optimize(working_image)
+            time.sleep(1)          # Wait for background process to complete.
+            size_aft = os.stat(working_image).st_size
+            self.assertTrue(size_aft < size_bef)
 
     def test__set_thumb_dimensions(self):
         book_page_id = db.book_page.insert(
