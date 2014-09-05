@@ -329,6 +329,33 @@
         this.init(element, action, options);
     }
     $.fn.modalize_utils.inherit(UploadModalize, Modalize);
+    $.extend(UploadModalize.prototype, {
+        buttons: function() {
+            var that = this;
+            var btns = [];
+            btns.push({
+                label: 'Close',
+                cssClass: 'btn_upload_close',
+                action : function(dialog){
+                    var close = true;
+                    var activeUploads = $('#fileupload').fileupload('active');
+                    if (activeUploads > 0) {
+                        if (!confirm('Active uploads will be aborted.')) {
+                            return false;
+                        }
+                        dialog.getModalBody().find('.template-upload').each(function() {
+                            var data = $(this).data('data') || {};
+                            if (data.jqXHR) {
+                                data.jqXHR.abort();
+                            }
+                        });
+                    }
+                    dialog.close();
+                }
+            });
+            return btns;
+        }
+    });
 
     $.fn.modalize = function (action, options) {
         var datakey = 'modalize';
