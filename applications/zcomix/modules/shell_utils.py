@@ -14,29 +14,6 @@ import tempfile
 from gluon import *
 
 
-class Cwd:
-    """Class representing context manager for changing the current working
-    directory
-    """
-
-    def __init__(self, path):
-        """Constructor
-
-        Args:
-            path: string, the directory path to cd to.
-        """
-        self.path = path
-        self.saved_path = None
-
-    def __enter__(self):
-        self.saved_path = os.getcwd()
-        os.chdir(self.path)
-
-    def __exit__(self, etype, value, traceback):
-        if self.saved_path:
-            os.chdir(self.saved_path)
-
-
 class TempDirectoryMixin(object):
     """Base class representing an object using temporary directory"""
 

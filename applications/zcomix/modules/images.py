@@ -18,7 +18,6 @@ from gluon.globals import Response
 from gluon.streamer import DEFAULT_CHUNK_SIZE
 from gluon.contenttype import contenttype
 from applications.zcomix.modules.shell_utils import \
-    Cwd, \
     TempDirectoryMixin, \
     set_owner
 
@@ -204,29 +203,33 @@ class ResizeImg(TempDirectoryMixin):
 
         real_filename = os.path.abspath(self.filename)
 
+        args = []
+        if nice:
+            args.append('nice')
+        args.append(resize_script)
+        if self.filename:
+            args.append(real_filename)
         # The images created by resize_img.sh are placed in the current
-        # directory. Change to the temp directory so they are created there.
-        with Cwd(self.temp_directory()):
-            args = []
-            if nice:
-                args.append('nice')
-            args.append(resize_script)
-            if self.filename:
-                args.append(real_filename)
-            p = subprocess.Popen(
-                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p_stdout, p_stderr = p.communicate()
-            # Generally there should be no output. Log to help troubleshoot.
-            if p_stdout:
-                LOG.warn('ResizeImg run stdout: {out}'.format(out=p_stdout))
-            if p_stderr:
-                LOG.error('ResizeImg run stderr: {err}'.format(err=p_stderr))
+        # directory. Use cwd= to change to the temp directory so they are
+        # created there.
+        p = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=self.temp_directory()
+        )
+        p_stdout, p_stderr = p.communicate()
+        # Generally there should be no output. Log to help troubleshoot.
+        if p_stdout:
+            LOG.warn('ResizeImg run stdout: {out}'.format(out=p_stdout))
+        if p_stderr:
+            LOG.error('ResizeImg run stderr: {err}'.format(err=p_stderr))
 
-            # E1101 (no-member): *%%s %%r has no %%r member*
-            # pylint: disable=E1101
-            if p.returncode:
-                raise ResizeImgError('Resize failed: {err}'.format(
-                    err=p_stderr or p_stdout))
+        # E1101 (no-member): *%%s %%r has no %%r member*
+        # pylint: disable=E1101
+        if p.returncode:
+            raise ResizeImgError('Resize failed: {err}'.format(
+                err=p_stderr or p_stdout))
 
         for prefix in ['ori', 'cbz', 'web', 'tbn']:
             path = os.path.join(
