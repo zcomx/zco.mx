@@ -40,7 +40,7 @@ VERSION 1
         [x] wavy line for word balloon
         [ ] update main site with new logo
 
-    [ ] Theme twitter
+    [x] Theme twitter
 
 
 VERSION 2 - Before Going Live
