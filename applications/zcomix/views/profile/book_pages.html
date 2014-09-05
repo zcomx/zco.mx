@@ -23,7 +23,7 @@
                 <span class="fileupload-process"></span>
             </div>
             <div class="col-xs-12 fileupload-progress fade">
-                <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress progress-bar-success active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
                     <div class="progress-bar progress-bar-success" style="width:0%;"></div>
                 </div>
                 <div class="progress-extended">&nbsp;</div>
@@ -47,7 +47,7 @@
         </td>
         <td>
             <p class="size">Processing...</p>
-            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
+            <div class="progress progress-bar-success active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
         </td>
         <td>
             {% if (!i && !o.options.autoUpload) { %}
@@ -78,7 +78,7 @@
             </a>
         </td>
         <td>
-            <span class="preview">
+            <span class="preview hidden">
                 {% if (file.thumbnailUrl) { %}
                     <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img src="{%=file.thumbnailUrl%}"></a>
                 {% } %}
@@ -127,7 +127,6 @@
 <!--[if (gte IE 8)&(lt IE 10)]>
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/cors/jquery.xdr-transport.js')}}"></script>
 <![endif]-->
-
 <script src="{{=URL(c='static', f='js/image_upload.js')}}"> </script>
 <script>
 //<![CDATA[
