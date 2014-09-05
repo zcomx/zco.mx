@@ -9,7 +9,9 @@ Script to create and maintain images and their sizes.
 import logging
 import os
 import shutil
+import subprocess
 import sys
+import time
 import traceback
 from gluon import *
 from gluon.shell import env
@@ -59,6 +61,31 @@ class ImageHandler(object):
         self.field = field
         self.record_id = record_id
         self.dry_run = dry_run
+
+    def chown(self):
+        """Chown of all files."""
+        # W0212 (protected-access): *Access to a protected member
+        # pylint: disable=W0212
+        uploads_dir = os.path.join(db._adapter.folder, os.pardir, 'uploads')
+        args = []
+        args.append('chown')
+        args.append('-R')
+        args.append('http:http')
+        args.append(uploads_dir)
+        p = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p_stdout, p_stderr = p.communicate()
+        # Generally there should be no output. Log to help troubleshoot.
+        if p_stdout:
+            LOG.warn('ResizeImg run stdout: {out}'.format(out=p_stdout))
+        if p_stderr:
+            LOG.error('ResizeImg run stderr: {err}'.format(err=p_stderr))
+
+        # E1101 (no-member): *%%s %%r has no %%r member*
+        # pylint: disable=E1101
+        if p.returncode:
+            raise SyntaxError('chown failed: {err}'.format(
+                err=p_stderr or p_stdout))
 
     def image_generator(self):
         """Generator of images.
@@ -132,8 +159,8 @@ class ImageHandler(object):
             data = {field.name: stored_filename}
             db(field.table.id == record_id).update(**data)
             db.commit()
+            up_image = UploadImage(field, stored_filename)
             if str(field) == 'book_page.image':
-                up_image = UploadImage(field, stored_filename)
                 set_thumb_dimensions(
                     db, record_id, up_image.dimensions(size='tbn')
                 )
@@ -298,6 +325,8 @@ def main():
         handler.purge()
     else:
         handler.resize()
+        time.sleep(2)           # Allow backgrounded optimizing to complete
+        handler.chown()
 
     LOG.info('Done.')
 
