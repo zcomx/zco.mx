@@ -62,31 +62,6 @@ class ImageHandler(object):
         self.record_id = record_id
         self.dry_run = dry_run
 
-    def chown(self):
-        """Chown of all files."""
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
-        uploads_dir = os.path.join(db._adapter.folder, os.pardir, 'uploads')
-        args = []
-        args.append('chown')
-        args.append('-R')
-        args.append('http:http')
-        args.append(uploads_dir)
-        p = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        p_stdout, p_stderr = p.communicate()
-        # Generally there should be no output. Log to help troubleshoot.
-        if p_stdout:
-            LOG.warn('ResizeImg run stdout: {out}'.format(out=p_stdout))
-        if p_stderr:
-            LOG.error('ResizeImg run stderr: {err}'.format(err=p_stderr))
-
-        # E1101 (no-member): *%%s %%r has no %%r member*
-        # pylint: disable=E1101
-        if p.returncode:
-            raise SyntaxError('chown failed: {err}'.format(
-                err=p_stderr or p_stdout))
-
     def image_generator(self):
         """Generator of images.
 
@@ -153,9 +128,18 @@ class ImageHandler(object):
             tmp_dir = temp_directory()
             filename = os.path.join(tmp_dir, original)
             shutil.copy(src_filename, filename)
+            # Back up the 'original' so it can be restored on error.
+            backup = '{f}.bak'.format(f=filename)
+            shutil.copy(src_filename, backup)
             up_image = UploadImage(field, image_name)
             up_image.delete_all()
-            stored_filename = store(field, filename)
+            try:
+                stored_filename = store(field, filename)
+            except Exception as err:
+                if not os.path.exists(src_filename):
+                    # Restore the file so it is not lost.
+                    shutil.copy(backup, src_filename)
+                raise err
             data = {field.name: stored_filename}
             db(field.table.id == record_id).update(**data)
             db.commit()
@@ -326,9 +310,35 @@ def main():
     else:
         handler.resize()
         time.sleep(2)           # Allow backgrounded optimizing to complete
-        handler.chown()
+        chown()
 
     LOG.info('Done.')
+
+
+def chown():
+    """Chown of all files."""
+    # W0212 (protected-access): *Access to a protected member
+    # pylint: disable=W0212
+    uploads_dir = os.path.join(db._adapter.folder, os.pardir, 'uploads')
+    args = []
+    args.append('chown')
+    args.append('-R')
+    args.append('http:http')
+    args.append(uploads_dir)
+    p = subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p_stdout, p_stderr = p.communicate()
+    # Generally there should be no output. Log to help troubleshoot.
+    if p_stdout:
+        LOG.warn('ResizeImg run stdout: {out}'.format(out=p_stdout))
+    if p_stderr:
+        LOG.error('ResizeImg run stderr: {err}'.format(err=p_stderr))
+
+    # E1101 (no-member): *%%s %%r has no %%r member*
+    # pylint: disable=E1101
+    if p.returncode:
+        raise SyntaxError('chown failed: {err}'.format(
+            err=p_stderr or p_stdout))
 
 
 if __name__ == '__main__':
