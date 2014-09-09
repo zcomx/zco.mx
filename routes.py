@@ -102,7 +102,7 @@ routers = dict(
 
     # base router
     BASE=dict(
-        default_application='zcomix',
+        default_application='zcomx',
     ),
 )
 

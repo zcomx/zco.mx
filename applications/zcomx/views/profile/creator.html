@@ -1,0 +1,235 @@
+{{extend 'profile/layout.html'}}
+{{from gluon.contrib.simplejson import dumps}}
+<div id="creator_section">
+
+<div id="editable_fields_container"></div>
+<div id="links_container">
+    <div id="edit_links_container"></div>
+</div>
+<div id="bio_container"></div>
+<div id="mug_shot">
+    <div class="row_container">
+        <div class="arrow_container"></div>
+        <div class="field_label">{{=db.creator.image.label}}</div>
+        <div class="image_field_container">
+            <div class="fileupload_container">
+                <form id="fileupload" action="/zcomx/profile/creator_img_handler" method="POST" enctype="multipart/form-data">
+                    <noscript><input type="hidden" name="redirect" value="/zcomx/profile/creator"></noscript>
+                    <div class="row fileupload-buttonbar">
+                        <div class="col-xs-12">
+                            <div class="no_photo_section">
+                                <span class="fileupload-process"></span>
+                                <div class="img_preview_container">
+                                    <div class="preview placeholder_torso">
+                                    <i class="icon zc-torso"></i>
+                                    </div>
+                                </div>
+                                <div class="button_container">
+                                    <div class="btn btn-default fileinput-button">
+                                        <span>Upload</span>
+                                        <input id="up_files_input" type="file" name="up_files" multiple>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="has_photo_section">
+                                <div class="files"> </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <br>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+<script id="template-upload" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <div class="template-upload fade">
+        <div>
+            <span class="preview"></span>
+            <p class="name">{%=file.name%}</p>
+            <strong class="error text-danger"></strong>
+        </div>
+        <div class="progress_buttons_container">
+            <p class="size">Processing...</p>
+            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
+            <div>
+            {% if (!i && !o.options.autoUpload) { %}
+                <button class="btn btn-primary start" disabled>
+                    <i class="glyphicon glyphicon-upload"></i>
+                    <span>Start</span>
+                </button>
+            {% } %}
+            {% if (!i) { %}
+                <button class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>Cancel</span>
+                </button>
+            {% } %}
+            </div>
+        </div>
+    </div>
+{% } %}
+</script>
+<script id="template-download" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <div class="template-download fade">
+        <div class="img_preview_container">
+            <span class="preview">
+                {% if (file.thumbnailUrl) { %}
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img src="{%=file.thumbnailUrl%}"></a>
+                {% } %}
+            </span>
+        </div>
+        <div class="button_container">
+            {% if (file.deleteUrl) { %}
+                <div>
+                <button class="btn btn-default delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
+                    <span>Remove</span>
+                </button>
+                </div>
+                <div>
+                <button id="change_button" class="btn btn-default">
+                    <span>Change</span>
+                </button>
+                </div>
+            {% } else { %}
+                <button class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>Cancel</span>
+                </button>
+            {% } %}
+        </div>
+        {% if (file.error) { %}
+        <div>
+            <p class="name">
+                {% if (file.url) { %}
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
+                {% } else { %}
+                    <span>{%=file.name%}</span>
+                {% } %}
+            </p>
+            <div><span class="label label-danger">Error</span> {%=file.error%}</div>
+        </div>
+        {% } %}
+    </div>
+{% } %}
+</script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/vendor/jquery.ui.widget.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/JavaScript-Templates/js/tmpl.min.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/JavaScript-Load-Image/js/load-image.min.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.iframe-transport.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-process.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-image.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-validate.js')}}"></script>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/jquery.fileupload-ui.js')}}"></script>
+<!-- The XDomainRequest Transport is included for cross-domain file deletion for IE 8 and IE 9 -->
+<!--[if (gte IE 8)&(lt IE 10)]>
+<script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/cors/jquery.xdr-transport.js')}}"></script>
+<![endif]-->
+<script>
+//<![CDATA[
+    var creator_data = {
+        'email': {
+            'label': '{{=db.creator.email.label}}',
+            'value': '{{=creator.email or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter your contact email address. (Optional)',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_email_input',
+                'placeholder': 'username@example.com',
+            },
+        },
+        'paypal_email': {
+            'label': '{{=db.creator.paypal_email.label}}',
+            'value': '{{=creator.paypal_email or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter your paypal email address. (Optional. Required to receive payments.)',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_paypal_email_input',
+                'placeholder': 'username@example.com',
+            },
+        },
+        'website': {
+            'label': '{{=db.creator.website.label}}',
+            'value': '{{=creator.website or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter your website address. (Optional)',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_website_input',
+                'placeholder': 'http://www.example.com',
+            },
+        },
+        'twitter': {
+            'label': '{{=db.creator.twitter.label}}',
+            'value': '{{=creator.twitter or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter your twitter handle. (Optional)',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_twitter_input',
+                'placeholder': '#twitter_account',
+            },
+        },
+        'tumblr': {
+            'label': '{{=db.creator.tumblr.label}}',
+            'value': '{{=creator.tumblr or ""}}',
+            'append_to': '#edit_links_container',
+            'x_editable_settings': {
+                'title': 'Enter your tumblr account. (Optional)',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_tumblr_input',
+                'placeholder': 'http://username.tumblr.com',
+            },
+        },
+    }
+
+    var bio_data = {
+        'bio': {
+            'label': '{{=db.creator.bio.label}}',
+            'value': '{{=dumps(creator.bio or "").strip('"')}}',
+            'x_editable_settings': {
+                'title': 'Enter a brief biography.',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_bio_input',
+                'type': 'textarea',
+            },
+        },
+    }
+//]]>
+</script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('#editable_fields_container').inplace_crud(
+            '{{=URL(c='profile', f='creator_crud.json')}}',
+            '{{=creator.id}}',
+            {
+                source_data: creator_data,
+            }
+        );
+
+        $('#edit_links_container').inplace_link_crud(
+            '{{=URL(c='profile', f='link_crud.json')}}',
+            ''
+        );
+
+        $('#bio_container').inplace_crud(
+            '{{=URL(c='profile', f='creator_crud.json')}}',
+            '{{=creator.id}}',
+            { source_data: bio_data }
+        );
+    });
+//]]>
+</script>
+<script src="{{=URL(c='static', f='js/creator_fileupload.js')}}"> </script>
+{{block post_bootstrap_js}}
+    {{if DEBUG:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.js')}}"></script>
+    {{else:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.min.js')}}"></script>
+    {{pass}}
+    <script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
+{{end}}

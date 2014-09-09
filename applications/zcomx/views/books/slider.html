@@ -1,0 +1,17 @@
+{{from applications.zcomx.modules.images import ImgTag}}
+{{extend 'books/reader.html'}}
+<div id="slider_page">
+    <div id="reader_container">
+        {{if pages:}}
+            {{for count, page in enumerate(pages):}}
+                <div id="img-{{=count}}" class="slide">
+                    <span class="vertical_align_helper"></span>
+                    {{=ImgTag(page.image, size=size)()}}
+                </div>
+            {{pass}}
+        {{else:}}
+        No pages found.
+        {{pass}}
+    </div>
+</div>
+<script src="{{=URL(c='static', f='js/slider.js')}}"> </script>

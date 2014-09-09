@@ -1,0 +1,29 @@
+{{from applications.zcomx.modules.images import ImgTag}}
+{{extend 'books/reader.html'}}
+<div id="carousel_page">
+    <div id="myCarousel" class="carousel slide">
+        <ol class="carousel-indicators">
+            {{for count, page in enumerate(pages):}}
+            <li data-target="#myCarousel" data-slide-to="{{=count}}" class="{{='active' if count == 0 else ''}}"></li>
+            {{pass}}
+        </ol>
+        <!-- Carousel items -->
+        <div class="carousel-inner">
+            {{for count, page in enumerate(pages):}}
+                <div class="item {{='active' if count == 0 else ''}}">
+                    {{=ImgTag(page.image, size=size)()}}
+                </div>
+            {{pass}}
+        </div>
+        <!-- Carousel nav -->
+        <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+        <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
+    </div>
+</div>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('.carousel').carousel();
+    });
+//]]>
+</script>

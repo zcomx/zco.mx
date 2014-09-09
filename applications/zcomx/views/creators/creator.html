@@ -1,0 +1,53 @@
+{{from applications.zcomx.modules.images import CreatorImgTag}}
+{{from applications.zcomx.modules.utils import ItemDescription}}
+{{extend 'layout_main.html'}}
+<div id="creator_page">
+
+{{=LOAD(c='default', f='top', args='creator', extension='load', ajax=False, content='')}}
+
+<div class="row" id="bio_section">
+    <div class="col-sm-7" id="name_bio">
+        <div class="row" id="name">
+            <h1>{{=auth_user.name}}</h1>
+        </div>
+        <div class="row">
+        {{=ItemDescription(creator.bio).as_html(**dict(_id='bio'))}}
+        </div>
+    </div>
+</div>
+
+<div class="row" id="creator_id_section">
+    <div class="col-sm-12" >
+        <div class="row">
+            <div class="creator_img_container">
+                {{=CreatorImgTag(creator.image, size='tbn')()}}
+            </div>
+            <div class="creator_links_container">
+                <dl class="dl-horizontal">
+                {{for f in ['website', 'twitter', 'email']:}}
+                    {{try:}}
+                    {{if creator[f]:}}
+                        <dt>{{=f}}</dt>
+                        <dd>{{=db.creator[f].represent(creator[f], creator)}}</dd>
+                    {{pass}}
+                    {{except:}}
+                    {{pass}}
+                {{pass}}
+                {{if links:}}
+                    <dt>links</dt>
+                    <dd>{{=links}}</dd>
+                {{pass}}
+                <dt>torrent </dt>
+                <dd><a href="#" class="fixme">ALL-FIXME.torrent</a></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="report_section">
+    {{=LOAD(c='creators', f='books', args=[request.args(0)], vars=request.vars, extension='load', ajax=True, ajax_trap=True)}}
+</div>
+
+</div>
+<script src="{{=URL(c='static', f='js/description.js')}}"> </script>

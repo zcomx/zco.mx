@@ -1,0 +1,65 @@
+{{from applications.zcomx.modules.books import read_link}}
+{{extend 'profile/layout.html'}}
+<div>
+    {{if request.vars.can_release is not None:}}
+    <div class="books_list_title">
+    <h4>RELEASED</h4>
+    </div>
+    <div id="released_book_list" class="book_list"></div>
+    {{pass}}
+
+    {{if request.vars.can_release is not None:}}
+    <div class="books_list_title">
+    <h4>ONGOING</h4>
+    </div>
+    {{pass}}
+    <div id="ongoing_book_list" class="book_list"></div>
+
+    {{if has_disabled:}}
+    <div class="books_list_title">
+    <h4>DISABLED</h4>
+    </div>
+    <div class="text-muted">
+        Books are disabled by the site admin if they are under copyright review
+        or deemed inappropriate.
+    </div>
+    <div id="disabled_book_list" class="book_list"></div>
+    {{pass}}
+    <div>
+        {{=A(
+            'Add',
+            _id='add_book_button',
+            _class='btn btn-default modal-add-btn',
+            _href=URL(c='profile', f='book_edit'),
+            _type='button',
+        )}}
+    </div>
+</div>
+
+<script>
+//<![CDATA[
+    var book_list_urls = {
+        'released': '{{=URL(c='profile', f='book_list', args='released', vars=request.vars, extension='load')}}',
+        'ongoing':  '{{=URL(c='profile', f='book_list', args='ongoing', vars=request.vars, extension='load')}}',
+        'disabled': '{{=URL(c='profile', f='book_list', args='disabled', vars=request.vars, extension='load')}}',
+    }
+//]]>
+</script>
+
+{{block post_bootstrap_js}}
+    {{if DEBUG:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.js')}}"></script>
+    {{else:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.min.js')}}"></script>
+    {{pass}}
+    {{if DEBUG:}}
+        <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
+    {{else:}}
+        <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
+    {{pass}}
+    <script src="{{=URL(c='static', f='bgrins-spectrum/spectrum.js')}}"> </script>
+    <script src="{{=URL(c='static', f='x-editable/inputs_custom/colour_picker.js')}}"> </script>
+    <script src="{{=URL(c='static', f='x-editable/inputs_custom/radiolist.js')}}"> </script>
+    <script src="{{=URL(c='static', f='js/books.js')}}"> </script>
+    <script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
+{{end}}
