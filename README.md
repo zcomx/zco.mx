@@ -24,12 +24,12 @@ Configuration
 
 Copy settings.examples.conf to settings.conf
 
-    $ cp applications/zcomix/private/{settings.example.conf,settings.conf}
+    $ cp applications/zcomx/private/{settings.example.conf,settings.conf}
 
 
 Edit the settings as required.
 
-    $ vi applications/zcomix/private/settings.conf
+    $ vi applications/zcomx/private/settings.conf
 
 
 Run
@@ -37,7 +37,7 @@ Run
 
 Start the web2py server.
 
-    $ cd zcomix.com
+    $ cd zco.mx
     $ SERVER_PRODUCTION_MODE=test python2 web2py.py 
 
 If running on a remote server with ip address 123.123.123.123:

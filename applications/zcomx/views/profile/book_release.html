@@ -1,0 +1,84 @@
+{{from applications.zcomx.modules.books import formatted_name, publication_years}}
+<div id="book_release_section">
+
+<div>
+    <p>
+    Release a book when all pages are complete and correct: all images files
+    are uploaded and pages are sorted in the correct order.
+    </p>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        Releasing a book has the following effect:
+    </div>
+    <div class="panel-body">
+        <ul>
+            <li>The book release date is set to today's date</li>
+            <li>The book is packaged for download</li>
+            <li>A torrent is created for the book and it is seeded</li>
+            <li>The book is added to the torrent containing all books from the creator</li>
+            <li>The book is added to the torrent containing all books from zco.mx</li>
+            <li>The book is added to the Direct Connect network</li>
+            <li>The book pages are locked from further modifications</li>
+        </ul>
+    </div>
+</div>
+
+{{if releasable:}}
+    <div class="instruction">
+        Edit the year of publication if necessary.
+        <div id="editable_fields_container"></div>
+    </div>
+
+    <div class="instruction">
+        Click the <em>Release</em> button to release <em>{{=formatted_name(db, book)}}</em>.
+        Click the <em>Cancel</em> button if you've changed your mind.
+    </div>
+{{else:}}
+    <div class="panel panel-danger">
+        <div class="panel-heading">
+            The book <em>{{=formatted_name(db, book)}}</em> has no pages. It cannot be released at this time.
+        </div>
+        <div class="panel-body">
+            <ul>
+                <li>Edit the book and set the name and description if necessary.</li>
+                <li>Upload book pages.</li>
+            </ul>
+        </div>
+    </div>
+{{pass}}
+
+<div id="message_panel" class="panel panel-default" style="display: none;">
+    <div class="panel-body"></div>
+</div>
+
+</div>
+<script>
+//<![CDATA[
+    var book_data = {
+        'publication_year': {
+            'label': '{{=db.book.publication_year.label}}',
+            'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
+            'x_editable_settings': {
+                'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                'inputclass': 'inplace_crud book_publication_year_input',
+                'source': [ {{=publication_years()}} ],
+                'type': 'select',
+            },
+        },
+    };
+
+    var release_enabled = {{if releasable:}}true{{else:}}false{{pass}};
+
+    $(document).ready(function(){
+        $('#editable_fields_container').inplace_crud(
+            '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+            '{{=book.id if book else "0"}}',
+            {
+                source_data: book_data,
+            }
+        );
+    });
+//]]>
+</script>

@@ -1,0 +1,298 @@
+{{import datetime}}
+{{from applications.zcomx.modules.books import book_types}}
+<div id="book_edit_section">
+
+{{if book and not book.status:}}
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        <h3 class="panel-title">This book is disabled.</h3>
+    </div>
+    <div class="panel-body">
+    Books are disabled by the site admin if they are under copyright review
+    or deemed inappropriate.
+    </div>
+</div>
+{{pass}}
+
+<div id="editable_fields_container"></div>
+<div id="links_container">
+    <div id="edit_links_container"></div>
+</div>
+
+</div>
+<script>
+//<![CDATA[
+
+    function pad(n, width, z) {
+        z = z || '0';
+        n = n + '';
+        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+    }
+
+    function numbers(start, end) {
+        var values = [];
+        var width = end.toString().length;
+        for (var i = start; i <= end; i++) {
+            values.push({value: i, text: pad(i, width, '0')});
+        }
+        return values;
+    }
+
+    function numbers_99(scope) {
+        console.log('scope: %o', scope);
+        return numbers(1, 99);
+    }
+
+    function numbers_999(scope) {
+        console.log('scope: %o', scope);
+        return numbers(1, 999);
+    }
+
+
+    var book_data = {
+        'name': {
+            'label': '{{=db.book.name.label}}',
+            'value': '{{=XML(book.name or "") if book else ""}}',
+            'x_editable_settings': {
+                'title': 'Enter the title of the book.',
+                'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                'escape': true,
+                'inputclass': 'inplace_crud book_name_input',
+                'placeholder': 'Book Title',
+            },
+        },
+    }
+    var book_data_extra = {};
+    {{if book:}}
+        {{# Edit mode}}
+        book_data_extra = {
+            'book_type_id': {
+                'label': '{{=db.book.book_type_id.label}}',
+                'value': "{{try:}}{{=db(db.book_type.id == book.book_type_id).select(db.book_type.description).first()['description']}}{{except:}}{{='n/a'}}{{pass}}",
+                'x_editable_settings': {
+                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'inputclass': 'inplace_crud book_type_id_input',
+                    'source': [ {{=book_types(db)}} ],
+                    'type': 'radiolist',
+                    'value': '{{=book.book_type_id if book else 0}}',
+                },
+            },
+            'number': {
+                'label': '{{=db.book.number.label}}',
+                'value': '{{="{x:03d}".format(x=book.number if book else 1)}}',
+                'x_editable_settings': {
+                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'inputclass': 'inplace_crud book_number_input',
+                    'source': numbers_999,
+                    'type': 'select',
+                    'value': '{{=book.number or 1 if book else 1}}',
+                },
+            },
+            'description': {
+                'label': '{{=db.book.description.label}}',
+                'value': "{{try:}}{{=book.description.encode('string_escape') or ''}}{{except:}}{{=''}}{{pass}}",
+                'x_editable_settings': {
+                    'inputclass': 'inplace_crud book_description_input',
+                    'type': 'textarea',
+                },
+            },
+            'release_date': {
+                'label': '{{=db.book.release_date.label}}',
+                'value': '{{=book.release_date or "" if book else ""}}',
+                'readable': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                'x_editable_settings': {
+                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'inputclass': 'inplace_crud book_release_date_input',
+                    'type': 'date',
+                },
+            },
+            'reader': {
+                'label': '{{=db.book.reader.label}}',
+                'value': '{{=book.reader if book else db.book.reader.default}}',
+                'info': '<span class="btn info_icon_container"><i id="book_reader_info" class="icon zc-info"></i></span>',
+                'callback': function(elem) {
+                        $('#book_reader_info').tooltip({
+                            'html': true,
+                            'title': '<div><b>scroller</b> - vertical layout, several images per page</div><div><b>slider</b> - horizontal layout, one image per page</div>',
+                            'template': '<div class="tooltip book_reader_tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+                        });
+                },
+                'x_editable_settings': {
+                    'inputclass': 'inplace_crud book_reader_input',
+                    'source': [
+                        {value: 'scroller', text: 'scroller'},
+                        {value: 'slider', text: 'slider'}
+                    ],
+                    'type': 'select',
+                },
+            },
+            'background_colour': {
+                'label': '{{=db.book.background_colour.label}}',
+                'value': '{{=book.background_colour if book else db.book.background_colour.default}}',
+                'x_editable_settings': {
+                    'placement': 'bottom',
+                    'title': 'Enter a color for the background',
+                    'type': 'colour_picker',
+                },
+            },
+            'border_colour': {
+                'label': '{{=db.book.border_colour.label}}',
+                'value': '{{=book.border_colour if book else db.book.border_colour.default}}',
+                'x_editable_settings': {
+                    'placement': 'bottom',
+                    'title': 'Enter a color for the border',
+                    'type': 'colour_picker',
+                },
+            },
+        };
+    {{else:}}
+        {{# Add mode}}
+        book_data_extra = {
+            'name': {
+                'x_editable_settings': {
+                    'success': function(response, newValue) {
+                        if(response && response.status == 'error') {
+                            return response.msg;
+                        }
+                        add_callback(response, newValue);
+                    }
+                }
+            }
+        };
+    {{pass}}
+    $.extend(true, book_data, book_data_extra);
+
+    var book_of_number_data = {
+        'of_number': {
+            'label': '{{=db.book.of_number.label}}',
+            'value': '{{="{x:02d}".format(x=book.of_number if book else 1)}}',
+            'x_editable_settings': {
+                'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                'inputclass': 'inplace_crud book_of_number_input',
+                'source': numbers_99,
+                'type': 'select',
+                'value': '{{=book.of_number or 1 if book else 1}}',
+            },
+        }
+    };
+
+//]]>
+</script>
+<script>
+//<![CDATA[
+    function add_callback(response, newValue) {
+        var record_id = response.id;
+        var dialog = $('#add_book_button').data().dialog;
+        if (!dialog) { return; }
+        dialog.setData('book_id', record_id);
+        dialog.setData('title', newValue);
+        dialog.close();
+    }
+
+    function create_of_number() {
+        if($('#of_number_container').length) {
+            return;
+        }
+        $('<span id="of_number_container"> of </span>').appendTo($('.field_container_number'));
+        $('#of_number_container').inplace_crud(
+            '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+            '{{=book.id if book else "0"}}',
+            {
+                'row_container': false,
+                source_data: book_of_number_data,
+            }
+        );
+    }
+    function set_number(length) {
+        var source = length === 3 ? numbers_999 : numbers_99;
+        $('a#number').editable('option', 'source', source);
+        $('a#number').text(pad(parseInt($('a#number').text(), 10), length, '0'));
+    }
+
+    function set_number_containers(numbers) {
+        var duration = 400;
+        var want = numbers;
+        var have = $('#row_container_number').data('numbers');
+        if (!have) {
+            have = {
+                'number': false,
+                'of_number': false,
+            };
+        }
+        if (have.number == want.number && have.of_number == want.of_number) {
+            return;
+        }
+        if (want.of_number) {
+            create_of_number();
+        }
+        if (!have.number && !have.of_number) {
+            if (want.number && !want.of_number) {
+                $('#row_container_number').fadeIn(duration);
+                $('.field_container_number').fadeIn(duration);
+            }
+            if (want.number && want.of_number) {
+                set_number(2);
+                $('#row_container_number').fadeIn(duration);
+                $('.field_container_number').fadeIn(duration);
+                $('#of_number_container').fadeIn(duration);
+            }
+        }
+        if (have.number && !have.of_number) {
+            if (!want.number && !want.of_number) {
+                $('.field_container_number').fadeOut(duration);
+                $('#row_container_number').fadeOut(duration);
+            }
+            if (want.number && want.of_number) {
+                set_number(2);
+                $('#of_number_container').fadeIn(duration);
+            }
+        }
+        if (have.number && have.of_number) {
+            if (!want.number && !want.of_number) {
+                $('#of_number_container').fadeOut(duration);
+                $('.field_container_number').fadeOut(duration);
+                $('#row_container_number').fadeOut(duration, function() {
+                    set_number(3);
+                });
+            }
+            if (want.number && !want.of_number) {
+                $('#of_number_container').fadeOut(duration, function(){
+                    set_number(3);
+                });
+            }
+        }
+        $('#row_container_number').data('numbers', want);
+    }
+
+    $(document).ready(function(){
+        $('#editable_fields_container').inplace_crud(
+            '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+            '{{=book.id if book else "0"}}',
+            {
+                source_data: book_data,
+            }
+        );
+        {{if book and book.id:}}
+        $('#edit_links_container').inplace_link_crud(
+            '{{=URL(c='profile', f='link_crud.json', args=book.id)}}',
+            '{{=book.id}}'
+        );
+        {{else:}}
+            setTimeout( function() {
+                $('a#name').editable('show');
+
+            }, 300);
+        {{pass}}
+
+        $('#book_type_id').on('save', function(e, params) {
+            setTimeout( function() {
+                set_number_containers(params.response.numbers);
+            }, 400);
+        });
+
+        set_number_containers({{=XML(numbers)}});
+    });
+
+//]]>
+</script>
+

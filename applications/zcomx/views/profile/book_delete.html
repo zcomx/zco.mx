@@ -1,0 +1,33 @@
+{{from applications.zcomx.modules.books import formatted_name}}
+<div id="book_delete_section">
+
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        Deleting this book will do the following:
+    </div>
+    <div class="panel-body">
+        <ul>
+            <li>The book is deleted and removed from search results</li>
+            <li>All book pages and images are deleted</li>
+            <li>All links associated with the book are deleted</li>
+            <li>All statistics and history related to the book are deleted (eg. views, downloads, etc)</li>
+            {{if book.release_date:}}
+            <li>The torrent for the book is deleted</li>
+            <li>The book is removed from the torrent containing all books from the creator</li>
+            <li>The book is removed from the torrent containing all books from zco.mx</li>
+            <li>The book is deleted from the Direct Connect network</li>
+            {{pass}}
+        </ul>
+    </div>
+</div>
+
+<div class="instruction">
+    Click the <em>Delete</em> button to delete <em>{{=formatted_name(db, book)}}</em>.
+    Click the <em>Cancel</em> button if you've changed your mind.
+</div>
+
+<div id="message_panel" class="panel panel-default" style="display: none;">
+    <div class="panel-body"></div>
+</div>
+
+</div>
