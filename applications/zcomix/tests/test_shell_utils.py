@@ -11,10 +11,8 @@ import os
 import pwd
 import re
 import shutil
-import subprocess
 import unittest
 from applications.zcomix.modules.shell_utils import \
-    Cwd, \
     TempDirectoryMixin, \
     TemporaryDirectory, \
     UnixFile, \
@@ -26,34 +24,6 @@ from applications.zcomix.modules.test_runner import LocalTestCase
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
-
-
-class TestCwd(LocalTestCase):
-
-    def test____init__(self):
-        dirname = '/tmp'
-        filename = 'test_cwd__init__'
-        fullname = os.path.join(dirname, filename)
-        with open(fullname, 'w') as f:
-            f.write('testing')
-
-        with Cwd('/tmp'):
-            p = subprocess.Popen(
-                ['ls'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            out, err = p.communicate()
-            self.assertTrue(filename in out)
-            self.assertEqual(err, '')
-
-    def test____enter__(self):
-        # This is tested by test____init__
-        pass
-
-    def test____exit__(self):
-        # This is tested by test____init__
-        pass
 
 
 class TestTempDirectoryMixin(LocalTestCase):
@@ -173,7 +143,10 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(dirs[1], 'zcomix')
             self.assertEqual(dirs[2], 'uploads')
             self.assertEqual(dirs[-2], 'tmp')
-            self.assertRegexpMatches(dirs[-1], re.compile(r'tmp[a-zA-Z0-9].*'))
+            self.assertRegexpMatches(
+                dirs[-1],
+                re.compile(r'tmp[a-zA-Z0-9_].*')
+            )
 
         got = temp_directory()
         valid_tmp_dir(got)

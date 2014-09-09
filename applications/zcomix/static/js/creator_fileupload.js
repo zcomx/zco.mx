@@ -46,7 +46,6 @@
             });
 
         $(document).on('click', '#change_button', function(e) {
-            console.log('button.change clicked');
             $('input[type=file]').trigger('click');
             e.preventDefault();
         });
