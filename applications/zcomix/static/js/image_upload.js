@@ -51,6 +51,22 @@
                 return raw_msg;
             },
 
+            _img_error: function(image) {
+                var tries = $(image).data('retries');
+                if (isNaN(tries)) {
+                    tries = 0;
+                }
+                if (tries >= 5) {
+                    image.onerror = "";
+                }
+                $(image).data('retries', tries + 1);
+                setTimeout( function() {
+                    var src = $(image).attr('src');
+                    $(image).attr({'src': src});
+                }, 2000);
+                return true;
+            },
+
             _run: function(elem) {
                 $(elem).fileupload({
                     url: settings.url,
@@ -97,6 +113,7 @@
             _stopped_callback: function(e, data) {
                 /* Some preview images don't load, reload */
                 $('span.preview a img').each(function(idx, e) {
+                    $(this).attr({'onerror': "methods._img_error(this)"});
                     var src = $(this).attr('src');
                     $(this).attr({'src': src});
                 });
