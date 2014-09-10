@@ -7,7 +7,7 @@ VERSION 1
         SB 2014-09-02 12:04  sent jim an email
         [ ] Some tbn's not displaying after upload
         [ ] Disable green candy cane
-        [ ] Upload modal causing computer to run hot
+        [-] Upload modal causing computer to run hot
 
     [ ] Switch everything over to zco.mx
         [x] google domain
@@ -30,7 +30,7 @@ VERSION 1
         [x] bt.zco.mx and dc.zco.mx
         [x] paypal
             show.me@zcomix.com to show.me@zco.mx
-        [j] code
+        [x] code
 
     [ ] Redo logo
         [x] hand colour 'Z'
@@ -98,6 +98,7 @@ VERSION 2 - Before Going Live
 [ ] Check for duplicate file/book names
 
 VERSION 3
+[ ] knowledge base
 [ ] login -> books page - paginate 'released' and 'ongoing' books
 [ ] Copyright material
     DMCA / C&D disclaimer button would work
@@ -115,7 +116,7 @@ VERSION 3
     h-scroll - http://danielschafferbrooklyncomics.com/books/uncategorized/all-you-need/
 
 IDEAS
-[s] zcomix: Creative Commons Licence
+[s] Creative Commons Licence
     http://wiki.creativecommons.org/Frequently_Asked_Questions#How_should_I_decide_which_license_to_choose.3F
     https://creativecommons.org/licenses/by-nc/4.0/     ## Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
     (c) All Rights Reserved
