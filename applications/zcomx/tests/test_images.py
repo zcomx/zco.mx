@@ -7,6 +7,7 @@ Test suite for zcomx/modules/utils.py
 
 """
 import grp
+import hashlib
 import inspect
 import os
 import pwd
@@ -35,6 +36,7 @@ from applications.zcomx.modules.images import \
     set_thumb_dimensions, \
     store
 from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.shell_utils import imagemagick_version
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -111,7 +113,7 @@ class ImageTestCase(LocalTestCase):
         if not os.path.exists(cls._image_original):
             os.makedirs(cls._image_original)
 
-        src_filename = os.path.join(cls._test_data_dir, 'cbz_plus.jpg')
+        src_filename = os.path.join(cls._test_data_dir, 'tbn_plus.jpg')
         image_filename = os.path.join(cls._image_dir, cls._image_name)
         shutil.copy(src_filename, image_filename)
 
@@ -189,6 +191,8 @@ class TestCreatorImgTag(ImageTestCase):
 class TestDownloader(ImageTestCase):
 
     def test__download(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         downloader = Downloader()
         self.assertTrue(downloader)
         env = globals()
@@ -377,11 +381,25 @@ class TestResizeImg(ImageTestCase):
         )
 
     def test__run(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         # !!!! ResizeImg.run() moves the image to a working directory.
         # Make copies of test data images before using so they don't get
         # removed from test data.
 
-        def test_it(image_name, expect, to_name=None):
+        # resize_img.sh relies on RobidouxSharp filter added in imagemagick
+        # ver 6.7.6-8. Abort if that version is not available.
+        minimum_ver = '6.7.6-8'
+        version_as_num = lambda v: float(v.replace('.', '').replace('-', '.'))
+        imagemagick_ver = imagemagick_version()
+        if version_as_num(imagemagick_ver) < version_as_num(minimum_ver):
+            msg = 'Upgrade ImageMagick. Minimum version: {ver}'.format(ver=minimum_ver)
+            self.fail(msg)
+            return
+
+        md5sum = lambda f: hashlib.md5(open(f, 'rb').read()).hexdigest()
+
+        def test_it(image_name, expect, to_name=None, md5s=None):
             filename = self._prep_image(image_name, to_name=to_name)
             resize_img = ResizeImg(filename)
             resize_img.run()
@@ -393,6 +411,72 @@ class TestResizeImg(ImageTestCase):
                         resize_img.filenames[prefix],
                         os.path.join(tmp_dir, fmt.format(typ=prefix))
                     )
+                    if md5s is not None:
+                        self.assertEqual(
+                            md5sum(resize_img.filenames[prefix]),
+                            md5s[fmt.format(typ=prefix)]
+                        )
+
+        # Test: test the md5 sum of files.
+
+        md5s = {
+            '6.7.0-8': {
+                'cbz-256+colour.jpg': '0e11a2cf49d1c1c4166969f463744bc2',
+                'cbz-256colour-gif.png': 'f2f7d46dc03973e4d101c81edcb40d28',
+                'cbz-256colour-jpg.jpg': '1bf61782de787ba0e4982f87a6617d3e',
+                'cbz-256colour-png.png': '003b83e169361b3bf8acc9f625fac93c',
+                'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
+                'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
+                'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
+                'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
+                'tbn-256+colour.jpg': '8dc7e66f436eb9d0519d071897bdcd91',
+                'tbn-256colour-gif.png': 'd0a3d86b892a901372b67688d99565e7',
+                'tbn-256colour-jpg.jpg': 'e90043960e8afdfaffa4d166e46164f0',
+                'tbn-256colour-png.png': '1d686024ea76d3a864b36742aa31cb90',
+                'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
+                'web-256colour-gif.png': '5467c6943af05ced624f04c60ebe7c2c',
+                'web-256colour-jpg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
+                'web-256colour-png.png': '9842a943933ae8ad642bb17b9bdbbd47',
+            },
+            '6.8.8-7': {
+                'cbz-256+colour.jpg': '0e11a2cf49d1c1c4166969f463744bc2',
+                'cbz-256colour-gif.png': 'f60e388aa3cf74f81a436b5bdae610cb',
+                'cbz-256colour-jpg.jpg': '1bf61782de787ba0e4982f87a6617d3e',
+                'cbz-256colour-png.png': '9b2e81c0cf9e27f591d9bd24310fbece',
+                'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
+                'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
+                'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
+                'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
+                'tbn-256+colour.jpg': '8dc7e66f436eb9d0519d071897bdcd91',
+                'tbn-256colour-gif.png': 'a9e8eeeab12fa223d77aefac1efbf2cc',
+                'tbn-256colour-jpg.jpg': 'e90043960e8afdfaffa4d166e46164f0',
+                'tbn-256colour-png.png': 'dc1360d982d2d874e9c9fc88f27b1cf3',
+                'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
+                'web-256colour-gif.png': 'babcef0095c0082c7b9ffbea2b4bc89c',
+                'web-256colour-jpg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
+                'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
+            },
+        }
+
+        imgs = [
+            '256+colour.jpg',
+            '256colour-jpg.jpg',
+            '256colour-png.png',
+            '256colour-gif.gif',
+        ]
+
+        for img in imgs:
+            fmt_ori = '{{typ}}-{dest}'.format(dest=img)
+            dest = img.replace('.gif', '.png')
+            fmt = '{{typ}}-{dest}'.format(dest=dest)
+            test_it(
+                img,
+                {
+                    fmt_ori: ['ori'],
+                    fmt: ['cbz', 'web', 'tbn'],
+                },
+                md5s=md5s[imagemagick_ver],
+            )
 
         # Test: standard jpg
         test_it(
@@ -542,6 +626,8 @@ class TestUploadImage(ImageTestCase):
         self.assertEqual(up_image._dimensions, {})
 
     def test__delete(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(db.creator.image, self._creator, filename)
 
@@ -559,6 +645,8 @@ class TestUploadImage(ImageTestCase):
         self._exist(have_not=['original', 'cbz', 'web', 'tbn'])
 
     def test__delete_all(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(db.creator.image, self._creator, filename)
 
@@ -571,6 +659,8 @@ class TestUploadImage(ImageTestCase):
         self._exist(have_not=['original', 'cbz', 'web', 'tbn'])
 
     def test__dimensions(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(db.creator.image, self._creator, filename)
 
@@ -595,6 +685,8 @@ class TestUploadImage(ImageTestCase):
         self.assertEqual(dims_4, (112, 168))
 
     def test__fullname(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(db.creator.image, self._creator, filename)
         uuid_key = self._creator.image.split('.')[2][:2]
@@ -627,6 +719,8 @@ class TestUploadImage(ImageTestCase):
         )
 
     def test__pil_image(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(db.creator.image, self._creator, filename)
 
@@ -737,6 +831,8 @@ class TestFunctions(ImageTestCase):
             self.assertEqual(book_page.thumb_h, t[1])
 
     def test__store(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def owner(filename):
             """Return the owner (user, group) of the file."""

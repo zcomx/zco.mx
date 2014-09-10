@@ -390,6 +390,8 @@ class TestFunctions(BaseTestCase):
             self.assertEqual(uploaded.errors, t[3])
 
     def test__create_book_page(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         book_id = db.book.insert(name='test__add')
         db.commit()
         book = db(db.book.id == book_id).select().first()

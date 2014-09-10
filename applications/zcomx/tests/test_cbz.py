@@ -35,8 +35,6 @@ class ImageTestCase(LocalTestCase):
     _creator = None
     _image_dir = '/tmp/test_cbz'
     _image_original = os.path.join(_image_dir, 'original')
-    _image_name = 'file.jpg'
-    _image_name_2 = 'file_2.jpg'
     _test_data_dir = None
 
     _objects = []
@@ -87,11 +85,12 @@ class ImageTestCase(LocalTestCase):
         record.update_record(**data)
         db.commit()
 
-
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     @classmethod
     def setUp(cls):
+        if cls._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
 
         email = web.username
@@ -116,7 +115,6 @@ class ImageTestCase(LocalTestCase):
         db.commit()
         cls._book = db(db.book.id == book_id).select().first()
         cls._objects.append(cls._book)
-
 
         book_page_id = db.book_page.insert(
             book_id=book_id,
@@ -160,6 +158,8 @@ class TestCBZCreateError(LocalTestCase):
 class TestCBZCreator(ImageTestCase):
 
     def test____init__(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         # book as Row instance
         creator = CBZCreator(self._book)
         self.assertTrue(creator)
@@ -171,6 +171,8 @@ class TestCBZCreator(ImageTestCase):
         self.assertEqual(creator.book.name, self._book.name)
 
     def test__cbz_filename(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         types_by_name = {}
         for row in db(db.book_type).select(db.book_type.ALL):
             types_by_name[row.name] = row
@@ -265,6 +267,8 @@ class TestCBZCreator(ImageTestCase):
         db.commit()
 
     def test__image_filename(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         creator = CBZCreator(self._book)
 
         def set_page_no(page, page_no):
@@ -298,6 +302,8 @@ class TestCBZCreator(ImageTestCase):
             self.assertEqual(creator.image_filename(book_page), t[3])
 
     def test__run(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         creator = CBZCreator(self._book)
         zip_file = creator.run()
         self.assertTrue(os.path.exists(zip_file))
@@ -316,12 +322,16 @@ class TestCBZCreator(ImageTestCase):
         self.assertTrue(files_comment in p_stdout)
 
     def test__working_directory(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         creator = CBZCreator(self._book)
         work_dir = creator.working_directory()
         self.assertTrue(os.path.exists(work_dir))
         self.assertEqual(os.path.basename(work_dir), self._book.name)
 
     def test__zip(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         creator = CBZCreator(self._book)
         zip_file = creator.zip()
         self.assertTrue(os.path.exists(zip_file))

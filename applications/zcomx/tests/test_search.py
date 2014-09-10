@@ -22,7 +22,8 @@ class TestSearch(LocalTestCase):
     def test____init__(self):
         search = Search()
         self.assertTrue(search)
-        self.assertTrue('contributions' in search.order_fields)
+        self.assertTrue('newest pages' in search.order_fields)
+        self.assertTrue('views' in search.order_fields)
 
     def test__set(self):
         search = Search()
