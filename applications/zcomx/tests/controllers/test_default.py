@@ -19,11 +19,17 @@ from applications.zcomx.modules.test_runner import LocalTestCase
 class TestFunctions(LocalTestCase):
 
     titles = {
+        'contribute': '<form id="paypal_form"',
         'data': '<h2>Not authorized</h2>',
         'faq': '<h1>FAQ</h1>',
+        'faqc': '<h1>Creator FAQ</h1>',
+        'files': '<div id="files_page">',
+        'goodwill': '<h1>Goodwill</h1>',
         'index': 'zco.mx is a not-for-profit comic-sharing website',
+        'logos': '<h1>Logos</h1>',
         'overview': '<h1>Overview</h1>',
         'todo': '<h1>TODO</h1>',
+        'top': '<h2>Top</h2>',
         'user': [
             'web2py_user_form',
             'web2py_user_form_container',
@@ -38,6 +44,12 @@ class TestFunctions(LocalTestCase):
             web.test('{url}/call'.format(url=self.url), None)
         self.assertEqual(cm.exception.code, 404)
         self.assertEqual(cm.exception.msg, 'NOT FOUND')
+
+    def test__contribute(self):
+        self.assertTrue(web.test(
+            '{url}/contribute'.format(url=self.url),
+            self.titles['contribute']
+        ))
 
     def test__data(self):
         # Permission is denied here, should redirect to index
@@ -66,6 +78,24 @@ class TestFunctions(LocalTestCase):
             self.titles['faq']
         ))
 
+    def test__faqc(self):
+        self.assertTrue(web.test(
+            '{url}/faqc'.format(url=self.url),
+            self.titles['faqc']
+        ))
+
+    def test__files(self):
+        self.assertTrue(web.test(
+            '{url}/files'.format(url=self.url),
+            self.titles['files']
+        ))
+
+    def test__goodwill(self):
+        self.assertTrue(web.test(
+            '{url}/goodwill'.format(url=self.url),
+            self.titles['goodwill']
+        ))
+
     def test__index(self):
         self.assertTrue(web.test(
             '{url}/index'.format(url=self.url),
@@ -74,6 +104,12 @@ class TestFunctions(LocalTestCase):
 
         # Test that settings.conf is respected
         self.assertEqual(auth.settings.expiration, 86400)
+
+    def test__logos(self):
+        self.assertTrue(web.test(
+            '{url}/logos'.format(url=self.url),
+            self.titles['logos']
+        ))
 
     def test__overview(self):
         self.assertTrue(web.test(
@@ -85,6 +121,12 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test(
             '{url}/todo'.format(url=self.url),
             self.titles['todo']
+        ))
+
+    def test__top(self):
+        self.assertTrue(web.test(
+            '{url}/top'.format(url=self.url),
+            self.titles['top']
         ))
 
     def test__user(self):
