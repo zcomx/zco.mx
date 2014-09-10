@@ -175,6 +175,10 @@ div.centered table {
     border: 1.4em double #EEEEEE;
 }
 
+.progress-striped .progress-bar, .progress-bar-striped {
+    background-image: none;     // Disable stripe
+}
+
 #header {
     margin-top: 0;
 }
