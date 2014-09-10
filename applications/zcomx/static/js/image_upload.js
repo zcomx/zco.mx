@@ -61,10 +61,16 @@
                 }
                 $(image).data('retries', tries + 1);
                 setTimeout( function() {
-                    var src = $(image).attr('src');
-                    $(image).attr({'src': src});
+                    methods._reload_img(image);
                 }, 2000);
                 return true;
+            },
+
+            _reload_img: function(elem) {
+                console.log('_reload_img elem: %o', elem);
+                var src = $(elem).attr('src');
+                var dtr = src.indexOf('?') == -1 ? '?' : '&';
+                $(elem).attr({'src': src + dtr + '_=' + (new Date()).getTime()});
             },
 
             _run: function(elem) {
@@ -114,8 +120,7 @@
                 /* Some preview images don't load, reload */
                 $('span.preview a img').each(function(idx, e) {
                     $(this).attr({'onerror': "methods._img_error(this)"});
-                    var src = $(this).attr('src');
-                    $(this).attr({'src': src});
+                    methods._reload_img(this);
                 });
                 $('span.preview').removeClass('hidden');
             },
