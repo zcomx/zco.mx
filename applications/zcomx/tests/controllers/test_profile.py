@@ -64,6 +64,14 @@ class TestFunctions(LocalTestCase):
         'books': '<div id="ongoing_book_list" class="book_list">',
         'creator': '<div id="creator_section">',
         'default': 'zco.mx is a not-for-profit comic-sharing website',
+        'faq': [
+            '<div id="faq_section" class="doc_section">',
+            'What is zco.mx?',
+        ],
+        'faqc': [
+            '<div id="faq_section" class="doc_section">',
+            'As a cartoonist, why would I want to use zco.mx?'
+        ],
         'links': [
             'href="/zcomx/profile/links.load/new/link',
             'Add</span>',
@@ -74,6 +82,7 @@ class TestFunctions(LocalTestCase):
             'Add</span>',
             'order_no_handler/book_to_link',
         ],
+        'modal_error': 'An error occurred. Please try again.',
         'order_no_handler': '<div id="creator_page">',
     }
     url = '/zcomx/profile'
@@ -557,6 +566,22 @@ class TestFunctions(LocalTestCase):
         old_creator = get_creator()
         self.assertTrue(old_creator.image)
 
+    def test__faq(self):
+        self.assertTrue(
+            web.test(
+                '{url}/faq'.format(url=self.url),
+                self.titles['faq']
+            )
+        )
+
+    def test__faqc(self):
+        self.assertTrue(
+            web.test(
+                '{url}/faqc'.format(url=self.url),
+                self.titles['faqc']
+            )
+        )
+
     def test__index(self):
         self.assertTrue(
             web.test(
@@ -741,6 +766,14 @@ class TestFunctions(LocalTestCase):
             do_test(record_id, data, [], 'Invalid data provided.')
 
             reset(record_id, 'test_do_not_delete')
+
+    def test__modal_error(self):
+        self.assertTrue(
+            web.test(
+                '{url}/modal_error'.format(url=self.url),
+                self.titles['modal_error']
+            )
+        )
 
 
 def setUpModule():
