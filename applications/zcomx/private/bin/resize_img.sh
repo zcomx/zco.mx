@@ -76,7 +76,8 @@ _resize() {
             \( -clone 0 -gamma 1.666666666666666 -filter $filter -distort Resize $res -gamma 0.6 \) \
             \( -clone 0 -filter $filter -distort Resize $res \) -delete 0 \
             \( -clone 1 -colorspace gray -auto-level \) -compose over -composite \
-            -set colorspace $cs -colorspace sRGB -depth 8 $cm +repage "$nf"
+            -set colorspace $cs -colorspace sRGB -depth 8 $cm \
+            +set date:modify +set date:create +set Software  +repage "$nf"
 
 #        IFS=x read -r nw nh < <(identify -format '%P' "$nf")
 #        printf "%s %04s %04s %s\n" $fmt $nw $nh $nf

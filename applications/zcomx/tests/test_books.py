@@ -338,9 +338,14 @@ class TestFunctions(ImageTestCase):
             (40, 2.00),
             (41, 2.00),
             (100, 5.00),
-            (400, 20.00),
-            (1000, 20.00),
         ]
+
+        # Tests for books with many pages are slow and create many records
+        # in the database. Require force to run.
+        if self._opts.force:
+            tests.append((400, 20.00))
+            tests.append((1000, 20.00))
+
         for t in tests:
             page_count = db(db.book_page.book_id == book.id).count()
             while page_count < t[0]:

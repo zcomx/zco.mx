@@ -39,6 +39,13 @@ class TestFunctions(LocalTestCase):
     }
     url = '/zcomx/default'
 
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUp(cls):
+        # Prevent 'Change session ID' warnings.
+        web.sessions = {}
+
     def test__call(self):
         with self.assertRaises(urllib2.HTTPError) as cm:
             web.test('{url}/call'.format(url=self.url), None)
@@ -91,6 +98,7 @@ class TestFunctions(LocalTestCase):
         ))
 
     def test__goodwill(self):
+        web.sessions = {}
         self.assertTrue(web.test(
             '{url}/goodwill'.format(url=self.url),
             self.titles['goodwill']

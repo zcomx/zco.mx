@@ -75,6 +75,18 @@ class UnixFile(object):
         return p.communicate()
 
 
+def imagemagick_version(host=None):
+    """Return the version of the installed ImageMagick suite."""
+    args = ['convert', '-version']
+    p = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    p_stdout, unused_p_stderr = p.communicate()
+    return p_stdout.split("\n")[0].split()[2]
+
+
 def get_owner(filename):
     """Return the owner of the file.
 

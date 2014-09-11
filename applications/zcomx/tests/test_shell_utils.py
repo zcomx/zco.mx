@@ -11,11 +11,13 @@ import os
 import pwd
 import re
 import shutil
+import socket
 import unittest
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     TemporaryDirectory, \
     UnixFile, \
+    imagemagick_version, \
     get_owner, \
     set_owner, \
     temp_directory
@@ -113,6 +115,18 @@ class TestFunctions(LocalTestCase):
             if os.path.exists(cls._tmp_dir):
                 shutil.rmtree(cls._tmp_dir)
             os.rename(cls._tmp_backup, cls._tmp_dir)
+
+    def test__imagemagick_version(self):
+        by_host = {
+            'dtjimk': '6.7.0-8',
+            'jimk': '6.8.8-7',
+            'zc': '6.8.8-7'
+        }
+        version = imagemagick_version()
+        self.assertEqual(
+            imagemagick_version(),
+            by_host[socket.gethostname()]
+        )
 
     def test__get_owner(self):
         pass        # test__set_owner tests this.

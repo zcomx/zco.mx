@@ -10,6 +10,7 @@ import requests
 import os
 import unittest
 from gluon.contrib.simplejson import loads
+from applications.zcomx.modules.images import store
 from applications.zcomx.modules.test_runner import LocalTestCase
 
 
@@ -478,6 +479,8 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__creator_crud(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def get_creator():
             """Return a creator"""
@@ -532,15 +535,15 @@ class TestFunctions(LocalTestCase):
             return db(query).select(db.creator.ALL).first()
 
         old_creator = get_creator()
-        save_image = old_creator.image
         old_creator.update_record(image=None)
+        db.commit()
         old_creator = get_creator()
         self.assertFalse(old_creator.image)
 
         web.login()
 
         # Use requests to simplify uploading a file.
-        sample_file = os.path.join(self._test_data_dir, 'file.jpg')
+        sample_file = os.path.join(self._test_data_dir, 'tbn_plus.jpg')
         files = {'up_files': open(sample_file, 'rb')}
         response = requests.post(
             web.app + '/profile/creator_img_handler',
@@ -548,7 +551,6 @@ class TestFunctions(LocalTestCase):
             cookies=web.cookies,
             verify=False,
         )
-
         self.assertEqual(response.status_code, 200)
         creator = get_creator()
         self.assertTrue(creator.image)
@@ -562,9 +564,16 @@ class TestFunctions(LocalTestCase):
         creator = get_creator()
         self.assertFalse(creator.image)
 
-        old_creator.update_record(image=save_image)
-        old_creator = get_creator()
-        self.assertTrue(old_creator.image)
+        # Reset the image
+        sample_file = os.path.join(self._test_data_dir, 'tbn_plus.jpg')
+        files = {'up_files': open(sample_file, 'rb')}
+        response = requests.post(
+            web.app + '/profile/creator_img_handler',
+            files=files,
+            cookies=web.cookies,
+            verify=False,
+        )
+        self.assertEqual(response.status_code, 200)
 
     def test__faq(self):
         self.assertTrue(
@@ -591,6 +600,8 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__link_crud(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def do_test(record_id, data, expect_names, expect_errors):
             # When record_id is None, we're testing creator links.
