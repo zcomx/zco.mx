@@ -1,15 +1,15 @@
 ``
 VERSION 1
 [ ] UX/UI
-    [j] Upload
+    [x] Upload
         [x] "An error occured, please reload the page"
         [x] test luvsucker images from cli
-        SB 2014-09-02 12:04  sent jim an email
-        [ ] Some tbn's not displaying after upload
-        [ ] Disable green candy cane
+            SB 2014-09-02 12:04  sent jim an email
+        [x] Some tbn's not displaying after upload
+        [x] Disable green candy cane
         [-] Upload modal causing computer to run hot
 
-    [ ] Switch everything over to zco.mx
+    [x] Switch everything over to zco.mx
         [x] google domain
             http://www.google.com/a/cpanel/domain/new
             domains -> 'Add a domain or a domain alias'
@@ -32,7 +32,7 @@ VERSION 1
             show.me@zcomix.com to show.me@zco.mx
         [x] code
 
-    [ ] Redo logo
+    [/] Redo logo
         [x] hand colour 'Z'
         [x] hand colour url
         [x] hand colour word balloon
@@ -41,6 +41,7 @@ VERSION 1
         [ ] update main site with new logo
 
     [x] Theme twitter
+        [x] re-upload new logo
 
 
 VERSION 2 - Before Going Live
