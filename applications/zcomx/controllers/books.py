@@ -121,13 +121,40 @@ def reader():
 
     ViewEvent(book_record, auth.user_id).log()
 
+    scroll_link = A(
+        SPAN('scroll'),
+        _href=URL(
+            c='books', f='scroller', args=request.args, vars=request.vars),
+        _class='btn btn-default {st}'.format(
+            st='disabled' if request.function == 'scroller' else 'active'),
+        _type='button',
+        cid=request.cid
+    )
+
+    slider_data = dict(
+        _href=URL(c='books', f='slider', args=request.args, vars=request.vars),
+        _class='btn btn-default active',
+        _type='button',
+        cid=request.cid
+    )
+
+    if request.function == 'slider':
+        slider_data['_id'] = 'vertical_align_button'
+        slider_data['_title'] = 'Center book page in window.'
+
+    slider_link = A(
+        SPAN('slider'),
+        **slider_data
+    )
+
     return dict(
         auth_user=auth_user,
         book=book_record,
         creator=creator_record,
-        pages=page_images,
         current_page=current_page,
+        links=[scroll_link, slider_link],
         next_page=next_page,
+        pages=page_images,
         prev_page=prev_page,
         size=size,
     )

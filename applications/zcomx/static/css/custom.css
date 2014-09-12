@@ -1101,6 +1101,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #reader_section {
     text-align: center;
+    padding: 1em 0;
 }
 
 #reader_section,
@@ -1139,20 +1140,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding-left: 7em;
     margin-top: -1em;
     margin-right: 0.2em;
-}
-
-.scroll_slide_options a#vertical_align_button {
-    color: #666666;
-    padding-left: 0.6em;
-    text-decoration: none;
-}
-
-.scroll_slide_options a#vertical_align_button.disabled {
-    color: #DDDDDD;
-}
-
-.scroll_slide_options a#vertical_align_button.disabled:hover {
-    cursor: default;
 }
 
 .scroll_slide_options .btn-lg, .btn-group-lg > .btn {
@@ -1283,6 +1270,38 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #slider_page .slide {
     display: none;
+}
+
+#reader_section {
+    position: relative;
+    z-index: 1;
+}
+
+#reader_section img {
+    z-index: 2;
+}
+
+#reader_section_left,
+#reader_section_right {
+    height:100%;
+    content:' ';
+    position: absolute;
+    top: 0;
+    width: 50%;
+    opacity: 0.0;
+    z-index: 3;
+}
+
+#reader_section_left {
+    left: 0;
+    background-color: inherit;
+    cursor: w-resize;
+}
+
+#reader_section_right {
+    right: 0;
+    background-color: inherit;
+    cursor: e-resize;
 }
 
 #reader_section #reader_container{

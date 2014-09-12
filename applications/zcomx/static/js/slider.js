@@ -43,8 +43,8 @@
 
         /* Resize the container div to fit viewport. */
         var section_h = $(window).height();
-
-        $('#reader_section').height(section_h);
+        var buffer = 10;
+        $('#reader_section').height(section_h - buffer);
         $('#reader_section #img-' + num).css( "display", "inline-block")
         $('#page_nav_page_no').val(num + 1);
     }
@@ -53,8 +53,13 @@
 
         $('#page_nav_total').text((image_count() + 1).toString());
 
-        $('#reader_section .slide').click(function(e) {
+        $('#reader_section_right').click(function(e) {
             next_slide(NO_ROTATE);
+            e.preventDefault();
+        });
+
+        $('#reader_section_left').click(function(e) {
+            prev_slide(NO_ROTATE);
             e.preventDefault();
         });
 
