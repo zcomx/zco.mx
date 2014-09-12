@@ -41,19 +41,10 @@
                     </div>
                     <div class="scroll_slide_options">
                         <div class="btn-group">
-                            {{for s in ['scroller', 'slider']:}}
-                                {{status = 'disabled' if request.function == s else 'active'}}
-                                {{=A(
-                                    SPAN(s if s == 'slider' else 'scroll'),
-                                    _href=URL(c='books', f=s, args=request.args, vars=request.vars),
-                                    _class='btn btn-default {st}'.format(st=status),
-                                    _type='button',
-                                    cid=request.cid
-                                )}}
+                            {{for l in links:}}
+                                {{=l}}
                             {{pass}}
                         </div>
-                        {{status = 'active' if request.function == 'slider' else 'disabled'}}
-                        <a id="vertical_align_button" class="{{=status}}" href="#" title="Center book page in window."><i class="icon zc-arrows-out size-14"></i></a>
                     </div>
                 </div>
             </div>
@@ -123,7 +114,8 @@
 //<![CDATA[
     function scrollToAnchor(anchor_id){
         var tag = $("a[name='"+ anchor_id +"']");
-        $('html,body').animate({scrollTop: tag.offset().top},'slow');
+        var buffer = 10;
+        $('html,body').animate({scrollTop: tag.offset().top + buffer}, 'slow');
     }
 
     $(document).ready(function(){
