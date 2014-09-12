@@ -1,47 +1,12 @@
 ``
 VERSION 1
-[ ] UX/UI
-    [x] Upload
-        [x] "An error occured, please reload the page"
-        [x] test luvsucker images from cli
-            SB 2014-09-02 12:04  sent jim an email
-        [x] Some tbn's not displaying after upload
-        [x] Disable green candy cane
-        [-] Upload modal causing computer to run hot
-
-    [x] Switch everything over to zco.mx
-        [x] google domain
-            http://www.google.com/a/cpanel/domain/new
-            domains -> 'Add a domain or a domain alias'
-            users -> add user
-        [x] email with google
-            - dashboard of zsw
-            - 'setup mx records'
-            [x] edit .fdm.conf and .netrc for show.me@zco.mx
-        [x] ssl cert
-            see dm 30427
-        [x] nginx config
-        [-] github
-            I think we should leave the username as 'zcomix' for now as github
-            doesn't allow '.' in usernames
-        [x] setup CNAME for zcomix.com
-        [x] Front page
-        [x] FAQs
-        [x] bt.zco.mx and dc.zco.mx
-        [x] paypal
-            show.me@zcomix.com to show.me@zco.mx
-        [x] code
-
-    [/] Redo logo
-        [x] hand colour 'Z'
-        [x] hand colour url
-        [x] hand colour word balloon
-        [x] wavy line for 'Z' outline
-        [x] wavy line for word balloon
-        [ ] update main site with new logo
-
-    [x] Theme twitter
-        [x] re-upload new logo
+[ ] slider
+    [ ] Centering icon doesn't completely center
+    [ ] More height on bg, so the bg shows on top and bottom of image
+    [ ] A way to go back an image
+        click left side of page to go back
+        click right side of page to go forward
+    [ ] Click slider link do the centering
 
 
 VERSION 2 - Before Going Live
@@ -97,6 +62,7 @@ VERSION 2 - Before Going Live
     SB 2014-08-29 11:24  This needs more thought
 [O] Mature Content icon
 [ ] Check for duplicate file/book names
+
 
 VERSION 3
 [ ] knowledge base
