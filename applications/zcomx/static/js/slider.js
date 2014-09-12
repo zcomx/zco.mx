@@ -45,6 +45,12 @@
         var section_h = $(window).height();
         var buffer = 10;
         $('#reader_section').height(section_h - buffer);
+
+        var left_cursor = num == 0 ? 'auto' : 'w-resize';
+        $('#reader_section_left').css({cursor: left_cursor});
+        var right_cursor = num == image_count() ? 'auto' : 'e-resize';
+        $('#reader_section_right').css({cursor: right_cursor});
+
         $('#reader_section #img-' + num).css( "display", "inline-block")
         $('#page_nav_page_no').val(num + 1);
     }
@@ -98,8 +104,22 @@
             show_slide(page_no);
         });
 
+        $(window).keyup(function(e) {
+            if (e.which == 37) {
+                // left arrow
+                prev_slide(NO_ROTATE);
+                e.preventDefault();
+            }
+            if (e.which == 39) {
+                // right arrow
+                next_slide(NO_ROTATE);
+                e.preventDefault();
+            }
+        });
+
         setTimeout(function() {
             show_slide(0);
+            scrollToAnchor('reader_section');
         }.bind(this), 1000);
     });
 
