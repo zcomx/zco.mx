@@ -7,7 +7,11 @@ Search classes and functions.
 """
 import collections
 from gluon import *
-from applications.zcomx.modules.books import formatted_name, read_link
+from applications.zcomx.modules.books import \
+    formatted_name, \
+    read_link, \
+    url as book_url
+from applications.zcomx.modules.creators import url as creator_url
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
 
 
@@ -132,7 +136,7 @@ class Search(object):
 
         db.book.id.readable = False
         db.book.id.writable = False
-        db.book.name.represent = lambda v, row: A(formatted_name(db, row.book), _href=URL(c='books', f='book', args=row.book.id, extension=False))
+        db.book.name.represent = lambda v, row: A(formatted_name(db, row.book), _href=book_url(row.book.id, extension=False))
         db.book.book_type_id.readable = False
         db.book.book_type_id.writable = False
         db.book.number.readable = False
@@ -145,7 +149,7 @@ class Search(object):
             db.book.publication_year.writable = False
         db.creator.id.readable = False
         db.creator.id.writable = False
-        db.auth_user.name.represent = lambda v, row: A(v, _href=URL(c='creators', f='creator', args=row.creator.id, extension=False))
+        db.auth_user.name.represent = lambda v, row: A(v, _href=creator_url(row.creator.id, extension=False))
 
         fields = [
             db.book.id,

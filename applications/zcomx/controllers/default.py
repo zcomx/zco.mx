@@ -95,8 +95,8 @@ def user():
         )
         allowed_override = []
         if auth.user_id:
-            row = db(db.creator.auth_user_id == auth.user_id).select(
-                db.creator.path_name).first()
+            query = (db.creator.auth_user_id == auth.user_id)
+            row = db(query).select(db.creator.path_name).first()
             if row and 'path_name' in row and row['path_name']:
                 allowed_override.append(row['path_name'])
         db.auth_user.name.requires = [

@@ -16,4 +16,11 @@
         {{pass}}
     </div>
 </div>
-<script src="{{=URL(c='static', f='js/slider.js')}}"> </script>
+<script src="{{=URL(c='static', f='js/book_reader.js')}}"> </script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('#reader_container').book_reader('slider', {'start_page_no': {{=start_page_no}}});
+    });
+//]]>
+</script>

@@ -7,9 +7,11 @@ Book classes and functions.
 """
 import datetime
 import os
+import re
 from gluon import *
 from gluon.storage import Storage
 from gluon.contrib.simplejson import dumps
+from applications.zcomx.modules.creators import url_name as creator_url_name
 from applications.zcomx.modules.images import ImgTag
 from applications.zcomx.modules.utils import entity_to_row
 
@@ -34,6 +36,7 @@ class BookEvent(object):
         self.user_id = user_id
 
     def log(self, value=None):
+        """Create a record representing a log of the event."""
         raise NotImplementedError
 
 
@@ -94,8 +97,6 @@ class ViewEvent(BookEvent):
         return event_id
 
 
-
-
 def book_pages_as_json(db, book_id, book_page_ids=None):
     """Return the book pages formated as json suitable for jquery-file-upload.
 
@@ -127,7 +128,7 @@ def book_pages_as_json(db, book_id, book_page_ids=None):
 
 
 def book_page_for_json(db, book_page_id):
-    """Return the book_page formated as json suitable for jquery-file-upload.
+    r"""Return the book_page formated as json suitable for jquery-file-upload.
 
     Args:
         db: gluon.dal.DAL instance
@@ -135,16 +136,17 @@ def book_page_for_json(db, book_page_id):
 
     Returns:
         dict, containing book_page data suitable for jquery-file-upload
-                {
-                    "name": "picture1.jpg",
-                    "size": 902604,
-                    "url": "http:\/\/example.org\/files\/picture1.jpg",
-                    "thumbnailUrl": "http:\/\/example.org\/files\/thumbnail\/picture1.jpg",
-                    "deleteUrl": "http:\/\/example.org\/files\/picture1.jpg",
-                    "deleteType": "DELETE"
-                },
+            {
+                "name": "picture1.jpg",
+                "size": 902604,
+                "url": "http:\/\/dom.org\/files\/picture1.jpg",
+                "thumbnailUrl": "http:\/\/dom.org\/files\/thumbnail\/pic1.jpg",
+                "deleteUrl": "http:\/\/dom.org\/files\/picture1.jpg",
+                "deleteType": "DELETE"
+            },
     """
-    book_page = db(db.book_page.id == book_page_id).select(db.book_page.ALL).first()
+    query = (db.book_page.id == book_page_id)
+    book_page = db(query).select(db.book_page.ALL).first()
     if not book_page:
         return
 
@@ -158,7 +160,7 @@ def book_page_for_json(db, book_page_id):
     except (KeyError, OSError):
         size = 0
 
-    url = URL(
+    down_url = URL(
         c='images',
         f='download',
         args=book_page.image,
@@ -183,7 +185,7 @@ def book_page_for_json(db, book_page_id):
         book_page_id=book_page.id,
         name=filename,
         size=size,
-        url=url,
+        url=down_url,
         thumbnailUrl=thumb,
         deleteUrl=delete_url,
         deleteType='DELETE',
@@ -198,12 +200,37 @@ def book_types(db):
         db: gluon.dal.DAL instance
     """
     # {'value': record_id, 'text': description}, ...
-    types = db(db.book_type).select(db.book_type.ALL, orderby=db.book_type.sequence)
+    types = db(db.book_type).select(
+        db.book_type.ALL,
+        orderby=db.book_type.sequence
+    )
     return XML(
         ','.join(
-            ["{{'value':'{x.id}', 'text':'{x.description}'}}".format(x=x) \
-                    for x in types])
+            ["{{'value':'{x.id}', 'text':'{x.description}'}}".format(x=x)
+                for x in types])
     )
+
+
+def by_attributes(attributes):
+    """Return a Row instances representing a book matching the attributes.
+
+    Args:
+        attributes: dict of book attributes.
+
+    Returns:
+        Row instance representing a book.
+    """
+    if not attributes:
+        return
+    db = current.app.db
+    queries = []
+    for key, value in attributes.items():
+        if value is not None:
+            queries.append((db.book[key] == value))
+    query = reduce(lambda x, y: x & y, queries) if queries else None
+    if not query:
+        return
+    return db(query).select().first()
 
 
 def cover_image(db, book_id, size='original', img_attributes=None):
@@ -309,7 +336,7 @@ def defaults(db, name, creator_entity):
         data['of_number'] = book.of_number
     else:
         book_type_record = db(db.book_type.name == DEFAULT_BOOK_TYPE).select(
-                db.book_type.ALL).first()
+            db.book_type.ALL).first()
         if book_type_record:
             data['book_type_id'] = book_type_record.id
     return data
@@ -381,6 +408,113 @@ def numbers_for_book_type(db, book_type_id):
         return default
 
 
+def page_url(book_page_entity, reader=None, **url_kwargs):
+    """Return a url suitable for the reader webpage of a book page.
+
+    Args:
+        book_page_entity: Row instance or integer, if integer, this is the id
+            of the book_page. The book_page record is read.
+        url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
+    Returns:
+        string, url,
+            eg http://zco.mx/creators/index/First_Last/My_Book_(2014)/002
+            (routes_out should convert it to
+            http://zco.mx/First_Last/My_Book_(2014))/002
+    """
+    db = current.app.db
+    page_record = entity_to_row(db.book, book_page_entity)
+    if not page_record:
+        print 'FIXME no page_record'
+        return
+
+    book_record = entity_to_row(db.book, page_record.book_id)
+    if not book_record:
+        print 'FIXME no book_record'
+        return
+
+    creator_name = creator_url_name(book_record.creator_id)
+    if not creator_name:
+        print 'FIXME no creator name'
+        return
+
+    book_name = url_name(book_record)
+    if not book_name:
+        print 'FIXME no book name'
+        return
+
+    page_name = '{p:03d}'.format(p=page_record.page_no)
+
+    kwargs = {}
+    kwargs.update(url_kwargs)
+    return URL(
+        c='creators',
+        f='index',
+        args=[creator_name, book_name, page_name],
+        vars={'reader': reader} if reader else None,
+        **kwargs
+    )
+
+
+def parse_url_name(name):
+    """Parse a book url name and return book attributes.
+
+    Args:
+        name: string, name of book used in url (ie what is returned by
+                def url_name()
+
+    Returns
+        dict of book attributes.
+            eg {
+                    name: Name
+                    publication_year: 2014,
+                    book_type_id: 1,
+                    number: 1,
+                    of_number: 4,
+                }
+    """
+    if not name:
+        return
+
+    book = dict(
+        name=None,
+        publication_year=None,
+        number=None,
+        of_number=None,
+        book_type_id=None,
+    )
+
+    db = current.app.db
+
+    type_id_by_name = {}
+    for t in db(db.book_type).select():
+        type_id_by_name[t.name] = t.id
+
+    # line-too-long (C0301): *Line too long (%%s/%%s)*
+    # pylint: disable=C0301
+    type_res = {
+        'mini-series': re.compile(r'(?P<name>.*)_(?P<number>[0-9]+)_\(of_(?P<of_number>[0-9]+)\)_\((?P<publication_year>[1-9][0-9]{3})\)$'),
+        'one-shot': re.compile(r'(?P<name>.*?)(?:_\((?P<publication_year>[1-9][0-9]{3})\))?$'),
+        'ongoing': re.compile(r'(?P<name>.*)_(?P<number>[0-9]+)_\((?P<publication_year>[1-9][0-9]{3})\)$'),
+    }
+
+    # Test in order most-complex to least.
+    for book_type in ['mini-series', 'ongoing', 'one-shot']:
+        m = type_res[book_type].match(name)
+        if m:
+            book.update(m.groupdict())
+            book['book_type_id'] = type_id_by_name[book_type]
+            break
+    if book['name']:
+        book['name'] = book['name'].replace('_', ' ')
+    for field in ['publication_year', 'number', 'of_number']:
+        if book[field]:
+            try:
+                book[field] = int(book[field])
+            except (TypeError, ValueError):
+                book[field] = None
+    return book
+
+
 def publication_year_range():
     """Return a tuple representing the start and end range of publication years
     """
@@ -394,8 +528,8 @@ def publication_years():
     # {'value': '1900', 'text': '1900'}, ...
     return XML(
         ','.join(
-            ["{{'value':'{x}', 'text':'{x}'}}".format(x=x) \
-                    for x in range(*publication_year_range())])
+            ["{{'value':'{x}', 'text':'{x}'}}".format(x=x)
+                for x in range(*publication_year_range())])
     )
 
 
@@ -415,6 +549,14 @@ def read_link(db, book_entity, components=None, **attributes):
     if not book:
         return empty
 
+    query = (db.book_page.book_id == book.id)
+    first_page = db(query).select(
+        db.book_page.ALL,
+        orderby=db.book_page.page_no
+    ).first()
+    if not first_page:
+        return empty
+
     if not components:
         components = ['Read']
 
@@ -422,7 +564,56 @@ def read_link(db, book_entity, components=None, **attributes):
     kwargs.update(attributes)
 
     if '_href' not in attributes:
-        reader = book.reader or 'slider'
-        url = URL(c='books', f=reader, args=book.id, extension=False)
-        kwargs['_href'] = url
+        kwargs['_href'] = page_url(first_page, extension=False)
+
     return A(*components, **kwargs)
+
+
+def url(book_entity, **url_kwargs):
+    """Return a url suitable for the book webpage.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+        url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
+    Returns:
+        string, url, eg http://zco.mx/creators/index/First_Last/My_Book_(2014)
+            (routes_out should convert it to
+            http://zco.mx/First_Last/My_Book_(2014))
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record or not book_record.name:
+        return
+
+    creator_name = creator_url_name(book_record.creator_id)
+    if not creator_name:
+        return
+
+    name = url_name(book_entity)
+    if not name:
+        return
+
+    kwargs = {}
+    kwargs.update(url_kwargs)
+    return URL(c='creators', f='index', args=[creator_name, name], **kwargs)
+
+
+def url_name(book_entity):
+    """Return the name used for the book in the url.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+    Returns:
+        string, eg Firstname_Lastname
+    """
+    if not book_entity:
+        return
+
+    db = current.app.db
+
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record or not book_record.name:
+        return
+    return formatted_name(db, book_record).replace(' ', '_')

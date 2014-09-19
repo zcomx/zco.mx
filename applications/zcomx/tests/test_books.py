@@ -7,6 +7,7 @@ Test suite for zcomx/modules/books.py
 
 """
 import ast
+import copy
 import datetime
 import os
 import shutil
@@ -24,16 +25,22 @@ from applications.zcomx.modules.books import \
     book_page_for_json, \
     book_pages_as_json, \
     book_types, \
+    by_attributes, \
     cover_image, \
     default_contribute_amount, \
     defaults, \
     formatted_name, \
     is_releasable, \
     numbers_for_book_type, \
+    page_url, \
+    parse_url_name, \
     publication_year_range, \
     publication_years, \
-    read_link
+    read_link, \
+    url, \
+    url_name
 from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -150,6 +157,7 @@ class ImageTestCase(LocalTestCase):
     _image_original = os.path.join(_image_dir, 'original')
     _image_name = 'file.jpg'
     _image_name_2 = 'file_2.jpg'
+    _type_id_by_name = {}
 
     _objects = []
 
@@ -211,6 +219,9 @@ class ImageTestCase(LocalTestCase):
         book_page_2 = db(db.book_page.id == book_page_id_2).select().first()
         cls._objects.append(book_page_2)
 
+        for t in db(db.book_type).select():
+            cls._type_id_by_name[t.name] = t.id
+
     @classmethod
     def tearDown(cls):
         if os.path.exists(cls._image_dir):
@@ -252,7 +263,7 @@ class TestFunctions(ImageTestCase):
             nameonly=True,
         )
 
-        url = '/images/download/{img}'.format(img=self._book_page.image)
+        down_url = '/images/download/{img}'.format(img=self._book_page.image)
         thumb = '/images/download/{img}?size=tbn'.format(
             img=self._book_page.image)
         fmt = '/profile/book_pages_handler/{bid}?book_page_id={pid}'
@@ -268,7 +279,7 @@ class TestFunctions(ImageTestCase):
                 'book_page_id': self._book_page.id,
                 'name': filename,
                 'size': 23127,
-                'url': url,
+                'url': down_url,
                 'thumbnailUrl': thumb,
                 'deleteUrl': delete_url,
                 'deleteType': 'DELETE',
@@ -283,6 +294,79 @@ class TestFunctions(ImageTestCase):
             """{'value':'3', 'text':'One-shot/Graphic Novel'}"""
         )
         self.assertEqual(xml.xml(), expect)
+
+    def test__by_attributes(self):
+        ids_by_name = {}
+        books = {
+            'a': {
+                'name': 'My Book',
+                'publication_year': 1999,
+                'number': 1,
+                'of_number': 1,
+                'book_type_id': self._type_id_by_name['one-shot'],
+            },
+            'b': {
+                'name': 'Some Title',
+                'publication_year': 2000,
+                'number': 2,
+                'of_number': 1,
+                'book_type_id': self._type_id_by_name['ongoing'],
+            },
+            'c': {
+                'name': 'Another Book',
+                'publication_year': 2001,
+                'number': 2,
+                'of_number': 9,
+                'book_type_id': self._type_id_by_name['mini-series'],
+            },
+        }
+        for key, data in books.items():
+            book_id = db.book.insert(**data)
+            book = db(db.book.id == book_id).select().first()
+            self._objects.append(book)
+            ids_by_name[key] = book_id
+
+        default_attrs = {
+            'name': None,
+            'publication_year': None,
+            'number': None,
+            'of_number': None,
+            'book_type_id': None,
+        }
+
+        self.assertEqual(by_attributes({}), None)
+        self.assertEqual(by_attributes(default_attrs), None)
+
+        def do_test(attrs, expect):
+            got = by_attributes(attrs)
+            if expect is not None:
+                self.assertEqual(got.id, ids_by_name[expect])
+            else:
+                self.assertEqual(got, None)
+
+        for key, data in books.items():
+            do_test(data, key)
+
+        # Vary each field on it's own. Should return none.
+        attrs = copy.copy(books['c'])
+        attrs['name'] = '_Fake Name_'
+        do_test(attrs, None)
+
+        attrs = copy.copy(books['c'])
+        attrs['publication_year'] = 1901
+        do_test(attrs, None)
+
+        attrs = copy.copy(books['c'])
+        attrs['number'] = 99
+        do_test(attrs, None)
+
+        attrs = copy.copy(books['c'])
+        attrs['of_number'] = 999
+        do_test(attrs, None)
+
+        attrs = copy.copy(books['c'])
+        attrs['book_type_id'] = self._type_id_by_name['ongoing']
+        do_test(attrs, None)
 
     def test__cover_image(self):
 
@@ -437,10 +521,6 @@ class TestFunctions(ImageTestCase):
         book = db(db.book.id == book_id).select().first()
         self._objects.append(book)
 
-        type_id_by_name = {}
-        for t in db(db.book_type).select():
-            type_id_by_name[t.name] = t.id
-
         tests = [
             #(name, pub year, type, number, of_number, expect),
             ('My Book', 1999, 'one-shot', 1, 999,
@@ -454,7 +534,7 @@ class TestFunctions(ImageTestCase):
             book.update_record(
                 name=t[0],
                 publication_year=t[1],
-                book_type_id=type_id_by_name[t[2]],
+                book_type_id=self._type_id_by_name[t[2]],
                 number=t[3],
                 of_number=t[4],
             )
@@ -517,6 +597,115 @@ class TestFunctions(ImageTestCase):
             {'of_number': False, 'number': False}
         )
 
+    def test__page_url(self):
+        creator_id = db.creator.insert(
+            email='test__page_url@example.com',
+            path_name='First Last',
+        )
+        db.commit()
+        creator = entity_to_row(db.creator, creator_id)
+        self._objects.append(creator)
+
+        book_id = db.book.insert(
+            name='My Book',
+            publication_year=1999,
+            book_type_id=self._type_id_by_name['one-shot'],
+            number=1,
+            of_number=999,
+            creator_id=creator.id,
+        )
+        db.commit()
+        book = entity_to_row(db.book, book_id)
+        self._objects.append(book)
+
+        page_id = db.book_page.insert(
+            book_id=book.id,
+            page_no=1,
+        )
+        db.commit()
+        book_page = entity_to_row(db.book_page, page_id)
+        self._objects.append(book_page)
+
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+
+        self.assertEqual(
+            page_url(book_page),
+            '/First_Last/My_Book_%281999%29/001'
+        )
+
+        self.assertEqual(
+            page_url(book_page, reader='slider'),
+            '/First_Last/My_Book_%281999%29/001?reader=slider'
+        )
+
+        book_page.update_record(page_no=99)
+        db.commit()
+        self.assertEqual(
+            page_url(book_page),
+            '/First_Last/My_Book_%281999%29/099'
+        )
+
+    def test__parse_url_name(self):
+
+        tests = [
+            #(url_name, expect),
+            (None, None),
+            ('My_Book_(1999)', {
+                'name': 'My Book',
+                'publication_year': 1999,
+                'book_type_id': self._type_id_by_name['one-shot'],
+                'number': None,
+                'of_number': None,
+            }),
+            ('My_Book_012_(1999)', {
+                'name': 'My Book',
+                'publication_year': 1999,
+                'book_type_id': self._type_id_by_name['ongoing'],
+                'number': 12,
+                'of_number': None,
+            }),
+            ('My_Book_02_(of_09)_(1999)', {
+                'name': 'My Book',
+                'publication_year': 1999,
+                'book_type_id': self._type_id_by_name['mini-series'],
+                'number': 2,
+                'of_number': 9,
+            }),
+            # Tricky stuff
+            ("Hélè d'Eñça_02_(of_09)_(1999)", {
+                'name': "Hélè d'Eñça",
+                'publication_year': 1999,
+                'book_type_id': self._type_id_by_name['mini-series'],
+                'number': 2,
+                'of_number': 9,
+            }),
+            ('Bond_007_012_(1999)', {
+                'name': 'Bond 007',
+                'publication_year': 1999,
+                'book_type_id': self._type_id_by_name['ongoing'],
+                'number': 12,
+                'of_number': None,
+            }),
+            ('Agent_05_of_99_02_(of_09)_(1999)', {
+                'name': 'Agent 05 of 99',
+                'publication_year': 1999,
+                'book_type_id': self._type_id_by_name['mini-series'],
+                'number': 2,
+                'of_number': 9,
+            }),
+            ('My_Book', {
+                'name': 'My Book',
+                'publication_year': None,
+                'book_type_id': self._type_id_by_name['one-shot'],
+                'number': None,
+                'of_number': None,
+            }),
+        ]
+
+        for t in tests:
+            self.assertEqual(parse_url_name(t[0]), t[1])
+
     def test__publication_year_range(self):
         start, end = publication_year_range()
         self.assertEqual(start, 1900)
@@ -536,12 +725,32 @@ class TestFunctions(ImageTestCase):
 
     def test__read_link(self):
         empty = '<span></span>'
+
+        creator_id = db.creator.insert(
+            email='test__read_link@example.com',
+            path_name='First Last',
+        )
+        db.commit()
+        creator = entity_to_row(db.creator, creator_id)
+        self._objects.append(creator)
+
         book_id = db.book.insert(
             name='test__read_link',
+            publication_year=1999,
+            creator_id=creator.id,
             reader='slider',
+            book_type_id=self._type_id_by_name['one-shot'],
         )
         book = db(db.book.id == book_id).select().first()
         self._objects.append(book)
+
+        book_page_id = db.book_page.insert(
+            book_id=book.id,
+            page_no=1,
+        )
+        db.commit()
+        book_page = db(db.book_page.id == book_page_id).select().first()
+        self._objects.append(book_page)
 
         # As integer, book_id
         link = read_link(db, book_id)
@@ -550,16 +759,20 @@ class TestFunctions(ImageTestCase):
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')
-        self.assertEqual(anchor['href'], '/books/slider/{bid}'.format(
-            bid=book_id))
+        self.assertEqual(
+            anchor['href'],
+            '/First_Last/test__read_link_%281999%29/001'
+        )
 
         # As Row, book
         link = read_link(db, book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')
-        self.assertEqual(anchor['href'], '/books/slider/{bid}'.format(
-            bid=book_id))
+        self.assertEqual(
+            anchor['href'],
+            '/First_Last/test__read_link_%281999%29/001'
+        )
 
         # Invalid id
         link = read_link(db, -1)
@@ -571,8 +784,10 @@ class TestFunctions(ImageTestCase):
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')
-        self.assertEqual(anchor['href'], '/books/awesome_reader/{bid}'.format(
-            bid=book_id))
+        self.assertEqual(
+            anchor['href'],
+            '/First_Last/test__read_link_%281999%29/001'
+        )
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -604,6 +819,82 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['type'], 'button')
         self.assertEqual(anchor['target'], '_blank')
+
+    def test__url(self):
+        creator_id = db.creator.insert(
+            email='test__url@example.com',
+            path_name='First Last',
+        )
+        db.commit()
+        creator = entity_to_row(db.creator, creator_id)
+        self._objects.append(creator)
+
+        book_id = db.book.insert(
+            name='',
+        )
+        db.commit()
+        book = entity_to_row(db.book, book_id)
+        self._objects.append(book)
+
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+
+        tests = [
+            #(name, pub year, type, number, of_number, expect),
+            (None, None, 'one-shot', None, None, None),
+            ('My Book', 1999, 'one-shot', 1, 999,
+                '/First_Last/My_Book_%281999%29'),
+            ('My Book', 1999, 'ongoing', 12, 999,
+                '/First_Last/My_Book_012_%281999%29'),
+            ('My Book', 1999, 'mini-series', 2, 9,
+                '/First_Last/My_Book_02_%28of_09%29_%281999%29'),
+            ("Hélè d'Eñça", 1999, 'mini-series', 2, 9,
+                '/First_Last/H%C3%A9l%C3%A8_d%27E%C3%B1%C3%A7a_02_%28of_09%29_%281999%29'),
+        ]
+
+        for t in tests:
+            book.update_record(
+                name=t[0],
+                publication_year=t[1],
+                book_type_id=self._type_id_by_name[t[2]],
+                number=t[3],
+                of_number=t[4],
+                creator_id=creator_id,
+            )
+            db.commit()
+            self.assertEqual(url(book), t[5])
+
+    def test__url_name(self):
+        book_id = db.book.insert(
+            name='',
+        )
+        db.commit()
+        book = entity_to_row(db.book, book_id)
+        self._objects.append(book)
+
+        tests = [
+            #(name, pub year, type, number, of_number, expect),
+            (None, None, 'one-shot', None, None, None),
+            ('My Book', 1999, 'one-shot', 1, 999,
+                'My_Book_(1999)'),
+            ('My Book', 1999, 'ongoing', 12, 999,
+                'My_Book_012_(1999)'),
+            ('My Book', 1999, 'mini-series', 2, 9,
+                'My_Book_02_(of_09)_(1999)'),
+            ("Hélè d'Eñça", 1999, 'mini-series', 2, 9,
+                "H\xc3\xa9l\xc3\xa8_d'E\xc3\xb1\xc3\xa7a_02_(of_09)_(1999)"),
+        ]
+
+        for t in tests:
+            book.update_record(
+                name=t[0],
+                publication_year=t[1],
+                book_type_id=self._type_id_by_name[t[2]],
+                number=t[3],
+                of_number=t[4],
+            )
+            db.commit()
+            self.assertEqual(url_name(book), t[5])
 
 
 def setUpModule():

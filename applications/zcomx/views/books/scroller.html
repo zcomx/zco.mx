@@ -4,6 +4,7 @@
     <div id="reader_container">
         {{if pages:}}
             {{for count, page in enumerate(pages):}}
+            <a name="{{='page_no_{p:03d}'.format(p=page.page_no)}}"></a>
             <div id="img-{{=count}}" class="scroller">
                 {{=ImgTag(page.image, size=size)()}}
             </div>
@@ -13,3 +14,11 @@
         {{pass}}
     </div>
 </div>
+<script src="{{=URL(c='static', f='js/book_reader.js')}}"> </script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('#reader_container').book_reader('scroller', {'start_page_no': {{=start_page_no}}});
+    });
+//]]>
+</script>

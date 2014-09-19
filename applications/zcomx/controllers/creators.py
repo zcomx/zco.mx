@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """Creator controller functions"""
 
+import cgi
+from gluon.storage import Storage
 from applications.zcomx.modules.links import CustomLinks
-from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
+from applications.zcomx.modules.routing import route
 
 
 def books():
@@ -13,38 +15,37 @@ def books():
 
 
 def creator():
-    """Creator page
-    request.args(0): integer, id of creator.
-    """
-    if not request.args(0):
-        redirect(URL(c='default', f='index'))
-
-    creator_record = db(db.creator.id == request.args(0)).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        redirect(URL(c='default', f='index'))
-
-    auth_user = db(db.auth_user.id == creator_record.auth_user_id).select(
-        db.auth_user.ALL
-    ).first()
-    if not auth_user:
-        redirect(URL(c='default', f='index'))
-
-    pre_links = []
-    if creator_record.tumblr:
-        pre_links.append(A('tumblr', _href=creator_record.tumblr, _target='_blank'))
-    if creator_record.wikipedia:
-        pre_links.append(A('wikipedia', _href=creator_record.wikipedia, _target='_blank'))
-
-    return dict(
-        auth_user=auth_user,
-        creator=creator_record,
-        links=CustomLinks(db.creator, creator_record.id).represent(pre_links=pre_links),
-    )
+    """Creator page."""
+    # The controller is deprecated. The page is handled by routing.
+    raise HTTP(404, "Page not found")
 
 
 def index():
-    """Creators CRUD grid."""
-    # This is no longer used
-    redirect(URL(c='default', f='index'))
+    """Creators default controller.
+
+    This controller is used to route creator related requests.
+    """
+
+    # Note: there is a bug in web2py Ver 2.9.11-stable where request.vars
+    # is not set by routes.
+    # Ticket: http://code.google.com/p/web2py/issues/detail?id=1990
+    # If necessary, parse request.env.query_string for the values.
+    def parse_get_vars():
+        """Adapted from gluon/globals.py class Request"""
+        query_string = request.env.get('query_string', '')
+        dget = cgi.parse_qs(query_string, keep_blank_values=1)
+        get_vars = Storage(dget)
+        for (key, value) in get_vars.iteritems():
+            if isinstance(value, list) and len(value) == 1:
+                get_vars[key] = value[0]
+        return get_vars
+
+    request.vars.update(parse_get_vars())
+    view_dict, view = route(db, request, auth)
+    if view:
+        response.view = view
+    if view_dict:
+        return view_dict
+
+    # If we get here, we don't have a valid creator
+    raise HTTP(404, "Page not found")

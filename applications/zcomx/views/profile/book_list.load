@@ -1,10 +1,10 @@
-{{from applications.zcomx.modules.books import formatted_name, read_link}}
+{{from applications.zcomx.modules.books import formatted_name, read_link, url as book_url}}
 {{if request.args(0) == 'released':}}
 <div id="released_container">
     <table class="table table-condensed table-hover">
         {{for book in books:}}
         <tr>
-            <td class="book_name_column">{{=A(formatted_name(db, book), _href=URL(c='books', f='book', args=book.id, extension=False))}}</td>
+            <td class="book_name_column">{{=A(formatted_name(db, book), _href=book_url(book.id, extension=False))}}</td>
             <td>{{=book.release_date.year}}</td>
             <td>
                 {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
@@ -41,7 +41,7 @@
     <table class="table table-condensed table-hover">
         {{for book in books:}}
         <tr>
-            <td class="book_name_column">{{=A(formatted_name(db, book), _href=URL(c='books', f='book', args=book.id, extension=False))}}</td>
+            <td class="book_name_column">{{=A(formatted_name(db, book), _href=book_url(book.id, extension=False))}}</td>
             <td>
                 {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
             </td>

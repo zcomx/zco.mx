@@ -1,4 +1,5 @@
 {{from applications.zcomx.modules.books import formatted_name}}
+{{from applications.zcomx.modules.creators import url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
@@ -53,14 +54,14 @@
             <div class="col-sm-12" >
                 <div class="row">
                     <div class="creator_img_container">
-                        <a href="{{=URL(c='creators', f='creator', args=creator.id)}}">
+                        <a href="{{=url(creator.id, extension=False)}}" title="{{=auth_user.name}}">
                         {{=CreatorImgTag(creator.image, size='tbn', attributes={'_class': 'img-responsive'})()}}
                         </a>
                     </div>
                     <div class="creator_links_container">
                         <dl class="dl-horizontal">
                         <dt>creator</dt>
-                        <dd><a href="{{=URL(c='creators', f='creator', args=creator.id)}}">{{=auth_user.name}}</a></dd>
+                        <dd><a href="{{=url(creator.id, extension=False)}}" title="{{=auth_user.name}}">{{=auth_user.name}}</a></dd>
                         {{for f in ['website', 'twitter', 'email']:}}
                             {{try:}}
                             {{if creator[f]:}}

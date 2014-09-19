@@ -578,7 +578,9 @@ def creator_img_handler():
 
             try:
                 stored_filename = store(db.creator.image, local_filename)
-            except:
+            except Exception as err:
+                import sys; print >> sys.stderr, \
+                    'Creator image upload error: {err}'.format(err=err)
                 stored_filename = None
 
         if not stored_filename:

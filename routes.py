@@ -1,110 +1,103 @@
 # -*- coding: utf-8 -*-
 
-#  routers are dictionaries of URL routing parameters.
+# default_application, default_controller, default_function
+# are used when the respective element is missing from the
+# (possibly rewritten) incoming URL
 #
-#  For each request, the effective router is:
-#    the built-in default base router (shown below),
-#    updated by the BASE router in routes.py routers,
-#    updated by the app-specific router in routes.py routers (if any),
-#    updated by the app-specific router from applications/app/routes.py routers (if any)
+default_application = 'zcomx'    # ordinarily set in base routes.py
+default_controller = 'default'  # ordinarily set in app-specific routes.py
+default_function = 'index'      # ordinarily set in app-specific routes.py
+
+# routes_app is a tuple of tuples.  The first item in each is a regexp that will
+# be used to match the incoming request URL. The second item in the tuple is
+# an applicationname.  This mechanism allows you to specify the use of an
+# app-specific routes.py. This entry is meaningful only in the base routes.py.
 #
-#
-#  Router members:
-#
-#  default_application: default application name
-#  applications: list of all recognized applications, or 'ALL' to use all currently installed applications
-#       Names in applications are always treated as an application names when they appear first in an incoming URL.
-#       Set applications=None to disable the removal of application names from outgoing URLs.
-#  domains: optional dict mapping domain names to application names
-#       The domain name can include a port number: domain.com:8080
-#       The application name can include a controller:  appx/ctlrx
-#           or a controller and a function: appx/ctlrx/fcnx
-#       Example:
-#       domains = {   "domain.com" : "app",
-#                  "x.domain.com" : "appx",
-#                 },
-#  path_prefix: a path fragment that is prefixed to all outgoing URLs and stripped from all incoming URLs
-#
-#  Note: default_application, applications, domains & path_prefix are permitted only in the BASE router,
-#        and domain makes sense only in an application-specific router.
-#        The remaining members can appear in the BASE router (as defaults for all applications)
-#        or in application-specific routers.
-#
-#  default_controller: name of default controller
-#  default_function: name of default function (in all controllers) or dictionary of default functions
-#       by controller
-#  controllers: list of valid controllers in selected app
-#       or "DEFAULT" to use all controllers in the selected app plus 'static'
-#       or None to disable controller-name removal.
-#      Names in controllers are always treated as controller names when they appear in an incoming URL after
-#      the (optional) application and language names.
-#  functions: list of valid functions in the default controller (default None) or dictionary of valid
-#       functions by controller.
-#       If present, the default function name will be omitted when the controller is the default controller
-#       and the first arg does not create an ambiguity.
-#  languages: list of all supported languages
-#       Names in languages are always treated as language names when they appear in an incoming URL after
-#       the (optional) application name.
-#  default_language
-#       The language code (for example: en, it-it) optionally appears in the URL following
-#       the application (which may be omitted). For incoming URLs, the code is copied to
-#       request.language; for outgoing URLs it is taken from request.language.
-#       If languages=None, language support is disabled.
-#       The default_language, if any, is omitted from the URL.
-#  root_static: list of static files accessed from root (by default, favicon.ico & robots.txt)
-#       (mapped to the default application's static/ directory)
-#       Each default (including domain-mapped) application has its own root-static files.
-#  domain: the domain that maps to this application (alternative to using domains in the BASE router)
-#  exclusive_domain: If True (default is False), an exception is raised if an attempt is made to generate
-#       an outgoing URL with a different application without providing an explicit host.
-#  map_hyphen: If True (default is False), hyphens in incoming /a/c/f fields are converted
-#       to underscores, and back to hyphens in outgoing URLs.
-#       Language, args and the query string are not affected.
-#  map_static: By default (None), the default application is not stripped from static URLs.
-#       Set map_static=True to override this policy.
-#       Set map_static=False to map lang/static/file to static/lang/file
-#  acfe_match: regex for valid application, controller, function, extension /a/c/f.e
-#  file_match: regex for valid subpath (used for static file paths)
-#              if file_match does not contain '/', it is uses to validate each element of a static file subpath,
-#              rather than the entire subpath.
-#  args_match: regex for valid args
-#       This validation provides a measure of security.
-#       If it is changed, the application perform its own validation.
-#
-#
-#  The built-in default router supplies default values (undefined members are None):
-#
-#     default_router = dict(
-#         default_application = 'init',
-#             applications = 'ALL',
-#         default_controller = 'default',
-#             controllers = 'DEFAULT',
-#         default_function = 'index',
-#             functions = None,
-#         default_language = None,
-#             languages = None,
-#         root_static = ['favicon.ico', 'robots.txt'],
-#         map_static = None,
-#         domains = None,
-#         map_hyphen = False,
-#         acfe_match = r'\w+$',                 # legal app/ctlr/fcn/ext
-#         file_match = r'([-+=@$%\w]|(?<=[-+=@$%\w])[./])*$',   # legal static subpath
-#         args_match = r'([\w@ -]|(?<=[\w@ -])[.=])*$',         # legal arg in args
-#     )
-#
-#  See rewrite.map_url_in() and rewrite.map_url_out() for implementation details.
+# Example: support welcome, admin, app and myapp, with myapp the default:
 
 
-#  This simple router set overrides only the default application name,
-#  but provides full rewrite functionality.
+routes_app = ()
+# routes_app = ((r'/zcomx/(.*)', r'zcomx'),
+#               (r'(.*)', r'zcomx'),
+#               (r'/?(.*)', r'zcomx'))
 
-routers = dict(
+# routes_in is a tuple of tuples.  The first item in each is a regexp that will
+# be used to match the incoming request URL. The second item in the tuple is
+# what it will be replaced with.  This mechanism allows you to redirect incoming
+# routes to different web2py locations
+#
+# Example: If you wish for your entire website to use init's static directory:
+#
+#   routes_in=( (r'/static/(?P<file>[\w./-]+)', r'/init/static/\g<file>') )
+#
 
-    # base router
-    BASE=dict(
-        default_application='zcomx',
-    ),
+BASE = ''  # optonal prefix for incoming URLs
+
+CONTROLLERS = '|'.join([
+    'books',
+    'contributions',
+    'creators',
+    'default',
+    'images',
+    'profile',
+    'search'
+])
+
+creator_re = '(?P<creator>.*)'      # Allow everything
+book_re = '(?P<book>.*)'            # Allow everything
+page_re = '(?P<page>[\w.]+)'        # Allow period for extension
+
+routes_in = (
+    # ('/$anything', '/zcomx/creators/delete_me?key=$anything'),
+    # ('/$anything', '/zcomx/creators/delete_me/xxx?bbb=9888&ccc=888'),
+    # do not reroute static files
+    ('/$app/static/$anything', '/$app/static/$anything'),
+    ('/', '/zcomx/default/index'),
+    ('/zcomx', '/zcomx/default/index'),
+    ('/(?P<controller>{ctrs})'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/index'),
+    ('/zcomx/(?P<controller>{ctrs})'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/index'),
+    ('/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/$anything'),
+    ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/$anything'),
+
+    #  reroute favicon and robots
+    ('/favicon.ico', '/zcomx/static/images/favicon.ico'),
+    ('/robots.txt', '/zcomx/static/robots.txt'),
+
+    # Assume everything else doesn't match a controller and is a creator/book/page
+    ('/zcomx/{c}/{b}/{p}'.format(c=creator_re, b=book_re, p=page_re),
+        '/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
+    ('/zcomx/{c}/{b}'.format(c=creator_re, b=book_re),
+        '/zcomx/creators/index?creator=\g<creator>&book=\g<book>'),
+    ('/zcomx/{c}'.format(c=creator_re),
+        '/zcomx/creators/index?creator=\g<creator>'),
+
+    ('/{c}/{b}/{p}'.format(c=creator_re, b=book_re, p=page_re),
+        '/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
+    ('/{c}/{b}'.format(c=creator_re, b=book_re),
+        '/zcomx/creators/index?creator=\g<creator>&book=\g<book>'),
+    ('/{c}'.format(c=creator_re),
+        '/zcomx/creators/index?creator=\g<creator>'),
 )
+
+# routes_out, like routes_in translates URL paths created with the web2py URL()
+# function in the same manner that route_in translates inbound URL paths.
+#
+# routes_out = [(x, y) for (y, x) in routes_in]
+
+
+routes_out = (
+    # do not reroute static files
+    ('/zcomx/static/images/favicon.ico', '/favicon.ico'),
+    ('/zcomx/static/robots.txt', '/robots.txt'),
+    ('/$app/static/$anything', '/$app/static/$anything'),
+    ('/zcomx/default/index', '/'),
+    ('/zcomx/creators/index/$anything', '/$anything'),
+    ('/creators/index/$anything', '/$anything'),
+    ('/zcomx/(?P<controller>{ctrs})/index'.format(ctrs=CONTROLLERS), '/\g<controller>'),
+    ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/\g<controller>/$anything'),
+)
+
+
 
 # Specify log level for rewrite's debug logging
 # Possible values: debug, info, warning, error, critical (loglevels),
@@ -144,6 +137,11 @@ logging = 'debug'
 # error_message = '<html><body><h1>%s</h1></body></html>'
 # error_message_ticket = '<html><body><h1>Internal error</h1>Ticket issued: <a href="/admin/default/ticket/%(ticket)s" target="_blank">%(ticket)s</a></body></html>'
 
+# specify a list of apps that bypass args-checking and use request.raw_args
+#
+#routes_apps_raw=['myapp']
+#routes_apps_raw=['myapp', 'myotherapp']
+
 
 def __routes_doctest():
     '''
@@ -160,49 +158,70 @@ def __routes_doctest():
 
     >>> import os
     >>> import gluon.main
-    >>> from gluon.rewrite import load, filter_url, filter_err, get_effective_router
+    >>> from gluon.rewrite import regex_select, load, filter_url, regex_filter_out, filter_err, compile_regex
+    >>> regex_select()
     >>> load(routes=os.path.basename(__file__))
 
-    >>> filter_url('http://domain.com/abc', app=True)
-    'welcome'
-    >>> filter_url('http://domain.com/welcome', app=True)
-    'welcome'
     >>> os.path.relpath(filter_url('http://domain.com/favicon.ico'))
-    'applications/welcome/static/favicon.ico'
-    >>> filter_url('http://domain.com/abc')
-    '/welcome/default/abc'
-    >>> filter_url('http://domain.com/index/abc')
-    "/welcome/default/index ['abc']"
-    >>> filter_url('http://domain.com/default/abc.css')
-    '/welcome/default/abc.css'
-    >>> filter_url('http://domain.com/default/index/abc')
-    "/welcome/default/index ['abc']"
-    >>> filter_url('http://domain.com/default/index/a bc')
-    "/welcome/default/index ['a bc']"
-
-    >>> filter_url('https://domain.com/app/ctr/fcn', out=True)
+    'applications/examples/static/favicon.ico'
+    >>> os.path.relpath(filter_url('http://domain.com/robots.txt'))
+    'applications/examples/static/robots.txt'
+    >>> filter_url('http://domain.com')
+    '/init/default/index'
+    >>> filter_url('http://domain.com/')
+    '/init/default/index'
+    >>> filter_url('http://domain.com/init/default/fcn')
+    '/init/default/fcn'
+    >>> filter_url('http://domain.com/init/default/fcn/')
+    '/init/default/fcn'
+    >>> filter_url('http://domain.com/app/ctr/fcn')
     '/app/ctr/fcn'
-    >>> filter_url('https://domain.com/welcome/ctr/fcn', out=True)
+    >>> filter_url('http://domain.com/app/ctr/fcn/arg1')
+    "/app/ctr/fcn ['arg1']"
+    >>> filter_url('http://domain.com/app/ctr/fcn/arg1/')
+    "/app/ctr/fcn ['arg1']"
+    >>> filter_url('http://domain.com/app/ctr/fcn/arg1//')
+    "/app/ctr/fcn ['arg1', '']"
+    >>> filter_url('http://domain.com/app/ctr/fcn//arg1')
+    "/app/ctr/fcn ['', 'arg1']"
+    >>> filter_url('HTTP://DOMAIN.COM/app/ctr/fcn')
+    '/app/ctr/fcn'
+    >>> filter_url('http://domain.com/app/ctr/fcn?query')
+    '/app/ctr/fcn ?query'
+    >>> filter_url('http://otherdomain.com/fcn')
+    '/app/ctr/fcn'
+    >>> regex_filter_out('/app/ctr/fcn')
     '/ctr/fcn'
-    >>> filter_url('https://domain.com/welcome/default/fcn', out=True)
+    >>> filter_url('https://otherdomain.com/app/ctr/fcn', out=True)
+    '/ctr/fcn'
+    >>> filter_url('https://otherdomain.com/app/ctr/fcn/arg1//', out=True)
+    '/ctr/fcn/arg1//'
+    >>> filter_url('http://otherdomain.com/app/ctr/fcn', out=True)
     '/fcn'
-    >>> filter_url('https://domain.com/welcome/default/index', out=True)
-    '/'
-    >>> filter_url('https://domain.com/welcome/appadmin/index', out=True)
-    '/appadmin'
-    >>> filter_url('http://domain.com/welcome/default/fcn?query', out=True)
+    >>> filter_url('http://otherdomain.com/app/ctr/fcn?query', out=True)
     '/fcn?query'
-    >>> filter_url('http://domain.com/welcome/default/fcn#anchor', out=True)
+    >>> filter_url('http://otherdomain.com/app/ctr/fcn#anchor', out=True)
     '/fcn#anchor'
-    >>> filter_url('http://domain.com/welcome/default/fcn?query#anchor', out=True)
-    '/fcn?query#anchor'
-
     >>> filter_err(200)
     200
     >>> filter_err(399)
     399
     >>> filter_err(400)
     400
+    >>> filter_url('http://domain.com/welcome', app=True)
+    'welcome'
+    >>> filter_url('http://domain.com/', app=True)
+    'myapp'
+    >>> filter_url('http://domain.com', app=True)
+    'myapp'
+    >>> compile_regex('.*http://otherdomain.com.* (?P<any>.*)', '/app/ctr\g<any>')[0].pattern
+    '^.*http://otherdomain.com.* (?P<any>.*)$'
+    >>> compile_regex('.*http://otherdomain.com.* (?P<any>.*)', '/app/ctr\g<any>')[1]
+    '/app/ctr\\\\g<any>'
+    >>> compile_regex('/$c/$f', '/init/$c/$f')[0].pattern
+    '^.*?:https?://[^:/]+:[a-z]+ /(?P<c>\\\\w+)/(?P<f>\\\\w+)$'
+    >>> compile_regex('/$c/$f', '/init/$c/$f')[1]
+    '/init/\\\\g<c>/\\\\g<f>'
     '''
     pass
 

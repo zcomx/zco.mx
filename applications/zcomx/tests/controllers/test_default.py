@@ -19,6 +19,7 @@ from applications.zcomx.modules.test_runner import LocalTestCase
 class TestFunctions(LocalTestCase):
 
     titles = {
+        '404': 'Page not found',
         'contribute': '<form id="paypal_form"',
         'data': '<h2>Not authorized</h2>',
         'faq': '<h1>FAQ</h1>',
@@ -142,6 +143,28 @@ class TestFunctions(LocalTestCase):
             '{url}/user/login'.format(url=self.url),
             self.titles['user']
         ))
+
+    def test_routes(self):
+        """Test various urls and make sure they behave."""
+        tests = [
+            #(url, expect)
+            ('/', 'index'),
+            ('/zcomx', 'index'),
+            ('/zcomx/default', 'index'),
+            ('/zcomx/default/index', 'index'),
+            ('/admin', '404'),
+            ('/zcomx/admin', '404'),
+            ('/appadmin', '404'),
+            ('/zcomx/appadmin', '404'),
+        ]
+        for t in tests:
+            if t[1] == '404':
+                with self.assertRaises(urllib2.HTTPError) as cm:
+                    web.test(t[0], None)
+                self.assertEqual(cm.exception.code, 404)
+                self.assertEqual(cm.exception.msg, 'NOT FOUND')
+            else:
+                self.assertTrue(web.test(t[0], self.titles[t[1]]))
 
 
 def setUpModule():

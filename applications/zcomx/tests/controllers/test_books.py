@@ -7,6 +7,7 @@ Test suite for zcomx/controllers/books.py
 
 """
 import unittest
+import urllib2
 from applications.zcomx.modules.test_runner import LocalTestCase
 
 
@@ -21,9 +22,7 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'book': '<div id="book_page">',
-        'carousel': '<div id="carousel_page">',
         'default': 'zco.mx is a not-for-profit comic-sharing website',
-        'gallery': '<div id="blueimp-gallery-carousel"',
         'reader': '<div id="reader_section">',
         'scroller': '<div id="scroller_page">',
         'slider': '<div id="slider_page">',
@@ -38,8 +37,12 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=W0212
         # Get a book with pages.
         count = db.book_page.book_id.count()
-        book_page = db().select(db.book_page.book_id, count,
-                groupby=db.book_page.book_id, orderby=~count).first()
+        book_page = db().select(
+            db.book_page.book_id,
+            count,
+            groupby=db.book_page.book_id,
+            orderby=~count
+        ).first()
         query = (db.book.id == book_page.book_page.book_id)
         cls._book = db(query).select(db.book.ALL).first()
         if not cls._book:
@@ -53,58 +56,36 @@ class TestFunctions(LocalTestCase):
             cls._invalid_book_id = 1
 
     def test__book(self):
-        # No id, redirects to default page
-        self.assertTrue(web.test('{url}/book'.format(url=self.url),
-            self.titles['default']))
-
-        # Invalid id, redirects to default page
-        self.assertTrue(web.test('{url}/book/{bid}'.format(url=self.url,
-            bid=self._invalid_book_id),
-            self.titles['default']))
-
-        # Test valid id
-        self.assertTrue(web.test('{url}/book/{bid}'.format(url=self.url,
-            bid=self._book.id),
-            self.titles['book']))
-
-    def test__carousel(self):
-        self.assertTrue(web.test('{url}/carousel/{bid}'.format(url=self.url,
-            bid=self._book.id),
-            self.titles['carousel']))
-
-    def test__gallery(self):
-        self.assertTrue(web.test('{url}/gallery/{bid}'.format(url=self.url,
-            bid=self._book.id),
-            self.titles['gallery']))
+        with self.assertRaises(urllib2.HTTPError) as cm:
+            web.test('{url}/book'.format(url=self.url), None)
+        self.assertEqual(cm.exception.code, 404)
+        self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
     def test__index(self):
-        self.assertTrue(web.test('{url}/index'.format(url=self.url),
-            self.titles['default']))
+        self.assertTrue(
+            web.test(
+                '{url}/index'.format(url=self.url),
+                self.titles['default']
+            )
+        )
 
     def test__reader(self):
-        # No id, redirects to default page
-        self.assertTrue(web.test('{url}/reader'.format(url=self.url),
-            self.titles['default']))
-
-        # Invalid id, redirects to default page
-        self.assertTrue(web.test('{url}/reader/{bid}'.format(url=self.url,
-            bid=self._invalid_book_id),
-            self.titles['default']))
-
-        # Test valid id
-        self.assertTrue(web.test('{url}/reader/{bid}'.format(url=self.url,
-            bid=self._book.id),
-            self.titles['reader']))
+        with self.assertRaises(urllib2.HTTPError) as cm:
+            web.test('{url}/reader'.format(url=self.url), None)
+        self.assertEqual(cm.exception.code, 404)
+        self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
     def test__scroller(self):
-        self.assertTrue(web.test('{url}/scroller/{bid}'.format(url=self.url,
-            bid=self._book.id),
-            self.titles['scroller']))
+        with self.assertRaises(urllib2.HTTPError) as cm:
+            web.test('{url}/scroller'.format(url=self.url), None)
+        self.assertEqual(cm.exception.code, 404)
+        self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
     def test__slider(self):
-        self.assertTrue(web.test('{url}/slider/{bid}'.format(url=self.url,
-            bid=self._book.id),
-            self.titles['slider']))
+        with self.assertRaises(urllib2.HTTPError) as cm:
+            web.test('{url}/slider'.format(url=self.url), None)
+        self.assertEqual(cm.exception.code, 404)
+        self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
 
 def setUpModule():
