@@ -42,6 +42,11 @@ OPTIONS
     --man
         Print man page-like help.
 
+    -t PATH, --tmp-dir=PATH
+        Set PATH as the working directory. Original files are copied there
+        before processing. If PATH doesn't exist, it is created.
+        Default /tmp/resize_img_py.
+
     -v, --verbose
         Print information messages to stdout.
 
@@ -67,6 +72,11 @@ def main():
         help='Display manual page-like help and exit.',
     )
     parser.add_option(
+        '-t', '--tmp-dir',
+        dest='tmp_dir', default='/tmp/resize_img_py',
+        help='Working directory. Default /tmp/resize_img_py',
+    )
+    parser.add_option(
         '-v', '--verbose',
         action='store_true', dest='verbose', default=False,
         help='Print messages to stdout.',
@@ -90,24 +100,24 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if len(args) != 1:
+    if len(args) < 1:
         parser.print_help()
         exit(1)
 
     LOG.info('Started.')
     # copy the file to a temp name.
-    image_dir = '/tmp/resize_img_py'
-    if not os.path.exists(image_dir):
-        os.makedirs(image_dir)
+    if not os.path.exists(options.tmp_dir):
+        os.makedirs(options.tmp_dir)
 
-    base = os.path.basename(args[0])
-    dest_filename = os.path.join(image_dir, base)
-    shutil.copy(args[0], dest_filename)
+    for filename in args:
+        base = os.path.basename(filename)
+        dest_filename = os.path.join(options.tmp_dir, base)
+        shutil.copy(filename, dest_filename)
 
-    resize_img = ResizeImg(dest_filename)
-    resize_img.run(nice=True)
-    for size, name in resize_img.filenames.items():
-        LOG.info('{size}: {name}'.format(size=size, name=name))
+        resize_img = ResizeImg(dest_filename)
+        resize_img.run(nice=True)
+        for size, name in resize_img.filenames.items():
+            LOG.info('{size}: {name}'.format(size=size, name=name))
     LOG.info('Done.')
 
 
