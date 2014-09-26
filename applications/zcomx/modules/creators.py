@@ -15,10 +15,11 @@ def add_creator(form):
     """Create a creator record.
 
     Args:
-        form: form with form.vars values.
+        form: form with form.vars values. form.vars.email is expected to be
+            set to the email of the auth_user record.
 
     Usage:
-        auth.settings.login_onaccept = lambda f: add_creator(f)
+        onaccept = [add_creator, ...]
     """
     email = form.vars.email
     if not email:
@@ -41,6 +42,7 @@ def add_creator(form):
         db.creator.insert(
             auth_user_id=auth_user.id,
             email=auth_user.email,
+            path_name=for_path(auth_user.name),
         )
         db.commit()
 
@@ -111,6 +113,25 @@ def image_as_json(db, creator_id):
     )
 
     return dumps(dict(files=images))
+
+
+def set_creator_path_name(form):
+    """Set the creator.path_name field associated with the user.
+
+    Args:
+        form: form with form.vars values. form.vars.id is expected to be the
+            id of the auth_user record for the creator.
+
+    Usage:
+        onaccept = [set_creator_path_name, ...]
+    """
+    if not form.vars.id:
+        return
+    db = current.app.db
+    creator = db(db.creator.auth_user_id == form.vars.id).select(
+        db.creator.ALL).first()
+    if creator:
+        set_path_name(creator)
 
 
 def set_path_name(creator_entity):

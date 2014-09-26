@@ -13,6 +13,7 @@ from gluon import *
 from gluon.storage import \
     List, \
     Storage
+from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     ItemDescription, \
     entity_to_row, \
@@ -20,8 +21,6 @@ from applications.zcomx.modules.utils import \
     move_record, \
     profile_wells, \
     reorder
-
-from applications.zcomx.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -161,7 +160,8 @@ class TestFunctions(LocalTestCase):
         book = db(db.book.id == book_id).select().first()
         self._objects.append(book)
 
-        for entity in [book, book_id]:
+        # Test Row, Reference, id
+        for entity in [book, book_id, book.id]:
             got = entity_to_row(db.book, entity)
             self.assertEqual(book.as_dict(), got.as_dict())
 

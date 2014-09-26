@@ -64,7 +64,7 @@ auth.settings.mailer = mail                    # for user email verification
 auth.settings.registration_requires_verification = True
 auth.settings.registration_requires_approval = False
 auth.settings.reset_password_requires_verification = True
-auth.settings.login_onaccept = lambda f: add_creator(f)
+auth.settings.login_onaccept = [add_creator]
 auth.settings.login_next = URL(c='profile', f='index')
 auth.settings.logout_next = URL('index')
 
