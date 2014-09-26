@@ -14,8 +14,10 @@ from applications.zcomx.modules.creators import \
     add_creator, \
     for_path, \
     image_as_json, \
+    set_creator_path_name, \
     set_path_name
 from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -62,6 +64,7 @@ class TestFunctions(LocalTestCase):
         self._objects.append(creator)
         self.assertEqual(creator.email, email)
         self.assertEqual(creator.auth_user_id, user_id)
+        self.assertEqual(creator.path_name, 'First Last')
 
         before = db(db.creator).count()
         add_creator(form)
@@ -131,44 +134,76 @@ class TestFunctions(LocalTestCase):
             ]
         )
 
+    def test__set_creator_path_name(self):
+        auth_user_id = db.auth_user.insert(
+            name='Test Set Creator Path Name'
+        )
+        auth_user = entity_to_row(db.auth_user, auth_user_id)
+        self._objects.append(auth_user)
+
+        creator_id = db.creator.insert(
+            email='test_set_creator_path_name@example.com',
+        )
+        db.commit()
+        creator = entity_to_row(db.creator, creator_id)
+        self._objects.append(creator)
+
+        self.assertEqual(creator.path_name, None)
+
+        # form has no email
+        form = Storage({'vars': Storage()})
+        set_creator_path_name(form)
+        creator = entity_to_row(db.creator, creator_id)
+        self.assertEqual(creator.path_name, None)
+
+        # creator.auth_user_id not set
+        form.vars.id = auth_user.id
+        set_creator_path_name(form)
+        creator = entity_to_row(db.creator, creator_id)
+        self.assertEqual(creator.path_name, None)
+
+        creator.update_record(auth_user_id=auth_user.id)
+        db.commit()
+        set_creator_path_name(form)
+        creator = entity_to_row(db.creator, creator_id)
+        self.assertEqual(creator.path_name, 'Test Set Creator Path Name')
+
     def test__set_path_name(self):
-        def get_record(table, record_id):
-            """Get a record from a table."""
-            return db(table.id == record_id).select(table.ALL).first()
 
         auth_user_id = db.auth_user.insert(
             name='Test Set Path Name'
         )
-        auth_user = get_record(db.auth_user, auth_user_id)
+        db.commit()
+        auth_user = entity_to_row(db.auth_user, auth_user_id)
         self._objects.append(auth_user)
 
         creator_id = db.creator.insert(
             email='test_set_path_name@example.com'
         )
         db.commit()
-        creator = get_record(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator_id)
         self._objects.append(creator)
 
         self.assertEqual(creator.path_name, None)
         set_path_name(creator)
         # creator.auth_user_id not set
-        creator = get_record(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator_id)
         self.assertEqual(creator.path_name, None)
 
         creator.update_record(auth_user_id=auth_user.id)
         db.commit()
         set_path_name(creator)
-        creator = get_record(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator_id)
         self.assertEqual(creator.path_name, 'Test Set Path Name')
 
         # Test with creator_id
         # Reset
         creator.update_record(path_name=None)
         db.commit()
-        creator = get_record(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator_id)
         self.assertEqual(creator.path_name, None)
         set_path_name(creator_id)
-        creator = get_record(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator_id)
         self.assertEqual(creator.path_name, 'Test Set Path Name')
 
 

@@ -6,7 +6,7 @@ import os
 from applications.zcomx.modules.creators import \
     add_creator, \
     for_path, \
-    set_path_name
+    set_creator_path_name
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.stickon.sqlhtml import \
     formstyle_bootstrap3_login
@@ -39,15 +39,6 @@ def user():
         @auth.requires_permission('read','table name',record_id)
     to decorate functions that need access control
     """
-    def set_creator_path_name(form):
-        """Set the creator.path_name field associated with the user."""
-        if not form.vars.id:
-            return
-        creator = db(db.creator.auth_user_id == form.vars.id).select(
-            db.creator.ALL).first()
-        if creator:
-            set_path_name(creator)
-
     if request.args(0) == 'profile' and request.extension == 'html':
         redirect(URL(c='profile', f='account', extension=False))
     if request.args(0) == 'change_password' and request.extension == 'html':
@@ -82,7 +73,7 @@ def user():
 
     if request.args(0) == 'register':
         auth.settings.register_fields = ['name', userfield, passfield]
-        auth.settings.register_onaccept = [add_creator, set_creator_path_name]
+        auth.settings.register_onaccept = [add_creator]
 
     if request.args(0) in ['profile', 'register']:
         error_msg = XML(
@@ -104,7 +95,8 @@ def user():
         )
         allowed_override = []
         if auth.user_id:
-            row = db(db.creator.auth_user_id == auth.user_id).select(db.creator.path_name).first()
+            row = db(db.creator.auth_user_id == auth.user_id).select(
+                db.creator.path_name).first()
             if row and 'path_name' in row and row['path_name']:
                 allowed_override.append(row['path_name'])
         db.auth_user.name.requires = [
@@ -233,7 +225,7 @@ def overview():
 
 
 def todo():
-    """TODO page"""
+    """Todo page"""
     return dict(text=markmin_content('todo.mkd'))
 
 
