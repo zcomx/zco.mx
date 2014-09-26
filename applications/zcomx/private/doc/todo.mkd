@@ -1,5 +1,8 @@
 ``
 VERSION 2 - Before Going Live
+[ ] bugs
+    [ ] resize bug cause by images with very large res
+
 [ ] wildcard ssl cert for zco.mx
 [ ] Rewrite urls
     https://zco.mx
