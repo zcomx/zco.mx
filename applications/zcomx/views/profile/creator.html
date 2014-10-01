@@ -213,7 +213,13 @@
 
         $('#edit_links_container').inplace_link_crud(
             '{{=URL(c='profile', f='link_crud.json')}}',
-            ''
+            '',
+            {
+                placeholders: {
+                    name: 'eg. facebook',
+                    url: 'http://facebook.com/name',
+                }
+            }
         );
 
         $('#bio_container').inplace_crud(

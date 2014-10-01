@@ -120,10 +120,10 @@
                 var inputs = $(
                             '<div class="arrow_container"></div>'
                           + '<div>'
-                          + '    <input type="text" name="link_name" value="" class="link_name form-control" placeholder="Title-of-Book">'
+                          + '    <input type="text" name="link_name" value="" class="link_name form-control" placeholder="' + settings.placeholders.name + '">'
                           + '</div>'
                           + '<div>'
-                          + '    <input type="text" name="link_url" value="" class="link_url form-control" placeholder="http://etsy.com/title-of-book">'
+                          + '    <input type="text" name="link_url" value="" class="link_url form-control" placeholder="' + settings.placeholders.url + '">'
                           + '</div>'
                         );
                 inputs.appendTo(add_container);
@@ -397,6 +397,10 @@
 
     $.fn.inplace_link_crud.defaults = {
         add_container_id: 'add_link_container',
+        placeholders: {
+            name: 'Name',
+            url: 'http://www.example.com',
+        },
         x_editable_settings: {
             emptytext: 'Click to edit',
             mode: 'inline',

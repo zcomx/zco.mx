@@ -275,7 +275,13 @@
         {{if book and book.id:}}
         $('#edit_links_container').inplace_link_crud(
             '{{=URL(c='profile', f='link_crud.json', args=book.id)}}',
-            '{{=book.id}}'
+            '{{=book.id}}',
+            {
+                placeholders: {
+                    name: 'Title-of-Book',
+                    url: 'http://etsy.com/title-of-book',
+                }
+            }
         );
         {{else:}}
             setTimeout( function() {
