@@ -25,7 +25,7 @@ class TestFunctions(LocalTestCase):
             'loading...',
         ],
         'books_release': [
-            '<div class="grid_section">'
+            '<div class="grid_section">',
             'loading...',
             '<h4>Released</h4>',
             '<h4>Ongoing</h4>',
@@ -52,27 +52,22 @@ class TestFunctions(LocalTestCase):
 
     def test__books(self):
         self.assertTrue(web.test(
-            '{url}/books.load/{cid}'.format(url=self.url, cid=self._creator.id),
+            '{url}/books.load/{cid}'.format(
+                url=self.url,
+                cid=self._creator.id
+            ),
             self.titles['books']
         ))
-        return
 
         self.assertTrue(web.test(
-            '{url}/books.load/{cid}?can_release=1'.format(url=self.url, cid=self._creator.id),
+            '{url}/books.load/{cid}?can_release=1'.format(
+                url=self.url,
+                cid=self._creator.id
+            ),
             self.titles['books_release']
         ))
 
     def test__creator(self):
-        creators = db(db.creator.auth_user_id > 0).select(
-            db.creator.ALL,
-            orderby=db.creator.id,
-            limitby=(0, 1)
-        )
-        if not creators:
-            self.fail('No creator found in db.')
-        creator = creators[0]
-        auth_user = db(db.auth_user.id == creator.auth_user_id).select().first()
-
         # Without a creator id, should revert to default page.
         self.assertTrue(web.test(
             '{url}/creator'.format(url=self.url),
@@ -80,13 +75,41 @@ class TestFunctions(LocalTestCase):
         ))
 
         self.assertTrue(web.test('{url}/creator/{id}'.format(
-            url=self.url, id=creator.id),
+            url=self.url, id=self._creator.id),
             self.titles['creator']
         ))
 
     def test__index(self):
         self.assertTrue(web.test(
             '{url}/index'.format(url=self.url),
+            self.titles['default']
+        ))
+
+        # With integer should redirect to creator page
+        self.assertTrue(web.test(
+            '{url}/index/{cid}'.format(
+                url=self.url,
+                cid=self._creator.id
+            ),
+            self.titles['creator']
+        ))
+
+        # With valid name should redirect to creator page
+        name = self._creator.path_name.replace(' ', '_')
+        self.assertTrue(web.test(
+            '{url}/index/{name}'.format(
+                url=self.url,
+                name=name
+            ),
+            self.titles['creator']
+        ))
+
+        # With invalid name should redirect to default
+        self.assertTrue(web.test(
+            '{url}/index/{name}'.format(
+                url=self.url,
+                name='Invalid_Creator'
+            ),
             self.titles['default']
         ))
 

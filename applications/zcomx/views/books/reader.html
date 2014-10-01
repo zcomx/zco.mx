@@ -1,7 +1,8 @@
-{{from applications.zcomx.modules.books import formatted_name}}
+{{from applications.zcomx.modules.books import formatted_name, url as book_url}}
+{{from applications.zcomx.modules.creators import url as creator_url}}
 {{extend 'layout.html'}}
 <style type="text/css" media="screen">
-    {{if request.function == 'slider':}}
+    {{if reader == 'slider':}}
     html, body {
         height: 100%;
     }
@@ -29,13 +30,13 @@
                 <div class="col-sm-12" id="name_creator_inlay">
                     <div class="row" id="name_creator">
                         <div id="book_name" class="col-sm-8">
-                            <a href="{{=URL(c='books', f='book', args=book.id)}}">
+                            <a href="{{=book_url(book.id, extension=False)}}">
                             {{=formatted_name(db, book)}}
                             </a>
                         </div>
                         <div id="creator" class="col-sm-8">
                             <div id="creator_name">
-                                <a href="{{=URL(c='creators', f='creator', args=creator.id)}}">{{=auth_user.name}}</a>
+                                <a href="{{=creator_url(creator.id, extension=False)}}" title="{{=auth_user.name}}">{{=auth_user.name}}</a>
                             </div>
                         </div>
                     </div>
@@ -62,7 +63,7 @@
         <div id="reader_page_footer">
             <div class="row" id="contribute_download_pager">
                 <div class="page_nav_container col-sm-4 col-sm-push-4">
-                    {{if request.function == 'slider':}}
+                    {{if reader == 'slider':}}
                     <ul id="page_nav_list">
                     <li>
                         <a href="#" title="Previous page">

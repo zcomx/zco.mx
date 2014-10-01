@@ -29,6 +29,9 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(cm.exception.code, 404)
         self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
+    def test__resize(self):
+        pass        # This controller doesn't need testing.
+
 
 def setUpModule():
     """Set up web2py environment."""

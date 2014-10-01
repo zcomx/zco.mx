@@ -9,6 +9,7 @@ import os
 from gluon import *
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.files import FileName
+from applications.zcomx.modules.utils import entity_to_row
 
 
 def add_creator(form):
@@ -83,7 +84,7 @@ def image_as_json(db, creator_id):
     except (KeyError, OSError):
         size = 0
 
-    url = URL(
+    image_url = URL(
         c='images',
         f='download',
         args=creator_record.image,
@@ -105,7 +106,7 @@ def image_as_json(db, creator_id):
         dict(
             name=filename,
             size=size,
-            url=url,
+            url=image_url,
             thumbnailUrl=thumb,
             deleteUrl=delete_url,
             deleteType='DELETE',
@@ -138,8 +139,6 @@ def set_path_name(creator_entity):
     """Set the path_name field on a creator record.
 
     Args:
-        creator: Row instance or integer, Row instance represents creator,
-                or integer representing id of creator record.
         creator_entity: Row instance or integer, if integer, this is the id of
             the creator. The creator record is read.
     """
@@ -168,3 +167,46 @@ def set_path_name(creator_entity):
     if creator.path_name != name:
         db(db.creator.id == creator.id).update(path_name=name)
         db.commit()
+
+
+def url(creator_entity, **url_kwargs):
+    """Return a url suitable for the creator page.
+
+    Args:
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+        url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
+    Returns:
+        string, url, eg http://zco.mx/creators/index/Firstname_Lastname
+            (routes_out should convert it to http://zco.mx/Firstname_Lastname)
+    """
+    name = url_name(creator_entity)
+    if not name:
+        return
+
+    kwargs = {}
+    kwargs.update(url_kwargs)
+    return URL(c='creators', f='index', args=[name], **kwargs)
+
+
+def url_name(creator_entity):
+    """Return the name used for the creator in the url.
+
+    Args:
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+    Returns:
+        string, eg Firstname_Lastname
+    """
+    if not creator_entity:
+        return
+
+    db = current.app.db
+
+    creator_record = entity_to_row(db.creator, creator_entity)
+    if not creator_record or not creator_record.path_name:
+        return
+
+    return creator_record.path_name.decode(
+        'utf-8'
+    ).encode('utf-8').replace(' ', '_')

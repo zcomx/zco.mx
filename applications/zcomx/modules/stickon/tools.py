@@ -213,7 +213,7 @@ class ModelDb(object):
             #   from gluon.contrib.memdb import MEMDB
             #   from google.appengine.api.memcache import Client
             #   session.connect(request, response, db=MEMDB(Client())
-            db = self.DAL('sqlite://storage.sqlite')
+            db = self.DAL('sqlite://storage.sqlite', debug=True)
         return db
 
     def _mail(self):

@@ -138,6 +138,19 @@
         <span class="visible-sm">sm</span>
         <span class="visible-md">md</span>
         <span class="visible-lg">lg</span>
+        <div>
+            app: {{=request.application}}
+            <br>
+            controller: {{=request.controller}}
+            <br>
+            function: {{=request.function}}
+            <br>
+            args: {{=request.args}}
+            <br>
+            vars: {{=request.vars}}
+            <br>
+            env: {{=request.env.query_string}}
+        </div>
     </div>
     {{pass}}
 

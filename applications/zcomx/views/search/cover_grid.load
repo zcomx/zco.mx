@@ -1,4 +1,5 @@
-{{from applications.zcomx.modules.books import cover_image, formatted_name, read_link}}
+{{from applications.zcomx.modules.books import cover_image, formatted_name, read_link, url as book_url}}
+{{from applications.zcomx.modules.creators import url as creator_url}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{if grid.rows:}}
     {{for i in range(1, len(grid.rows) + 1, 2): }}
@@ -18,7 +19,7 @@
                         {{=((page - 1) * items_per_page) + (i + j)}}
                     </div>
                     <div class="col-sm-5 image_container">
-                        <a href="{{=URL(c='books', f='book', args=row.book.id, extension=False)}}" title="{{=book_name}}">
+                        <a href="{{=book_url(row.book.id, extension=False)}}" title="{{=book_name}}">
                         {{=cover_image(db, row.book.id, size='tbn')}}
                         </a>
                     </div>
@@ -27,7 +28,7 @@
                             <div class="row">
                                 <div class="col-sm-12 name_padding">
                                     <div class="name">
-                                    <a href="{{=URL(c='books', f='book', args=row.book.id, extension=False)}}" title="{{=book_name}}">
+                                    <a href="{{=book_url(row.book.id, extension=False)}}" title="{{=book_name}}">
                                     {{=book_name}}
                                     </a>
                                     </div>
@@ -36,7 +37,7 @@
                             <div class="row">
                                 <div class="col-sm-12 creator_padding">
                                     <div class="creator">
-                                        <a href="{{=URL(c='creators', f='creator', args=row.creator.id, extension=False)}}" title="{{=row.auth_user.name}}">
+                                        <a href="{{=creator_url(row.creator.id, extension=False)}}" title="{{=row.auth_user.name}}">
                                         {{=row.auth_user.name}}
                                         </a>
                                     </div>

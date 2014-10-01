@@ -15,7 +15,9 @@ from applications.zcomx.modules.creators import \
     for_path, \
     image_as_json, \
     set_creator_path_name, \
-    set_path_name
+    set_path_name, \
+    url, \
+    url_name
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 
@@ -205,6 +207,51 @@ class TestFunctions(LocalTestCase):
         set_path_name(creator_id)
         creator = entity_to_row(db.creator, creator_id)
         self.assertEqual(creator.path_name, 'Test Set Path Name')
+
+    def test__url(self):
+        creator_id = db.creator.insert(
+            email='test__url@example.com'
+        )
+        db.commit()
+        creator = entity_to_row(db.creator, creator_id)
+        self._objects.append(creator)
+
+        tests = [
+            # (path_name, expect)
+            (None, None),
+            ('Prince', '/Prince'),
+            ('First Last', '/First_Last'),
+            ('first last', '/first_last'),
+            ("Hélè d'Eñça", '/H%C3%A9l%C3%A8_d%27E%C3%B1%C3%A7a'),
+        ]
+
+        for t in tests:
+            creator.update_record(path_name=t[0])
+            db.commit()
+            self.assertEqual(url(creator), t[1])
+
+    def test__url_name(self):
+        creator_id = db.creator.insert(
+            email='test__url_name@example.com'
+        )
+        db.commit()
+        creator = entity_to_row(db.creator, creator_id)
+        self._objects.append(creator)
+
+        tests = [
+            # (path_name, expect)
+            (None, None),
+            ('Prince', 'Prince'),
+            ('First Last', 'First_Last'),
+            ('first last', 'first_last'),
+            ("Hélè d'Eñça", "H\xc3\xa9l\xc3\xa8_d'E\xc3\xb1\xc3\xa7a"),
+        ]
+
+        for t in tests:
+
+            creator.update_record(path_name=t[0])
+            db.commit()
+            self.assertEqual(url_name(creator), t[1])
 
 
 def setUpModule():

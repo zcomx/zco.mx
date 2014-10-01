@@ -46,7 +46,7 @@
 </div>
 
 <div id="report_section">
-    {{=LOAD(c='creators', f='books', args=[request.args(0)], vars=request.vars, extension='load', ajax=True, ajax_trap=True)}}
+    {{=LOAD(c='creators', f='books', args=[creator.id], vars=request.vars, extension='load', ajax=True, ajax_trap=True)}}
 </div>
 
 </div>
