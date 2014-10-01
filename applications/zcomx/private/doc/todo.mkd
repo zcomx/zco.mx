@@ -4,15 +4,19 @@ VERSION 2 - Before Going Live
     [ ] login -> books -> Edit -> Upload Images
         Images out of order
         After upload, images are in correct order.  Close, open modal and the
-        images are not longer in the correct order
+        images are no longer in the correct order
 
-    [ ] Front Page -> Listing
-        Change 'Creator' or 'Cartoonist'
-        Add space or right-justify left/right arrow
+        Using login -> books -> Upload seems to work fine
+
+    [ ] Front Page -> Listing (view)
+        Change 'Creator' to 'Cartoonist'
+        Add space or right-justify left/right arrow in heading
 
     [ ] login -> profile
-        change Title-of-Book to Name-for-Link
-        change http://etsy.com/title-of-book to http://link-name.com
+        This should be different than 'login -> books -> Edit'
+
+        change Title-of-Book to eg facebook
+        change http://etsy.com/title-of-book to http://facebook.com/name
 
     [ ] login -> profile -> bio
         width too small
