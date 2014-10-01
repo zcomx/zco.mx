@@ -619,6 +619,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
     min-height: 1.0em;
 }
 
+.grid_sort_marker {
+    bottom: 0.2em;
+    font-size: 0.8em;
+    padding-left: 0.6em;
+    position: relative;
+}
+
+
 #book_page #buttons_container {
     padding-bottom: 1em;
 }

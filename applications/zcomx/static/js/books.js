@@ -295,6 +295,7 @@
                     var modal = new UploadModalize(null, 'upload', {
                         'book_id': that.$book_id,
                         'book_title': that.$book_title,
+                        'onhidden': that.options.onhidden,
                         'url': url
                     });
                     modal.get_dialog().open();
@@ -354,6 +355,46 @@
                 }
             });
             return btns;
+        },
+        init: function (element, action, options) {
+            options = $.extend(
+                true,
+                {'bootstrap_dialog_options':  {'closable': false}, },
+                options
+            );
+            UploadModalize.superclass.init.call(this, element, action, options);
+        },
+        onhidden: function(dialog) {
+            this.reorder_pages(dialog);
+            UploadModalize.superclass.onhidden.call(this, dialog);
+        },
+        reorder_pages: function(dialog) {
+            var page_ids = [];
+            var book_id = 0;
+            dialog.getModalBody().find('tr.template-download').each(function(index, elem) {
+                if (!book_id) {
+                    book_id = $(elem).data('book_id');
+                }
+                page_ids.push($(elem).data('book_page_id'));
+            });
+
+            var url = '/zcomx/profile/book_pages_reorder'
+            url = url + '/' + book_id;
+
+            var that = $(this);
+
+            $('#fileupload').addClass('fileupload-processing');
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: 'json',
+                data: {book_page_ids: page_ids},
+            }).always(function () {
+                $('#fileupload').removeClass('fileupload-processing');
+            // }).done(function (result) {
+            // Reordering not critical, ignore results
+            })
         }
     });
 
@@ -414,35 +455,6 @@
         });
     }
 
-    function reorder_pages(dialog) {
-        var page_ids = [];
-        var book_id = 0;
-        dialog.getModalBody().find('tr.template-download').each(function(index, elem) {
-            if (!book_id) {
-                book_id = $(elem).data('book_id');
-            }
-            page_ids.push($(elem).data('book_page_id'));
-        });
-
-        var url = '/zcomx/profile/book_pages_reorder'
-        url = url + '/' + book_id;
-
-        var that = $(this);
-
-        $('#fileupload').addClass('fileupload-processing');
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            dataType: 'json',
-            data: {book_page_ids: page_ids},
-        }).always(function () {
-            $('#fileupload').removeClass('fileupload-processing');
-        // }).done(function (result) {
-        // Reordering not critical, ignore results
-        })
-    }
-
     $.fn.set_modal_events = function() {
         $('.modal-add-btn').modalize('add', {
             'onhidden': display_book_lists,
@@ -459,8 +471,7 @@
             }
         });
         $('.modal-upload-btn').modalize('upload', {
-            'onhidden': reorder_pages,
-            'bootstrap_dialog_options':  {'closable': false},
+            'onhidden': display_book_lists,
         });
     }
 

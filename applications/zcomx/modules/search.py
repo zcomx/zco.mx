@@ -286,11 +286,16 @@ class Search(object):
 
         page2 = db.book_page.with_alias('page2')
 
+        sorter_icons = (
+            SPAN(XML('&#x25B2;'), _class='grid_sort_marker'),
+            SPAN(XML('&#x25BC;'), _class='grid_sort_marker')
+        )
+
         kwargs = dict(
                 fields=fields,
                 headers={
                     'book.name': 'Title',
-                    'auth_user.name': 'Creator',
+                    'auth_user.name': 'Cartoonist',
                     },
                 orderby=orderby,
                 groupby=db.book.id,
@@ -318,6 +323,7 @@ class Search(object):
                 links=links,
                 oncreate=oncreate,
                 ondelete=ondelete,
+                sorter_icons=sorter_icons,
                 editargs={'deletable': False},
                 )
         if grid_args:
