@@ -113,19 +113,13 @@
 </div>
 <script>
 //<![CDATA[
-    function scrollToAnchor(anchor_id){
-        var tag = $("a[name='"+ anchor_id +"']");
-        var buffer = 10;
-        $('html,body').animate({scrollTop: tag.offset().top + buffer}, 'slow');
-    }
-
     $(document).ready(function(){
         $('#vertical_align_button').click(function(e) {
             if ($(this).hasClass('disabled')) {
                 e.preventDefault();
                 return;
             }
-            scrollToAnchor('reader_section');
+            $.fn.zco_utils.scroll_to_anchor('reader_section');
             e.preventDefault();
         });
     });

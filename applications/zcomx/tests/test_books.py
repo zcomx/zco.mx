@@ -29,6 +29,7 @@ from applications.zcomx.modules.books import \
     cover_image, \
     default_contribute_amount, \
     defaults, \
+    first_page, \
     formatted_name, \
     is_releasable, \
     numbers_for_book_type, \
@@ -513,6 +514,34 @@ class TestFunctions(ImageTestCase):
 
         got = defaults(db, self._book.name, -1)
         self.assertEqual(got, {})
+
+    def test__first_page(self):
+        book_id = db.book.insert(name='test__first_page')
+        book = entity_to_row(db.book, book_id)
+        self._objects.append(book)
+
+        # Book has no pages
+        self.assertEqual(first_page(db, book_id), None)
+
+        for count in range(0, 3):
+            page_id = db.book_page.insert(
+                book_id=book_id,
+                page_no=(count + 1),
+            )
+            page = entity_to_row(db.book_page, page_id)
+            self._objects.append(page)
+
+        tests = [
+            #(order_by, expect page_no)
+            (None, 1),
+            (db.book_page.page_no, 1),
+            (~db.book_page.page_no, 3),
+        ]
+        for t in tests:
+            page = first_page(db, book_id, orderby=t[0])
+            for f in db.book_page.fields:
+                self.assertTrue(f in page.keys())
+            self.assertEqual(page.page_no, t[1])
 
     def test__formatted_name(self):
         book_id = db.book.insert(name='My Book')

@@ -14,7 +14,6 @@
         {{pass}}
     </div>
 </div>
-<script src="{{=URL(c='static', f='js/book_reader.js')}}"> </script>
 <script>
 //<![CDATA[
     $(document).ready(function(){
@@ -22,3 +21,6 @@
     });
 //]]>
 </script>
+{{block post_bootstrap_js}}
+    <script src="{{=URL(c='static', f='js/book_reader.js')}}"> </script>
+{{end}}

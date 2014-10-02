@@ -242,20 +242,16 @@ def cover_image(db, book_id, size='original', img_attributes=None):
         size: string, the size of the image. One of SIZES
         img_attributes: dict of attributes for IMG
     """
-    query = (db.book_page.book_id == book_id)
-    first_page = db(query).select(
-        db.book_page.ALL,
-        orderby=db.book_page.page_no
-    ).first()
-    image = first_page.image if first_page else None
+    page = first_page(db, book_id)
+    image = page.image if page else None
 
     attributes = {}
 
     if size == 'tbn':
         thumb_w = thumb_h = 170
-        if not first_page:
+        if not page:
             # Create a dummy book_page record
-            first_page = Storage(
+            page = Storage(
                 thumb_w=thumb_w,
                 thumb_h=thumb_h,
             )
@@ -265,8 +261,8 @@ def cover_image(db, book_id, size='original', img_attributes=None):
             'height: {h}px;',
             'margin: {pv}px {pr}px {pv}px {pl}px;',
         ])
-        width = first_page.thumb_w
-        height = first_page.thumb_h
+        width = page.thumb_w
+        height = page.thumb_h
         padding_vertical = (thumb_h - height) / 2
         if padding_vertical < 0:
             padding_vertical = 0
@@ -340,6 +336,20 @@ def defaults(db, name, creator_entity):
         if book_type_record:
             data['book_type_id'] = book_type_record.id
     return data
+
+
+def first_page(db, book_id, orderby=None):
+    """Return the first page for the book.
+
+    Args
+        db: gluon.dal.DAL instance
+        book_id: integer, the id of the book
+        orderby: gluon.dal.Field used to order pages.
+                Default db.book_page.page_no
+    """
+    order_by = orderby or db.book_page.page_no
+    query = (db.book_page.book_id == book_id)
+    return db(query).select(db.book_page.ALL, orderby=order_by).first()
 
 
 def formatted_name(db, book_entity):
@@ -424,22 +434,18 @@ def page_url(book_page_entity, reader=None, **url_kwargs):
     db = current.app.db
     page_record = entity_to_row(db.book, book_page_entity)
     if not page_record:
-        print 'FIXME no page_record'
         return
 
     book_record = entity_to_row(db.book, page_record.book_id)
     if not book_record:
-        print 'FIXME no book_record'
         return
 
     creator_name = creator_url_name(book_record.creator_id)
     if not creator_name:
-        print 'FIXME no creator name'
         return
 
     book_name = url_name(book_record)
     if not book_name:
-        print 'FIXME no book name'
         return
 
     page_name = '{p:03d}'.format(p=page_record.page_no)
@@ -549,12 +555,8 @@ def read_link(db, book_entity, components=None, **attributes):
     if not book:
         return empty
 
-    query = (db.book_page.book_id == book.id)
-    first_page = db(query).select(
-        db.book_page.ALL,
-        orderby=db.book_page.page_no
-    ).first()
-    if not first_page:
+    page = first_page(db, book.id)
+    if not page:
         return empty
 
     if not components:
@@ -564,7 +566,7 @@ def read_link(db, book_entity, components=None, **attributes):
     kwargs.update(attributes)
 
     if '_href' not in attributes:
-        kwargs['_href'] = page_url(first_page, extension=False)
+        kwargs['_href'] = page_url(page, extension=False)
 
     return A(*components, **kwargs)
 

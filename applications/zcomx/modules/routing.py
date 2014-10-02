@@ -12,6 +12,7 @@ from applications.zcomx.modules.books import \
     ViewEvent, \
     by_attributes, \
     cover_image, \
+    first_page, \
     page_url, \
     parse_url_name, \
     read_link, \
@@ -115,15 +116,11 @@ def route(db, request, auth):
 
         ViewEvent(book_record, auth.user_id).log()
 
-        query = (db.book_page.book_id == book_record.id)
-        first_page = db(query).select(
-            db.book_page.ALL,
-            orderby=db.book_page.page_no
-        ).first()
+        first_book_page = first_page(db, book_record.id)
 
         scroll_link = A(
             SPAN('scroll'),
-            _href=page_url(first_page, reader='scroller'),
+            _href=page_url(first_book_page, reader='scroller'),
             _class='btn btn-default {st}'.format(
                 st='disabled' if reader == 'scroller' else 'active'),
             _type='button',
@@ -131,7 +128,7 @@ def route(db, request, auth):
         )
 
         slider_data = dict(
-            _href=page_url(first_page, reader='slider'),
+            _href=page_url(first_book_page, reader='slider'),
             _class='btn btn-default active',
             _type='button',
             cid=request.cid

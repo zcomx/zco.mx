@@ -1,29 +1,6 @@
 (function ($) {
     "use strict";
 
-    //utils
-    $.fn.modalize_utils = {
-        /**
-        * classic JS inheritance function
-        */
-        inherit: function (Child, Parent) {
-            var F = function() { };
-            F.prototype = Parent.prototype;
-            Child.prototype = new F();
-            Child.prototype.constructor = Child;
-            Child.superclass = Parent.prototype;
-        },
-
-        toTitleCase: function (str) {
-            return str.replace(/\b\w/g, function (txt) { return txt.toUpperCase(); });
-        }
-    };
-}(window.jQuery));
-
-
-(function ($) {
-    "use strict";
-
     var Modalize = function (element, action, options) {
         this.init(element, action, options);
     };
@@ -185,7 +162,7 @@
         modal_title: function() {
             var title = '';
             if (this.$action) {
-                title += $.fn.modalize_utils.toTitleCase(this.$action) + ': ';
+                title += $.fn.zco_utils.toTitleCase(this.$action) + ': ';
             }
             title += this.get_book_title();
             return title;
@@ -240,7 +217,7 @@
     var AddModalize = function (element, action, options) {
         this.init(element, action, options);
     }
-    $.fn.modalize_utils.inherit(AddModalize, Modalize);
+    $.fn.zco_utils.inherit(AddModalize, Modalize);
     $.extend(AddModalize.prototype, {
         onhidden: function(dialog) {
             this.$book_id = dialog.getData('book_id');
@@ -261,7 +238,7 @@
     var DeleteModalize = function (element, action, options) {
         this.init(element, action, options);
     }
-    $.fn.modalize_utils.inherit(DeleteModalize, Modalize);
+    $.fn.zco_utils.inherit(DeleteModalize, Modalize);
     $.extend(DeleteModalize.prototype, {
         buttons: function() {
             var that = this;
@@ -281,7 +258,7 @@
     var EditModalize = function (element, action, options) {
         this.init(element, action, options);
     }
-    $.fn.modalize_utils.inherit(EditModalize, Modalize);
+    $.fn.zco_utils.inherit(EditModalize, Modalize);
     $.extend(EditModalize.prototype, {
         buttons: function() {
             var that = this;
@@ -309,7 +286,7 @@
     var ReleaseModalize = function (element, action, options) {
         this.init(element, action, options);
     }
-    $.fn.modalize_utils.inherit(ReleaseModalize, Modalize);
+    $.fn.zco_utils.inherit(ReleaseModalize, Modalize);
     $.extend(ReleaseModalize.prototype, {
         buttons: function() {
             var that = this;
@@ -329,7 +306,7 @@
     var UploadModalize = function (element, action, options) {
         this.init(element, action, options);
     }
-    $.fn.modalize_utils.inherit(UploadModalize, Modalize);
+    $.fn.zco_utils.inherit(UploadModalize, Modalize);
     $.extend(UploadModalize.prototype, {
         buttons: function() {
             var that = this;

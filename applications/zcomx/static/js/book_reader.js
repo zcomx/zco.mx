@@ -1,24 +1,5 @@
 (function ($) {
     "use strict";
-
-    //utils
-    $.fn.book_reader_utils = {
-        /**
-        * classic JS inheritance function
-        */
-        inherit: function (Child, Parent) {
-            var F = function() { };
-            F.prototype = Parent.prototype;
-            Child.prototype = new F();
-            Child.prototype.constructor = Child;
-            Child.superclass = Parent.prototype;
-        },
-    };
-}(window.jQuery));
-
-
-(function ($) {
-    "use strict";
     var ROTATE = true;
     var NO_ROTATE = false;
 
@@ -41,18 +22,12 @@
                 this.to_page(this.options.start_page_no);
             }.bind(this), 1000);
         },
-
-        scroll_to_anchor: function(anchor_id){
-            var tag = $("a[name='"+ anchor_id +"']");
-            var buffer = 10;
-            $('html,body').animate({scrollTop: tag.offset().top + buffer}, 'slow');
-        },
     };
 
     var SliderReader = function (element, action, options) {
         this.init(element, action, options);
     }
-    $.fn.book_reader_utils.inherit(SliderReader, BookReader);
+    $.fn.zco_utils.inherit(SliderReader, BookReader);
     $.extend(SliderReader.prototype, {
         image_count: function() {
             return $('#reader_section .slide').length - 1;
@@ -173,14 +148,14 @@
 
         to_page: function(page_no) {
             this.show_slide(page_no - 1);
-            this.scroll_to_anchor('reader_section');
+            $.fn.zco_utils.scroll_to_anchor('reader_section');
         }
     });
 
     var ScrollerReader = function (element, action, options) {
         this.init(element, action, options);
     }
-    $.fn.book_reader_utils.inherit(ScrollerReader, BookReader);
+    $.fn.zco_utils.inherit(ScrollerReader, BookReader);
     $.extend(ScrollerReader.prototype, {
         init_listeners: function() {
             return;
@@ -189,7 +164,7 @@
             console.log('page_no: %o', page_no);
             var anchor = 'page_no_' + ('000'+page_no).slice(-3);
             console.log('anchor: %o', anchor);
-            this.scroll_to_anchor(anchor);
+            $.fn.zco_utils.scroll_to_anchor(anchor);
         }
     });
 
