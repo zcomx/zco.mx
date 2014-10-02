@@ -46,7 +46,7 @@ VERSION 2 - Before Going Live
 [ ] wildcard ssl cert for zco.mx
 [ ] Front Page
     add report to drive contributions
-    $10/page and $300/cbz
+    $10/web image and $25/cbz image
     remove cartoonist from report once over $0
     caveats:
         flipbook
