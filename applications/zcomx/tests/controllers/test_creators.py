@@ -7,6 +7,7 @@ Test suite for zcomx/controllers/creators.py
 
 """
 import unittest
+import urllib2
 from applications.zcomx.modules.test_runner import LocalTestCase
 
 
@@ -68,49 +69,33 @@ class TestFunctions(LocalTestCase):
         ))
 
     def test__creator(self):
-        # Without a creator id, should revert to default page.
-        self.assertTrue(web.test(
-            '{url}/creator'.format(url=self.url),
-            self.titles['default']
-        ))
-
-        self.assertTrue(web.test('{url}/creator/{id}'.format(
-            url=self.url, id=self._creator.id),
-            self.titles['creator']
-        ))
+        with self.assertRaises(urllib2.HTTPError) as cm:
+            web.test('{url}/creator'.format(url=self.url), None)
+        self.assertEqual(cm.exception.code, 404)
+        self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
     def test__index(self):
-        self.assertTrue(web.test(
-            '{url}/index'.format(url=self.url),
-            self.titles['default']
-        ))
+        with self.assertRaises(urllib2.HTTPError) as cm:
+            web.test('{url}/index'.format(url=self.url), None)
+        self.assertEqual(cm.exception.code, 404)
+        self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
-        # With integer should redirect to creator page
+        # Test: creator as integer
         self.assertTrue(web.test(
-            '{url}/index/{cid}'.format(
+            '{url}/index?creator={cid}'.format(
                 url=self.url,
                 cid=self._creator.id
             ),
             self.titles['creator']
         ))
 
-        # With valid name should redirect to creator page
-        name = self._creator.path_name.replace(' ', '_')
+        # Test: creator as path_name
         self.assertTrue(web.test(
-            '{url}/index/{name}'.format(
+            '{url}/index?creator={name}'.format(
                 url=self.url,
-                name=name
+                name=self._creator.path_name
             ),
             self.titles['creator']
-        ))
-
-        # With invalid name should redirect to default
-        self.assertTrue(web.test(
-            '{url}/index/{name}'.format(
-                url=self.url,
-                name='Invalid_Creator'
-            ),
-            self.titles['default']
         ))
 
 
