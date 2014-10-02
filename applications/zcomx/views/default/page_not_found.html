@@ -1,0 +1,45 @@
+{{extend 'layout_main.html'}}
+<div id="help_section">
+
+{{=LOAD(c='default', f='top', args='page_not_found', extension='load', ajax=False, content='')}}
+
+<h3>Page not found</h3>
+<p>
+{{=message}}
+</p>
+
+{{if urls.invalid:}}
+<ul>
+    <li>
+        <span class="table_cell">Requested page:</span>
+        {{=urls.invalid}}
+    </li>
+</ul>
+{{pass}}
+
+{{if urls.creator or urls.book or urls.page:}}
+Suggestions:
+
+<ul>
+    {{if urls.creator:}}
+    <li>
+        <span class="table_cell">Creator page:</span>
+        <a href="{{=urls.creator}}">{{=urls.creator}}</a>
+    </li>
+    {{pass}}
+    {{if urls.book:}}
+    <li>
+        <span class="table_cell">Book page:</span>
+        <a href="{{=urls.book}}">{{=urls.book}}</a>
+    </li>
+    {{pass}}
+    {{if urls.page:}}
+    <li>
+        <span class="table_cell">Read:</span>
+        <a href="{{=urls.page}}">{{=urls.page}}</a>
+    </li>
+    {{pass}}
+</ul>
+{{pass}}
+
+</div>

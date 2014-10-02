@@ -13,7 +13,9 @@ from gluon.rewrite import filter_url
 from gluon.storage import \
     List, \
     Storage
-from applications.zcomx.modules.routing import route
+from applications.zcomx.modules.routing import \
+    route, \
+    page_not_found
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 
@@ -24,6 +26,7 @@ from applications.zcomx.modules.utils import entity_to_row
 
 class TestFunctions(LocalTestCase):
     _type_id_by_name = {}
+    _request = None
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
@@ -31,6 +34,14 @@ class TestFunctions(LocalTestCase):
     def setUp(cls):
         for t in db(db.book_type).select():
             cls._type_id_by_name[t.name] = t.id
+        cls._request = Storage()
+        cls._request.env = Storage()
+        cls._request.env.wsgi_url_scheme = 'http'
+        cls._request.env.http_host = 'www.domain.com'
+        cls._request.env.web2py_original_uri = '/path/to/page'
+        cls._request.env.request_uri = '/request/uri/path'
+        cls._request.args = List()
+        cls._request.vars = Storage()
 
     def test_routes(self):
         """This tests the ~/routes.py settings."""
@@ -54,6 +65,16 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/zcomx/creators', '/zcomx/creators/index'),
             ('http://my.domain.com/zcomx/creators/index', '/zcomx/creators/index'),
             ('https://my.domain.com/zcomx/search/index', '/zcomx/search/index'),
+
+            # Test default functions
+            ('http://my.domain.com/contribute', '/zcomx/default/contribute'),
+            ('http://my.domain.com/faq', '/zcomx/default/faq'),
+            ('http://my.domain.com/faqc', '/zcomx/default/faqc'),
+            ('http://my.domain.com/files', '/zcomx/default/files'),
+            ('http://my.domain.com/goodwill', '/zcomx/default/goodwill'),
+            ('http://my.domain.com/logos', '/zcomx/default/logos'),
+            ('http://my.domain.com/overview', '/zcomx/default/overview'),
+            ('http://my.domain.com/todo', '/zcomx/default/todo'),
 
             # Test: default/user/???
             ('http://my.domain.com/default/user/login', "/zcomx/default/user ['login']"),
@@ -121,6 +142,16 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/zcomx/creators/index', '/creators'),
             ('https://my.domain.com/zcomx/search/index', '/search'),
 
+            # Test default functions
+            ('http://my.domain.com/zcomx/default/contribute', '/contribute'),
+            ('http://my.domain.com/zcomx/default/faq', '/faq'),
+            ('http://my.domain.com/zcomx/default/faqc', '/faqc'),
+            ('http://my.domain.com/zcomx/default/files', '/files'),
+            ('http://my.domain.com/zcomx/default/goodwill', '/goodwill'),
+            ('http://my.domain.com/zcomx/default/logos', '/logos'),
+            ('http://my.domain.com/zcomx/default/overview', '/overview'),
+            ('http://my.domain.com/zcomx/default/todo', '/todo'),
+
             # Test: default/user/???
             ('http://my.domain.com/zcomx/default/user/login', '/default/user/login'),
             ('http://my.domain.com/zcomx/default/user/logout', '/default/user/logout'),
@@ -184,9 +215,7 @@ class TestFunctions(LocalTestCase):
         book_page = entity_to_row(db.book_page, page_id)
         self._objects.append(book_page)
 
-        request = Storage()
-        request.args = List()
-        request.vars = Storage()
+        request = self._request
 
         self.assertEqual(route(db, request, auth), (None, None))
 
@@ -267,24 +296,148 @@ class TestFunctions(LocalTestCase):
         )
         self.assertEqual(view, 'books/scroller.html')
 
+        def not_found(result):
+            view_dict, view = result
+            self.assertTrue('urls' in view_dict)
+            self.assertEqual(
+                view_dict['message'],
+                'The requested page was not found on this server.'
+            )
+            self.assertEqual(view, 'default/page_not_found.html')
+
         # Nonexistent creator
         request.vars.creator = 9999999
-        self.assertEqual(route(db, request, auth), (None, None))
+        not_found(route(db, request, auth))
         request.vars.creator = '_Invalid_Creator_'
-        self.assertEqual(route(db, request, auth), (None, None))
+        not_found(route(db, request, auth))
 
         # Nonexistent book
         request.vars.creator = 'First_Last'
         request.vars.book = 'Invalid_Book_(1900)'
-        self.assertEqual(route(db, request, auth), (None, None))
+        not_found(route(db, request, auth))
 
         # Nonexistent book page
         request.vars.creator = 'First_Last'
         request.vars.book = 'My_Book_(1999)'
         request.vars.page = '999.jpg'
-        self.assertEqual(route(db, request, auth), (None, None))
+        not_found(route(db, request, auth))
         request.vars.page = '999'
-        self.assertEqual(route(db, request, auth), (None, None))
+        not_found(route(db, request, auth))
+
+    def test__page_not_found(self):
+        auth_user_id = db.auth_user.insert(
+            name='First Last',
+            email='test__route@test.com',
+        )
+        db.commit()
+        user = entity_to_row(db.auth_user, auth_user_id)
+        self._objects.append(user)
+
+        creator_id = db.creator.insert(
+            auth_user_id=user.id,
+            email='test__route@test.com',
+            path_name='First Last',
+        )
+        db.commit()
+        creator = entity_to_row(db.creator, creator_id)
+        self._objects.append(creator)
+
+        book_id = db.book.insert(
+            name='My Book',
+            publication_year=1999,
+            book_type_id=self._type_id_by_name['one-shot'],
+            number=1,
+            of_number=999,
+            creator_id=creator.id,
+            reader='slider',
+        )
+        db.commit()
+        book = entity_to_row(db.book, book_id)
+        self._objects.append(book)
+
+        page_id = db.book_page.insert(
+            book_id=book.id,
+            page_no=1,
+        )
+        db.commit()
+        book_page = entity_to_row(db.book_page, page_id)
+        self._objects.append(book_page)
+
+        page_2_id = db.book_page.insert(
+            book_id=book.id,
+            page_no=2,
+        )
+        db.commit()
+        book_page_2 = entity_to_row(db.book_page, page_2_id)
+        self._objects.append(book_page_2)
+
+        request = self._request
+
+        view_dict, view = page_not_found(
+            db, request, creator.id, book.id, book_page.id)
+        self.assertTrue('urls' in view_dict)
+        expect = {
+            'creator': 'http://127.0.0.1:8000/First_Last',
+            'book': 'http://127.0.0.1:8000/First_Last/My_Book_(1999)',
+            'page': 'http://127.0.0.1:8000/First_Last/My_Book_(1999)/001',
+            'invalid': 'http://www.domain.com/path/to/page',
+        }
+        self.assertEqual(dict(view_dict['urls']), expect)
+        self.assertEqual(view, 'default/page_not_found.html')
+
+        expect_2 = dict(expect)
+        expect_2['page'] = \
+            'http://127.0.0.1:8000/First_Last/My_Book_(1999)/002'
+
+        # Second page should be found if indicated.
+        view_dict, view = page_not_found(
+            db, request, creator.id, book.id, book_page_2.id)
+        self.assertEqual(dict(view_dict['urls']), expect_2)
+
+        # Book and creator should be found even if not indicated.
+        view_dict, view = page_not_found(
+            db, request, None, None, book_page.id)
+        self.assertEqual(dict(view_dict['urls']), expect)
+
+        # First page should be found if no page indicated.
+        view_dict, view = page_not_found(
+            db, request, creator.id, book.id, None)
+        self.assertEqual(dict(view_dict['urls']), expect)
+
+        # If book is indicated, first page should be found.
+        view_dict, view = page_not_found(
+            db, request, None, book.id, None)
+        self.assertEqual(dict(view_dict['urls']), expect)
+
+        # Creators first book should be found if nothing else specified.
+        view_dict, view = page_not_found(db, request, creator.id, None, None)
+        self.assertEqual(dict(view_dict['urls']), expect)
+
+        # If nothing specified, it should work but will return the first
+        # creator on file.
+        view_dict, view = page_not_found(db, request, None, None, None)
+        self.assertTrue('urls' in view_dict)
+        self.assertEqual(
+            sorted(view_dict['urls'].keys()),
+            [
+                'book',
+                'creator',
+                'invalid',
+                'page',
+            ]
+        )
+        self.assertEqual(view, 'default/page_not_found.html')
+
+        # self.assertEqual(dict(view_dict['urls']), expect)
+
+        # Test missing web2py_original_uri
+        request.env.web2py_original_uri = None
+        view_dict, view = page_not_found(
+            db, request, creator.id, book.id, book_page.id)
+        self.assertEqual(
+            view_dict['urls'].invalid,
+            'http://www.domain.com/request/uri/path'
+        )
 
 
 def setUpModule():

@@ -40,8 +40,20 @@ CONTROLLERS = '|'.join([
     'default',
     'images',
     'profile',
-    'search'
+    'search',
 ])
+
+DEFAULT_FUNCTIONS = '|'.join([
+    'contribute',
+    'faq',
+    'faqc',
+    'files',
+    'goodwill',
+    'logos',
+    'overview',
+    'todo',
+])
+
 
 creator_re = '(?P<creator>.*)'      # Allow everything
 book_re = '(?P<book>.*)'            # Allow everything
@@ -58,6 +70,9 @@ routes_in = (
     ('/zcomx/(?P<controller>{ctrs})'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/index'),
     ('/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/$anything'),
     ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/$anything'),
+
+    ('/(?P<function>{funcs})'.format(funcs=DEFAULT_FUNCTIONS), '/zcomx/default/\g<function>'),
+    ('/zcomx/(?P<function>{funcs})'.format(funcs=DEFAULT_FUNCTIONS), '/zcomx/default/\g<function>'),
 
     #  reroute favicon and robots
     ('/favicon.ico', '/zcomx/static/images/favicon.ico'),
@@ -84,7 +99,6 @@ routes_in = (
 #
 # routes_out = [(x, y) for (y, x) in routes_in]
 
-
 routes_out = (
     # do not reroute static files
     ('/zcomx/static/images/favicon.ico', '/favicon.ico'),
@@ -93,11 +107,10 @@ routes_out = (
     ('/zcomx/default/index', '/'),
     ('/zcomx/creators/index/$anything', '/$anything'),
     ('/creators/index/$anything', '/$anything'),
+    ('/zcomx/default/(?P<function>{funcs})'.format(funcs=DEFAULT_FUNCTIONS), '/\g<function>'),
     ('/zcomx/(?P<controller>{ctrs})/index'.format(ctrs=CONTROLLERS), '/\g<controller>'),
     ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/\g<controller>/$anything'),
 )
-
-
 
 # Specify log level for rewrite's debug logging
 # Possible values: debug, info, warning, error, critical (loglevels),
@@ -122,6 +135,10 @@ logging = 'debug'
 #    ,(r'*/404', r'/init/static/cantfind.html')
 #    ,(r'*/*', r'/init/error/index')
 # ]
+
+routes_onerror = [
+    (r'*/*', r'/zcomx/default/page_not_found')
+]
 
 # specify action in charge of error handling
 #
