@@ -20,6 +20,7 @@ from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import \
     TemporaryDirectory
 from applications.zcomx.modules.utils import \
+    entity_to_row, \
     markmin_content, \
     reorder
 
@@ -82,9 +83,7 @@ def book_crud():
             book_id = int(request.vars.pk)
         except (TypeError, ValueError):
             return do_error('Invalid data provided.')
-        book_record = db(db.book.id == book_id).select(
-            db.book.ALL
-        ).first()
+        book_record = entity_to_row(db.book, book_id)
         if not book_record or \
             (book_record and book_record.creator_id != creator_record.id):
             return do_error('Invalid data provided.')
@@ -188,9 +187,7 @@ def book_delete():
 
     book_record = None
     if request.args(0):
-        book_record = db(db.book.id == request.args(0)).select(
-            db.book.ALL
-        ).first()
+        book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
         redirect(
             URL('modal_error', vars={'message': 'Invalid data provided.'}))
@@ -212,9 +209,7 @@ def book_edit():
 
     book_record = None
     if request.args(0):
-        book_record = db(db.book.id == request.args(0)).select(
-            db.book.ALL
-        ).first()
+        book_record = entity_to_row(db.book, request.args(0))
 
     book_type_id = book_record.book_type_id if book_record else 0
     numbers = numbers_for_book_type(db, book_type_id)
@@ -269,8 +264,7 @@ def book_pages():
 
     book_record = None
     if request.args(0):
-        query = (db.book.id == request.args(0))
-        book_record = db(query).select(db.book.ALL).first()
+        book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
         redirect(
             URL('modal_error', vars={'message': 'Invalid data provided.'}))
@@ -320,8 +314,7 @@ def book_pages_handler():
 
     book_record = None
     if request.args(0):
-        query = (db.book.id == request.args(0))
-        book_record = db(query).select(db.book.ALL).first()
+        book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
         return do_error('Upload service unavailable.')
 
@@ -340,8 +333,7 @@ def book_pages_handler():
             )
         return result
     elif request.env.request_method == 'DELETE':
-        book_page_id = request.vars.book_page_id
-        book_page = db(db.book_page.id == book_page_id).select().first()
+        book_page = entity_to_row(db.book_page, request.vars.book_page_id)
         if not book_page:
             return do_error('Unable to delete page.')
 
@@ -379,8 +371,7 @@ def book_pages_reorder():
 
     book_record = None
     if request.args(0):
-        query = (db.book.id == request.args(0))
-        book_record = db(query).select(db.book.ALL).first()
+        book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
         return do_error('Reorder service unavailable.')
 
@@ -398,8 +389,7 @@ def book_pages_reorder():
             continue
 
     for count, page_id in enumerate(page_ids):
-        query = (db.book_page.id == page_id)
-        page_record = db(query).select(db.book_page.ALL).first()
+        page_record = entity_to_row(db.book_page, page_id)
         if page_record and page_record.book_id == book_record.id:
             page_record.update_record(page_no=(count + 1))
     db.commit()
@@ -420,9 +410,7 @@ def book_release():
 
     book_record = None
     if request.args(0):
-        book_record = db(db.book.id == request.args(0)).select(
-            db.book.ALL
-        ).first()
+        book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
         redirect(
             URL('modal_error', vars={'message': 'Invalid data provided.'}))
@@ -579,7 +567,7 @@ def creator_img_handler():
             try:
                 stored_filename = store(db.creator.image, local_filename)
             except Exception as err:
-                import sys; print >> sys.stderr, \
+                print >> sys.stderr, \
                     'Creator image upload error: {err}'.format(err=err)
                 stored_filename = None
 
@@ -700,9 +688,7 @@ def link_crud():
 
     book_record = None
     if request.args(0):
-        book_record = db(db.book.id == request.args(0)).select(
-            db.book.ALL
-        ).first()
+        book_record = entity_to_row(db.book, request.args(0))
         if not book_record:
             return do_error('Invalid data provided.')
 
@@ -728,7 +714,7 @@ def link_crud():
             link_id = None
 
     if link_id:
-        link_record = db(db.link.id == link_id).select(db.link.ALL).first()
+        link_record = entity_to_row(db.link, link_id)
         if not link_record:
             return do_error('Invalid data provided.')
 
@@ -801,7 +787,6 @@ def link_crud():
             return do_error('Invalid data provided.')
     elif action == 'move':
         if link_id:
-            filter_field = to_link_join_field.name
             to_link_record = db(to_link_table.link_id == link_id).select(to_link_table.ALL).first()
             links = CustomLinks(entity_table, record.id)
             links.move_link(to_link_record.id, direction=request.vars.dir)

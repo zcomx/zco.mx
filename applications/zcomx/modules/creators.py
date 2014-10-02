@@ -67,10 +67,7 @@ def image_as_json(db, creator_id):
         creator_id: integer, id of creator record.
     """
     images = []
-    creator_record = db(db.creator.id == creator_id).select(
-        db.creator.ALL
-    ).first()
-
+    creator_record = entity_to_row(db.creator, creator_id)
     if not creator_record or not creator_record.image:
         return dumps(dict(files=images))
 
@@ -131,8 +128,7 @@ def set_creator_path_name(form):
     db = current.app.db
     creator = db(db.creator.auth_user_id == form.vars.id).select(
         db.creator.ALL).first()
-    if creator:
-        set_path_name(creator)
+    set_path_name(creator)
 
 
 def set_path_name(creator_entity):
@@ -146,14 +142,7 @@ def set_path_name(creator_entity):
         return
 
     db = current.app.db
-
-    creator = None
-    if hasattr(creator_entity, 'id'):
-        creator = creator_entity
-    else:
-        # Assume creator is an id
-        creator = db(db.creator.id == creator_entity).select().first()
-
+    creator = entity_to_row(db.creator, creator_entity)
     if not creator or not creator.auth_user_id:
         return
 

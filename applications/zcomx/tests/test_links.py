@@ -8,10 +8,10 @@ Test suite for zcomx/modules/links.py
 """
 import unittest
 from gluon import *
-from gluon.storage import Storage
 from BeautifulSoup import BeautifulSoup
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -29,32 +29,28 @@ class TestCustomLinks(LocalTestCase):
     def setUpClass(cls):
         creator_id = db.creator.insert(email='testcustomlinks@example.com')
         db.commit()
-        cls._creator = db(db.creator.id == creator_id).select(
-                db.creator.ALL).first()
+        cls._creator = entity_to_row(db.creator, creator_id)
         for count in range(0, 3):
             link_id = db.link.insert(
-                    name='test_custom_links',
-                    url='http://www.test_custom_links.com',
-                    title=str(count),
-                    )
+                name='test_custom_links',
+                url='http://www.test_custom_links.com',
+                title=str(count),
+            )
             db.commit()
-            query = (db.link.id == link_id)
-            cls._links.append(db(query).select(db.link.ALL).first())
+            cls._links.append(entity_to_row(db.link, link_id))
             creator_to_link_id = db.creator_to_link.insert(
-                    link_id=link_id,
-                    creator_id=creator_id,
-                    order_no = count + 1,
-                    )
+                link_id=link_id,
+                creator_id=creator_id,
+                order_no=count + 1,
+            )
             db.commit()
-            query = (db.creator_to_link.id == creator_to_link_id)
             cls._creator_to_links.append(
-                    db(query).select(db.creator_to_link.ALL).first())
+                entity_to_row(db.creator_to_link, creator_to_link_id))
 
         # Create a second creator with no links
         creator_2_id = db.creator.insert(email='testcustomlinks@example.com')
         db.commit()
-        cls._creator_2 = db(db.creator.id == creator_2_id).select(
-                db.creator.ALL).first()
+        cls._creator_2 = entity_to_row(db.creator, creator_2_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -103,16 +99,16 @@ class TestCustomLinks(LocalTestCase):
         form = crud.update(db.creator, self._creator['id'])
 
         links.attach(form, 'creator_wikipedia__row',
-                edit_url='http://test.com')
+            edit_url='http://test.com')
         soup = BeautifulSoup(str(form))
         trs = soup.findAll('tr')
         tr_ids = [x['id'] for x in trs]
         self.assertTrue('creator_wikipedia__row' in tr_ids)
         self.assertTrue('creator_custom_links__row' in tr_ids)
         self.assertEqual(
-                tr_ids.index('creator_custom_links__row'),
-                tr_ids.index('creator_wikipedia__row') + 1
-                )
+            tr_ids.index('creator_custom_links__row'),
+            tr_ids.index('creator_wikipedia__row') + 1
+        )
 
     def test__links(self):
         links = CustomLinks(db.creator, self._creator['id'])
@@ -125,7 +121,10 @@ class TestCustomLinks(LocalTestCase):
         for count, got_link in enumerate(got):
             soup = BeautifulSoup(str(got_link))
             anchor = soup.find('a')
-            self.assertEqual(anchor['href'], 'http://www.test_custom_links.com')
+            self.assertEqual(
+                anchor['href'],
+                'http://www.test_custom_links.com'
+            )
             self.assertEqual(anchor['title'], str(count))
 
         links = CustomLinks(db.creator, self._creator_2['id'])
@@ -155,19 +154,19 @@ class TestCustomLinks(LocalTestCase):
         links.move_link(original[0], direction='down')
         got = self._ordered_ids()
         self.assertEqual(got,
-                 [original[1], original[0], original[2]])
+            [original[1], original[0], original[2]])
 
         # Move top link down again
         links.move_link(original[0], direction='down')
         got = self._ordered_ids()
         self.assertEqual(got,
-                 [original[1], original[2], original[0]])
+            [original[1], original[2], original[0]])
 
         # Move top link up
         links.move_link(original[0], direction='up')
         got = self._ordered_ids()
         self.assertEqual(got,
-                 [original[1], original[0], original[2]])
+            [original[1], original[0], original[2]])
 
         # Move top link up again, back to start
         links.move_link(original[0], direction='up')
@@ -217,11 +216,11 @@ class TestCustomLinks(LocalTestCase):
         pre_links = [
             A('1', _href='http://1.com', _title='pre_link 1'),
             A('2', _href='http://2.com', _title='pre_link 2'),
-            ]
+        ]
         post_links = [
             A('1', _href='http://1.com', _title='post_link 1'),
             A('2', _href='http://2.com', _title='post_link 2'),
-            ]
+        ]
         links = CustomLinks(db.creator, self._creator['id'])
         got = links.represent(pre_links=pre_links, post_links=post_links)
         soup = BeautifulSoup(str(got))

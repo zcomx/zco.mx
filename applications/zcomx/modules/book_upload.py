@@ -46,6 +46,7 @@ from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     TemporaryDirectory, \
     UnixFile
+from applications.zcomx.modules.utils import entity_to_row
 
 
 class BookPageUploader(object):
@@ -287,8 +288,7 @@ class UploadedArchive(UploadedFile):
         except (KeyError, OSError):
             size = 0
 
-        cover_page = db(db.book_page.id == book_page_id).select(
-            db.book_page.ALL).first()
+        cover_page = entity_to_row(db.book_page, book_page_id)
         thumb = ''
         if cover_page:
             thumb = URL(

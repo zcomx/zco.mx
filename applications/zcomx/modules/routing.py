@@ -67,15 +67,11 @@ def route(db, request, auth):
         return page_not_found(db, request, creator_id, book_id, page_id)
 
     if not creator_record:
-        creator_record = db(db.creator.id == creator_id).select(
-            db.creator.ALL
-        ).first()
+        creator_record = entity_to_row(db.creator, creator_id)
         if not creator_record:
             return page_not_found(db, request, creator_id, book_id, page_id)
 
-    auth_user = db(db.auth_user.id == creator_record.auth_user_id).select(
-        db.auth_user.ALL
-    ).first()
+    auth_user = entity_to_row(db.auth_user, creator_record.auth_user_id)
     if not auth_user:
         return page_not_found(db, request, creator_id, book_id, page_id)
 

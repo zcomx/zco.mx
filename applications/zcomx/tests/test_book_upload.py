@@ -24,6 +24,7 @@ from applications.zcomx.modules.book_upload import \
     classify_uploaded_file, \
     create_book_page
 from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -229,7 +230,7 @@ class TestUploadedFile(BaseTestCase):
     def test__create_book_pages(self):
         book_id = db.book.insert(name='test__create_book_pages')
         db.commit()
-        book = db(db.book.id == book_id).select().first()
+        book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
         pages = db(db.book_page.book_id == book_id).select()
@@ -242,7 +243,7 @@ class TestUploadedFile(BaseTestCase):
 
         pages = db(db.book_page.book_id == book_id).select()
         self.assertEqual(len(pages), 1)
-        book_page = db(db.book_page.id == pages[0]['id']).select().first()
+        book_page = entity_to_row(db.book_page, pages[0]['id'])
         self._objects.append(book_page)
 
     def test__for_json(self):
@@ -253,7 +254,7 @@ class TestUploadedFile(BaseTestCase):
     def test__load(self):
         book_id = db.book.insert(name='test__load')
         db.commit()
-        book = db(db.book.id == book_id).select().first()
+        book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
         filename = self._prep_image('file.jpg')
@@ -263,7 +264,7 @@ class TestUploadedFile(BaseTestCase):
 
         pages = db(db.book_page.book_id == book_id).select()
         self.assertEqual(len(pages), 1)
-        book_page = db(db.book_page.id == pages[0]['id']).select().first()
+        book_page = entity_to_row(db.book_page, pages[0]['id'])
         self._objects.append(book_page)
 
     def test__unpack(self):
@@ -308,7 +309,7 @@ class TestUploadedImage(BaseTestCase):
     def test__for_json(self):
         book_id = db.book.insert(name='test__for_json')
         db.commit()
-        book = db(db.book.id == book_id).select().first()
+        book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
         filename = self._prep_image('file.jpg')
@@ -322,7 +323,7 @@ class TestUploadedImage(BaseTestCase):
 
         pages = db(db.book_page.book_id == book_id).select()
         self.assertEqual(len(pages), 1)
-        book_page = db(db.book_page.id == pages[0]['id']).select().first()
+        book_page = entity_to_row(db.book_page, pages[0]['id'])
         self._objects.append(book_page)
 
     def test__unpack(self):
@@ -394,7 +395,7 @@ class TestFunctions(BaseTestCase):
             raise unittest.SkipTest('Remove --quick option to run test.')
         book_id = db.book.insert(name='test__add')
         db.commit()
-        book = db(db.book.id == book_id).select().first()
+        book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
         def pages(book_id):

@@ -60,7 +60,7 @@ class EventTestCase(LocalTestCase):
             name='Event Test Case',
         )
         db.commit()
-        cls._book = db(db.book.id == book_id).select().first()
+        cls._book = entity_to_row(db.book, book_id)
         cls._objects.append(cls._book)
 
         email = web.username
@@ -92,8 +92,7 @@ class TestContributionEvent(EventTestCase):
         self.assertFalse(event_id)
 
         event_id = event.log(123.45)
-        contribution = db(db.contribution.id == event_id).select(
-            db.contribution.ALL).first()
+        contribution = entity_to_row(db.contribution, event_id)
         self.assertEqual(contribution.id, event_id)
         self.assertAlmostEqual(
             contribution.time_stamp,
@@ -117,7 +116,7 @@ class TestRatingEvent(EventTestCase):
         self.assertFalse(event_id)
 
         event_id = event.log(5)
-        rating = db(db.rating.id == event_id).select(db.rating.ALL).first()
+        rating = entity_to_row(db.rating, event_id)
         self.assertEqual(rating.id, event_id)
         self.assertAlmostEqual(
             rating.time_stamp,
@@ -137,7 +136,7 @@ class TestViewEvent(EventTestCase):
         event = ViewEvent(self._book, self._user.id)
         event_id = event.log()
 
-        view = db(db.book_view.id == event_id).select(db.book_view.ALL).first()
+        view = entity_to_row(db.book_view, event_id)
         self.assertEqual(view.id, event_id)
         self.assertAlmostEqual(
             view.time_stamp,
@@ -189,7 +188,7 @@ class ImageTestCase(LocalTestCase):
 
         creator_id = db.creator.insert(email='image_test_case@example.com')
         db.commit()
-        cls._creator = db(db.creator.id == creator_id).select().first()
+        cls._creator = entity_to_row(db.creator, creator_id)
         cls._objects.append(cls._creator)
 
         book_id = db.book.insert(
@@ -197,7 +196,7 @@ class ImageTestCase(LocalTestCase):
             creator_id=cls._creator.id,
         )
         db.commit()
-        cls._book = db(db.book.id == book_id).select().first()
+        cls._book = entity_to_row(db.book, book_id)
         cls._objects.append(cls._book)
 
         book_page_id = db.book_page.insert(
@@ -206,7 +205,7 @@ class ImageTestCase(LocalTestCase):
             image=create_image('file.jpg'),
         )
         db.commit()
-        cls._book_page = db(db.book_page.id == book_page_id).select().first()
+        cls._book_page = entity_to_row(db.book_page, book_page_id)
         cls._objects.append(cls._book_page)
 
         # Create a second page to test with.
@@ -216,7 +215,7 @@ class ImageTestCase(LocalTestCase):
             image=create_image('file_2.jpg'),
         )
         db.commit()
-        book_page_2 = db(db.book_page.id == book_page_id_2).select().first()
+        book_page_2 = entity_to_row(db.book_page, book_page_id_2)
         cls._objects.append(book_page_2)
 
         for t in db(db.book_type).select():
@@ -322,7 +321,7 @@ class TestFunctions(ImageTestCase):
         }
         for key, data in books.items():
             book_id = db.book.insert(**data)
-            book = db(db.book.id == book_id).select().first()
+            book = entity_to_row(db.book, book_id)
             self._objects.append(book)
             ids_by_name[key] = book_id
 
@@ -376,7 +375,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(str(cover_image(db, 0)), placeholder)
 
         book_id = db.book.insert(name='test__cover_image')
-        book = db(db.book.id == book_id).select().first()
+        book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
         # Book has no pages
@@ -393,7 +392,7 @@ class TestFunctions(ImageTestCase):
                 page_no=(count + 1),
                 image=i,
             )
-            page = db(db.book_page.id == page_id).select().first()
+            page = entity_to_row(db.book_page, page_id)
             self._objects.append(page)
 
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
@@ -405,7 +404,7 @@ class TestFunctions(ImageTestCase):
 
     def test__default_contribute_amount(self):
         book_id = db.book.insert(name='test__default_contribute_amount')
-        book = db(db.book.id == book_id).select().first()
+        book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
         # Book has no pages
@@ -437,7 +436,7 @@ class TestFunctions(ImageTestCase):
                     book_id=book_id,
                     page_no=(page_count + 1),
                 )
-                page = db(db.book_page.id == page_id).select().first()
+                page = entity_to_row(db.book_page, page_id)
                 self._objects.append(page)
                 page_count = db(db.book_page.book_id == book.id).count()
             self.assertEqual(default_contribute_amount(db, book), t[1])
@@ -518,7 +517,7 @@ class TestFunctions(ImageTestCase):
     def test__formatted_name(self):
         book_id = db.book.insert(name='My Book')
         db.commit()
-        book = db(db.book.id == book_id).select().first()
+        book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
         tests = [
@@ -547,7 +546,7 @@ class TestFunctions(ImageTestCase):
             name='test__is_releasable',
         )
         db.commit()
-        book = db(db.book.id == book_id).select().first()
+        book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
         book_page_id = db.book_page.insert(
@@ -555,7 +554,7 @@ class TestFunctions(ImageTestCase):
             page_no=1,
         )
         db.commit()
-        book_page = db(db.book_page.id == book_page_id).select().first()
+        book_page = entity_to_row(db.book_page, book_page_id)
         self._objects.append(book_page)
 
         # Has name and pages.
@@ -741,7 +740,7 @@ class TestFunctions(ImageTestCase):
             reader='slider',
             book_type_id=self._type_id_by_name['one-shot'],
         )
-        book = db(db.book.id == book_id).select().first()
+        book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
         book_page_id = db.book_page.insert(
@@ -749,7 +748,7 @@ class TestFunctions(ImageTestCase):
             page_no=1,
         )
         db.commit()
-        book_page = db(db.book_page.id == book_page_id).select().first()
+        book_page = entity_to_row(db.book_page, book_page_id)
         self._objects.append(book_page)
 
         # As integer, book_id

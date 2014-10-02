@@ -37,6 +37,7 @@ from applications.zcomx.modules.images import \
     store
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.shell_utils import imagemagick_version
+from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -128,7 +129,7 @@ class ImageTestCase(LocalTestCase):
         )
         db.commit()
 
-        cls._auth_user = db(db.auth_user.id == auth_user_id).select().first()
+        cls._auth_user = entity_to_row(db.auth_user, auth_user_id)
         cls._objects.append(cls._auth_user)
 
         creator_id = db.creator.insert(
@@ -138,7 +139,7 @@ class ImageTestCase(LocalTestCase):
         )
         db.commit()
 
-        cls._creator = db(db.creator.id == creator_id).select().first()
+        cls._creator = entity_to_row(db.creator, creator_id)
         cls._objects.append(cls._creator)
 
     @classmethod
@@ -815,7 +816,7 @@ class TestFunctions(ImageTestCase):
             thumb_h=0,
         )
         db.commit()
-        book_page = db(db.book_page.id == book_page_id).select().first()
+        book_page = entity_to_row(db.book_page, book_page_id)
         self._objects.append(book_page)
 
         tests = [
@@ -826,7 +827,7 @@ class TestFunctions(ImageTestCase):
 
         for t in tests:
             set_thumb_dimensions(db, book_page.id, t)
-            book_page = db(db.book_page.id == book_page_id).select().first()
+            book_page = entity_to_row(db.book_page, book_page_id)
             self.assertEqual(book_page.thumb_w, t[0])
             self.assertEqual(book_page.thumb_h, t[1])
 

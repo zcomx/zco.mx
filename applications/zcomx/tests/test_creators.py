@@ -57,7 +57,7 @@ class TestFunctions(LocalTestCase):
             email=email,
         )
         db.commit()
-        user = db(db.auth_user.id == user_id).select().first()
+        user = entity_to_row(db.auth_user, user_id)
         self._objects.append(user)
 
         add_creator(form)

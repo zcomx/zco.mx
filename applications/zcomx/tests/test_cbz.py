@@ -21,6 +21,7 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     store
 from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -113,7 +114,7 @@ class ImageTestCase(LocalTestCase):
             book_type_id=book_type_id
         )
         db.commit()
-        cls._book = db(db.book.id == book_id).select().first()
+        cls._book = entity_to_row(db.book, book_id)
         cls._objects.append(cls._book)
 
         book_page_id = db.book_page.insert(
@@ -121,7 +122,7 @@ class ImageTestCase(LocalTestCase):
             page_no=1,
         )
         db.commit()
-        cls._book_page = db(db.book_page.id == book_page_id).select().first()
+        cls._book_page = entity_to_row(db.book_page, book_page_id)
         cls._objects.append(cls._book_page)
 
         filename = cls._prep_image('cbz_plus.jpg', to_name='file_1.jpg')
@@ -133,7 +134,7 @@ class ImageTestCase(LocalTestCase):
             page_no=2,
         )
         db.commit()
-        book_page_2 = db(db.book_page.id == book_page_id_2).select().first()
+        book_page_2 = entity_to_row(db.book_page, book_page_id_2)
         cls._objects.append(book_page_2)
         filename = cls._prep_image('file.jpg', to_name='file_2.jpg')
         cls._set_image(db.book_page.image, book_page_2, filename)
