@@ -123,6 +123,10 @@ logging = 'debug'
 #    ,(r'*/*', r'/init/error/index')
 # ]
 
+routes_onerror = [
+    (r'*/*', r'/zcomx/default/page_not_found')
+]
+
 # specify action in charge of error handling
 #
 # error_handler = dict(application='error',

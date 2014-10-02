@@ -29,6 +29,7 @@ class TestFunctions(LocalTestCase):
         'index': 'zco.mx is a not-for-profit comic-sharing website',
         'logos': '<h1>Logos</h1>',
         'overview': '<h1>Overview</h1>',
+        'page_not_found': '<h3>Page not found</h3>',
         'todo': '<h1>TODO</h1>',
         'top': '<h2>Top</h2>',
         'user': [
@@ -126,6 +127,12 @@ class TestFunctions(LocalTestCase):
             self.titles['overview']
         ))
 
+    def test__page_not_found(self):
+        self.assertTrue(web.test(
+            '{url}/page_not_found'.format(url=self.url),
+            self.titles['page_not_found']
+        ))
+
     def test__todo(self):
         self.assertTrue(web.test(
             '{url}/todo'.format(url=self.url),
@@ -152,19 +159,13 @@ class TestFunctions(LocalTestCase):
             ('/zcomx', 'index'),
             ('/zcomx/default', 'index'),
             ('/zcomx/default/index', 'index'),
-            ('/admin', '404'),
-            ('/zcomx/admin', '404'),
-            ('/appadmin', '404'),
-            ('/zcomx/appadmin', '404'),
+            ('/admin', 'page_not_found'),
+            ('/zcomx/admin', 'page_not_found'),
+            ('/appadmin', 'page_not_found'),
+            ('/zcomx/appadmin', 'page_not_found'),
         ]
         for t in tests:
-            if t[1] == '404':
-                with self.assertRaises(urllib2.HTTPError) as cm:
-                    web.test(t[0], None)
-                self.assertEqual(cm.exception.code, 404)
-                self.assertEqual(cm.exception.msg, 'NOT FOUND')
-            else:
-                self.assertTrue(web.test(t[0], self.titles[t[1]]))
+            self.assertTrue(web.test(t[0], self.titles[t[1]]))
 
 
 def setUpModule():

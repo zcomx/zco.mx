@@ -2033,3 +2033,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border-width: 10px 10px 0;
 }
 
+#help_section ul {
+    display: table;
+}
+
+#help_section li {
+    display: table-row;
+}
+
+#help_section span.table_cell {
+    display: table-cell;
+    padding-right: 0.4em;
+}

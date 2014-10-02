@@ -224,6 +224,20 @@ def overview():
     return dict(text=markmin_content('overview.mkd'))
 
 
+def page_not_found():
+    """Page not found. Used if an invalid url is provided.
+
+    request.vars.invalid_url: string, optional, url user used.
+    request.vars.creator_id: integer, optional, id of creator to use in
+        examples. This is ignored if request.vars.book_id is set.
+    request.vars.book_id: integer, optional, id of book to use in examples.
+    """
+    urls = Storage({})
+    urls.invalid = request.vars.request_url
+    message = 'The server was not able to display the requested page.'
+    return dict(urls=urls, message=message)
+
+
 def todo():
     """Todo page"""
     return dict(text=markmin_content('todo.mkd'))

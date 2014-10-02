@@ -5,15 +5,21 @@
 
 Routing classes and functions.
 """
+import urllib
 from gluon.html import A, SPAN
+from gluon.storage import Storage
 from applications.zcomx.modules.books import \
     ViewEvent, \
     by_attributes, \
     cover_image, \
     page_url, \
     parse_url_name, \
-    read_link
+    read_link, \
+    url as book_url
+from applications.zcomx.modules.creators import \
+    url as creator_url
 from applications.zcomx.modules.links import CustomLinks
+from applications.zcomx.modules.utils import entity_to_row
 
 
 def route(db, request, auth):
@@ -58,20 +64,20 @@ def route(db, request, auth):
             creator_id = creator_record.id
 
     if not creator_id:
-        return (None, None)
+        return page_not_found(db, request, creator_id, book_id, page_id)
 
     if not creator_record:
         creator_record = db(db.creator.id == creator_id).select(
             db.creator.ALL
         ).first()
         if not creator_record:
-            return (None, None)
+            return page_not_found(db, request, creator_id, book_id, page_id)
 
     auth_user = db(db.auth_user.id == creator_record.auth_user_id).select(
         db.auth_user.ALL
     ).first()
     if not auth_user:
-        return (None, None)
+        return page_not_found(db, request, creator_id, book_id, page_id)
 
     if request.vars.book:
         attrs = parse_url_name(request.vars.book)
@@ -80,7 +86,7 @@ def route(db, request, auth):
         if book_record:
             book_id = book_record.id
         else:
-            return (None, None)
+            return page_not_found(db, request, creator_id, book_id, page_id)
 
     page_no = None
 
@@ -99,7 +105,8 @@ def route(db, request, auth):
             if book_page:
                 page_id = book_page.id
             else:
-                return (None, None)
+                return page_not_found(
+                    db, request, creator_id, book_id, page_id)
 
     if page_id:
         reader = request.vars.reader or book_record.reader
@@ -224,4 +231,77 @@ def route(db, request, auth):
 
     view = 'creators/creator.html'
 
+    return (view_dict, view)
+
+
+def page_not_found(db, request, creator_id, book_id, page_id):
+    """Redirect to the page not found.
+
+    Args:
+        db: gluon.dal.DAL instance
+        request: gluon.globals.Request instance.
+        creator_id: integer, id of creator record
+        book_id: integer, id of book record
+        page_id: integer, id of book_page record
+    """
+    urls = Storage({})
+    urls.invalid = '{scheme}://{host}{uri}'.format(
+        scheme=request.env.wsgi_url_scheme,
+        host=request.env.http_host,
+        uri=request.env.web2py_original_uri or request.env.request_uri
+    )
+
+    creator_record = None
+    book_record = None
+    page_record = None
+
+    # Get an existing book page and use it for examples
+    # Logic:
+    #   if page_id: use that book_page
+    #   elif book_id: use first page of that book
+    #   elif creator_id: use first page of first book with pages from creator
+    #   else : use first page of first book with pages from first creator
+
+    query_wants = []
+    if page_id:
+        query_wants.append((db.book_page.id == page_id))
+    if book_id:
+        query_wants.append((db.book.id == book_id))
+    if creator_id:
+        query_wants.append((db.creator.id == creator_id))
+    query_wants.append(None)
+
+    for query_want in query_wants:
+        queries = []
+        if query_want:
+            queries.append(query_want)
+        queries.append((db.book_page.id is not None))
+        query = reduce(lambda x, y: x & y, queries) if queries else None
+        rows = db(query).select(
+            db.book_page.id,
+            db.book.id,
+            db.creator.id,
+            left=[
+                db.book.on(db.book_page.book_id == db.book.id),
+                db.creator.on(db.book.creator_id == db.creator.id),
+            ],
+            orderby=[db.creator.path_name, db.book_page.page_no],
+            limitby=(0, 1),
+        )
+        if rows:
+            page_record = entity_to_row(db.book_page, rows[0].book_page.id)
+            book_record = entity_to_row(db.book, rows[0].book.id)
+            creator_record = entity_to_row(db.creator, rows[0].creator.id)
+            break
+
+    urls.page = urllib.unquote(page_url(page_record, host=True)) \
+        if page_record else None
+    urls.book = urllib.unquote(book_url(book_record, host=True)) \
+        if book_record else None
+    urls.creator = urllib.unquote(creator_url(creator_record, host=True)) \
+        if creator_record else None
+    message = 'The requested page was not found on this server.'
+
+    view_dict = dict(urls=urls, message=message)
+    view = 'default/page_not_found.html'
     return (view_dict, view)
