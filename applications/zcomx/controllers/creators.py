@@ -3,8 +3,7 @@
 
 import cgi
 from gluon.storage import Storage
-from applications.zcomx.modules.links import CustomLinks
-from applications.zcomx.modules.routing import route
+from applications.zcomx.modules.routing import Router
 
 
 def books():
@@ -25,7 +24,6 @@ def index():
 
     This controller is used to route creator related requests.
     """
-
     # Note: there is a bug in web2py Ver 2.9.11-stable where request.vars
     # is not set by routes.
     # Ticket: http://code.google.com/p/web2py/issues/detail?id=1990
@@ -41,11 +39,15 @@ def index():
         return get_vars
 
     request.vars.update(parse_get_vars())
-    view_dict, view = route(db, request, auth)
-    if view:
-        response.view = view
-    if view_dict:
-        return view_dict
+
+    router = Router()
+    router.route(db, request, auth)
+    if router.redirect:
+        redirect(router.redirect)
+    if router.view:
+        response.view = router.view
+    if router.view_dict:
+        return router.view_dict
 
     # If we get here, we don't have a valid creator
     raise HTTP(404, "Page not found")
