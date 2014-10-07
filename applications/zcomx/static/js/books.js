@@ -178,7 +178,7 @@
 
         update: function() {
             var that = this;
-            var url = '/zcomx/profile/book_crud.json';
+            var url = '/zcomx/login/book_crud.json';
 
             if (!this.$book_id) {
                 return;
@@ -222,7 +222,7 @@
         onhidden: function(dialog) {
             this.$book_id = dialog.getData('book_id');
             if (this.$book_id) {
-                var url = '/profile/book_edit/' + this.$book_id;
+                var url = '/zcomx/login/book_edit/' + this.$book_id;
                 var modal = new EditModalize(null, 'edit', {
                     'book_id': this.$book_id,
                     'book_title': dialog.getData('title'),
@@ -268,7 +268,7 @@
                 cssClass: 'btn-default pull-left btn_upload',
                 action : function(dialog){
                     dialog.close();
-                    var url = '/profile/book_pages/' + that.$book_id;
+                    var url = '/zcomx/login/book_pages/' + that.$book_id;
                     var modal = new UploadModalize(null, 'upload', {
                         'book_id': that.$book_id,
                         'book_title': that.$book_title,
@@ -355,7 +355,7 @@
                 page_ids.push($(elem).data('book_page_id'));
             });
 
-            var url = '/zcomx/profile/book_pages_reorder'
+            var url = '/zcomx/login/book_pages_reorder'
             url = url + '/' + book_id;
 
             var that = $(this);

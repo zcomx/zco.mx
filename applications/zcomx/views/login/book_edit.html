@@ -195,7 +195,7 @@
         }
         $('<span id="of_number_container"> of </span>').appendTo($('.field_container_number'));
         $('#of_number_container').inplace_crud(
-            '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+            '{{=URL(c='login', f='book_crud.json', args=(book.id if book else 0))}}',
             '{{=book.id if book else "0"}}',
             {
                 'row_container': false,
@@ -266,7 +266,7 @@
 
     $(document).ready(function(){
         $('#editable_fields_container').inplace_crud(
-            '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+            '{{=URL(c='login', f='book_crud.json', args=(book.id if book else 0))}}',
             '{{=book.id if book else "0"}}',
             {
                 source_data: book_data,
@@ -274,7 +274,7 @@
         );
         {{if book and book.id:}}
         $('#edit_links_container').inplace_link_crud(
-            '{{=URL(c='profile', f='link_crud.json', args=book.id)}}',
+            '{{=URL(c='login', f='link_crud.json', args=book.id)}}',
             '{{=book.id}}',
             {
                 placeholders: {

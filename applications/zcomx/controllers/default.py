@@ -40,9 +40,9 @@ def user():
     to decorate functions that need access control
     """
     if request.args(0) == 'profile' and request.extension == 'html':
-        redirect(URL(c='profile', f='account', extension=False))
+        redirect(URL(c='login', f='account', extension=False))
     if request.args(0) == 'change_password' and request.extension == 'html':
-        redirect(URL(c='profile', f='account', extension=False))
+        redirect(URL(c='login', f='account', extension=False))
 
     hide_labels = True if request.args(0) not in ['register'] else False
     if request.extension == 'html' or hide_labels:
@@ -50,10 +50,10 @@ def user():
 
     if request.args(0) == 'profile':
         auth.settings.profile_next = URL(
-            c='profile', f='account', extension=False)
+            c='login', f='account', extension=False)
     if request.args(0) == 'change_password':
         auth.settings.change_password_next = URL(
-            c='profile', f='account', extension=False)
+            c='login', f='account', extension=False)
 
     auth.messages.logged_in = None      # Hide 'Logged in' flash
     # The next lines are from Auth._get_login_settings

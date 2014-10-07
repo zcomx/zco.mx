@@ -1,4 +1,4 @@
-{{extend 'profile/layout.html'}}
+{{extend 'login/layout.html'}}
 {{from gluon.contrib.simplejson import dumps}}
 <div id="creator_section">
 
@@ -13,8 +13,8 @@
         <div class="field_label">{{=db.creator.image.label}}</div>
         <div class="image_field_container">
             <div class="fileupload_container">
-                <form id="fileupload" action="/zcomx/profile/creator_img_handler" method="POST" enctype="multipart/form-data">
-                    <noscript><input type="hidden" name="redirect" value="/zcomx/profile/creator"></noscript>
+                <form id="fileupload" action="/zcomx/login/creator_img_handler" method="POST" enctype="multipart/form-data">
+                    <noscript><input type="hidden" name="redirect" value="/zcomx/login/creator"></noscript>
                     <div class="row fileupload-buttonbar">
                         <div class="col-xs-12">
                             <div class="no_photo_section">
@@ -204,7 +204,7 @@
 //<![CDATA[
     $(document).ready(function(){
         $('#editable_fields_container').inplace_crud(
-            '{{=URL(c='profile', f='creator_crud.json')}}',
+            '{{=URL(c='login', f='creator_crud.json')}}',
             '{{=creator.id}}',
             {
                 source_data: creator_data,
@@ -212,7 +212,7 @@
         );
 
         $('#edit_links_container').inplace_link_crud(
-            '{{=URL(c='profile', f='link_crud.json')}}',
+            '{{=URL(c='login', f='link_crud.json')}}',
             '',
             {
                 placeholders: {
@@ -223,7 +223,7 @@
         );
 
         $('#bio_container').inplace_crud(
-            '{{=URL(c='profile', f='creator_crud.json')}}',
+            '{{=URL(c='login', f='creator_crud.json')}}',
             '{{=creator.id}}',
             { source_data: bio_data }
         );

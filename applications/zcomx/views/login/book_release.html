@@ -73,7 +73,7 @@
 
     $(document).ready(function(){
         $('#editable_fields_container').inplace_crud(
-            '{{=URL(c='profile', f='book_crud.json', args=(book.id if book else 0))}}',
+            '{{=URL(c='login', f='book_crud.json', args=(book.id if book else 0))}}',
             '{{=book.id if book else "0"}}',
             {
                 source_data: book_data,

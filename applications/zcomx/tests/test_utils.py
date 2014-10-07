@@ -19,7 +19,6 @@ from applications.zcomx.modules.utils import \
     entity_to_row, \
     markmin_content, \
     move_record, \
-    profile_wells, \
     reorder
 
 # C0111: Missing docstring
@@ -208,42 +207,6 @@ class TestFunctions(LocalTestCase):
         test_move('a', 'down', ['b', 'a', 'c'], query=query)
         # 'c' is not included in query so it doesn't move.
         test_move('a', 'down', ['b', 'a', 'c'], query=query)
-
-    def test__profile_wells(self):
-        request = Storage()
-        request.function = 'books'
-        request.args = List([99])
-
-        tests = [
-            #(request.function, expect)
-            ('index', {
-                'account': 'link',
-                'creator': 'link',
-                'books': 'link',
-                'faq': 'link',
-            }),
-            ('creator', {
-                'account': 'link',
-                'creator': 'text',
-                'books': 'link',
-                'faq': 'link',
-            }),
-            ('books', {
-                'account': 'link',
-                'creator': 'link',
-                'books': 'text',
-                'faq': 'link',
-            }),
-        ]
-
-        for t in tests:
-            request = Storage()
-            request.function = t[0]
-            wells = profile_wells(request)
-            statuses = {}
-            for k, v in wells.items():
-                statuses[k] = v['status']
-            self.assertEqual(statuses, t[1])
 
     def test__reorder(self):
         self._reset()

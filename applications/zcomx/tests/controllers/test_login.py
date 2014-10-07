@@ -3,7 +3,7 @@
 
 """
 
-Test suite for zcomx/controllers/profile.py
+Test suite for zcomx/controllers/login.py
 
 """
 import requests
@@ -63,7 +63,6 @@ class TestFunctions(LocalTestCase):
         'book_release': '<div id="book_release_section">',
         'book_release_invalid': 'Invalid data provided.',
         'books': '<div id="ongoing_book_list" class="book_list">',
-        'creator': '<div id="creator_section">',
         'default': 'zco.mx is a not-for-profit comic-sharing website',
         'faq': [
             '<div id="faq_section" class="doc_section">',
@@ -74,19 +73,20 @@ class TestFunctions(LocalTestCase):
             'As a cartoonist, why would I want to use zco.mx?'
         ],
         'links': [
-            'href="/zcomx/profile/links.load/new/link',
+            'href="/zcomx/login/links.load/new/link',
             'Add</span>',
             'order_no_handler/creator_to_link',
         ],
         'links_book': [
-            'href="/zcomx/profile/links.load/new/link',
+            'href="/zcomx/login/links.load/new/link',
             'Add</span>',
             'order_no_handler/book_to_link',
         ],
         'modal_error': 'An error occurred. Please try again.',
         'order_no_handler': '<div id="creator_page">',
+        'profile': '<div id="creator_section">',
     }
-    url = '/zcomx/profile'
+    url = '/zcomx/login'
 
     @classmethod
     def setUpClass(cls):
@@ -470,14 +470,6 @@ class TestFunctions(LocalTestCase):
             )
         )
 
-    def test__creator(self):
-        self.assertTrue(
-            web.test(
-                '{url}/creator'.format(url=self.url),
-                self.titles['creator']
-            )
-        )
-
     def test__creator_crud(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
@@ -546,7 +538,7 @@ class TestFunctions(LocalTestCase):
         sample_file = os.path.join(self._test_data_dir, 'tbn_plus.jpg')
         files = {'up_files': open(sample_file, 'rb')}
         response = requests.post(
-            web.app + '/profile/creator_img_handler',
+            web.app + '/login/creator_img_handler',
             files=files,
             cookies=web.cookies,
             verify=False,
@@ -556,7 +548,7 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(creator.image)
 
         response_2 = requests.delete(
-            web.app + '/profile/creator_img_handler',
+            web.app + '/login/creator_img_handler',
             cookies=web.cookies,
             verify=False,
         )
@@ -568,7 +560,7 @@ class TestFunctions(LocalTestCase):
         sample_file = os.path.join(self._test_data_dir, 'tbn_plus.jpg')
         files = {'up_files': open(sample_file, 'rb')}
         response = requests.post(
-            web.app + '/profile/creator_img_handler',
+            web.app + '/login/creator_img_handler',
             files=files,
             cookies=web.cookies,
             verify=False,
@@ -783,6 +775,14 @@ class TestFunctions(LocalTestCase):
             web.test(
                 '{url}/modal_error'.format(url=self.url),
                 self.titles['modal_error']
+            )
+        )
+
+    def test__profile(self):
+        self.assertTrue(
+            web.test(
+                '{url}/profile'.format(url=self.url),
+                self.titles['profile']
             )
         )
 
