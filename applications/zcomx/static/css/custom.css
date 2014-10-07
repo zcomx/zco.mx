@@ -84,7 +84,6 @@ a:hover, a:focus {
     color: #F05000;
 }
 
-
 hr {
     border-color: #DDDDDD;
     border-style: dotted;
@@ -262,6 +261,12 @@ div.centered table {
 
 .web2py_paginator .current a:hover{
     text-decoration: none;
+}
+
+#login_page div.error {
+    background: #FF4444;
+    border: none;
+    border-radius: 0px;
 }
 
 #profile_page .books_list_title h4 {
