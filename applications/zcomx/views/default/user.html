@@ -1,4 +1,7 @@
 {{extend 'layout_main.html'}}
+<div id="account_services_page">
+    <div id="{{='{s}_page'.format(s=request.args(0))}}">
+
 {{=LOAD(c='default', f='top', args='login', extension='load', ajax=False, content='')}}
 <div id="web2py_user_form">
     {{if request.args(0)=='login':}}
@@ -20,9 +23,10 @@
     Don't have an account? <a href="{{=register_url}}">Sign Up</a>
     </div>
 {{pass}}
-
-
         </div>
+    </div>
+</div>
+
     </div>
 </div>
 <script language="javascript"><!--
