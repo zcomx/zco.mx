@@ -534,7 +534,9 @@ def load_routers(all_apps):
 
 def regex_uri(e, regexes, tag, default=None):
     "filter incoming URI against a list of regexes"
-    path = e['PATH_INFO']
+    # JK mod 12268 Prevent ampersands and plus signs from being interpreted.
+    # path = e['PATH_INFO']
+    path = e['PATH_INFO'].replace('&', '%26').replace('+', '%2B')
     host = e.get('HTTP_HOST', e.get('SERVER_NAME', 'localhost')).lower()
     i = host.find(':')
     if i > 0:

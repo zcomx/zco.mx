@@ -352,32 +352,37 @@ def first_page(db, book_id, orderby=None):
     return db(query).select(db.book_page.ALL, orderby=order_by).first()
 
 
-def formatted_name(db, book_entity):
+def formatted_name(db, book_entity, include_publication_year=True):
     """Return the formatted name of the book
 
     Args:
         db: gluon.dal.DAL instance
         book_entity: Row instance or integer, if integer, this is the id of the
             book. The book record is read.
+        include_publication_year: If True, the publication year is included in
+            the name.
     """
     book = entity_to_row(db.book, book_entity)
     if not book:
         return ''
     book_type = entity_to_row(db.book_type, book.book_type_id)
 
-    fmt = '{name} ({year})'
+    fmt = '{name}'
     data = {
         'name': book.name,
-        'year': book.publication_year,
     }
 
     if book_type.name == 'ongoing':
-        fmt = '{name} {num:03d} ({year})'
+        fmt = '{name} {num:03d}'
         data['num'] = book.number
     elif book_type.name == 'mini-series':
-        fmt = '{name} {num:02d} (of {of:02d}) ({year})'
+        fmt = '{name} {num:02d} (of {of:02d})'
         data['num'] = book.number
         data['of'] = book.of_number
+
+    if include_publication_year:
+        fmt = ' '.join([fmt, '({year})'])
+        data['year'] = book.publication_year
     return fmt.format(**data)
 
 
@@ -472,7 +477,6 @@ def parse_url_name(name):
         dict of book attributes.
             eg {
                     name: Name
-                    publication_year: 2014,
                     book_type_id: 1,
                     number: 1,
                     of_number: 4,
@@ -483,7 +487,6 @@ def parse_url_name(name):
 
     book = dict(
         name=None,
-        publication_year=None,
         number=None,
         of_number=None,
         book_type_id=None,
@@ -498,9 +501,9 @@ def parse_url_name(name):
     # line-too-long (C0301): *Line too long (%%s/%%s)*
     # pylint: disable=C0301
     type_res = {
-        'mini-series': re.compile(r'(?P<name>.*)_(?P<number>[0-9]+)_\(of_(?P<of_number>[0-9]+)\)_\((?P<publication_year>[1-9][0-9]{3})\)$'),
-        'one-shot': re.compile(r'(?P<name>.*?)(?:_\((?P<publication_year>[1-9][0-9]{3})\))?$'),
-        'ongoing': re.compile(r'(?P<name>.*)_(?P<number>[0-9]+)_\((?P<publication_year>[1-9][0-9]{3})\)$'),
+        'mini-series': re.compile(r'(?P<name>.*)_(?P<number>[0-9]+)_\(of_(?P<of_number>[0-9]+)\)$'),
+        'one-shot': re.compile(r'(?P<name>.*?)$'),
+        'ongoing': re.compile(r'(?P<name>.*)_(?P<number>[0-9]+)$'),
     }
 
     # Test in order most-complex to least.
@@ -512,7 +515,7 @@ def parse_url_name(name):
             break
     if book['name']:
         book['name'] = book['name'].replace('_', ' ')
-    for field in ['publication_year', 'number', 'of_number']:
+    for field in ['number', 'of_number']:
         if book[field]:
             try:
                 book[field] = int(book[field])
@@ -618,4 +621,5 @@ def url_name(book_entity):
     book_record = entity_to_row(db.book, book_entity)
     if not book_record or not book_record.name:
         return
-    return formatted_name(db, book_record).replace(' ', '_')
+    return formatted_name(
+        db, book_record, include_publication_year=False).replace(' ', '_')

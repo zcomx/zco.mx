@@ -211,15 +211,10 @@ class TestLocalSQLFORM(LocalTestCase):
         lis = div_paginator.findAll('li')
         self.assertTrue(len(lis) >= 5)
         next_page = lis[-1]
-        # Example last page li
-        # <li><a class="w2p_trap" href="/igeejo/default/index?page=797">&gt;&gt;</a></li>
-        count = table.id.count()
-        num_records = db(table).select(count).first()[count]
-        pages = int(num_records / 35)
-        if num_records % pages != 0:
-            pages += 1
+        # Example next page li
+        # <li><a data-w2p_disable_with="default" href="/?page=2">&gt;</a></li>
         href = next_page.a['href']
-        self.assertTrue('page={p}'.format(p=pages) in href)
+        self.assertTrue('page={p}'.format(p=2) in href)
 
 
 class TestFunctions(LocalTestCase):

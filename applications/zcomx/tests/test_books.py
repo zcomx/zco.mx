@@ -550,13 +550,13 @@ class TestFunctions(ImageTestCase):
         self._objects.append(book)
 
         tests = [
-            #(name, pub year, type, number, of_number, expect),
+            #(name, pub year, type, number, of_number, expect, expect pub yr),
             ('My Book', 1999, 'one-shot', 1, 999,
-                'My Book (1999)'),
+                'My Book', 'My Book (1999)'),
             ('My Book', 1999, 'ongoing', 12, 999,
-                'My Book 012 (1999)'),
+                'My Book 012', 'My Book 012 (1999)'),
             ('My Book', 1999, 'mini-series', 2, 9,
-                'My Book 02 (of 09) (1999)'),
+                'My Book 02 (of 09)', 'My Book 02 (of 09) (1999)'),
         ]
         for t in tests:
             book.update_record(
@@ -567,8 +567,16 @@ class TestFunctions(ImageTestCase):
                 of_number=t[4],
             )
             db.commit()
-            self.assertEqual(formatted_name(db, book), t[5])
-            self.assertEqual(formatted_name(db, book.id), t[5])
+            self.assertEqual(
+                formatted_name(db, book, include_publication_year=False),
+                t[5]
+            )
+            self.assertEqual(
+                formatted_name(db, book.id, include_publication_year=False),
+                t[5]
+            )
+            self.assertEqual(formatted_name(db, book), t[6])
+            self.assertEqual(formatted_name(db, book.id), t[6])
 
     def test__is_releasable(self):
         book_id = db.book.insert(
@@ -659,19 +667,19 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(
             page_url(book_page),
-            '/First_Last/My_Book_%281999%29/001'
+            '/First_Last/My_Book/001'
         )
 
         self.assertEqual(
             page_url(book_page, reader='slider'),
-            '/First_Last/My_Book_%281999%29/001?reader=slider'
+            '/First_Last/My_Book/001?reader=slider'
         )
 
         book_page.update_record(page_no=99)
         db.commit()
         self.assertEqual(
             page_url(book_page),
-            '/First_Last/My_Book_%281999%29/099'
+            '/First_Last/My_Book/099'
         )
 
     def test__parse_url_name(self):
@@ -679,52 +687,45 @@ class TestFunctions(ImageTestCase):
         tests = [
             #(url_name, expect),
             (None, None),
-            ('My_Book_(1999)', {
+            ('My_Book', {
                 'name': 'My Book',
-                'publication_year': 1999,
                 'book_type_id': self._type_id_by_name['one-shot'],
                 'number': None,
                 'of_number': None,
             }),
-            ('My_Book_012_(1999)', {
+            ('My_Book_012', {
                 'name': 'My Book',
-                'publication_year': 1999,
                 'book_type_id': self._type_id_by_name['ongoing'],
                 'number': 12,
                 'of_number': None,
             }),
-            ('My_Book_02_(of_09)_(1999)', {
+            ('My_Book_02_(of_09)', {
                 'name': 'My Book',
-                'publication_year': 1999,
                 'book_type_id': self._type_id_by_name['mini-series'],
                 'number': 2,
                 'of_number': 9,
             }),
             # Tricky stuff
-            ("Hélè d'Eñça_02_(of_09)_(1999)", {
+            ("Hélè d'Eñça_02_(of_09)", {
                 'name': "Hélè d'Eñça",
-                'publication_year': 1999,
                 'book_type_id': self._type_id_by_name['mini-series'],
                 'number': 2,
                 'of_number': 9,
             }),
-            ('Bond_007_012_(1999)', {
+            ('Bond_007_012', {
                 'name': 'Bond 007',
-                'publication_year': 1999,
                 'book_type_id': self._type_id_by_name['ongoing'],
                 'number': 12,
                 'of_number': None,
             }),
-            ('Agent_05_of_99_02_(of_09)_(1999)', {
+            ('Agent_05_of_99_02_(of_09)', {
                 'name': 'Agent 05 of 99',
-                'publication_year': 1999,
                 'book_type_id': self._type_id_by_name['mini-series'],
                 'number': 2,
                 'of_number': 9,
             }),
             ('My_Book', {
                 'name': 'My Book',
-                'publication_year': None,
                 'book_type_id': self._type_id_by_name['one-shot'],
                 'number': None,
                 'of_number': None,
@@ -789,7 +790,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(
             anchor['href'],
-            '/First_Last/test__read_link_%281999%29/001'
+            '/First_Last/test__read_link/001'
         )
 
         # As Row, book
@@ -799,7 +800,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(
             anchor['href'],
-            '/First_Last/test__read_link_%281999%29/001'
+            '/First_Last/test__read_link/001'
         )
 
         # Invalid id
@@ -814,7 +815,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(
             anchor['href'],
-            '/First_Last/test__read_link_%281999%29/001'
+            '/First_Last/test__read_link/001'
         )
 
         # Test components param
@@ -867,17 +868,19 @@ class TestFunctions(ImageTestCase):
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
 
+        # Note: The publication year was removed from the url.
+
         tests = [
             #(name, pub year, type, number, of_number, expect),
             (None, None, 'one-shot', None, None, None),
             ('My Book', 1999, 'one-shot', 1, 999,
-                '/First_Last/My_Book_%281999%29'),
+                '/First_Last/My_Book'),
             ('My Book', 1999, 'ongoing', 12, 999,
-                '/First_Last/My_Book_012_%281999%29'),
+                '/First_Last/My_Book_012'),
             ('My Book', 1999, 'mini-series', 2, 9,
-                '/First_Last/My_Book_02_%28of_09%29_%281999%29'),
+                '/First_Last/My_Book_02_%28of_09%29'),
             ("Hélè d'Eñça", 1999, 'mini-series', 2, 9,
-                '/First_Last/H%C3%A9l%C3%A8_d%27E%C3%B1%C3%A7a_02_%28of_09%29_%281999%29'),
+                '/First_Last/H%C3%A9l%C3%A8_d%27E%C3%B1%C3%A7a_02_%28of_09%29'),
         ]
 
         for t in tests:
@@ -900,17 +903,18 @@ class TestFunctions(ImageTestCase):
         book = entity_to_row(db.book, book_id)
         self._objects.append(book)
 
+        # Note: The publication year was removed from the url.
         tests = [
             #(name, pub year, type, number, of_number, expect),
             (None, None, 'one-shot', None, None, None),
             ('My Book', 1999, 'one-shot', 1, 999,
-                'My_Book_(1999)'),
+                'My_Book'),
             ('My Book', 1999, 'ongoing', 12, 999,
-                'My_Book_012_(1999)'),
+                'My_Book_012'),
             ('My Book', 1999, 'mini-series', 2, 9,
-                'My_Book_02_(of_09)_(1999)'),
+                'My_Book_02_(of_09)'),
             ("Hélè d'Eñça", 1999, 'mini-series', 2, 9,
-                "H\xc3\xa9l\xc3\xa8_d'E\xc3\xb1\xc3\xa7a_02_(of_09)_(1999)"),
+                "H\xc3\xa9l\xc3\xa8_d'E\xc3\xb1\xc3\xa7a_02_(of_09)"),
         ]
 
         for t in tests:
