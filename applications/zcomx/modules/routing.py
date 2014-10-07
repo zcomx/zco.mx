@@ -26,22 +26,128 @@ from applications.zcomx.modules.utils import entity_to_row
 class Router(object):
     """Class representing a Router"""
 
-    def __init__(self):
-        """Constructor"""
-        self.view = None
-        self.redirect = None
-        self.view_dict = {}
-
-    def page_not_found(self, db, request, creator_id, book_id, page_id):
-        """Redirect to the page not found.
+    def __init__(self, db, request, auth):
+        """Constructor
 
         Args:
             db: gluon.dal.DAL instance
             request: gluon.globals.Request instance.
-            creator_id: integer, id of creator record
-            book_id: integer, id of book record
-            page_id: integer, id of book_page record
+            auth: gluon.tools.Auth instance.
         """
+        self.db = db
+        self.request = request
+        self.auth = auth
+        self.view = None
+        self.redirect = None
+        self.view_dict = {}
+        self.creator_record = None
+        self.auth_user_record = None
+        self.book_record = None
+        self.book_page_record = None
+
+    def get_auth_user(self):
+        """Return the auth user record.
+
+        Returns:
+            gluon.dal.Row representing auth_user record
+        """
+        db = self.db
+        if not self.auth_user_record:
+            creator_record = self.get_creator()
+            if creator_record and creator_record.auth_user_id:
+                self.auth_user_record = entity_to_row(
+                    db.auth_user,
+                    creator_record.auth_user_id
+                )
+        return self.auth_user_record
+
+    def get_book(self):
+        """Get the record of the book based on request.vars.book.
+
+        Returns:
+            gluon.dal.Row representing book record
+        """
+        request = self.request
+        if not self.book_record:
+            if request.vars.book:
+                creator_record = self.get_creator()
+                if creator_record:
+                    attrs = parse_url_name(request.vars.book)
+                    attrs['creator_id'] = creator_record.id
+                    self.book_record = by_attributes(attrs)
+        return self.book_record
+
+    def get_creator(self):
+        """Get the record of the creator based on request.vars.creator.
+
+        Returns:
+            gluon.dal.Row representing creator record
+        """
+        db = self.db
+        request = self.request
+        if not self.creator_record:
+            if request.vars.creator:
+                # Test for request.vars.creator as creator.id
+                try:
+                    int(request.vars.creator)
+                except (TypeError, ValueError):
+                    pass
+                else:
+                    self.creator_record = entity_to_row(
+                        db.creator,
+                        request.vars.creator
+                    )
+
+                # Test for request.vars.creator as creator.path_name
+                if not self.creator_record:
+                    name = request.vars.creator.replace('_', ' ')
+                    query = (db.creator.path_name == name)
+                    self.creator_record = db(query).select().first()
+
+        return self.creator_record
+
+    def get_page(self):
+        """Get the record of the book page based on request.vars.page.
+
+        Returns:
+            gluon.dal.Row representing book_page record
+        """
+        db = self.db
+        request = self.request
+        if not self.book_page_record:
+            if request.vars.page:
+                book_record = self.get_book()
+                if book_record:
+                    # Strip off extension
+                    parts = request.vars.page.split('.')
+                    raw_page_no = parts[0]
+                    try:
+                        page_no = int(raw_page_no)
+                    except (TypeError, ValueError):
+                        page_no = None
+                    if page_no:
+                        query = (db.book_page.book_id == book_record.id) & \
+                                (db.book_page.page_no == page_no)
+                        self.book_page_record = db(query).select().first()
+        return self.book_page_record
+
+    def get_reader(self):
+        """Get the reader type.
+
+        Returns:
+            string, one of 'scroller' or 'slider'
+        """
+        request = self.request
+        if request.vars.reader:
+            return request.vars.reader
+        if self.book_record:
+            return self.book_record.reader
+
+    def page_not_found(self):
+        """Set for redirect to the page not found."""
+        db = self.db
+        request = self.request
+
         urls = Storage({})
         urls.invalid = '{scheme}://{host}{uri}'.format(
             scheme=request.env.wsgi_url_scheme,
@@ -49,25 +155,29 @@ class Router(object):
             uri=request.env.web2py_original_uri or request.env.request_uri
         )
 
-        creator_record = None
-        book_record = None
-        page_record = None
-
         # Get an existing book page and use it for examples
         # Logic:
-        #   if page_id: use that book_page
-        #   elif book_id: use first page of that book
-        #   elif creator_id: use first page of first book with pages from creator
-        #   else : use first page of first book with pages from first creator
+        #   if page_record: use that book_page
+        #   elif book_record: use first page of that book
+        #   elif creator_record: use first page of first book with pages from
+        #       creator
+        #   else: use first page of first book with pages from first creator
+        creator_record = self.get_creator()
+        book_record = self.get_book()
+        page_record = self.get_page()
 
         query_wants = []
-        if page_id:
-            query_wants.append((db.book_page.id == page_id))
-        if book_id:
-            query_wants.append((db.book.id == book_id))
-        if creator_id:
-            query_wants.append((db.creator.id == creator_id))
+        if page_record and page_record.id:
+            query_wants.append((db.book_page.id == page_record.id))
+        if book_record and book_record.id:
+            query_wants.append((db.book.id == book_record.id))
+        if creator_record and creator_record.id:
+            query_wants.append((db.creator.id == creator_record.id))
         query_wants.append(None)
+
+        url_page_record = None
+        url_book_record = None
+        url_creator_record = None
 
         for query_want in query_wants:
             queries = []
@@ -87,234 +197,231 @@ class Router(object):
                 limitby=(0, 1),
             )
             if rows:
-                page_record = entity_to_row(db.book_page, rows[0].book_page.id)
-                book_record = entity_to_row(db.book, rows[0].book.id)
-                creator_record = entity_to_row(db.creator, rows[0].creator.id)
+                url_page_record = entity_to_row(
+                    db.book_page,
+                    rows[0].book_page.id
+                )
+                url_book_record = entity_to_row(db.book, rows[0].book.id)
+                url_creator_record = entity_to_row(
+                    db.creator,
+                    rows[0].creator.id
+                )
                 break
 
-        urls.page = urllib.unquote(page_url(page_record, host=True)) \
-            if page_record else None
-        urls.book = urllib.unquote(book_url(book_record, host=True)) \
-            if book_record else None
-        urls.creator = urllib.unquote(creator_url(creator_record, host=True)) \
-            if creator_record else None
+        urls.page = urllib.unquote(
+            page_url(url_page_record, host=True)
+        ) if url_page_record else None
+        urls.book = urllib.unquote(
+            book_url(url_book_record, host=True)
+        ) if url_book_record else None
+        urls.creator = urllib.unquote(
+            creator_url(url_creator_record, host=True)
+        ) if url_creator_record else None
         message = 'The requested page was not found on this server.'
 
         self.view_dict = dict(urls=urls, message=message)
         self.view = 'default/page_not_found.html'
 
-    def route(self, db, request, auth):
-        """Return vars dict and view for route.
-
-        Args:
-            db: gluon.dal.DAL instance
-            request: gluon.globals.Request instance.
-            auth: gluon.tools.Auth instance.
+    def preset_links(self):
+        """Return a list of preset links for the creator.
 
         Returns:
-            tuple (view_dict, view)
+            list of A() instances representing links.
         """
-        creator_id = None
-        creator_record = None
-        book_id = None
-        book_record = None
-        page_id = None
-        book_page = None
-        creator_is_id = False
+        pre_links = []
+        creator_record = self.get_creator()
+        if not creator_record:
+            return []
+        if creator_record.tumblr:
+            pre_links.append(
+                A(
+                    'tumblr',
+                    _href=creator_record.tumblr,
+                    _target='_blank'
+                )
+            )
+        if creator_record.wikipedia:
+            pre_links.append(
+                A(
+                    'wikipedia',
+                    _href=creator_record.wikipedia,
+                    _target='_blank'
+                )
+            )
+        return pre_links
 
+    def route(self):
+        """Return vars dict and view for route.
+
+        Notes:
+            the view_dict, view and optionally redirect properties are set.
+        """
+        # too-many-return-statements (R0911): *Too many return statements*
+        # pylint: disable=R0911
+        request = self.request
         if not request.vars.creator:
+            self.page_not_found()
             return
 
-        # Test for request.vars.creator as creator.id
-        try:
-            int(request.vars.creator)
-        except (TypeError, ValueError):
-            pass
-        else:
-            creator_id = request.vars.creator
-
-        if creator_id:
-            creator_record = entity_to_row(db.creator, creator_id)
-            if creator_record:
-                creator_is_id = True
-
-        # Test for request.vars.creator as creator.path_name
-        if not creator_record:
-            name = request.vars.creator.replace('_', ' ')
-            creator_record = db(db.creator.path_name == name).select().first()
-            if creator_record:
-                creator_id = creator_record.id
-
-        if not creator_id:
-            self.page_not_found(db, request, creator_id, book_id, page_id)
+        if not self.get_creator():
+            self.page_not_found()
             return
 
-        if not creator_record:
-            creator_record = entity_to_row(db.creator, creator_id)
-            if not creator_record:
-                self.page_not_found(db, request, creator_id, book_id, page_id)
-                return
-
-        auth_user = entity_to_row(db.auth_user, creator_record.auth_user_id)
+        auth_user = self.get_auth_user()
         if not auth_user:
-            self.page_not_found(db, request, creator_id, book_id, page_id)
+            self.page_not_found()
             return
 
         if request.vars.book:
-            attrs = parse_url_name(request.vars.book)
-            attrs['creator_id'] = creator_record.id
-            book_record = by_attributes(attrs)
-            if book_record:
-                book_id = book_record.id
-            else:
-                self.page_not_found(db, request, creator_id, book_id, page_id)
+            if not self.get_book():
+                self.page_not_found()
                 return
 
-        page_no = None
-
-        if book_id and request.vars.page:
-            # Strip off extension
-            parts = request.vars.page.split('.')
-            raw_page_no = parts[0]
-            try:
-                page_no = int(raw_page_no)
-            except (TypeError, ValueError):
-                page_no = None
-            if page_no:
-                query = (db.book_page.book_id == book_id) & \
-                        (db.book_page.page_no == page_no)
-                book_page = db(query).select().first()
-                if book_page:
-                    page_id = book_page.id
-                else:
-                    self.page_not_found(
-                        db, request, creator_id, book_id, page_id)
-                    return
-
-        if book_page and page_id:
-
-            reader = request.vars.reader or book_record.reader
-
-            page_images = db(db.book_page.book_id == book_record.id).select(
-                db.book_page.image,
-                db.book_page.page_no,
-                orderby=[db.book_page.page_no, db.book_page.id]
-            )
-
-            ViewEvent(book_record, auth.user_id).log()
-
-            first_book_page = first_page(db, book_record.id)
-
-            scroll_link = A(
-                SPAN('scroll'),
-                _href=page_url(first_book_page, reader='scroller'),
-                _class='btn btn-default {st}'.format(
-                    st='disabled' if reader == 'scroller' else 'active'),
-                _type='button',
-                cid=request.cid
-            )
-
-            slider_data = dict(
-                _href=page_url(first_book_page, reader='slider'),
-                _class='btn btn-default active',
-                _type='button',
-                cid=request.cid
-            )
-
-            if reader == 'slider':
-                slider_data['_id'] = 'vertical_align_button'
-                slider_data['_title'] = 'Center book page in window.'
-
-            slider_link = A(
-                SPAN('slider'),
-                **slider_data
-            )
-
-            if creator_is_id:
-                request_vars = request.vars
-                if 'creator' in request_vars:
-                    del request_vars['creator']
-                self.redirect = page_url(book_page, reader=reader)
+        if request.vars.page:
+            if not self.get_page():
+                self.page_not_found()
                 return
 
-            self.view_dict = dict(
-                auth_user=auth_user,
-                book=book_record,
-                creator=creator_record,
-                links=[scroll_link, slider_link],
-                pages=page_images,
-                reader=reader,
-                size='web',
-                start_page_no=book_page.page_no,
-            )
-
-            self.view = 'books/slider.html' if reader == 'slider' else \
-                'books/scroller.html'
-            return
-
-        pre_links = []
-        if creator_record.tumblr:
-            pre_links.append(
-                A('tumblr', _href=creator_record.tumblr, _target='_blank'))
-        if creator_record.wikipedia:
-            pre_links.append(
-                A('wikipedia', _href=creator_record.wikipedia, _target='_blank'))
-
-        if book_record and book_record.status:
-            if creator_is_id:
-                request_vars = request.vars
-                if 'creator' in request_vars:
-                    del request_vars['creator']
-                self.redirect = book_url(book_record)
-                return
-
-            cover = read_link(
-                db,
-                book_record,
-                [cover_image(
-                    db,
-                    book_record.id,
-                    size='web',
-                    img_attributes={'_class': 'img-responsive'}
-                )]
-            )
-
-            read_button = read_link(
-                db,
-                book_record,
-                **dict(
-                    _class='btn btn-default',
-                    _type='button',
-                )
-            )
-
-            self.view_dict = dict(
-                auth_user=auth_user,
-                book=book_record,
-                cover_image=cover,
-                creator=creator_record,
-                creator_links=CustomLinks(db.creator, creator_record.id).represent(
-                    pre_links=pre_links),
-                links=CustomLinks(db.book, book_record.id).represent(),
-                page_count=db(db.book_page.book_id == book_record.id).count(),
-                read_button=read_button,
-            )
-
-            self.view = 'books/book.html'
-            return
-
-        if creator_is_id:
+        # If the creator is provided as an id, redirect to url with the creator
+        # full name.
+        if self.creator_record.id == self.request.vars.creator:
             request_vars = request.vars
             if 'creator' in request_vars:
                 del request_vars['creator']
-            self.redirect = creator_url(creator_record)
-            return
+            if self.book_page_record:
+                self.redirect = page_url(
+                    self.book_page_record,
+                    reader=self.get_reader()
+                )
+                return
+            if self.book_record:
+                self.redirect = book_url(self.book_record)
+                return
+            if self.creator_record:
+                self.redirect = creator_url(self.creator_record)
+                return
+
+        if self.book_page_record:
+            self.set_reader_view()
+        elif self.book_record:
+            self.set_book_view()
+        elif self.creator_record:
+            self.set_creator_view()
+        else:
+            self.page_not_found()
+
+    def set_book_view(self):
+        """Set the view for the book page."""
+        db = self.db
+        creator_record = self.get_creator()
+        book_record = self.get_book()
+
+        cover = read_link(
+            db,
+            book_record,
+            [cover_image(
+                db,
+                book_record.id,
+                size='web',
+                img_attributes={'_class': 'img-responsive'}
+            )]
+        )
+
+        read_button = read_link(
+            db,
+            book_record,
+            **dict(
+                _class='btn btn-default',
+                _type='button',
+            )
+        )
 
         self.view_dict = dict(
-            auth_user=auth_user,
+            auth_user=self.auth_user_record,
+            book=book_record,
+            cover_image=cover,
+            creator=creator_record,
+            creator_links=CustomLinks(db.creator, creator_record.id).represent(
+                pre_links=self.preset_links()),
+            links=CustomLinks(db.book, book_record.id).represent(),
+            page_count=db(db.book_page.book_id == book_record.id).count(),
+            read_button=read_button,
+        )
+
+        self.view = 'books/book.html'
+
+    def set_creator_view(self):
+        """Set the view for the creator page."""
+        db = self.db
+        creator_record = self.get_creator()
+
+        self.view_dict = dict(
+            auth_user=self.auth_user_record,
             creator=creator_record,
             links=CustomLinks(
-                db.creator, creator_record.id).represent(pre_links=pre_links),
+                db.creator, creator_record.id
+            ).represent(
+                pre_links=self.preset_links()
+            ),
         )
 
         self.view = 'creators/creator.html'
+
+    def set_reader_view(self):
+        """Set the view for the book reader."""
+        db = self.db
+        request = self.request
+        creator_record = self.get_creator()
+        book_record = self.get_book()
+        book_page_record = self.get_page()
+
+        reader = self.get_reader()
+
+        page_images = db(db.book_page.book_id == book_record.id).select(
+            db.book_page.image,
+            db.book_page.page_no,
+            orderby=[db.book_page.page_no, db.book_page.id]
+        )
+
+        ViewEvent(book_record, self.auth.user_id).log()
+
+        first_book_page = first_page(db, book_record.id)
+
+        scroll_link = A(
+            SPAN('scroll'),
+            _href=page_url(first_book_page, reader='scroller'),
+            _class='btn btn-default {st}'.format(
+                st='disabled' if reader == 'scroller' else 'active'),
+            _type='button',
+            cid=request.cid
+        )
+
+        slider_data = dict(
+            _href=page_url(first_book_page, reader='slider'),
+            _class='btn btn-default active',
+            _type='button',
+            cid=request.cid
+        )
+
+        if reader == 'slider':
+            slider_data['_id'] = 'vertical_align_button'
+            slider_data['_title'] = 'Center book page in window.'
+
+        slider_link = A(
+            SPAN('slider'),
+            **slider_data
+        )
+
+        self.view_dict = dict(
+            auth_user=self.auth_user_record,
+            book=book_record,
+            creator=creator_record,
+            links=[scroll_link, slider_link],
+            pages=page_images,
+            reader=reader,
+            size='web',
+            start_page_no=book_page_record.page_no,
+        )
+
+        self.view = 'books/slider.html' if reader == 'slider' else \
+            'books/scroller.html'

@@ -40,8 +40,8 @@ def index():
 
     request.vars.update(parse_get_vars())
 
-    router = Router()
-    router.route(db, request, auth)
+    router = Router(db, request, auth)
+    router.route()
     if router.redirect:
         redirect(router.redirect)
     if router.view:

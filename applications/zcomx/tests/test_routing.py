@@ -7,12 +7,15 @@ Test suite for zcomx/modules/routing.py
 
 """
 import unittest
+from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.http import HTTP
 from gluon.rewrite import filter_url
 from gluon.storage import \
     List, \
     Storage
+from applications.zcomx.modules.books import url_name as book_url_name
+from applications.zcomx.modules.creators import url_name as creator_url_name
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
@@ -20,6 +23,725 @@ from applications.zcomx.modules.utils import entity_to_row
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
+
+class TestRouter(LocalTestCase):
+    _auth_user = None
+    _book = None
+    _book_2 = None
+    _book_2_name = None
+    _book_2_page = None
+    _book_2_page_2 = None
+    _book_2_page_name = None
+    _book_2page_2_name = None
+    _book_name = None
+    _book_page = None
+    _book_page_2 = None
+    _creator = None
+    _creator_2 = None
+    _creator_2_name = None
+    _creator_name = None
+    _first_creator_links = {}
+    _keys_for_view = {}
+    _page_2_name = None
+    _page_name = None
+    _request = None
+    _type_id_by_name = {}
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUp(cls):
+        for t in db(db.book_type).select():
+            cls._type_id_by_name[t.name] = t.id
+        cls._request = Storage()
+        cls._request.env = Storage()
+        cls._request.env.wsgi_url_scheme = 'http'
+        cls._request.env.http_host = 'www.domain.com'
+        cls._request.env.web2py_original_uri = '/path/to/page'
+        cls._request.env.request_uri = '/request/uri/path'
+        cls._request.args = List()
+        cls._request.vars = Storage()
+
+        first = db().select(
+            db.book_page.id,
+            db.book.id,
+            db.creator.id,
+            left=[
+                db.book.on(db.book_page.book_id == db.book.id),
+                db.creator.on(db.book.creator_id == db.creator.id),
+            ],
+            orderby=[db.creator.path_name, db.book_page.page_no],
+            limitby=(0, 1),
+        ).first()
+        first_creator = entity_to_row(db.creator, first['creator'].id)
+        first_creator_book = entity_to_row(db.book, first['book'].id)
+        first_creator_book_page = entity_to_row(
+            db.book_page,
+            first['book_page'].id
+        )
+
+        first_creator_name = creator_url_name(first_creator)
+        first_creator_book_name = book_url_name(first_creator_book)
+        first_creator_page_name = '{p:03d}'.format(
+            p=first_creator_book_page.page_no)
+
+        cls._first_creator_links = Storage({
+            'creator': 'http://127.0.0.1:8000/{c}'.format(
+                c=first_creator_name
+            ),
+            'book': 'http://127.0.0.1:8000/{c}/{b}'.format(
+                c=first_creator_name,
+                b=first_creator_book_name
+            ),
+            'page': 'http://127.0.0.1:8000/{c}/{b}/{p}'.format(
+                c=first_creator_name,
+                b=first_creator_book_name,
+                p=first_creator_page_name
+            ),
+        })
+
+        auth_user_id = db.auth_user.insert(
+            name='First Last',
+            email='test__auth_user@test.com',
+        )
+        db.commit()
+        cls._auth_user = entity_to_row(db.auth_user, auth_user_id)
+        cls._objects.append(cls._auth_user)
+
+        creator_id = db.creator.insert(
+            auth_user_id=cls._auth_user.id,
+            email='test__creator@test.com',
+            path_name='First Last',
+        )
+        db.commit()
+        cls._creator = entity_to_row(db.creator, creator_id)
+        cls._objects.append(cls._creator)
+
+        creator_2_id = db.creator.insert(
+            auth_user_id=cls._auth_user.id,
+            email='test__creator_2@test.com',
+            path_name='John Hancock',
+        )
+        db.commit()
+        cls._creator_2 = entity_to_row(db.creator, creator_2_id)
+        cls._objects.append(cls._creator_2)
+
+        book_id = db.book.insert(
+            name='My Book',
+            publication_year=1999,
+            book_type_id=cls._type_id_by_name['one-shot'],
+            number=1,
+            of_number=999,
+            creator_id=cls._creator.id,
+            reader='slider',
+        )
+        db.commit()
+        cls._book = entity_to_row(db.book, book_id)
+        cls._objects.append(cls._book)
+
+        book_2_id = db.book.insert(
+            name='My Second Book',
+            publication_year=2002,
+            book_type_id=cls._type_id_by_name['one-shot'],
+            number=1,
+            of_number=999,
+            creator_id=cls._creator_2.id,
+            reader='slider',
+        )
+        db.commit()
+        cls._book_2 = entity_to_row(db.book, book_2_id)
+        cls._objects.append(cls._book_2)
+
+        page_id = db.book_page.insert(
+            book_id=cls._book.id,
+            page_no=1,
+        )
+        db.commit()
+        cls._book_page = entity_to_row(db.book_page, page_id)
+        cls._objects.append(cls._book_page)
+
+        page_2_id = db.book_page.insert(
+            book_id=cls._book.id,
+            page_no=2,
+        )
+        db.commit()
+        cls._book_page_2 = entity_to_row(db.book_page, page_2_id)
+        cls._objects.append(cls._book_page_2)
+
+        book_2_page_id = db.book_page.insert(
+            book_id=cls._book_2.id,
+            page_no=1,
+        )
+        db.commit()
+        cls._book_2_page = entity_to_row(db.book_page, book_2_page_id)
+        cls._objects.append(cls._book_2_page)
+
+        book_2_page_2_id = db.book_page.insert(
+            book_id=cls._book_2.id,
+            page_no=2,
+        )
+        db.commit()
+        cls._book_2_page_2 = entity_to_row(db.book_page, book_2_page_2_id)
+        cls._objects.append(cls._book_2_page_2)
+
+        cls._creator_name = creator_url_name(cls._creator)
+        cls._creator_2_name = creator_url_name(cls._creator_2)
+        cls._book_name = book_url_name(cls._book)
+        cls._book_2_name = book_url_name(cls._book_2)
+        cls._page_name = '{p:03d}'.format(p=cls._book_page.page_no)
+        cls._page_2_name = '{p:03d}'.format(p=cls._book_page_2.page_no)
+        cls._book_2_page_name = '{p:03d}'.format(p=cls._book_2_page.page_no)
+        cls._book_2page_2_name = '{p:03d}'.format(p=cls._book_2_page_2.page_no)
+
+        cls._keys_for_view = {
+            'creator': [
+                'auth_user',
+                'creator',
+                'links',
+            ],
+            'book': [
+                'auth_user',
+                'book',
+                'cover_image',
+                'creator',
+                'creator_links',
+                'links',
+                'page_count',
+                'read_button',
+            ],
+            'page_not_found': [
+                'message',
+                'urls',
+            ],
+            'reader': [
+                'auth_user',
+                'book',
+                'creator',
+                'links',
+                'pages',
+                'reader',
+                'size',
+                'start_page_no',
+            ]
+        }
+
+    def test____init__(self):
+        router = Router(db, self._request, auth)
+        self.assertTrue(router)
+
+    def test__get_auth_user(self):
+        router = Router(db, self._request, auth)
+        self.assertTrue(router.auth_user_record is None)
+
+        # request.vars.creator not set
+        got = router.get_auth_user()
+        self.assertEqual(got, None)
+        self.assertTrue(router.auth_user_record is None)
+
+        router.request.vars.creator = 'Fake_Creator'
+        got = router.get_auth_user()
+        self.assertEqual(got, None)
+        self.assertTrue(router.auth_user_record is None)
+
+        router.request.vars.creator = 'First_Last'
+        got = router.get_auth_user()
+        self.assertEqual(got.name, 'First Last')
+        self.assertEqual(got.email, 'test__auth_user@test.com')
+        self.assertTrue(router.auth_user_record is not None)
+
+        # Subsequent calls get value from cache
+        router.request.vars.creator = 'Fake_Creator'
+        got = router.get_auth_user()
+        self.assertEqual(got.name, 'First Last')
+        self.assertEqual(got.email, 'test__auth_user@test.com')
+        self.assertTrue(router.auth_user_record is not None)
+
+    def test__get_book(self):
+        router = Router(db, self._request, auth)
+        self.assertTrue(router.book_record is None)
+
+        # request.vars.book not set
+        got = router.get_book()
+        self.assertEqual(got, None)
+        self.assertTrue(router.book_record is None)
+
+        router.request.vars.creator = 'First Last'
+        router.request.vars.book = '_Fake Book_'
+        got = router.get_book()
+        self.assertEqual(got, None)
+        self.assertTrue(router.book_record is None)
+
+        router.request.vars.book = 'My Book'
+        got = router.get_book()
+        self.assertEqual(got.name, 'My Book')
+        self.assertEqual(got.creator_id, self._creator.id)
+        self.assertTrue(router.book_record is not None)
+
+        # Subsequent calls get value from cache
+        router.request.vars.book = '_Fake Book_'
+        got = router.get_book()
+        self.assertEqual(got.name, 'My Book')
+        self.assertEqual(got.creator_id, self._creator.id)
+        self.assertTrue(router.book_record is not None)
+
+    def test__get_creator(self):
+        router = Router(db, self._request, auth)
+        self.assertTrue(router.creator_record is None)
+
+        # request.vars.creator not set
+        got = router.get_creator()
+        self.assertEqual(got, None)
+        self.assertTrue(router.creator_record is None)
+
+        router.request.vars.creator = 'Fake_Creator'
+        got = router.get_creator()
+        self.assertEqual(got, None)
+        self.assertTrue(router.creator_record is None)
+
+        router.request.vars.creator = str(99999999)
+        got = router.get_creator()
+        self.assertEqual(got, None)
+        self.assertTrue(router.creator_record is None)
+
+        router.request.vars.creator = 'First_Last'
+        got = router.get_creator()
+        self.assertEqual(got.email, 'test__creator@test.com')
+        self.assertEqual(got.path_name, 'First Last')
+        self.assertTrue(router.creator_record is not None)
+
+        # Subsequent calls get value from cache
+        router.request.vars.creator = 'Fake_Creator'
+        got = router.get_creator()
+        self.assertEqual(got.email, 'test__creator@test.com')
+        self.assertEqual(got.path_name, 'First Last')
+        self.assertTrue(router.creator_record is not None)
+
+        # Test by integer.
+        router.creator_record = None
+        router.request.vars.creator = str(self._creator.id)
+        got = router.get_creator()
+        self.assertEqual(got.email, 'test__creator@test.com')
+        self.assertEqual(got.path_name, 'First Last')
+        self.assertTrue(router.creator_record is not None)
+
+    def test__get_page(self):
+        router = Router(db, self._request, auth)
+        self.assertTrue(router.book_page_record is None)
+
+        # request.vars.page not set
+        got = router.get_page()
+        self.assertEqual(got, None)
+        self.assertTrue(router.book_page_record is None)
+
+        router.request.vars.creator = 'First Last'
+        router.request.vars.book = 'My Book'
+        router.request.vars.page = '999.jpg'
+        got = router.get_page()
+        self.assertEqual(got, None)
+        self.assertTrue(router.book_page_record is None)
+
+        router.request.vars.page = '001.jpg'
+        got = router.get_page()
+        self.assertEqual(got.book_id, self._book.id)
+        self.assertEqual(got.page_no, 1)
+        self.assertTrue(router.book_page_record is not None)
+
+        # Subsequent calls get value from cache
+        router.request.vars.page = '999.jpg'
+        got = router.get_page()
+        self.assertEqual(got.book_id, self._book.id)
+        self.assertEqual(got.page_no, 1)
+        self.assertTrue(router.book_page_record is not None)
+
+        # Test as page no.
+        router.book_page_record = None
+        router.request.vars.page = '001'
+        got = router.get_page()
+        self.assertEqual(got.book_id, self._book.id)
+        self.assertEqual(got.page_no, 1)
+        self.assertTrue(router.book_page_record is not None)
+
+        router.book_page_record = None
+        router.request.vars.page = '002'
+        got = router.get_page()
+        self.assertEqual(got.book_id, self._book.id)
+        self.assertEqual(got.page_no, 2)
+        self.assertTrue(router.book_page_record is not None)
+
+        # Handle non-page value
+        router.book_page_record = None
+        router.request.vars.page = 'not_a_page'
+        got = router.get_page()
+        self.assertEqual(got, None)
+        self.assertTrue(router.book_page_record is None)
+
+    def test__get_reader(self):
+        router = Router(db, self._request, auth)
+
+        # No request.vars.reader, no book_record
+        self.assertEqual(router.get_reader(), None)
+
+        router.request.vars.reader = '_reader_'
+        self.assertEqual(router.get_reader(), '_reader_')
+
+        router.book_record = self._book
+        self.assertEqual(router.get_reader(), '_reader_')
+
+        del router.request.vars.reader
+        self.assertEqual(router.get_reader(), 'slider')
+
+        self._book.update_record(reader='scroller')
+        db.commit()
+        self.assertEqual(router.get_reader(), 'scroller')
+        self._book.update_record(reader='slider')
+
+    def test__page_not_found(self):
+
+        def do_test(request_vars, expect):
+            """Run test."""
+            self._request.vars = request_vars
+            router = Router(db, self._request, auth)
+            router.page_not_found()
+            self.assertTrue('urls' in router.view_dict)
+            self.assertEqual(dict(router.view_dict['urls']), expect.view_dict)
+            self.assertEqual(router.view, expect.view)
+
+        # Test first page, all parameters
+        request_vars = Storage(dict(
+            creator=self._creator_name,
+            book=self._book_name,
+            page=self._page_name,
+        ))
+        expect = Storage({
+            'view_dict': {
+                'creator': 'http://127.0.0.1:8000/First_Last',
+                'book': 'http://127.0.0.1:8000/First_Last/My_Book',
+                'page': 'http://127.0.0.1:8000/First_Last/My_Book/001',
+                'invalid': 'http://www.domain.com/path/to/page',
+            },
+            'view': 'default/page_not_found.html',
+        })
+        expect_2 = Storage({
+            'view_dict': {
+                'creator': 'http://127.0.0.1:8000/John_Hancock',
+                'book': 'http://127.0.0.1:8000/John_Hancock/My_Second_Book',
+                'page':
+                'http://127.0.0.1:8000/John_Hancock/My_Second_Book/001',
+                'invalid': 'http://www.domain.com/path/to/page',
+            },
+            'view': 'default/page_not_found.html',
+        })
+
+        do_test(request_vars, expect)
+
+        # Second page should be found if indicated.
+        request_vars.page = self._page_2_name
+        expect.view_dict['page'] = \
+            'http://127.0.0.1:8000/First_Last/My_Book/002'
+        do_test(request_vars, expect)
+
+        # If page not indicated, first page of book should be found.
+        del request_vars.page
+        expect.view_dict['page'] = \
+            'http://127.0.0.1:8000/First_Last/My_Book/001'
+
+        # If page doesn't exist, first page of book should be found.
+        request_vars.page = '999'
+        do_test(request_vars, expect)
+
+        # If book doesn't match creator, first book of creator should be found
+        request_vars = Storage(dict(
+            creator=self._creator_name,
+            book=self._book_2_name,
+            page=self._book_2_page_name,
+        ))
+        do_test(request_vars, expect)
+
+        request_vars = Storage(dict(
+            creator=self._creator_2_name,
+            book=self._book_name,
+            page=self._page_name,
+        ))
+        do_test(request_vars, expect_2)
+
+        # If book not indicated, first book of creator should be found.
+        del request_vars.page
+        del request_vars.book
+        request_vars.creator = self._creator_name
+        do_test(request_vars, expect)
+
+        request_vars.creator = self._creator_2_name
+        do_test(request_vars, expect_2)
+
+        # If book doesn't exist, first book of creator should be found.
+        request_vars.book = '_Fake_Book_'
+        request_vars.creator = self._creator_name
+        do_test(request_vars, expect)
+
+        request_vars.creator = self._creator_2_name
+        do_test(request_vars, expect_2)
+
+        # If creator not indicated, first book of first creator should be
+        # found.
+        expect_first = Storage({
+            'view_dict': {
+                'creator': self._first_creator_links.creator,
+                'book': self._first_creator_links.book,
+                'page': self._first_creator_links.page,
+                'invalid': 'http://www.domain.com/path/to/page',
+            },
+            'view': 'default/page_not_found.html',
+        })
+
+        # If invalid creator, first book of first creator should be found.
+        if request_vars.page:
+            del request_vars.page
+        if request_vars.book:
+            del request_vars.book
+        request_vars.creator = '_Hannah _Montana'
+        do_test(request_vars, expect_first)
+
+        # If no creator, first book of first creator should be found.
+        del request_vars.creator
+        do_test(request_vars, expect_first)
+
+        # Test missing web2py_original_uri
+        self._request.env.web2py_original_uri = None
+        request_vars.creator = self._creator_name
+        request_vars.book = self._book_name
+        request_vars.page = self._page_name
+        router = Router(db, self._request, auth)
+        router.page_not_found()
+        self.assertTrue('urls' in router.view_dict)
+        self.assertEqual(
+            router.view_dict['urls'].invalid,
+            'http://www.domain.com/request/uri/path'
+        )
+        self.assertEqual(router.view, expect.view)
+
+    def test__preset_links(self):
+        router = Router(db, self._request, auth)
+
+        self._creator.update_record(
+            tumblr=None,
+            wikipedia=None,
+        )
+        db.commit()
+
+        # Creator not set.
+        self.assertEqual(router.preset_links(), [])
+
+        # creator.tumbler and creator.wikipedia not set
+        router.request.vars.creator = 'First_Last'
+        self.assertEqual(router.preset_links(), [])
+
+        self._creator.update_record(
+            tumblr='user.tumblr.com',
+            wikipedia='http://en.wikipedia.org/wiki/First_Last',
+        )
+        db.commit()
+        router.creator_record = None
+        links = router.preset_links()
+        self.assertEqual(len(links), 2)
+
+        tumblr_link = BeautifulSoup(str(links[0]))
+        anchor = tumblr_link.find('a')
+        self.assertEqual(anchor.string, 'tumblr')
+        self.assertEqual(anchor['href'], 'user.tumblr.com')
+        self.assertEqual(anchor['target'], '_blank')
+
+        wiki_link = BeautifulSoup(str(links[1]))
+        anchor = wiki_link.find('a')
+        self.assertEqual(anchor.string, 'wikipedia')
+        self.assertEqual(
+            anchor['href'],
+            'http://en.wikipedia.org/wiki/First_Last'
+        )
+        self.assertEqual(anchor['target'], '_blank')
+
+    def test__route(self):
+        router = Router(db, self._request, auth)
+
+        def do_test(request_vars, expect):
+            """Run test."""
+            self._request.vars = request_vars
+            router = Router(db, self._request, auth)
+            router.route()
+            if 'view_dict' in expect:
+                self.assertEqual(
+                    dict(router.view_dict['urls']),
+                    expect.view_dict
+                )
+            if 'view_dict_keys' in expect:
+                self.assertEqual(
+                    sorted(router.view_dict.keys()),
+                    expect.view_dict_keys
+                )
+            self.assertEqual(router.view, expect.view)
+
+        # No creator, should route to page_not_found with first creator.
+        request_vars = Storage(dict())
+
+        first_expect = Storage({
+            'view_dict': {
+                'creator': self._first_creator_links.creator,
+                'book': self._first_creator_links.book,
+                'page': self._first_creator_links.page,
+                'invalid': 'http://www.domain.com/path/to/page',
+            },
+            'view': 'default/page_not_found.html',
+        })
+        do_test(request_vars, first_expect)
+
+        router.route()
+        self.assertEqual(
+            router.view_dict['urls'],
+            {
+                'creator': self._first_creator_links.creator,
+                'book': self._first_creator_links.book,
+                'page': self._first_creator_links.page,
+                'invalid': 'http://www.domain.com/path/to/page',
+            }
+        )
+
+        # Creator as integer (creator_id) should redirect.
+        request_vars.creator = str(self._creator.id)
+        expect = Storage({
+            'view_dict_keys': self._keys_for_view['creator'],
+            'view': 'creators/creator.html',
+        })
+        do_test(request_vars, expect)
+
+        # Creator as name
+        request_vars.creator = 'First_Last'
+        expect = Storage({
+            'view_dict_keys': self._keys_for_view['creator'],
+            'view': 'creators/creator.html',
+        })
+        do_test(request_vars, expect)
+
+        # Book as name
+        request_vars.creator = 'First_Last'
+        request_vars.book = 'My_Book'
+        expect = Storage({
+            'view_dict_keys': self._keys_for_view['book'],
+            'view': 'books/book.html',
+        })
+        do_test(request_vars, expect)
+
+        # Book page: slider
+        request_vars.creator = 'First_Last'
+        request_vars.book = 'My_Book'
+        request_vars.page = '001.jpg'
+        expect = Storage({
+            'view_dict_keys': self._keys_for_view['reader'],
+            'view': 'books/slider.html',
+        })
+        do_test(request_vars, expect)
+
+        # Book page: scroller
+        self._book.update_record(reader='scroller')
+        db.commit()
+        expect = Storage({
+            'view_dict_keys': self._keys_for_view['reader'],
+            'view': 'books/scroller.html',
+        })
+        do_test(request_vars, expect)
+        self._book.update_record(reader='slider')
+        db.commit()
+
+        # Book page: page no
+        request_vars.page = '001'
+        expect = Storage({
+            'view_dict_keys': self._keys_for_view['reader'],
+            'view': 'books/slider.html',
+        })
+        do_test(request_vars, expect)
+
+        # Nonexistent creator
+        request_vars.creator = str(9999999)
+        expect_not_found = Storage({
+            'view_dict_keys': self._keys_for_view['page_not_found'],
+            'view': 'default/page_not_found.html',
+        })
+        do_test(request_vars, expect_not_found)
+
+        request_vars.creator = '_Invalid_Creator_'
+        do_test(request_vars, expect_not_found)
+
+        # Nonexistent book
+        request_vars.creator = 'First_Last'
+        request_vars.book = 'Some_Invalid_Book'
+        do_test(request_vars, expect_not_found)
+
+        # Nonexistent book page
+        request_vars.creator = 'First_Last'
+        request_vars.book = 'My_Book'
+        request_vars.page = '999.jpg'
+        do_test(request_vars, expect_not_found)
+
+        request_vars.page = '999'
+        do_test(request_vars, expect_not_found)
+
+    def test__set_book_view(self):
+        router = Router(db, self._request, auth)
+        router.creator_record = self._creator
+        router.book_record = self._book
+        router.set_book_view()
+        self.assertEqual(
+            sorted(router.view_dict.keys()),
+            self._keys_for_view['book'],
+        )
+        self.assertEqual(
+            router.view,
+            'books/book.html',
+        )
+        self.assertEqual(router.redirect, None)
+
+    def test__set_creator_view(self):
+        router = Router(db, self._request, auth)
+        router.creator_record = self._creator
+        router.set_creator_view()
+        self.assertEqual(
+            sorted(router.view_dict.keys()),
+            self._keys_for_view['creator'],
+        )
+        self.assertEqual(
+            router.view,
+            'creators/creator.html',
+        )
+        self.assertEqual(router.redirect, None)
+
+    def test__set_reader_view(self):
+        router = Router(db, self._request, auth)
+        router.creator_record = self._creator
+        router.book_record = self._book
+        router.book_page_record = self._book_page
+        router.set_reader_view()
+        self.assertEqual(
+            sorted(router.view_dict.keys()),
+            self._keys_for_view['reader'],
+        )
+        self.assertEqual(
+            router.view,
+            'books/slider.html',
+        )
+        self.assertEqual(router.redirect, None)
+
+        router.book_record.update_record(reader='scroller')
+        db.commit()
+        router.set_reader_view()
+        self.assertEqual(
+            sorted(router.view_dict.keys()),
+            self._keys_for_view['reader'],
+        )
+        self.assertEqual(
+            router.view,
+            'books/scroller.html',
+        )
+        router.book_record.update_record(reader='slider')
+        db.commit()
 
 
 class TestFunctions(LocalTestCase):
@@ -182,272 +904,6 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(filter_url(t[0], out=True), t[1])
 
         self.assertEqual(str(URL(a='zcomx', c='default', f='index')), '/')
-
-    def test__route(self):
-        return  #FIXME
-        route = Router().route
-
-        auth_user_id = db.auth_user.insert(
-            name='First Last',
-            email='test__route@test.com',
-        )
-        db.commit()
-        user = entity_to_row(db.auth_user, auth_user_id)
-        self._objects.append(user)
-
-        creator_id = db.creator.insert(
-            auth_user_id=user.id,
-            email='test__route@test.com',
-            path_name='First Last',
-        )
-        db.commit()
-        creator = entity_to_row(db.creator, creator_id)
-        self._objects.append(creator)
-
-        book_id = db.book.insert(
-            name='My Book',
-            publication_year=1999,
-            book_type_id=self._type_id_by_name['one-shot'],
-            number=1,
-            of_number=999,
-            creator_id=creator.id,
-            reader='slider',
-        )
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
-
-        page_id = db.book_page.insert(
-            book_id=book.id,
-            page_no=1,
-        )
-        db.commit()
-        book_page = entity_to_row(db.book_page, page_id)
-        self._objects.append(book_page)
-
-        request = self._request
-
-        self.assertEqual(route(db, request, auth), (None, None))
-
-        # Creator as integer (creator_id)
-        request.vars.creator = creator.id
-        view_dict, view = route(db, request, auth)
-        self.assertEqual(
-            sorted(view_dict.keys()),
-            ['auth_user', 'creator', 'links']
-        )
-        self.assertEqual(view, 'creators/creator.html')
-
-        # Creator as name
-        request.vars.creator = 'First_Last'
-        view_dict, view = route(db, request, auth)
-        self.assertEqual(
-            sorted(view_dict.keys()),
-            ['auth_user', 'creator', 'links']
-        )
-        self.assertEqual(view, 'creators/creator.html')
-
-        # Book as name
-        request.vars.creator = 'First_Last'
-        request.vars.book = 'My_Book_(1999)'
-        view_dict, view = route(db, request, auth)
-        self.assertEqual(
-            sorted(view_dict.keys()),
-            [
-                'auth_user',
-                'book',
-                'cover_image',
-                'creator',
-                'creator_links',
-                'links',
-                'page_count',
-                'read_button'
-            ]
-        )
-        self.assertEqual(view, 'books/book.html')
-
-        # Book page: slider
-        request.vars.creator = 'First_Last'
-        request.vars.book = 'My_Book_(1999)'
-        request.vars.page = '001.jpg'
-        book_page_keys = [
-            'auth_user',
-            'book',
-            'creator',
-            'links',
-            'pages',
-            'reader',
-            'size',
-            'start_page_no',
-        ]
-        view_dict, view = route(db, request, auth)
-        self.assertEqual(
-            sorted(view_dict.keys()),
-            book_page_keys
-        )
-        self.assertEqual(view, 'books/slider.html')
-
-        # Book page: scroller
-        book.update_record(reader='scroller')
-        db.commit()
-        view_dict, view = route(db, request, auth)
-        self.assertEqual(
-            sorted(view_dict.keys()),
-            book_page_keys
-        )
-        self.assertEqual(view, 'books/scroller.html')
-
-        # Book page: page no
-        request.vars.page = '001.jpg'
-        view_dict, view = route(db, request, auth)
-        self.assertEqual(
-            sorted(view_dict.keys()),
-            book_page_keys
-        )
-        self.assertEqual(view, 'books/scroller.html')
-
-        def not_found(result):
-            view_dict, view = result
-            self.assertTrue('urls' in view_dict)
-            self.assertEqual(
-                view_dict['message'],
-                'The requested page was not found on this server.'
-            )
-            self.assertEqual(view, 'default/page_not_found.html')
-
-        # Nonexistent creator
-        request.vars.creator = 9999999
-        not_found(route(db, request, auth))
-        request.vars.creator = '_Invalid_Creator_'
-        not_found(route(db, request, auth))
-
-        # Nonexistent book
-        request.vars.creator = 'First_Last'
-        request.vars.book = 'Invalid_Book_(1900)'
-        not_found(route(db, request, auth))
-
-        # Nonexistent book page
-        request.vars.creator = 'First_Last'
-        request.vars.book = 'My_Book_(1999)'
-        request.vars.page = '999.jpg'
-        not_found(route(db, request, auth))
-        request.vars.page = '999'
-        not_found(route(db, request, auth))
-
-    def test__page_not_found(self):
-        auth_user_id = db.auth_user.insert(
-            name='First Last',
-            email='test__route@test.com',
-        )
-        db.commit()
-        user = entity_to_row(db.auth_user, auth_user_id)
-        self._objects.append(user)
-
-        creator_id = db.creator.insert(
-            auth_user_id=user.id,
-            email='test__route@test.com',
-            path_name='First Last',
-        )
-        db.commit()
-        creator = entity_to_row(db.creator, creator_id)
-        self._objects.append(creator)
-
-        book_id = db.book.insert(
-            name='My Book',
-            publication_year=1999,
-            book_type_id=self._type_id_by_name['one-shot'],
-            number=1,
-            of_number=999,
-            creator_id=creator.id,
-            reader='slider',
-        )
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
-
-        page_id = db.book_page.insert(
-            book_id=book.id,
-            page_no=1,
-        )
-        db.commit()
-        book_page = entity_to_row(db.book_page, page_id)
-        self._objects.append(book_page)
-
-        page_2_id = db.book_page.insert(
-            book_id=book.id,
-            page_no=2,
-        )
-        db.commit()
-        book_page_2 = entity_to_row(db.book_page, page_2_id)
-        self._objects.append(book_page_2)
-
-        request = self._request
-
-        view_dict, view = page_not_found(
-            db, request, creator.id, book.id, book_page.id)
-        self.assertTrue('urls' in view_dict)
-        expect = {
-            'creator': 'http://127.0.0.1:8000/First_Last',
-            'book': 'http://127.0.0.1:8000/First_Last/My_Book',
-            'page': 'http://127.0.0.1:8000/First_Last/My_Book/001',
-            'invalid': 'http://www.domain.com/path/to/page',
-        }
-        self.assertEqual(dict(view_dict['urls']), expect)
-        self.assertEqual(view, 'default/page_not_found.html')
-
-        expect_2 = dict(expect)
-        expect_2['page'] = \
-            'http://127.0.0.1:8000/First_Last/My_Book/002'
-
-        # Second page should be found if indicated.
-        view_dict, view = page_not_found(
-            db, request, creator.id, book.id, book_page_2.id)
-        self.assertEqual(dict(view_dict['urls']), expect_2)
-
-        # Book and creator should be found even if not indicated.
-        view_dict, view = page_not_found(
-            db, request, None, None, book_page.id)
-        self.assertEqual(dict(view_dict['urls']), expect)
-
-        # First page should be found if no page indicated.
-        view_dict, view = page_not_found(
-            db, request, creator.id, book.id, None)
-        self.assertEqual(dict(view_dict['urls']), expect)
-
-        # If book is indicated, first page should be found.
-        view_dict, view = page_not_found(
-            db, request, None, book.id, None)
-        self.assertEqual(dict(view_dict['urls']), expect)
-
-        # Creators first book should be found if nothing else specified.
-        view_dict, view = page_not_found(db, request, creator.id, None, None)
-        self.assertEqual(dict(view_dict['urls']), expect)
-
-        # If nothing specified, it should work but will return the first
-        # creator on file.
-        view_dict, view = page_not_found(db, request, None, None, None)
-        self.assertTrue('urls' in view_dict)
-        self.assertEqual(
-            sorted(view_dict['urls'].keys()),
-            [
-                'book',
-                'creator',
-                'invalid',
-                'page',
-            ]
-        )
-        self.assertEqual(view, 'default/page_not_found.html')
-
-        # self.assertEqual(dict(view_dict['urls']), expect)
-
-        # Test missing web2py_original_uri
-        request.env.web2py_original_uri = None
-        view_dict, view = page_not_found(
-            db, request, creator.id, book.id, book_page.id)
-        self.assertEqual(
-            view_dict['urls'].invalid,
-            'http://www.domain.com/request/uri/path'
-        )
 
 
 def setUpModule():
