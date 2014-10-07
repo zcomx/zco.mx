@@ -148,69 +148,6 @@ def move_record(sequential_field, record_id, direction='up', query=None,
     reorder(sequential_field, record_ids=record_ids, query=query, start=start)
 
 
-def profile_wells(request):
-    """Return data for wells on the profile page.
-
-    Args:
-        request: gluon.globals.Request instance
-
-    Returns:
-        dict of well data
-    """
-    # The keys of wells_data must match the profile controller names.
-    # Wells are displayed in the order of wells_data.
-    active_well = request.function
-
-    wells_data = [
-        # (key, {data})
-        ('faq', {'label': 'faq'}),
-        ('account', {'label': 'account'}),
-        ('creator', {'label': 'profile'}),
-        ('books', {'label': 'books'}),
-    ]
-    wells = collections.OrderedDict(wells_data)
-
-    # Calculate the children of each.
-    for well in wells.keys():
-        wells[well]['children'] = []
-
-    for well in wells.keys():
-        if 'parent' in wells[well] and wells[well]['parent'] in wells:
-            wells[wells[well]['parent']]['children'].append(well)
-
-    # Calculate the status, None=hide, 'link'= as link, 'text'= as text
-    for well in wells.keys():
-        wells[well]['status'] = None
-        if 'show_children' not in wells[well]:
-            wells[well]['show_children'] = True
-
-    # Set all wells with no parents as shown
-    for well in wells.keys():
-        if 'parent' not in wells[well] or not wells[well]['parent']:
-            wells[well]['status'] = 'link'
-
-    if active_well in wells:
-        # Show children of active well if applicable
-        if wells[active_well]['children'] and \
-                wells[active_well]['show_children']:
-            for w in wells[active_well]['children']:
-                wells[w]['status'] = 'link'
-
-        # Recursively show all parents of active well.
-        current_well = active_well
-        while current_well:
-            wells[current_well]['status'] = 'link'
-            if 'parent' in wells[current_well]:
-                current_well = wells[current_well]['parent']
-            else:
-                current_well = None
-
-        # Show the active link as text.
-        wells[active_well]['status'] = 'text'
-
-    return wells
-
-
 def reorder(sequential_field, record_ids=None, query=None, start=1):
     """Reset a table's sequential field values.
 

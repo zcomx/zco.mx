@@ -174,7 +174,7 @@ def book_page_for_json(db, book_page_id):
     )
 
     delete_url = URL(
-        c='profile',
+        c='login',
         f='book_pages_handler',
         args=book_page.book_id,
         vars={'book_page_id': book_page.id},

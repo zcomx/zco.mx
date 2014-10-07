@@ -266,7 +266,7 @@ class TestFunctions(ImageTestCase):
         down_url = '/images/download/{img}'.format(img=self._book_page.image)
         thumb = '/images/download/{img}?size=tbn'.format(
             img=self._book_page.image)
-        fmt = '/profile/book_pages_handler/{bid}?book_page_id={pid}'
+        fmt = '/login/book_pages_handler/{bid}?book_page_id={pid}'
         delete_url = fmt.format(
             bid=self._book_page.book_id,
             pid=self._book_page.id

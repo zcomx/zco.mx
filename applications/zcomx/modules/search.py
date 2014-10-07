@@ -205,7 +205,7 @@ class Search(object):
             return A(
                 SPAN(_class="glyphicon glyphicon-pencil"),
                 'Edit',
-                _href=URL(c='profile', f='book_edit', args=book_id, anchor='book_edit', extension=False),
+                _href=URL(c='login', f='book_edit', args=book_id, anchor='book_edit', extension=False),
                 _class='btn btn-default',
                 _type='button',
                 )
@@ -222,7 +222,7 @@ class Search(object):
                 return ''
 
             return A('Release',
-                _href=URL(c='profile', f='book_release', args=book_id, extension=False),
+                _href=URL(c='login', f='book_release', args=book_id, extension=False),
                 _class='btn btn-default',
                 _type='button',
                 )

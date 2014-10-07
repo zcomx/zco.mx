@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Creator profile controller functions"""
+"""Creator login controller functions"""
 import datetime
 import os
 import shutil
@@ -27,7 +27,7 @@ from applications.zcomx.modules.utils import \
 
 @auth.requires_login()
 def account():
-    """Account profile controller."""
+    """Account login controller."""
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()
@@ -463,31 +463,6 @@ def books():
 
 
 @auth.requires_login()
-def creator():
-    """Creator controller."""
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        redirect(URL('index'))
-
-    response.files.append(
-        URL('static', 'blueimp/jQuery-File-Upload/css/jquery.fileupload.css')
-    )
-    response.files.append(
-        URL(
-            'static',
-            'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
-        )
-    )
-    response.files.append(
-        URL('static', 'x-editable/bootstrap3-editable/css/bootstrap-editable.css')
-    )
-
-    return dict(creator=creator_record)
-
-
-@auth.requires_login()
 def creator_crud():
     """Handler for ajax creator CRUD calls.
 
@@ -614,7 +589,7 @@ def creator_img_handler():
 
 @auth.requires_login()
 def faq():
-    """FAQ profile controller."""
+    """FAQ login controller."""
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()
@@ -626,7 +601,7 @@ def faq():
 
 @auth.requires_login()
 def faqc():
-    """Creator FAQ profile controller."""
+    """Creator FAQ login controller."""
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()
@@ -638,13 +613,13 @@ def faqc():
 
 @auth.requires_login()
 def index():
-    """Creator profile controller."""
+    """Default login controller."""
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()
     if not creator_record:
         redirect(URL(c='default', f='index'))
-    redirect(URL(c='profile', f='books'))
+    redirect(URL(c='login', f='books'))
 
 
 @auth.requires_login()
@@ -813,3 +788,28 @@ def modal_error():
     request.vars.message: string, error message
     """
     return dict(message=request.vars.message)
+
+
+@auth.requires_login()
+def profile():
+    """Creator profile controller."""
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL('index'))
+
+    response.files.append(
+        URL('static', 'blueimp/jQuery-File-Upload/css/jquery.fileupload.css')
+    )
+    response.files.append(
+        URL(
+            'static',
+            'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
+        )
+    )
+    response.files.append(
+        URL('static', 'x-editable/bootstrap3-editable/css/bootstrap-editable.css')
+    )
+
+    return dict(creator=creator_record)

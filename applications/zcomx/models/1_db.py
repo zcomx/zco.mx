@@ -52,7 +52,7 @@ auth.settings.registration_requires_verification = True
 auth.settings.registration_requires_approval = False
 auth.settings.reset_password_requires_verification = True
 auth.settings.login_onaccept = [add_creator]
-auth.settings.login_next = URL(c='profile', f='index')
+auth.settings.login_next = URL(c='login', f='books')
 auth.settings.logout_next = URL('index')
 
 auth.settings.renew_session_onlogin = False

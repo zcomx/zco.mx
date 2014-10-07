@@ -13,9 +13,7 @@ from gluon.rewrite import filter_url
 from gluon.storage import \
     List, \
     Storage
-from applications.zcomx.modules.routing import \
-    Router, \
-    page_not_found
+from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 

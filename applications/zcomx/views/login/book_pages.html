@@ -1,8 +1,8 @@
 <div id="profile_book_pages_page">
 
 <div class="fileupload_container">
-    <form id="fileupload" class="fileupload-processing" action="/zcomx/profile/book_pages_handler/{{=book.id}}" method="POST" enctype="multipart/form-data">
-        <noscript><input type="hidden" name="redirect" value="/zcomx/profile/book_edit/{{=book.id}}"></noscript>
+    <form id="fileupload" class="fileupload-processing" action="/zcomx/login/book_pages_handler/{{=book.id}}" method="POST" enctype="multipart/form-data">
+        <noscript><input type="hidden" name="redirect" value="/zcomx/login/book_edit/{{=book.id}}"></noscript>
         <div class="row fileupload-buttonbar">
             <div class="col-xs-12">
                 <span class="btn btn-success fileinput-button">
@@ -132,7 +132,7 @@
 //<![CDATA[
     $(document).ready(function(){
         $('#fileupload').image_upload(
-            '/zcomx/profile/book_pages_handler/{{=book.id}}'
+            '/zcomx/login/book_pages_handler/{{=book.id}}'
         );
         $('#fileupload').removeClass('fileupload-processing');
         $('#add_files_info').tooltip({

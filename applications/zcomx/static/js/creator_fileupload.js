@@ -31,7 +31,7 @@
 
     $(document).ready(function(){
         $('#fileupload').fileupload({
-            url: '/zcomx/profile/creator_img_handler',
+            url: '/zcomx/login/creator_img_handler',
             autoUpload: true,
             change: function(e, data) {
                 /* remove any existing */

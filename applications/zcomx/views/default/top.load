@@ -4,11 +4,11 @@
             <div class="col-xs-12">
                 <ol class="breadcrumb">
                 {{if request.args(0): }}
-                    {{if request.args(0) == 'profile' and auth.user_id:}}
+                    {{if request.args(0) == 'login' and auth.user_id:}}
                     <li><a href="{{=URL(c='default', f='index', extension=False)}}">home</a></li>
-                    <li {{if request.args(1) == 'books':}}class="active"{{pass}}><a href="{{=URL(c='profile', f='books', extension=False)}}">books</a></li>
-                    <li {{if request.args(1) == 'creator':}}class="active"{{pass}}><a href="{{=URL(c='profile', f='creator', extension=False)}}">profile</a></li>
-                    <li {{if request.args(1) == 'account':}}class="active"{{pass}}><a href="{{=URL(c='profile', f='account', extension=False)}}">account</a></li>
+                    <li {{if request.args(1) == 'books':}}class="active"{{pass}}><a href="{{=URL(c='login', f='books', extension=False)}}">books</a></li>
+                    <li {{if request.args(1) == 'profile':}}class="active"{{pass}}><a href="{{=URL(c='login', f='profile', extension=False)}}">profile</a></li>
+                    <li {{if request.args(1) == 'account':}}class="active"{{pass}}><a href="{{=URL(c='login', f='account', extension=False)}}">account</a></li>
                     {{else:}}
                         <li><a href="{{=URL(c='default', f='index', extension=False)}}">home</a></li>
                     {{pass}}

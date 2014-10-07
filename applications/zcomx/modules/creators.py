@@ -95,7 +95,7 @@ def image_as_json(db, creator_id):
     )
 
     delete_url = URL(
-        c='profile',
+        c='login',
         f='creator_img_handler',
     )
 

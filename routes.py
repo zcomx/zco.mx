@@ -39,7 +39,7 @@ CONTROLLERS = '|'.join([
     'creators',
     'default',
     'images',
-    'profile',
+    'login',
     'search',
 ])
 
