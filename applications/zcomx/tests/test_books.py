@@ -16,6 +16,7 @@ from BeautifulSoup import BeautifulSoup
 from PIL import Image
 from gluon import *
 from gluon.contrib.simplejson import loads
+from gluon.storage import Storage
 from applications.zcomx.modules.books import \
     BookEvent, \
     ContributionEvent, \
@@ -26,6 +27,8 @@ from applications.zcomx.modules.books import \
     book_pages_as_json, \
     book_types, \
     by_attributes, \
+    calc_contributions_remaining, \
+    contributions_target, \
     cover_image, \
     default_contribute_amount, \
     defaults, \
@@ -38,6 +41,7 @@ from applications.zcomx.modules.books import \
     publication_year_range, \
     publication_years, \
     read_link, \
+    update_rating, \
     url, \
     url_name
 from applications.zcomx.modules.test_runner import LocalTestCase
@@ -69,6 +73,9 @@ class EventTestCase(LocalTestCase):
         if not cls._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
+    def _set_pages(self, db, book_id, num_of_pages):
+        set_pages(self, db, book_id, num_of_pages)
+
 
 class TestBookEvent(EventTestCase):
     def test____init__(self):
@@ -86,11 +93,22 @@ class TestContributionEvent(EventTestCase):
         self.assertTrue(event)
 
     def test__log(self):
+        self._set_pages(db, self._book.id, 10)
+        update_rating(db, self._book)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertAlmostEqual(book.contributions_month, 0)
+        self.assertAlmostEqual(book.contributions_year, 0)
+        self.assertAlmostEqual(book.contributions_remaining, 100.00)
+
         event = ContributionEvent(self._book, self._user.id)
 
         # no value
         event_id = event.log()
         self.assertFalse(event_id)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertAlmostEqual(book.contributions_month, 0)
+        self.assertAlmostEqual(book.contributions_year, 0)
+        self.assertAlmostEqual(book.contributions_remaining, 100.00)
 
         event_id = event.log(123.45)
         contribution = entity_to_row(db.contribution, event_id)
@@ -102,6 +120,10 @@ class TestContributionEvent(EventTestCase):
         )
         self.assertEqual(contribution.amount, 123.45)
         self._objects.append(contribution)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertAlmostEqual(book.contributions_month, 123.45)
+        self.assertAlmostEqual(book.contributions_year, 123.45)
+        self.assertAlmostEqual(book.contributions_remaining, 0.00)
 
 
 class TestRatingEvent(EventTestCase):
@@ -110,11 +132,19 @@ class TestRatingEvent(EventTestCase):
         self.assertTrue(event)
 
     def test__log(self):
+        update_rating(db, self._book)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertAlmostEqual(book.rating_month, 0)
+        self.assertAlmostEqual(book.rating_year, 0)
+
         event = RatingEvent(self._book, self._user.id)
 
         # no value
         event_id = event.log()
         self.assertFalse(event_id)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertAlmostEqual(book.rating_month, 0)
+        self.assertAlmostEqual(book.rating_year, 0)
 
         event_id = event.log(5)
         rating = entity_to_row(db.rating, event_id)
@@ -126,6 +156,9 @@ class TestRatingEvent(EventTestCase):
         )
         self.assertEqual(rating.amount, 5)
         self._objects.append(rating)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertAlmostEqual(book.rating_month, 5)
+        self.assertAlmostEqual(book.rating_year, 5)
 
 
 class TestViewEvent(EventTestCase):
@@ -134,6 +167,11 @@ class TestViewEvent(EventTestCase):
         self.assertTrue(event)
 
     def test__log(self):
+        update_rating(db, self._book)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertAlmostEqual(book.views_month, 0)
+        self.assertAlmostEqual(book.views_year, 0)
+
         event = ViewEvent(self._book, self._user.id)
         event_id = event.log()
 
@@ -145,6 +183,9 @@ class TestViewEvent(EventTestCase):
             delta=datetime.timedelta(minutes=1)
         )
         self._objects.append(view)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertAlmostEqual(book.views_month, 1)
+        self.assertAlmostEqual(book.views_year, 1)
 
 
 class ImageTestCase(LocalTestCase):
@@ -226,6 +267,16 @@ class ImageTestCase(LocalTestCase):
     def tearDown(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
+
+    def _add_record(self, table, data):
+        record_id = table.insert(**data)
+        db.commit()
+        record = entity_to_row(table, record_id)
+        self._objects.append(record)
+        return record
+
+    def _set_pages(self, db, book_id, num_of_pages):
+        set_pages(self, db, book_id, num_of_pages)
 
 
 class TestFunctions(ImageTestCase):
@@ -368,6 +419,73 @@ class TestFunctions(ImageTestCase):
         attrs['book_type_id'] = self._type_id_by_name['ongoing']
         do_test(attrs, None)
 
+    def test__calc_contributions_remaining(self):
+        # invalid-name (C0103): *Invalid %%s name "%%s"*
+        # pylint: disable=C0103
+
+        book_id = db.book.insert(name='test__calc_contributions_remaining')
+        book = entity_to_row(db.book, book_id)
+        self._objects.append(book)
+
+        # Book has no pages
+        self.assertEqual(calc_contributions_remaining(db, book), 0.00)
+
+        # Invalid book
+        self.assertEqual(calc_contributions_remaining(db, -1), 0.00)
+
+        self._set_pages(db, book.id, 10)
+        self.assertEqual(contributions_target(db, book.id), 100.00)
+
+        # Book has no contributions
+        self.assertEqual(calc_contributions_remaining(db, book), 100.00)
+
+        # Book has one contribution
+        contribution_id = db.contribution.insert(
+            book_id=book.id,
+            amount=15.00,
+        )
+        db.commit()
+        contribution = entity_to_row(db.contribution, contribution_id)
+        self._objects.append(contribution)
+
+        self.assertEqual(calc_contributions_remaining(db, book), 85.00)
+
+        # Book has multiple contribution
+        contribution_2_id = db.contribution.insert(
+            book_id=book.id,
+            amount=35.99,
+        )
+        db.commit()
+        contribution_2 = entity_to_row(db.contribution, contribution_2_id)
+        self._objects.append(contribution_2)
+        self.assertEqual(calc_contributions_remaining(db, book), 49.01)
+
+    def test__contributions_target(self):
+        book_id = db.book.insert(name='test__contributions_target')
+        book = entity_to_row(db.book, book_id)
+        self._objects.append(book)
+
+        # Book has no pages
+        self.assertEqual(contributions_target(db, book), 0.00)
+
+        # Invalid book
+        self.assertEqual(contributions_target(db, -1), 0.00)
+
+        tests = [
+            #(pages, expect)
+            (0, 0.00),
+            (1, 10.00),
+            (19, 190.00),
+            (20, 200.00),
+            (21, 210.00),
+            (39, 390.00),
+            (100, 1000.00),
+        ]
+
+        for t in tests:
+            self._set_pages(db, book.id, t[0])
+            self.assertEqual(contributions_target(db, book), t[1])
+
     def test__cover_image(self):
 
         placeholder = \
@@ -431,15 +549,7 @@ class TestFunctions(ImageTestCase):
             tests.append((1000, 20.00))
 
         for t in tests:
-            page_count = db(db.book_page.book_id == book.id).count()
-            while page_count < t[0]:
-                page_id = db.book_page.insert(
-                    book_id=book_id,
-                    page_no=(page_count + 1),
-                )
-                page = entity_to_row(db.book_page, page_id)
-                self._objects.append(page)
-                page_count = db(db.book_page.book_id == book.id).count()
+            self._set_pages(db, book.id, t[0])
             self.assertEqual(default_contribute_amount(db, book), t[1])
 
     def test__defaults(self):
@@ -849,6 +959,123 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['type'], 'button')
         self.assertEqual(anchor['target'], '_blank')
 
+    def test__update_rating(self):
+        book = self._add_record(db.book, dict(name='test__update_rating'))
+        self._set_pages(db, book.id, 10)
+
+        def reset(book_record):
+            book_record.update_record(
+                contributions_month=0,
+                contributions_year=0,
+                contributions_remaining=0,
+                views_month=0,
+                views_year=0,
+                rating_month=0,
+                rating_year=0,
+            )
+            db.commit()
+
+        def zero(storage):
+            for k in storage.keys():
+                storage[k] = 0
+
+        def do_test(book_record, rating, expect):
+            update_rating(db, book_record, rating=rating)
+            query = (db.book.id == book_record.id)
+            r = db(query).select(
+                db.book.contributions_month,
+                db.book.contributions_year,
+                db.book.contributions_remaining,
+                db.book.views_month,
+                db.book.views_year,
+                db.book.rating_month,
+                db.book.rating_year,
+            ).first()
+            for k, v in expect.items():
+                # There may be some rounding foo, so use AlmostEqual
+                self.assertAlmostEqual(r[k], v)
+
+        def time_str(days_ago):
+            return datetime.datetime.now() - datetime.timedelta(days=days_ago)
+
+        # No rating records, so all values should be 0
+        reset(book)
+        expect = Storage(dict(
+            contributions_month=0,
+            contributions_year=0,
+            contributions_remaining=100.00,
+            views_month=0,
+            views_year=0,
+            rating_month=0,
+            rating_year=0,
+        ))
+        do_test(book, None, expect)
+
+        records = [
+            #(table, days_ago, amount)
+            (db.contribution, 0, 11.11),
+            (db.contribution, 100, 22.22),
+            (db.contribution, 500, 44.44),
+            (db.rating, 0, 1.1),
+            (db.rating, 100, 2.2),
+            (db.rating, 500, 4.4),
+            (db.book_view, 0, None),
+            (db.book_view, 100, None),
+            (db.book_view, 500, None),
+        ]
+
+        for table, days_ago, amount in records:
+            data = dict(book_id=book.id)
+            data['time_stamp'] = time_str(days_ago)
+            if amount is not None:
+                data['amount'] = amount
+            self._add_record(table, data)
+
+        reset(book)
+        zero(expect)
+        expect.contributions_month = 11.11
+        expect.contributions_year = 33.33
+        expect.contributions_remaining = 22.23   # 100.00 - (11.11+22.22+44.44)
+        expect.rating_month = 1.1
+        expect.rating_year = 1.65                # Avg of 1.1 and 3.3
+        expect.views_month = 1
+        expect.views_year = 2
+        do_test(book, None, expect)
+
+        # Test rating='contribute'
+        rating = 'contribution'
+        reset(book)
+        zero(expect)
+        expect.contributions_month = 11.11
+        expect.contributions_year = 33.33
+        expect.contributions_remaining = 22.23   # 100.00 - (11.11+22.22+44.44)
+        do_test(book, rating, expect)
+
+        # Test rating='rating'
+        rating = 'rating'
+        reset(book)
+        zero(expect)
+        expect.rating_month = 1.1
+        expect.rating_year = 1.65           # Avg of 1.1 and 3.3
+        do_test(book, rating, expect)
+
+        # Test rating='view'
+        rating = 'view'
+        reset(book)
+        zero(expect)
+        expect.views_month = 1
+        expect.views_year = 2
+        do_test(book, rating, expect)
+
+        # Test rating='_invalid_'
+        self.assertRaises(
+            SyntaxError,
+            update_rating,
+            db,
+            book,
+            rating='_invalid_'
+        )
+
     def test__url(self):
         creator_id = db.creator.insert(
             email='test__url@example.com',
@@ -927,6 +1154,19 @@ class TestFunctions(ImageTestCase):
             )
             db.commit()
             self.assertEqual(url_name(book), t[5])
+
+
+def set_pages(obj, db, book_id, num_of_pages):
+    """Create pages for a book."""
+    def page_count():
+        return db(db.book_page.book_id == book_id).count()
+    while page_count() < num_of_pages:
+        page_id = db.book_page.insert(
+            book_id=book_id,
+            page_no=(page_count() + 1),
+        )
+        page = entity_to_row(db.book_page, page_id)
+        obj._objects.append(page)
 
 
 def setUpModule():

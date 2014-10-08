@@ -57,6 +57,7 @@ class ContributionEvent(BookEvent):
             amount=value
         )
         db.commit()
+        update_rating(db, self.book, rating='contribution')
         return event_id
 
 
@@ -77,6 +78,7 @@ class RatingEvent(BookEvent):
             amount=value
         )
         db.commit()
+        update_rating(db, self.book, rating='rating')
         return event_id
 
 
@@ -94,6 +96,7 @@ class ViewEvent(BookEvent):
             time_stamp=datetime.datetime.now()
         )
         db.commit()
+        update_rating(db, self.book, rating='view')
         return event_id
 
 
@@ -231,6 +234,58 @@ def by_attributes(attributes):
     if not query:
         return
     return db(query).select().first()
+
+
+def calc_contributions_remaining(db, book_entity):
+    """Return the calculated contributions remaining for the book to reach
+    its contributions target.
+
+    Args:
+        db: gluon.dal.DAL instance
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+
+    Returns:
+        float, dollar amount of contributions remaining.
+    """
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return 0.00
+
+    target = contributions_target(db, book)
+
+    query = (db.contribution.book_id == book.id)
+    total = db.contribution.amount.sum()
+    rows = db(query).select(total)
+    contributed_total = rows[0][total] if rows and rows[0][total] else 0.00
+
+    remaining = target - contributed_total
+    if remaining < 0:
+        remaining = 0.00
+    return remaining
+
+
+def contributions_target(db, book_entity):
+    """Return the contributions target for the book.
+
+
+    Args:
+        db: gluon.dal.DAL instance
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+
+    Returns:
+        float, dollar amount of contributions target.
+    """
+    rate_per_page = 10.00
+
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return 0.00
+
+    page_count = db(db.book_page.book_id == book.id).count()
+    amount = round(rate_per_page * page_count)
+    return amount
 
 
 def cover_image(db, book_id, size='original', img_attributes=None):
@@ -572,6 +627,82 @@ def read_link(db, book_entity, components=None, **attributes):
         kwargs['_href'] = page_url(page, extension=False)
 
     return A(*components, **kwargs)
+
+
+def update_rating(db, book_entity, rating=None):
+    """Update an accumulated rating for a book.
+
+    Args
+        db: gluon.dal.DAL instance
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+        rating: string, one of 'contribution', 'rating', 'view'. If None,
+                all ratings are updated.
+    """
+    ratings_data = {
+        'contribution': [
+            # (book field, data field, period, function, format)
+            (db.book.contributions_year, db.contribution.amount, 'year',
+                'sum'),
+            (db.book.contributions_month, db.contribution.amount, 'month',
+                'sum'),
+        ],
+        'rating': [
+            (db.book.rating_year, db.rating.amount, 'year', 'avg'),
+            (db.book.rating_month, db.rating.amount, 'month', 'avg'),
+        ],
+        'view': [
+            (db.book.views_year, db.book_view.id, 'year', 'count'),
+            (db.book.views_month, db.book_view.id, 'month', 'count'),
+        ],
+    }
+
+    if rating is not None and rating not in ratings_data.keys():
+        raise SyntaxError('Invalid rating: {r}'.format(r=rating))
+
+    ratings = [rating] if rating is not None else ratings_data.keys()
+
+    rating_data = []
+    for r in ratings:
+        rating_data.extend(ratings_data[r])
+
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return
+
+    periods = {
+        # name: days
+        'month': 30,
+        'year': 365,
+    }
+
+    book_query = (db.book.id == book.id)
+    for field, data_field, period, func in rating_data:
+        data_table = data_field.table
+        days = periods[period]
+        min_date = datetime.datetime.now() - datetime.timedelta(days=days)
+        time_query = (data_table.time_stamp >= min_date)
+        if func == 'sum':
+            tally = data_field.sum()
+        elif func == 'avg':
+            tally = data_field.avg()
+        elif func == 'count':
+            tally = data_field.count()
+        query = book_query & time_query
+        rows = db(query).select(
+            tally,
+            left=[data_table.on(data_table.book_id == db.book.id)],
+            groupby=data_table.book_id
+        ).first()
+        value = rows[tally] or 0 if rows else 0
+        db(db.book.id == book.id).update(**{field.name: value})
+    db.commit()
+
+    if rating is None or rating == 'contribution':
+        db(db.book.id == book.id).update(
+            contributions_remaining=calc_contributions_remaining(db, book)
+        )
+        db.commit()
 
 
 def url(book_entity, **url_kwargs):

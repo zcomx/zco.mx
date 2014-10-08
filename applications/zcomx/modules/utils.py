@@ -11,6 +11,11 @@ from gluon import *
 from gluon.dal import Row
 
 
+class NotFoundError(Exception):
+    """General not found exception."""
+    pass
+
+
 class ItemDescription(object):
     """Class representing an item description field.
 

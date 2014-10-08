@@ -725,6 +725,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-size: 14pt;
 }
 
+.grid_section .orderby_field_value.orderby_contributions {
+    color: red;
+}
+
 .grid_section .web2py_paginator {
     background-color: inherit;
     border-top: 1px solid;
