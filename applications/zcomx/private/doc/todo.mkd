@@ -4,18 +4,19 @@ VERSION 2 - Before Going Live
 
 [ ] Front Page
     Add report to drive contributions
-    $10/web image and $25/cbz image
-    remove/hide cartoonist from report once over $0
-    should be the main report on front page
-    caveats:
+
+    * $10/web image (and $25/cbz image -- this could be added later)
+    * The total dollar amount is by cartoonist, not by book
+    * The total should display in red in the bottom right corner
+    * remove/hide cartoonist from report once over $0
+    * should be the main report on front page
+    * known caveats:
         flipbooks
         very simple art vs high detail
 
 [ ] Front Page
     Cartoonist Report
     Detailed listing, show only cartoonist name
-
-[ ] wildcard ssl cert for zco.mx
 
 [ ] Add torrent and dc functionality
     Example file names:
@@ -38,6 +39,8 @@ VERSION 2 - Before Going Live
     [ ] png version
 
 [ ] Reader notifications of new material (rss? and mailing list?)
+
+[ ] wildcard ssl cert for zco.mx
 
 
 VERSION 3
