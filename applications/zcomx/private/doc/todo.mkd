@@ -5,7 +5,7 @@ VERSION 2 - Before Going Live
 [ ] Front Page
     Add report to drive contributions
 
-    * $10/web image (and $25/cbz image -- this could be added later)
+    * $10/web image (and $15/cbz image -- this could be added later)
     * The total dollar amount is by cartoonist, not by book
     * The total should display in red in the bottom right corner
     * remove/hide cartoonist from report once over $0
@@ -40,6 +40,9 @@ VERSION 2 - Before Going Live
 
 [ ] Reader notifications of new material (rss? and mailing list?)
 
+[ ] Obfuscate Email Addresses
+    See how dokuwiki does it
+
 [ ] wildcard ssl cert for zco.mx
 
 
@@ -54,6 +57,13 @@ VERSION 3
 [O] Mature Content icon
 [ ] Check for duplicate file/book names
 [ ] knowledge base
+    Broad examples:
+    [ ] Scanning and Photoshop howto's
+    [ ] Howto Create a Minicomic
+    [ ] What is a risograph?
+    [ ] Different styles of book printing
+        [ ] maybe a list of printers and approximate pricing
+
 [ ] Url checker
 [ ] login -> books page - paginate 'released' and 'ongoing' books
 [ ] Copyright material
@@ -71,6 +81,12 @@ VERSION 3
     h-scroll - http://danielschafferbrooklyncomics.com/books/uncategorized/all-you-need/
 
 IDEAS
+[ ] bug/feature tracker
+    * public or developer only?
+    * vote up/down
+    * github's issue tracker?
+    * does this need a separate page?  link in the footer?
+
 [s] Creative Commons Licence
     http://wiki.creativecommons.org/Frequently_Asked_Questions#How_should_I_decide_which_license_to_choose.3F
     https://creativecommons.org/licenses/by-nc/4.0/     ## Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -86,32 +102,24 @@ IDEAS
     * use the upload modal with any read-only fields
     * update a version number on the indica?
 
-[ ] Howto's and KB
-    Broad examples:
-    [ ] Scanning and Photoshop howto's
-    [ ] Howto Create a Minicomic
-    [ ] What is a risograph?
-    [ ] Different styles of book printing
-        [ ] maybe a list of printers and approximate pricing
-
 [ ] Front Page - Add 'download' report
     downloading all.torrent gives +1 to all books
     downloading cartoonist.torrent gives +1 to all that cartoonist's books
 [ ] How best to use the front page?
-[ ] How to best leverage goodwill?
-    $10/page + ($15*pages) on release
-[ ] Guided view using Perfect Viewer ?
+
+[-] Guided view using Perfect Viewer ?
     The main dev, Lin Rookie (rookiestudio@gmail.com), suggests guided view is
     possible with opencv but he believes the feature is not useful and it is a
     low priority.  He said the source is closed and he does not take bounties
     towards new features.
 
 [ ] bio and book description - wikipedia api?
-[ ] user comments? - disqus api?
-[ ] how best to promote micro-publisher and things like the Muster List
+    https://github.com/goldsmith/Wikipedia          ## wikipedia api
 
----
-* site for original art
-* youtube/google hangout the drawing of a page live
+[ ] user comments? - disqus api?
+    * creators choose comments to form a digital letters page?
+[ ] how best to promote micro-publisher and things like the Muster List
+[ ] site for original art?
+[ ] youtube/google hangout - drawing of a page live ?
 ``
 # vim:set ft=dm:
