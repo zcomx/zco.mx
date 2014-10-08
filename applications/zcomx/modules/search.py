@@ -20,6 +20,15 @@ class Search(object):
 
     order_fields = collections.OrderedDict()
     # Items are displayed on front page in order.
+    order_fields['contributions'] = {
+        'table': 'book',
+        'field': 'contributions_remaining',
+        'fmt': lambda x: '${v:0.0f}'.format(v=x),
+        'label': 'remaining',
+        'periods': False,
+        'class': 'orderby_contributions',
+        'order_dir': 'ASC',
+    }
     order_fields['newest pages'] = {
         'table': 'book_page',
         'field': 'created_on',
@@ -27,39 +36,17 @@ class Search(object):
         'label': 'page added',
         'periods': False,
         'class': 'orderby_newest_pages',
+        'order_dir': 'DESC',
     }
-    # order_fields['newest'] = {
-    #         'table': 'book',
-    #         'field': 'created_on',
-    #         'fmt': lambda x: str(x.date()),
-    #         'label': 'added',
-    #         'periods': False,
-    #         'class': 'orderby_newest',
-    # }
     order_fields['views'] = {
-            'table': 'book',
-            'field': 'views',
-            'fmt': lambda x: '{v}'.format(v=x),
-            'label': 'views',
-            'periods': True,
-            'class': 'orderby_views',
+        'table': 'book',
+        'field': 'views',
+        'fmt': lambda x: '{v}'.format(v=x),
+        'label': 'views',
+        'periods': True,
+        'class': 'orderby_views',
+        'order_dir': 'DESC',
     }
-    # order_fields['contributions'] = {
-    #         'table': 'book',
-    #         'field': 'contributions',
-    #         'fmt': lambda x: '${v:0.0f}'.format(v=x),
-    #         'label': 'contributions',
-    #         'periods': True,
-    #         'class': 'orderby_contributions',
-    # }
-    # order_fields['rating'] = {
-    #         'table': 'book',
-    #         'field': 'rating',
-    #         'fmt': lambda x: '{v:0.1f}'.format(v=x),
-    #         'label': 'rating',
-    #         'periods': True,
-    #         'class': 'orderby_rating',
-    # }
 
     def __init__(self):
         """Constructor"""
@@ -85,7 +72,7 @@ class Search(object):
         auth = current.app.auth
         if request.vars.rw:
             creator = db(db.creator.auth_user_id == auth.user_id).select(
-                    db.creator.ALL).first()
+                db.creator.ALL).first()
             if creator:
                 editable = True
 
@@ -106,37 +93,39 @@ class Search(object):
 
         if request.vars.kw:
             queries.append(
-                (db.book.name.contains(request.vars.kw)) | \
+                (db.book.name.contains(request.vars.kw)) |
                 (db.auth_user.name.contains(request.vars.kw))
-                )
-
-        if not queries:
-            queries.append(db.book)
-
-        query = reduce(lambda x, y: x & y, queries) if queries else None
+            )
 
         period = 'month' if request.vars.period == 'month' else 'year'
 
         if request.vars.o and request.vars.o in self.order_fields.keys():
             orderby_field = self.order_fields[request.vars.o]
         else:
-            orderby_field = self.order_fields['newest pages']
+            orderby_field = self.order_fields['contributions']
 
         self.orderby_field = orderby_field
 
+        if orderby_field['field'] == 'contributions_remaining':
+            queries.append(db.book.contributions_remaining > 0)
+
         if orderby_field['periods']:
             orderby_fieldname = '{f}_{p}'.format(
-                    f=orderby_field['field'], p=period)
+                f=orderby_field['field'], p=period)
         else:
             orderby_fieldname = orderby_field['field']
-
-        orderby = [~db[orderby_field['table']][orderby_fieldname]]
+        orderby = [db[orderby_field['table']][orderby_fieldname]]
+        if orderby_field['order_dir'] == 'DESC':
+            orderby[0] = ~orderby[0]
         orderby.append(db.book.number)
         orderby.append(db.book.id)                # For consistent results
 
         db.book.id.readable = False
         db.book.id.writable = False
-        db.book.name.represent = lambda v, row: A(formatted_name(db, row.book), _href=book_url(row.book.id, extension=False))
+        db.book.name.represent = lambda v, row: A(
+            formatted_name(db, row.book),
+            _href=book_url(row.book.id, extension=False)
+        )
         db.book.book_type_id.readable = False
         db.book.book_type_id.writable = False
         db.book.number.readable = False
@@ -149,7 +138,10 @@ class Search(object):
             db.book.publication_year.writable = False
         db.creator.id.readable = False
         db.creator.id.writable = False
-        db.auth_user.name.represent = lambda v, row: A(v, _href=creator_url(row.creator.id, extension=False))
+        db.auth_user.name.represent = lambda v, row: A(
+            v,
+            _href=creator_url(row.creator.id, extension=False)
+        )
 
         fields = [
             db.book.id,
@@ -160,6 +152,7 @@ class Search(object):
             db.book.publication_year,
             db.book.contributions_year,
             db.book.contributions_month,
+            db.book.contributions_remaining,
             db.book.rating_year,
             db.book.rating_month,
             db.book.views_year,
@@ -167,9 +160,10 @@ class Search(object):
             db.book.created_on,
             db.creator.id,
             db.book_page.created_on,
-            ]
+        ]
 
         def link_book_id(row):
+            """Return id of book associated with row."""
             book_id = 0
             if 'book' in row:
                 # grid
@@ -180,24 +174,33 @@ class Search(object):
             return book_id
 
         def contribute_link(row):
+            """Return a 'contribute' link suitable for grid row."""
             book_id = link_book_id(row)
             if not book_id:
                 return ''
 
-            return A('contribute',
+            return A(
+                'contribute',
                 _href=URL(c='books', f='book', args=book_id, extension=False),
-                )
+            )
 
         def download_link(row):
+            """Return a 'Download' link suitable for grid row."""
             book_id = link_book_id(row)
             return A(
                 'Download',
-                _href=URL(c='books', f='download', args=book_id, extension=False),
+                _href=URL(
+                    c='books',
+                    f='download',
+                    args=book_id,
+                    extension=False
+                ),
                 _class='btn btn-default fixme',
                 _type='button',
-                )
+            )
 
         def edit_link(row):
+            """Return an 'Edit' link suitable for grid row."""
             book_id = link_book_id(row)
             if not book_id:
                 return ''
@@ -205,34 +208,52 @@ class Search(object):
             return A(
                 SPAN(_class="glyphicon glyphicon-pencil"),
                 'Edit',
-                _href=URL(c='login', f='book_edit', args=book_id, anchor='book_edit', extension=False),
+                _href=URL(
+                    c='login',
+                    f='book_edit',
+                    args=book_id,
+                    anchor='book_edit',
+                    extension=False
+                ),
                 _class='btn btn-default',
                 _type='button',
-                )
+            )
 
         def read_link_func(row):
+            """Return an 'Read' link suitable for grid row."""
             book_id = link_book_id(row)
             if not book_id:
                 return ''
-            return read_link(db, book_id, **dict(_class='btn btn-default', _type='button'))
+            return read_link(
+                db,
+                book_id,
+                **dict(_class='btn btn-default', _type='button')
+            )
 
         def release_link(row):
+            """Return an 'Release' link suitable for grid row."""
             book_id = link_book_id(row)
             if not book_id:
                 return ''
 
-            return A('Release',
-                _href=URL(c='login', f='book_release', args=book_id, extension=False),
+            return A(
+                'Release',
+                _href=URL(
+                    c='login',
+                    f='book_release',
+                    args=book_id,
+                    extension=False
+                ),
                 _class='btn btn-default',
                 _type='button',
-                )
+            )
 
         links = [
-                {
-                    'header': '',
-                    'body': read_link_func,
-                },
-                ]
+            {
+                'header': '',
+                'body': read_link_func,
+            },
+        ]
 
         if editable:
             if request.vars.released == '0':
@@ -241,26 +262,26 @@ class Search(object):
                         'header': '',
                         'body': release_link,
                     }
-                    )
+                )
             links.append(
                 {
                     'header': '',
                     'body': edit_link,
                 }
-                )
+            )
         else:
             links.append(
                 {
                     'header': '',
                     'body': download_link,
                 },
-                )
+            )
             links.append(
                 {
                     'header': '',
                     'body': contribute_link,
                 }
-                )
+            )
 
         if request.vars.view != 'list' or not creator:
             fields.append(db.auth_user.name)
@@ -268,18 +289,20 @@ class Search(object):
         oncreate = None
         if editable and creator:
             def update_book_creator(form):
+                """Update creator_id field of book record."""
                 db(db.book.id == form.vars.id).update(creator_id=creator.id)
                 db.commit()
             oncreate = update_book_creator
 
-        def ondelete(table, record_id):
+        def ondelete(unused_table, record_id):
             """Callback for ondelete."""
             # Delete all records associated with the book.
             for t in ['book_page', 'book_view', 'contribution', 'rating']:
                 db(db[t].book_id == record_id).delete()
             db.commit()
             # Delete all links associated with the book.
-            for row in db(db.book_to_link.book_id == record_id).select(db.book_to_link.link_id):
+            query = (db.book_to_link.book_id == record_id)
+            for row in db(query).select(db.book_to_link.link_id):
                 db(db.link.id == row['link_id']).delete()
             db(db.book_to_link.book_id == record_id).delete()
             db.commit()
@@ -291,41 +314,47 @@ class Search(object):
             SPAN(XML('&#x25BC;'), _class='grid_sort_marker')
         )
 
+        if not queries:
+            queries.append(db.book)
+        query = reduce(lambda x, y: x & y, queries) if queries else None
+
         kwargs = dict(
-                fields=fields,
-                headers={
-                    'book.name': 'Title',
-                    'auth_user.name': 'Cartoonist',
-                    },
-                orderby=orderby,
-                groupby=db.book.id,
-                left=[
-                    db.creator.on(db.book.creator_id == db.creator.id),
-                    db.auth_user.on(db.creator.auth_user_id == db.auth_user.id),
-                    db.book_page.on(db.book_page.book_id == db.book.id),
-                    page2.on(
-                        (page2.book_id == db.book.id) & \
-                        (page2.id != db.book_page.id) & \
-                        (page2.created_on < db.book_page.created_on)
-                    ),
-                    ],
-                paginate=10,
-                details=False,
-                editable=False,
-                deletable=editable,
-                create=False,
-                csv=False,
-                searchable=False,
-                maxtextlengths={
-                    'book.name': 50,
-                    'auth_user.name': 50,
-                    },
-                links=links,
-                oncreate=oncreate,
-                ondelete=ondelete,
-                sorter_icons=sorter_icons,
-                editargs={'deletable': False},
-                )
+            fields=fields,
+            headers={
+                'book.name': 'Title',
+                'auth_user.name': 'Cartoonist',
+            },
+            orderby=orderby,
+            groupby=db.book.id,
+            left=[
+                db.creator.on(db.book.creator_id == db.creator.id),
+                db.auth_user.on(
+                    db.creator.auth_user_id == db.auth_user.id
+                ),
+                db.book_page.on(db.book_page.book_id == db.book.id),
+                page2.on(
+                    (page2.book_id == db.book.id) &
+                    (page2.id != db.book_page.id) &
+                    (page2.created_on < db.book_page.created_on)
+                ),
+            ],
+            paginate=10,
+            details=False,
+            editable=False,
+            deletable=editable,
+            create=False,
+            csv=False,
+            searchable=False,
+            maxtextlengths={
+                'book.name': 50,
+                'auth_user.name': 50,
+            },
+            links=links,
+            oncreate=oncreate,
+            ondelete=ondelete,
+            sorter_icons=sorter_icons,
+            editargs={'deletable': False},
+        )
         if grid_args:
             kwargs.update(grid_args)
 

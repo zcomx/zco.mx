@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-tally_book_ratings.py
+dal_tests.py
 
-Script to tally the yearly and monthly contributions, ratings, and views for
-each book.
+Script to test dal queries.
 """
 import logging
 import os
@@ -14,7 +13,6 @@ import traceback
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
-from applications.zcomx.modules.books import update_rating
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -29,8 +27,8 @@ def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    tally_book_ratings.py
-    tally_book_ratings.py --vv          # Verbose output
+    create_path_name_fix.py
+
 
 OPTIONS
     -h, --help
@@ -44,13 +42,14 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
+
     """
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
+    usage = '%prog [options] [file...]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -84,9 +83,33 @@ def main():
 
     LOG.info('Started.')
 
-    for book in db(db.book).select(db.book.ALL):
-        LOG.debug('Updating: {name}'.format(name=book.name))
-        update_rating(db, book)
+    query = (db.book)
+    num_of_pages = db.book_page.id.count()
+    # drive_target = 10 * db.book_page.id.count()
+    min_page_query = (10 * db.book_page.id.count() - db.book.contributions_year > 0)
+
+
+    rows = db(query).select(
+        db.book.id,
+        db.book.name,
+        db.book.contributions_year,
+        num_of_pages,
+        left=[
+            db.book_page.on(db.book_page.book_id == db.book.id)
+        ],
+        groupby=db.book.id,
+        having=min_page_query,
+        orderby=num_of_pages,
+    )
+
+    for r in rows:
+        print '{id:2d} {name:>45s} {num:3d} {cont:3.02f} {tar:3.02f}'.format(
+            id=r['book'].id,
+            name=r['book'].name,
+            num=r[num_of_pages],
+            cont=r['book'].contributions_year,
+            tar=1,
+        )
 
     LOG.info('Done.')
 
