@@ -52,20 +52,17 @@ class TestFunctions(LocalTestCase):
         add_creator(form)
         self.assertEqual(creator_by_email(email), None)
 
-        user_id = db.auth_user.insert(
+        user = self.add(db.auth_user, dict(
             name='First Last',
             email=email,
-        )
-        db.commit()
-        user = entity_to_row(db.auth_user, user_id)
-        self._objects.append(user)
+        ))
 
         add_creator(form)
         creator = creator_by_email(email)
         self.assertTrue(creator)
         self._objects.append(creator)
         self.assertEqual(creator.email, email)
-        self.assertEqual(creator.auth_user_id, user_id)
+        self.assertEqual(creator.auth_user_id, user.id)
         self.assertEqual(creator.path_name, 'First Last')
 
         before = db(db.creator).count()
@@ -137,83 +134,72 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__set_creator_path_name(self):
-        auth_user_id = db.auth_user.insert(
+        auth_user = self.add(db.auth_user, dict(
             name='Test Set Creator Path Name'
-        )
-        auth_user = entity_to_row(db.auth_user, auth_user_id)
-        self._objects.append(auth_user)
+        ))
 
-        creator_id = db.creator.insert(
+        creator = self.add(db.creator, dict(
             email='test_set_creator_path_name@example.com',
-        )
-        db.commit()
-        creator = entity_to_row(db.creator, creator_id)
-        self._objects.append(creator)
+        ))
 
         self.assertEqual(creator.path_name, None)
 
         # form has no email
         form = Storage({'vars': Storage()})
         set_creator_path_name(form)
-        creator = entity_to_row(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
 
         # creator.auth_user_id not set
         form.vars.id = auth_user.id
         set_creator_path_name(form)
-        creator = entity_to_row(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
 
         creator.update_record(auth_user_id=auth_user.id)
         db.commit()
         set_creator_path_name(form)
-        creator = entity_to_row(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, 'Test Set Creator Path Name')
 
     def test__set_path_name(self):
-
-        auth_user_id = db.auth_user.insert(
+        auth_user = self.add(db.auth_user, dict(
             name='Test Set Path Name'
-        )
-        db.commit()
-        auth_user = entity_to_row(db.auth_user, auth_user_id)
-        self._objects.append(auth_user)
+        ))
 
-        creator_id = db.creator.insert(
+        creator = self.add(db.creator, dict(
             email='test_set_path_name@example.com'
-        )
+        ))
         db.commit()
-        creator = entity_to_row(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator.id)
         self._objects.append(creator)
 
         self.assertEqual(creator.path_name, None)
         set_path_name(creator)
         # creator.auth_user_id not set
-        creator = entity_to_row(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
 
         creator.update_record(auth_user_id=auth_user.id)
         db.commit()
         set_path_name(creator)
-        creator = entity_to_row(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, 'Test Set Path Name')
 
-        # Test with creator_id
+        # Test with creator.id
         # Reset
         creator.update_record(path_name=None)
         db.commit()
-        creator = entity_to_row(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
-        set_path_name(creator_id)
-        creator = entity_to_row(db.creator, creator_id)
+        set_path_name(creator.id)
+        creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, 'Test Set Path Name')
 
     def test__url(self):
-        creator_id = db.creator.insert(
-            email='test__url@example.com'
-        )
+        creator = self.add(db.creator, dict(email='test__url@example.com'))
         db.commit()
-        creator = entity_to_row(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator.id)
         self._objects.append(creator)
 
         tests = [
@@ -231,11 +217,11 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(url(creator), t[1])
 
     def test__url_name(self):
-        creator_id = db.creator.insert(
+        creator = self.add(db.creator, dict(
             email='test__url_name@example.com'
-        )
+        ))
         db.commit()
-        creator = entity_to_row(db.creator, creator_id)
+        creator = entity_to_row(db.creator, creator.id)
         self._objects.append(creator)
 
         tests = [

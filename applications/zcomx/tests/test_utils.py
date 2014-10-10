@@ -10,9 +10,7 @@ import os
 import shutil
 import unittest
 from gluon import *
-from gluon.storage import \
-    List, \
-    Storage
+from gluon.dal import Reference
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     ItemDescription, \
@@ -154,13 +152,10 @@ class TestFunctions(LocalTestCase):
         return [x[field] for x in values]
 
     def test__entity_to_row(self):
-        book_id = db.book.insert(name='test__entity_to_row')
-        db.commit()
-        book = db(db.book.id == book_id).select().first()
-        self._objects.append(book)
+        book = self.add(db.book, dict(name='test__entity_to_row'))
 
         # Test Row, Reference, id
-        for entity in [book, book_id, book.id]:
+        for entity in [book, Reference(book.id), book.id]:
             got = entity_to_row(db.book, entity)
             self.assertEqual(book.as_dict(), got.as_dict())
 

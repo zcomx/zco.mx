@@ -10,7 +10,6 @@ import requests
 import os
 import unittest
 from gluon.contrib.simplejson import loads
-from applications.zcomx.modules.images import store
 from applications.zcomx.modules.test_runner import LocalTestCase
 
 
@@ -170,12 +169,10 @@ class TestFunctions(LocalTestCase):
             query = (db.book.id == book_id)
             return db(query).select(db.book.ALL).first()
 
-        book_id = db.book.insert(
+        book = self.add(db.book, dict(
             name='',
             creator_id=self._creator.id,
-        )
-        book = get_book(book_id)
-        self._objects.append(book)
+        ))
         self.assertEqual(book.name, '')
 
         web.login()

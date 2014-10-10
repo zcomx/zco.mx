@@ -61,13 +61,7 @@ class EventTestCase(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUp(cls):
-        book_id = db.book.insert(
-            name='Event Test Case',
-        )
-        db.commit()
-        cls._book = entity_to_row(db.book, book_id)
-        cls._objects.append(cls._book)
-
+        cls._book = cls.add(db.book, dict(name='Event Test Case'))
         email = web.username
         cls._user = db(db.auth_user.email == email).select().first()
         if not cls._user:
@@ -228,37 +222,27 @@ class ImageTestCase(LocalTestCase):
                 stored_filename = db.book_page.image.store(f)
             return stored_filename
 
-        creator_id = db.creator.insert(email='image_test_case@example.com')
-        db.commit()
-        cls._creator = entity_to_row(db.creator, creator_id)
-        cls._objects.append(cls._creator)
+        cls._creator = cls.add(db.creator, dict(
+            email='image_test_case@example.com',
+        ))
 
-        book_id = db.book.insert(
+        cls._book = cls.add(db.book, dict(
             name='Image Test Case',
             creator_id=cls._creator.id,
-        )
-        db.commit()
-        cls._book = entity_to_row(db.book, book_id)
-        cls._objects.append(cls._book)
+        ))
 
-        book_page_id = db.book_page.insert(
-            book_id=book_id,
+        cls._book_page = cls.add(db.book_page, dict(
+            book_id=cls._book.id,
             page_no=1,
             image=create_image('file.jpg'),
-        )
-        db.commit()
-        cls._book_page = entity_to_row(db.book_page, book_page_id)
-        cls._objects.append(cls._book_page)
+        ))
 
         # Create a second page to test with.
-        book_page_id_2 = db.book_page.insert(
-            book_id=book_id,
+        cls.add(db.book_page, dict(
+            book_id=cls._book.id,
             page_no=2,
             image=create_image('file_2.jpg'),
-        )
-        db.commit()
-        book_page_2 = entity_to_row(db.book_page, book_page_id_2)
-        cls._objects.append(book_page_2)
+        ))
 
         for t in db(db.book_type).select():
             cls._type_id_by_name[t.name] = t.id
@@ -267,13 +251,6 @@ class ImageTestCase(LocalTestCase):
     def tearDown(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
-
-    def _add_record(self, table, data):
-        record_id = table.insert(**data)
-        db.commit()
-        record = entity_to_row(table, record_id)
-        self._objects.append(record)
-        return record
 
     def _set_pages(self, db, book_id, num_of_pages):
         set_pages(self, db, book_id, num_of_pages)
@@ -372,10 +349,8 @@ class TestFunctions(ImageTestCase):
             },
         }
         for key, data in books.items():
-            book_id = db.book.insert(**data)
-            book = entity_to_row(db.book, book_id)
-            self._objects.append(book)
-            ids_by_name[key] = book_id
+            book = self.add(db.book, dict(**data))
+            ids_by_name[key] = book.id
 
         default_attrs = {
             'name': None,
@@ -423,9 +398,9 @@ class TestFunctions(ImageTestCase):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
 
-        book_id = db.book.insert(name='test__calc_contributions_remaining')
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        book = self.add(db.book, dict(
+            name='test__calc_contributions_remaining',
+        ))
 
         # Book has no pages
         self.assertEqual(calc_contributions_remaining(db, book), 0.00)
@@ -440,30 +415,21 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(calc_contributions_remaining(db, book), 100.00)
 
         # Book has one contribution
-        contribution_id = db.contribution.insert(
+        self.add(db.contribution, dict(
             book_id=book.id,
             amount=15.00,
-        )
-        db.commit()
-        contribution = entity_to_row(db.contribution, contribution_id)
-        self._objects.append(contribution)
-
+        ))
         self.assertEqual(calc_contributions_remaining(db, book), 85.00)
 
         # Book has multiple contribution
-        contribution_2_id = db.contribution.insert(
+        self.add(db.contribution, dict(
             book_id=book.id,
             amount=35.99,
-        )
-        db.commit()
-        contribution_2 = entity_to_row(db.contribution, contribution_2_id)
-        self._objects.append(contribution_2)
+        ))
         self.assertEqual(calc_contributions_remaining(db, book), 49.01)
 
     def test__contributions_target(self):
-        book_id = db.book.insert(name='test__contributions_target')
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        book = self.add(db.book, dict(name='test__contributions_target'))
 
         # Book has no pages
         self.assertEqual(contributions_target(db, book), 0.00)
@@ -493,12 +459,10 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(str(cover_image(db, 0)), placeholder)
 
-        book_id = db.book.insert(name='test__cover_image')
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        book = self.add(db.book, dict(name='test__cover_image'))
 
         # Book has no pages
-        self.assertEqual(str(cover_image(db, book_id)), placeholder)
+        self.assertEqual(str(cover_image(db, book.id)), placeholder)
 
         images = [
             'book_page.image.page_trees.png',
@@ -506,25 +470,21 @@ class TestFunctions(ImageTestCase):
             'book_page.image.page_birds.png',
         ]
         for count, i in enumerate(images):
-            page_id = db.book_page.insert(
-                book_id=book_id,
+            self.add(db.book_page, dict(
+                book_id=book.id,
                 page_no=(count + 1),
                 image=i,
-            )
-            page = entity_to_row(db.book_page, page_id)
-            self._objects.append(page)
+            ))
 
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         self.assertEqual(
-            str(cover_image(db, book_id)),
+            str(cover_image(db, book.id)),
             '<img src="/images/download/book_page.image.page_trees.png?size=original" />'
         )
 
     def test__default_contribute_amount(self):
-        book_id = db.book.insert(name='test__default_contribute_amount')
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        book = self.add(db.book, dict(name='test__default_contribute_amount'))
 
         # Book has no pages
         self.assertEqual(default_contribute_amount(db, book), 1.00)
@@ -626,20 +586,16 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(got, {})
 
     def test__first_page(self):
-        book_id = db.book.insert(name='test__first_page')
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        book = self.add(db.book, dict(name='test__first_page'))
 
         # Book has no pages
-        self.assertEqual(first_page(db, book_id), None)
+        self.assertEqual(first_page(db, book.id), None)
 
         for count in range(0, 3):
-            page_id = db.book_page.insert(
-                book_id=book_id,
+            page = self.add(db.book_page, dict(
+                book_id=book.id,
                 page_no=(count + 1),
-            )
-            page = entity_to_row(db.book_page, page_id)
-            self._objects.append(page)
+            ))
 
         tests = [
             #(order_by, expect page_no)
@@ -648,16 +604,13 @@ class TestFunctions(ImageTestCase):
             (~db.book_page.page_no, 3),
         ]
         for t in tests:
-            page = first_page(db, book_id, orderby=t[0])
+            page = first_page(db, book.id, orderby=t[0])
             for f in db.book_page.fields:
                 self.assertTrue(f in page.keys())
             self.assertEqual(page.page_no, t[1])
 
     def test__formatted_name(self):
-        book_id = db.book.insert(name='My Book')
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        book = self.add(db.book, dict(name='My Book'))
 
         tests = [
             #(name, pub year, type, number, of_number, expect, expect pub yr),
@@ -689,20 +642,11 @@ class TestFunctions(ImageTestCase):
             self.assertEqual(formatted_name(db, book.id), t[6])
 
     def test__is_releasable(self):
-        book_id = db.book.insert(
-            name='test__is_releasable',
-        )
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
-
-        book_page_id = db.book_page.insert(
+        book = self.add(db.book, dict(name='test__is_releasable'))
+        book_page = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
-        )
-        db.commit()
-        book_page = entity_to_row(db.book_page, book_page_id)
-        self._objects.append(book_page)
+        ))
 
         # Has name and pages.
         self.assertTrue(is_releasable(db, book))
@@ -744,33 +688,24 @@ class TestFunctions(ImageTestCase):
         )
 
     def test__page_url(self):
-        creator_id = db.creator.insert(
+        creator = self.add(db.creator, dict(
             email='test__page_url@example.com',
             path_name='First Last',
-        )
-        db.commit()
-        creator = entity_to_row(db.creator, creator_id)
-        self._objects.append(creator)
+        ))
 
-        book_id = db.book.insert(
+        book = self.add(db.book, dict(
             name='My Book',
             publication_year=1999,
             book_type_id=self._type_id_by_name['one-shot'],
             number=1,
             of_number=999,
             creator_id=creator.id,
-        )
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        ))
 
-        page_id = db.book_page.insert(
+        book_page = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
-        )
-        db.commit()
-        book_page = entity_to_row(db.book_page, page_id)
-        self._objects.append(book_page)
+        ))
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
@@ -865,34 +800,26 @@ class TestFunctions(ImageTestCase):
     def test__read_link(self):
         empty = '<span></span>'
 
-        creator_id = db.creator.insert(
-            email='test__read_link@example.com',
+        creator = self.add(db.creator, dict(
+            email='test__read_linke@example.com',
             path_name='First Last',
-        )
-        db.commit()
-        creator = entity_to_row(db.creator, creator_id)
-        self._objects.append(creator)
+        ))
 
-        book_id = db.book.insert(
+        book = self.add(db.book, dict(
             name='test__read_link',
             publication_year=1999,
             creator_id=creator.id,
             reader='slider',
             book_type_id=self._type_id_by_name['one-shot'],
-        )
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        ))
 
-        book_page_id = db.book_page.insert(
+        self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
-        )
-        db.commit()
-        book_page = entity_to_row(db.book_page, book_page_id)
-        self._objects.append(book_page)
+        ))
 
         # As integer, book_id
-        link = read_link(db, book_id)
+        link = read_link(db, book.id)
         # Eg <a data-w2p_disable_with="default"
         #       href="/zcomx/books/slider/57">Read</a>
         soup = BeautifulSoup(str(link))
@@ -960,7 +887,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__update_rating(self):
-        book = self._add_record(db.book, dict(name='test__update_rating'))
+        book = self.add(db.book, dict(name='test__update_rating'))
         self._set_pages(db, book.id, 10)
 
         def reset(book_record):
@@ -1029,7 +956,7 @@ class TestFunctions(ImageTestCase):
             data['time_stamp'] = time_str(days_ago)
             if amount is not None:
                 data['amount'] = amount
-            self._add_record(table, data)
+            self.add(table, data)
 
         reset(book)
         zero(expect)
@@ -1077,20 +1004,12 @@ class TestFunctions(ImageTestCase):
         )
 
     def test__url(self):
-        creator_id = db.creator.insert(
+        creator = self.add(db.creator, dict(
             email='test__url@example.com',
             path_name='First Last',
-        )
-        db.commit()
-        creator = entity_to_row(db.creator, creator_id)
-        self._objects.append(creator)
+        ))
 
-        book_id = db.book.insert(
-            name='',
-        )
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        book = self.add(db.book, dict(name=''))
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
@@ -1117,18 +1036,13 @@ class TestFunctions(ImageTestCase):
                 book_type_id=self._type_id_by_name[t[2]],
                 number=t[3],
                 of_number=t[4],
-                creator_id=creator_id,
+                creator_id=creator.id,
             )
             db.commit()
             self.assertEqual(url(book), t[5])
 
     def test__url_name(self):
-        book_id = db.book.insert(
-            name='',
-        )
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        book = self.add(db.book, dict(name=''))
 
         # Note: The publication year was removed from the url.
         tests = [
@@ -1158,15 +1072,15 @@ class TestFunctions(ImageTestCase):
 
 def set_pages(obj, db, book_id, num_of_pages):
     """Create pages for a book."""
+    # protected-access (W0212): *Access to a protected member
+    # pylint: disable=W0212
     def page_count():
         return db(db.book_page.book_id == book_id).count()
     while page_count() < num_of_pages:
-        page_id = db.book_page.insert(
+        obj.add(db.book_page, dict(
             book_id=book_id,
             page_no=(page_count() + 1),
-        )
-        page = entity_to_row(db.book_page, page_id)
-        obj._objects.append(page)
+        ))
 
 
 def setUpModule():

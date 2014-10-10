@@ -18,8 +18,8 @@ import unittest
 import urllib
 
 from gluon.contrib.webclient import \
-        WebClient, \
-        DEFAULT_HEADERS as webclient_default_headers
+    WebClient, \
+    DEFAULT_HEADERS as webclient_default_headers
 from gluon.globals import current
 import gluon.shell
 from gluon.storage import \
@@ -44,9 +44,9 @@ class LocalTestCase(unittest.TestCase):
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
     _opts = Storage({
-            'force': False,
-            'quick': False,
-            })
+        'force': False,
+        'quick': False,
+    })
     _objects = []
 
     def __init__(self, methodName='runTest'):
@@ -83,16 +83,29 @@ class LocalTestCase(unittest.TestCase):
         global FILTER_TABLES
         db = current.app.db
         if 'comment' in db.tables:
-            if  not FILTER_TABLES:
-                FILTER_TABLES = [x.filter_table for x in \
-                        db(db.comment.id > 0).select(
-                            db.comment.filter_table, distinct=True)]
+            if not FILTER_TABLES:
+                FILTER_TABLES = [
+                    x.filter_table for x in db(db.comment.id > 0).select(
+                        db.comment.filter_table, distinct=True
+                    )
+                ]
             if obj.tbl._tablename in FILTER_TABLES:
                 query = (db.comment.filter_table == obj.tbl._tablename) & \
                         (db.comment.filter_id == obj.id)
-                x = db(query).count()
                 db(query).delete()
                 db.commit()
+
+    @classmethod
+    def add(cls, table, data):
+        """Helper function to add a test record and store it for removal."""
+        # protected-access (W0212): *Access to a protected member
+        # pylint: disable=W0212
+        db = table._db
+        record_id = table.insert(**data)
+        db.commit()
+        record = db(table.id == record_id).select().first()
+        cls._objects.append(record)
+        return record
 
     def run(self, result=None):
         """Run test fixture."""
@@ -150,14 +163,14 @@ class LocalTestCase(unittest.TestCase):
             login_employee_id = env['local_settings'].login_employee_id
         login_required = True if 'auth_user' in env['db'].tables else False
         web = LocalWebClient(
-                app,
-                login_user,
-                login_password,
-                db=env['db'],
-                login_employee_id=login_employee_id,
-                dump=LocalTestCase._opts.dump,
-                login_required=login_required,
-                )
+            app,
+            login_user,
+            login_password,
+            db=env['db'],
+            login_employee_id=login_employee_id,
+            dump=LocalTestCase._opts.dump,
+            login_required=login_required,
+        )
         env['web'] = web
         return APP_ENV[app]['current']
 
@@ -170,6 +183,8 @@ class LocalTestCase(unittest.TestCase):
             post_vars: dict of data to post. If None the request environment
                 is reset.
         """
+        # protected-access (W0212): *Access to a protected member
+        # pylint: disable=W0212
         env['request']._body = None             # Force reload
         env['request']._vars = None             # Force reload
         env['request']._post_vars = None        # Force reload
@@ -249,11 +264,12 @@ class LocalTextTestResult(unittest._TextTestResult):
             # self.stream_err.writeln(self.separator2)
             # Print a command that will demonstrate the error.
             self.stream_err.writeln(
-                   '$ unit {fname} {case} {method}'.format(
-                        fname=test.__module__.replace('.', '/') + '.py',
-                        case=test.__class__.__name__,
-                        method=test._testMethodName,
-                        ))
+                '$ unit {fname} {case} {method}'.format(
+                    fname=test.__module__.replace('.', '/') + '.py',
+                    case=test.__class__.__name__,
+                    method=test._testMethodName,
+                )
+            )
             self.stream_err.writeln("%s" % err)
 
     def printTestResult(self, test, msg):
@@ -298,8 +314,10 @@ class LocalTextTestRunner(unittest.TextTestRunner):
     # pylint: disable=W0212
     # pylint: disable=W0231
 
-    def __init__(self, stream=sys.stdout, stream_err=sys.stderr,
-            descriptions=1, verbosity=1):
+    def __init__(
+            self, stream=sys.stdout, stream_err=sys.stderr, descriptions=1,
+            verbosity=1
+    ):
         """Constructor."""
         self.stream = unittest.runner._WritelnDecorator(stream)
         self.stream_err = unittest.runner._WritelnDecorator(stream_err)
@@ -308,8 +326,12 @@ class LocalTextTestRunner(unittest.TextTestRunner):
 
     def _makeResult(self):
         """Format test results"""
-        return LocalTextTestResult(self.stream, self.stream_err,
-                self.descriptions, self.verbosity)
+        return LocalTextTestResult(
+            self.stream,
+            self.stream_err,
+            self.descriptions,
+            self.verbosity
+        )
 
     def run(self, test):
         """Run the given test case or test suite."""
@@ -358,7 +380,7 @@ class LocalWebClient(WebClient):
             login_required=True,
             db=None,
             dump=False,
-            ):
+    ):
         """Constructor
 
         Args:
@@ -387,31 +409,37 @@ class LocalWebClient(WebClient):
         self.db = db
         self.dump = dump
         headers = dict(webclient_default_headers)
-        headers['user-agent'] = ' '.join(('Mozilla/5.0',
+        headers['user-agent'] = ' '.join((
+            'Mozilla/5.0',
             '(X11; U; Linux i686; en-US; rv:1.9.2.10)',
-            'Gecko/20100928', 'Firefox/3.5.7'))
-        WebClient.__init__(self, self.url, postbacks=self.postbacks,
-                default_headers=headers)
+            'Gecko/20100928', 'Firefox/3.5.7'
+        ))
+        WebClient.__init__(
+            self,
+            self.url,
+            postbacks=self.postbacks,
+            default_headers=headers
+        )
         self._soup = None       # page as soup
         self._flash = None      # flash message
 
     def __repr__(self):
         fmt = ', '.join([
-                'LocalWebClient(application={application!r}',
-                'username={username!r}',
-                'password={password!r}',
-                'login_employee_id={login_employee_id!r}',
-                'url={url!r}',
-                'postbacks={postbacks!r}',
-                ])
+            'LocalWebClient(application={application!r}',
+            'username={username!r}',
+            'password={password!r}',
+            'login_employee_id={login_employee_id!r}',
+            'url={url!r}',
+            'postbacks={postbacks!r}',
+        ])
         return fmt.format(
-                application=self.application,
-                username=self.username,
-                password=self.password,
-                login_employee_id=self.login_employee_id,
-                url=self.url,
-                postbacks=self.postbacks
-                )
+            application=self.application,
+            username=self.username,
+            password=self.password,
+            login_employee_id=self.login_employee_id,
+            url=self.url,
+            postbacks=self.postbacks
+        )
 
     def as_soup(self):
         """Return the response text as a Beautiful soup instance"""
@@ -442,8 +470,13 @@ class LocalWebClient(WebClient):
             until a commit() is called.
         """
         self._soup = None
-        result = WebClient.get(self, url, cookies=None, headers=None,
-                auth=None)
+        result = WebClient.get(
+            self,
+            url,
+            cookies=None,
+            headers=None,
+            auth=None
+        )
         if self.db:
             self.db.commit()
         return result
@@ -452,7 +485,8 @@ class LocalWebClient(WebClient):
         """Login to web2py application
 
         Args:
-            url: string, login url defaults to '<self.application>/default/user/login'
+            url: string, login url defaults to
+                    '<self.application>/default/user/login'
             employee_url: string, select employee url, defaults to
                     '<self.application>/employees/employee_select'
 
@@ -464,7 +498,7 @@ class LocalWebClient(WebClient):
 
         if self.login_employee_id and not employee_url:
             employee_url = '/{app}/employees/employee_select'.format(
-                    app=self.application)
+                app=self.application)
 
         # Step 1: Get the login page. This creates a session record in
         #         web2py_session_<app> table. (The employee_select page
@@ -478,14 +512,21 @@ class LocalWebClient(WebClient):
 
         # Step 3: Login. This permits access to admin-only pages.
         data = dict(
-                email=self.username,
-                password=self.password,
-                _formname='login',
-                )
+            email=self.username,
+            password=self.password,
+            _formname='login',
+        )
         self.post(url, data=data)
 
-    def post(self, url, data=None, cookies=None, headers=None, auth=None,
-            method='auto'):
+    def post(
+        self,
+        url,
+        data=None,
+        cookies=None,
+        headers=None,
+        auth=None,
+        method='auto'
+    ):
         """Override base class method.
 
         Args:
@@ -495,14 +536,27 @@ class LocalWebClient(WebClient):
         * Clears _soup property.
         """
         self._soup = None
-        result = WebClient.post(self, url, data=data, cookies=None,
-                headers=None, auth=None, method=method)
+        result = WebClient.post(
+            self,
+            url,
+            data=data,
+            cookies=None,
+            headers=None,
+            auth=None,
+            method=method
+        )
         if self.db:
             self.db.commit()
         return result
 
-    def test(self, url, expect, match_type='all', tolerate_whitespace=False,
-            post_data=None):
+    def test(
+        self,
+        url,
+        expect,
+        match_type='all',
+        tolerate_whitespace=False,
+        post_data=None
+    ):
         """Test accessing a page.
 
         Args:
@@ -516,7 +570,8 @@ class LocalWebClient(WebClient):
             tolerate_whitespace: If True, when match on expected string,
                 tolerate differences in whitespace.
                 * All whitespace characters are replaced with space.
-                * Multiple whitespace characters are replaced with single space.
+                * Multiple whitespace characters are replaced with single
+                  space.
             post_data: dict, if None
                     * get() request is made instead of post().
                     * login is run if required, else sessions are cleared
@@ -561,7 +616,7 @@ class LocalWebClient(WebClient):
             self.post(url, post_data)
 
         match_text = ' '.join(self.text.split()) \
-                if tolerate_whitespace else self.text
+            if tolerate_whitespace else self.text
         self.dump = True
         if self.dump:
             dump_dir = '/root/tmp/dumps'
@@ -578,12 +633,11 @@ class LocalWebClient(WebClient):
             # filename = price_stickers_123
             try:
                 filename = '_'.join(
-                        url.lstrip('/').split('?')[0].split('/')[2:])
+                    url.lstrip('/').split('?')[0].split('/')[2:])
             except (AttributeError, KeyError):
                 filename = 'dump'
-            with open(os.path.join(dump_dir, filename + '.htm'),
-                    'w') as f_dump:
-                f_dump.write(match_text + "\n")
+            with open(os.path.join(dump_dir, filename + '.htm'), 'w') as f:
+                f.write(match_text + "\n")
         if isinstance(expect, list):
             match_func = any if match_type == 'any' else all
             return match_func([x in match_text for x in expect])
@@ -669,19 +723,28 @@ def count_diff(func):
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
         with open(os.path.join(tmp_dir, 'before.txt'), "w") as bef:
-            subprocess.call(["/root/bin/mysql_record_count.sh"], stdout=bef,
-                    shell=True)
+            subprocess.call(
+                ["/root/bin/mysql_record_count.sh"],
+                stdout=bef,
+                shell=True
+            )
         try:
             func(*arg)
         except (SystemExit, KeyboardInterrupt):
             # This prevents a unittest.py exit from killing the wrapper
             pass
         with open(os.path.join(tmp_dir, 'after.txt'), "w") as aft:
-            subprocess.call(["/root/bin/mysql_record_count.sh"], stdout=aft,
-                    shell=True)
-        subprocess.call(['diff',
+            subprocess.call(
+                ["/root/bin/mysql_record_count.sh"],
+                stdout=aft,
+                shell=True
+            )
+        subprocess.call(
+            [
+                'diff',
                 '{dir}/before.txt'.format(dir=tmp_dir),
                 '{dir}/after.txt'.format(dir=tmp_dir),
-                ])
+            ]
+        )
         return
     return wrapper
