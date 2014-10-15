@@ -10,6 +10,8 @@ def books():
     """Creator books report controller.
     request.args(0): integer, id of creator.
     """
+    if not request.vars.order:
+        request.vars.order = 'book.name'
     return dict()
 
 

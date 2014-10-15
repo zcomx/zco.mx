@@ -18,9 +18,10 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'box': '<div id="search">',
-        'cover_grid': '<div class="col-sm-12 col-md-6 item_container odd">',
         'index': 'zco.mx is a not-for-profit comic-sharing website',
-        'list_grid': 'records found',
+        'list_grid': '<div class="web2py_grid grid_view_list ',
+        'list_grid_tile': '<div class="web2py_grid grid_view_tile ',
+        'tile_grid': '<div class="col-sm-12 col-md-6 item_container odd">'
     }
     url = '/zcomx/search'
 
@@ -28,22 +29,6 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test('{url}/box.load'.format(
             url=self.url),
             self.titles['box'])
-        )
-
-    def test__cover_grid(self):
-        books = db(db.book).select(
-            db.book.ALL,
-            orderby=~db.book.contributions_year,
-            limitby=(0, 1)
-        )
-        if not books:
-            self.fail('No book found in db.')
-        book = books[0]
-        self.assertTrue(
-            web.test('{url}/cover_grid.load'.format(
-                url=self.url),
-                [self.titles['cover_grid'], book.name]
-            )
         )
 
     def test__index(self):
@@ -55,17 +40,55 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__list_grid(self):
-        books = db(db.book).select(
+        query = (db.book.status == True) & \
+                (db.book.contributions_remaining > 0) & \
+                (db.creator.paypal_email != '')
+        books = db(query).select(
             db.book.ALL,
-            orderby=~db.book.contributions_year,
+            left=[
+                db.creator.on(db.book.creator_id == db.creator.id)
+            ],
+            orderby=db.book.contributions_remaining,
             limitby=(0, 1)
         )
         if not books:
             self.fail('No book found in db.')
+
         book = books[0]
+
+        # No request.vars.view, defaults to tile
         self.assertTrue(web.test('{url}/list_grid.load'.format(
             url=self.url),
+            [self.titles['list_grid_tile'], book.name])
+        )
+
+        self.assertTrue(web.test('{url}/list_grid.load?view={v}'.format(
+            url=self.url, v='list'),
             [self.titles['list_grid'], book.name])
+        )
+
+    def test__tile_grid(self):
+        query = (db.book.status == True) & \
+                (db.book.contributions_remaining > 0) & \
+                (db.creator.paypal_email != '')
+        books = db(query).select(
+            db.book.ALL,
+            left=[
+                db.creator.on(db.book.creator_id == db.creator.id)
+            ],
+            orderby=db.book.contributions_remaining,
+            limitby=(0, 1)
+        )
+        if not books:
+            self.fail('No book found in db.')
+
+        book = books[0]
+
+        self.assertTrue(
+            web.test('{url}/tile_grid.load'.format(
+                url=self.url),
+                [self.titles['tile_grid'], book.name]
+            )
         )
 
 

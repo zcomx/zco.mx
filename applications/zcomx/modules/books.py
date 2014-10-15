@@ -265,6 +265,33 @@ def calc_contributions_remaining(db, book_entity):
     return remaining
 
 
+def contributions_remaining_by_creator(db, creator_entity):
+    """Return the calculated contributions remaining for all books of the
+    creator.
+
+    Args:
+        db: gluon.dal.DAL instance
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+
+    Returns:
+        float, dollar amount of contributions remaining.
+    """
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        return 0.00
+
+    query = (db.book.creator_id == creator.id) & \
+            (db.book.status == True)
+
+    total = 0
+    books = db(query).select(db.book.ALL)
+    for book in books:
+        amount = calc_contributions_remaining(db, book)
+        total = total + amount
+    return total
+
+
 def contributions_target(db, book_entity):
     """Return the contributions target for the book.
 

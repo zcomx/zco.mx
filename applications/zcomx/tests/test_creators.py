@@ -7,6 +7,7 @@ Test suite for zcomx/modules/creators.py
 
 """
 import unittest
+from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
@@ -16,6 +17,9 @@ from applications.zcomx.modules.creators import \
     image_as_json, \
     set_creator_path_name, \
     set_path_name, \
+    torrent_link, \
+    torrent_name, \
+    torrent_url, \
     url, \
     url_name
 from applications.zcomx.modules.test_runner import LocalTestCase
@@ -170,9 +174,6 @@ class TestFunctions(LocalTestCase):
         creator = self.add(db.creator, dict(
             email='test_set_path_name@example.com'
         ))
-        db.commit()
-        creator = entity_to_row(db.creator, creator.id)
-        self._objects.append(creator)
 
         self.assertEqual(creator.path_name, None)
         set_path_name(creator)
@@ -196,11 +197,117 @@ class TestFunctions(LocalTestCase):
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, 'Test Set Path Name')
 
+    def test__torrent_link(self):
+        empty = '<span></span>'
+
+        creator = self.add(db.creator, dict(
+            email='test__torrent_linke@example.com',
+            path_name='First Last'
+        ))
+
+        # As integer, creator.id
+        link = torrent_link(creator.id)
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        # Eg  <a data-w2p_disable_with="default"
+        #    href="/zcomx/FIXME/FIXME/all-first_last.torrent">all-first_last.torrent</a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'all-first_last.torrent')
+        self.assertEqual(
+            anchor['href'],
+            '/zcomx/FIXME/FIXME/all-first_last.torrent'
+        )
+
+        # As Row, creator
+        link = torrent_link(creator)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'all-first_last.torrent')
+        self.assertEqual(
+            anchor['href'],
+            '/zcomx/FIXME/FIXME/all-first_last.torrent'
+        )
+
+        # Invalid id
+        link = torrent_link(-1)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = torrent_link(creator, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src="http://www.img.com")]
+        link = torrent_link(creator, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _type='button',
+            _target='_blank',
+        )
+        link = torrent_link(creator, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'all-first_last.torrent')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['type'], 'button')
+        self.assertEqual(anchor['target'], '_blank')
+
+    def test__torrent_name(self):
+        creator = self.add(
+            db.creator,
+            dict(email='test__torrent_linke@example.com')
+        )
+        tests = [
+            # (path_name, expect)
+            (None, None),
+            ('Prince', 'all-prince.torrent'),
+            ('First Last', 'all-first_last.torrent'),
+            ('first last', 'all-first_last.torrent'),
+            ("Hélè d'Eñça",
+                "all-h\xc3\xa9l\xc3\xa8_d'e\xc3\xb1\xc3\xa7a.torrent"),
+        ]
+
+        for t in tests:
+            creator.update_record(path_name=t[0])
+            db.commit()
+            self.assertEqual(torrent_name(creator), t[1])
+
+    def test__torrent_url(self):
+        creator = self.add(
+            db.creator,
+            dict(email='test__torrent_linke@example.com')
+        )
+
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        tests = [
+            # (path_name, expect)
+            (None, None),
+            ('Prince', '/zcomx/FIXME/FIXME/all-prince.torrent'),
+            ('First Last', '/zcomx/FIXME/FIXME/all-first_last.torrent'),
+            ('first last', '/zcomx/FIXME/FIXME/all-first_last.torrent'),
+            ("Hélè d'Eñça",
+                '/zcomx/FIXME/FIXME/all-h%C3%A9l%C3%A8_d%27e%C3%B1%C3%A7a.torrent'),
+        ]
+
+        for t in tests:
+            creator.update_record(path_name=t[0])
+            db.commit()
+            self.assertEqual(torrent_url(creator), t[1])
+
     def test__url(self):
         creator = self.add(db.creator, dict(email='test__url@example.com'))
-        db.commit()
-        creator = entity_to_row(db.creator, creator.id)
-        self._objects.append(creator)
 
         tests = [
             # (path_name, expect)
@@ -220,9 +327,6 @@ class TestFunctions(LocalTestCase):
         creator = self.add(db.creator, dict(
             email='test__url_name@example.com'
         ))
-        db.commit()
-        creator = entity_to_row(db.creator, creator.id)
-        self._objects.append(creator)
 
         tests = [
             # (path_name, expect)

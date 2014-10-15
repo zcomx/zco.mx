@@ -28,6 +28,7 @@ from applications.zcomx.modules.books import \
     book_types, \
     by_attributes, \
     calc_contributions_remaining, \
+    contributions_remaining_by_creator, \
     contributions_target, \
     cover_image, \
     default_contribute_amount, \
@@ -427,6 +428,61 @@ class TestFunctions(ImageTestCase):
             amount=35.99,
         ))
         self.assertEqual(calc_contributions_remaining(db, book), 49.01)
+
+    def test__contributions_remaining_by_creator(self):
+        # invalid-name (C0103): *Invalid %%s name "%%s"*
+        # pylint: disable=C0103
+        creator = self.add(db.creator, dict(
+            email='test__contributions_remaining_by_creator@eg.com'
+        ))
+
+        # Creator has no books
+        self.assertEqual(contributions_remaining_by_creator(db, creator), 0.00)
+
+        book = self.add(db.book, dict(
+            name='test__contributions_remaining_by_creator',
+            creator_id=creator.id,
+        ))
+        self._set_pages(db, book.id, 10)
+        self.assertEqual(contributions_target(db, book.id), 100.00)
+
+        # Book has no contributions
+        self.assertEqual(
+            contributions_remaining_by_creator(db, creator),
+            100.00
+        )
+
+        # Book has one contribution
+        self.add(db.contribution, dict(
+            book_id=book.id,
+            amount=15.00,
+        ))
+        self.assertEqual(
+            contributions_remaining_by_creator(db, creator),
+            85.00
+        )
+
+        # Book has multiple contribution
+        self.add(db.contribution, dict(
+            book_id=book.id,
+            amount=35.99,
+        ))
+        self.assertEqual(
+            contributions_remaining_by_creator(db, creator),
+            49.01
+        )
+
+        # Creator has multiple books.
+        book_2 = self.add(db.book, dict(
+            name='test__contributions_remaining_by_creator',
+            creator_id=creator.id,
+        ))
+        self._set_pages(db, book_2.id, 5)
+        self.assertEqual(contributions_target(db, book_2.id), 50.00)
+        self.assertAlmostEqual(
+            contributions_remaining_by_creator(db, creator),
+            99.01
+        )
 
     def test__contributions_target(self):
         book = self.add(db.book, dict(name='test__contributions_target'))
