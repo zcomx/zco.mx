@@ -711,7 +711,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .grid_section .orderby_field_label {
     padding-top: 0.6em;
-    padding-right: 0.1em;
+//    padding-right: 0.1em;
 }
 
 .grid_section .orderby_field_value {
@@ -726,7 +726,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .grid_section .orderby_field_value.orderby_contributions {
-    color: red;
+    color: #D04444;
 }
 
 .grid_section .web2py_paginator {

@@ -92,7 +92,7 @@ channels (eg tumblr, blogs, twitter, facebook, etc).
 [[associate]]
 #### As an established artist, why would I want to associate my work with others?
 If there are many comics hosted on zco.mx, then there should be no
-positive or negative association with the content (similar to Youtube).
+positive or negative association with the content (similar to YouTube).
 
 
 [[p2p]]
@@ -106,9 +106,8 @@ data, it could be rebuilt via P2P networks.
 More importantly the P2P communities, especially the Direct Connect (DC)
 network, is the nucleus of digital comics on the Internet.  Comics are
 competing for people's leisure time.  They're up against Internet, TV,
-movies, video games, etc.  The more readers the industry has, the
-better``2``:cite.  The more readers the industry has, the more readers
-there are to spend money.
+movies, video games, etc.  The more readers the industry has, the more
+readers there are to spend money.
 
 P2P networks can expand a cartoonist's audience. On one P2P network
 which only shares comics, it was found that 63% of the users were from
@@ -137,7 +136,7 @@ outside the US.
 
 I think it is important to mirror how file-sharing communities have done
 things. File-sharing communities have been at it for 20+ years. Their
-methods are tried and tested. There are advatanges to mirroring their
+methods are tried and tested. There are advantages to mirroring their
 approach. It's unfortunate P2P networks have been branded negatively
 (mostly by large corporation via the media) but there is an opportunity
 here. Self-publishing creators could make use of this technology and
@@ -181,7 +180,7 @@ By using sites like Comixology, publishers lose sales because of:
     - Regional locks
     - DRM
     - Over-priced books
-    - Unfair compensation``3``:cite
+    - Unfair compensation``2``:cite
 
 
 [[content]]
@@ -193,10 +192,8 @@ like to excavate older material from the 80's, 90's, 00's.
 [[whymp]]
 #### Why should I setup a Micropayments paypal account?
 If transactions average $12 or less, the fees with a Micropayments
-paypal
-account will be lower than with a Standard account.  For more
-information, go
-[[here https://www.paypal.com/ca/webapps/mpp/merchant-fees]]
+paypal account will be lower than with a Standard account.  For more
+information, go [[here https://www.paypal.com/ca/webapps/mpp/merchant-fees]]
 
 
 [[howmp]]
@@ -214,5 +211,4 @@ https://www.paypal.com/ca/cgi-bin/webscr?cmd=_contact-phone]].  Their auto-atten
 -----
 
 ###### [[1]] 1. That said, I think there will also be demand for paper comics.
-###### [[2]] 2. The bigger the head, the longer the [[tail http://en.wikipedia.org/wiki/Long_tail]].
-###### [[3]] 3. "...with ComiXology I’m only guaranteed 33 cents on every dollar if it’s bought through the Apple store." Becky Cloonan, [[Self Publish or Perish http://beckycloonan.tumblr.com/post/71721963332/self-publish-or-perish-a-short-essay-or-4-000]]
+###### [[2]] 2. "...with ComiXology I’m only guaranteed 33 cents on every dollar if it’s bought through the Apple store." Becky Cloonan, [[Self Publish or Perish http://beckycloonan.tumblr.com/post/71721963332/self-publish-or-perish-a-short-essay-or-4-000]]

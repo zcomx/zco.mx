@@ -2,7 +2,7 @@
 VERSION 2 - Before Going Live
 [-] bugs/css
 
-[ ] Front Page
+[x] Front Page
     Add report to drive contributions
 
     * $10/web image (and $15/cbz image -- this could be added later)
@@ -13,10 +13,31 @@ VERSION 2 - Before Going Live
     * known caveats:
         flipbooks
         very simple art vs high detail
+    [ ] Add 'Contribute' button below 'Read' and 'Download'
+
+[ ] Front Page -> Contribution Report
+    * If no paypal address, then do not display book
+    * Change 'contribute' link to 'Contribute' button
+
+[ ] Front Page
+    For ongoing books, do not display a year in the book title
 
 [ ] Front Page
     Cartoonist Report
-    Detailed listing, show only cartoonist name
+    * Default to 'Detailed listing'
+    * Columns:
+        Cartoonist - sorted alphabetically by last name
+        Remaining - a total of the money remaining for all their books
+        all-charles_forsman.torrent - just a link, not a button
+        contribute button - if paypal address, otherwise leave blank
+
+[ ] Cartoonist Page
+    By default sort book list by Title
+
+---
+[ ] newest pages == ongoing or 'recent' or 'new ongoing' or 'recently updated' or 'latest'
+    cbz or releases or new releases
+    downloads
 
 [ ] Add torrent and dc functionality
     Example file names:

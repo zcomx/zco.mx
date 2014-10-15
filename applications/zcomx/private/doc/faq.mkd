@@ -1,5 +1,7 @@
 ##### [[What is zco.mx? #zco.mx]]
+##### [[How is zco.mx pronounced? #pronounce]]
 ##### [[Can anyone upload content? #upload]]
+##### [[How does the 'contribution' report work? #contribution]]
 ##### [[How does zco.mx pay its expenses? #expenses]]
 ##### [[What is up with the design of the site? #design]]
 ##### [[What is a cbr/cbz file? #cbz]]
@@ -27,9 +29,26 @@ with a simple-to-use user interface.  Books can be uploaded within
 minutes.
 
 
+[[pronounce]]
+#### How is zco.mx pronounced?
+zco.mx is pronounced **''zee·com·ics''**
+
+
 [[upload]]
 #### Can anyone upload content?
 To start, due to scalability, the site will be curated.
+
+
+[[contribution]]
+#### How does the 'contribution' report work?
+The idea is to create a fun way which encourages readers to help out
+self-publishing cartoonists by contributing money to them.  If a reader
+really enjoys the comic, hopefully they will vote-with-their-money.
+
+Each page of a comic that a cartoonist uploads increases the total by
+$10.  Every dollar a reader contributes lowers the amount.  When the
+total is $0 or higher the book is off the list.  Many books will be
+ongoing, so they may reappear when another page is added.
 
 
 [[expenses]]
