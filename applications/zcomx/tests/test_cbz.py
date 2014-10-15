@@ -10,7 +10,6 @@ import os
 import shutil
 import subprocess
 import unittest
-from PIL import Image
 from gluon import *
 from gluon.dal import Row
 from applications.zcomx.modules.books import DEFAULT_BOOK_TYPE
@@ -21,7 +20,6 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     store
 from applications.zcomx.modules.test_runner import LocalTestCase
-from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -107,35 +105,26 @@ class ImageTestCase(LocalTestCase):
         if not os.path.exists(cls._image_original):
             os.makedirs(cls._image_original)
 
-        book_type_id = db(db.book_type.name == DEFAULT_BOOK_TYPE).select().first().id
-        book_id = db.book.insert(
+        query = (db.book_type.name == DEFAULT_BOOK_TYPE)
+        book_type_id = db(query).select().first().id
+        cls._book = cls.add(db.book, dict(
             name='Image Test Case',
             creator_id=cls._creator.id,
             book_type_id=book_type_id
-        )
-        db.commit()
-        cls._book = entity_to_row(db.book, book_id)
-        cls._objects.append(cls._book)
+        ))
 
-        book_page_id = db.book_page.insert(
-            book_id=book_id,
+        cls._book_page = cls.add(db.book_page, dict(
+            book_id=cls._book.id,
             page_no=1,
-        )
-        db.commit()
-        cls._book_page = entity_to_row(db.book_page, book_page_id)
-        cls._objects.append(cls._book_page)
-
+        ))
         filename = cls._prep_image('cbz_plus.jpg', to_name='file_1.jpg')
         cls._set_image(db.book_page.image, cls._book_page, filename)
 
         # Create a second page to test with.
-        book_page_id_2 = db.book_page.insert(
-            book_id=book_id,
+        book_page_2 = cls.add(db.book_page, dict(
+            book_id=cls._book.id,
             page_no=2,
-        )
-        db.commit()
-        book_page_2 = entity_to_row(db.book_page, book_page_id_2)
-        cls._objects.append(book_page_2)
+        ))
         filename = cls._prep_image('file.jpg', to_name='file_2.jpg')
         cls._set_image(db.book_page.image, book_page_2, filename)
 
@@ -246,9 +235,12 @@ class TestCBZCreator(ImageTestCase):
         book_type_id = types_by_name['mini-series'].id
         tests = [
             #(name, number, of_number, year, creator_id, expect)
-            ('My Book', 1, 4, 1999, 1, 'My Book 01 (of 04) (1999) (1.zco.mx).cbz'),
-            ('My Book', 2, 9, 1999, 1, 'My Book 02 (of 09) (1999) (1.zco.mx).cbz'),
-            ('My Book', 99, 99, 1999, 1, 'My Book 99 (of 99) (1999) (1.zco.mx).cbz'),
+            ('My Book', 1, 4, 1999, 1,
+                'My Book 01 (of 04) (1999) (1.zco.mx).cbz'),
+            ('My Book', 2, 9, 1999, 1,
+                'My Book 02 (of 09) (1999) (1.zco.mx).cbz'),
+            ('My Book', 99, 99, 1999, 1,
+                'My Book 99 (of 99) (1999) (1.zco.mx).cbz'),
         ]
 
         for t in tests:
@@ -346,6 +338,7 @@ class TestCBZCreator(ImageTestCase):
         # pylint: disable=E1101
         self.assertFalse(p.returncode)
         self.assertTrue('Everything is Ok' in p_stdout)
+        self.assertEqual(p_stderr, '')
 
 
 def setUpModule():

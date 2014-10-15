@@ -33,6 +33,7 @@ class TestFunctions(LocalTestCase):
         ],
         'creator': '<div id="creator_page">',
         'default': 'zco.mx is a not-for-profit comic-sharing website',
+        'page_not_found': '<h3>Page not found</h3>',
     }
     url = '/zcomx/creators'
 
@@ -75,10 +76,13 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
     def test__index(self):
-        with self.assertRaises(urllib2.HTTPError) as cm:
-            web.test('{url}/index'.format(url=self.url), None)
-        self.assertEqual(cm.exception.code, 404)
-        self.assertEqual(cm.exception.msg, 'NOT FOUND')
+        # Test: no creator
+        self.assertTrue(web.test(
+            '{url}/index'.format(
+                url=self.url,
+            ),
+            self.titles['page_not_found']
+        ))
 
         # Test: creator as integer
         self.assertTrue(web.test(

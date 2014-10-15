@@ -11,77 +11,73 @@ from gluon import *
 from BeautifulSoup import BeautifulSoup
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.test_runner import LocalTestCase
-from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
 
 class TestCustomLinks(LocalTestCase):
     _creator = None
     _creator_2 = None
     _creator_to_links = []
     _links = []
+    _cls_objects = []
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     @classmethod
     def setUpClass(cls):
-        creator_id = db.creator.insert(email='testcustomlinks@example.com')
-        db.commit()
-        cls._creator = entity_to_row(db.creator, creator_id)
+        cls._creator = cls.add(db.creator, dict(
+            email='testcustomlinks@example.com'
+        ))
+
         for count in range(0, 3):
-            link_id = db.link.insert(
+            link = cls.add(db.link, dict(
                 name='test_custom_links',
                 url='http://www.test_custom_links.com',
                 title=str(count),
-            )
-            db.commit()
-            cls._links.append(entity_to_row(db.link, link_id))
-            creator_to_link_id = db.creator_to_link.insert(
-                link_id=link_id,
-                creator_id=creator_id,
+            ))
+            cls._links.append(link)
+            creator_to_link = cls.add(db.creator_to_link, dict(
+                link_id=link.id,
+                creator_id=cls._creator.id,
                 order_no=count + 1,
-            )
-            db.commit()
-            cls._creator_to_links.append(
-                entity_to_row(db.creator_to_link, creator_to_link_id))
+            ))
+            cls._creator_to_links.append(creator_to_link)
 
         # Create a second creator with no links
-        creator_2_id = db.creator.insert(email='testcustomlinks@example.com')
-        db.commit()
-        cls._creator_2 = entity_to_row(db.creator, creator_2_id)
+        cls._creator_2 = cls.add(db.creator, dict(
+            email='testcustomlinks_2@example.com'
+        ))
+
+        # objects need to be maintained for all tests.
+        cls._cls_objects = list(cls._objects)
+        cls._objects = []
 
     @classmethod
     def tearDownClass(cls):
-        for creator_to_link in cls._creator_to_links:
-            query = (db.creator_to_link.id == creator_to_link['id'])
-            db(query).delete()
-            db.commit()
-
-        for link in cls._links:
-            query = (db.link.id == link['id'])
-            db(query).delete()
-            db.commit()
-
-        query = (db.creator.id == cls._creator['id'])
-        db(query).delete()
-        db.commit()
-        query = (db.creator.id == cls._creator_2['id'])
-        db(query).delete()
-        db.commit()
+        for obj in cls._cls_objects:
+            if hasattr(obj, 'remove'):
+                cls._remove_comments_for(cls, obj)
+                obj.remove()
+            elif hasattr(obj, 'delete_record'):
+                obj.delete_record()
+                db = current.app.db
+                db.commit()
 
     def _ordered_records(self):
         query = (db.creator_to_link.creator_id == self._creator['id'])
-        return db(query).select(db.creator_to_link.ALL,
-                orderby=db.creator_to_link.order_no)
+        return db(query).select(
+            db.creator_to_link.ALL,
+            orderby=db.creator_to_link.order_no
+        )
 
     def _ordered_ids(self):
         return [x['id'] for x in self._ordered_records()]
 
     def _order_nos(self):
         return [x['order_no'] for x in self._ordered_records()]
-
 
     def test____init__(self):
         links = CustomLinks(db.creator, self._creator['id'])
@@ -90,16 +86,21 @@ class TestCustomLinks(LocalTestCase):
         self.assertEqual(links.to_link_tablename, 'creator_to_link')
         self.assertEqual(links.to_link_table, db['creator_to_link'])
         self.assertEqual(links.join_to_link_fieldname, 'creator_id')
-        self.assertEqual(links.join_to_link_field,
-                db.creator_to_link['creator_id'])
+        self.assertEqual(
+            links.join_to_link_field,
+            db.creator_to_link['creator_id']
+        )
 
     def test__attach(self):
         links = CustomLinks(db.creator, self._creator['id'])
 
         form = crud.update(db.creator, self._creator['id'])
 
-        links.attach(form, 'creator_wikipedia__row',
-            edit_url='http://test.com')
+        links.attach(
+            form,
+            'creator_wikipedia__row',
+            edit_url='http://test.com'
+        )
         soup = BeautifulSoup(str(form))
         trs = soup.findAll('tr')
         tr_ids = [x['id'] for x in trs]
@@ -153,20 +154,17 @@ class TestCustomLinks(LocalTestCase):
         # Move top link down
         links.move_link(original[0], direction='down')
         got = self._ordered_ids()
-        self.assertEqual(got,
-            [original[1], original[0], original[2]])
+        self.assertEqual(got, [original[1], original[0], original[2]])
 
         # Move top link down again
         links.move_link(original[0], direction='down')
         got = self._ordered_ids()
-        self.assertEqual(got,
-            [original[1], original[2], original[0]])
+        self.assertEqual(got, [original[1], original[2], original[0]])
 
         # Move top link up
         links.move_link(original[0], direction='up')
         got = self._ordered_ids()
-        self.assertEqual(got,
-            [original[1], original[0], original[2]])
+        self.assertEqual(got, [original[1], original[0], original[2]])
 
         # Move top link up again, back to start
         links.move_link(original[0], direction='up')

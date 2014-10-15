@@ -101,33 +101,24 @@ class TestRouter(LocalTestCase):
             ),
         })
 
-        auth_user_id = db.auth_user.insert(
+        cls._auth_user = cls.add(db.auth_user, dict(
             name='First Last',
             email='test__auth_user@test.com',
-        )
-        db.commit()
-        cls._auth_user = entity_to_row(db.auth_user, auth_user_id)
-        cls._objects.append(cls._auth_user)
+        ))
 
-        creator_id = db.creator.insert(
+        cls._creator = cls.add(db.creator, dict(
             auth_user_id=cls._auth_user.id,
             email='test__creator@test.com',
             path_name='First Last',
-        )
-        db.commit()
-        cls._creator = entity_to_row(db.creator, creator_id)
-        cls._objects.append(cls._creator)
+        ))
 
-        creator_2_id = db.creator.insert(
+        cls._creator_2 = cls.add(db.creator, dict(
             auth_user_id=cls._auth_user.id,
             email='test__creator_2@test.com',
             path_name='John Hancock',
-        )
-        db.commit()
-        cls._creator_2 = entity_to_row(db.creator, creator_2_id)
-        cls._objects.append(cls._creator_2)
+        ))
 
-        book_id = db.book.insert(
+        cls._book = cls.add(db.book, dict(
             name='My Book',
             publication_year=1999,
             book_type_id=cls._type_id_by_name['one-shot'],
@@ -135,12 +126,9 @@ class TestRouter(LocalTestCase):
             of_number=999,
             creator_id=cls._creator.id,
             reader='slider',
-        )
-        db.commit()
-        cls._book = entity_to_row(db.book, book_id)
-        cls._objects.append(cls._book)
+        ))
 
-        book_2_id = db.book.insert(
+        cls._book_2 = cls.add(db.book, dict(
             name='My Second Book',
             publication_year=2002,
             book_type_id=cls._type_id_by_name['one-shot'],
@@ -148,42 +136,27 @@ class TestRouter(LocalTestCase):
             of_number=999,
             creator_id=cls._creator_2.id,
             reader='slider',
-        )
-        db.commit()
-        cls._book_2 = entity_to_row(db.book, book_2_id)
-        cls._objects.append(cls._book_2)
+        ))
 
-        page_id = db.book_page.insert(
+        cls._book_page = cls.add(db.book_page, dict(
             book_id=cls._book.id,
             page_no=1,
-        )
-        db.commit()
-        cls._book_page = entity_to_row(db.book_page, page_id)
-        cls._objects.append(cls._book_page)
+        ))
 
-        page_2_id = db.book_page.insert(
+        cls._book_page_2 = cls.add(db.book_page, dict(
             book_id=cls._book.id,
             page_no=2,
-        )
-        db.commit()
-        cls._book_page_2 = entity_to_row(db.book_page, page_2_id)
-        cls._objects.append(cls._book_page_2)
+        ))
 
-        book_2_page_id = db.book_page.insert(
+        cls._book_2_page = cls.add(db.book_page, dict(
             book_id=cls._book_2.id,
             page_no=1,
-        )
-        db.commit()
-        cls._book_2_page = entity_to_row(db.book_page, book_2_page_id)
-        cls._objects.append(cls._book_2_page)
+        ))
 
-        book_2_page_2_id = db.book_page.insert(
+        cls._book_2_page_2 = cls.add(db.book_page, dict(
             book_id=cls._book_2.id,
             page_no=2,
-        )
-        db.commit()
-        cls._book_2_page_2 = entity_to_row(db.book_page, book_2_page_2_id)
-        cls._objects.append(cls._book_2_page_2)
+        ))
 
         cls._creator_name = creator_url_name(cls._creator)
         cls._creator_2_name = creator_url_name(cls._creator_2)

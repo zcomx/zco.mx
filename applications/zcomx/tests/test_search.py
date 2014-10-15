@@ -30,7 +30,16 @@ class TestSearch(LocalTestCase):
         self.assertFalse(search.grid)
         search.set(db, request)
         self.assertTrue(search.grid)
-        self.assertEqual(len(search.grid.rows), 10)
+        query = (db.book.status == True) & \
+            (db.book.contributions_remaining > 0) & \
+            (db.creator.paypal_email != '')
+        rows = db(query).select(
+            db.book.id,
+            left=[
+                db.creator.on(db.book.creator_id == db.creator.id)
+            ]
+        )
+        self.assertEqual(len(search.grid.rows), len(rows))
 
 
 def setUpModule():

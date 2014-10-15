@@ -8,10 +8,13 @@ Search classes and functions.
 import collections
 from gluon import *
 from applications.zcomx.modules.books import \
+    contributions_remaining_by_creator, \
     formatted_name, \
     read_link, \
     url as book_url
-from applications.zcomx.modules.creators import url as creator_url
+from applications.zcomx.modules.creators import \
+    torrent_link as creator_torrent_link, \
+    url as creator_url
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
 
 
@@ -46,6 +49,15 @@ class Search(object):
         'periods': True,
         'class': 'orderby_views',
         'order_dir': 'DESC',
+    }
+    order_fields['creators'] = {
+        'table': 'auth_user',
+        'field': 'name',
+        'fmt': lambda x: '{v}'.format(v=x),
+        'label': 'cartoonists',
+        'periods': False,
+        'class': 'orderby_creators',
+        'order_dir': 'ASC',
     }
 
     def __init__(self):
@@ -99,15 +111,15 @@ class Search(object):
 
         period = 'month' if request.vars.period == 'month' else 'year'
 
-        if request.vars.o and request.vars.o in self.order_fields.keys():
-            orderby_field = self.order_fields[request.vars.o]
-        else:
-            orderby_field = self.order_fields['contributions']
-
+        orderby_key = request.vars.o \
+            if request.vars.o and request.vars.o in self.order_fields.keys() \
+            else 'contributions'
+        orderby_field = self.order_fields[orderby_key]
         self.orderby_field = orderby_field
 
-        if orderby_field['field'] == 'contributions_remaining':
+        if orderby_key == 'contributions':
             queries.append(db.book.contributions_remaining > 0)
+            queries.append(db.creator.paypal_email != '')
 
         if orderby_field['periods']:
             orderby_fieldname = '{f}_{p}'.format(
@@ -120,24 +132,37 @@ class Search(object):
         orderby.append(db.book.number)
         orderby.append(db.book.id)                # For consistent results
 
+        groupby = db.creator.id if orderby_key == 'creators' else db.book.id
+
         db.book.id.readable = False
         db.book.id.writable = False
         db.book.name.represent = lambda v, row: A(
-            formatted_name(db, row.book),
+            formatted_name(
+                db,
+                row.book,
+                include_publication_year=(row.book.release_date != None)
+            ),
             _href=book_url(row.book.id, extension=False)
         )
+        if orderby_key == 'creators':
+            db.book.name.readable = False
+            db.book.name.writable = False
         db.book.book_type_id.readable = False
         db.book.book_type_id.writable = False
         db.book.number.readable = False
         db.book.number.writable = False
         db.book.of_number.readable = False
         db.book.of_number.writable = False
-        if request.vars.released == '0':
+        if request.vars.released == '0' or orderby_key == 'creators':
             # Ongoing books won't be published.
             db.book.publication_year.readable = False
             db.book.publication_year.writable = False
+        db.book.release_date.readable = False
+        db.book.release_date.writable = False
         db.creator.id.readable = False
         db.creator.id.writable = False
+        db.creator.paypal_email.readable = False
+        db.creator.paypal_email.writable = False
         db.auth_user.name.represent = lambda v, row: A(
             v,
             _href=creator_url(row.creator.id, extension=False)
@@ -150,6 +175,7 @@ class Search(object):
             db.book.number,
             db.book.of_number,
             db.book.publication_year,
+            db.book.release_date,
             db.book.contributions_year,
             db.book.contributions_month,
             db.book.contributions_remaining,
@@ -159,6 +185,7 @@ class Search(object):
             db.book.views_month,
             db.book.created_on,
             db.creator.id,
+            db.creator.paypal_email,
             db.book_page.created_on,
         ]
 
@@ -173,16 +200,43 @@ class Search(object):
                 book_id = row.id
             return book_id
 
+        def creator_contribute_link(row):
+            """Return a creator 'contribute' link suitable for grid row."""
+            # Only display if creator has a paypal address.
+            if not 'creator' in row or not row.creator.id \
+                    or not row.creator.paypal_email:
+                return ''
+
+            return A(
+                'Contribute',
+                _href=creator_url(row.creator.id, extension=False),
+                _class='btn btn-default',
+            )
+
         def contribute_link(row):
             """Return a 'contribute' link suitable for grid row."""
             book_id = link_book_id(row)
             if not book_id:
                 return ''
 
+            # Only display if creator has a paypal address.
+            if not 'creator' in row or not row.creator.paypal_email:
+                return ''
+
             return A(
-                'contribute',
-                _href=URL(c='books', f='book', args=book_id, extension=False),
+                'Contribute',
+                _href=book_url(book_id, extension=False),
+                _class='btn btn-default',
             )
+
+        def contributions_remaining_link(row):
+            """Return a 'contributions remaining' link suitable for grid
+            row.
+            """
+            if 'creator' not in row or not row.creator.id:
+                return ''
+            total = contributions_remaining_by_creator(db, row.creator.id)
+            return SPAN('{t:0.02f}'.format(t=total))
 
         def download_link(row):
             """Return a 'Download' link suitable for grid row."""
@@ -248,40 +302,37 @@ class Search(object):
                 _type='button',
             )
 
-        links = [
-            {
-                'header': '',
-                'body': read_link_func,
-            },
-        ]
+        def torrent_link(row):
+            """Return a torrent link suitable for grid row."""
+            if 'creator' not in row or not row.creator.id:
+                return ''
+            return creator_torrent_link(
+                row.creator.id,
+                _class='fixme',
+            )
+
+        links = []
+
+        def add_link(body, header=''):
+            """Add link to links list."""
+            links.append({'header': header, 'body': body})
+
+        if orderby_key == 'creators':
+            add_link(contributions_remaining_link)
+        else:
+            add_link(read_link_func)
 
         if editable:
             if request.vars.released == '0':
-                links.append(
-                    {
-                        'header': '',
-                        'body': release_link,
-                    }
-                )
-            links.append(
-                {
-                    'header': '',
-                    'body': edit_link,
-                }
-            )
+                add_link(release_link)
+            add_link(edit_link)
         else:
-            links.append(
-                {
-                    'header': '',
-                    'body': download_link,
-                },
-            )
-            links.append(
-                {
-                    'header': '',
-                    'body': contribute_link,
-                }
-            )
+            if orderby_key == 'creators':
+                add_link(torrent_link)
+                add_link(creator_contribute_link)
+            else:
+                add_link(download_link)
+                add_link(contribute_link)
 
         if request.vars.view != 'list' or not creator:
             fields.append(db.auth_user.name)
@@ -318,6 +369,9 @@ class Search(object):
             queries.append(db.book)
         query = reduce(lambda x, y: x & y, queries) if queries else None
 
+        grid_class = 'web2py_grid grid_view_{v} grid_key_{o}'.format(
+            v=request.vars.view or 'tile', o=orderby_key)
+
         kwargs = dict(
             fields=fields,
             headers={
@@ -325,7 +379,7 @@ class Search(object):
                 'auth_user.name': 'Cartoonist',
             },
             orderby=orderby,
-            groupby=db.book.id,
+            groupby=groupby,
             left=[
                 db.creator.on(db.book.creator_id == db.creator.id),
                 db.auth_user.on(
@@ -354,6 +408,7 @@ class Search(object):
             ondelete=ondelete,
             sorter_icons=sorter_icons,
             editargs={'deletable': False},
+            _class=grid_class,
         )
         if grid_args:
             kwargs.update(grid_args)

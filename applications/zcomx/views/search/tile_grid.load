@@ -11,7 +11,7 @@
                 {{row = None}}
             {{else:}}
             {{parity_class = 'even' if j % 2 else 'odd'}}
-            {{book_name = formatted_name(db, row.book)}}
+            {{book_name = formatted_name(db, row.book, include_publication_year=(row.book.release_date != None))}}
             <div class="col-sm-12 col-md-6 item_container {{=parity_class}}">
                 <div class="row">
                     <div class="col-xs-12 number">
@@ -43,14 +43,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row unused_row">
-                                <div class="col-sm-12">
-                                </div>
-                            </div>
-                            <div class="row unused_row">
-                                <div class="col-sm-12">
-                                </div>
-                            </div>
+                            <div class="row unused_row"><div class="col-sm-12"></div></div>
                             <div class="row buttons_orderby_container">
                                 <div class="col-sm-5">
                                     <div class="read button_container">
@@ -58,6 +51,13 @@
                                     </div>
                                     <div class="download button_container">
                                     <a class="btn btn-default btn-sm fixme" type="button" href="#" data-w2p_disable_with="default">Download</a>
+                                    </div >
+                                    <div class="contribute button_container">
+                                    {{if row.creator.paypal_email:}}
+                                    <a href="{{=book_url(row.book.id, extension=False)}}" class="btn btn-default btn-sm" type="button" data-w2p_disable_with="default">Contribute</a>
+                                    {{else:}}
+                                    <span>&nbsp;</span>
+                                    {{pass}}
                                     </div >
                                 </div>
                                 <div class="col-sm-7 orderby_field_container">

@@ -158,6 +158,77 @@ def set_path_name(creator_entity):
         db.commit()
 
 
+def torrent_link(creator_entity, components=None, **attributes):
+    """Return a link suitable for the torrent file of all of creator's books.
+
+    Args:
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+        components: list, passed to A(*components),  default [torrent_name()]
+        attributes: dict of attributes for A()
+    Returns:
+        A instance
+    """
+    empty = SPAN('')
+
+    name = torrent_name(creator_entity)
+    if not name:
+        return empty
+
+    link_url = torrent_url(creator_entity)
+    if not link_url:
+        return empty
+
+    if not components:
+        components = [name]
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = link_url
+
+    return A(*components, **kwargs)
+
+
+def torrent_name(creator_entity):
+    """Return the name of the torrent file of all of creator's books.
+
+    Args:
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+    Returns:
+        string, eg 'all-first_last.torrent'
+    """
+    name = url_name(creator_entity)
+    if not name:
+        return
+    return 'all-{n}.torrent'.format(n=name).lower()
+
+
+def torrent_url(creator_entity, **url_kwargs):
+    """Return the url to the torrent file for all of creator's books.
+
+    Args:
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+        url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
+    Returns:
+        string, eg /path/to/all-first_last.torrent
+    """
+    name = torrent_name(creator_entity)
+    if not name:
+        return
+
+    kwargs = {}
+    kwargs.update(url_kwargs)
+    return URL(
+        c='FIXME',
+        f='{dir}/{file}'.format(dir='FIXME', file=name),
+        **kwargs
+    )
+
+
 def url(creator_entity, **url_kwargs):
     """Return a url suitable for the creator page.
 

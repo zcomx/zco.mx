@@ -228,20 +228,16 @@ class TestUploadedFile(BaseTestCase):
         self.assertEqual(uploaded.errors, [])
 
     def test__create_book_pages(self):
-        book_id = db.book.insert(name='test__create_book_pages')
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
-
-        pages = db(db.book_page.book_id == book_id).select()
+        book = self.add(db.book, dict(name='test__create_book_pages'))
+        pages = db(db.book_page.book_id == book.id).select()
         self.assertEqual(len(pages), 0)
 
         filename = self._prep_image('file.jpg')
         uploaded = UploadedFile(filename)
         uploaded.image_filenames.append(filename)
-        uploaded.create_book_pages(book_id)
+        uploaded.create_book_pages(book.id)
 
-        pages = db(db.book_page.book_id == book_id).select()
+        pages = db(db.book_page.book_id == book.id).select()
         self.assertEqual(len(pages), 1)
         book_page = entity_to_row(db.book_page, pages[0]['id'])
         self._objects.append(book_page)
@@ -252,17 +248,13 @@ class TestUploadedFile(BaseTestCase):
         self.assertRaises(NotImplementedError, uploaded.for_json)
 
     def test__load(self):
-        book_id = db.book.insert(name='test__load')
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
-
+        book = self.add(db.book, dict(name='test__load'))
         filename = self._prep_image('file.jpg')
         # Use UploadedImage as UploadedFile won't have methods implemented
         uploaded = UploadedImage(filename)
-        uploaded.load(book_id)
+        uploaded.load(book.id)
 
-        pages = db(db.book_page.book_id == book_id).select()
+        pages = db(db.book_page.book_id == book.id).select()
         self.assertEqual(len(pages), 1)
         book_page = entity_to_row(db.book_page, pages[0]['id'])
         self._objects.append(book_page)
@@ -307,21 +299,17 @@ class TestUploadedImage(BaseTestCase):
         self.assertEqual(uploaded.filename, filename)
 
     def test__for_json(self):
-        book_id = db.book.insert(name='test__for_json')
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
-
+        book = self.add(db.book, dict(name='test__for_json'))
         filename = self._prep_image('file.jpg')
         uploaded = UploadedImage(filename)
         uploaded.image_filenames.append(filename)
-        uploaded.create_book_pages(book_id)
+        uploaded.create_book_pages(book.id)
         self.assertEqual(len(uploaded.book_page_ids), 1)
         json = uploaded.for_json()
         self.assertEqual(json['name'], 'file.jpg')
         self.assertEqual(json['size'], 23127)
 
-        pages = db(db.book_page.book_id == book_id).select()
+        pages = db(db.book_page.book_id == book.id).select()
         self.assertEqual(len(pages), 1)
         book_page = entity_to_row(db.book_page, pages[0]['id'])
         self._objects.append(book_page)
@@ -393,10 +381,7 @@ class TestFunctions(BaseTestCase):
     def test__create_book_page(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
-        book_id = db.book.insert(name='test__add')
-        db.commit()
-        book = entity_to_row(db.book, book_id)
-        self._objects.append(book)
+        book = self.add(db.book, dict(name='test__add'))
 
         def pages(book_id):
             """Get pages of book"""
@@ -404,14 +389,14 @@ class TestFunctions(BaseTestCase):
                 orderby=[db.book_page.page_no, db.book_page.id]
             )
 
-        self.assertEqual(len(pages(book_id)), 0)
+        self.assertEqual(len(pages(book.id)), 0)
 
         for filename in ['file.jpg', 'file.png']:
             sample_file = self._prep_image(filename)
-            book_page_id = create_book_page(db, book_id, sample_file)
+            book_page_id = create_book_page(db, book.id, sample_file)
             self.assertTrue(book_page_id)
 
-        book_pages = pages(book_id)
+        book_pages = pages(book.id)
         self.assertEqual(len(book_pages), 2)
         for book_page in book_pages:
             self._objects.append(book_page)

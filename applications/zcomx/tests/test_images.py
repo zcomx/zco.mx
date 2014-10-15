@@ -123,24 +123,16 @@ class ImageTestCase(LocalTestCase):
 
         # Create a creator and set the image
         email = 'up_image@example.com'
-        auth_user_id = db.auth_user.insert(
+        cls._auth_user = cls.add(db.auth_user, dict(
             name='Image UploadImage',
             email=email,
-        )
-        db.commit()
+        ))
 
-        cls._auth_user = entity_to_row(db.auth_user, auth_user_id)
-        cls._objects.append(cls._auth_user)
-
-        creator_id = db.creator.insert(
-            auth_user_id=auth_user_id,
+        cls._creator = cls.add(db.creator, dict(
+            auth_user_id=cls._auth_user.id,
             email=email,
             image=stored_filename,
-        )
-        db.commit()
-
-        cls._creator = entity_to_row(db.creator, creator_id)
-        cls._objects.append(cls._creator)
+        ))
 
     @classmethod
     def tearDown(cls):
@@ -394,7 +386,8 @@ class TestResizeImg(ImageTestCase):
         version_as_num = lambda v: float(v.replace('.', '').replace('-', '.'))
         imagemagick_ver = imagemagick_version()
         if version_as_num(imagemagick_ver) < version_as_num(minimum_ver):
-            msg = 'Upgrade ImageMagick. Minimum version: {ver}'.format(ver=minimum_ver)
+            msg = 'Upgrade ImageMagick. Minimum version: {ver}'.format(
+                ver=minimum_ver)
             self.fail(msg)
             return
 
@@ -810,14 +803,11 @@ class TestFunctions(ImageTestCase):
             self.assertTrue(size_aft < size_bef)
 
     def test__set_thumb_dimensions(self):
-        book_page_id = db.book_page.insert(
+        book_page = self.add(db.book_page, dict(
             page_no=1,
             thumb_w=0,
             thumb_h=0,
-        )
-        db.commit()
-        book_page = entity_to_row(db.book_page, book_page_id)
-        self._objects.append(book_page)
+        ))
 
         tests = [
             # dimensions
@@ -827,7 +817,7 @@ class TestFunctions(ImageTestCase):
 
         for t in tests:
             set_thumb_dimensions(db, book_page.id, t)
-            book_page = entity_to_row(db.book_page, book_page_id)
+            book_page = entity_to_row(db.book_page, book_page.id)
             self.assertEqual(book_page.thumb_w, t[0])
             self.assertEqual(book_page.thumb_h, t[1])
 
