@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Developed by Massimo Di Pierro, optional component of web2py, GPL2 license.
+Developed by Massimo Di Pierro, optional component of web2py, BSDv3 license.
 """
 
 import re
@@ -858,8 +858,8 @@ class Sheet:
             sorted_headers = [TH(), ] + \
                 [TH(header[1]) for header in sorted(unsorted_headers)]
             table.insert(0, TR(*sorted_headers,
-                               **{_class: "%s_fieldnames" %
-                                  attributes["_class"]}))
+                                **{'_class': "%s_fieldnames" %
+                                   attributes["_class"]}))
         else:
             data = SCRIPT(""" // web2py Spreadsheets: no db data.""")
 
