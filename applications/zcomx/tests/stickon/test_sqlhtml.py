@@ -212,9 +212,9 @@ class TestLocalSQLFORM(LocalTestCase):
         self.assertTrue(len(lis) >= 5)
         next_page = lis[-1]
         # Example next page li
-        # <li><a data-w2p_disable_with="default" href="/?page=2">&gt;</a></li>
+        # <li><a href="/?page=7">&gt;&gt;</a></li>
         href = next_page.a['href']
-        self.assertTrue('page={p}'.format(p=2) in href)
+        self.assertTrue('page={p}'.format(p=7) in href)
 
 
 class TestFunctions(LocalTestCase):

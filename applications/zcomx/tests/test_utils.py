@@ -61,7 +61,7 @@ class TestItemDescription(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             str(item.as_html()),
-            '<div><div class="short_description" title="123456789 123456789 ">123456789 ... <a class="desc_more_link" data-w2p_disable_with="default" href="#">more</a></div><div class="full_description hidden">123456789 123456789 </div></div>'
+            '<div><div class="short_description" title="123456789 123456789 ">123456789 ... <a class="desc_more_link" href="#">more</a></div><div class="full_description hidden">123456789 123456789 </div></div>'
 
         )
 
@@ -70,7 +70,7 @@ class TestItemDescription(LocalTestCase):
         item.truncate_length = 15
         self.assertEqual(
             str(item.as_html()),
-            '<div><div class="short_description" title="123456789 123456789 ">123456789 ... <a class="desc_more_link" data-w2p_disable_with="default" href="#">more</a></div><div class="full_description hidden">123456789 123456789 </div></div>'
+            '<div><div class="short_description" title="123456789 123456789 ">123456789 ... <a class="desc_more_link" href="#">more</a></div><div class="full_description hidden">123456789 123456789 </div></div>'
         )
 
         # Test attributes
