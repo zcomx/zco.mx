@@ -653,7 +653,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #book_page #buttons_container .contribute,
 .grid_section .buttons_orderby_container .contribute {
     white-space: nowrap;
-    padding-top: 0.2em;
+    padding-top: 0.25em;
     min-height: 1em;
     width: 100%;
 }
@@ -796,7 +796,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     .grid_section .orderby_field_container {
         text-align: right;
-        padding-top: 1.6em;
+        padding-top: 2.2em;
     }
 
     #profile_page .book_name_column {

@@ -13,16 +13,18 @@ VERSION 2 - Before Going Live
     * known caveats:
         flipbooks
         very simple art vs high detail
-    [ ] Add 'Contribute' button below 'Read' and 'Download'
+    [x] Add 'Contribute' button below 'Read' and 'Download'
+        [ ] hmm yeah, this needs more thought
+            Maybe a small modal?
 
-[ ] Front Page -> Contribution Report
+[x] Front Page -> Contribution Report
     * If no paypal address, then do not display book
     * Change 'contribute' link to 'Contribute' button
 
-[ ] Front Page
+[x] Front Page
     For ongoing books, do not display a year in the book title
 
-[ ] Front Page
+[x] Front Page
     Cartoonist Report
     * Default to 'Detailed listing'
     * Columns:
@@ -30,8 +32,13 @@ VERSION 2 - Before Going Live
         Remaining - a total of the money remaining for all their books
         all-charles_forsman.torrent - just a link, not a button
         contribute button - if paypal address, otherwise leave blank
+[ ] Front Page - creators report
+    [ ] Change the name of the report from 'creators' to 'cartoonists'
+    [ ] Add header 'Remaining' to the remaining dollar amount column
+    [ ] Change format on the Remaining column to dollars, eg 1500.00 -> $1,500.00
+    [ ] Change the colour of the dollar totals in the Remaininig column to #D04444
 
-[ ] Cartoonist Page
+[x] Cartoonist Page
     By default sort book list by Title
 
 ---
