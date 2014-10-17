@@ -114,7 +114,7 @@ def user():
         ]
 
     form = auth()
-    if form == 'ACCESS DENIED':
+    if form in ['ACCESS DENIED', 'Insufficient privileges']:
         redirect(URL(c='default', f='index'))
 
     for k in form.custom.widget.keys():
