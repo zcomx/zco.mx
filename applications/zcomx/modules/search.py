@@ -28,6 +28,7 @@ class Search(object):
         'field': 'contributions_remaining',
         'fmt': lambda x: '${v:0.0f}'.format(v=x),
         'label': 'remaining',
+        'tab_label': 'contributions',
         'periods': False,
         'class': 'orderby_contributions',
         'order_dir': 'ASC',
@@ -37,6 +38,7 @@ class Search(object):
         'field': 'created_on',
         'fmt': lambda x: str(x.date()) if x is not None else 'n/a',
         'label': 'page added',
+        'tab_label': 'newest pages',
         'periods': False,
         'class': 'orderby_newest_pages',
         'order_dir': 'DESC',
@@ -46,6 +48,7 @@ class Search(object):
         'field': 'views',
         'fmt': lambda x: '{v}'.format(v=x),
         'label': 'views',
+        'tab_label': 'views',
         'periods': True,
         'class': 'orderby_views',
         'order_dir': 'DESC',
@@ -55,6 +58,7 @@ class Search(object):
         'field': 'name',
         'fmt': lambda x: '{v}'.format(v=x),
         'label': 'cartoonists',
+        'tab_label': 'cartoonists',
         'periods': False,
         'class': 'orderby_creators',
         'order_dir': 'ASC',
@@ -236,7 +240,7 @@ class Search(object):
             if 'creator' not in row or not row.creator.id:
                 return ''
             total = contributions_remaining_by_creator(db, row.creator.id)
-            return SPAN('{t:0.02f}'.format(t=total))
+            return SPAN('${t:0,.2f}'.format(t=total))
 
         def download_link(row):
             """Return a 'Download' link suitable for grid row."""
@@ -318,7 +322,7 @@ class Search(object):
             links.append({'header': header, 'body': body})
 
         if orderby_key == 'creators':
-            add_link(contributions_remaining_link)
+            add_link(contributions_remaining_link, header='Remaining')
         else:
             add_link(read_link_func)
 

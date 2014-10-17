@@ -19,10 +19,12 @@
                         {{=((page - 1) * items_per_page) + (i + j)}}
                     </div>
                     <div class="col-sm-5 image_container">
+                        <div class="creator_image_container">
                         {{creator = entity_to_row(db.creator, row.creator.id)}}
                         <a href="{{=creator_url}}" title="{{=row.auth_user.name}}">
                             {{=CreatorImgTag(creator.image, size='tbn')()}}
                         </a>
+                        </div>
                     </div>
                     <div class="col-xs-12 col-sm-7 item_details">
                         <div class="item_details_padding">
