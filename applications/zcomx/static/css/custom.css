@@ -759,6 +759,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     background-color: #EEEEEE;
 }
 
+.grid_section .web2py_grid.grid_key_creators th:nth-child(2) {
+    text-align: center;
+    width: 4em;
+}
+
 .grid_section .web2py_grid.grid_key_creators td:nth-child(2) {
     color: #D04444;
     text-align: right;
