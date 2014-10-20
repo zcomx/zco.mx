@@ -399,17 +399,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: none;
 }
 
-#web2py_user_form #auth_user_remember {
+#web2py_user_form #auth_user_remember_me {
     display: inline-block;
     opacity: 0.3;
 }
 
-#web2py_user_form label[for=auth_user_remember] {
+#web2py_user_form #auth_user_remember_me__label {
     color: #AAAAAA;
-    display: inline-block;
     font-size: 8pt;
     font-weight: normal;
-    vertical-align: middle;
 }
 
 #web2py_user_form .forgot_password_container,

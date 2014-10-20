@@ -114,7 +114,7 @@ def user():
         ]
 
     form = auth()
-    if form == 'ACCESS DENIED':
+    if form in ['ACCESS DENIED', 'Insufficient privileges']:
         redirect(URL(c='default', f='index'))
 
     for k in form.custom.widget.keys():
@@ -129,12 +129,17 @@ def user():
 
     if hide_labels:
         for label in form.elements('label'):
-            label.add_class('labels_hidden')
+            if label.attributes['_id'] != 'auth_user_remember_me__label':
+                label.add_class('labels_hidden')
         if form.custom.label[userfield]:
             form.custom.label[userfield] = 'Email Address'
         for f in form.custom.widget.keys():
             if hasattr(form.custom.widget[f], 'update'):
-                form.custom.widget[f].update(_placeholder=form.custom.label[f])
+                if form.custom.widget[f].attributes['_type'] \
+                        not in ['checkbox']:
+                    form.custom.widget[f].update(
+                        _placeholder=form.custom.label[f]
+                    )
         if request.args(0) == 'login':
             if form.custom.widget[userfield]:
                 form.custom.widget[userfield].add_class('align_center')

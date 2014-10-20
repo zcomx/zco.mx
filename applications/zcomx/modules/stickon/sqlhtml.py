@@ -172,6 +172,7 @@ def formstyle_bootstrap3_custom(form, fields):
     form.add_class('form-horizontal')
     parent = FIELDSET()
     for id, label, controls, help in fields:
+
         # wrappers
         _help = SPAN(help, _class='help-block')
         # embed _help into _controls
@@ -226,6 +227,7 @@ def formstyle_bootstrap3_login(form, fields):
     Modifications:
         1. Replace col-lg-* with size specific settings
             col-xs-12
+        2. Use inline checkbox adapted from formstyle_bootstrap3_inline_factory
 
     """
     form.add_class('form-horizontal')
@@ -253,7 +255,13 @@ def formstyle_bootstrap3_login(form, fields):
             elif controls['_type'] == 'password':
                 controls['_class'] = 'form-control'
             elif controls['_type'] == 'checkbox':
-                controls['_class'] = 'checkbox'
+                label['_for'] = None
+                label.insert(0, controls)
+                _controls = DIV(
+                    DIV(label, _help, _class="checkbox"),
+                    _class='col-xs-12'
+                )
+                label = ''
 
         # For password fields, which are wrapped in a CAT object.
         if isinstance(controls, CAT) and isinstance(controls[0], INPUT):
