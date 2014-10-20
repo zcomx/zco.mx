@@ -57,14 +57,18 @@
                                 </div>
                                 <div class="col-sm-7 orderby_field_container">
                                     <div class="orderby_field_label">
-                                        remaining
+                                        {{=orderby_field['label']}}
                                     </div>
                                     <div class="orderby_field_value {{try:}}{{=orderby_field['class']}}{{except:}}{{pass}}">
-                                        {{if row.creator.id in contributions_by_id:}}
-                                        {{='${c:0.0f}'.format(c=contributions_by_id[row.creator.id])}}
+                                        {{if orderby_field['periods']:}}
+                                            {{period = 'month' if request.vars.period == 'month' else 'year'}}
+                                            {{fieldname = '{f}_{p}'.format(f=orderby_field['field'], p=period)}}
                                         {{else:}}
-                                        N/A
+                                            {{fieldname = orderby_field['field']}}
                                         {{pass}}
+                                        {{tablename = orderby_field['table']}}
+                                        {{value = row[tablename][fieldname]}}
+                                        {{=orderby_field['fmt'](value)}}
                                     </div>
                                 </div>
                             </div>

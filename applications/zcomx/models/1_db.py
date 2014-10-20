@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 
 #########################################################################
 ## This scaffolding model makes your app work on Google App Engine too
@@ -352,6 +352,12 @@ db.define_table('creator',
     ),
     Field(
         'path_name',
+    ),
+    Field(
+        'contributions_remaining',
+        'double',
+        default=0,
+        represent=lambda v, row: '${v:0,.2f}'.format(v=v),
     ),
     format='%(path_name)s',
     migrate=True,

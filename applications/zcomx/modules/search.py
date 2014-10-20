@@ -8,7 +8,6 @@ Search classes and functions.
 import collections
 from gluon import *
 from applications.zcomx.modules.books import \
-    contributions_remaining_by_creator, \
     formatted_name, \
     read_link, \
     url as book_url
@@ -54,10 +53,10 @@ class Search(object):
         'order_dir': 'DESC',
     }
     order_fields['creators'] = {
-        'table': 'auth_user',
-        'field': 'name',
-        'fmt': lambda x: '{v}'.format(v=x),
-        'label': 'cartoonists',
+        'table': 'creator',
+        'field': 'contributions_remaining',
+        'fmt': lambda v: '${v:0,.2f}'.format(v=v),
+        'label': 'remaining',
         'tab_label': 'cartoonists',
         'periods': False,
         'class': 'orderby_creators',
@@ -138,8 +137,15 @@ class Search(object):
 
         groupby = db.creator.id if orderby_key == 'creators' else db.book.id
 
-        db.book.id.readable = False
-        db.book.id.writable = False
+        def set_field(field, visible=True):
+            """Set the status of a field."""
+            field.readable = visible
+            field.writable = visible
+
+        hide = lambda f: set_field(f, visible=False)
+        show = lambda f: set_field(f, visible=True)
+
+        hide(db.book.id)
         db.book.name.represent = lambda v, row: A(
             formatted_name(
                 db,
@@ -149,24 +155,22 @@ class Search(object):
             _href=book_url(row.book.id, extension=False)
         )
         if orderby_key == 'creators':
-            db.book.name.readable = False
-            db.book.name.writable = False
-        db.book.book_type_id.readable = False
-        db.book.book_type_id.writable = False
-        db.book.number.readable = False
-        db.book.number.writable = False
-        db.book.of_number.readable = False
-        db.book.of_number.writable = False
+            hide(db.book.name)
+        hide(db.book.book_type_id)
+        hide(db.book.number)
+        hide(db.book.of_number)
         if request.vars.released == '0' or orderby_key == 'creators':
             # Ongoing books won't be published.
-            db.book.publication_year.readable = False
-            db.book.publication_year.writable = False
-        db.book.release_date.readable = False
-        db.book.release_date.writable = False
-        db.creator.id.readable = False
-        db.creator.id.writable = False
-        db.creator.paypal_email.readable = False
-        db.creator.paypal_email.writable = False
+            hide(db.book.publication_year)
+        hide(db.book.release_date)
+        hide(db.creator.id)
+        hide(db.creator.paypal_email)
+        if orderby_key != 'creators':
+            hide(db.creator.contributions_remaining)
+
+        if request.vars.view != 'list' or not creator:
+            show(db.auth_user.name)
+
         db.auth_user.name.represent = lambda v, row: A(
             v,
             _href=creator_url(row.creator.id, extension=False)
@@ -189,7 +193,9 @@ class Search(object):
             db.book.views_month,
             db.book.created_on,
             db.creator.id,
+            db.auth_user.name,
             db.creator.paypal_email,
+            db.creator.contributions_remaining,
             db.book_page.created_on,
         ]
 
@@ -232,15 +238,6 @@ class Search(object):
                 _href=book_url(book_id, extension=False),
                 _class='btn btn-default',
             )
-
-        def contributions_remaining_link(row):
-            """Return a 'contributions remaining' link suitable for grid
-            row.
-            """
-            if 'creator' not in row or not row.creator.id:
-                return ''
-            total = contributions_remaining_by_creator(db, row.creator.id)
-            return SPAN('${t:0,.2f}'.format(t=total))
 
         def download_link(row):
             """Return a 'Download' link suitable for grid row."""
@@ -321,9 +318,7 @@ class Search(object):
             """Add link to links list."""
             links.append({'header': header, 'body': body})
 
-        if orderby_key == 'creators':
-            add_link(contributions_remaining_link, header='Remaining')
-        else:
+        if orderby_key != 'creators':
             add_link(read_link_func)
 
         if editable:
@@ -337,9 +332,6 @@ class Search(object):
             else:
                 add_link(download_link)
                 add_link(contribute_link)
-
-        if request.vars.view != 'list' or not creator:
-            fields.append(db.auth_user.name)
 
         oncreate = None
         if editable and creator:
@@ -381,6 +373,7 @@ class Search(object):
             headers={
                 'book.name': 'Title',
                 'auth_user.name': 'Cartoonist',
+                'creator.contributions_remaining': 'Remaining',
             },
             orderby=orderby,
             groupby=groupby,

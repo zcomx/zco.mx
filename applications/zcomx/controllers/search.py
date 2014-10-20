@@ -63,29 +63,7 @@ def tile_grid():
     # extract the paginator from the grid
     paginator = soup.find('div', {'class': 'web2py_paginator grid_header '})
 
-    contributions_by_id = {}
-    if request.vars.o == 'creators':
-        # extract the contributions_remaining
-        # This is stored in a link that isn't made available in the grid
-        # properties.
-        table = soup.find('table')
-        if table:
-            for tr in table.findAll('tr'):
-                try:
-                    creator_id = int(tr['id'])
-                except (KeyError, TypeError, ValueError):
-                    continue
-                tds = tr.findAll('td')
-                if len(tds) < 2:
-                    continue
-                try:
-                    amount = float(tds[1].span.string.strip())
-                except (KeyError, TypeError, ValueError):
-                    continue
-                contributions_by_id[creator_id] = amount
-
     return dict(
-        contributions_by_id=contributions_by_id,
         grid=search.grid,
         items_per_page=search.paginate,
         orderby_field=search.orderby_field,

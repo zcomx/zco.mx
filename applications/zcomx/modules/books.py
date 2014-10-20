@@ -277,6 +277,8 @@ def contributions_remaining_by_creator(db, creator_entity):
     Returns:
         float, dollar amount of contributions remaining.
     """
+    # invalid-name (C0103): *Invalid %%s name "%%s"*
+    # pylint: disable=C0103
     creator = entity_to_row(db.creator, creator_entity)
     if not creator:
         return 0.00
@@ -656,6 +658,38 @@ def read_link(db, book_entity, components=None, **attributes):
     return A(*components, **kwargs)
 
 
+def update_contributions_remaining(db, book_entity):
+    """Update the contributions_remaining for the creator of the book.
+
+    Args
+        db: gluon.dal.DAL instance
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+    """
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        return
+
+    db(db.book.id == book_record.id).update(
+        contributions_remaining=calc_contributions_remaining(db, book_record)
+    )
+    db.commit()
+
+    if not book_record.creator_id:
+        return
+
+    creator_record = entity_to_row(db.creator, book_record.creator_id)
+    if not creator_record:
+        return
+
+    total = contributions_remaining_by_creator(db, creator_record)
+    if creator_record.contributions_remaining != total:
+        creator_record.update_record(
+            contributions_remaining=total
+        )
+        db.commit()
+
+
 def update_rating(db, book_entity, rating=None):
     """Update an accumulated rating for a book.
 
@@ -726,10 +760,7 @@ def update_rating(db, book_entity, rating=None):
     db.commit()
 
     if rating is None or rating == 'contribution':
-        db(db.book.id == book.id).update(
-            contributions_remaining=calc_contributions_remaining(db, book)
-        )
-        db.commit()
+        update_contributions_remaining(db, book)
 
 
 def url(book_entity, **url_kwargs):

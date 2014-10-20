@@ -42,6 +42,7 @@ from applications.zcomx.modules.books import \
     publication_year_range, \
     publication_years, \
     read_link, \
+    update_contributions_remaining, \
     update_rating, \
     url, \
     url_name
@@ -941,6 +942,63 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['type'], 'button')
         self.assertEqual(anchor['target'], '_blank')
+
+    def test__update_contributions_remaining(self):
+        creator = self.add(db.creator, dict(
+            email='test__update_contributions_remaining@eg.com'
+        ))
+
+        book_contributions = lambda b: calc_contributions_remaining(db, b)
+        creator_contributions = lambda c: entity_to_row(db.creator, c.id).contributions_remaining
+
+        # Creator has no books
+        self.assertEqual(creator_contributions(creator), 0)
+
+        book = self.add(db.book, dict(
+            name='test__contributions_remaining_by_creator',
+            creator_id=creator.id,
+        ))
+        self._set_pages(db, book.id, 10)
+        update_contributions_remaining(db, book)
+        self.assertEqual(creator_contributions(creator), 100.00)
+        self.assertEqual(book_contributions(book), 100.00)
+
+        # Book has one contribution
+        self.add(db.contribution, dict(
+            book_id=book.id,
+            amount=15.00,
+        ))
+        update_contributions_remaining(db, book)
+        self.assertEqual(creator_contributions(creator), 85.00)
+        self.assertEqual(book_contributions(book), 85.00)
+
+        # Book has multiple contribution
+        self.add(db.contribution, dict(
+            book_id=book.id,
+            amount=35.99,
+        ))
+        update_contributions_remaining(db, book)
+        self.assertEqual(creator_contributions(creator), 49.01)
+        self.assertEqual(book_contributions(book), 49.01)
+
+        # Creator has multiple books.
+        book_2 = self.add(db.book, dict(
+            name='test__contributions_remaining_by_creator',
+            creator_id=creator.id,
+        ))
+        self._set_pages(db, book_2.id, 5)
+        update_contributions_remaining(db, book_2)
+        self.assertAlmostEqual(creator_contributions(creator), 99.01)
+        self.assertEqual(book_contributions(book), 49.01)
+        self.assertEqual(book_contributions(book_2), 50.00)
+
+        # Creator contributions_remaining should be updated by any of it's
+        # books.
+        creator.update_record(contributions_remaining=0)
+        db.commit()
+        self.assertEqual(creator_contributions(creator), 0)
+        update_contributions_remaining(db, book)
+        self.assertAlmostEqual(creator_contributions(creator), 99.01)
 
     def test__update_rating(self):
         book = self.add(db.book, dict(name='test__update_rating'))
