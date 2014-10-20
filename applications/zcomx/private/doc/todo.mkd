@@ -14,8 +14,6 @@ VERSION 2 - Before Going Live
         flipbooks
         very simple art vs high detail
     [x] Add 'Contribute' button below 'Read' and 'Download'
-        [ ] hmm yeah, this needs more thought
-            Maybe a small modal?
 
 [x] Front Page -> Contribution Report
     * If no paypal address, then do not display book
@@ -32,17 +30,33 @@ VERSION 2 - Before Going Live
         Remaining - a total of the money remaining for all their books
         all-charles_forsman.torrent - just a link, not a button
         contribute button - if paypal address, otherwise leave blank
-[ ] Front Page - creators report
-    [ ] Change the name of the report from 'creators' to 'cartoonists'
-    [ ] Add header 'Remaining' to the remaining dollar amount column
-    [ ] Change format on the Remaining column to dollars, eg 1500.00 -> $1,500.00
-    [ ] Change the colour of the dollar totals in the Remaininig column to #D04444
+[x] Front Page - creators report
+    [x] Change the name of the report from 'creators' to 'cartoonists'
+    [x] Add header 'Remaining' to the remaining dollar amount column
+    [x] Change format on the Remaining column to dollars, eg 1500.00 -> $1,500.00
+    [x] Change the colour of the dollar totals in the Remaininig column to #D04444
+
+[ ] Front Page - cartoonist report
+    [ ] Make 'Remaining' header sortable
+    [ ] Set column to a fixed width
 
 [x] Cartoonist Page
     By default sort book list by Title
 
 ---
-[ ] newest pages == ongoing or 'recent' or 'new ongoing' or 'recently updated' or 'latest'
+[ ] Contribute Button
+    * Have the 'Contribute' button go to the paypal page with an
+      editable input box.
+    * If the button is related to a cartoonist, then display the
+      cartoonist's name on the paypal page and associate the dollar
+      amount to the highest book amount.
+    * If the button is related to a book, then display the name of the
+      book on the paypal page and associate the dollar amount to that
+      book.
+    * In order to have an editable input box on the paypal page, we'll
+      need to dig into the more complex paypal API method
+
+[ ] newest pages == 'ongoing' or 'recent' or 'latest'
     cbz or releases or new releases
     downloads
 
