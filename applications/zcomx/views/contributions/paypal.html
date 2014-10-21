@@ -2,7 +2,7 @@
 response.files.insert(0,URL('static','js/jquery.js'))
 response.include_files()
 }}
-<form id="paypal_form" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+<form id="paypal_form" action="{{=paypal_url}}" method="post" target="_top">
 <input type="hidden" name="cmd" value="_donations">
 <input type="hidden" name="business" value="{{=business}}">
 <input type="hidden" name="lc" value="CA">
@@ -16,5 +16,6 @@ response.include_files()
 <input type="hidden" name="currency_code" value="USD">
 <input type="hidden" name="no_note" value="0">
 <input type="hidden" name="bn" value="PP-DonationsBF:btn_donate_SM.gif:NonHostedGuest">
+<input type="hidden" name="notify_url" value="{{=notify_url}}">
 </form>
 <script src="{{=URL(c='static', f='js/paypal.js')}}"> </script>

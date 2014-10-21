@@ -2,7 +2,7 @@
 """
 Controllers for contributions.
 """
-
+import sys
 from applications.zcomx.modules.books import \
     ContributionEvent, \
     default_contribute_amount
@@ -50,36 +50,65 @@ def paypal():
         # Contribute to a creator's book.
         book_record = entity_to_row(db.book, request.args(0))
         creator = None
+        auth_user = None
         if book_record:
             creator = entity_to_row(db.creator, book_record.creator_id)
+        if creator:
+            auth_user = entity_to_row(db.auth_user, creator.auth_user_id)
 
         business = creator.paypal_email or ''
-        item_name = book_record.name or ''
+        item_name = 'zco.mx book'
+        if book_record and auth_user:
+            item_name = '{b} ({c})'.format(
+                b=book_record.name, c=auth_user.name)
         item_number = book_record.id or ''
         amount = request.vars.amount if 'amount' in request.vars else ''
     else:
-        # Contribute to zcomx.com
-        business = 'show.me@zcomx.com'
-        item_name = 'zcomx.com'
+        # Contribute to zco.mx
+        business = 'show.me@zco.mx'
+        item_name = 'zco.mx'
         item_number = None
         amount = ''
 
+    paypal_url = 'https://www.paypal.com/cgi-bin/webscr'
+    notify_url = URL(
+        c='contributions', f='paypal_notify', scheme='https', host=True)
+    if DEBUG:
+        paypal_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr'
+        notify_url = 'https://dev.zco.mx/contributions/paypal_notify.html'
+
     return dict(
+        amount=amount,
         business=business,
         item_name=item_name,
         item_number=item_number,
-        amount=amount,
+        notify_url=notify_url,
+        paypal_url=paypal_url,
     )
 
 
-def record():
-    """Controller to record the contribution.
+def paypal_notify():
+    """Controller for paypal notifications (notify_url)"""
+    response.generic_patterns = ['html']
 
-    request.args(0): id of book
-    request.vars.amount: double, amount to contribute
+    if request.vars.payment_status == 'Completed':
+        valid = True
+        try:
+            book_id = int(request.vars.item_number)
+        except (TypeError, ValueError):
+            print >> sys.stderr, \
+                'Invalid book item_number: {i}'.format(
+                    i=request.vars.item_number)
+            valid = False
 
-    """
-    if request.args(0) and request.vars.amount:
-        ContributionEvent(request.args(0), auth.user_id or 0).log(
-            request.vars.amount)
-    redirect(URL('paypal', args=request.args, vars=request.vars))
+        try:
+            amount = float(request.vars.payment_gross)
+        except (TypeError, ValueError):
+            print >> sys.stderr, \
+                'Invalid gross payment: {i}'.format(
+                    i=request.vars.payment_gross)
+            valid = False
+        if valid:
+            ContributionEvent(book_id, 0).log(amount)
+
+    return dict()
