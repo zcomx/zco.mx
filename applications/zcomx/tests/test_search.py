@@ -22,8 +22,33 @@ class TestSearch(LocalTestCase):
     def test____init__(self):
         search = Search()
         self.assertTrue(search)
-        self.assertTrue('newest pages' in search.order_fields)
+        self.assertTrue('newest' in search.order_fields)
         self.assertTrue('views' in search.order_fields)
+
+    def test__label(self):
+        search = Search()
+
+        # Invalid orderby_key
+        self.assertEqual(search.label('_fake_', 'tab_label'), '_fake_')
+
+        # No 'label' key
+        search.order_fields['_test_'] = {}
+        self.assertEqual(search.label('_test_', 'tab_label'), '_test_')
+
+        # No 'tab_label' or 'header_label' keys
+        search.order_fields['_test_']['label'] = '_label_'
+        self.assertEqual(search.label('_test_', 'tab_label'), '_label_')
+        self.assertEqual(search.label('_test_', 'header_label'), '_label_')
+
+        # Has 'tab_label', no 'header_label' keys
+        search.order_fields['_test_']['tab_label'] = '_tab_label_'
+        self.assertEqual(search.label('_test_', 'tab_label'), '_tab_label_')
+        self.assertEqual(search.label('_test_', 'header_label'), '_label_')
+
+        # Has 'tab_label' and 'header_label' keys
+        search.order_fields['_test_']['header_label'] = '_header_label_'
+        self.assertEqual(search.label('_test_', 'tab_label'), '_tab_label_')
+        self.assertEqual(search.label('_test_', 'header_label'), '_header_label_')
 
     def test__set(self):
         search = Search()

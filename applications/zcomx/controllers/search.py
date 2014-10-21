@@ -18,13 +18,6 @@ def index():
 
 def list_grid():
     """Search results list grid."""
-    db.book.contributions_year.readable = False
-    db.book.contributions_month.readable = False
-    db.book.rating_year.readable = False
-    db.book.rating_month.readable = False
-    db.book.views_year.readable = False
-    db.book.views_month.readable = False
-
     # Two forms can be placed on the same page. Make sure the formname is
     # unique.
 

@@ -39,7 +39,8 @@ viewby = request.vars.view if request.vars.view and request.vars.view in viewbys
             <li class="nav-tab {{if o == orderby:}}active{{pass}}">
                 {{orderby_vars = dict(request.vars)}}
                 {{orderby_vars['o'] = o}}
-                <a href="{{=URL(r=request, vars=orderby_vars)}}">{{=order_fields[o]['tab_label']}}</a>
+                {{label = Search.label(o, 'tab_label')}}
+                <a href="{{=URL(r=request, vars=orderby_vars)}}">{{=label}}</a>
             </li>
         {{pass}}
         </ul>

@@ -28,27 +28,24 @@ class Search(object):
         'fmt': lambda x: '${v:0.0f}'.format(v=x),
         'label': 'remaining',
         'tab_label': 'contributions',
-        'periods': False,
         'class': 'orderby_contributions',
         'order_dir': 'ASC',
     }
-    order_fields['newest pages'] = {
+    order_fields['newest'] = {
         'table': 'book_page',
         'field': 'created_on',
         'fmt': lambda x: str(x.date()) if x is not None else 'n/a',
         'label': 'page added',
         'tab_label': 'newest pages',
-        'periods': False,
+        'header_label': 'added',
         'class': 'orderby_newest_pages',
         'order_dir': 'DESC',
     }
     order_fields['views'] = {
         'table': 'book',
-        'field': 'views',
+        'field': 'views_year',
         'fmt': lambda x: '{v}'.format(v=x),
         'label': 'views',
-        'tab_label': 'views',
-        'periods': True,
         'class': 'orderby_views',
         'order_dir': 'DESC',
     }
@@ -58,7 +55,6 @@ class Search(object):
         'fmt': lambda v: '${v:0,.2f}'.format(v=v),
         'label': 'remaining',
         'tab_label': 'cartoonists',
-        'periods': False,
         'class': 'orderby_creators',
         'order_dir': 'ASC',
     }
@@ -68,6 +64,23 @@ class Search(object):
         self.grid = None
         self.orderby_field = None
         self.paginate = 0
+
+    @classmethod
+    def label(cls, orderby_key, key):
+        """Return a label for an order_field
+
+        The first found of these is returned:
+            order_field[key]
+            order_field['label']
+            orderby_key
+        """
+        if orderby_key not in cls.order_fields:
+            return orderby_key
+        keys = [key, 'label']
+        for k in keys:
+            if k in cls.order_fields[orderby_key]:
+                return cls.order_fields[orderby_key][k]
+        return orderby_key
 
     def set(self, db, request, grid_args=None):
         """Set the grid.
@@ -79,6 +92,13 @@ class Search(object):
         """
         # C0103: *Invalid name "%%s" (should match %%s)*
         # pylint: disable=C0103
+        orderby_key = request.vars.o \
+            if request.vars.o and request.vars.o in self.order_fields.keys() \
+            else 'contributions'
+        orderby_field = self.order_fields[orderby_key]
+        self.orderby_field = orderby_field
+        orderby_table = orderby_field['table']
+        orderby_fieldname = orderby_field['field']
 
         queries = []
 
@@ -112,23 +132,10 @@ class Search(object):
                 (db.auth_user.name.contains(request.vars.kw))
             )
 
-        period = 'month' if request.vars.period == 'month' else 'year'
-
-        orderby_key = request.vars.o \
-            if request.vars.o and request.vars.o in self.order_fields.keys() \
-            else 'contributions'
-        orderby_field = self.order_fields[orderby_key]
-        self.orderby_field = orderby_field
-
         if orderby_key == 'contributions':
             queries.append(db.book.contributions_remaining > 0)
             queries.append(db.creator.paypal_email != '')
 
-        if orderby_field['periods']:
-            orderby_fieldname = '{f}_{p}'.format(
-                f=orderby_field['field'], p=period)
-        else:
-            orderby_fieldname = orderby_field['field']
         orderby = [db[orderby_field['table']][orderby_fieldname]]
         if orderby_field['order_dir'] == 'DESC':
             orderby[0] = ~orderby[0]
@@ -164,17 +171,28 @@ class Search(object):
             hide(db.book.publication_year)
         hide(db.book.release_date)
         hide(db.creator.id)
-        hide(db.creator.paypal_email)
-        if orderby_key != 'creators':
-            hide(db.creator.contributions_remaining)
-
         if request.vars.view != 'list' or not creator:
             show(db.auth_user.name)
-
         db.auth_user.name.represent = lambda v, row: A(
             v,
             _href=creator_url(row.creator.id, extension=False)
         )
+        hide(db.creator.paypal_email)
+        if orderby_key == 'newest':
+            db.book_page.created_on.represent = lambda v, row: str(v.date()) \
+                if v is not None else 'n/a'
+
+        for k, v in self.order_fields.items():
+            if orderby_key == k:
+                show(db[v['table']][v['field']])
+            else:
+                hide(db[v['table']][v['field']])
+
+        if request.vars.creator_id:
+            hide(db.auth_user.name)
+
+        db[orderby_table][orderby_fieldname].represent = \
+            lambda v, row: orderby_field['fmt'](v)
 
         fields = [
             db.book.id,
@@ -184,13 +202,8 @@ class Search(object):
             db.book.of_number,
             db.book.publication_year,
             db.book.release_date,
-            db.book.contributions_year,
-            db.book.contributions_month,
             db.book.contributions_remaining,
-            db.book.rating_year,
-            db.book.rating_month,
             db.book.views_year,
-            db.book.views_month,
             db.book.created_on,
             db.creator.id,
             db.auth_user.name,
@@ -198,6 +211,14 @@ class Search(object):
             db.creator.contributions_remaining,
             db.book_page.created_on,
         ]
+
+        headers = {
+            'book.name': 'Title',
+            'auth_user.name': 'Cartoonist',
+        }
+        for k, v in self.order_fields.items():
+            key = '{t}.{f}'.format(t=v['table'], f=v['field'])
+            headers[key] = self.label(k, 'header_label').title()
 
         def link_book_id(row):
             """Return id of book associated with row."""
@@ -370,11 +391,7 @@ class Search(object):
 
         kwargs = dict(
             fields=fields,
-            headers={
-                'book.name': 'Title',
-                'auth_user.name': 'Cartoonist',
-                'creator.contributions_remaining': 'Remaining',
-            },
+            headers=headers,
             orderby=orderby,
             groupby=groupby,
             left=[

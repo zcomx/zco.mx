@@ -60,12 +60,7 @@
                                         {{=orderby_field['label']}}
                                     </div>
                                     <div class="orderby_field_value {{try:}}{{=orderby_field['class']}}{{except:}}{{pass}}">
-                                        {{if orderby_field['periods']:}}
-                                            {{period = 'month' if request.vars.period == 'month' else 'year'}}
-                                            {{fieldname = '{f}_{p}'.format(f=orderby_field['field'], p=period)}}
-                                        {{else:}}
-                                            {{fieldname = orderby_field['field']}}
-                                        {{pass}}
+                                        {{fieldname = orderby_field['field']}}
                                         {{tablename = orderby_field['table']}}
                                         {{value = row[tablename][fieldname]}}
                                         {{=orderby_field['fmt'](value)}}
