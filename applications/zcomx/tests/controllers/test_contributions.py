@@ -93,8 +93,12 @@ class TestFunctions(LocalTestCase):
         def get_contributions():
             return db(db.contribution.book_id == book.id).select()
 
+        def get_paypal_log(txn_id):
+            return db(db.paypal_log.txn_id == txn_id).select()
+
         self.assertEqual(len(get_contributions()), 0)
 
+        txn_id = '_test_paypal_notify_'
         notify_vars = {
             'address_city': 'Toronto',
             'address_country': 'Canada',
@@ -132,7 +136,7 @@ class TestFunctions(LocalTestCase):
             'tax': '0.00',
             'test_ipn': '1',
             'transaction_subject': '',
-            'txn_id': '9WB80978NF2073907',
+            'txn_id': txn_id,
             'txn_type': 'web_accept',
             'verify_sign':
                 'AAh-gjn1ENnDuooduWNAFaW4Pdn0ABa6dKmQ59z53r0b82f1KHtBteKn'
@@ -157,10 +161,16 @@ class TestFunctions(LocalTestCase):
             datetime.datetime.now(),
             delta=datetime.timedelta(minutes=1)
         )
+        logs = get_paypal_log(txn_id)
+        self.assertEqual(len(logs), 1)
+        self._objects.append(logs[0])
+        self.assertEqual(logs[0].payment_status, 'Completed')
 
         statuses = ['Denied', 'Pending']
-        for status in statuses:
+        for count, status in enumerate(statuses):
+            txn_id = '_test_paypal_notify_{idx:03d}'.format(idx=count)
             notify_vars['payment_status'] = status
+            notify_vars['txn_id'] = txn_id
             self.assertTrue(
                 web.test('{url}/paypal_notify?{q}'.format(
                         url=self.url,
@@ -172,7 +182,10 @@ class TestFunctions(LocalTestCase):
 
             contributions = get_contributions()
             self.assertEqual(len(contributions), 1)
-
+            logs = get_paypal_log(txn_id)
+            self.assertEqual(len(logs), 1)
+            self.assertEqual(logs[0].payment_status, status)
+            self._objects.append(logs[0])
 
 
 def setUpModule():

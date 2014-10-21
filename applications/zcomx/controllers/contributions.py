@@ -111,4 +111,12 @@ def paypal_notify():
         if valid:
             ContributionEvent(book_id, 0).log(amount)
 
+    paypal_log = {}
+    for f in db.paypal_log.fields:
+        if f in request.vars:
+            paypal_log[f] = request.vars[f]
+    if paypal_log:
+        db.paypal_log.insert(**paypal_log)
+        db.commit()
+
     return dict()
