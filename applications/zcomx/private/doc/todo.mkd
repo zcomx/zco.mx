@@ -37,7 +37,7 @@ VERSION 2 - Before Going Live
     [x] Change the colour of the dollar totals in the Remaininig column to #D04444
 
 [ ] Front Page - cartoonist report
-    [ ] Make 'Remaining' header sortable
+    [x] Make 'Remaining' header sortable
     [ ] Set column to a fixed width
 
 [x] Cartoonist Page
@@ -56,9 +56,10 @@ VERSION 2 - Before Going Live
     * In order to have an editable input box on the paypal page, we'll
       need to dig into the more complex paypal API method
 
-[ ] newest pages == 'ongoing' or 'recent' or 'latest'
-    cbz or releases or new releases
-    downloads
+[ ] Front Page
+    * newest pages == 'ongoing' or 'recent' or 'latest'
+    * cbz or releases or new releases
+    * downloads
 
 [ ] Add torrent and dc functionality
     Example file names:
@@ -67,9 +68,6 @@ VERSION 2 - Before Going Live
     "Name of Comic 001 (2012) (digital) (Son of Ultron-Empire).cbr"
     [ ] rewrite - https://zco.mx/ALL.torrent
     [ ] redirect - http://101.zco.mx/Name_of_Comic_01_of_04.torrent http://101.zco.mx/Name_of_Comic_001.torrent
-
-[ ] Front Page
-    add report 'newest released' (or 'released' ?)
 
 [ ] Indica Page
     [ ] html version
