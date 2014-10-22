@@ -8,10 +8,13 @@ Search classes and functions.
 import collections
 from gluon import *
 from applications.zcomx.modules.books import \
+    contribute_link as book_contribute_link, \
     formatted_name, \
     read_link, \
     url as book_url
 from applications.zcomx.modules.creators import \
+    can_receive_contributions, \
+    contribute_link as creator_contribute_link, \
     torrent_link as creator_torrent_link, \
     url as creator_url
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
@@ -231,21 +234,21 @@ class Search(object):
                 book_id = row.id
             return book_id
 
-        def creator_contribute_link(row):
-            """Return a creator 'contribute' link suitable for grid row."""
+        def creator_contribute_button(row):
+            """Return a creator 'contribute' button suitable for grid row."""
             # Only display if creator has a paypal address.
-            if not 'creator' in row or not row.creator.id \
-                    or not row.creator.paypal_email:
+            if not 'creator' in row or not row.creator.id:
                 return ''
-
-            return A(
-                'Contribute',
-                _href=creator_url(row.creator.id, extension=False),
-                _class='btn btn-default',
+            if not can_receive_contributions(db, row.creator):
+                return ''
+            return creator_contribute_link(
+                db,
+                row.creator.id,
+                **dict(_class='btn btn-default', _type='button')
             )
 
-        def contribute_link(row):
-            """Return a 'contribute' link suitable for grid row."""
+        def book_contribute_button(row):
+            """Return a 'contribute' button suitable for grid row."""
             book_id = link_book_id(row)
             if not book_id:
                 return ''
@@ -254,10 +257,10 @@ class Search(object):
             if not 'creator' in row or not row.creator.paypal_email:
                 return ''
 
-            return A(
-                'Contribute',
-                _href=book_url(book_id, extension=False),
-                _class='btn btn-default',
+            return book_contribute_link(
+                db,
+                book_id,
+                **dict(_class='btn btn-default', _type='button')
             )
 
         def download_link(row):
@@ -349,10 +352,10 @@ class Search(object):
         else:
             if orderby_key == 'creators':
                 add_link(torrent_link)
-                add_link(creator_contribute_link)
+                add_link(creator_contribute_button)
             else:
                 add_link(download_link)
-                add_link(contribute_link)
+                add_link(book_contribute_button)
 
         oncreate = None
         if editable and creator:

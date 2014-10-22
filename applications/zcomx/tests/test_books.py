@@ -28,6 +28,7 @@ from applications.zcomx.modules.books import \
     book_types, \
     by_attributes, \
     calc_contributions_remaining, \
+    contribute_link, \
     contributions_remaining_by_creator, \
     contributions_target, \
     cover_image, \
@@ -429,6 +430,70 @@ class TestFunctions(ImageTestCase):
             amount=35.99,
         ))
         self.assertEqual(calc_contributions_remaining(db, book), 49.01)
+
+    def test__contribute_link(self):
+        empty = '<span></span>'
+
+        book = self.add(db.book, dict(
+            name='test__contribute_link',
+        ))
+
+        # As integer, book_id
+        link = contribute_link(db, book.id)
+        # Eg    <a href="/contributions/paypal?book_id=3713" target="_blank">
+        #        Contribute
+        #       </a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Contribute')
+        self.assertEqual(
+            anchor['href'],
+            '/contributions/paypal?book_id={i}'.format(i=book.id)
+        )
+
+        # As Row, book
+        link = contribute_link(db, book)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Contribute')
+        self.assertEqual(
+            anchor['href'],
+            '/contributions/paypal?book_id={i}'.format(i=book.id)
+        )
+
+        # Invalid id
+        link = contribute_link(db, -1)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = contribute_link(db, book, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src="http://www.img.com")]
+        link = contribute_link(db, book, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _type='button',
+            _target='_blank',
+        )
+        link = contribute_link(db, book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Contribute')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['type'], 'button')
+        self.assertEqual(anchor['target'], '_blank')
 
     def test__contributions_remaining_by_creator(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
@@ -944,12 +1009,15 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__update_contributions_remaining(self):
+        # invalid-name (C0103): *Invalid %%s name "%%s"*
+        # pylint: disable=C0103
         creator = self.add(db.creator, dict(
             email='test__update_contributions_remaining@eg.com'
         ))
 
         book_contributions = lambda b: calc_contributions_remaining(db, b)
-        creator_contributions = lambda c: entity_to_row(db.creator, c.id).contributions_remaining
+        creator_contributions = \
+            lambda c: entity_to_row(db.creator, c.id).contributions_remaining
 
         # Creator has no books
         self.assertEqual(creator_contributions(creator), 0)

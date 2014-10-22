@@ -7,7 +7,7 @@
             </div>
         </div>
         <div class="contribute_link_container">
-        <a href="{{=URL(c='contributions', f='paypal', args=book.id, extension=False)}}" id="contribute_link">contribute</a>
+            <a href="{{=URL(c='contributions', f='paypal', vars=dict(book_id=book.id), extension=False)}}" id="contribute_link">contribute</a>
         </div>
         <div class="contribute_error"></div>
     {{pass}}

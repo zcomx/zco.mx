@@ -265,6 +265,41 @@ def calc_contributions_remaining(db, book_entity):
     return remaining
 
 
+def contribute_link(db, book_entity, components=None, **attributes):
+    """Return html code suitable for a 'Contribute' link.
+
+    Args:
+        db: gluon.dal.DAL instance
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+        components: list, passed to A(*components),  default ['Contribute']
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return empty
+
+    if not components:
+        components = ['Contribute']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='contributions',
+            f='paypal',
+            vars=dict(book_id=book.id),
+            extension=False
+        )
+    if '_target' not in attributes:
+        kwargs['_target'] = '_blank'
+
+    return A(*components, **kwargs)
+
+
 def contributions_remaining_by_creator(db, creator_entity):
     """Return the calculated contributions remaining for all books of the
     creator.
@@ -627,7 +662,7 @@ def publication_years():
 
 
 def read_link(db, book_entity, components=None, **attributes):
-    """Return html code suitable for the cover image.
+    """Return html code suitable for a 'Read' link.
 
     Args:
         db: gluon.dal.DAL instance
