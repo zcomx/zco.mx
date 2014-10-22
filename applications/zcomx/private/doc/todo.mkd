@@ -2,11 +2,17 @@
 VERSION 2 - Before Going Live
 [-] bugs/css
 
-FF7000
+[ ] Test with #FF6000
+
+[ ] https://dev.zco.mx/files/ isn't working
 
 [ ] Book Page
-    Add more space between book section and creator section
-    Read & Download buttons need to be moved -- see jonathan's email
+    [x] Add more space between book section and creator section
+    [ ] Read & Download buttons need to be moved -- See screenshot
+    [ ] remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29
+
+[ ] Reader Page
+    [ ] remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29
 
 [/] Front Page
     [x] Missing columns in reports
