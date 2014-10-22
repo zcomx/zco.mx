@@ -192,7 +192,7 @@ def data():
 
 def contribute():
     """Contribute to zcomx admin controller"""
-    redirect(URL(c='contributions', f='record', extension=False))
+    redirect(URL(c='contributions', f='paypal', extension=False))
 
 
 def faq():

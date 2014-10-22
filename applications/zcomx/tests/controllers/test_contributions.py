@@ -6,7 +6,9 @@
 Test suite for zcomx/controllers/contributions.py
 
 """
+import datetime
 import unittest
+import urllib
 from applications.zcomx.modules.test_runner import LocalTestCase
 
 
@@ -30,6 +32,7 @@ class TestFunctions(LocalTestCase):
                 ],
             'index': 'zco.mx is a not-for-profit comic-sharing website',
             'paypal': '<form id="paypal_form"',
+            'paypal_notify': '<h2>Paypal Notify</h2>',
             }
     url = '/zcomx/contributions'
 
@@ -43,8 +46,8 @@ class TestFunctions(LocalTestCase):
         cls._book = db(db.creator.paypal_email != '').select(
                 db.book.ALL,
                 left=[
-                    db.creator.on(db.book.creator_id==db.creator.id),
-                    db.book_page.on(db.book_page.book_id==db.book.id)
+                    db.creator.on(db.book.creator_id == db.creator.id),
+                    db.book_page.on(db.book_page.book_id == db.book.id)
                     ]
                 ).first()
 
@@ -60,16 +63,19 @@ class TestFunctions(LocalTestCase):
 
     def test__contribute_widget(self):
         # Should handle no id, but display nothing.
-        self.assertTrue(web.test('{url}/contribute_widget.load'.format(url=self.url),
+        self.assertTrue(web.test('{url}/contribute_widget.load'.format(
+            url=self.url),
             self.titles['contribute_widget_nada']))
 
         # Invalid id, should display nothing.
-        self.assertTrue(web.test('{url}/contribute_widget.load/{bid}'.format(url=self.url,
+        self.assertTrue(web.test('{url}/contribute_widget.load/{bid}'.format(
+            url=self.url,
             bid=self._invalid_book_id),
             self.titles['contribute_widget_nada']))
 
         # Test valid id
-        self.assertTrue(web.test('{url}/contribute_widget.load/{bid}'.format(url=self.url,
+        self.assertTrue(web.test('{url}/contribute_widget.load/{bid}'.format(
+            url=self.url,
             bid=self._book.id),
             self.titles['contribute_widget']))
 
@@ -81,10 +87,105 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test('{url}/paypal'.format(url=self.url),
             self.titles['paypal']))
 
-    def test__record(self):
-        # Record redirects
-        self.assertTrue(web.test('{url}/record'.format(url=self.url),
-            self.titles['paypal']))
+    def test__paypal_notify(self):
+        book = self.add(db.book, dict(name='Text Book'))
+
+        def get_contributions():
+            return db(db.contribution.book_id == book.id).select()
+
+        def get_paypal_log(txn_id):
+            return db(db.paypal_log.txn_id == txn_id).select()
+
+        self.assertEqual(len(get_contributions()), 0)
+
+        txn_id = '_test_paypal_notify_'
+        notify_vars = {
+            'address_city': 'Toronto',
+            'address_country': 'Canada',
+            'address_country_code': 'CA',
+            'address_name': 'Test Buyer',
+            'address_state': 'Ontario',
+            'address_status': 'confirmed',
+            'address_street': '1 Maire-Victorin',
+            'address_zip': 'M5A 1E1',
+            'business': 'showme@zco.mx',
+            'charset': 'windows-1252',
+            'custom': '',
+            'first_name': 'Test',
+            'ipn_track_id': '9313257df1a27',
+            'item_name': 'Test Book',
+            'item_number': str(book.id),
+            'last_name': 'Buyer',
+            'mc_currency': 'USD',
+            'mc_fee': '0.43',
+            'mc_gross': '4.44',
+            'notify_version': '3.8',
+            'payer_email': 'payer@gmail.com',
+            'payer_id': 'B2TM4GL9CT6CW',
+            'payer_status': 'verified',
+            'payment_date': '13:36:00 Oct 21, 2014 PDT',
+            'payment_fee': '0.43',
+            'payment_gross': '4.44',
+            'payment_status': 'Completed',
+            'payment_type': 'instant',
+            'protection_eligibility': 'Eligible',
+            'quantity': '0',
+            'receiver_email': 'showme@zcomix.com',
+            'receiver_id': '67V3XCYF92RQL',
+            'residence_country': 'CA',
+            'tax': '0.00',
+            'test_ipn': '1',
+            'transaction_subject': '',
+            'txn_id': txn_id,
+            'txn_type': 'web_accept',
+            'verify_sign':
+                'AAh-gjn1ENnDuooduWNAFaW4Pdn0ABa6dKmQ59z53r0b82f1KHtBteKn'
+        }
+
+        self.assertTrue(
+            web.test('{url}/paypal_notify?{q}'.format(
+                    url=self.url,
+                    q=urllib.urlencode(notify_vars),
+                ),
+                self.titles['paypal_notify']
+            )
+        )
+
+        contributions = get_contributions()
+        self.assertEqual(len(contributions), 1)
+        self._objects.append(contributions[0])
+        self.assertEqual(contributions[0].book_id, book.id)
+        self.assertEqual(contributions[0].amount, 4.44)
+        self.assertAlmostEqual(
+            contributions[0].time_stamp,
+            datetime.datetime.now(),
+            delta=datetime.timedelta(minutes=1)
+        )
+        logs = get_paypal_log(txn_id)
+        self.assertEqual(len(logs), 1)
+        self._objects.append(logs[0])
+        self.assertEqual(logs[0].payment_status, 'Completed')
+
+        statuses = ['Denied', 'Pending']
+        for count, status in enumerate(statuses):
+            txn_id = '_test_paypal_notify_{idx:03d}'.format(idx=count)
+            notify_vars['payment_status'] = status
+            notify_vars['txn_id'] = txn_id
+            self.assertTrue(
+                web.test('{url}/paypal_notify?{q}'.format(
+                        url=self.url,
+                        q=urllib.urlencode(notify_vars),
+                    ),
+                    self.titles['paypal_notify']
+                )
+            )
+
+            contributions = get_contributions()
+            self.assertEqual(len(contributions), 1)
+            logs = get_paypal_log(txn_id)
+            self.assertEqual(len(logs), 1)
+            self.assertEqual(logs[0].payment_status, status)
+            self._objects.append(logs[0])
 
 
 def setUpModule():
