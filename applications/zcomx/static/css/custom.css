@@ -86,7 +86,7 @@ a:hover, a:focus {
 
 hr {
     border-color: #DDDDDD;
-    border-style: dotted;
+//    border-style: dotted;
 }
 
 div.centered {
@@ -986,7 +986,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #book_page #right_column hr {
-    margin-top: 0;
+    margin-top: 2em;
+    margin-bottom: 3em;
 }
 
 #creator_id_section .creator_img_container {
