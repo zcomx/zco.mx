@@ -55,7 +55,8 @@
             var validate_amount = validate(amount);
             if (validate_amount) {
                 var href = $('#contribute_link').attr('href');
-                window.open(href + '?amount=' + validate_amount.toString());
+                var dtr = href.indexOf('?') == -1 ? '?' : '&';
+                window.open(href + dtr + 'amount=' + validate_amount.toString());
             }
             else {
                 var parent = $(this).closest('.contribute_widget');

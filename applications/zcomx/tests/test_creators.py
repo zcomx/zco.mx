@@ -13,6 +13,9 @@ from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from applications.zcomx.modules.creators import \
     add_creator, \
+    book_for_contributions, \
+    can_receive_contributions, \
+    contribute_link, \
     for_path, \
     image_as_json, \
     set_creator_path_name, \
@@ -73,6 +76,134 @@ class TestFunctions(LocalTestCase):
         add_creator(form)
         after = db(db.creator).count()
         self.assertEqual(before, after)
+
+    def test__book_for_contributions(self):
+        creator = self.add(db.creator, dict(
+            path_name='test__book_for_contributions',
+        ))
+
+        # Has no books
+        self.assertEqual(book_for_contributions(db, creator), None)
+
+        book_1 = self.add(db.book, dict(
+            creator_id=creator.id,
+            contributions_remaining=100.00,
+        ))
+
+        got = book_for_contributions(db, creator)
+        self.assertEqual(got, book_1)
+
+        # With two books, the higher remaining should be returned.
+        book_2 = self.add(db.book, dict(
+            creator_id=creator.id,
+            contributions_remaining=99.00,
+        ))
+
+        got = book_for_contributions(db, creator)
+        self.assertEqual(got, book_1)
+
+        # If contributions are applied to book so that its remaining is
+        # lower, the higher book should be returned.
+        book_1.update_record(contributions_remaining=98.00)
+        db.commit()
+
+        got = book_for_contributions(db, creator)
+        self.assertEqual(got, book_2)
+
+    def test__can_receive_contributions(self):
+        creator = self.add(db.creator, dict(
+            path_name='test__can_receive_contributions',
+            paypal_email='',
+        ))
+
+        self.assertFalse(can_receive_contributions(db, creator))
+
+        tests = [
+            #(paypal_email, expect)
+            (None, False),
+            ('', False),
+            ('paypal@paypal.com', True),
+        ]
+
+        # With no book, all tests should return False
+        for t in tests:
+            creator.update_record(paypal_email=t[0])
+            db.commit()
+            self.assertFalse(can_receive_contributions(db, creator))
+
+        self.add(db.book, dict(
+            creator_id=creator.id,
+            contributions_remaining=100.00,
+        ))
+
+        for t in tests:
+            creator.update_record(paypal_email=t[0])
+            db.commit()
+            self.assertEqual(can_receive_contributions(db, creator), t[1])
+
+    def test__contribute_link(self):
+        empty = '<span></span>'
+
+        creator = self.add(db.creator, dict(
+            path_name='test__contribute_link',
+        ))
+
+        # As integer, creator_id
+        link = contribute_link(db, creator.id)
+        # Eg   <a href="/contributions/paypal?creator_id=3713" target="_blank">
+        #       Contribute
+        #      </a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Contribute')
+        self.assertEqual(
+            anchor['href'],
+            '/contributions/paypal?creator_id={i}'.format(i=creator.id)
+        )
+
+        # As Row, creator
+        link = contribute_link(db, creator)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Contribute')
+        self.assertEqual(
+            anchor['href'],
+            '/contributions/paypal?creator_id={i}'.format(i=creator.id)
+        )
+
+        # Invalid id
+        link = contribute_link(db, -1)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = contribute_link(db, creator, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src="http://www.img.com")]
+        link = contribute_link(db, creator, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _type='button',
+            _target='_blank',
+        )
+        link = contribute_link(db, creator, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Contribute')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['type'], 'button')
+        self.assertEqual(anchor['target'], '_blank')
 
     def test__for_path(self):
 

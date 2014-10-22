@@ -48,6 +48,89 @@ def add_creator(form):
         db.commit()
 
 
+def book_for_contributions(db, creator_entity):
+    """Return the book contributions to the creator will be applied to.
+
+    Args:
+        db: gluon.dal.DAL instance
+        creator_entity: Row instance or integer, if integer, this is the id of the
+            record. The creator record is read.
+
+    Returns:
+        Row instance representing book.
+    """
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        return
+    query = (db.book.creator_id == creator.id)
+    return db(query).select(
+        db.book.ALL,
+        orderby=~db.book.contributions_remaining,
+        limitby=(0, 1),
+        ).first()
+
+
+def can_receive_contributions(db, creator_entity):
+    """Return whether a creator can receive contributions.
+
+    Args:
+        db: gluon.dal.DAL instance
+        creator_entity: Row instance or integer, if integer, this is the id of the
+            record. The creator record is read.
+
+    Returns:
+        boolean, True if creator can receive contributions.
+    """
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        return False
+
+    # Must have paypal email
+    if not creator.paypal_email:
+        return False
+
+    # Must have a book for contributions.
+    book = book_for_contributions(db, creator_entity)
+    if not book:
+        return False
+    return True
+
+
+def contribute_link(db, creator_entity, components=None, **attributes):
+    """Return html code suitable for a 'Contribute' link.
+
+    Args:
+        db: gluon.dal.DAL instance
+        creator_entity: Row instance or integer, if integer, this is the id of the
+            record. The creator record is read.
+        components: list, passed to A(*components),  default ['Contribute']
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        return empty
+
+    if not components:
+        components = ['Contribute']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='contributions',
+            f='paypal',
+            vars=dict(creator_id=creator.id),
+            extension=False
+        )
+    if '_target' not in attributes:
+        kwargs['_target'] = '_blank'
+
+    return A(*components, **kwargs)
+
+
 def for_path(name):
     """Scrub name so it is suitable for use in a file path or url.
 

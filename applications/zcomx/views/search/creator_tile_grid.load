@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.creators import url}}
+{{from applications.zcomx.modules.creators import can_receive_contributions, contribute_link, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription, entity_to_row}}
 {{if grid.rows:}}
@@ -48,8 +48,8 @@
                                     <a href="{{=creator_url}}" class="btn btn-default btn-sm" type="button" data-w2p_disable_with="default">Download</a>
                                     </div >
                                     <div class="contribute button_container">
-                                    {{if row.creator.paypal_email:}}
-                                    <a href="{{=creator_url}}" class="btn btn-default btn-sm" type="button" data-w2p_disable_with="default">Contribute</a>
+                                    {{if can_receive_contributions(db, row.creator):}}
+                                    {{=contribute_link(db, row.creator, **dict(_class='btn btn-default', _type='button'))}}
                                     {{else:}}
                                     <span>&nbsp;</span>
                                     {{pass}}

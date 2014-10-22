@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import cover_image, formatted_name, read_link, url as book_url}}
+{{from applications.zcomx.modules.books import contribute_link, cover_image, formatted_name, read_link, url as book_url}}
 {{from applications.zcomx.modules.creators import url as creator_url}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{if grid.rows:}}
@@ -54,7 +54,7 @@
                                     </div >
                                     <div class="contribute button_container">
                                     {{if row.creator.paypal_email:}}
-                                    <a href="{{=book_url(row.book.id, extension=False)}}" class="btn btn-default btn-sm" type="button" data-w2p_disable_with="default">Contribute</a>
+                                    {{=contribute_link(db, row.book.id, **dict(_class='btn btn-default btn-sm', _type='button'))}}
                                     {{else:}}
                                     <span>&nbsp;</span>
                                     {{pass}}
