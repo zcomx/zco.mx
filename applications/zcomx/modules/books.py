@@ -290,12 +290,10 @@ def contribute_link(db, book_entity, components=None, **attributes):
     if '_href' not in attributes:
         kwargs['_href'] = URL(
             c='contributions',
-            f='paypal',
+            f='modal',
             vars=dict(book_id=book.id),
             extension=False
         )
-    if '_target' not in attributes:
-        kwargs['_target'] = '_blank'
 
     return A(*components, **kwargs)
 

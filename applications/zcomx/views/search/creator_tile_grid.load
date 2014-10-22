@@ -49,7 +49,7 @@
                                     </div >
                                     <div class="contribute button_container">
                                     {{if can_receive_contributions(db, row.creator):}}
-                                    {{=contribute_link(db, row.creator, **dict(_class='btn btn-default', _type='button'))}}
+                                    {{=contribute_link(db, row.creator, **dict(_class='btn btn-default contribute_button', _type='button'))}}
                                     {{else:}}
                                     <span>&nbsp;</span>
                                     {{pass}}
@@ -81,3 +81,11 @@
 {{else:}}
 No records found.
 {{pass}}
+<script src="{{=URL(r=request, c='static', f='js/contribute_button.js')}}"> </script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('.contribute_button').contribute_button();
+    });
+//]]>
+</script>

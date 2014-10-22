@@ -244,7 +244,10 @@ class Search(object):
             return creator_contribute_link(
                 db,
                 row.creator.id,
-                **dict(_class='btn btn-default', _type='button')
+                **dict(
+                    _class='btn btn-default contribute_button',
+                    _type='button'
+                )
             )
 
         def book_contribute_button(row):
@@ -260,7 +263,10 @@ class Search(object):
             return book_contribute_link(
                 db,
                 book_id,
-                **dict(_class='btn btn-default', _type='button')
+                **dict(
+                    _class='btn btn-default contribute_button',
+                    _type='button'
+                )
             )
 
         def download_link(row):

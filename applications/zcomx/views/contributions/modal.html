@@ -1,0 +1,48 @@
+{{from applications.zcomx.modules.books import formatted_name}}
+
+<div id="contribute_modal_page">
+
+Thank you for your contributions.
+{{if book or auth_user:}}
+Contributions go directly to the cartoonist. Your support enables and
+encourages creators to produce more of the books we love.
+<div class="row modal_params_container">
+    <div class="col-sm-8" id="options_section">
+    {{if auth_user:}}
+    <div class="row" id="options_section">
+        <label class="col-sm-4">creator</label>
+        <div class="col-sm-8">{{=auth_user.name}}</div>
+    </div>
+    {{pass}}
+    {{if book:}}
+    <div class="row" id="options_section">
+        <label class="col-sm-4">book</label>
+        <div class="col-sm-8">{{=formatted_name(db, book)}}</div>
+    </div>
+    {{pass}}
+    </div>
+</div>
+
+{{else:}}
+zco.mx is not-for-profit. Your donations help cover the costs of hosting
+servers and bandwidth.
+{{pass}}
+
+<div id="contribute_widget_container"></div>
+
+</div>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        {{widget_vars = {} }}
+        {{if book:}}
+        {{widget_vars['book_id'] = book.id}}
+        {{elif creator:}}
+        {{widget_vars['creator_id'] = creator.id}}
+        {{pass}}
+        {{url = URL(c='contributions', f='contribute_widget', vars=widget_vars, extension='load')}}
+        var url = "{{=url}}";
+        web2py_component(url, 'contribute_widget_container');
+    });
+//]]>
+</script>

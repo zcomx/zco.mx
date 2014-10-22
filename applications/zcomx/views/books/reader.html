@@ -98,7 +98,7 @@
                         {{if creator.paypal_email:}}
                         <li>
                             <div id="contribute_widget_container">
-                                {{=LOAD(c='contributions', f='contribute_widget', args=book.id, extension='load', ajax=True, content='')}}
+                                {{=LOAD(c='contributions', f='contribute_widget', vars={'book_id': book.id}, extension='load', ajax=True, content='')}}
                             </div>
                         </li>
                         {{pass}}

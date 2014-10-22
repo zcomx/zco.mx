@@ -18,27 +18,78 @@ LOG = logging.getLogger('app')
 def contribute_widget():
     """Contribute widget component controller.
 
-    request.args(0): id of book
+    request.vars.book_id: id of book, optional
+    request.vars.creator_id: id of creator, optional
+
+    if request.vars.book_id is provided, a contribution to a book is presumed.
+    if request.vars.creator_id is provided, a contribution to a creator is
+        presumed.
+    if neither request.vars.book_id nor request.vars.creator_id are provided
+        a contribution to zco.mx is presumed.
+    request.vars.book_id takes precendence over request.vars.creator_id.
 
     Notes:
+        This function doesnt' check if the creator is eligible for
+        contributions. Do this before calling.
         If any errors occur, nothing is displayed.
     """
     book_record = None
-    if request.args(0):
-        book_record = entity_to_row(db.book, request.args(0))
+    creator_record = None
+    if request.vars.book_id:
+        book_record = entity_to_row(db.book, request.vars.book_id)
 
-    creator = None
     if book_record:
-        creator = entity_to_row(db.creator, book_record.creator_id)
-        amount = '{a:0.2f}'.format(
-            a=default_contribute_amount(db, book_record))
-    else:
-        amount = 1.00
+        creator_record = entity_to_row(db.creator, book_record.creator_id)
+
+    if not creator_record and request.vars.creator_id:
+        creator_record = entity_to_row(db.creator, request.vars.creator_id)
+
+    amount = default_contribute_amount(db, book_record) if book_record \
+        else 1.00
+
+    paypal_vars = {}
+    if book_record:
+        paypal_vars['book_id'] = book_record.id
+    elif creator_record:
+        paypal_vars['creator_id'] = creator_record.id
 
     return dict(
-        amount=amount,
+        amount='{a:0.2f}'.format(a=amount),
+        paypal_vars=paypal_vars,
+    )
+
+
+def modal():
+    """Contributions input controller for modal view.
+
+    request.vars.book_id: id of book, optional
+    request.vars.creator_id: id of creator, optional
+
+    if request.vars.book_id is provided, a contribution to a book is presumed.
+    if request.vars.creator_id is provided, a contribution to a creator is
+        presumed.
+    if neither request.vars.book_id nor request.vars.creator_id are provided
+        a contribution to zco.mx is presumed.
+    request.vars.book_id takes precendence over request.vars.creator_id.
+    """
+    book_record = None
+    if request.vars.book_id:
+        book_record = entity_to_row(db.book, request.vars.book_id)
+
+    creator_record = None
+    if book_record:
+        creator_record = entity_to_row(db.creator, book_record.creator_id)
+
+    if not book_record and request.vars.creator_id:
+        creator_record = entity_to_row(db.creator, request.vars.creator_id)
+    auth_user_record = None
+    if creator_record:
+        auth_user_record = entity_to_row(
+            db.auth_user, creator_record.auth_user_id)
+    return dict(
+        auth_user=auth_user_record,
         book=book_record,
-        creator=creator,
+        creator=creator_record,
     )
 
 

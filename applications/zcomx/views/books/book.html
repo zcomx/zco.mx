@@ -30,7 +30,7 @@
                 </div>
                 <div id="book_specs_column">
                     <div id="contribute_widget_container">
-                    {{=LOAD(c='contributions', f='contribute_widget', args=book.id, extension='load', ajax=True, content='')}}
+                        {{=LOAD(c='contributions', f='contribute_widget', vars={'book_id': book.id}, extension='load', ajax=True, content='')}}
                     </div>
                     <div id="book_links">
                         <dl class="dl-horizontal">
@@ -85,4 +85,3 @@
 
     </div>
 </div>
-<script src="{{=URL(c='static', f='js/description.js')}}"> </script>

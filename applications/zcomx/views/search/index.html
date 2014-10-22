@@ -47,3 +47,13 @@ viewby = request.vars.view if request.vars.view and request.vars.view in viewbys
 </div>
 
 </div>
+
+{{block post_bootstrap_js}}
+    {{if DEBUG:}}
+    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
+    {{else:}}
+    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
+    {{pass}}
+{{end}}
+
+

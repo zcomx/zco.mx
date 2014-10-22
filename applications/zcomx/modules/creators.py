@@ -53,8 +53,8 @@ def book_for_contributions(db, creator_entity):
 
     Args:
         db: gluon.dal.DAL instance
-        creator_entity: Row instance or integer, if integer, this is the id of the
-            record. The creator record is read.
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the record. The creator record is read.
 
     Returns:
         Row instance representing book.
@@ -67,7 +67,7 @@ def book_for_contributions(db, creator_entity):
         db.book.ALL,
         orderby=~db.book.contributions_remaining,
         limitby=(0, 1),
-        ).first()
+    ).first()
 
 
 def can_receive_contributions(db, creator_entity):
@@ -75,8 +75,8 @@ def can_receive_contributions(db, creator_entity):
 
     Args:
         db: gluon.dal.DAL instance
-        creator_entity: Row instance or integer, if integer, this is the id of the
-            record. The creator record is read.
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the record. The creator record is read.
 
     Returns:
         boolean, True if creator can receive contributions.
@@ -101,8 +101,8 @@ def contribute_link(db, creator_entity, components=None, **attributes):
 
     Args:
         db: gluon.dal.DAL instance
-        creator_entity: Row instance or integer, if integer, this is the id of the
-            record. The creator record is read.
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the record. The creator record is read.
         components: list, passed to A(*components),  default ['Contribute']
         attributes: dict of attributes for A()
     """
@@ -121,12 +121,10 @@ def contribute_link(db, creator_entity, components=None, **attributes):
     if '_href' not in attributes:
         kwargs['_href'] = URL(
             c='contributions',
-            f='paypal',
+            f='modal',
             vars=dict(creator_id=creator.id),
             extension=False
         )
-    if '_target' not in attributes:
-        kwargs['_target'] = '_blank'
 
     return A(*components, **kwargs)
 

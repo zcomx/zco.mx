@@ -861,6 +861,38 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+#contribute_modal_page {
+    margin: 1em;
+}
+
+#contribute_modal_page .modal_params_container {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+#contribute_modal_page .modal_params_container label {
+    text-align: right;
+}
+
+#contribute_modal_page #contribute_widget_container {
+    margin: 0 0 0 1em;
+}
+
+@media screen and (min-width: 768px){
+    #contribute_modal_page .modal_params_container {
+        margin: 1em;
+    }
+
+    #contribute_modal_page #contribute_widget_container {
+        margin: 1em 1em 1em 3em;
+    }
+
+    .contribute_modal .modal-dialog {
+        width: 60%;
+        margin-left: 20%;
+    }
+
+}
 
 #creator_page #name h1 {
     margin: 0;

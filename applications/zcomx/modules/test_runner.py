@@ -617,7 +617,6 @@ class LocalWebClient(WebClient):
 
         match_text = ' '.join(self.text.split()) \
             if tolerate_whitespace else self.text
-        self.dump = True
         if self.dump:
             dump_dir = '/root/tmp/dumps'
             if not os.path.exists(dump_dir):
