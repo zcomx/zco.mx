@@ -16,7 +16,7 @@
     <div class="col-sm-7" id="right_column">
         <div class="row">
             <div id="book_name">
-                {{=formatted_name(db, book)}}
+                {{=formatted_name(db, book, include_publication_year=(book.release_date != None))}}
             </div>
             {{=ItemDescription(book.description).as_html(**dict(_id='book_description'))}}
             <div id="book_id_section">

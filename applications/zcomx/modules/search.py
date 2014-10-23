@@ -135,7 +135,7 @@ class Search(object):
                 (db.auth_user.name.contains(request.vars.kw))
             )
 
-        if orderby_key == 'contributions':
+        if orderby_key == 'contributions' and not creator:
             queries.append(db.book.contributions_remaining > 0)
             queries.append(db.creator.paypal_email != '')
 
