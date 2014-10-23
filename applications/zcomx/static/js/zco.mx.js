@@ -17,6 +17,19 @@
         }.bind(this), 1000);
 
         set_viewport_size();
+
+        $('#about_link').click(function(e) {
+            if( $('#intro_section').css('display') == 'none') {
+                $('#intro_section').show(200, function() {
+                    $(this).animate({'opacity': 1}, 200);
+                })
+            } else {
+                $('#intro_section').animate({'opacity': 0}, 200, function(){
+                    $(this).hide(200);
+                });
+            }
+            e.preventDefault();
+        });
     });
 
 }());

@@ -212,6 +212,10 @@ div.centered table {
     padding: 0.4em 0 0.4em 0.4em;
 }
 
+.breadcrumb_container .breadcrumb.right {
+    padding-right: 0.4em;
+}
+
 .breadcrumb_container .breadcrumb a {
     color: #FFFFFF;
 }
@@ -1901,9 +1905,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #intro_section {
+    display: none;
     margin-left: auto;
     margin-right: auto;
+    opacity: 0;
     width: 300px;
+    padding-bottom: 1.6em;
 }
 
 /* temp stuff start \\\*/
