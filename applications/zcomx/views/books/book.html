@@ -1,5 +1,5 @@
 {{from applications.zcomx.modules.books import formatted_name}}
-{{from applications.zcomx.modules.creators import url}}
+{{from applications.zcomx.modules.creators import can_receive_contributions, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
@@ -30,7 +30,9 @@
                 </div>
                 <div id="book_specs_column">
                     <div id="contribute_widget_container">
+                        {{if can_receive_contributions(db, creator):}}
                         {{=LOAD(c='contributions', f='contribute_widget', vars={'book_id': book.id}, extension='load', ajax=True, content='')}}
+                        {{pass}}
                     </div>
                     <div id="book_links">
                         <dl class="dl-horizontal">
