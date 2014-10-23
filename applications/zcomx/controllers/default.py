@@ -197,6 +197,9 @@ def contribute():
 
 def faq():
     """FAQ page"""
+    response.files.append(
+        URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
+    )
     return dict(text=markmin_content('faq.mkd'))
 
 
@@ -214,6 +217,9 @@ def files():
 
 def goodwill():
     """Goodwill page"""
+    response.files.append(
+        URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
+    )
     return dict(text=markmin_content('goodwill.mkd'))
 
 
