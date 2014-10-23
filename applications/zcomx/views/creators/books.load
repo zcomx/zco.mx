@@ -27,11 +27,11 @@
 {{func = 'tile_grid' if request.vars.view == 'tile' else 'list_grid'}}
 {{if request.vars.can_release:}}
 <div class="grid_section">
-{{=LOAD(c='search', f=func, vars={'creator_id': request.args(0), 'released': 1}, extension='load', ajax=True)}}
+{{=LOAD(c='search', f=func, vars={'creator_id': request.args(0), 'released': 1, 'o': 'contributions'}, extension='load', ajax=True)}}
 </div>
 
 <div class="row grid_section_header"><h4>Ongoing</h4></div>
 {{pass}}
 <div class="grid_section">
-{{=LOAD(c='search', f=func, vars={'creator_id': request.args(0), 'released': 0, 'order': request.vars.order}, extension='load', ajax=True)}}
+{{=LOAD(c='search', f=func, vars={'creator_id': request.args(0), 'released': 0, 'o': 'contributions', 'order': request.vars.order}, extension='load', ajax=True)}}
 </div>
