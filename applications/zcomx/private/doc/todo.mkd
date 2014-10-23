@@ -2,21 +2,13 @@
 VERSION 2 - Before Going Live
 [-] bugs/css
 
-[ ] Test with #FF6000
+[ ] Search/Filtering UX
 
-[ ] https://dev.zco.mx/files/ isn't working
+[x] Change default colour to #FF6600
 
-[ ] Book Page
+[x] Book Page
     [x] Add more space between book section and creator section
-    [ ] Read & Download buttons need to be moved -- See screenshot
-    [ ] remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29
-
-[ ] Reader Page
-    [ ] remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29
-
-[/] Front Page
-    [x] Missing columns in reports
-    [ ] Add padding to data that is right justified
+    [x] Move Read & Download buttons inward and widen the buttons
 
 [ ] Paypal
     * Have the 'Contribute' button go to the paypal page with an
@@ -30,18 +22,55 @@ VERSION 2 - Before Going Live
     * In order to have an editable input box on the paypal page, we'll
       need to dig into the more complex paypal API method
 
-[ ] Front Page
-    * ongoing (change 'newest pages' to this)
-        * tile view shows and is sorted by 'page added'
-        * list view has all stats related to ongoing (date, views, remaining)
-    * releases
-        * tile view shows and is sorted by 'release date'
-        * list view has all stats related to ongoing (date, downloads, remaining)
+[/] Book Page
+    [ ] remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29
 
-[ ] About
-    * Add an 'about' link to the navbar on the right
+[/] Reader Page
+    [ ] remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29/001
+
+[/] Front Page
+    [x] Missing columns in reports
+    [ ] Add padding to data that is right justified
+
+[ ] Front Page
+    Four reports:
+    1. ongoing (change 'newest pages' to this)
+        * tile view - shows and is sorted by 'page added'
+        * list view - has all stats related to ongoing
+            + title, added (date), views, remaining, cartoonist, read, download, contribute
+    2. releases
+        * tile view - shows and is sorted by 'release date'
+        * list view - has all stats related to ongoing
+            + title, year, released (date), downloads, remaining, cartoonist, read, download, contribute
+
+    3. contributions
+        * tile view - leave how it is now
+        * list view - current columns are fine.  Change 'Published' header to 'Year'
+
+    4. cartoonists
+        * both tile and list view are fine
+
+[/] About
+    * Add an 'about' link to the navbar on the right, to the left of the search box
     * Use some js to display the 'about balloon'
 
+[ ] Add zco.mx/expenses
+
+[ ] Front Page
+    cartoonist report - sort my 'Cartoonist'
+
+[ ] Site Navigation
+
+    home > cartoonist > book > read
+
+    * Make 'home' a link on the front page
+
+    JR: the non-branding of the top of the site makes me feel lost, like
+    I don't know where I am. Branding the top of the site with the cool
+    Z logo would give the page more grounding and assurance.
+
+
+----
 [ ] Add torrent and dc functionality
     Example file names:
     "Name of Comic 001 (2014) (101.zco.mx).cbz"

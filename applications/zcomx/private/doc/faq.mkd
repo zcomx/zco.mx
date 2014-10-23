@@ -2,6 +2,7 @@
 ##### [[How is zco.mx pronounced? #pronounce]]
 ##### [[Can anyone upload content? #upload]]
 ##### [[How does the 'contribution' report work? #contribution]]
+##### [[Who is behind zco.mx? #behind]]
 ##### [[How does zco.mx pay its expenses? #expenses]]
 ##### [[What is up with the design of the site? #design]]
 ##### [[What is a cbr/cbz file? #cbz]]
@@ -55,6 +56,21 @@ still be available to read and download.  Many books will be ongoing and
 may reappear when a new page is added.
 
 
+[[behind]]
+#### Who is behind zco.mx?
+Jim Karsten and Steve Blatchford write the code but zco.mx is very much
+a group effort.  Many people have contributed to the project thus far.
+Those people are,
+[[dfkt http://dfkt.tk/]],
+[[Chuck Forsman charlesforsman.com]],
+[[Kevin Huizenga https://plus.google.com/107420980080038159626/about]],
+[[Marc Bell marcbelldept.blogspot.com]],
+[[Jordan Crane www.matthuynh.com]],
+[[Matt Huynh www.matthuynh.com]],
+[[Tony Zuvela www.berserkalert.com.au]],
+[[Jonathan Rotsztain rotsztain.com]]
+and [[Connor Willumsen www.connorwillumsen.com]].
+
 [[expenses]]
 #### How does zco.mx pay its expenses?
 zco.mx is not-for-profit.  It raises money for hosting expenses the
@@ -72,10 +88,10 @@ without imposing any brand or image. The goal is not to promote zco.mx
 itself, but to put cartoonists and their work front and centre.
 
 Most sites use their own comic veiwer.  Some sites use a scroll method,
-others a slider. Many sites use Flash viewers which do not allow reader
-to direct links to pages of a book.  This creates a unpredictable and
-unsettling user experience. The aim for zco.mx is for a consistent,
-simple interface.
+others a slider. Many sites use Flash viewers which do not allow direct
+linking to pages of a book.  This creates a unpredictable and unsettling
+user experience. The aim for zco.mx is for a consistent, simple
+interface.
 
 
 [[cbz]]

@@ -38,7 +38,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .modal-header {
-    background-color: #F05000 !important;
+    background-color: #FF6600 !important;
 }
 
 .bootstrap-dialog-title {
@@ -76,12 +76,12 @@ input:focus::-ms-input-placeholder{
 }
 
 a {
-    color: #F05000;
+    color: #FF6600;
     text-decoration: none;
 }
 
 a:hover, a:focus {
-    color: #F05000;
+    color: #FF6600;
 }
 
 hr {
@@ -198,14 +198,14 @@ div.centered table {
 }
 
 .breadcrumb_container {
-    background-color: #F05000;
+    background-color: #FF6600;
     color: #FFFFFF;
     font-size: 12px;
     padding: 0 6px;
 }
 
 .breadcrumb_container .breadcrumb {
-    background-color: #F05000;
+    background-color: #FF6600;
     color: #ffffff;
     margin-bottom: 0;
     margin-left: 0.2em;
@@ -238,7 +238,7 @@ div.centered table {
     color: #666666;
     font-size: 9.5pt;
     height: 2.1em;
-    border: 1px solid #F05000;
+    border: 1px solid #FF6600;
     box-shadow: none;
     padding: 0 14px;
     margin-right: 0;
@@ -674,7 +674,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #book_page #buttons_container .button_container,
 .grid_section .buttons_orderby_container .button_container {
-    min-width: 6em;
+    min-width: 8em;
 }
 
 #book_page #buttons_container .button_container .btn-default,
@@ -1077,7 +1077,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     #book_page #buttons_container {
         float: right;
-        padding-right: 8%;
+        padding-right: 28%;
         padding-top: 8%;
         position: absolute;
         top: 0;
@@ -1215,7 +1215,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .scroll_slide_options .btn:active, .scroll_slide_options .btn.active {
     box-shadow: none;
-    color: #F05000;
+    color: #FF6600;
 }
 
 .scroll_slide_options .btn.disabled {
