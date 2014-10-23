@@ -19,21 +19,24 @@ from applications.zcomx.modules.test_runner import LocalTestCase
 
 class TestFunctions(LocalTestCase):
     _book = None
+    _creator = None
     _invalid_book_id = None
 
     titles = {
-            'contribute_widget': [
-                '<input type="text" id="contribute_amount"',
-                ' id="contribute_link">contribute</a>',
-                ],
-            'contribute_widget_nada': [
-                '<div class="row contribute_widget">',
-                '</div>',
-                ],
-            'index': 'zco.mx is a not-for-profit comic-sharing website',
-            'paypal': '<form id="paypal_form"',
-            'paypal_notify': '<h2>Paypal Notify</h2>',
-            }
+        'contribute_widget': [
+            '<input type="text" id="contribute_amount"',
+            ' id="contribute_link">contribute</a>',
+        ],
+        'contribute_widget_nada': [
+            '<div class="row contribute_widget">',
+            '</div>',
+        ],
+        'index': 'zco.mx is a not-for-profit comic-sharing website',
+        'modal': 'Your donations help cover the costs of hosting',
+        'modal_book': 'Contributions go directly to the cartoonist',
+        'paypal': '<form id="paypal_form"',
+        'paypal_notify': '<h2>Paypal Notify</h2>',
+    }
     url = '/zcomx/contributions'
 
     # C0103: *Invalid name "%s" (should match %s)*
@@ -44,12 +47,12 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=W0212
         # Get a book from a creator with a paypal_email.
         cls._book = db(db.creator.paypal_email != '').select(
-                db.book.ALL,
-                left=[
-                    db.creator.on(db.book.creator_id == db.creator.id),
-                    db.book_page.on(db.book_page.book_id == db.book.id)
-                    ]
-                ).first()
+            db.book.ALL,
+            left=[
+                db.creator.on(db.book.creator_id == db.creator.id),
+                db.book_page.on(db.book_page.book_id == db.book.id)
+            ],
+        ).first()
 
         if not cls._book:
             raise SyntaxError('Unable to get book.')
@@ -60,6 +63,10 @@ class TestFunctions(LocalTestCase):
             cls._invalid_book_id = rows[0][max_book_id] + 1
         else:
             cls._invalid_book_id = 1
+
+        cls._creator = db(db.creator.paypal_email != '').select().first()
+        if not cls._creator:
+            raise SyntaxError('Unable to get creator.')
 
     def test__contribute_widget(self):
         # Should handle no id, but display nothing.
@@ -80,12 +87,70 @@ class TestFunctions(LocalTestCase):
             self.titles['contribute_widget']))
 
     def test__index(self):
-        self.assertTrue(web.test('{url}/index'.format(url=self.url),
-            self.titles['index']))
+        self.assertTrue(
+            web.test(
+                '{url}/index'.format(url=self.url),
+                self.titles['index']
+            )
+        )
+
+    def test__modal(self):
+        self.assertTrue(
+            web.test(
+                '{url}/modal'.format(url=self.url),
+                self.titles['modal']
+            )
+        )
+
+        # Test with book_id
+        self.assertTrue(
+            web.test(
+                '{url}/modal?book_id={bid}'.format(
+                    url=self.url,
+                    bid=self._book.id
+                ),
+                [self.titles['modal_book'], self._book.name]
+            )
+        )
+        # Test with creator_id
+        self.assertTrue(
+            web.test(
+                '{url}/modal?creator_id={cid}'.format(
+                    url=self.url,
+                    cid=self._creator.id
+                ),
+                self.titles['modal_book']
+            )
+        )
+        # Book is not found.
+        self.assertFalse(
+            web.test(
+                '{url}/modal?creator_id={cid}'.format(
+                    url=self.url,
+                    cid=self._creator.id
+                ),
+                self._book.name
+            )
+        )
+
+        # Test with book_id and creator_id
+        self.assertTrue(
+            web.test(
+                '{url}/modal?book_id={bid}'.format(
+                    url=self.url,
+                    bid=self._book.id
+                ),
+                [self.titles['modal_book'], self._book.name]
+            )
+        )
 
     def test__paypal(self):
-        self.assertTrue(web.test('{url}/paypal'.format(url=self.url),
-            self.titles['paypal']))
+        self.assertTrue(
+            web.test(
+                '{url}/paypal'.format(url=self.url),
+                self.titles['paypal']
+            )
+        )
 
     def test__paypal_notify(self):
         book = self.add(db.book, dict(name='Text Book'))
@@ -139,11 +204,12 @@ class TestFunctions(LocalTestCase):
             'txn_id': txn_id,
             'txn_type': 'web_accept',
             'verify_sign':
-                'AAh-gjn1ENnDuooduWNAFaW4Pdn0ABa6dKmQ59z53r0b82f1KHtBteKn'
+            'AAh-gjn1ENnDuooduWNAFaW4Pdn0ABa6dKmQ59z53r0b82f1KHtBteKn'
         }
 
         self.assertTrue(
-            web.test('{url}/paypal_notify?{q}'.format(
+            web.test(
+                '{url}/paypal_notify?{q}'.format(
                     url=self.url,
                     q=urllib.urlencode(notify_vars),
                 ),
@@ -172,7 +238,8 @@ class TestFunctions(LocalTestCase):
             notify_vars['payment_status'] = status
             notify_vars['txn_id'] = txn_id
             self.assertTrue(
-                web.test('{url}/paypal_notify?{q}'.format(
+                web.test(
+                    '{url}/paypal_notify?{q}'.format(
                         url=self.url,
                         q=urllib.urlencode(notify_vars),
                     ),

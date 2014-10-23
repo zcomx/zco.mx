@@ -440,7 +440,7 @@ class TestFunctions(ImageTestCase):
 
         # As integer, book_id
         link = contribute_link(db, book.id)
-        # Eg    <a href="/contributions/paypal?book_id=3713" target="_blank">
+        # Eg    <a href="/contributions/modal?book_id=3713" target="_blank">
         #        Contribute
         #       </a>
         soup = BeautifulSoup(str(link))
@@ -448,7 +448,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(
             anchor['href'],
-            '/contributions/paypal?book_id={i}'.format(i=book.id)
+            '/contributions/modal?book_id={i}'.format(i=book.id)
         )
 
         # As Row, book
@@ -458,7 +458,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(
             anchor['href'],
-            '/contributions/paypal?book_id={i}'.format(i=book.id)
+            '/contributions/modal?book_id={i}'.format(i=book.id)
         )
 
         # Invalid id

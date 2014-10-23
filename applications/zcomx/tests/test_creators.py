@@ -158,7 +158,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(
             anchor['href'],
-            '/contributions/paypal?creator_id={i}'.format(i=creator.id)
+            '/contributions/modal?creator_id={i}'.format(i=creator.id)
         )
 
         # As Row, creator
@@ -168,7 +168,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(
             anchor['href'],
-            '/contributions/paypal?creator_id={i}'.format(i=creator.id)
+            '/contributions/modal?creator_id={i}'.format(i=creator.id)
         )
 
         # Invalid id
