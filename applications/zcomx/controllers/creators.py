@@ -49,6 +49,8 @@ def index():
     if router.view:
         response.view = router.view
     if router.view_dict:
+        # Set next_url. Used in contributions.py def paypal()
+        session.next_url = request.env.web2py_original_uri
         return router.view_dict
 
     # If we get here, we don't have a valid creator
