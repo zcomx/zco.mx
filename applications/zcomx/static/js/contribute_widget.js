@@ -56,7 +56,7 @@
             if (validate_amount) {
                 var href = $('#contribute_link').attr('href');
                 var dtr = href.indexOf('?') == -1 ? '?' : '&';
-                window.open(href + dtr + 'amount=' + validate_amount.toString());
+                location.href = href + dtr + 'amount=' + validate_amount.toString();
             }
             else {
                 var parent = $(this).closest('.contribute_widget');

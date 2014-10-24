@@ -194,26 +194,25 @@ def paypal():
     data.amount = request.vars.amount if 'amount' in request.vars else ''
 
     paypal_url = 'https://www.paypal.com/cgi-bin/webscr'
-    notify_url = URL(
-        c='contributions', f='paypal_notify', scheme='https', host=True)
     if DEBUG:
         paypal_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr'
-        notify_url = 'https://dev.zco.mx/contributions/paypal_notify.html'
+    return_url = URL(
+        c='contributions', f='paypal_notify', scheme='https', host=True)
+    next_url = session.next_url or URL(c='search', f='index')
 
     return dict(
         amount=data.amount,
         business=data.business,
         item_name=data.item_name,
         item_number=data.item_number,
-        notify_url=notify_url,
         paypal_url=paypal_url,
+        return_url=return_url,
+        next_url=next_url,
     )
 
 
 def paypal_notify():
-    """Controller for paypal notifications (notify_url)"""
-    response.generic_patterns = ['html']
-
+    """Controller for paypal notifications (return_url)"""
     if request.vars.payment_status == 'Completed':
         valid = True
         try:
@@ -240,4 +239,7 @@ def paypal_notify():
         db.paypal_log.insert(**paypal_log)
         db.commit()
 
-    return dict()
+    if request.vars.custom:
+        redirect(request.vars.custom)
+    else:
+        redirect(URL(c='search'))

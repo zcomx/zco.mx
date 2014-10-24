@@ -13,6 +13,12 @@ def box():
 
 def index():
     """Default controller."""
+    session.next_url = URL(
+        c=request.controller,
+        f=request.function,
+        args=request.args,
+        vars=request.vars
+    )
     return dict()
 
 
