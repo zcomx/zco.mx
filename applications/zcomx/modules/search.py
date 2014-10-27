@@ -59,6 +59,7 @@ class Search(object):
         'label': 'remaining',
         'tab_label': 'cartoonists',
         'class': 'orderby_creators',
+        'order_field': 'auth_user.name',
         'order_dir': 'ASC',
     }
 
@@ -140,6 +141,9 @@ class Search(object):
             queries.append(db.creator.paypal_email != '')
 
         orderby = [db[orderby_field['table']][orderby_fieldname]]
+        if 'order_field' in orderby_field and orderby_field['order_field']:
+            table, field = orderby_field['order_field'].split('.')
+            orderby = [db[table][field]]
         if orderby_field['order_dir'] == 'DESC':
             orderby[0] = ~orderby[0]
         orderby.append(db.book.number)
