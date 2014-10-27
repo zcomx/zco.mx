@@ -93,6 +93,7 @@ Those people are,
 [[Jonathan Rotsztain rotsztain.com]]
 and [[Connor Willumsen www.connorwillumsen.com]].
 
+
 [[expenses]]
 #### How does zco.mx pay its expenses?
 zco.mx is not-for-profit.  It raises money for hosting expenses the
@@ -100,7 +101,8 @@ same way cartoonists raise money, via
 ``donations``:contribute_link.
 The time to create and maintain the site is donated free of charge --
 this project is a labour of love.  The code for the site is [[open
-source https://github.com/zcomix]].
+source https://github.com/zcomix]].  A breakdown for zco.mx's income
+and expenses can be found [[here /expenses]].
 
 
 [[design]]

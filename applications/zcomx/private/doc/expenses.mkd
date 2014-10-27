@@ -1,1 +1,17 @@
-This is the expenses page.
+``
+INCOME
+  TOTAL Income                                  $  0
+
+EXPENSES
+    Jun 2014    Server Hosting          $ 40
+    Jun 2014    Domain Registration     $ 45
+    Jun 2014    Contract Work           $225
+    Jul 2014    Server Hosting          $ 40
+    Aug 2014    Server Hosting          $ 40
+    Sep 2014    Server Hosting          $ 40
+    Oct 2014    Server Hosting          $ 40
+  TOTAL Expense                                 $470
+
+
+NET TOTAL                                      -$470
+``
