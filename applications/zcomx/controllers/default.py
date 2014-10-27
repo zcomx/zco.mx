@@ -195,6 +195,11 @@ def contribute():
     redirect(URL(c='contributions', f='paypal', extension=False))
 
 
+def expenses():
+    """Expenses page"""
+    return dict(text=markmin_content('expenses.mkd'))
+
+
 def faq():
     """FAQ page"""
     response.files.append(
