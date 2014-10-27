@@ -1,7 +1,8 @@
 ##### [[What is zco.mx? #zco.mx]]
 ##### [[How is zco.mx pronounced? #pronounce]]
 ##### [[Can anyone upload content? #upload]]
-##### [[How does the 'contribution' report work? #contribution]]
+##### [[What does the information on the front page mean? #frontpage]]
+##### [[How do the contributions work? #contribution]]
 ##### [[Who is behind zco.mx? #behind]]
 ##### [[How does zco.mx pay its expenses? #expenses]]
 ##### [[What is up with the design of the site? #design]]
@@ -40,8 +41,29 @@ zco.mx is pronounced **''zee·com·ics''**
 To start, due to scalability, the site will be curated.
 
 
+[[frontpage]]
+#### What does the information on the front page mean?
+**ongoing** - This is a list of titles which are currently ongoing or
+the cartoonist has decided not to release a cbz file of the work. cbz
+files contain hi-res images which are suitable for tablets.  These
+titles are ordered by the title with the most recent image uploaded.
+
+**releases** - This is a list of titles which have been released as a
+cbz file.  The newest releases are listed first.
+
+**contributions** - Each title is listed by the minimum amount of money
+remaining zco.mx hopes to raise for the cartoonist for that specific
+book.
+
+**cartoonist** - This is an alphabetical list, by first name, of every
+cartoonist on the site.
+
+Note: switching from the 'tile' view mode to 'detail' will display more
+information.
+
+
 [[contribution]]
-#### How does the 'contribution' report work?
+#### How do the contributions work?
 The idea is to create a fun way which encourages readers to help out
 self-publishing cartoonists by contributing money to them. If a reader
 really enjoys the comic, hopefully they will consider 'voting with their

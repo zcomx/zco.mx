@@ -4,37 +4,31 @@ VERSION 2 - Before Going Live
 
 [ ] Search/Filtering UX
 
+[/] Front Page
+    [x] Missing columns in reports
+    [ ] Add padding to data that is right justified
+        .web2py_grid tbody td { padding: 2px 10px; }
+
 [x] Change default colour to #FF6600
 
 [x] Book Page
     [x] Add more space between book section and creator section
     [x] Move Read & Download buttons inward and widen the buttons
 
-[ ] Paypal
-    * Have the 'Contribute' button go to the paypal page with an
-      editable input box.
-    * If the button is related to a cartoonist, then display the
-      cartoonist's name on the paypal page and associate the dollar
-      amount to the highest book amount.
-    * If the button is related to a book, then display the name of the
-      book on the paypal page and associate the dollar amount to that
-      book.
-    * In order to have an editable input box on the paypal page, we'll
-      need to dig into the more complex paypal API method
+[x] Book Page
+    remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29
 
-[/] Book Page
-    [ ] remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29
+[x] Reader Page
+    remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29/001
 
-[/] Reader Page
-    [ ] remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29/001
-
-[/] Front Page
-    [x] Missing columns in reports
-    [ ] Add padding to data that is right justified
-
-[/] About
+[x] About
     * Add an 'about' link to the navbar on the right, to the left of the search box
     * Use some js to display the 'about balloon'
+
+[ ] Add zco.mx/expenses
+
+[ ] Paypal
+    * Is it possible to change 'Return to donations coordinator' to 'Return to zco.mx'?
 
 [ ] Front Page
     Four reports:
@@ -54,10 +48,8 @@ VERSION 2 - Before Going Live
     4. cartoonists
         * both tile and list view are fine
 
-[ ] Add zco.mx/expenses
-
 [ ] Front Page
-    cartoonist report - sort my 'Cartoonist'
+    cartoonist report - sort by 'Cartoonist'
 
 [ ] Site Navigation
 
