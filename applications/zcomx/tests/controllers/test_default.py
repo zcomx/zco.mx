@@ -22,6 +22,7 @@ class TestFunctions(LocalTestCase):
         '404': 'Page not found',
         'contribute': '<form id="paypal_form"',
         'data': '<h2>Not authorized</h2>',
+        'expenses': '<h1>Expenses</h1>',
         'faq': '<h1>FAQ</h1>',
         'faqc': '<h1>Creator FAQ</h1>',
         'files': '<div id="files_page">',
@@ -80,6 +81,12 @@ class TestFunctions(LocalTestCase):
             web.test('{url}/download'.format(url=self.url), None)
         self.assertEqual(cm.exception.code, 404)
         self.assertEqual(cm.exception.msg, 'NOT FOUND')
+
+    def test__expenses(self):
+        self.assertTrue(web.test(
+            '{url}/expenses'.format(url=self.url),
+            self.titles['expenses']
+        ))
 
     def test__faq(self):
         self.assertTrue(web.test(

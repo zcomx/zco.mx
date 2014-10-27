@@ -45,6 +45,7 @@ CONTROLLERS = '|'.join([
 
 DEFAULT_FUNCTIONS = '|'.join([
     'contribute',
+    'expenses',
     'faq',
     'faqc',
     'files',
