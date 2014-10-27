@@ -774,6 +774,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .grid_section .web2py_grid.grid_key_newest td:nth-child(2),
 .grid_section .web2py_grid.grid_key_views td:nth-child(2),
 .grid_section .web2py_grid.grid_key_views td:nth-child(3) {
+    padding-right: 0.6em;
     text-align: right;
 }
 
