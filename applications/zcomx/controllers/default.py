@@ -202,6 +202,13 @@ def expenses():
 
 def faq():
     """FAQ page"""
+    # Set up for 'donations' contributions to paypal handling.
+    session.next_url = URL(
+        c=request.controller,
+        f=request.function,
+        args=request.args,
+        vars=request.vars
+    )
     response.files.append(
         URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
     )

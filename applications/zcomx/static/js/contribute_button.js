@@ -12,7 +12,7 @@
                 $(elem).click(function (e) {
                     var url = $(elem).attr('href');
                     var dialog = new BootstrapDialog({
-                        title: '<img src="/zcomx/static/images/zco.mx-logo-small.png">',
+                        title: '',
                         message: $('<div></div>').load(url),
                         buttons: [{
                             id: 'close_button',

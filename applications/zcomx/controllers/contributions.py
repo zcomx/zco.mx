@@ -111,6 +111,11 @@ def paypal():
         a contribution to zco.mx is presumed.
     request.vars.book_id takes precendence over request.vars.creator_id.
     """
+    next_url = session.next_url or URL(c='search', f='index')
+    if session.paypal_in_progress:
+        session.paypal_in_progress = None
+        redirect(next_url)
+
     def book_data(book_id_str):
         """Return paypal data for the book."""
         try:
@@ -198,11 +203,14 @@ def paypal():
         paypal_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr'
     return_url = URL(
         c='contributions', f='paypal_notify', scheme='https', host=True)
-    next_url = session.next_url or URL(c='search', f='index')
+    image_url = URL(c='static', f='images/zco.mx-logo-small.png', scheme='https', host=True)
+
+    session.paypal_in_progress = True
 
     return dict(
         amount=data.amount,
         business=data.business,
+        image_url=image_url,
         item_name=data.item_name,
         item_number=data.item_number,
         paypal_url=paypal_url,
