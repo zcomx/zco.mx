@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.search import Search}}
+{{from applications.zcomx.modules.search import GRID_CLASSES}}
 {{extend 'layout_main.html'}}
 
 <div id="front_page">
@@ -26,14 +26,13 @@ viewby = request.vars.view if request.vars.view and request.vars.view in viewbys
             </div>
         </div>
         <ul class="nav nav-tabs">
-        {{order_fields = Search.order_fields}}
-        {{orderbys = order_fields.keys()}}
+        {{orderbys = GRID_CLASSES.keys()}}
         {{orderby = request.vars.o if request.vars.o in orderbys else orderbys[0]}}
         {{for o in orderbys:}}
             <li class="nav-tab {{if o == orderby:}}active{{pass}}">
                 {{orderby_vars = dict(request.vars)}}
                 {{orderby_vars['o'] = o}}
-                {{label = Search.label(o, 'tab_label')}}
+                {{label = GRID_CLASSES[o].label('tab_label')}}
                 <a href="{{=URL(r=request, vars=orderby_vars)}}">{{=label}}</a>
             </li>
         {{pass}}

@@ -1,5 +1,5 @@
 <div class="row">
-{{=grid}}
+{{=grid.form_grid}}
 </div>
 <script src="{{=URL(r=request, c='static', f='js/contribute_button.js')}}"> </script>
 <script>

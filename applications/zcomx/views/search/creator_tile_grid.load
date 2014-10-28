@@ -1,12 +1,13 @@
 {{from applications.zcomx.modules.creators import can_receive_contributions, contribute_link, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription, entity_to_row}}
-{{if grid.rows:}}
-    {{for i in range(1, len(grid.rows) + 1, 2): }}
+{{rows = grid.rows()}}
+{{if rows:}}
+    {{for i in range(1, len(rows) + 1, 2): }}
     <div class="row">
         {{for j in range(2):}}
             {{try:}}
-                {{row = grid.rows[i + j - 1]}}
+                {{row = rows[i + j - 1]}}
             {{except IndexError:}}
                 {{row = None}}
             {{else:}}
@@ -16,7 +17,7 @@
                 <div class="row">
                     <div class="col-xs-12 number">
                         {{try:}}{{page = int(request.vars.page or 1)}}{{except:}}{{page = 1}}{{pass}}
-                        {{=((page - 1) * items_per_page) + (i + j)}}
+                        {{=((page - 1) * grid.items_per_page()) + (i + j)}}
                     </div>
                     <div class="col-sm-5 image_container">
                         <div class="creator_image_container">
@@ -57,13 +58,10 @@
                                 </div>
                                 <div class="col-sm-7 orderby_field_container">
                                     <div class="orderby_field_label">
-                                        {{=orderby_field['label']}}
+                                        {{=grid.tile_label()}}
                                     </div>
-                                    <div class="orderby_field_value {{try:}}{{=orderby_field['class']}}{{except:}}{{pass}}">
-                                        {{fieldname = orderby_field['field']}}
-                                        {{tablename = orderby_field['table']}}
-                                        {{value = row[tablename][fieldname]}}
-                                        {{=orderby_field['fmt'](value)}}
+                                    <div class="orderby_field_value {{=grid.tile_class()}}">
+                                        {{=grid.tile_value(row)}}
                                     </div>
                                 </div>
                             </div>
