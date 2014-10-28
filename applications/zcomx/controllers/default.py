@@ -2,11 +2,16 @@
 """
 Default controller.
 """
+import logging
 import os
+from applications.zcomx.modules.books import \
+    page_url, \
+    url as book_url
 from applications.zcomx.modules.creators import \
     add_creator, \
     for_path, \
-    set_creator_path_name
+    set_creator_path_name, \
+    url as creator_url
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.stickon.sqlhtml import \
     formstyle_bootstrap3_login
@@ -15,6 +20,8 @@ from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_SCRUBBED
 from applications.zcomx.modules.utils import markmin_content
+
+LOG = logging.getLogger('app')
 
 
 def index():
@@ -271,4 +278,83 @@ def top():
 
     request.args(0): name of page, optional. Set to None for home page.
     """
-    return dict()
+    left_links = []
+    right_links = []
+    delimiter_class = 'pipe_delimiter'
+
+    home = A(
+        'home',
+        _href=URL(c='default', f='index', extension=False)
+    )
+    left_links.append(LI(home))
+
+    def li_link(label, url, **kwargs):
+        """Return a LI(A(...)) structure."""
+        if url is not None:
+            li_text = A(label, _href=url)
+        else:
+            li_text = label
+        return LI(li_text, **kwargs)
+
+    def book_link(book_id):
+        """Return a book link."""
+        label = 'book'
+        url = book_url(book_id, extension=False) if book_id else None
+        return li_link(label, url)
+
+    def creator_link(creator_id):
+        """Return a creator link."""
+        label = 'cartoonist'
+        url = creator_url(creator_id, extension=False) if creator_id else None
+        return li_link(label, url)
+
+    def login_link(label):
+        """Return a link suitable for a login label"""
+        return li_link(
+            label,
+            URL(c='login', f=label, extension=False),
+            _class='active' if request.args(1) == label else '',
+        )
+
+    def page_link(page_id):
+        """Return a book link."""
+        label = 'read'
+        url = page_url(page_id, extension=False) if page_id else None
+        return li_link(label, url)
+
+    if request.args(0):
+        if request.args(0) == 'reader':
+            delimiter_class = 'gt_delimiter'
+            left_links.append(creator_link(request.vars.creator_id))
+            left_links.append(book_link(request.vars.book_id))
+            left_links.append(page_link(request.vars.book_page_id))
+        elif request.args(0) == 'book':
+            delimiter_class = 'gt_delimiter'
+            left_links.append(creator_link(request.vars.creator_id))
+            left_links.append(book_link(request.vars.book_id))
+        elif request.args(0) == 'creator':
+            delimiter_class = 'gt_delimiter'
+            left_links.append(creator_link(request.vars.creator_id))
+        elif request.args(0) == 'login':
+            delimiter_class = 'pipe_delimiter'
+            left_links.append(login_link('books'))
+            left_links.append(login_link('profile'))
+            left_links.append(login_link('account'))
+
+    right_links.append(A(
+        'about',
+        _href='#',
+        _id='about_link',
+    ))
+
+    breadcrumbs = {}
+    breadcrumbs['left'] = OL(
+        left_links,
+        _class='breadcrumb left {d}'.format(d=delimiter_class),
+    )
+    breadcrumbs['right'] = OL(
+        right_links,
+        _class='breadcrumb right',
+    )
+
+    return dict(breadcrumbs=breadcrumbs)

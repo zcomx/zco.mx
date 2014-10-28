@@ -5,7 +5,7 @@
 {{extend 'layout_main.html'}}
 <div id="book_page">
 
-{{=LOAD(c='default', f='top', args='book', extension='load', ajax=False, content='')}}
+{{=LOAD(c='default', f='top', args='book', vars={'book_id': book.id, 'creator_id': book.creator_id}, extension='load', ajax=False, content='')}}
 
 <div class="row">
     <div class="col-sm-5" id="left_column">

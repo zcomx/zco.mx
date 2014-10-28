@@ -554,7 +554,7 @@ def page_url(book_page_entity, reader=None, **url_kwargs):
             http://zco.mx/First_Last/My_Book_(2014))/002
     """
     db = current.app.db
-    page_record = entity_to_row(db.book, book_page_entity)
+    page_record = entity_to_row(db.book_page, book_page_entity)
     if not page_record:
         return
 

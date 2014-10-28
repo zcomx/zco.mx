@@ -837,6 +837,12 @@ class TestFunctions(ImageTestCase):
             '/First_Last/My_Book/001'
         )
 
+        # By id
+        self.assertEqual(
+            page_url(book_page.id),
+            '/First_Last/My_Book/001'
+        )
+
         self.assertEqual(
             page_url(book_page, reader='slider'),
             '/First_Last/My_Book/001?reader=slider'

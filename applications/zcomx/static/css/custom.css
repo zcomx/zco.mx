@@ -222,15 +222,6 @@ div.centered table {
 
 .breadcrumb_container .breadcrumb > .active a {
     border-bottom: 1px dotted #FFFFFF;
-    color: #FFFFFF;
-    font-weight: normal;
-    text-decoration: none;
-}
-
-.breadcrumb_container .breadcrumb li.active {
-    color: #FFFFFF;
-    font-weight: normal;
-//    font-weight: bold;
 }
 
 #search {
@@ -1105,11 +1096,19 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #top_section .breadcrumb > li + li:before {
-    content: "\7C";     /* Ascii hex code for | */
     color: #FFFFFF;
     font-weight: normal;
     padding: 0 10px;
 }
+
+#top_section .breadcrumb.pipe_delimiter > li + li:before {
+    content: "\7C";     /* Ascii hex code for | */
+}
+
+#top_section .breadcrumb.gt_delimiter > li + li:before {
+    content: "\3E";     /* Ascii hex code for > */
+}
+
 
 #book_id_section .custom_links.breadcrumb > li + li:before,
 #creator_id_section .custom_links.breadcrumb > li + li:before {
