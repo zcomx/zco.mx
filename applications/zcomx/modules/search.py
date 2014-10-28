@@ -25,6 +25,27 @@ class Search(object):
 
     order_fields = collections.OrderedDict()
     # Items are displayed on front page in order.
+    # The first item is the default.
+    order_fields['ongoing'] = {
+        'table': 'book_page',
+        'field': 'created_on',
+        'fmt': lambda x: str(x.date()) if x is not None else 'n/a',
+        'label': 'page added',
+        'tab_label': 'ongoing',
+        'header_label': 'added',
+        'class': 'orderby_ongoing',
+        'order_dir': 'DESC',
+    }
+    order_fields['releases'] = {
+        'table': 'book',
+        'field': 'release_date',
+        'fmt': lambda x: str(x) if x is not None else 'n/a',
+        'label': 'release date',
+        'tab_label': 'releases',
+        'header_label': 'released',
+        'class': 'orderby_releases',
+        'order_dir': 'DESC',
+    }
     order_fields['contributions'] = {
         'table': 'book',
         'field': 'contributions_remaining',
@@ -33,24 +54,6 @@ class Search(object):
         'tab_label': 'contributions',
         'class': 'orderby_contributions',
         'order_dir': 'ASC',
-    }
-    order_fields['newest'] = {
-        'table': 'book_page',
-        'field': 'created_on',
-        'fmt': lambda x: str(x.date()) if x is not None else 'n/a',
-        'label': 'page added',
-        'tab_label': 'newest pages',
-        'header_label': 'added',
-        'class': 'orderby_newest_pages',
-        'order_dir': 'DESC',
-    }
-    order_fields['views'] = {
-        'table': 'book',
-        'field': 'views_year',
-        'fmt': lambda x: '{v}'.format(v=x),
-        'label': 'views',
-        'class': 'orderby_views',
-        'order_dir': 'DESC',
     }
     order_fields['creators'] = {
         'table': 'creator',
@@ -98,7 +101,7 @@ class Search(object):
         # pylint: disable=C0103
         orderby_key = request.vars.o \
             if request.vars.o and request.vars.o in self.order_fields.keys() \
-            else 'contributions'
+            else self.order_fields.keys()[0]
         orderby_field = self.order_fields[orderby_key]
         self.orderby_field = orderby_field
         orderby_table = orderby_field['table']
@@ -125,9 +128,9 @@ class Search(object):
         if not editable:
             queries.append((db.book.status == True))
 
-        if request.vars.released == '0':
+        if request.vars.released == '0' or orderby_key == 'ongoing':
             queries.append((db.book.release_date == None))
-        if request.vars.released == '1':
+        if request.vars.released == '1' or orderby_key == 'releases':
             queries.append((db.book.release_date != None))
 
         if request.vars.kw:
@@ -173,10 +176,16 @@ class Search(object):
         hide(db.book.book_type_id)
         hide(db.book.number)
         hide(db.book.of_number)
-        if request.vars.released == '0' or orderby_key == 'creators':
+        if request.vars.released == '0' \
+                or orderby_key in ['creators', 'ongoing']:
             # Ongoing books won't be published.
             hide(db.book.publication_year)
-        hide(db.book.release_date)
+
+        if orderby_key == 'releases':
+            show(db.book.downloads)
+        else:
+            hide(db.book.downloads)
+
         hide(db.creator.id)
         if request.vars.view != 'list' or not creator:
             show(db.auth_user.name)
@@ -185,7 +194,7 @@ class Search(object):
             _href=creator_url(row.creator.id, extension=False)
         )
         hide(db.creator.paypal_email)
-        if orderby_key == 'newest':
+        if orderby_key == 'ongoing':
             db.book_page.created_on.represent = lambda v, row: str(v.date()) \
                 if v is not None else 'n/a'
 
@@ -194,6 +203,14 @@ class Search(object):
                 show(db[v['table']][v['field']])
             else:
                 hide(db[v['table']][v['field']])
+
+        if orderby_key == 'ongoing':
+            show(db.book.views_year)
+
+        if orderby_key in ['ongoing', 'releases']:
+            show(db.book.contributions_remaining)
+            db.book.contributions_remaining.represent = \
+                lambda v, r: '${v:0.0f}'.format(v=v)
 
         if request.vars.creator_id:
             hide(db.auth_user.name)
@@ -207,20 +224,23 @@ class Search(object):
             db.book.book_type_id,
             db.book.number,
             db.book.of_number,
+            db.book_page.created_on,
             db.book.publication_year,
             db.book.release_date,
-            db.book.contributions_remaining,
             db.book.views_year,
+            db.book.downloads,
+            db.book.contributions_remaining,
             db.book.created_on,
             db.creator.id,
             db.auth_user.name,
             db.creator.paypal_email,
             db.creator.contributions_remaining,
-            db.book_page.created_on,
         ]
 
         headers = {
             'book.name': 'Title',
+            'book.publication_year': 'Year',
+            'book.views_year': 'Views',
             'auth_user.name': 'Cartoonist',
         }
         for k, v in self.order_fields.items():

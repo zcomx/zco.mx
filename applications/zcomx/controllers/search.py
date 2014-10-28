@@ -48,8 +48,7 @@ def list_grid():
 def tile_grid():
     """Search results cover grid.
 
-    request.vars.o: string, orderby field, one of:
-            'newest' (default) 'views', 'rating', 'contributions'
+    request.vars.o: string, orderby field, one of Search.orderby_fields.keys()
     """
     response.view = 'search/creator_tile_grid.load' \
         if request.vars.o and request.vars.o == 'creators' \
