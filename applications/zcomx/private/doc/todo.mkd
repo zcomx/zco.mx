@@ -1,32 +1,5 @@
 ``
 VERSION 2 - Before Going Live
-[-] bugs/css
-
-[ ] Search/Filtering UX
-
-[/] Front Page
-    [x] Missing columns in reports
-    [ ] Add padding to data that is right justified
-        .web2py_grid tbody td { padding: 2px 10px; }
-
-[x] Change default colour to #FF6600
-
-[x] Book Page
-    [x] Add more space between book section and creator section
-    [x] Move Read & Download buttons inward and widen the buttons
-
-[x] Book Page
-    remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29
-
-[x] Reader Page
-    remove year from book title -- https://dev.zco.mx/Charles_Forsman/Luv_Sucker_01_%28of_04%29/001
-
-[x] About
-    * Add an 'about' link to the navbar on the right, to the left of the search box
-    * Use some js to display the 'about balloon'
-
-[ ] Add zco.mx/expenses
-
 [ ] Paypal
     * Is it possible to change 'Return to donations coordinator' to 'Return to zco.mx'?
 
@@ -48,14 +21,32 @@ VERSION 2 - Before Going Live
     4. cartoonists
         * both tile and list view are fine
 
-[ ] Front Page
-    cartoonist report - sort by 'Cartoonist'
-
 [ ] Site Navigation
 
     home > cartoonist > book > read
 
     * Make 'home' a link on the front page
+
+---
+[ ] Update FAQ
+    [J] FAQC -> Goodwill
+        JR: This page should be folded into the CFAQ. The ideas expressed
+        here should be spread appropriately throughout the CFAQ page. The
+        page reads, "the site would be not-for-profit" as though it doesn't
+        exist.
+        SB: I'll get JR's help with this
+
+    [J] FAQs
+        SB: Get JR to edit the two FAQs as he sees fit.
+
+    [J] Intro Email
+        SB: Get JR to edit the intro email for cartoonists as he sees fit
+
+[ ] Front Page -> contributions
+    * Why does Jordan have an odd number remaining --  $1,060.23 ?
+    * Why does Connor's say $180.00 ?
+
+[ ] Search/Filtering UX
 
 
 ----
