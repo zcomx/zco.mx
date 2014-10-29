@@ -1,34 +1,9 @@
 ``
 VERSION 2 - Before Going Live
-[ ] Paypal
-    * Is it possible to change 'Return to donations coordinator' to 'Return to zco.mx'?
-
-[ ] Front Page
-    Four reports:
-    1. ongoing (change 'newest pages' to this)
-        * tile view - shows and is sorted by 'page added'
-        * list view - has all stats related to ongoing
-            + title, added (date), views, remaining, cartoonist, read, download, contribute
-    2. releases
-        * tile view - shows and is sorted by 'release date'
-        * list view - has all stats related to ongoing
-            + title, year, released (date), downloads, remaining, cartoonist, read, download, contribute
-
-    3. contributions
-        * tile view - leave how it is now
-        * list view - current columns are fine.  Change 'Published' header to 'Year'
-
-    4. cartoonists
-        * both tile and list view are fine
-
-[ ] Site Navigation
-
-    home > cartoonist > book > read
-
-    * Make 'home' a link on the front page
-
----
 [ ] Update FAQ
+    [J] Intro Email
+        SB: Get JR to edit the intro email for cartoonists as he sees fit
+
     [J] FAQC -> Goodwill
         JR: This page should be folded into the CFAQ. The ideas expressed
         here should be spread appropriately throughout the CFAQ page. The
@@ -39,16 +14,34 @@ VERSION 2 - Before Going Live
     [J] FAQs
         SB: Get JR to edit the two FAQs as he sees fit.
 
-    [J] Intro Email
-        SB: Get JR to edit the intro email for cartoonists as he sees fit
+[ ] Paypal
+    [ ] Remove zco.mx small logo on paypal page
+    [ ] 'X' isn't aligned properly
+        * -11px or hide a space in the header
+
+[ ] Front Page -> releases
+    * Is it easy to hide the 'releases' report for the time being?
 
 [ ] Front Page -> contributions
-    * Why does Jordan have an odd number remaining --  $1,060.23 ?
+    * Why does Jordan Crane have an odd number remaining --  $1,060.23 ?
 
 [ ] Search/Filtering UX
+    * I think it should return a tab called 'search' with no other tabs
+    * maybe in the navbar have 'home > search'
+    * keep the tile and list views, with tile default
+    * can it return book titles and cartoonists in the same query?
+        * so in tile view it would show the cover for the books and the headshot of the cartoonists
 
 
 ----
+[ ] renumber cartoonist IDs
+    98 & 99 jimk and sinus
+    100 blank
+    101 chuck
+    102 huizenga
+    103 crane
+    104 bell
+
 [ ] Add torrent and dc functionality
     Example file names:
     "Name of Comic 001 (2014) (101.zco.mx).cbz"
@@ -144,7 +137,7 @@ IDEAS
 [ ] bio and book description - wikipedia api?
     https://github.com/goldsmith/Wikipedia          ## wikipedia api
 
-[ ] user comments? - disqus api?
+[ ] user comments? - disqus api? reddit api?
     * creators choose comments to form a digital letters page?
 [ ] how best to promote micro-publisher and things like the Muster List
 [ ] site for original art?

@@ -1107,6 +1107,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #top_section .breadcrumb.gt_delimiter > li + li:before {
     content: "\3E";     /* Ascii hex code for > */
+    font-weight: bold;
 }
 
 
