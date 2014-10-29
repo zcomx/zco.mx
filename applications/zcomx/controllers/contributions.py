@@ -203,14 +203,12 @@ def paypal():
         paypal_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr'
     return_url = URL(
         c='contributions', f='paypal_notify', scheme='https', host=True)
-    image_url = URL(c='static', f='images/zco.mx-logo-small.png', scheme='https', host=True)
 
     session.paypal_in_progress = True
 
     return dict(
         amount=data.amount,
         business=data.business,
-        image_url=image_url,
         item_name=data.item_name,
         item_number=data.item_number,
         paypal_url=paypal_url,
