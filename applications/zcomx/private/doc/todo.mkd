@@ -14,17 +14,6 @@ VERSION 2 - Before Going Live
     [J] FAQs
         SB: Get JR to edit the two FAQs as he sees fit.
 
-[ ] Paypal
-    [ ] Remove zco.mx small logo on paypal page
-    [ ] 'X' isn't aligned properly
-        * -11px or hide a space in the header
-
-[ ] Front Page -> releases
-    * Is it easy to hide the 'releases' report for the time being?
-
-[ ] Front Page -> contributions
-    * Why does Jordan Crane have an odd number remaining --  $1,060.23 ?
-
 [ ] Search/Filtering UX
     * I think it should return a tab called 'search' with no other tabs
     * maybe in the navbar have 'home > search'
