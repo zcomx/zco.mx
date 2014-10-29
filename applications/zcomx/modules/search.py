@@ -49,7 +49,7 @@ class Search(object):
     order_fields['contributions'] = {
         'table': 'book',
         'field': 'contributions_remaining',
-        'fmt': lambda x: '${v:0,.2f}'.format(v=x),
+        'fmt': lambda x: '${v:0,.0f}'.format(v=x),
         'label': 'remaining',
         'tab_label': 'contributions',
         'class': 'orderby_contributions',
@@ -58,7 +58,7 @@ class Search(object):
     order_fields['creators'] = {
         'table': 'creator',
         'field': 'contributions_remaining',
-        'fmt': lambda v: '${v:0,.2f}'.format(v=v),
+        'fmt': lambda v: '${v:0,.0f}'.format(v=v),
         'label': 'remaining',
         'tab_label': 'cartoonists',
         'class': 'orderby_creators',
@@ -215,7 +215,7 @@ class Search(object):
         if orderby_key in ['ongoing', 'releases']:
             show(db.book.contributions_remaining)
             db.book.contributions_remaining.represent = \
-                lambda v, r: '${v:0,.2f}'.format(v=v)
+                lambda v, r: '${v:0,.0f}'.format(v=v)
 
         if request.vars.creator_id:
             hide(db.auth_user.name)
