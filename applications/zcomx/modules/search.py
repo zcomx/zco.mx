@@ -36,20 +36,20 @@ class Search(object):
         'class': 'orderby_ongoing',
         'order_dir': 'DESC',
     }
-    order_fields['releases'] = {
-        'table': 'book',
-        'field': 'release_date',
-        'fmt': lambda x: str(x) if x is not None else 'n/a',
-        'label': 'release date',
-        'tab_label': 'releases',
-        'header_label': 'released',
-        'class': 'orderby_releases',
-        'order_dir': 'DESC',
-    }
+    # order_fields['releases'] = {
+    #     'table': 'book',
+    #     'field': 'release_date',
+    #     'fmt': lambda x: str(x) if x is not None else 'n/a',
+    #     'label': 'release date',
+    #     'tab_label': 'releases',
+    #     'header_label': 'released',
+    #     'class': 'orderby_releases',
+    #     'order_dir': 'DESC',
+    # }
     order_fields['contributions'] = {
         'table': 'book',
         'field': 'contributions_remaining',
-        'fmt': lambda x: '${v:0.0f}'.format(v=x),
+        'fmt': lambda x: '${v:0,.2f}'.format(v=x),
         'label': 'remaining',
         'tab_label': 'contributions',
         'class': 'orderby_contributions',
@@ -204,13 +204,18 @@ class Search(object):
             else:
                 hide(db[v['table']][v['field']])
 
+        if orderby_key == 'releases':
+            show(db.book.release_date)
+        else:
+            hide(db.book.release_date)
+
         if orderby_key == 'ongoing':
             show(db.book.views_year)
 
         if orderby_key in ['ongoing', 'releases']:
             show(db.book.contributions_remaining)
             db.book.contributions_remaining.represent = \
-                lambda v, r: '${v:0.0f}'.format(v=v)
+                lambda v, r: '${v:0,.2f}'.format(v=v)
 
         if request.vars.creator_id:
             hide(db.auth_user.name)
