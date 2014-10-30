@@ -42,7 +42,6 @@ class SubGrid(Grid):
         'label': 'name',
         'tab_label': 'book titles',
         'header_label': 'title',
-        'class': 'orderby_books',
         'order_field': 'book.name',
         'order_dir': 'DESC',
     }
@@ -196,12 +195,7 @@ class TestGrid(LocalTestCase):
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
         grid = SubGrid()
-        self.assertEqual(grid.tile_class(), 'orderby_books')
-        grid._attributes['class'] = None
-        self.assertEqual(grid.tile_class(), '')
-        del grid._attributes['class']
-        self.assertEqual(grid.tile_class(), '')
-        grid._attributes['class'] = 'orderby_books'
+        self.assertEqual(grid.tile_class(), 'tile_key_sub')
 
     def test__tile_label(self):
         # protected-access (W0212): *Access to a protected member %%s
