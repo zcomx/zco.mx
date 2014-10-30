@@ -724,8 +724,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 100%;
 }
 
-.grid_section .orderby_field_value.orderby_ongoing,
-.grid_section .orderby_field_value.orderby_releases {
+.grid_section .orderby_field_value.tile_key_ongoing,
+.grid_section .orderby_field_value.tile_key_releases {
     font-size: 14pt;
 }
 
