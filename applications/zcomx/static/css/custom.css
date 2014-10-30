@@ -729,8 +729,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-size: 14pt;
 }
 
-.grid_section .orderby_field_value.orderby_contributions,
-.grid_section .orderby_field_value.orderby_creators {
+.grid_section .orderby_field_value.tile_key_contributions,
+.grid_section .orderby_field_value.tile_key_cartoonists {
     color: #D04444;
 }
 
@@ -766,7 +766,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(2),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(3),
-.grid_section .web2py_grid.grid_key_creators td:nth-child(2),
+.grid_section .web2py_grid.grid_key_cartoonists td:nth-child(2),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(2),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(3),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(4),
@@ -780,7 +780,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(3),
-.grid_section .web2py_grid.grid_key_creators td:nth-child(2),
+.grid_section .web2py_grid.grid_key_cartoonists td:nth-child(2),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(4),
 .grid_section .web2py_grid.grid_key_releases td:nth-child(5) {
     color: #D04444;

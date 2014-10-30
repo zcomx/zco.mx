@@ -283,9 +283,9 @@ class Grid(object):
 
     def tile_class(self):
         """Return the class name of div in tile of key element."""
-        if not 'class' in self._attributes:
-            return ''
-        return self._attributes['class'] or ''
+        return 'tile_key_{o}'.format(
+            o=self.__class__.__name__.replace('Grid', '').lower()
+        )
 
     def tile_label(self):
         """Return the label of the key element in tile view."""
@@ -322,7 +322,6 @@ class CartoonistsGrid(Grid):
         'field': 'contributions_remaining',
         'label': 'remaining',
         'tab_label': 'cartoonists',
-        'class': 'orderby_creators',
         'order_field': 'auth_user.name',
         'order_dir': 'ASC',
     }
