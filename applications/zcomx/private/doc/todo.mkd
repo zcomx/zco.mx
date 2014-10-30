@@ -1,17 +1,17 @@
 ``
 VERSION 2 - Before Going Live
 [ ] Update FAQ
-    [J] Intro Email
+    [M] Intro Email
         SB: Get JR to edit the intro email for cartoonists as he sees fit
 
-    [J] FAQC -> Goodwill
+    [M] FAQC -> Goodwill
         JR: This page should be folded into the CFAQ. The ideas expressed
         here should be spread appropriately throughout the CFAQ page. The
         page reads, "the site would be not-for-profit" as though it doesn't
         exist.
         SB: I'll get JR's help with this
 
-    [J] FAQs
+    [M] FAQs
         SB: Get JR to edit the two FAQs as he sees fit.
 
 [ ] Search/Filtering UX
@@ -23,6 +23,8 @@ VERSION 2 - Before Going Live
 
 
 ----
+[ ] Go over JK's todo list
+
 [ ] renumber cartoonist IDs
     98 & 99 jimk and sinus
     100 blank
