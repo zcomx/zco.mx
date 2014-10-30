@@ -3,7 +3,7 @@
 
 import uuid
 from BeautifulSoup import BeautifulSoup
-from applications.zcomx.modules.search import Search
+from applications.zcomx.modules.search import classified
 
 
 def box():
@@ -39,10 +39,8 @@ def list_grid():
         formname=formname,
     )
 
-    search = Search()
-    search.set(db, request, grid_args=grid_args)
-
-    return dict(grid=search.grid)
+    grid = classified(request)(form_grid_args=grid_args)
+    return dict(grid=grid)
 
 
 def tile_grid():
@@ -53,17 +51,13 @@ def tile_grid():
     response.view = 'search/creator_tile_grid.load' \
         if request.vars.o and request.vars.o == 'creators' \
         else 'search/tile_grid.load'
-    search = Search()
-    search.set(db, request)
-
-    soup = BeautifulSoup(str(search.grid))
+    grid = classified(request)()
 
     # extract the paginator from the grid
+    soup = BeautifulSoup(str(grid.form_grid))
     paginator = soup.find('div', {'class': 'web2py_paginator grid_header '})
 
     return dict(
-        grid=search.grid,
-        items_per_page=search.paginate,
-        orderby_field=search.orderby_field,
+        grid=grid,
         paginator=paginator,
     )
