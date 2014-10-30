@@ -23,7 +23,7 @@
                         <div class="creator_image_container">
                         {{creator = entity_to_row(db.creator, row.creator.id)}}
                         <a href="{{=creator_url}}" title="{{=row.auth_user.name}}">
-                            {{=CreatorImgTag(creator.image, size='tbn')()}}
+                            {{=CreatorImgTag(creator.image, size='tbn', attributes={'_alt': row.auth_user.name})()}}
                         </a>
                         </div>
                     </div>
@@ -43,14 +43,14 @@
                             <div class="row buttons_orderby_container">
                                 <div class="col-sm-5">
                                     <div class="read button_container">
-                                    <a href="{{=creator_url}}" class="btn btn-default btn-sm" type="button" data-w2p_disable_with="default">Read</a>
+                                    <a href="{{=creator_url}}" class="btn btn-default btn-sm" data-w2p_disable_with="default">Read</a>
                                     </div>
                                     <div class="download button_container">
-                                    <a href="{{=creator_url}}" class="btn btn-default btn-sm" type="button" data-w2p_disable_with="default">Download</a>
+                                    <a href="{{=creator_url}}" class="btn btn-default btn-sm" data-w2p_disable_with="default">Download</a>
                                     </div >
                                     <div class="contribute button_container">
                                     {{if can_receive_contributions(db, row.creator):}}
-                                    {{=contribute_link(db, row.creator, **dict(_class='btn btn-default contribute_button', _type='button'))}}
+                                    {{=contribute_link(db, row.creator, **dict(_class='btn btn-default contribute_button'))}}
                                     {{else:}}
                                     <span>&nbsp;</span>
                                     {{pass}}

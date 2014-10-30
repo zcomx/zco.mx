@@ -1,27 +1,6 @@
 {{from applications.zcomx.modules.books import first_page, formatted_name, url as book_url}}
 {{from applications.zcomx.modules.creators import can_receive_contributions, url as creator_url}}
 {{extend 'layout.html'}}
-<style type="text/css" media="screen">
-    {{if reader == 'slider':}}
-    html, body {
-        height: 100%;
-    }
-    {{pass}}
-    #reader_section {
-        {{if book.background_colour:}}
-        background-color: {{=book.background_colour}};
-        {{else:}}
-        background-color: #ffffff;
-        {{pass}}
-    }
-    #reader_section img {
-        {{if book.border_colour:}}
-        border: 0.4em solid {{=book.border_colour}};
-        {{else:}}
-        border: none;
-        {{pass}}
-    }
-</style>
 <div class="container">
     <div id="reader_page_header_margin">
         <div id="reader_page_header">
@@ -56,7 +35,6 @@
 </div>
 
 <div id="reader_section">
-<a name="reader_section"></a>
 {{include}}
 </div>
 
@@ -116,12 +94,18 @@
 <script>
 //<![CDATA[
     $(document).ready(function(){
+        $('#reader_section').css(
+            {'background-color': "{{=book.background_colour or 'white'}}"}
+        );
+        $('#reader_section img').css(
+            {'border': "0.4em solid {{=book.border_colour or 'none'}}"}
+        );
         $('#vertical_align_button').click(function(e) {
             if ($(this).hasClass('disabled')) {
                 e.preventDefault();
                 return;
             }
-            $.fn.zco_utils.scroll_to_anchor('reader_section');
+            $.fn.zco_utils.scroll_to_element('reader_section');
             e.preventDefault();
         });
     });

@@ -607,10 +607,7 @@ def book_contribute_button(row):
     return book_contribute_link(
         db,
         book_id,
-        **dict(
-            _class='btn btn-default contribute_button',
-            _type='button'
-        )
+        **dict(_class='btn btn-default contribute_button')
     )
 
 
@@ -647,10 +644,7 @@ def creator_contribute_button(row):
     return creator_contribute_link(
         db,
         row.creator.id,
-        **dict(
-            _class='btn btn-default contribute_button',
-            _type='button'
-        )
+        **dict(_class='btn btn-default contribute_button')
     )
 
 
@@ -670,7 +664,6 @@ def download_link(row):
             extension=False
         ),
         _class='btn btn-default fixme',
-        _type='button',
     )
 
 
@@ -694,7 +687,7 @@ def read_link(row):
     return book_read_link(
         db,
         book_id,
-        **dict(_class='btn btn-default', _type='button')
+        **dict(_class='btn btn-default')
     )
 
 

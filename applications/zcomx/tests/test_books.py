@@ -472,7 +472,7 @@ class TestFunctions(ImageTestCase):
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
-        components = [IMG(_src="http://www.img.com")]
+        components = [IMG(_src='http://www.img.com', _alt='')]
         link = contribute_link(db, book, components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
@@ -483,7 +483,6 @@ class TestFunctions(ImageTestCase):
         attributes = dict(
             _href='/path/to/file',
             _class='btn btn-large',
-            _type='button',
             _target='_blank',
         )
         link = contribute_link(db, book, **attributes)
@@ -492,7 +491,6 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
-        self.assertEqual(anchor['type'], 'button')
         self.assertEqual(anchor['target'], '_blank')
 
     def test__contributions_remaining_by_creator(self):
@@ -577,7 +575,7 @@ class TestFunctions(ImageTestCase):
     def test__cover_image(self):
 
         placeholder = \
-            '<div class="portrait_placeholder"></div>'
+            '<div alt="" class="portrait_placeholder"></div>'
 
         self.assertEqual(str(cover_image(db, 0)), placeholder)
 
@@ -602,7 +600,7 @@ class TestFunctions(ImageTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             str(cover_image(db, book.id)),
-            '<img src="/images/download/book_page.image.page_trees.png?size=original" />'
+            '<img alt="" src="/images/download/book_page.image.page_trees.png?size=original" />'
         )
 
     def test__default_contribute_amount(self):
@@ -990,7 +988,7 @@ class TestFunctions(ImageTestCase):
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
-        components = [IMG(_src="http://www.img.com")]
+        components = [IMG(_src='http://www.img.com', _alt='')]
         link = read_link(db, book, components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
@@ -1002,7 +1000,6 @@ class TestFunctions(ImageTestCase):
         attributes = dict(
             _href='/path/to/file',
             _class='btn btn-large',
-            _type='button',
             _target='_blank',
         )
         link = read_link(db, book, **attributes)
@@ -1011,7 +1008,6 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
-        self.assertEqual(anchor['type'], 'button')
         self.assertEqual(anchor['target'], '_blank')
 
     def test__update_contributions_remaining(self):

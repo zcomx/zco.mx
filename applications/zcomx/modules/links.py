@@ -55,7 +55,6 @@ class CustomLinks(object):
                 'Edit', SPAN('', _class='glyphicon glyphicon-new-window'),
                 _href=edit_url,
                 _class='btn btn-default',
-                _type='button',
                 _target='_blank',
             )
             links_list.append(edit_button)

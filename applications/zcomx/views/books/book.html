@@ -25,7 +25,7 @@
                     {{=read_button}}
                     </div>
                     <div class="download button_container">
-                    <a class="btn btn-default fixme" type="button" href="#" data-w2p_disable_with="default">Download</a>
+                    <a class="btn btn-default fixme" href="#" data-w2p_disable_with="default">Download</a>
                     </div >
                 </div>
                 <div id="book_specs_column">
@@ -57,7 +57,7 @@
                 <div class="row">
                     <div class="creator_img_container">
                         <a href="{{=url(creator.id, extension=False)}}" title="{{=auth_user.name}}">
-                        {{=CreatorImgTag(creator.image, size='tbn', attributes={'_class': 'img-responsive'})()}}
+                        {{=CreatorImgTag(creator.image, size='tbn', attributes={'_alt': auth_user.name, '_class': 'img-responsive'})()}}
                         </a>
                     </div>
                     <div class="creator_links_container">
@@ -86,4 +86,6 @@
         </div>
 
     </div>
+</div>
+
 </div>

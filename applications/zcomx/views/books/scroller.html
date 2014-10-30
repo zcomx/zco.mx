@@ -4,9 +4,10 @@
     <div id="reader_container">
         {{if pages:}}
             {{for count, page in enumerate(pages):}}
-            <a name="{{='page_no_{p:03d}'.format(p=page.page_no)}}"></a>
-            <div id="img-{{=count}}" class="scroller">
-                {{=ImgTag(page.image, size=size)()}}
+            <div id="{{='page_no_{p:03d}'.format(p=page.page_no)}}">
+                <div id="img-{{=count}}" class="scroller">
+                    {{=ImgTag(page.image, size=size, attributes={'_alt': 'page {p:03d}'.format(p=page.page_no)})()}}
+                </div>
             </div>
             {{pass}}
         {{else:}}

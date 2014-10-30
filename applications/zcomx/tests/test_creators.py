@@ -182,7 +182,7 @@ class TestFunctions(LocalTestCase):
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
-        components = [IMG(_src="http://www.img.com")]
+        components = [IMG(_src='http://www.img.com', _alt='')]
         link = contribute_link(db, creator, components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
@@ -193,7 +193,6 @@ class TestFunctions(LocalTestCase):
         attributes = dict(
             _href='/path/to/file',
             _class='btn btn-large',
-            _type='button',
             _target='_blank',
         )
         link = contribute_link(db, creator, **attributes)
@@ -202,7 +201,6 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
-        self.assertEqual(anchor['type'], 'button')
         self.assertEqual(anchor['target'], '_blank')
 
     def test__for_path(self):
@@ -371,7 +369,7 @@ class TestFunctions(LocalTestCase):
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
-        components = [IMG(_src="http://www.img.com")]
+        components = [IMG(_src='http://www.img.com', _alt='')]
         link = torrent_link(creator, components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
@@ -382,7 +380,6 @@ class TestFunctions(LocalTestCase):
         attributes = dict(
             _href='/path/to/file',
             _class='btn btn-large',
-            _type='button',
             _target='_blank',
         )
         link = torrent_link(creator, **attributes)
@@ -391,7 +388,6 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(anchor.string, 'all-first_last.torrent')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
-        self.assertEqual(anchor['type'], 'button')
         self.assertEqual(anchor['target'], '_blank')
 
     def test__torrent_name(self):

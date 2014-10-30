@@ -148,7 +148,7 @@
 
         to_page: function(page_no) {
             this.show_slide(page_no - 1);
-            $.fn.zco_utils.scroll_to_anchor('reader_section');
+            $.fn.zco_utils.scroll_to_element('reader_section');
         }
     });
 
@@ -161,10 +161,8 @@
             return;
         },
         to_page: function(page_no) {
-            console.log('page_no: %o', page_no);
             var anchor = 'page_no_' + ('000'+page_no).slice(-3);
-            console.log('anchor: %o', anchor);
-            $.fn.zco_utils.scroll_to_anchor(anchor);
+            $.fn.zco_utils.scroll_to_element(anchor);
         }
     });
 

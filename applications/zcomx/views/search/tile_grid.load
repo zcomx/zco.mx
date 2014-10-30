@@ -48,14 +48,14 @@
                             <div class="row buttons_orderby_container">
                                 <div class="col-sm-5">
                                     <div class="read button_container">
-                                    {{=read_link(db, row.book.id, **dict(_class='btn btn-default btn-sm', _type='button'))}}
+                                    {{=read_link(db, row.book.id, **dict(_class='btn btn-default btn-sm'))}}
                                     </div>
                                     <div class="download button_container">
-                                    <a class="btn btn-default btn-sm fixme" type="button" href="#" data-w2p_disable_with="default">Download</a>
+                                    <a class="btn btn-default btn-sm fixme" href="#" data-w2p_disable_with="default">Download</a>
                                     </div >
                                     <div class="contribute button_container">
                                     {{if row.creator.paypal_email:}}
-                                    {{=contribute_link(db, row.book.id, **dict(_class='btn btn-default btn-sm contribute_button', _type='button'))}}
+                                    {{=contribute_link(db, row.book.id, **dict(_class='btn btn-default btn-sm contribute_button'))}}
                                     {{else:}}
                                     <span>&nbsp;</span>
                                     {{pass}}

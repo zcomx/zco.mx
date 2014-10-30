@@ -50,10 +50,10 @@
             Child.superclass = Parent.prototype;
         },
 
-        scroll_to_anchor: function(anchor_id, buffer, duration){
+        scroll_to_element: function(elem_id, buffer, duration){
             buffer = typeof buffer !== 'undefined' ? buffer : 10;
             duration = typeof duration !== 'undefined' ? duration : 400;
-            var tag = $("a[name='"+ anchor_id +"']");
+            var tag = $("#"+ elem_id);
             $('html,body').animate({scrollTop: tag.offset().top + buffer}, duration);
         },
 
