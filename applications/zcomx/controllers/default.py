@@ -317,9 +317,15 @@ def top():
         )
 
     def page_link(page_id):
-        """Return a book link."""
+        """Return a read (book page) link."""
         label = 'read'
         url = page_url(page_id, extension=False) if page_id else None
+        return li_link(label, url)
+
+    def search_link(request):
+        """Return a search results link."""
+        label = 'search'
+        url = URL(c='search', f='index', vars=request.vars)
         return li_link(label, url)
 
     if request.args(0):
@@ -340,6 +346,10 @@ def top():
             left_links.append(login_link('books'))
             left_links.append(login_link('profile'))
             left_links.append(login_link('account'))
+    else:
+        if request.vars.o == 'search':
+            delimiter_class = 'gt_delimiter'
+            left_links.append(search_link(request))
 
     right_links.append(A(
         'about',

@@ -18,6 +18,7 @@ from applications.zcomx.modules.search import \
     CreatorGrid, \
     OngoingGrid, \
     ReleasesGrid, \
+    SearchGrid, \
     GRID_CLASSES, \
     book_contribute_button, \
     creator_contribute_button, \
@@ -385,6 +386,38 @@ class TestReleasesGrid(LocalTestCase):
         )
 
 
+class TestSearchGrid(LocalTestCase):
+
+    def test____init__(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        grid = SearchGrid()
+        self.assertTrue(grid)
+        self.assertEqual(grid._attributes['table'], 'book_page')
+        self.assertEqual(grid._attributes['field'], 'created_on')
+
+    def test__filters(self):
+        grid = SearchGrid()
+        self.assertEqual(len(grid.filters()), 0)
+        env = globals()
+        request = env['request']
+        request.vars.kw = 'keyword'
+        self.assertEqual(len(grid.filters()), 1)
+
+    def test__visible_fields(self):
+        grid = SearchGrid()
+        self.assertEqual(
+            grid.visible_fields(),
+            [
+                db.book.name,
+                db.book_page.created_on,
+                db.book.views_year,
+                db.book.contributions_remaining,
+                db.auth_user.name,
+            ]
+        )
+
+
 class TestFunctions(LocalTestCase):
     _book = None
     _creator = None
@@ -435,7 +468,7 @@ class TestFunctions(LocalTestCase):
     def test_constants(self):
         self.assertEqual(
             GRID_CLASSES.keys(),
-            ['ongoing', 'contributions', 'creators']
+            ['ongoing', 'contributions', 'creators', 'search']
         )
 
     def test__book_contribute_button(self):

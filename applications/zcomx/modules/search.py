@@ -61,11 +61,6 @@ class Grid(object):
         request = self.request
         queries = []
         queries.append((db.book.status == True))
-        if request.vars.kw:
-            queries.append(
-                (db.book.name.contains(request.vars.kw)) |
-                (db.auth_user.name.contains(request.vars.kw))
-            )
         queries.extend(self.filters())
 
         db.auth_user.name.represent = lambda v, row: A(
@@ -540,11 +535,60 @@ class ReleasesGrid(Grid):
         ]
 
 
+class SearchGrid(Grid):
+    """Class representing a grid for search results."""
+
+    _attributes = {
+        'table': 'book_page',
+        'field': 'created_on',
+        'label': 'page added',
+        'tab_label': 'search',
+        'header_label': 'added',
+        'order_dir': 'DESC',
+    }
+
+    def __init__(self, form_grid_args=None):
+        """Constructor"""
+        Grid.__init__(self, form_grid_args=form_grid_args)
+
+    def filters(self):
+        """Define query filters.
+
+        Returns:
+            list of gluon.dal.Expression instances
+        """
+        db = self.db
+        request = self.request
+        queries = []
+        if request.vars.kw:
+            queries.append(
+                (db.book.name.contains(request.vars.kw)) |
+                (db.auth_user.name.contains(request.vars.kw))
+            )
+        return queries
+
+    def visible_fields(self):
+        """Return list of visisble fields.
+
+        Returns:
+            list of gluon.dal.Field instances
+        """
+        db = self.db
+        return [
+            db.book.name,
+            db.book_page.created_on,
+            db.book.views_year,
+            db.book.contributions_remaining,
+            db.auth_user.name,
+        ]
+
+
 GRID_CLASSES = collections.OrderedDict()
 GRID_CLASSES['ongoing'] = OngoingGrid
 #GRID_CLASSES['releases'] = ReleasesGrid
 GRID_CLASSES['contributions'] = ContributionsGrid
 GRID_CLASSES['creators'] = CartoonistsGrid
+GRID_CLASSES['search'] = SearchGrid
 
 
 def book_contribute_button(row):
