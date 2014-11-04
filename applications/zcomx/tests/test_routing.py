@@ -393,7 +393,7 @@ class TestRouter(LocalTestCase):
                 'page': 'http://127.0.0.1:8000/First_Last/My_Book/001',
                 'invalid': 'http://www.domain.com/path/to/page',
             },
-            'view': 'default/page_not_found.html',
+            'view': 'errors/page_not_found.html',
         })
         expect_2 = Storage({
             'view_dict': {
@@ -403,7 +403,7 @@ class TestRouter(LocalTestCase):
                 'http://127.0.0.1:8000/John_Hancock/My_Second_Book/001',
                 'invalid': 'http://www.domain.com/path/to/page',
             },
-            'view': 'default/page_not_found.html',
+            'view': 'errors/page_not_found.html',
         })
 
         do_test(request_vars, expect)
@@ -464,7 +464,7 @@ class TestRouter(LocalTestCase):
                 'page': self._first_creator_links.page,
                 'invalid': 'http://www.domain.com/path/to/page',
             },
-            'view': 'default/page_not_found.html',
+            'view': 'errors/page_not_found.html',
         })
 
         # If invalid creator, first book of first creator should be found.
@@ -563,7 +563,7 @@ class TestRouter(LocalTestCase):
                 'page': self._first_creator_links.page,
                 'invalid': 'http://www.domain.com/path/to/page',
             },
-            'view': 'default/page_not_found.html',
+            'view': 'errors/page_not_found.html',
         })
         do_test(request_vars, first_expect)
 
@@ -636,7 +636,7 @@ class TestRouter(LocalTestCase):
         request_vars.creator = str(9999999)
         expect_not_found = Storage({
             'view_dict_keys': self._keys_for_view['page_not_found'],
-            'view': 'default/page_not_found.html',
+            'view': 'errors/page_not_found.html',
         })
         do_test(request_vars, expect_not_found)
 

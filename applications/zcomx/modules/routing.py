@@ -221,7 +221,7 @@ class Router(object):
         message = 'The requested page was not found on this server.'
 
         self.view_dict = dict(urls=urls, message=message)
-        self.view = 'default/page_not_found.html'
+        self.view = 'errors/page_not_found.html'
 
     def preset_links(self):
         """Return a list of preset links for the creator.

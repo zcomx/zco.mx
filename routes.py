@@ -38,6 +38,7 @@ CONTROLLERS = '|'.join([
     'contributions',
     'creators',
     'default',
+    'errors',
     'images',
     'login',
     'search',
@@ -142,7 +143,8 @@ logging = 'debug'
 # ]
 
 routes_onerror = [
-    (r'*/*', r'/zcomx/default/page_not_found')
+    (r'*/404', r'/zcomx/errors/page_not_found'),
+    (r'*/*', r'/zcomx/errors/handler')
 ]
 
 # specify action in charge of error handling
