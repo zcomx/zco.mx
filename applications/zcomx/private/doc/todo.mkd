@@ -1,5 +1,8 @@
 ``
 VERSION 2 - Before Going Live
+[x] Front Page
+    Change boarder colour from #333 to #666
+
 [ ] Update FAQ
     [M] Intro Email
         SB: Get JR to edit the intro email for cartoonists as he sees fit
@@ -14,18 +17,25 @@ VERSION 2 - Before Going Live
     [M] FAQs
         SB: Get JR to edit the two FAQs as he sees fit.
 
-[ ] Search/Filtering UX
+[x] Search/Filtering UX
     * I think it should return a tab called 'search' with no other tabs
     * maybe in the navbar have 'home > search'
     * keep the tile and list views, with tile default
-    * can it return book titles and cartoonists in the same query?
-        * so in tile view it would show the cover for the books and the headshot of the cartoonists
 
+[ ] 12580 - Run pages through HTML validation.
+[ ] 12574 - Improve contributions to creator.
+[ ] 12217 - Fix book page stats and links.
 
-----
-[ ] Go over JK's todo list
+[ ] 12605 - Front page errors redisplay Page Not Found endlessly.
+[ ] 12555 - Clear error on creator image upload.
 
-[ ] renumber cartoonist IDs
+[ ] Front Page
+    re-theme using a grid style.  See ss-jmartz02.png and ss-jmartz03.png
+
+[ ] Front Page
+    navbar - remove the link from the last word in the breadcrumbs(?)
+
+[ ] 12554 - Renumber cartoonist IDs
     98 & 99 jimk and sinus
     100 blank
     101 chuck
@@ -33,7 +43,9 @@ VERSION 2 - Before Going Live
     103 crane
     104 bell
 
+----
 [ ] Add torrent and dc functionality
+    JK devmod IDs: 12410, 12281, 12263, 12219
     Example file names:
     "Name of Comic 001 (2014) (101.zco.mx).cbz"
     "Name of Comic 001 (2012) (digital-Empire).cbr"
@@ -55,12 +67,18 @@ VERSION 2 - Before Going Live
 [ ] Obfuscate Email Addresses
     See how dokuwiki does it
 
-[ ] wildcard ssl cert for zco.mx
+[S] wildcard ssl cert for zco.mx
 
+[ ] 12429 - Search should be unicode safe.
+[ ] 12327 - Prevent duplicate file from uploading.
+[ ] 12344 - Errors not visible on modal close
+[ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
+[ ] 12426 - Add robots.txt to prevent bots from accessing dev.zco.mx
+[ ] 12354 - Test scripts
 
 VERSION 3
 [ ] Read Page -> Scroll
-    how to paginate long gn's -- modulo 30?
+    12459 - how to paginate long gn's -- modulo 30?
 [ ] login -> books
     add iframe code for each book
     <embed/>
@@ -91,6 +109,18 @@ VERSION 3
     Navigate with mouse scroll as well
     http://geekwagon.net/projects/xkcd1190/
     h-scroll - http://danielschafferbrooklyncomics.com/books/uncategorized/all-you-need/
+[ ] 12539 - Create aliases when users change their name
+    jane smith -> id: 999 -> zco.mx/jane_smith
+    ## name change
+    jane smith jones -> id: 999 -> zco.mx/jane_smith_jones
+    jane smith -> id: 999 -> zco.mx/jane_smith_jones
+
+    We should likely create a check to alert when this happens because
+    1) the cartoonist could generate a ton of aliases
+    2) the cartoonist could masquerade (fraud) as another cartoonist
+
+[ ] 12558 - Modularly return creator name
+[ ] Front Page -> 12560 - store attributes in session and reuse
 
 IDEAS
 [ ] bug/feature tracker

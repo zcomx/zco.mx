@@ -452,7 +452,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #front_page #options_container .nav-tabs,
 #profile_page .faq_options_container .nav-tabs {
-  border-bottom: 1px solid #333333;
+  border-bottom: 1px solid #666666;
 }
 
 #front_page #options_container .nav-tabs > li > a,
@@ -462,7 +462,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #front_page #options_container .nav-tabs > li > a:hover,
 #profile_page .faq_options_container .nav-tabs > li > a:hover {
-  border-bottom: 1px solid #333333;
+  border-bottom: 1px solid #666666;
 }
 
 #front_page #options_container .nav-tabs > li.active > a,
@@ -472,8 +472,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #front_page #options_container .nav-tabs > li.active > a:focus,
 #profile_page .faq_options_container .nav-tabs > li.active > a:focus {
   color: #333;
-  background-color: #fff;
-  border: 1px solid #333;
+  background-color: #FFFFFF;
+  border: 1px solid #666666;
   border-bottom-color: transparent;
   text-decoration: none;
 }
