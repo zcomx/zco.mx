@@ -134,12 +134,6 @@ class TestFunctions(LocalTestCase):
             self.titles['overview']
         ))
 
-    def test__page_not_found(self):
-        self.assertTrue(web.test(
-            '{url}/page_not_found'.format(url=self.url),
-            self.titles['page_not_found']
-        ))
-
     def test__todo(self):
         self.assertTrue(web.test(
             '{url}/todo'.format(url=self.url),

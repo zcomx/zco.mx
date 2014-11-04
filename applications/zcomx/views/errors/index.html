@@ -1,0 +1,24 @@
+{{extend 'layout_main.html'}}
+<div class="row" id="top_section">
+    <div class="col-xs-12 col-sm-8 col-lg-9 breadcrumb_container">
+        <div class="row">
+            <div class="col-xs-12">
+                <ol class="breadcrumb left pipe_delimiter">
+                    <li>
+                    <a href="{{=URL(c='default', f='index', extension=False)}}">home</a>
+                    </li>
+                </ol>
+                <ol class="breadcrumb right">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="error_page">
+
+<h3>Server error</h3>
+<p>
+The server was not able to display the requested page.
+</p>
+</div>
+
