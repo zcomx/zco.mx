@@ -1,7 +1,7 @@
 ``
 VERSION 2 - Before Going Live
 [x] Front Page
-    Change boarder colour from #333 to #666
+    Change tab boarder colour from #333 to #666
 
 [ ] Update FAQ
     [M] Intro Email
@@ -30,15 +30,20 @@ VERSION 2 - Before Going Live
 [ ] 12555 - Clear error on creator image upload.
 
 [ ] Front Page
-    re-theme using a grid style.  See ss-jmartz02.png and ss-jmartz03.png
+    re-theme using a grid style.  See ss-jmartz02.png, ss-jmartz03.png and ss-zcomx.png
+    * cover border 1px solid #DDD
+    * four covers per row, three(?) rows
+    * Book Title in black but clickable; goes to book page
+    * cartoonist name goes to cartoonist page
+    * cover goes to read page
 
 [ ] Front Page
     navbar - remove the link from the last word in the breadcrumbs(?)
 
 [ ] 12554 - Renumber cartoonist IDs
     98 & 99 jimk and sinus
-    100 blank
-    101 chuck
+    100 < blank >
+    101 forsman
     102 huizenga
     103 crane
     104 bell
@@ -63,6 +68,15 @@ VERSION 2 - Before Going Live
     [ ] png version
 
 [ ] Reader notifications of new material (rss? and mailing list?)
+
+[ ] Front Page -> All Report
+    * Add '...more info' to the end of each row in any report viewed by list
+    * have it open in a new window/tab (?)
+    * book info would go to the book page and cartoonist info to the cartoonist page
+
+[ ] Book Page
+    * Bottom left, below cover, add 'contribute | download' links
+    * Remove input box contribute link
 
 [ ] Obfuscate Email Addresses
     See how dokuwiki does it
