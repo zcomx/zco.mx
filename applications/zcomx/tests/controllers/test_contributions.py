@@ -31,11 +31,11 @@ class TestFunctions(LocalTestCase):
             '<div class="row contribute_widget">',
             '</div>',
         ],
+        'faq': '<h1>FAQ</h1>',
         'index': 'zco.mx is a not-for-profit comic-sharing website',
         'modal': 'Your donations help cover the costs of hosting',
         'modal_book': 'Contributions go directly to the cartoonist',
         'paypal': '<form id="paypal_form"',
-        'paypal_notify': '<h2>Paypal Notify</h2>',
     }
     url = '/zcomx/contributions'
 
@@ -161,6 +161,10 @@ class TestFunctions(LocalTestCase):
         def get_paypal_log(txn_id):
             return db(db.paypal_log.txn_id == txn_id).select()
 
+        def delete_paypal_log(txn_id):
+            db(db.paypal_log.txn_id == txn_id).delete()
+            db.commit()
+
         self.assertEqual(len(get_contributions()), 0)
 
         txn_id = '_test_paypal_notify_'
@@ -175,7 +179,7 @@ class TestFunctions(LocalTestCase):
             'address_zip': 'M5A 1E1',
             'business': 'showme@zco.mx',
             'charset': 'windows-1252',
-            'custom': '',
+            'custom': '/faq',
             'first_name': 'Test',
             'ipn_track_id': '9313257df1a27',
             'item_name': 'Test Book',
@@ -207,13 +211,17 @@ class TestFunctions(LocalTestCase):
             'AAh-gjn1ENnDuooduWNAFaW4Pdn0ABa6dKmQ59z53r0b82f1KHtBteKn'
         }
 
+        delete_paypal_log(txn_id)
+        logs = get_paypal_log(txn_id)
+        self.assertEqual(len(logs), 0)
+
         self.assertTrue(
             web.test(
                 '{url}/paypal_notify?{q}'.format(
                     url=self.url,
                     q=urllib.urlencode(notify_vars),
                 ),
-                self.titles['paypal_notify']
+                self.titles['faq']
             )
         )
 
@@ -243,7 +251,7 @@ class TestFunctions(LocalTestCase):
                         url=self.url,
                         q=urllib.urlencode(notify_vars),
                     ),
-                    self.titles['paypal_notify']
+                    self.titles['faq']
                 )
             )
 
@@ -253,6 +261,10 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(len(logs), 1)
             self.assertEqual(logs[0].payment_status, status)
             self._objects.append(logs[0])
+
+        delete_paypal_log(txn_id)
+        logs = get_paypal_log(txn_id)
+        self.assertEqual(len(logs), 0)
 
 
 def setUpModule():

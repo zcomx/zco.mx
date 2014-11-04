@@ -362,7 +362,7 @@ def cover_image(db, book_id, size='original', img_attributes=None):
     page = first_page(db, book_id)
     image = page.image if page else None
 
-    attributes = {}
+    attributes = {'_alt': ''}
 
     if size == 'tbn':
         thumb_w = thumb_h = 170

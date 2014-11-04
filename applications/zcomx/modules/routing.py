@@ -6,6 +6,7 @@
 Routing classes and functions.
 """
 import urllib
+from gluon import *
 from gluon.html import A, SPAN
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
@@ -323,7 +324,10 @@ class Router(object):
                 db,
                 book_record.id,
                 size='web',
-                img_attributes={'_class': 'img-responsive'}
+                img_attributes={
+                    '_alt': book_record.name,
+                    '_class': 'img-responsive',
+                }
             )]
         )
 
@@ -332,7 +336,6 @@ class Router(object):
             book_record,
             **dict(
                 _class='btn btn-default',
-                _type='button',
             )
         )
 
@@ -392,20 +395,21 @@ class Router(object):
             _href=page_url(first_book_page, reader='scroller'),
             _class='btn btn-default {st}'.format(
                 st='disabled' if reader == 'scroller' else 'active'),
-            _type='button',
             cid=request.cid
         )
 
         slider_data = dict(
             _href=page_url(first_book_page, reader='slider'),
             _class='btn btn-default active',
-            _type='button',
             cid=request.cid
         )
 
         if reader == 'slider':
             slider_data['_id'] = 'vertical_align_button'
             slider_data['_title'] = 'Center book page in window.'
+            current.response.files.append(
+                URL('static', 'css/slider.css')
+            )
 
         slider_link = A(
             SPAN('slider'),

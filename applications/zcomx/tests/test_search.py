@@ -490,7 +490,6 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(data['string'], 'Contribute')
         self.assertTrue('/contributions/modal?book_id=' in data['href'])
         self.assertTrue('contribute_button' in data['class'])
-        self.assertEqual(data['type'], 'button')
 
     def test__classified(self):
         env = globals()
@@ -525,7 +524,6 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(data['string'], 'Contribute')
         self.assertTrue('/contributions/modal?creator_id=' in data['href'])
         self.assertTrue('contribute_button' in data['class'])
-        self.assertEqual(data['type'], 'button')
 
     def test__download_link(self):
         self.assertEqual(download_link({}), '')
@@ -534,7 +532,6 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(data['string'], 'Download')
         self.assertTrue('/books/download/' in data['href'])
         self.assertTrue('fixme' in data['class'])
-        self.assertEqual(data['type'], 'button')
 
     def test__link_book_id(self):
         self.assertEqual(link_book_id({}), 0)
@@ -552,7 +549,6 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(
             '/test__functions/_My_Functions_Book__001/001' in data['href'])
         self.assertTrue('btn' in data['class'])
-        self.assertEqual(data['type'], 'button')
 
     def test__torrent_link(self):
         self.assertEqual(torrent_link({}), '')

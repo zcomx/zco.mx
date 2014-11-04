@@ -7,14 +7,13 @@
             <td class="book_name_column">{{=A(formatted_name(db, book), _href=book_url(book.id, extension=False))}}</td>
             <td>{{=book.release_date.year}}</td>
             <td>
-                {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
+                {{=read_link(db, book.id, **dict(_class='btn btn-default'))}}
             </td>
             <td>
                 {{=A(
                     'Edit',
                     _class='btn btn-default modal-edit-btn',
                     _href=URL(c='login', f='book_edit', args=book.id, extension=False),
-                    _type='button',
                 )}}
             </td>
             <td>
@@ -23,7 +22,6 @@
                     _class='icon zc-trash size-18'),
                     _href=URL(c='login', f='book_delete', args=book.id, extension=False),
                     _class='btn btn-default btn-xs modal-delete-btn',
-                    _type='button',
                 )}}
             </td>
         </tr>
@@ -43,14 +41,13 @@
         <tr>
             <td class="book_name_column">{{=A(formatted_name(db, book), _href=book_url(book.id, extension=False))}}</td>
             <td>
-                {{=read_link(db, book.id, **dict(_class='btn btn-default', _type='button'))}}
+                {{=read_link(db, book.id, **dict(_class='btn btn-default'))}}
             </td>
             <td>
                 {{=A(
                     'Upload',
                     _class='btn btn-default modal-upload-btn',
                     _href=URL(c='login', f='book_pages', args=book.id, extension=False),
-                    _type='button',
                 )}}
             </td>
             <td>
@@ -58,7 +55,6 @@
                     'Edit',
                     _class='btn btn-default modal-edit-btn',
                     _href=URL(c='login', f='book_edit', args=book.id, extension=False),
-                    _type='button',
                 )}}
             </td>
             <td>
@@ -74,7 +70,6 @@
                     'Release',
                     _class='btn btn-default modal-release-btn',
                     _href=URL(c='login', f='book_release', args=book.id, extension=False),
-                    _type='button',
                 )}}
             </td>
             {{pass}}
@@ -99,7 +94,6 @@
                     'Edit',
                     _class='btn btn-default modal-edit-btn',
                     _href=URL(c='login', f='book_edit', args=book.id, extension=False),
-                    _type='button',
                 )}}
             </td>
             <td>
@@ -108,7 +102,6 @@
                     _class='icon zc-trash size-18'),
                     _href=URL(c='login', f='book_delete', args=book.id, extension=False),
                     _class='btn btn-default btn-xs modal-delete-btn',
-                    _type='button',
                 )}}
             </td>
         </tr>

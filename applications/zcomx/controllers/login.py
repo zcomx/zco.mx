@@ -274,7 +274,6 @@ def book_pages():
         book_record,
         **dict(
             _class='btn btn-default btn-lg',
-            _type='button',
             _target='_blank',
         )
     )

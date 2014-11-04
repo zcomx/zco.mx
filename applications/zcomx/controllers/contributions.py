@@ -248,4 +248,4 @@ def paypal_notify():
     if request.vars.custom:
         redirect(request.vars.custom)
     else:
-        redirect(URL(c='search'))
+        redirect(URL(c='search', f='index'))
