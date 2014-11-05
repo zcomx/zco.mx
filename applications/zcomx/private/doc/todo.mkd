@@ -3,6 +3,10 @@ VERSION 2 - Before Going Live
 [x] Front Page
     Change tab boarder colour from #333 to #666
 
+[ ] Book Page
+    960px: L1043
+    #creator_id_section .creator_links_container { min-width: 20.8em; }
+
 [ ] Update FAQ
     [M] Intro Email
         SB: Get JR to edit the intro email for cartoonists as he sees fit
@@ -22,20 +26,29 @@ VERSION 2 - Before Going Live
     * maybe in the navbar have 'home > search'
     * keep the tile and list views, with tile default
 
-[ ] 12580 - Run pages through HTML validation.
-[ ] 12574 - Improve contributions to creator.
-[ ] 12217 - Fix book page stats and links.
+[x] 12580 - Run pages through HTML validation.
+[x] 12574 - Improve contributions to creator.
+[x] 12217 - Fix book page stats and links.
 
-[ ] 12605 - Front page errors redisplay Page Not Found endlessly.
-[ ] 12555 - Clear error on creator image upload.
+[x] 12605 - Front page errors redisplay Page Not Found endlessly.
+[x] 12555 - Clear error on creator image upload.
 
 [ ] Front Page
     re-theme using a grid style.  See ss-jmartz02.png, ss-jmartz03.png and ss-zcomx.png
     * cover border 1px solid #DDD
-    * four covers per row, three(?) rows
+    * four covers per row, three(?) four(?) rows
     * Book Title in black but clickable; goes to book page
     * cartoonist name goes to cartoonist page
     * cover goes to read page
+    * on browser resize, go to three columns, then two, then one
+    * do we right, center or left justify the portrait and landscape images?  random?
+    * dynamically resize landscape images?  (eg 4 landscape vs 1 landscape and 3 portrait)
+
+[ ] Book Page
+    * Bottom left, below cover, add 'contribute | download' links
+        + is clicking on the cover enough to replace the 'Read' button ?
+    * Remove input box contribute link
+    * Remove 'Read' and 'Download' buttons
 
 [ ] Front Page
     navbar - remove the link from the last word in the breadcrumbs(?)
@@ -71,12 +84,8 @@ VERSION 2 - Before Going Live
 
 [ ] Front Page -> All Report
     * Add '...more info' to the end of each row in any report viewed by list
-    * have it open in a new window/tab (?)
+    * have it open in a new window/tab (?)  modal (?)
     * book info would go to the book page and cartoonist info to the cartoonist page
-
-[ ] Book Page
-    * Bottom left, below cover, add 'contribute | download' links
-    * Remove input box contribute link
 
 [ ] Obfuscate Email Addresses
     See how dokuwiki does it
