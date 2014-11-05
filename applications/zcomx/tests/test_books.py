@@ -93,8 +93,7 @@ class TestContributionEvent(EventTestCase):
         self._set_pages(db, self._book.id, 10)
         update_rating(db, self._book)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.contributions_month, 0)
-        self.assertAlmostEqual(book.contributions_year, 0)
+        self.assertAlmostEqual(book.contributions, 0)
         self.assertAlmostEqual(book.contributions_remaining, 100.00)
 
         event = ContributionEvent(self._book, self._user.id)
@@ -103,8 +102,7 @@ class TestContributionEvent(EventTestCase):
         event_id = event.log()
         self.assertFalse(event_id)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.contributions_month, 0)
-        self.assertAlmostEqual(book.contributions_year, 0)
+        self.assertAlmostEqual(book.contributions, 0)
         self.assertAlmostEqual(book.contributions_remaining, 100.00)
 
         event_id = event.log(123.45)
@@ -118,8 +116,7 @@ class TestContributionEvent(EventTestCase):
         self.assertEqual(contribution.amount, 123.45)
         self._objects.append(contribution)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.contributions_month, 123.45)
-        self.assertAlmostEqual(book.contributions_year, 123.45)
+        self.assertAlmostEqual(book.contributions, 123.45)
         self.assertAlmostEqual(book.contributions_remaining, 0.00)
 
 
@@ -131,8 +128,7 @@ class TestRatingEvent(EventTestCase):
     def test__log(self):
         update_rating(db, self._book)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.rating_month, 0)
-        self.assertAlmostEqual(book.rating_year, 0)
+        self.assertAlmostEqual(book.rating, 0)
 
         event = RatingEvent(self._book, self._user.id)
 
@@ -140,8 +136,7 @@ class TestRatingEvent(EventTestCase):
         event_id = event.log()
         self.assertFalse(event_id)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.rating_month, 0)
-        self.assertAlmostEqual(book.rating_year, 0)
+        self.assertAlmostEqual(book.rating, 0)
 
         event_id = event.log(5)
         rating = entity_to_row(db.rating, event_id)
@@ -154,8 +149,7 @@ class TestRatingEvent(EventTestCase):
         self.assertEqual(rating.amount, 5)
         self._objects.append(rating)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.rating_month, 5)
-        self.assertAlmostEqual(book.rating_year, 5)
+        self.assertAlmostEqual(book.rating, 5)
 
 
 class TestViewEvent(EventTestCase):
@@ -166,8 +160,7 @@ class TestViewEvent(EventTestCase):
     def test__log(self):
         update_rating(db, self._book)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.views_month, 0)
-        self.assertAlmostEqual(book.views_year, 0)
+        self.assertAlmostEqual(book.views, 0)
 
         event = ViewEvent(self._book, self._user.id)
         event_id = event.log()
@@ -181,8 +174,7 @@ class TestViewEvent(EventTestCase):
         )
         self._objects.append(view)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.views_month, 1)
-        self.assertAlmostEqual(book.views_year, 1)
+        self.assertAlmostEqual(book.views, 1)
 
 
 class ImageTestCase(LocalTestCase):
@@ -1076,13 +1068,10 @@ class TestFunctions(ImageTestCase):
 
         def reset(book_record):
             book_record.update_record(
-                contributions_month=0,
-                contributions_year=0,
+                contributions=0,
                 contributions_remaining=0,
-                views_month=0,
-                views_year=0,
-                rating_month=0,
-                rating_year=0,
+                views=0,
+                rating=0,
             )
             db.commit()
 
@@ -1094,13 +1083,10 @@ class TestFunctions(ImageTestCase):
             update_rating(db, book_record, rating=rating)
             query = (db.book.id == book_record.id)
             r = db(query).select(
-                db.book.contributions_month,
-                db.book.contributions_year,
+                db.book.contributions,
                 db.book.contributions_remaining,
-                db.book.views_month,
-                db.book.views_year,
-                db.book.rating_month,
-                db.book.rating_year,
+                db.book.views,
+                db.book.rating,
             ).first()
             for k, v in expect.items():
                 # There may be some rounding foo, so use AlmostEqual
@@ -1112,13 +1098,10 @@ class TestFunctions(ImageTestCase):
         # No rating records, so all values should be 0
         reset(book)
         expect = Storage(dict(
-            contributions_month=0,
-            contributions_year=0,
+            contributions=0,
             contributions_remaining=100.00,
-            views_month=0,
-            views_year=0,
-            rating_month=0,
-            rating_year=0,
+            views=0,
+            rating=0,
         ))
         do_test(book, None, expect)
 
@@ -1144,21 +1127,17 @@ class TestFunctions(ImageTestCase):
 
         reset(book)
         zero(expect)
-        expect.contributions_month = 11.11
-        expect.contributions_year = 33.33
+        expect.contributions = 77.77
         expect.contributions_remaining = 22.23   # 100.00 - (11.11+22.22+44.44)
-        expect.rating_month = 1.1
-        expect.rating_year = 1.65                # Avg of 1.1 and 3.3
-        expect.views_month = 1
-        expect.views_year = 2
+        expect.rating = 2.56666666                # Avg of 1.1, 2.2, and 4.4
+        expect.views = 3
         do_test(book, None, expect)
 
         # Test rating='contribute'
         rating = 'contribution'
         reset(book)
         zero(expect)
-        expect.contributions_month = 11.11
-        expect.contributions_year = 33.33
+        expect.contributions = 77.77
         expect.contributions_remaining = 22.23   # 100.00 - (11.11+22.22+44.44)
         do_test(book, rating, expect)
 
@@ -1166,16 +1145,14 @@ class TestFunctions(ImageTestCase):
         rating = 'rating'
         reset(book)
         zero(expect)
-        expect.rating_month = 1.1
-        expect.rating_year = 1.65           # Avg of 1.1 and 3.3
+        expect.rating = 2.56666666           # Avg of 1.1 and 3.3
         do_test(book, rating, expect)
 
         # Test rating='view'
         rating = 'view'
         reset(book)
         zero(expect)
-        expect.views_month = 1
-        expect.views_year = 2
+        expect.views = 3
         do_test(book, rating, expect)
 
         # Test rating='_invalid_'

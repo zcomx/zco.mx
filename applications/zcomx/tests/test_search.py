@@ -350,7 +350,7 @@ class TestOngoingGrid(LocalTestCase):
             [
                 db.book.name,
                 db.book_page.created_on,
-                db.book.views_year,
+                db.book.views,
                 db.book.contributions_remaining,
                 db.auth_user.name,
             ]
@@ -411,7 +411,7 @@ class TestSearchGrid(LocalTestCase):
             [
                 db.book.name,
                 db.book_page.created_on,
-                db.book.views_year,
+                db.book.views,
                 db.book.contributions_remaining,
                 db.auth_user.name,
             ]

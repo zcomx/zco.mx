@@ -735,19 +735,14 @@ def update_rating(db, book_entity, rating=None):
     """
     ratings_data = {
         'contribution': [
-            # (book field, data field, period, function, format)
-            (db.book.contributions_year, db.contribution.amount, 'year',
-                'sum'),
-            (db.book.contributions_month, db.contribution.amount, 'month',
-                'sum'),
+            # (book field, data field, function, format)
+            (db.book.contributions, db.contribution.amount, 'sum'),
         ],
         'rating': [
-            (db.book.rating_year, db.rating.amount, 'year', 'avg'),
-            (db.book.rating_month, db.rating.amount, 'month', 'avg'),
+            (db.book.rating, db.rating.amount, 'avg'),
         ],
         'view': [
-            (db.book.views_year, db.book_view.id, 'year', 'count'),
-            (db.book.views_month, db.book_view.id, 'month', 'count'),
+            (db.book.views, db.book_view.id, 'count'),
         ],
     }
 
@@ -764,25 +759,15 @@ def update_rating(db, book_entity, rating=None):
     if not book:
         return
 
-    periods = {
-        # name: days
-        'month': 30,
-        'year': 365,
-    }
-
-    book_query = (db.book.id == book.id)
-    for field, data_field, period, func in rating_data:
+    query = (db.book.id == book.id)
+    for field, data_field, func in rating_data:
         data_table = data_field.table
-        days = periods[period]
-        min_date = datetime.datetime.now() - datetime.timedelta(days=days)
-        time_query = (data_table.time_stamp >= min_date)
         if func == 'sum':
             tally = data_field.sum()
         elif func == 'avg':
             tally = data_field.avg()
         elif func == 'count':
             tally = data_field.count()
-        query = book_query & time_query
         rows = db(query).select(
             tally,
             left=[data_table.on(data_table.book_id == db.book.id)],

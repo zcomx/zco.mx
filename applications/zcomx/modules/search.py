@@ -89,7 +89,7 @@ class Grid(object):
             db.book_page.created_on,
             db.book.publication_year,
             db.book.release_date,
-            db.book.views_year,
+            db.book.views,
             db.book.downloads,
             db.book.contributions_remaining,
             db.book.created_on,
@@ -111,7 +111,7 @@ class Grid(object):
             'book.name': 'Title',
             'book.publication_year': 'Year',
             'book.released_date': 'Released',
-            'book.views_year': 'Views',
+            'book.views': 'Views',
             'book.contributions_remaining': 'Remaining',
             'book_page.created_on': 'Added',
             'creator.contributions_remaining': 'Remaining',
@@ -484,7 +484,7 @@ class OngoingGrid(Grid):
         return [
             db.book.name,
             db.book_page.created_on,
-            db.book.views_year,
+            db.book.views,
             db.book.contributions_remaining,
             db.auth_user.name,
         ]
@@ -577,7 +577,7 @@ class SearchGrid(Grid):
         return [
             db.book.name,
             db.book_page.created_on,
-            db.book.views_year,
+            db.book.views,
             db.book.contributions_remaining,
             db.auth_user.name,
         ]

@@ -27,7 +27,7 @@ def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    create_path_name_fix.py
+    dal_tests.py
 
 
 OPTIONS
@@ -86,13 +86,13 @@ def main():
     query = (db.book)
     num_of_pages = db.book_page.id.count()
     # drive_target = 10 * db.book_page.id.count()
-    min_page_query = (10 * db.book_page.id.count() - db.book.contributions_year > 0)
+    min_page_query = (10 * db.book_page.id.count() - db.book.contributions > 0)
 
 
     rows = db(query).select(
         db.book.id,
         db.book.name,
-        db.book.contributions_year,
+        db.book.contributions,
         num_of_pages,
         left=[
             db.book_page.on(db.book_page.book_id == db.book.id)
@@ -107,7 +107,7 @@ def main():
             id=r['book'].id,
             name=r['book'].name,
             num=r[num_of_pages],
-            cont=r['book'].contributions_year,
+            cont=r['book'].contributions,
             tar=1,
         )
 
