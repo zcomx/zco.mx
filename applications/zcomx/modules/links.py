@@ -153,5 +153,5 @@ class CustomLinks(object):
             return None
         return UL(
             [LI(x) for x in links],
-            _class='custom_links breadcrumb',
+            _class='custom_links breadcrumb pipe_delimiter',
         )
