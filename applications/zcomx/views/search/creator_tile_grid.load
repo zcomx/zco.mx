@@ -3,76 +3,45 @@
 {{from applications.zcomx.modules.utils import ItemDescription, entity_to_row}}
 {{rows = grid.rows()}}
 {{if rows:}}
-    {{for i in range(1, len(rows) + 1, 2): }}
-    <div class="row">
-        {{for j in range(2):}}
-            {{try:}}
-                {{row = rows[i + j - 1]}}
-            {{except IndexError:}}
-                {{row = None}}
-            {{else:}}
-            {{parity_class = 'even' if j % 2 else 'odd'}}
+    <div class="row tile_view">
+        {{for row in rows:}}
             {{creator_url = url(row.creator.id, extension=False)}}
-            <div class="col-sm-12 col-md-6 item_container {{=parity_class}}">
+            <div class="item_container">
                 <div class="row">
-                    <div class="col-xs-12 number">
-                        {{try:}}{{page = int(request.vars.page or 1)}}{{except:}}{{page = 1}}{{pass}}
-                        {{=((page - 1) * grid.items_per_page()) + (i + j)}}
+                    <div class="col-sm-12 name">
+                        <a href="{{=creator_url}}" title="{{=row.auth_user.name}}">
+                        {{=row.auth_user.name}}
+                        </a>
                     </div>
-                    <div class="col-sm-5 image_container">
-                        <div class="creator_image_container">
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 image_container">
                         {{creator = entity_to_row(db.creator, row.creator.id)}}
                         <a href="{{=creator_url}}" title="{{=row.auth_user.name}}">
                             {{=CreatorImgTag(creator.image, size='tbn', attributes={'_alt': row.auth_user.name})()}}
                         </a>
-                        </div>
                     </div>
-                    <div class="col-xs-12 col-sm-7 item_details">
-                        <div class="item_details_padding">
-                            <div class="row">
-                                <div class="col-sm-12 name_padding">
-                                    <div class="name">
-                                    <a href="{{=creator_url}}" title="{{=row.auth_user.name}}">
-                                    {{=row.auth_user.name}}
-                                    </a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row unused_row"><div class="col-sm-12"></div></div>
-                            <div class="row unused_row"><div class="col-sm-12"></div></div>
-                            <div class="row buttons_orderby_container">
-                                <div class="col-sm-5">
-                                    <div class="read button_container">
-                                    <a href="{{=creator_url}}" class="btn btn-default btn-sm" data-w2p_disable_with="default">Read</a>
-                                    </div>
-                                    <div class="download button_container">
-                                    <a href="{{=creator_url}}" class="btn btn-default btn-sm" data-w2p_disable_with="default">Download</a>
-                                    </div >
-                                    <div class="contribute button_container">
-                                    {{if can_receive_contributions(db, row.creator):}}
-                                    {{=contribute_link(db, row.creator, **dict(_class='btn btn-default contribute_button'))}}
-                                    {{else:}}
-                                    <span>&nbsp;</span>
-                                    {{pass}}
-                                    </div >
-                                </div>
-                                <div class="col-sm-7 orderby_field_container">
-                                    <div class="orderby_field_label">
-                                        {{=grid.tile_label()}}
-                                    </div>
-                                    <div class="orderby_field_value {{=grid.tile_class()}}">
-                                        {{=grid.tile_value(row)}}
-                                    </div>
-                                </div>
-                            </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <ul class="breadcrumb pipe_delimiter">
+                            {{if can_receive_contributions(db, row.creator):}}
+                            <li>
+                                {{=contribute_link(db, row.creator, components=['contribute'], **dict(_class='contribute_button'))}}
+                            </li>
+                            {{pass}}
+                            <li>
+                                <a href="{{=creator_url}}">download</a>
+                            </li>
+                        </ul>
+                        <div class="orderby_field_value">
+                            {{=grid.tile_value(row)}}
                         </div>
                     </div>
                 </div>
             </div>
-            {{pass}}
         {{pass}}
     </div>
-    {{pass}}
     {{if paginator:}}
         {{=XML(paginator)}}
     {{pass}}

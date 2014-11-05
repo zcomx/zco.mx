@@ -1,11 +1,11 @@
+{{viewbys = ['list', 'brick', 'tile']}}
+{{icons = {'list': 'th-list', 'brick': 'th-large', 'tile': 'th'} }}
+{{viewby = request.vars.view if request.vars.view in viewbys else 'list'}}
 <div class="row" id="options_section">
     <div class="col-sm-12" id="options_container">
-        <div class="list_tile_options">
+        <div class="list_brick_options">
             <div class="btn-group">
-            {{viewbys = ['list', 'tile']}}
-            {{icons = {'list': 'th-list', 'tile': 'th-large'} }}
-            {{viewby = request.vars.view if request.vars.view in viewbys else 'list'}}
-            {{for v in ['list', 'tile']:}}
+            {{for v in viewbys:}}
                 {{viewby_vars = dict(request.vars)}}
                 {{viewby_vars['view'] = v}}
                 {{disabled = 'disabled' if v == viewby else 'active'}}
@@ -24,7 +24,7 @@
     </div>
 </div>
 
-{{func = 'tile_grid' if request.vars.view == 'tile' else 'list_grid'}}
+{{func = '{v}_grid'.format(v=viewby)}}
 {{if request.vars.can_release:}}
 <div class="grid_section">
 {{=LOAD(c='search', f=func, vars={'creator_id': request.args(0), 'released': 1, 'o': 'contributions'}, extension='load', ajax=True)}}

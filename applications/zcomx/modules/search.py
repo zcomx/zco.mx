@@ -7,6 +7,7 @@ Search classes and functions.
 """
 import collections
 from gluon import *
+from gluon.tools import prettydate
 from applications.zcomx.modules.books import \
     contribute_link as book_contribute_link, \
     formatted_name, \
@@ -23,7 +24,7 @@ from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
 class Grid(object):
     """Class representing a grid for search results."""
 
-    # The key element is the one displayed in bottom right corner of tiles.
+    # The key element is the one displayed in bottom right corner of tile.
     _attributes = {
         'table': None,                  # db table name of key element
         'field': None,                  # db field name of key element
@@ -77,8 +78,8 @@ class Grid(object):
             _href=book_url(row.book.id, extension=False)
         )
 
-        db.book_page.created_on.represent = lambda v, row: str(v.date()) \
-            if v is not None else 'n/a'
+        db.book_page.created_on.represent = lambda v, row: \
+            str(prettydate(v, T=current.T)) if v is not None else 'n/a'
 
         fields = [
             db.book.id,
@@ -276,17 +277,27 @@ class Grid(object):
         """Show the field."""
         return self.set_field(field, visible=True)
 
-    def tile_class(self):
-        """Return the class name of div in tile of key element."""
-        return 'tile_key_{o}'.format(
+    def brick_class(self):
+        """Return the class name of div in brick of key element."""
+        return 'brick_key_{o}'.format(
             o=self.__class__.__name__.replace('Grid', '').lower()
         )
 
-    def tile_label(self):
-        """Return the label of the key element in tile view."""
+    def brick_label(self):
+        """Return the label of the key element in brick view."""
         if not 'label' in self._attributes:
             return ''
         return self._attributes['label'] or ''
+
+    def brick_value(self, row):
+        """Return the value of the key element in brick view."""
+        db = self.db
+        fieldname = self._attributes['field']
+        tablename = self._attributes['table']
+        value = row[tablename][fieldname]
+        if db[tablename][fieldname].represent:
+            value = db[tablename][fieldname].represent(value, row)
+        return value or ''
 
     def tile_value(self, row):
         """Return the value of the key element in tile view."""
