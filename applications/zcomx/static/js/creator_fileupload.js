@@ -29,6 +29,11 @@
         }
     }
 
+    function clear_error() {
+        $('.cancel_container').remove();
+        $('.file_error_container').remove();
+    }
+
     $(document).ready(function(){
         $('#fileupload').fileupload({
             url: '/zcomx/login/creator_img_handler',
@@ -46,9 +51,17 @@
             });
 
         $(document).on('click', '#change_button', function(e) {
+            clear_error();
             $('input[type=file]').trigger('click');
             e.preventDefault();
         });
+        $(document).on('click', '#remove_button', function(e) {
+            clear_error();
+        });
+        $(document).on('click', '.fileinput-button', function(e) {
+            clear_error();
+        });
+
         display_download();
     });
 }());

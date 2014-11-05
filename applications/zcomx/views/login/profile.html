@@ -86,7 +86,7 @@
         <div class="button_container">
             {% if (file.deleteUrl) { %}
                 <div>
-                <button class="btn btn-default delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
+                <button id="remove_button" class="btn btn-default delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
                     <span>Remove</span>
                 </button>
                 </div>
@@ -96,14 +96,16 @@
                 </button>
                 </div>
             {% } else { %}
+                <div class="cancel_container">
                 <button class="btn btn-warning cancel">
                     <i class="glyphicon glyphicon-ban-circle"></i>
                     <span>Cancel</span>
                 </button>
+                </div>
             {% } %}
         </div>
         {% if (file.error) { %}
-        <div>
+        <div class="file_error_container">
             <p class="name">
                 {% if (file.url) { %}
                     <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
