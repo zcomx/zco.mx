@@ -316,11 +316,24 @@ class Router(object):
         db = self.db
         creator_record = self.get_creator()
         book_record = self.get_book()
+        page_count = db(db.book_page.book_id == book_record.id).count()
 
-        cover = read_link(
-            db,
-            book_record,
-            [cover_image(
+        if page_count > 0:
+            cover = read_link(
+                db,
+                book_record,
+                [cover_image(
+                    db,
+                    book_record.id,
+                    size='web',
+                    img_attributes={
+                        '_alt': book_record.name,
+                        '_class': 'img-responsive',
+                    }
+                )]
+            )
+        else:
+            cover = cover_image(
                 db,
                 book_record.id,
                 size='web',
@@ -328,8 +341,7 @@ class Router(object):
                     '_alt': book_record.name,
                     '_class': 'img-responsive',
                 }
-            )]
-        )
+            )
 
         read_button = read_link(
             db,
@@ -347,7 +359,7 @@ class Router(object):
             creator_links=CustomLinks(db.creator, creator_record.id).represent(
                 pre_links=self.preset_links()),
             links=CustomLinks(db.book, book_record.id).represent(),
-            page_count=db(db.book_page.book_id == book_record.id).count(),
+            page_count=page_count,
             read_button=read_button,
         )
 
