@@ -10,7 +10,7 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import \
     add_creator, \
     for_path, \
-    set_creator_path_name, \
+    profile_onaccept, \
     url as creator_url
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.stickon.sqlhtml import \
@@ -76,7 +76,7 @@ def user():
 
     if request.args(0) == 'profile':
         auth.settings.profile_fields = ['name', userfield]
-        auth.settings.profile_onaccept = [set_creator_path_name]
+        auth.settings.profile_onaccept = [profile_onaccept]
 
     if request.args(0) == 'register':
         auth.settings.register_fields = ['name', userfield, passfield]

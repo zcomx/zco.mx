@@ -169,12 +169,10 @@ class TestRouter(LocalTestCase):
 
         cls._keys_for_view = {
             'creator': [
-                'auth_user',
                 'creator',
                 'links',
             ],
             'book': [
-                'auth_user',
                 'book',
                 'cover_image',
                 'creator',
@@ -188,7 +186,6 @@ class TestRouter(LocalTestCase):
                 'urls',
             ],
             'reader': [
-                'auth_user',
                 'book',
                 'creator',
                 'links',
@@ -202,33 +199,6 @@ class TestRouter(LocalTestCase):
     def test____init__(self):
         router = Router(db, self._request, auth)
         self.assertTrue(router)
-
-    def test__get_auth_user(self):
-        router = Router(db, self._request, auth)
-        self.assertTrue(router.auth_user_record is None)
-
-        # request.vars.creator not set
-        got = router.get_auth_user()
-        self.assertEqual(got, None)
-        self.assertTrue(router.auth_user_record is None)
-
-        router.request.vars.creator = 'Fake_Creator'
-        got = router.get_auth_user()
-        self.assertEqual(got, None)
-        self.assertTrue(router.auth_user_record is None)
-
-        router.request.vars.creator = 'First_Last'
-        got = router.get_auth_user()
-        self.assertEqual(got.name, 'First Last')
-        self.assertEqual(got.email, 'test__auth_user@test.com')
-        self.assertTrue(router.auth_user_record is not None)
-
-        # Subsequent calls get value from cache
-        router.request.vars.creator = 'Fake_Creator'
-        got = router.get_auth_user()
-        self.assertEqual(got.name, 'First Last')
-        self.assertEqual(got.email, 'test__auth_user@test.com')
-        self.assertTrue(router.auth_user_record is not None)
 
     def test__get_book(self):
         router = Router(db, self._request, auth)

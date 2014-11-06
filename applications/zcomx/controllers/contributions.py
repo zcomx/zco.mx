@@ -7,7 +7,8 @@ from applications.zcomx.modules.books import \
     ContributionEvent, \
     default_contribute_amount
 from applications.zcomx.modules.creators import \
-    book_for_contributions
+    book_for_contributions, \
+    formatted_name
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -82,12 +83,7 @@ def modal():
 
     if not book_record and request.vars.creator_id:
         creator_record = entity_to_row(db.creator, request.vars.creator_id)
-    auth_user_record = None
-    if creator_record:
-        auth_user_record = entity_to_row(
-            db.auth_user, creator_record.auth_user_id)
     return dict(
-        auth_user=auth_user_record,
         book=book_record,
         creator=creator_record,
     )
@@ -134,14 +130,10 @@ def paypal():
         if not creator_record.paypal_email:
             raise NotFoundError('Creator has no paypal email, id: {i}'.format(
                 i=book_record.creator_id))
-        auth_user = entity_to_row(db.auth_user, creator_record.auth_user_id)
-        if not auth_user:
-            raise NotFoundError('Auth user not found, id: {i}'.format(
-                i=creator_record.auth_user_id))
         data = Storage({})
         data.business = creator_record.paypal_email
         data.item_name = '{b} ({c})'.format(
-            b=book_record.name, c=auth_user.name)
+            b=book_record.name, c=formatted_name(creator_record))
         data.item_number = book_record.id
         return data
 
@@ -161,10 +153,6 @@ def paypal():
         if not creator_record.paypal_email:
             raise NotFoundError('Creator has no paypal email, id: {i}'.format(
                 i=creator_id))
-        auth_user = entity_to_row(db.auth_user, creator_record.auth_user_id)
-        if not auth_user:
-            raise NotFoundError('Auth user not found, id: {i}'.format(
-                i=creator_record.auth_user_id))
         book_record = book_for_contributions(db, creator_record)
         if not book_record:
             raise NotFoundError(
@@ -174,7 +162,7 @@ def paypal():
             )
         data = Storage({})
         data.business = creator_record.paypal_email
-        data.item_name = '{c}'.format(c=auth_user.name)
+        data.item_name = '{c}'.format(c=formatted_name(creator_record))
         data.item_number = book_record.id
         return data
 

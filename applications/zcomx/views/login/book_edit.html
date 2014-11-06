@@ -52,7 +52,7 @@
     var book_data = {
         'name': {
             'label': '{{=db.book.name.label}}',
-            'value': '{{=dumps(book.name or "").strip('"')}}',
+            'value': '{{=dumps(book.name or "").strip('"') if book else ""}}',
             'x_editable_settings': {
                 'title': 'Enter the title of the book.',
                 'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},

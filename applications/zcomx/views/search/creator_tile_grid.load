@@ -17,7 +17,7 @@
                 <div class="row">
                     <div class="col-sm-12 image_container">
                         {{creator = entity_to_row(db.creator, row.creator.id)}}
-                        <a href="{{=creator_url}}" title="{{=row.auth_user.name}}">
+                        <a href="{{=creator_url}}" title="">
                             {{=CreatorImgTag(creator.image, size='tbn', attributes={'_alt': row.auth_user.name})()}}
                         </a>
                     </div>

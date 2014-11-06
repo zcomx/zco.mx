@@ -46,22 +46,6 @@ class Router(object):
         self.book_record = None
         self.book_page_record = None
 
-    def get_auth_user(self):
-        """Return the auth user record.
-
-        Returns:
-            gluon.dal.Row representing auth_user record
-        """
-        db = self.db
-        if not self.auth_user_record:
-            creator_record = self.get_creator()
-            if creator_record and creator_record.auth_user_id:
-                self.auth_user_record = entity_to_row(
-                    db.auth_user,
-                    creator_record.auth_user_id
-                )
-        return self.auth_user_record
-
     def get_book(self):
         """Get the record of the book based on request.vars.book.
 
@@ -268,11 +252,6 @@ class Router(object):
             self.page_not_found()
             return
 
-        auth_user = self.get_auth_user()
-        if not auth_user:
-            self.page_not_found()
-            return
-
         if request.vars.book:
             if not self.get_book():
                 self.page_not_found()
@@ -352,7 +331,6 @@ class Router(object):
         )
 
         self.view_dict = dict(
-            auth_user=self.auth_user_record,
             book=book_record,
             cover_image=cover,
             creator=creator_record,
@@ -371,7 +349,6 @@ class Router(object):
         creator_record = self.get_creator()
 
         self.view_dict = dict(
-            auth_user=self.auth_user_record,
             creator=creator_record,
             links=CustomLinks(
                 db.creator, creator_record.id
@@ -429,7 +406,6 @@ class Router(object):
         )
 
         self.view_dict = dict(
-            auth_user=self.auth_user_record,
             book=book_record,
             creator=creator_record,
             links=[scroll_link, slider_link],

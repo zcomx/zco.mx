@@ -15,7 +15,7 @@ from gluon import *
 from gluon.shell import env
 from gluon.validators import urlify
 from optparse import OptionParser
-from applications.zcomx.modules.creators import set_path_name
+from applications.zcomx.modules.creators import on_change_name
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -91,7 +91,7 @@ def main():
         db.commit()
     for creator in db(db.creator).select(db.creator.ALL):
         LOG.info('Updating: {e}'.format(e=creator.email))
-        set_path_name(creator)
+        on_change_name(creator)
     LOG.info('Done.')
 
 

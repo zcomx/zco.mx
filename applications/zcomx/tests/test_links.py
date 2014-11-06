@@ -203,7 +203,7 @@ class TestCustomLinks(LocalTestCase):
         got = links.represent()
         soup = BeautifulSoup(str(got))
         ul = soup.find('ul')
-        self.assertEqual(ul['class'], 'custom_links breadcrumb')
+        self.assertEqual(ul['class'], 'custom_links breadcrumb pipe_delimiter')
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 3)
         for count, li in enumerate(lis):

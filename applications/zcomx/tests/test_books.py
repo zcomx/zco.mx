@@ -633,7 +633,8 @@ class TestFunctions(ImageTestCase):
         got = defaults(db, '_test__defaults_', self._creator)
         expect = {
             'creator_id': self._creator.id,
-            'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id
+            'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
+            'urlify_name': 'test-defaults',
         }
         self.assertEqual(got, expect)
 
@@ -651,6 +652,7 @@ class TestFunctions(ImageTestCase):
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
             'number': 2,
             'of_number': 1,
+            'urlify_name': 'image-test-case',
         }
         self.assertEqual(got, expect)
 
@@ -665,6 +667,7 @@ class TestFunctions(ImageTestCase):
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
             'number': 3,
             'of_number': 9,
+            'urlify_name': 'image-test-case',
         }
         self.assertEqual(got, expect)
 
@@ -683,6 +686,7 @@ class TestFunctions(ImageTestCase):
                 'book_type_id': types_by_name[book_type].id,
                 'number': 2,
                 'of_number': 1,
+                'urlify_name': 'image-test-case',
             }
             self.assertEqual(got, expect)
 

@@ -141,6 +141,30 @@ def for_path(name):
     return FileName(name).scrubbed()
 
 
+def formatted_name(creator_entity):
+    """Return the formatted name of the creator.
+
+    Args:
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+    """
+    if not creator_entity:
+        return
+
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator or not creator.auth_user_id:
+        return
+
+    # Read the auth_user record
+    query = (db.auth_user.id == creator.auth_user_id)
+    auth_user = db(query).select(db.auth_user.ALL).first()
+    if not auth_user:
+        return
+
+    return auth_user.name
+
+
 def image_as_json(db, creator_id):
     """Return the creator image as json.
 
@@ -195,26 +219,8 @@ def image_as_json(db, creator_id):
     return dumps(dict(files=images))
 
 
-def set_creator_path_name(form):
-    """Set the creator.path_name field associated with the user.
-
-    Args:
-        form: form with form.vars values. form.vars.id is expected to be the
-            id of the auth_user record for the creator.
-
-    Usage:
-        onaccept = [set_creator_path_name, ...]
-    """
-    if not form.vars.id:
-        return
-    db = current.app.db
-    creator = db(db.creator.auth_user_id == form.vars.id).select(
-        db.creator.ALL).first()
-    set_path_name(creator)
-
-
-def set_path_name(creator_entity):
-    """Set the path_name field on a creator record.
+def on_change_name(creator_entity):
+    """Update creator record when name is changed.
 
     Args:
         creator_entity: Row instance or integer, if integer, this is the id of
@@ -228,15 +234,9 @@ def set_path_name(creator_entity):
     if not creator or not creator.auth_user_id:
         return
 
-    # Read the auth_user record
-    query = (db.auth_user.id == creator.auth_user_id)
-    auth_user = db(query).select(db.auth_user.ALL).first()
-    if not auth_user:
-        return
-
     update_data = {}
 
-    name = for_path(auth_user.name)
+    name = formatted_name(creator)
     if creator.path_name != name:
         update_data['path_name'] = name
 
@@ -247,6 +247,24 @@ def set_path_name(creator_entity):
     if update_data:
         db(db.creator.id == creator.id).update(**update_data)
         db.commit()
+
+
+def profile_onaccept(form):
+    """Set the creator.path_name field associated with the user.
+
+    Args:
+        form: form with form.vars values. form.vars.id is expected to be the
+            id of the auth_user record for the creator.
+
+    Usage:
+        onaccept = [creator_profile_onaccept, ...]
+    """
+    if not form.vars.id:
+        return
+    db = current.app.db
+    creator = db(db.creator.auth_user_id == form.vars.id).select(
+        db.creator.ALL).first()
+    on_change_name(creator)
 
 
 def torrent_link(creator_entity, components=None, **attributes):

@@ -17,9 +17,10 @@ from applications.zcomx.modules.creators import \
     can_receive_contributions, \
     contribute_link, \
     for_path, \
+    formatted_name, \
     image_as_json, \
-    set_creator_path_name, \
-    set_path_name, \
+    on_change_name, \
+    profile_onaccept, \
     torrent_link, \
     torrent_name, \
     torrent_url, \
@@ -245,6 +246,30 @@ class TestFunctions(LocalTestCase):
         for t in tests:
             self.assertEqual(for_path(t[0]), t[1])
 
+    def test__formatted_name(self):
+        auth_user = self.add(db.auth_user, dict(
+            name='Test Name'
+        ))
+
+        creator = self.add(db.creator, dict(
+            email='test_name@example.com'
+        ))
+
+        # creator.auth_user_id not set
+        self.assertEqual(formatted_name(creator), None)
+
+        # Invalid auth_user.id
+        creator.update_record(auth_user_id=-1)
+        db.commit()
+        self.assertEqual(formatted_name(creator), None)
+
+        creator.update_record(auth_user_id=auth_user.id)
+        db.commit()
+        # By Row instance
+        self.assertEqual(formatted_name(creator), 'Test Name')
+        # By integer instance
+        self.assertEqual(formatted_name(creator.id), 'Test Name')
+
     def test__image_as_json(self):
         query = (db.creator.image != None)
         creator = db(query).select(db.creator.ALL).first()
@@ -266,50 +291,17 @@ class TestFunctions(LocalTestCase):
             ]
         )
 
-    def test__set_creator_path_name(self):
+    def test__on_change_name(self):
         auth_user = self.add(db.auth_user, dict(
-            name='Test Set Creator Path Name'
+            name='Test On Change Name'
         ))
 
         creator = self.add(db.creator, dict(
-            email='test_set_creator_path_name@example.com',
+            email='test_on_change_name@example.com'
         ))
 
         self.assertEqual(creator.path_name, None)
-        self.assertEqual(creator.urlify_name, None)
-
-        # form has no email
-        form = Storage({'vars': Storage()})
-        set_creator_path_name(form)
-        creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, None)
-        self.assertEqual(creator.urlify_name, None)
-
-        # creator.auth_user_id not set
-        form.vars.id = auth_user.id
-        set_creator_path_name(form)
-        creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, None)
-        self.assertEqual(creator.urlify_name, None)
-
-        creator.update_record(auth_user_id=auth_user.id)
-        db.commit()
-        set_creator_path_name(form)
-        creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, 'Test Set Creator Path Name')
-        self.assertEqual(creator.urlify_name, 'test-set-creator-path-name')
-
-    def test__set_path_name(self):
-        auth_user = self.add(db.auth_user, dict(
-            name='Test Set Path Name'
-        ))
-
-        creator = self.add(db.creator, dict(
-            email='test_set_path_name@example.com'
-        ))
-
-        self.assertEqual(creator.path_name, None)
-        set_path_name(creator)
+        on_change_name(creator)
         # creator.auth_user_id not set
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
@@ -317,10 +309,10 @@ class TestFunctions(LocalTestCase):
 
         creator.update_record(auth_user_id=auth_user.id)
         db.commit()
-        set_path_name(creator)
+        on_change_name(creator)
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, 'Test Set Path Name')
-        self.assertEqual(creator.urlify_name, 'test-set-path-name')
+        self.assertEqual(creator.path_name, 'Test On Change Name')
+        self.assertEqual(creator.urlify_name, 'test-on-change-name')
 
         # Test with creator.id
         # Reset
@@ -329,18 +321,51 @@ class TestFunctions(LocalTestCase):
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
         self.assertEqual(creator.urlify_name, None)
-        set_path_name(creator.id)
+        on_change_name(creator.id)
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, 'Test Set Path Name')
-        self.assertEqual(creator.urlify_name, 'test-set-path-name')
+        self.assertEqual(creator.path_name, 'Test On Change Name')
+        self.assertEqual(creator.urlify_name, 'test-on-change-name')
 
         # Modify creator name/handle unicode.
         auth_user.update_record(name="Slèzé d'Ruñez")
         db.commit()
-        set_path_name(creator.id)
+        on_change_name(creator.id)
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, "Slèzé d'Ruñez")
         self.assertEqual(creator.urlify_name, 'sleze-drunez')
+
+    def test__profile_onaccept(self):
+        auth_user = self.add(db.auth_user, dict(
+            name='Test Profile Onaccept'
+        ))
+
+        creator = self.add(db.creator, dict(
+            email='test_profile_onaccept@example.com',
+        ))
+
+        self.assertEqual(creator.path_name, None)
+        self.assertEqual(creator.urlify_name, None)
+
+        # form has no email
+        form = Storage({'vars': Storage()})
+        profile_onaccept(form)
+        creator = entity_to_row(db.creator, creator.id)
+        self.assertEqual(creator.path_name, None)
+        self.assertEqual(creator.urlify_name, None)
+
+        # creator.auth_user_id not set
+        form.vars.id = auth_user.id
+        profile_onaccept(form)
+        creator = entity_to_row(db.creator, creator.id)
+        self.assertEqual(creator.path_name, None)
+        self.assertEqual(creator.urlify_name, None)
+
+        creator.update_record(auth_user_id=auth_user.id)
+        db.commit()
+        profile_onaccept(form)
+        creator = entity_to_row(db.creator, creator.id)
+        self.assertEqual(creator.path_name, 'Test Profile Onaccept')
+        self.assertEqual(creator.urlify_name, 'test-profile-onaccept')
 
     def test__torrent_link(self):
         empty = '<span></span>'
