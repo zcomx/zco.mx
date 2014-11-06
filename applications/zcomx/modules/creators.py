@@ -8,6 +8,7 @@ Creator classes and functions.
 import os
 from gluon import *
 from gluon.contrib.simplejson import dumps
+from gluon.validators import urlify
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.utils import entity_to_row
 
@@ -233,9 +234,18 @@ def set_path_name(creator_entity):
     if not auth_user:
         return
 
+    update_data = {}
+
     name = for_path(auth_user.name)
     if creator.path_name != name:
-        db(db.creator.id == creator.id).update(path_name=name)
+        update_data['path_name'] = name
+
+    urlify_name = urlify(name)
+    if creator.urlify_name != urlify_name:
+        update_data['urlify_name'] = urlify_name
+
+    if update_data:
+        db(db.creator.id == creator.id).update(**update_data)
         db.commit()
 
 

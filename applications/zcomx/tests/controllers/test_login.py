@@ -193,6 +193,7 @@ class TestFunctions(LocalTestCase):
         book = get_book(book_id)
         self.assertEqual(book.name, '_Untitled_')
         self.assertEqual(book.creator_id, self._creator.id)
+        self.assertEqual(book.urlify_name, 'untitled')
 
         # Update
         url = '{url}/book_crud.json/{bid}'.format(bid=book_id, url=self.url)
@@ -206,6 +207,7 @@ class TestFunctions(LocalTestCase):
 
         book = get_book(book_id)
         self.assertEqual(book.name, 'Test Book CRUD')
+        self.assertEqual(book.urlify_name, 'test-book-crud')
 
         # No book id
         url = '{url}/book_crud.json'.format(url=self.url)

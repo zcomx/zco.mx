@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-creator_path_name_fix.py
+urlify_name_fix.py
 
-Script to initialize the path_name field in existing creator records.
+Script to initialize the urlify_name field in existing creator and book
+records.
 """
 import logging
 import os
@@ -12,6 +13,7 @@ import sys
 import traceback
 from gluon import *
 from gluon.shell import env
+from gluon.validators import urlify
 from optparse import OptionParser
 from applications.zcomx.modules.creators import set_path_name
 
@@ -28,7 +30,7 @@ def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    create_path_name_fix.py
+    urlify_name_fix.py
 
 
 OPTIONS
@@ -83,6 +85,10 @@ def main():
         ]
 
     LOG.info('Started.')
+    for book in db(db.book).select(db.book.ALL):
+        LOG.info('Updating: {e}'.format(e=book.name))
+        book.update_record(urlify_name=urlify(book.name))
+        db.commit()
     for creator in db(db.creator).select(db.creator.ALL):
         LOG.info('Updating: {e}'.format(e=creator.email))
         set_path_name(creator)

@@ -5,6 +5,7 @@ import os
 import shutil
 import sys
 from gluon.contrib.simplejson import dumps
+from gluon.validators import urlify
 from applications.zcomx.modules.book_upload import BookPageUploader
 from applications.zcomx.modules.books import \
     book_pages_as_json, \
@@ -154,6 +155,9 @@ def book_crud():
             data = {request.vars.name: request.vars.value}
         if not data:
             return do_error('Invalid data provided.')
+
+        if 'name' in data:
+            data['urlify_name'] = urlify(data['name'], maxlen=99999)
 
         query = (db.book.id == book_record.id)
         ret = db(query).validate_and_update(**data)

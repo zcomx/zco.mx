@@ -192,6 +192,9 @@ db.define_table('book',
         comment='Default reader format.'
     ),
     Field(
+        'urlify_name'
+    ),
+    Field(
         'status',
         'boolean',
         default=True,
@@ -335,6 +338,9 @@ db.define_table('creator',
     ),
     Field(
         'path_name',
+    ),
+    Field(
+        'urlify_name'
     ),
     Field(
         'contributions_remaining',

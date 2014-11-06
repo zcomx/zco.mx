@@ -276,24 +276,28 @@ class TestFunctions(LocalTestCase):
         ))
 
         self.assertEqual(creator.path_name, None)
+        self.assertEqual(creator.urlify_name, None)
 
         # form has no email
         form = Storage({'vars': Storage()})
         set_creator_path_name(form)
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
+        self.assertEqual(creator.urlify_name, None)
 
         # creator.auth_user_id not set
         form.vars.id = auth_user.id
         set_creator_path_name(form)
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
+        self.assertEqual(creator.urlify_name, None)
 
         creator.update_record(auth_user_id=auth_user.id)
         db.commit()
         set_creator_path_name(form)
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, 'Test Set Creator Path Name')
+        self.assertEqual(creator.urlify_name, 'test-set-creator-path-name')
 
     def test__set_path_name(self):
         auth_user = self.add(db.auth_user, dict(
@@ -309,22 +313,34 @@ class TestFunctions(LocalTestCase):
         # creator.auth_user_id not set
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
+        self.assertEqual(creator.urlify_name, None)
 
         creator.update_record(auth_user_id=auth_user.id)
         db.commit()
         set_path_name(creator)
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, 'Test Set Path Name')
+        self.assertEqual(creator.urlify_name, 'test-set-path-name')
 
         # Test with creator.id
         # Reset
-        creator.update_record(path_name=None)
+        creator.update_record(path_name=None, urlify_name=None)
         db.commit()
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, None)
+        self.assertEqual(creator.urlify_name, None)
         set_path_name(creator.id)
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, 'Test Set Path Name')
+        self.assertEqual(creator.urlify_name, 'test-set-path-name')
+
+        # Modify creator name/handle unicode.
+        auth_user.update_record(name="Slèzé d'Ruñez")
+        db.commit()
+        set_path_name(creator.id)
+        creator = entity_to_row(db.creator, creator.id)
+        self.assertEqual(creator.path_name, "Slèzé d'Ruñez")
+        self.assertEqual(creator.urlify_name, 'sleze-drunez')
 
     def test__torrent_link(self):
         empty = '<span></span>'

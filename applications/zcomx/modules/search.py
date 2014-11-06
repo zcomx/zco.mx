@@ -8,6 +8,7 @@ Search classes and functions.
 import collections
 from gluon import *
 from gluon.tools import prettydate
+from gluon.validators import urlify
 from applications.zcomx.modules.books import \
     contribute_link as book_contribute_link, \
     formatted_name, \
@@ -572,9 +573,10 @@ class SearchGrid(Grid):
         request = self.request
         queries = []
         if request.vars.kw:
+            kw = urlify(request.vars.kw)
             queries.append(
-                (db.book.name.contains(request.vars.kw)) |
-                (db.auth_user.name.contains(request.vars.kw))
+                (db.book.urlify_name.contains(kw)) |
+                (db.creator.urlify_name.contains(kw))
             )
         return queries
 

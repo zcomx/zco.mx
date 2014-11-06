@@ -10,6 +10,7 @@ import os
 import re
 from gluon import *
 from gluon.storage import Storage
+from gluon.validators import urlify
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.creators import url_name as creator_url_name
 from applications.zcomx.modules.images import ImgTag
@@ -452,6 +453,7 @@ def defaults(db, name, creator_entity):
             db.book_type.ALL).first()
         if book_type_record:
             data['book_type_id'] = book_type_record.id
+    data['urlify_name'] = urlify(name, maxlen=99999)
     return data
 
 
