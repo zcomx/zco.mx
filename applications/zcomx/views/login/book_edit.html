@@ -1,4 +1,5 @@
 {{import datetime}}
+{{from gluon.contrib.simplejson import dumps}}
 {{from applications.zcomx.modules.books import book_types}}
 <div id="book_edit_section">
 
@@ -48,11 +49,10 @@
         return numbers(1, 999);
     }
 
-
     var book_data = {
         'name': {
             'label': '{{=db.book.name.label}}',
-            'value': '{{=XML(book.name or "") if book else ""}}',
+            'value': '{{=dumps(book.name or "").strip('"')}}',
             'x_editable_settings': {
                 'title': 'Enter the title of the book.',
                 'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
@@ -90,7 +90,7 @@
             },
             'description': {
                 'label': '{{=db.book.description.label}}',
-                'value': "{{try:}}{{=book.description.encode('string_escape') or ''}}{{except:}}{{=''}}{{pass}}",
+                'value': '{{=dumps(book.description or "").strip('"')}}',
                 'x_editable_settings': {
                     'inputclass': 'inplace_crud book_description_input',
                     'type': 'textarea',
