@@ -3,8 +3,8 @@ VERSION 2 - Before Going Live
 [x] Front Page
     Change tab boarder colour from #333 to #666
 
-[ ] Book Page
-    960px: L1043
+[x] Book Page
+    res: 992
     #creator_id_section .creator_links_container { min-width: 20.8em; }
 
 [ ] Update FAQ
@@ -35,14 +35,18 @@ VERSION 2 - Before Going Live
 
 [ ] Front Page
     re-theme using a grid style.  See ss-jmartz02.png, ss-jmartz03.png and ss-zcomx.png
-    * cover border 1px solid #DDD
-    * four covers per row, three(?) four(?) rows
-    * Book Title in black but clickable; goes to book page
-    * cartoonist name goes to cartoonist page
-    * cover goes to read page
-    * on browser resize, go to three columns, then two, then one
-    * do we right, center or left justify the portrait and landscape images?  random?
-    * dynamically resize landscape images?  (eg 4 landscape vs 1 landscape and 3 portrait)
+    [x] cover outline 1px solid #DDD
+    [x] cover outline 1px solid #FF6600 on hover
+    [x] four covers per row, three(?) four(?) rows
+    [x] Book Title in black but clickable; goes to book page
+    [x] cartoonist name goes to cartoonist page
+    [x] cover goes to read page
+    [x] on browser resize, go to three columns, then two, then one
+    [-] do we right, center or left justify the portrait and landscape images?  random?
+    [-] dynamically resize landscape images?  (eg 4 landscape vs 1 landscape and 3 portrait)
+    [ ] remove Title="..." from cover
+    [x] dynamic gutter width
+    [x] Min-width on report header
 
 [ ] Book Page
     * Bottom left, below cover, add 'contribute | download' links
@@ -92,7 +96,10 @@ VERSION 2 - Before Going Live
 
 [S] wildcard ssl cert for zco.mx
 
-[ ] 12429 - Search should be unicode safe.
+[ ] Front Page/Book Page
+    The same stats on the front page should be on the book page and vice versa
+
+[x] 12429 - Search should be unicode safe.
 [ ] 12327 - Prevent duplicate file from uploading.
 [ ] 12344 - Errors not visible on modal close
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
@@ -109,14 +116,6 @@ VERSION 3
     SB 2014-08-29 11:24  This needs more thought
 [O] Mature Content icon
 [ ] Check for duplicate file/book names
-[ ] knowledge base
-    Broad examples:
-    [ ] Scanning and Photoshop howto's
-    [ ] Howto Create a Minicomic
-    [ ] What is a risograph?
-    [ ] Different styles of book printing
-        [ ] maybe a list of printers and approximate pricing
-
 [ ] Url checker
 [ ] login -> books page - paginate 'released' and 'ongoing' books
 [ ] Copyright material
@@ -146,6 +145,14 @@ VERSION 3
 [ ] Front Page -> 12560 - store attributes in session and reuse
 
 IDEAS
+[ ] knowledge base
+    Broad examples:
+    [ ] Scanning and Photoshop howto's
+    [ ] Howto Create a Minicomic
+    [ ] What is a risograph?
+    [ ] Different styles of book printing
+        [ ] maybe a list of printers and approximate pricing
+
 [ ] bug/feature tracker
     * public or developer only?
     * vote up/down
