@@ -427,10 +427,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #front_page #options_section {
+    margin-bottom: 1.2em;
     margin-top: 2em;
 }
 
 #options_container  {
+    min-width: 30em;
     padding-left: 0;
     padding-right: 0;
 }
@@ -541,40 +543,36 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .grid_section .tile_view {
-    width: 360px;
+    width: 104%;
 }
 
-@media all and (min-width:770px) {
-  .grid_section .tile_view {
-     width: 740px;
-  }
-}
-@media all and (min-width:1200px) {
-  .grid_section .tile_view {
-    width: 1112px;
-   }
-}
-@media all and (min-width:1820px) {
-  .grid_section .tile_view {
-    width: 1483px;
-   }
-}
-
-.grid_section .tile_view .item_container {
-    border: 1px solid #eeeeee;
+#front_page .grid_section .tile_view .item_container {
     display: inline-block;
-    width: 360px;
-    height: 400px;
-    padding: 0.4em;
-    margin: 0.4em 0.3em;
+    height: 448px;
+    margin: 0 0.15em 3.4em;
+    padding: 0.6em;
+    width: 280px;
+}
+@media screen and (min-width: 768px) and (max-width: 991px) {
+    #front_page .grid_section .tile_view .item_container {
+        margin: 0 2.7em 3.4em;
+    }
+}
+@media screen and (min-width: 992px) and (max-width: 1200px) {
+    #front_page .grid_section .tile_view .item_container {
+        margin: 0 1.2em 3.4em;
+    }
 }
 
 .grid_section .tile_view .item_container img {
+    outline: 0.1em solid #DDDDDD;
     display: block;
-    max-width: 340px;
-    max-height: 340px;
-    width: auto;
-    height: auto;
+    width: 100%;
+    height: 100%;
+}
+
+.grid_section .tile_view .item_container img:hover, img:focus {
+    outline: 0.2em solid #FF6600;
 }
 
 .grid_section .tile_view .item_container .name {
@@ -583,11 +581,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .grid_section .tile_view .item_container .name a {
     color: #333333;
+    font-size: 12pt;
 }
 
 .grid_section .tile_view .item_container .creator {
     font-size: 9pt;
-    margin-top: -0.4em;
+    margin-bottom: 0.2em;
+    margin-top: -0.2em;
 }
 
 .grid_section .tile_view .item_container .breadcrumb {
@@ -866,12 +866,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     color: #D04444;
 }
 
-@media screen and (max-width: 767px){
-    .grid_section .item_container .image_container {
-        margin-left: 0.8em !important;
-        margin-top: 2em !important;
-    }
-}
+//@media screen and (max-width: 767px){
+//    .grid_section .item_container .image_container {
+//        margin-left: 0.8em !important;
+//        margin-top: 2em !important;
+//    }
+//}
 
 @media screen and (min-width: 768px){
     #search input {
@@ -1211,11 +1211,21 @@ a.modal-link-btn, a.modal-link-btn:hover {
         padding-right: 1.2em;
     }
 }
+@media screen and (max-width: 767px){
+    #book_page #book_cover_img {
+        max-width: 30em;
+    }
+}
 
+@media screen and (min-width: 992px){
+    #creator_id_section .creator_links_container {
+       min-width: 20.8em;
+    }
+}
 @media screen and (min-width: 1200px){
 
     #creator_id_section .creator_links_container {
-        min-width: 35em;
+        min-width: 25em;
     }
 
     #creator_id_section .dl-horizontal dd {
