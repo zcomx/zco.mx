@@ -1,6 +1,6 @@
 {{from applications.zcomx.modules.creators import can_receive_contributions, contribute_link, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
-{{from applications.zcomx.modules.utils import ItemDescription, entity_to_row}}
+{{from applications.zcomx.modules.utils import entity_to_row}}
 {{rows = grid.rows()}}
 {{if rows:}}
     <div class="row tile_view">

@@ -1,9 +1,9 @@
-{{viewbys = ['list', 'brick', 'tile']}}
-{{icons = {'list': 'th-list', 'brick': 'th-large', 'tile': 'th'} }}
+{{viewbys = ['list', 'tile']}}
+{{icons = {'list': 'th-list', 'tile': 'th-large'} }}
 {{viewby = request.vars.view if request.vars.view in viewbys else 'list'}}
 <div class="row" id="options_section">
     <div class="col-sm-12" id="options_container">
-        <div class="list_brick_options">
+        <div class="list_tile_options">
             <div class="btn-group">
             {{for v in viewbys:}}
                 {{viewby_vars = dict(request.vars)}}

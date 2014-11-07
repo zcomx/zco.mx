@@ -18,7 +18,6 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'box': '<div id="search">',
-        'brick_grid': '<div class="row brick_view">',
         'index': 'zco.mx is a not-for-profit comic-sharing website',
         'list_grid': '<div class="web2py_grid grid_view_list ',
         'list_grid_tile': '<div class="web2py_grid grid_view_tile ',
@@ -37,30 +36,6 @@ class TestFunctions(LocalTestCase):
             web.test('{url}/index'.format(
                 url=self.url),
                 self.titles['index']
-            )
-        )
-
-    def test__brick_grid(self):
-        query = (db.book.status == True) & \
-                (db.book.contributions_remaining > 0) & \
-                (db.creator.paypal_email != '')
-        books = db(query).select(
-            db.book.ALL,
-            left=[
-                db.creator.on(db.book.creator_id == db.creator.id)
-            ],
-            orderby=db.book.contributions_remaining,
-            limitby=(0, 1)
-        )
-        if not books:
-            self.fail('No book found in db.')
-
-        book = books[0]
-
-        self.assertTrue(
-            web.test('{url}/brick_grid.load'.format(
-                url=self.url),
-                [self.titles['brick_grid'], book.name]
             )
         )
 

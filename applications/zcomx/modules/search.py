@@ -278,28 +278,6 @@ class Grid(object):
         """Show the field."""
         return self.set_field(field, visible=True)
 
-    def brick_class(self):
-        """Return the class name of div in brick of key element."""
-        return 'brick_key_{o}'.format(
-            o=self.__class__.__name__.replace('Grid', '').lower()
-        )
-
-    def brick_label(self):
-        """Return the label of the key element in brick view."""
-        if not 'label' in self._attributes:
-            return ''
-        return self._attributes['label'] or ''
-
-    def brick_value(self, row):
-        """Return the value of the key element in brick view."""
-        db = self.db
-        fieldname = self._attributes['field']
-        tablename = self._attributes['table']
-        value = row[tablename][fieldname]
-        if db[tablename][fieldname].represent:
-            value = db[tablename][fieldname].represent(value, row)
-        return value or ''
-
     def tile_value(self, row):
         """Return the value of the key element in tile view."""
         db = self.db
