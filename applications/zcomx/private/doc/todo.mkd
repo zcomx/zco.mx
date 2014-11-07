@@ -33,7 +33,7 @@ VERSION 2 - Before Going Live
 [x] 12605 - Front page errors redisplay Page Not Found endlessly.
 [x] 12555 - Clear error on creator image upload.
 
-[ ] Front Page
+[x] Front Page
     re-theme using a grid style.  See ss-jmartz02.png, ss-jmartz03.png and ss-zcomx.png
     [x] cover outline 1px solid #DDD
     [x] cover outline 1px solid #FF6600 on hover
@@ -44,13 +44,14 @@ VERSION 2 - Before Going Live
     [x] on browser resize, go to three columns, then two, then one
     [-] do we right, center or left justify the portrait and landscape images?  random?
     [-] dynamically resize landscape images?  (eg 4 landscape vs 1 landscape and 3 portrait)
-    [ ] remove Title="..." from cover
+    [x] remove Title="..." from cover
     [x] dynamic gutter width
     [x] Min-width on report header
 
 [ ] Book Page
     * Bottom left, below cover, add 'contribute | download' links
         + is clicking on the cover enough to replace the 'Read' button ?
+            - if not use 'read | contribute | download'
     * Remove input box contribute link
     * Remove 'Read' and 'Download' buttons
 
