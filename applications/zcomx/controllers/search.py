@@ -22,26 +22,6 @@ def index():
     return dict()
 
 
-def brick_grid():
-    """Search results cover grid.
-
-    request.vars.o: string, orderby field, one of Search.orderby_fields.keys()
-    """
-    response.view = 'search/creator_brick_grid.load' \
-        if request.vars.o and request.vars.o == 'creators' \
-        else 'search/brick_grid.load'
-    grid = classified(request)()
-
-    # extract the paginator from the grid
-    soup = BeautifulSoup(str(grid.form_grid))
-    paginator = soup.find('div', {'class': 'web2py_paginator grid_header '})
-
-    return dict(
-        grid=grid,
-        paginator=paginator,
-    )
-
-
 def list_grid():
     """Search results list grid."""
     # Two forms can be placed on the same page. Make sure the formname is
@@ -85,5 +65,3 @@ def tile_grid():
         grid=grid,
         paginator=paginator,
     )
-
-

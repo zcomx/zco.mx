@@ -192,48 +192,6 @@ class TestGrid(LocalTestCase):
     def test__show(self):
         pass        # Tested by test__hide
 
-    def test__brick_class(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-        grid = SubGrid()
-        self.assertEqual(grid.brick_class(), 'brick_key_sub')
-
-    def test__brick_label(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-        grid = SubGrid()
-        self.assertEqual(grid.brick_label(), 'name')
-        grid._attributes['label'] = None
-        self.assertEqual(grid.brick_label(), '')
-        del grid._attributes['label']
-        self.assertEqual(grid.brick_label(), '')
-        grid._attributes['label'] = 'name'
-
-    def test__brick_value(self):
-        creator = self.add(db.creator, dict(path_name='test__brick_value'))
-        name = '_My Book_'
-        book_type_id = db(db.book_type).select().first().id
-        book = self.add(db.book, dict(
-            name=name,
-            creator_id=creator.id,
-            book_type_id=book_type_id,
-        ))
-
-        grid = SubGrid()
-        row = db(db.book.id == book.id).select(
-            db.book.ALL,
-            db.creator.ALL,
-            left=[db.creator.on(db.book.creator_id == db.creator.id)],
-            orderby=db.book.id,
-            limitby=(0, 1)
-        ).first()
-        self.assertEqual(row['book']['name'], '_My Book_')
-        db.book.name.represent = None
-        self.assertEqual(grid.brick_value(row), '_My Book_')
-
-        db.book.name.represent = lambda v, r: v.upper()
-        self.assertEqual(grid.brick_value(row), '_MY BOOK_')
-
     def test__tile_value(self):
         creator = self.add(db.creator, dict(path_name='test__tile_value'))
         name = '_My Book_'
