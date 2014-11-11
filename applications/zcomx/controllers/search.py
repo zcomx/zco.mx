@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Search controller."""
 
-import uuid
-from BeautifulSoup import BeautifulSoup
 from applications.zcomx.modules.search import classified
 
 
@@ -19,59 +17,13 @@ def index():
         args=request.args,
         vars=request.vars
     )
-    return dict()
 
+    icons = {'list': 'th-list', 'tile': 'th-large'}
 
-def list_grid():
-    """Search results list grid."""
-    # This is a component controller. Redirect to parent if not called as
-    # a component.
-    if not request.ajax and request.env.http_referer:
-        redirect(request.env.http_referer)
-
-    # Two forms can be placed on the same page. Make sure the formname is
-    # unique.
-
-    # W0212: *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
-    formname = request.vars._formname or str(uuid.uuid4())
-
-    # W0212: *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
-
-    grid_args = dict(
-        paginate=20,
-        formname=formname,
-    )
-
-    grid = classified(request)(form_grid_args=grid_args)
-    return dict(grid=grid)
-
-
-def tile_grid():
-    """Search results cover grid.
-
-    request.vars.o: string, orderby field, one of Search.orderby_fields.keys()
-    """
-    # This is a component controller. Redirect to parent if not called as
-    # a component.
-    if not request.ajax and request.env.http_referer:
-        redirect(request.env.http_referer)
-
-    response.view = 'search/creator_tile_grid.load' \
-        if request.vars.o and request.vars.o == 'creators' \
-        else 'search/tile_grid.load'
-
-    grid_args = dict(
-        paginate=12,
-    )
-    grid = classified(request)(form_grid_args=grid_args)
-
-    # extract the paginator from the grid
-    soup = BeautifulSoup(str(grid.form_grid))
-    paginator = soup.find('div', {'class': 'web2py_paginator grid_header '})
+    grid = classified(request)()
 
     return dict(
         grid=grid,
-        paginator=paginator,
+        grid_div=grid.render(),
+        icons=icons,
     )

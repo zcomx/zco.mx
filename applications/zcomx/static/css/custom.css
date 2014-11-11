@@ -559,7 +559,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 @media screen and (max-width: 767px) {
     .grid_section .tile_view .item_container {
-        margin: 0 0.15em 0;
+        margin: 0 0.15em 2.4em;
     }
 }
 @media screen and (min-width: 768px) and (max-width: 991px) {
@@ -886,16 +886,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #creator_page #report_section {
     padding-top: 1em;
-}
-
-@media screen and (min-width: 768px){
-    #creator_page #name_bio {
-//        margin-top: -1em;
-    }
-
-    #creator_page .grid_section .web2py_grid td:first-child {
-        min-width: 20em;
-    }
 }
 
 #book_page #book_cover_img .portrait_placeholder {

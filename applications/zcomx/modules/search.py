@@ -6,11 +6,13 @@
 Search classes and functions.
 """
 import collections
+from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.tools import prettydate
 from gluon.validators import urlify
 from applications.zcomx.modules.books import \
     contribute_link as book_contribute_link, \
+    cover_image, \
     formatted_name, \
     read_link as book_read_link, \
     url as book_url
@@ -19,7 +21,9 @@ from applications.zcomx.modules.creators import \
     contribute_link as creator_contribute_link, \
     torrent_link as creator_torrent_link, \
     url as creator_url
+from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
+from applications.zcomx.modules.utils import entity_to_row
 
 
 class Grid(object):
@@ -46,22 +50,51 @@ class Grid(object):
         'read',
     ]
 
-    _default_paginate = 10
+    viewbys = {
+        # name: items_per_page
+        'list': {
+            'items_per_page': 20,
+            'icon': 'th-list',
+        },
+        'tile': {
+            'items_per_page': 12,
+            'icon': 'th-large',
+        },
+    }
 
-    def __init__(self, form_grid_args=None):
-        """Constructor"""
+    def __init__(
+        self,
+        form_grid_args=None,
+        queries=None,
+        default_viewby='tile'
+    ):
+        """Constructor
+
+        Args:
+            form_grid_args: dict, parameters passed to form grid. Must be
+                valid parameters fo SQLFORM.grid
+            queries: list of gluon.dal.Expression, additional expressions used
+                for filtering records in results.
+        """
         self.form_grid_args = form_grid_args
+        self.queries = queries
+        self.default_viewby = default_viewby \
+            if default_viewby in self.viewbys else 'tile'
         self.db = current.app.db
         self.request = current.request
         self.form_grid = None
         self._paginate = None
+        self.viewby = self.request.vars.view \
+            if self.request.vars.view \
+            and self.request.vars.view in self.viewbys \
+            else self.default_viewby
         self._set()
 
     def _set(self):
         """Set the grid. """
         db = self.db
         request = self.request
-        queries = []
+        queries = self.queries or []
         queries.append((db.book.status == True))
         queries.extend(self.filters())
 
@@ -173,7 +206,7 @@ class Grid(object):
                     (page2.created_on < db.book_page.created_on)
                 ),
             ],
-            paginate=self._default_paginate,
+            paginate=self.viewbys[self.viewby]['items_per_page'],
             details=False,
             editable=False,
             deletable=False,
@@ -224,7 +257,8 @@ class Grid(object):
 
     def items_per_page(self):
         """Return the number of items (rows) per page."""
-        return self._paginate if self._paginate else 20
+        return self._paginate if self._paginate \
+            else self.viewbys[self.viewby]['items_per_page']
 
     @classmethod
     def label(cls, key):
@@ -264,6 +298,54 @@ class Grid(object):
         fields.append(db.book.id)                # For consistent results
         return fields
 
+    def render(self):
+        """Render the grid."""
+        db = self.db
+        paginator = None
+        if self.viewby == 'tile':
+            # extract the paginator from the grid
+            soup = BeautifulSoup(str(self.form_grid))
+            paginator = soup.find(
+                'div',
+                {'class': 'web2py_paginator grid_header '}
+            )
+
+        if self.viewby == 'list':
+            grid_div = DIV(
+                self.form_grid,
+                _class='grid_section row'
+            )
+        else:
+            divs = []
+            tiles = []
+            rows = self.rows()
+            for row in rows:
+                value = self.tile_value(row)
+                if self.request.vars and self.request.vars.o \
+                        and self.request.vars.o == 'creators':
+                    tile_class = CartoonistTile
+                else:
+                    tile_class = BookTile
+                tile = tile_class(db, value, row)
+                tiles.append(tile.render())
+
+            if rows:
+                divs.append(DIV(
+                    tiles,
+                    _class='row tile_view'
+                ))
+                if paginator:
+                    divs.append(DIV(
+                        XML(paginator)
+                    ))
+            else:
+                divs.append(DIV(
+                    'No records found.'
+                ))
+
+            grid_div = DIV(divs, _class='grid_section')
+        return grid_div
+
     def rows(self):
         """Return the rows of the grid."""
         return self.form_grid.rows if self.form_grid else []
@@ -278,6 +360,33 @@ class Grid(object):
         """Show the field."""
         return self.set_field(field, visible=True)
 
+    def tabs(self):
+        """Return a div of clickable tabs used to select the orderby."""
+        lis = []
+        orderbys = [x for x in GRID_CLASSES.keys() if (self.request.vars.o == 'search' and x == self.request.vars.o) or (self.request.vars.o != 'search' and x != 'search')]
+
+        orderby = self.request.vars.o if self.request.vars.o in orderbys else orderbys[0]
+        for o in orderbys:
+            active = 'active' if o == orderby else ''
+            orderby_vars = dict(self.request.vars)
+            if 'page' in orderby_vars:
+                # Each tab should reset to page 1.
+                del orderby_vars['page']
+            orderby_vars['o'] = o
+            label = GRID_CLASSES[o].label('tab_label')
+            lis.append(LI(
+                A(
+                    label,
+                    _href=URL(r=self.request, vars=orderby_vars),
+                ),
+                _class='nav-tab {a}'.format(a=active),
+            ))
+
+        return UL(
+            lis,
+            _class='nav nav-tabs',
+        )
+
     def tile_value(self, row):
         """Return the value of the key element in tile view."""
         db = self.db
@@ -287,6 +396,24 @@ class Grid(object):
         if db[tablename][fieldname].represent:
             value = db[tablename][fieldname].represent(value, row)
         return value or ''
+
+    def viewby_buttons(self):
+        """Return a div of buttons viewby options."""
+        buttons = []
+        for v in sorted(self.viewbys.keys()):
+            viewby_vars = dict(self.request.vars)
+            viewby_vars['view'] = v
+            disabled = 'disabled' if v == self.viewby else 'active'
+            buttons.append(A(
+                SPAN(
+                    _class='glyphicon glyphicon-{icon}'.format(
+                        icon=self.viewbys[v]['icon']
+                    ),
+                ),
+                _href=URL(r=self.request, vars=viewby_vars),
+                _class='btn btn-default btn-lg {d}'.format(d=disabled),
+            ))
+        return DIV(buttons, _class='btn-group')
 
     def visible_fields(self):
         """Return list of visisble fields.
@@ -316,9 +443,19 @@ class CartoonistsGrid(Grid):
         'torrent',
     ]
 
-    def __init__(self, form_grid_args=None):
+    def __init__(
+        self,
+        form_grid_args=None,
+        queries=None,
+        default_viewby='list'
+    ):
         """Constructor"""
-        Grid.__init__(self, form_grid_args=form_grid_args)
+        Grid.__init__(
+            self,
+            form_grid_args=form_grid_args,
+            queries=queries,
+            default_viewby=default_viewby
+        )
 
     def groupby(self):
         """Return groupby defining how report is grouped.
@@ -362,9 +499,19 @@ class ContributionsGrid(Grid):
         'order_dir': 'ASC',
     }
 
-    def __init__(self, form_grid_args=None):
+    def __init__(
+        self,
+        form_grid_args=None,
+        queries=None,
+        default_viewby='tile'
+    ):
         """Constructor"""
-        Grid.__init__(self, form_grid_args=form_grid_args)
+        Grid.__init__(
+            self,
+            form_grid_args=form_grid_args,
+            queries=queries,
+            default_viewby=default_viewby
+        )
 
     def filters(self):
         """Define query filters.
@@ -393,49 +540,6 @@ class ContributionsGrid(Grid):
         ]
 
 
-class CreatorGrid(ContributionsGrid):
-    """Class representing a grid for search results: creator"""
-
-    def __init__(self, form_grid_args=None):
-        """Constructor"""
-        ContributionsGrid.__init__(self, form_grid_args=form_grid_args)
-
-    def filters(self):
-        """Define query filters.
-
-        Returns:
-            list of gluon.dal.Expression instances
-        """
-        db = self.db
-        request = self.request
-        queries = []
-        creator = None
-        if request.vars.creator_id:
-            query = (db.creator.id == request.vars.creator_id)
-            creator = db(query).select(db.creator.ALL).first()
-
-        if creator:
-            queries.append((db.book.creator_id == creator.id))
-
-        if request.vars.released == '0':
-            queries.append((db.book.release_date == None))
-        if request.vars.released == '1':
-            queries.append((db.book.release_date != None))
-        return queries
-
-    def visible_fields(self):
-        """Return list of visisble fields.
-
-        Returns:
-            list of gluon.dal.Field instances
-        """
-        db = self.db
-        return [
-            db.book.name,
-            db.book.contributions_remaining,
-        ]
-
-
 class OngoingGrid(Grid):
     """Class representing a grid for search results: ongoing"""
 
@@ -449,9 +553,19 @@ class OngoingGrid(Grid):
         'order_dir': 'DESC',
     }
 
-    def __init__(self, form_grid_args=None):
+    def __init__(
+        self,
+        form_grid_args=None,
+        queries=None,
+        default_viewby='tile'
+    ):
         """Constructor"""
-        Grid.__init__(self, form_grid_args=form_grid_args)
+        Grid.__init__(
+            self,
+            form_grid_args=form_grid_args,
+            queries=queries,
+            default_viewby=default_viewby
+        )
 
     def filters(self):
         """Define query filters.
@@ -493,9 +607,19 @@ class ReleasesGrid(Grid):
         'order_dir': 'DESC',
     }
 
-    def __init__(self, form_grid_args=None):
+    def __init__(
+        self,
+        form_grid_args=None,
+        queries=None,
+        default_viewby='tile'
+    ):
         """Constructor"""
-        Grid.__init__(self, form_grid_args=form_grid_args)
+        Grid.__init__(
+            self,
+            form_grid_args=form_grid_args,
+            queries=queries,
+            default_viewby=default_viewby
+        )
 
     def filters(self):
         """Define query filters.
@@ -537,9 +661,19 @@ class SearchGrid(Grid):
         'order_dir': 'DESC',
     }
 
-    def __init__(self, form_grid_args=None):
+    def __init__(
+        self,
+        form_grid_args=None,
+        queries=None,
+        default_viewby='tile'
+    ):
         """Constructor"""
-        Grid.__init__(self, form_grid_args=form_grid_args)
+        Grid.__init__(
+            self,
+            form_grid_args=form_grid_args,
+            queries=queries,
+            default_viewby=default_viewby
+        )
 
     def filters(self):
         """Define query filters.
@@ -582,6 +716,244 @@ GRID_CLASSES['creators'] = CartoonistsGrid
 GRID_CLASSES['search'] = SearchGrid
 
 
+class Tile(object):
+    """Class representing a Tile"""
+
+    def __init__(self, db, value, row):
+        """Constructor
+
+        Args:
+            db: gluon.dal.Dal instance
+            value: string, value to display in footer right side.
+            row: gluon.dal.Row representing row of grid
+        """
+        self.db = db
+        self.value = value
+        self.row = row
+
+    def contribute_link(self):
+        """Return the tile contribute link."""
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+        return
+
+    def download_link(self):
+        """Return the tile download link."""
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+        return
+
+    def footer(self):
+        """Return a div for the tile footer."""
+
+        orderby_field_value = DIV(
+            self.value,
+            _class='orderby_field_value'
+        )
+
+        return DIV(
+            self.footer_links(),
+            orderby_field_value,
+            _class='col-sm-12'
+        )
+
+    def footer_links(self):
+        """Return a div for the tile footer links."""
+        db = self.db
+        row = self.row
+
+        breadcrumb_lis = []
+        append_li = lambda x: x and breadcrumb_lis.append(LI(x))
+
+        if can_receive_contributions(db, row.creator):
+            append_li(self.contribute_link())
+        append_li(self.download_link())
+
+        return UL(
+            breadcrumb_lis,
+            _class='breadcrumb pipe_delimiter'
+        )
+
+    def image(self):
+        """Return a div for the tile image."""
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+        return
+
+    def render(self):
+        """Render the tile."""
+        divs = []
+
+        append_div = lambda x: x and divs.append(DIV(x, _class='row'))
+
+        append_div(self.title())
+        append_div(self.subtitle())
+        append_div(self.image())
+        append_div(self.footer())
+
+        return DIV(
+            *divs,
+            _class='item_container'
+        )
+
+    def subtitle(self):
+        """Return div for the tile subtitle."""
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+        return
+
+    def title(self):
+        """Return a div for the tile title"""
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+        return
+
+
+class BookTile(Tile):
+    """Class representing a Tile for a book"""
+
+    def __init__(self, db, value, row):
+        """Constructor
+
+        Args:
+            db: gluon.dal.Dal instance
+            value: string, value to display in footer right side.
+            row: gluon.dal.Row representing row of grid
+        """
+        Tile.__init__(self, db, value, row)
+
+    def contribute_link(self):
+        """Return the tile contribute link."""
+        db = self.db
+        row = self.row
+        return book_contribute_link(
+            db,
+            row.book.id,
+            components=['contribute'],
+            **dict(_class='contribute_button')
+        )
+
+    def download_link(self):
+        """Return the tile download link."""
+        return A(
+            'download',
+            _href='#',
+            _class='fixme',
+        )
+
+    def image(self):
+        """Return a div for the tile image."""
+        db = self.db
+        row = self.row
+        return DIV(
+            book_read_link(
+                db,
+                row.book.id,
+                components=[cover_image(db, row.book.id, size='web')],
+                **dict(_class='book_page_image', _title='')
+            ),
+            _class='col-sm-12 image_container',
+        )
+
+    def subtitle(self):
+        """Return div for the tile subtitle."""
+        row = self.row
+        creator_href = creator_url(row.creator.id, extension=False)
+
+        return DIV(
+            A(
+                row.auth_user.name,
+                _href=creator_href,
+                _title=row.auth_user.name,
+            ),
+            _class='col-sm-12 creator',
+        )
+
+    def title(self):
+        """Return a div for the tile title"""
+        db = self.db
+        row = self.row
+        book_name = formatted_name(
+            db,
+            row.book,
+            include_publication_year=(row.book.release_date != None)
+        )
+        book_link = A(
+            book_name,
+            _href=book_url(row.book.id, extension=False),
+            _title=book_name,
+        )
+        return DIV(
+            book_link,
+            _class='col-sm-12 name',
+        )
+
+
+class CartoonistTile(Tile):
+    """Class representing a Tile for a cartoonist"""
+
+    def __init__(self, db, value, row):
+        """Constructor
+
+        Args:
+            db: gluon.dal.Dal instance
+            value: string, value to display in footer right side.
+            row: gluon.dal.Row representing row of grid
+        """
+        Tile.__init__(self, db, value, row)
+        self.creator_href = creator_url(self.row.creator.id, extension=False)
+
+    def contribute_link(self):
+        """Return the tile contribute link."""
+        db = self.db
+        row = self.row
+        return creator_contribute_link(
+            db,
+            row.creator,
+            components=['contribute'],
+            **dict(_class='contribute_button')
+        )
+
+    def download_link(self):
+        """Return the tile download link."""
+        return A(
+            'download',
+            _href=self.creator_href
+        )
+
+    def image(self):
+        """Return a div for the tile image."""
+        db = self.db
+        row = self.row
+        creator = entity_to_row(db.creator, row.creator.id)
+        creator_image = A(
+            CreatorImgTag(
+                creator.image,
+                size='tbn',
+                attributes={'_alt': row.auth_user.name}
+            )(),
+            _href=self.creator_href,
+            _title=''
+        )
+        return DIV(
+            creator_image,
+            _class='col-sm-12 image_container',
+        )
+
+    def title(self):
+        """Return a div for the tile title"""
+        row = self.row
+        creator_link = A(
+            row.auth_user.name,
+            _href=self.creator_href,
+            _title=row.auth_user.name,
+        )
+        return DIV(
+            creator_link,
+            _class='col-sm-12 name',
+        )
+
+
 def book_contribute_button(row):
     """Return a 'contribute' button suitable for grid row."""
     if not row:
@@ -615,10 +987,6 @@ def classified(request):
     if request.vars.o:
         if request.vars.o in GRID_CLASSES:
             grid_class = GRID_CLASSES[request.vars.o]
-
-        if request.vars.o == 'contributions' and request.vars.creator_id:
-            grid_class = CreatorGrid
-
     return grid_class
 
 

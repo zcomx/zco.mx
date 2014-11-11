@@ -21,18 +21,7 @@ class TestFunctions(LocalTestCase):
     _creator = None
 
     titles = {
-        'books': [
-            '<div class="grid_section">',
-            'loading...',
-        ],
-        'books_release': [
-            '<div class="grid_section">',
-            'loading...',
-            '<h4>Released</h4>',
-            '<h4>Ongoing</h4>',
-        ],
         'creator': '<div id="creator_page">',
-        'default': 'zco.mx is a not-for-profit comic-sharing website',
         'page_not_found': '<h3>Page not found</h3>',
     }
     url = '/zcomx/creators'
@@ -51,23 +40,6 @@ class TestFunctions(LocalTestCase):
         cls._creator = db(query).select().first()
         if not cls._creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
-
-    def test__books(self):
-        self.assertTrue(web.test(
-            '{url}/books.load/{cid}'.format(
-                url=self.url,
-                cid=self._creator.id
-            ),
-            self.titles['books']
-        ))
-
-        self.assertTrue(web.test(
-            '{url}/books.load/{cid}?can_release=1'.format(
-                url=self.url,
-                cid=self._creator.id
-            ),
-            self.titles['books_release']
-        ))
 
     def test__creator(self):
         with self.assertRaises(urllib2.HTTPError) as cm:

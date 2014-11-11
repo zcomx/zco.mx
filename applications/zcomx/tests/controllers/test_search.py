@@ -7,6 +7,7 @@ Test suite for zcomx/controllers/search.py
 
 """
 import unittest
+from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -39,12 +40,11 @@ class TestFunctions(LocalTestCase):
             )
         )
 
-    def test__list_grid(self):
-        query = (db.book.status == True)
+        query = (db.book.status == True) & \
+                (db.book.release_date == None)
         books = db(query).select(
             db.book.ALL,
             left=[
-                db.creator.on(db.book.creator_id == db.creator.id),
                 db.book_page.on(db.book_page.book_id == db.book.id)
             ],
             orderby=~db.book_page.created_on,
@@ -55,38 +55,37 @@ class TestFunctions(LocalTestCase):
 
         book = books[0]
 
-        # No request.vars.view, defaults to tile
-        self.assertTrue(web.test('{url}/list_grid.load'.format(
-            url=self.url),
-            [self.titles['list_grid_tile'], book.name])
-        )
-
-        self.assertTrue(web.test('{url}/list_grid.load?view={v}'.format(
+        # Test list view
+        self.assertTrue(web.test('{url}/index?view={v}'.format(
             url=self.url, v='list'),
             [self.titles['list_grid'], book.name])
         )
 
-    def test__tile_grid(self):
-        query = (db.book.status == True)
-        books = db(query).select(
-            db.book.ALL,
+        # Test tile view
+        self.assertTrue(web.test('{url}/index?view={v}'.format(
+            url=self.url, v='tile'),
+            [self.titles['tile_grid'], book.name])
+        )
+
+        # Test cartoonists table
+        query = (db.book.id != None)
+        creators = db(query).select(
+            db.creator.ALL,
             left=[
-                db.creator.on(db.book.creator_id == db.creator.id),
-                db.book_page.on(db.book_page.book_id == db.book.id)
+                db.book.on(db.book.creator_id == db.creator.id),
+                db.auth_user.on(db.creator.auth_user_id == db.auth_user.id),
             ],
-            orderby=~db.book_page.created_on,
+            orderby=db.auth_user.name,
             limitby=(0, 1)
         )
-        if not books:
-            self.fail('No book found in db.')
+        if not creators:
+            self.fail('No creator found in db.')
 
-        book = books[0]
+        creator_name = formatted_name(creators[0])
 
-        self.assertTrue(
-            web.test('{url}/tile_grid.load'.format(
-                url=self.url),
-                [self.titles['tile_grid'], book.name]
-            )
+        self.assertTrue(web.test('{url}/index?view={v}&o={o}'.format(
+            url=self.url, v='tile', o='creators'),
+            [self.titles['tile_grid'], creator_name])
         )
 
 

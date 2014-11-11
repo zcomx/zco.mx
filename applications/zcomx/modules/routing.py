@@ -21,6 +21,7 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import \
     url as creator_url
 from applications.zcomx.modules.links import CustomLinks
+from applications.zcomx.modules.search import classified
 from applications.zcomx.modules.utils import entity_to_row
 
 
@@ -337,15 +338,38 @@ class Router(object):
     def set_creator_view(self):
         """Set the view for the creator page."""
         db = self.db
+        request = self.request
         creator_record = self.get_creator()
+
+        if not request.vars.order:
+            request.vars.order = 'book.name'
+
+        creator_query = (db.creator.id == creator_record.id)
+        released_query = (db.book.release_date != None)
+        ongoing_query = (db.book.release_date == None)
+
+        released_grid = None
+        if request.vars.can_release:
+            queries = [creator_query, released_query]
+            grid = classified(request)(queries=queries, default_viewby='list')
+            released_grid = grid.render()
+
+        queries = [creator_query]
+        if request.vars.can_release:
+            queries.append(ongoing_query)
+        grid = classified(request)(queries=queries, default_viewby='list')
+        ongoing_grid = grid.render()
 
         self.view_dict = dict(
             creator=creator_record,
+            grid=grid,
             links=CustomLinks(
                 db.creator, creator_record.id
             ).represent(
                 pre_links=self.preset_links()
             ),
+            ongoing_grid=ongoing_grid,
+            released_grid=released_grid,
         )
 
         self.view = 'creators/creator.html'

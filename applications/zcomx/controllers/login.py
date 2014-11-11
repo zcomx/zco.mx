@@ -529,6 +529,7 @@ def creator_img_handler():
     ).first()
     if not creator_record:
         return do_error('Upload service unavailable.')
+    import sys; print >> sys.stderr, 'FIXME creator_record: {var}'.format(var=creator_record)
 
     if request.env.request_method == 'POST':
         # Create a book_page record for each upload.
