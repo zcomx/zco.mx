@@ -55,6 +55,13 @@ VERSION 2 - Before Going Live
     * Remove input box contribute link
     * Remove 'Read' and 'Download' buttons
 
+[ ] Front Page -> cartoonist report
+    * make the 'list' view the default
+    * photos are upscaling
+        + Generate larger photos and downscale the photo on the cartoonist page
+            or
+        + use 'max-width:' only on that page ?
+
 [ ] Front Page
     navbar - remove the link from the last word in the breadcrumbs(?)
 
@@ -87,18 +94,22 @@ VERSION 2 - Before Going Live
 
 [ ] Reader notifications of new material (rss? and mailing list?)
 
+[ ] Upload Modal
+    Can we downscale the web images for the thumbnails and remove the
+    actual thumbnails?
+
 [ ] Front Page -> All Report
     * Add '...more info' to the end of each row in any report viewed by list
     * have it open in a new window/tab (?)  modal (?)
     * book info would go to the book page and cartoonist info to the cartoonist page
 
+[ ] Front Page/Book Page
+    The same stats on the front page should be on the book page and vice versa
+
 [ ] Obfuscate Email Addresses
     See how dokuwiki does it
 
 [S] wildcard ssl cert for zco.mx
-
-[ ] Front Page/Book Page
-    The same stats on the front page should be on the book page and vice versa
 
 [x] 12429 - Search should be unicode safe.
 [ ] 12327 - Prevent duplicate file from uploading.
@@ -142,7 +153,7 @@ VERSION 3
     1) the cartoonist could generate a ton of aliases
     2) the cartoonist could masquerade (fraud) as another cartoonist
 
-[ ] 12558 - Modularly return creator name
+[x] 12558 - Modularly return creator name
 [ ] Front Page -> 12560 - store attributes in session and reuse
 
 IDEAS
