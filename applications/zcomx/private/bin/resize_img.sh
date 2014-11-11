@@ -44,13 +44,20 @@ _colourmap() {
 _resize() {
     while read -r fmt t1 t2 arl arh; do
         IFS=x read -r w h < <(identify -format '%P' "$f"[0])
-        (( $w < $t2 && $h < $t2 )) && continue      ## if image is too small, then continue
+        #(( $w < $t2 && $h < $t2 )) && continue      ## if image is too small, then continue
+        if (( $w == $h && $w < $t1 )); then     ## if square image is too small, then continue
+            continue
+        elif (( $w < $h && $w < $t1 )); then    ## if portrait image is too small, then continue
+            continue
+        elif (( $w > $h && $w < $t2 )); then    ## if landscape image is too small, then continue
+            continue
+        fi
 
         cs=RGB
         nf=$fmt-${f##*/}
 
         meta=$(identify -format '%[colorspace] %m' "$f"[0])
-        [[ $meta != sRGB* ]]  && _mw "$f colorspace is not sRGB: $meta"
+        [[ $meta == sRGB* || $meta == Gray* ]]  || _mw "$f colorspace is not sRGB: $meta"
         [[ $meta == CMYK* ]]  && cs=CMYK            ## convert CMYK to RBG
         [[ $meta == *GIF  ]]  && nf=${nf%.*}.png    ## convert gif to png
         [[ $meta == *PNG  ]]  && nf=${nf%.*}.png    ## set ext to png
@@ -62,7 +69,7 @@ _resize() {
             [[ $fmt == web ]] && res=975x                   ## (1200+ 750)/2
             [[ $fmt == tbn ]] && res=140x
         elif [[ $fmt == web ]]; then
-            (( $w < $h )) && res=${t1}x || res=x$t2         ## if landscape, else portrait
+            (( $w < $h )) && res=${t1}x || res=x$t2         ## if portrait, else landscape
         else
             if (( $ap > $arl && $ap < $arh )); then         ## if aspect ratio is between the limits
                 (( $w < $h )) && res=${t1}x || res=x$t1     ## resize small threshold (t1)
