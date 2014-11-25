@@ -1,52 +1,19 @@
 ``
 VERSION 2 - Before Going Live
-[x] Front Page
-    Change tab boarder colour from #333 to #666
-
-[x] Book Page
-    res: 992
-    #creator_id_section .creator_links_container { min-width: 20.8em; }
+[ ] Setup mailing list
 
 [ ] Update FAQ
     [M] Intro Email
-        SB: Get JR to edit the intro email for cartoonists as he sees fit
+        SR: Have Sara edit the intro email for cartoonists as she sees fit.
 
     [M] FAQC -> Goodwill
-        JR: This page should be folded into the CFAQ. The ideas expressed
+        SR: This page should be folded into the CFAQ. The ideas expressed
         here should be spread appropriately throughout the CFAQ page. The
         page reads, "the site would be not-for-profit" as though it doesn't
         exist.
-        SB: I'll get JR's help with this
 
     [M] FAQs
-        SB: Get JR to edit the two FAQs as he sees fit.
-
-[x] Search/Filtering UX
-    * I think it should return a tab called 'search' with no other tabs
-    * maybe in the navbar have 'home > search'
-    * keep the tile and list views, with tile default
-
-[x] 12580 - Run pages through HTML validation.
-[x] 12574 - Improve contributions to creator.
-[x] 12217 - Fix book page stats and links.
-
-[x] 12605 - Front page errors redisplay Page Not Found endlessly.
-[x] 12555 - Clear error on creator image upload.
-
-[x] Front Page
-    re-theme using a grid style.  See ss-jmartz02.png, ss-jmartz03.png and ss-zcomx.png
-    [x] cover outline 1px solid #DDD
-    [x] cover outline 1px solid #FF6600 on hover
-    [x] four covers per row, three(?) four(?) rows
-    [x] Book Title in black but clickable; goes to book page
-    [x] cartoonist name goes to cartoonist page
-    [x] cover goes to read page
-    [x] on browser resize, go to three columns, then two, then one
-    [-] do we right, center or left justify the portrait and landscape images?  random?
-    [-] dynamically resize landscape images?  (eg 4 landscape vs 1 landscape and 3 portrait)
-    [x] remove Title="..." from cover
-    [x] dynamic gutter width
-    [x] Min-width on report header
+        SR: Have Sara edit the two FAQs as she sees fit.
 
 [ ] Book Page
     * Bottom left, below cover, add 'contribute | download' links
@@ -54,6 +21,7 @@ VERSION 2 - Before Going Live
             - if not use 'read | contribute | download'
     * Remove input box contribute link
     * Remove 'Read' and 'Download' buttons
+    * change 'creator' to 'cartoonist'
 
 [ ] Front Page -> cartoonist report
     * make the 'list' view the default

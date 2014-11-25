@@ -1,10 +1,13 @@
+##### [[What file types can be uploaded? #filetypes]]
+##### [[What terms or licence does zco.mx have on the work I post? #terms]]
+##### [[Am I able to remove any of the work I have post on zco.mx? #remove]]
 ##### [[As a cartoonist, why would I want to use zco.mx? #use]]
 ##### [[Why would I not use my own website? #own]]
 ##### [[How can goodwill be created? #goodwill]]
 ##### [[Doesn't paper offer a superior reading experience? #paper]]
 ##### [[I run a successful webcomic, wouldn't zco.mx lower my web traffic? #traffic]]
 ##### [[As an established artist, why would I want to associate my work with others? #associate]]
-##### [[Why use P2P networks to distribute the files? #p2p]]
+##### [[Why use file-sharing networks to distribute the files? #p2p]]
 ##### [[Do digital comics take away from paper sales? #digital]]
 ##### [[How are cartoonists leaving money on the table? #money]]
 ##### [[What content will be on the site? #content]]
@@ -13,44 +16,72 @@
 
 -----
 
+[[filetypes]]
+#### What file types can be uploaded?
+GIF, JPEG and PNG.  It would be ideal to upload files which have a
+higher resolution than 1600px for portrait images and 2560px for
+landscape.  This way the images will look great on tablets.
+
+For tablets we're using cbz files.  We downsample images to 1600px for
+portrait images and 2560px for landscape.  For the web we downsample to
+resolutions of 750px and 1200px. All aspect ratios are preserved.
+
+If the images is black and white or uses few colours, we recommend
+exporting to an 8 colour png or 16 colour png. These will drastically
+reduce the filesize and keep the image crisp.
+
+
+[[terms]]
+#### What terms or licence does zco.mx have on the work I post?
+The only licence used is the licence the cartoonist places their work.
+zco.mx claims no ownership or control over the cartoonist or their work.
+
+
+[[remove]]
+#### Am I able to remove any of the work I have post on zco.mx?
+A cartoonist can add and remove their work from the site as they see
+fit.
+
+
 [[use]]
 #### As a cartoonist, why would I want to use zco.mx?
 People love to share their culture with others.  Virtually every popular
 comic is freely available online.  In this digital age it's impossible
-for the self-publishing cartoonist industry to stop sharing, nor should
-it. Instead this sharing should be leveraged. The main reason people try
-to control content is not to control distribution but to ensure they can
+to stop readers from sharing the comics they enjoy. Self-publishing
+cartoonist could leverage this sharing. The main reason people try to
+control content is not to control distribution but to ensure they can
 monetize it.
 
 One way to leverage the Internet and monetize the content is for
 self-publishing cartoonists to work together and generate as much
 goodwill as possible. Goodwill creates trust and loyalty in readers, who
-spread the word, increasing audience size and resulting in more exposure
-and more sales -- both paper and digital.
+in turn spread the word, increasing audience size and resulting in more
+exposure and more sales -- for both paper and digital comics.
 
 
 [[own]]
 #### Why would I not use my own website?
 When self-publishing cartoonists work together they generate much more
-goodwill then they could on their own. A comic festival is a good
-example (eg TCAF).  Comic creators and publishers come from all over to
+goodwill then they could on their own. A comic festival (eg TCAF) is a
+good example.  Cartoonists and publishers come from all over to
 participate. They volunteer their time, sign autographs and give away
-free sketches. Creators generate a lot of goodwill at TCAF and TCAF
+free sketches. Cartoonists generate a lot of goodwill at TCAF and TCAF
 generates goodwill for them in return.
 
     - Many cartoonists in one area (300+ at TCAF 2014)
     - Signatures and sketches
-    - Engaging the creators
+    - Engaging the cartoonists
     - Free talks/panels
     - Free comics and doodads
     - Pre-release of books
     - Meeting other readers
     - Saving on shipping costs
 
-A single creator making the same presentation on their own doesn't have
-near the same effect as it does at TCAF. Many creators bring many fans
-which creates a positive buzz.  This buzz or goodwill encourages readers
-to support creators with purchases of their material.
+A single cartoonist making the same presentation on their own doesn't
+have near the same effect as it does at TCAF. Many cartoonists bring
+many fans which creates a positive buzz.  This buzz or goodwill
+encourages readers to support cartoonists with purchases of their
+material.
 
 
 [[goodwill]]
@@ -65,43 +96,44 @@ digital version may be their only option.
 
 What about readers who live outside the US? The shipping costs on a $5
 minicomic to destinations outside the US is often prohibitive. On top of
-that, there are exchange rates and fees to consider.
+that, there are exchange rates and import fees to consider.
 
-The new generation of readers will not likely have the same fondness
-towards paper -- this is a by-product of our childhood``1``:cite. In a
-few years teenagers will be as old as the first-gen iPad. They will have
-used a tablet all their lives.  They will find digital media very
-natural.  The demand for digital content should increase immensely.
+As well the new generation of readers will not likely have the same
+fondness towards paper -- this is a by-product of our
+childhood``1``:cite. In a few years teenagers will be as old as the
+first-gen iPad. They will have used a tablet all their lives.  They will
+find digital media very natural.  The demand for digital content should
+increase immensely.
 
 
 [[traffic]]
 #### I run a successful webcomic, wouldn't zco.mx lower my web traffic?
-The design of zco.mx is intentionally simple and unassuming. zco.mx
-is about making content available.  Each creator on zco.mx has a page
-with a brief description and a list of all their material. Creators can
-add custom links including their home page, social channels (blogs,
-twitter, tumblr, etc), and any webpages where their material can be
-found -- both digital and print.
+The design of zco.mx is intentionally simple and unassuming. zco.mx is
+about making content available.  Each cartoonist on zco.mx has a page
+with a brief description and a list of all their work. Cartoonists can
+add custom links including their website, social media (blogs, twitter,
+tumblr, etc), and any webpages where their work can be found -- both
+digital and print.
 
 If zco.mx can increase the audience size, and give readers access to
-creators' material in a consistent, familiar way, this should drive even
-more traffic to personal sites and increase the volume on social
-channels (eg tumblr, blogs, twitter, facebook, etc).
+cartoonists' work in a consistent, familiar way, this should drive even
+more traffic to personal sites and increase the volume on social media
+(eg tumblr, blogs, twitter, facebook, etc).
 
 
 [[associate]]
 #### As an established artist, why would I want to associate my work with others?
 If there are many comics hosted on zco.mx, then there should be no
-positive or negative association with the content (similar to YouTube).
+positive or negative association with the content (similar to Tumblr).
 
 
 [[p2p]]
-#### Why use P2P networks to distribute the files?
-From a technical standpoint P2P networks save on bandwidth and reduce
-network congestion. As well, these networks ensure there are multiple
-copies of the files available.  This has the benefit of acting like a
-file backup.  If the zco.mx server (or any user) were to lose their
-data, it could be rebuilt via P2P networks.
+#### Why use file-sharing networks to distribute the files?
+From a technical standpoint file-sharing or peer-to-peer (P2P) networks
+save on bandwidth and reduce network congestion. As well, these networks
+ensure there are multiple copies of the files available.  This has the
+benefit of acting like a file backup.  If the zco.mx server (or any
+user) were to lose their data, it could be rebuilt via P2P networks.
 
 More importantly the P2P communities, especially the Direct Connect (DC)
 network, is the nucleus of digital comics on the Internet.  Comics are
@@ -139,11 +171,11 @@ things. File-sharing communities have been at it for 20+ years. Their
 methods are tried and tested. There are advantages to mirroring their
 approach. It's unfortunate P2P networks have been branded negatively
 (mostly by large corporation via the media) but there is an opportunity
-here. Self-publishing creators could make use of this technology and
+here. Self-publishing cartoonists could make use of this technology and
 show how efficient and effective it is, ignoring big corps attempt to
-demonize it. This plays nicely into self-publishing creators'
+demonize it. This plays nicely into self-publishing cartoonists'
 counter-culture roots (ie Underground Comix). If handled right, this
-could be a huge boon cartoonists.
+could be a huge boon for self-publishing cartoonists.
 
 People love to share their culture with others.  In this digital age
 it's impossible to stop and it shouldn't be -- it should be leveraged.
@@ -172,11 +204,11 @@ benefits of both.  There is no reason why comics are different.
 #### How are cartoonists leaving money on the table?
 Small/micro/self-publishers lose sales with traditional publishing
 methods in several ways:
-    - Out of print books (demand is not being met)
+    - Out of print books (demand not being met)
     - Shipping costs (especially to countries outside the US)
     - Poor exchange rates with the USD
 
-By using sites like Comixology, publishers lose sales because of:
+By using sites like Comixology, self-publishers lose sales because of:
     - Regional locks
     - DRM
     - Over-priced books
@@ -210,5 +242,5 @@ https://www.paypal.com/ca/cgi-bin/webscr?cmd=_contact-phone]].  Their auto-atten
 
 -----
 
-###### [[1]] 1. That said, I think there will also be demand for paper comics.
+###### [[1]] 1. That said, I think there will always be demand for paper comics.
 ###### [[2]] 2. "...with ComiXology I’m only guaranteed 33 cents on every dollar if it’s bought through the Apple store." Becky Cloonan, [[Self Publish or Perish http://beckycloonan.tumblr.com/post/71721963332/self-publish-or-perish-a-short-essay-or-4-000]]
