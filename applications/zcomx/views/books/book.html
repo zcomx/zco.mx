@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import formatted_name as formatted_book_name}}
+{{from applications.zcomx.modules.books import contribute_link, formatted_name as formatted_book_name, read_link}}
 {{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name as formatted_creator_name, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
@@ -13,6 +13,23 @@
         <div id="book_cover_img" class="row">
             {{=cover_image}}
         </div>
+        <div class="row">
+            <div class="col-sm-12 image_footer">
+                <ul class="breadcrumb pipe_delimiter">
+                    <li>
+                    {{=read_link(db, book.id, components=['read'])}}
+                    </li>
+                    {{if can_receive_contributions(db, creator):}}
+                    <li>
+                        {{=contribute_link(db, book.id, components=['contribute'], **dict(_class='contribute_button'))}}
+                    </li>
+                    {{pass}}
+                    <li>
+                        <a class="fixme" href="#">download</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
     <div class="col-sm-7" id="right_column">
         <div class="row">
@@ -21,20 +38,7 @@
             </div>
             {{=ItemDescription(book.description).as_html(**dict(_id='book_description'))}}
             <div id="book_id_section">
-                <div id="buttons_container">
-                    <div class="read button_container">
-                    {{=read_button}}
-                    </div>
-                    <div class="download button_container">
-                    <a class="btn btn-default fixme" href="#" data-w2p_disable_with="default">Download</a>
-                    </div >
-                </div>
                 <div id="book_specs_column">
-                    <div id="contribute_widget_container">
-                        {{if can_receive_contributions(db, creator):}}
-                        {{=LOAD(c='contributions', f='contribute_widget', vars={'book_id': book.id}, extension='load', ajax=True, content='')}}
-                        {{pass}}
-                    </div>
                     <div id="book_links">
                         <dl class="dl-horizontal">
                         <dt>pages</dt><dd>{{=page_count}}</dd>
@@ -63,7 +67,7 @@
                     </div>
                     <div class="creator_links_container">
                         <dl class="dl-horizontal">
-                        <dt>creator</dt>
+                        <dt>cartoonist</dt>
                         <dd><a href="{{=url(creator.id, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a></dd>
                         {{for f in ['website', 'twitter', 'email']:}}
                             {{try:}}
@@ -90,3 +94,18 @@
 </div>
 
 </div>
+{{block post_bootstrap_js}}
+    {{if DEBUG:}}
+    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
+    {{else:}}
+    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
+    {{pass}}
+{{end}}
+<script src="{{=URL(c='static', f='js/contribute_button.js')}}"> </script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('.contribute_button').contribute_button();
+    });
+//]]>
+</script>

@@ -194,6 +194,8 @@ def data():
     or with the signed load operator
       LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
     """
+    # undefined-variable (E0602): *Undefined variable %%r* # crud
+    # pylint: disable=E0602
     return dict(form=crud())
 
 
@@ -282,16 +284,18 @@ def top():
             li_text = label
         return LI(li_text, **kwargs)
 
-    def book_link(book_id):
+    def book_link(book_id, text_only=False):
         """Return a book link."""
         label = 'book'
-        url = book_url(book_id, extension=False) if book_id else None
+        url = book_url(book_id, extension=False) \
+            if book_id and not text_only else None
         return li_link(label, url)
 
-    def creator_link(creator_id):
+    def creator_link(creator_id, text_only=False):
         """Return a creator link."""
         label = 'cartoonist'
-        url = creator_url(creator_id, extension=False) if creator_id else None
+        url = creator_url(creator_id, extension=False) \
+            if creator_id and not text_only else None
         return li_link(label, url)
 
     def login_link(label):
@@ -302,10 +306,11 @@ def top():
             _class='active' if request.args(1) == label else '',
         )
 
-    def page_link(page_id):
+    def page_link(page_id, text_only=False):
         """Return a read (book page) link."""
         label = 'read'
-        url = page_url(page_id, extension=False) if page_id else None
+        url = page_url(page_id, extension=False) \
+            if page_id and not text_only else None
         return li_link(label, url)
 
     def search_link(request):
@@ -319,14 +324,23 @@ def top():
             delimiter_class = 'gt_delimiter'
             left_links.append(creator_link(request.vars.creator_id))
             left_links.append(book_link(request.vars.book_id))
-            left_links.append(page_link(request.vars.book_page_id))
+            left_links.append(page_link(
+                request.vars.book_page_id,
+                text_only=True
+            ))
         elif request.args(0) == 'book':
             delimiter_class = 'gt_delimiter'
             left_links.append(creator_link(request.vars.creator_id))
-            left_links.append(book_link(request.vars.book_id))
+            left_links.append(book_link(
+                request.vars.book_id,
+                text_only=True
+            ))
         elif request.args(0) == 'creator':
             delimiter_class = 'gt_delimiter'
-            left_links.append(creator_link(request.vars.creator_id))
+            left_links.append(creator_link(
+                request.vars.creator_id,
+                text_only=True
+            ))
         elif request.args(0) == 'login':
             delimiter_class = 'pipe_delimiter'
             left_links.append(login_link('books'))

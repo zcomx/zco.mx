@@ -614,7 +614,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     white-space: nowrap;
 }
 
-.grid_section .tile_view .item_container .breadcrumb {
+.grid_section .tile_view .item_container .breadcrumb,
+#book_page .image_footer .breadcrumb {
     background-color: inherit;
     display: inline-block;
     font-size: 9pt;
@@ -666,6 +667,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #book_page #buttons_container {
     padding-bottom: 1em;
+}
+
+#book_page .image_footer .breadcrumb {
+    margin-left: -15px;
 }
 
 #book_page #buttons_container .read,

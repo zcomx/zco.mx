@@ -56,8 +56,6 @@ No records found.
 //<![CDATA[
     $(document).ready(function(){
         $('.contribute_button').contribute_button();
-        console.log('width: %o', $(window).width());
-        console.log('height: %o', $(window).height());
     });
 //]]>
 </script>
