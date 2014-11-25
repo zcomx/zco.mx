@@ -4,6 +4,7 @@ import datetime
 import os
 import shutil
 import sys
+from PIL import Image
 from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
 from applications.zcomx.modules.book_upload import BookPageUploader
@@ -541,6 +542,14 @@ def creator_img_handler():
             with open(local_filename, 'w+b') as lf:
                 # This will convert cgi.FieldStorage to a regular file.
                 shutil.copyfileobj(up_file.file, lf)
+
+            with open(local_filename, 'r') as lf:
+                im = Image.open(lf)
+                if im.size[0] < 263:
+                    return do_error(
+                            'Image is too small. Minimum image width: 263px',
+                        files=[up_file.filename]
+                    )
 
             try:
                 stored_filename = store(db.creator.image, local_filename)

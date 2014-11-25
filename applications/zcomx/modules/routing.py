@@ -322,14 +322,6 @@ class Router(object):
                 }
             )
 
-        read_button = read_link(
-            db,
-            book_record,
-            **dict(
-                _class='btn btn-default',
-            )
-        )
-
         self.view_dict = dict(
             book=book_record,
             cover_image=cover,
@@ -338,7 +330,6 @@ class Router(object):
                 pre_links=self.preset_links()),
             links=CustomLinks(db.book, book_record.id).represent(),
             page_count=page_count,
-            read_button=read_button,
         )
 
         self.view = 'books/book.html'
