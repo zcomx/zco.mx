@@ -72,6 +72,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(creator.email, email)
         self.assertEqual(creator.auth_user_id, user.id)
         self.assertEqual(creator.path_name, 'First Last')
+        self.assertEqual(creator.urlify_name, 'first-last')
 
         before = db(db.creator).count()
         add_creator(form)

@@ -41,12 +41,12 @@ def add_creator(form):
     ).first()
 
     if not creator:
-        db.creator.insert(
+        creator_id = db.creator.insert(
             auth_user_id=auth_user.id,
             email=auth_user.email,
-            path_name=for_path(auth_user.name),
         )
         db.commit()
+        on_change_name(creator_id)
 
 
 def book_for_contributions(db, creator_entity):
