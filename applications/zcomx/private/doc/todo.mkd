@@ -3,19 +3,19 @@ VERSION 2 - Before Going Live
 [ ] Setup mailing list
 
 [ ] Update FAQ
-    [M] Intro Email
+    [R] Intro Email
         SR: Have Sara edit the intro email for cartoonists as she sees fit.
 
-    [M] FAQC -> Goodwill
+    [R] FAQC -> Goodwill
         SR: This page should be folded into the CFAQ. The ideas expressed
         here should be spread appropriately throughout the CFAQ page. The
         page reads, "the site would be not-for-profit" as though it doesn't
         exist.
 
-    [M] FAQs
+    [R] FAQs
         SR: Have Sara edit the two FAQs as she sees fit.
 
-[ ] Book Page
+[x] Book Page
     * Bottom left, below cover, add 'contribute | download' links
         + is clicking on the cover enough to replace the 'Read' button ?
             - if not use 'read | contribute | download'
@@ -23,14 +23,17 @@ VERSION 2 - Before Going Live
     * Remove 'Read' and 'Download' buttons
     * change 'creator' to 'cartoonist'
 
-[ ] Front Page -> cartoonist report
+    [x] Book Page -> fix up css
+        * cartoon..     ## make div wider
+
+[x] Front Page -> cartoonist report
     * make the 'list' view the default
     * photos are upscaling
         + Generate larger photos and downscale the photo on the cartoonist page
             or
         + use 'max-width:' only on that page ?
 
-[ ] Front Page
+[x] Front Page
     navbar - remove the link from the last word in the breadcrumbs(?)
 
 [ ] 12554 - Renumber cartoonist IDs
@@ -85,6 +88,9 @@ VERSION 2 - Before Going Live
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
 [ ] 12426 - Add robots.txt to prevent bots from accessing dev.zco.mx
 [ ] 12354 - Test scripts
+
+[ ] optimize the pages
+    caching?
 
 VERSION 3
 [ ] Read Page -> Scroll
