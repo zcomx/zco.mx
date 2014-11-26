@@ -40,15 +40,14 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__list_grid(self):
-        query = (db.book.status == True) & \
-                (db.book.contributions_remaining > 0) & \
-                (db.creator.paypal_email != '')
+        query = (db.book.status == True)
         books = db(query).select(
             db.book.ALL,
             left=[
-                db.creator.on(db.book.creator_id == db.creator.id)
+                db.creator.on(db.book.creator_id == db.creator.id),
+                db.book_page.on(db.book_page.book_id == db.book.id)
             ],
-            orderby=db.book.contributions_remaining,
+            orderby=~db.book_page.created_on,
             limitby=(0, 1)
         )
         if not books:
@@ -68,15 +67,14 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__tile_grid(self):
-        query = (db.book.status == True) & \
-                (db.book.contributions_remaining > 0) & \
-                (db.creator.paypal_email != '')
+        query = (db.book.status == True)
         books = db(query).select(
             db.book.ALL,
             left=[
-                db.creator.on(db.book.creator_id == db.creator.id)
+                db.creator.on(db.book.creator_id == db.creator.id),
+                db.book_page.on(db.book_page.book_id == db.book.id)
             ],
-            orderby=db.book.contributions_remaining,
+            orderby=~db.book_page.created_on,
             limitby=(0, 1)
         )
         if not books:

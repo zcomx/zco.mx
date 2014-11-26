@@ -214,7 +214,12 @@ class TestLocalSQLFORM(LocalTestCase):
         # Example next page li
         # <li><a href="/?page=7">&gt;&gt;</a></li>
         href = next_page.a['href']
-        self.assertTrue('page={p}'.format(p=7) in href)
+        count = db(db.book_page).count()
+        rows_per_page = LocalSQLFORM.grid_defaults['paginate']
+        pages = int(count / rows_per_page)
+        if count % rows_per_page != 0:
+            pages = pages + 1
+        self.assertTrue('page={p}'.format(p=pages) in href)
 
 
 class TestFunctions(LocalTestCase):
