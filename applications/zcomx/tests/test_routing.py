@@ -179,7 +179,6 @@ class TestRouter(LocalTestCase):
                 'creator_links',
                 'links',
                 'page_count',
-                'read_button',
             ],
             'page_not_found': [
                 'message',

@@ -132,6 +132,8 @@ class TestFunctions(LocalTestCase):
         pass        # test__set_owner tests this.
 
     def test__set_owner(self):
+        if not os.path.exists(self._tmp_dir):
+            os.makedirs(self._tmp_dir)
         filename = os.path.join(self._tmp_dir, 'test__set_owner.txt')
         with open(filename, 'w') as f:
             f.write('test__set_owner testing!')

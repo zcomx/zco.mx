@@ -534,7 +534,7 @@ class TestFunctions(LocalTestCase):
         web.login()
 
         # Use requests to simplify uploading a file.
-        sample_file = os.path.join(self._test_data_dir, 'tbn_plus.jpg')
+        sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')
         files = {'up_files': open(sample_file, 'rb')}
         response = requests.post(
             web.app + '/login/creator_img_handler',
@@ -556,7 +556,7 @@ class TestFunctions(LocalTestCase):
         self.assertFalse(creator.image)
 
         # Reset the image
-        sample_file = os.path.join(self._test_data_dir, 'tbn_plus.jpg')
+        sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')
         files = {'up_files': open(sample_file, 'rb')}
         response = requests.post(
             web.app + '/login/creator_img_handler',
@@ -633,8 +633,12 @@ class TestFunctions(LocalTestCase):
             for r in rows:
                 if r.link.name in keep_names:
                     continue
-                db(link_to_table.id == r.creator_to_link.id).delete()
-                db(db.link.id == r.link.id).delete()
+                if 'creator_to_link' in r:
+                    db(link_to_table.id == r.creator_to_link.id).delete()
+                if 'book_to_link' in r:
+                    db(link_to_table.id == r.book_to_link.id).delete()
+                if 'link' in r:
+                    db(db.link.id == r.link.id).delete()
                 db.commit()
 
         web.login()
