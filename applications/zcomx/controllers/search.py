@@ -24,6 +24,11 @@ def index():
 
 def list_grid():
     """Search results list grid."""
+    # This is a component controller. Redirect to parent if not called as
+    # a component.
+    if not request.ajax and request.env.http_referer:
+        redirect(request.env.http_referer)
+
     # Two forms can be placed on the same page. Make sure the formname is
     # unique.
 
@@ -48,6 +53,11 @@ def tile_grid():
 
     request.vars.o: string, orderby field, one of Search.orderby_fields.keys()
     """
+    # This is a component controller. Redirect to parent if not called as
+    # a component.
+    if not request.ajax and request.env.http_referer:
+        redirect(request.env.http_referer)
+
     response.view = 'search/creator_tile_grid.load' \
         if request.vars.o and request.vars.o == 'creators' \
         else 'search/tile_grid.load'
