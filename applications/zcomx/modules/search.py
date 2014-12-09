@@ -176,8 +176,14 @@ class Grid(object):
         page2 = db.book_page.with_alias('page2')
 
         sorter_icons = (
-            SPAN(XML('&#x25B2;'), _class='grid_sort_marker'),
-            SPAN(XML('&#x25BC;'), _class='grid_sort_marker')
+            SPAN(
+                TAG.i(_class='icon zc-arrow-up size-08'),
+                _class='grid_sort_marker'
+            ),
+            SPAN(
+                TAG.i(_class='icon zc-arrow-down size-08'),
+                _class='grid_sort_marker'
+            ),
         )
 
         if not queries:

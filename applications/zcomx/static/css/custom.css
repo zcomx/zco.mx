@@ -1655,6 +1655,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 /* icon sizes start */
+.size-08 { font-size:  8px; }
 .size-12 { font-size: 12px; }
 .size-14 { font-size: 14px; }
 .size-16 { font-size: 16px; }
