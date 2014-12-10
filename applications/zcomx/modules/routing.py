@@ -226,14 +226,6 @@ class Router(object):
                     _target='_blank'
                 )
             )
-        if creator_record.wikipedia:
-            pre_links.append(
-                A(
-                    'wikipedia',
-                    _href=creator_record.wikipedia,
-                    _target='_blank'
-                )
-            )
         return pre_links
 
     def route(self):

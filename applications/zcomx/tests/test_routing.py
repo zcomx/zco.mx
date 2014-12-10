@@ -63,6 +63,7 @@ class TestRouter(LocalTestCase):
         cls._request.args = List()
         cls._request.vars = Storage()
 
+        query = (db.auth_user.email == web.username)
         first = db().select(
             db.book_page.id,
             db.book.id,
@@ -70,6 +71,7 @@ class TestRouter(LocalTestCase):
             left=[
                 db.book.on(db.book_page.book_id == db.book.id),
                 db.creator.on(db.book.creator_id == db.creator.id),
+                db.auth_user.on(db.creator.auth_user_id == db.auth_user.id),
             ],
             orderby=[db.creator.path_name, db.book_page.page_no],
             limitby=(0, 1),
@@ -470,39 +472,28 @@ class TestRouter(LocalTestCase):
 
         self._creator.update_record(
             tumblr=None,
-            wikipedia=None,
         )
         db.commit()
 
         # Creator not set.
         self.assertEqual(router.preset_links(), [])
 
-        # creator.tumbler and creator.wikipedia not set
+        # creator.tumbler not set
         router.request.vars.creator = 'First_Last'
         self.assertEqual(router.preset_links(), [])
 
         self._creator.update_record(
             tumblr='user.tumblr.com',
-            wikipedia='http://en.wikipedia.org/wiki/First_Last',
         )
         db.commit()
         router.creator_record = None
         links = router.preset_links()
-        self.assertEqual(len(links), 2)
+        self.assertEqual(len(links), 1)
 
         tumblr_link = BeautifulSoup(str(links[0]))
         anchor = tumblr_link.find('a')
         self.assertEqual(anchor.string, 'tumblr')
         self.assertEqual(anchor['href'], 'user.tumblr.com')
-        self.assertEqual(anchor['target'], '_blank')
-
-        wiki_link = BeautifulSoup(str(links[1]))
-        anchor = wiki_link.find('a')
-        self.assertEqual(anchor.string, 'wikipedia')
-        self.assertEqual(
-            anchor['href'],
-            'http://en.wikipedia.org/wiki/First_Last'
-        )
         self.assertEqual(anchor['target'], '_blank')
 
     def test__route(self):
