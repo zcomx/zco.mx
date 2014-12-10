@@ -12,7 +12,10 @@ from gluon import *
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_ANYCASE, \
-    IS_NOT_IN_DB_SCRUBBED
+    IS_NOT_IN_DB_SCRUBBED, \
+    IS_TWITTER_HANDLE, \
+    IS_URL_FOR_DOMAIN
+
 from applications.zcomx.modules.test_runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -21,7 +24,7 @@ from applications.zcomx.modules.test_runner import LocalTestCase
 
 
 class TestIS_ALLOWED_CHARS(LocalTestCase):
-    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)*
+    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
     # pylint: disable=C0103
 
     def test____init__(self):
@@ -48,10 +51,12 @@ class TestIS_ALLOWED_CHARS(LocalTestCase):
         run(validator, string.punctuation, None)
 
         # Test not_allowed as string
-        validator = IS_ALLOWED_CHARS(not_allowed='a', error_message=default_err)
+        validator = IS_ALLOWED_CHARS(
+            not_allowed='a', error_message=default_err)
         run(validator, 'abc', default_err)
         run(validator, 'bcd', None)
-        validator = IS_ALLOWED_CHARS(not_allowed='a<>$z', error_message=default_err)
+        validator = IS_ALLOWED_CHARS(
+            not_allowed='a<>$z', error_message=default_err)
         run(validator, 'abc', default_err)
         run(validator, 'bcd', None)
         run(validator, 'xyz', default_err)
@@ -59,7 +64,8 @@ class TestIS_ALLOWED_CHARS(LocalTestCase):
         run(validator, 'bbb!', None)
 
         # Test not_allowed as list
-        validator = IS_ALLOWED_CHARS(not_allowed=['a', 'c', 'e'], error_message=default_err)
+        validator = IS_ALLOWED_CHARS(
+            not_allowed=['a', 'c', 'e'], error_message=default_err)
         run(validator, 'abc', default_err)
         run(validator, 'bdf', None)
 
@@ -72,14 +78,16 @@ class TestIS_ALLOWED_CHARS(LocalTestCase):
             ('<', 'less than'),
             ('>', 'greater than'),
         ]
-        validator = IS_ALLOWED_CHARS(not_allowed=not_allowed, error_message=default_err)
+        validator = IS_ALLOWED_CHARS(
+            not_allowed=not_allowed, error_message=default_err)
         run(validator, 'abc', None)
         result, err_msg = run(validator, 'ab%c', default_err)
+        self.assertTrue(result, 'abc')
         self.assertTrue('percent' in err_msg)
 
 
 class TestIS_NOT_IN_DB_ANYCASE(LocalTestCase):
-    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)*
+    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
     # pylint: disable=C0103
 
     def test____init__(self):
@@ -123,7 +131,7 @@ class TestIS_NOT_IN_DB_ANYCASE(LocalTestCase):
 
 
 class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
-    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)*
+    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
     # pylint: disable=C0103
 
     def test____init__(self):
@@ -135,8 +143,6 @@ class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
 
         email = 'scrub@example.com'
         email_2 = 'scrub_2@example.com'
-        email_up = 'SCRUB@EXAMPLE.COM'
-        email_2_up = 'SCRUB_2@EXAMPLE.COM'
         error_msg = 'is_not_in_db_scrubbed error'
 
         def creator_by_email(email):
@@ -187,6 +193,67 @@ class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
                 )(t[0]),
                 t[2]
             )
+
+
+class TestIS_TWITTER_HANDLE(LocalTestCase):
+    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
+    # pylint: disable=C0103
+
+    def test____init__(self):
+        domain = 'my_domain.com'
+        validator = IS_TWITTER_HANDLE(domain)
+        self.assertTrue(validator)
+        self.assertTrue(len(validator.error_message) > 0)
+
+    def test_call__(self):
+        err_msg = 'Enter a valid twitter handle, eg @username'
+        tests = [
+            #(value, error)
+            ('@username', None),
+            ('@user_name123', None),
+            ('@123_user_name', None),
+            ('username', err_msg),
+            ('@user name', err_msg),
+            ('@user-name', err_msg),
+            ('@user!name', err_msg),
+        ]
+        for t in tests:
+            result, error = IS_TWITTER_HANDLE()(t[0])
+            self.assertEqual(result, t[0])
+            self.assertEqual(error, t[1])
+
+
+class TestIS_URL_FOR_DOMAIN(LocalTestCase):
+    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
+    # pylint: disable=C0103
+
+    def test____init__(self):
+        domain = 'my_domain.com'
+        validator = IS_URL_FOR_DOMAIN(domain)
+        self.assertTrue(validator)
+        self.assertTrue(len(validator.error_message) > 0)
+
+    def test____call__(self):
+        tests = [
+            #(domain, value, result, error)
+            ('aaa.com', 'http://www.aaa.com/path', 'http://www.aaa.com/path',
+                None),
+            ('aaa.com', 'www.aaa.com', 'http://www.aaa.com', None),
+            ('aaa.com', 'aaa.com/path', 'http://aaa.com/path', None),
+            ('aaa.com', '', '', 'Enter a valid aaa.com URL'),
+            ('aaa.com', 'http://www.bbb.com/path', 'http://www.bbb.com/path',
+                'Enter a valid aaa.com URL'),
+            ('aaa.com', 'http://www.bbb.com/aaa.com',
+                'http://www.bbb.com/aaa.com', 'Enter a valid aaa.com URL'),
+            ('aaa.com', 'http://aaa.com.com/path', 'http://aaa.com.com/path',
+                'Enter a valid aaa.com URL'),
+            ('aaa.com', 'bbbaaa.com', 'http://bbbaaa.com',
+                'Enter a valid aaa.com URL'),
+        ]
+        for t in tests:
+            result, error = IS_URL_FOR_DOMAIN(t[0])(t[1])
+            self.assertEqual(result, t[2])
+            self.assertEqual(error, t[3])
 
 
 def setUpModule():

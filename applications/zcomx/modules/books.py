@@ -820,7 +820,7 @@ def url_name(book_entity):
         book_entity: Row instance or integer, if integer, this is the id of
             the book. The book record is read.
     Returns:
-        string, eg Firstname_Lastname
+        string, eg My_Book_(2014)
     """
     if not book_entity:
         return

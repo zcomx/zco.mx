@@ -1,49 +1,22 @@
-{{from applications.zcomx.modules.search import GRID_CLASSES}}
 {{extend 'layout_main.html'}}
 
 <div id="front_page">
 
-{{=LOAD(c='default', f='top', args=request.args, vars=request.vars, extension='load', ajax=False, content='')}}
-
-{{viewbys = ['list', 'tile']}}
-{{icons = {'list': 'th-list', 'tile': 'th-large'} }}
-{{viewby = request.vars.view if request.vars.view and request.vars.view in viewbys else 'list' if request.vars.o == 'creators' else 'tile'}}
+{{=LOAD(c='default', f='top', extension='load', ajax=False, content='')}}
 
 <div class="row" id="options_section">
     <div class="col-sm-12" id="options_container">
         <div class="list_tile_options">
-            <div class="btn-group">
-            {{for v in viewbys:}}
-                {{viewby_vars = dict(request.vars)}}
-                {{viewby_vars['view'] = v}}
-                {{disabled = 'disabled' if v == viewby else 'active'}}
-                <a class="btn btn-default btn-lg {{=disabled}}" href="{{=URL(r=request, vars=viewby_vars)}}">
-                    <span class="glyphicon glyphicon-{{=icons[v]}}"></span>
-                </a>
-            {{pass}}
-            </div>
+            {{=grid.viewby_buttons()}}
         </div>
-        <ul class="nav nav-tabs">
-        {{orderbys = [x for x in GRID_CLASSES.keys() if (request.vars.o == 'search' and x == request.vars.o) or (request.vars.o != 'search' and x != 'search')]}}
-        {{orderby = request.vars.o if request.vars.o in orderbys else orderbys[0]}}
-        {{for o in orderbys:}}
-            <li class="nav-tab {{if o == orderby:}}active{{pass}}">
-                {{orderby_vars = dict(request.vars)}}
-                {{orderby_vars['o'] = o}}
-                {{label = GRID_CLASSES[o].label('tab_label')}}
-                <a href="{{=URL(r=request, vars=orderby_vars)}}">{{=label}}</a>
-            </li>
-        {{pass}}
-        </ul>
+        {{=grid.tabs()}}
     </div>
 </div>
 
-<div class="grid_section">
-{{func = '{v}_grid'.format(v=viewby)}}
-{{=LOAD(c='search', f=func, args=request.args, vars=request.vars, extension='load', ajax=True)}}
-</div>
+{{=grid_div}}
 
 </div>
+
 
 {{block post_bootstrap_js}}
     {{if DEBUG:}}
@@ -52,5 +25,11 @@
     <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
     {{pass}}
 {{end}}
-
-
+<script src="{{=URL(r=request, c='static', f='js/contribute_button.js')}}"> </script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('.contribute_button').contribute_button();
+    });
+//]]>
+</script>

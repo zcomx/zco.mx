@@ -9,6 +9,7 @@ Test suite for zcomx/modules/book_upload.py
 import os
 import shutil
 import unittest
+from gluon.storage import Storage
 from applications.zcomx.modules.book_upload import \
     BookPageUploader, \
     FileTypeError, \
@@ -87,13 +88,39 @@ class TestBookPageUploader(BaseTestCase):
         self.assertTrue(uploader)
 
     def test__as_json(self):
-        pass            # FIXME
+        sample_file = os.path.join(self._test_data_dir, 'file.jpg')
+        uploader = BookPageUploader(0, [sample_file])
+        self.assertEqual(uploader.as_json(), '{"files": []}')
+
+        filename = os.path.join(self._test_data_dir, 'sampler.cbr')
+        uploaded = UploadedArchive(filename)
+        uploader.uploaded_files = [uploaded]
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            uploader.as_json(),
+            """{"files": [{"size": 17105, "thumbnailUrl": "", "name": "sampler.cbr", "book_id": 0, "url": null, "deleteType": "", "book_page_id": 0, "deleteUrl": null}]}"""
+        )
 
     def test__load_file(self):
-        pass            # FIXME
+        pass         # This is tested by test__upload
 
     def test__upload(self):
-        pass            # FIXME
+        book = self.add(db.book, dict(name='test__load_file'))
+        pages = db(db.book_page.book_id == book.id).select()
+        self.assertEqual(len(pages), 0)
+
+        sample_file = os.path.join(self._test_data_dir, 'file.jpg')
+        with open(sample_file, 'r') as f:
+            up_file = Storage({
+                'file': f,
+                'filename': 'file.jpg',
+            })
+            uploader = BookPageUploader(book.id, [up_file])
+            uploader.upload()
+        pages = db(db.book_page.book_id == book.id).select()
+        self.assertEqual(len(pages), 1)
+        self._objects.append(pages[0])
 
 
 class TestFileTypeError(LocalTestCase):

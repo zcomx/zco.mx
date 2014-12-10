@@ -32,7 +32,10 @@ from applications.zcomx.modules.creators import add_creator
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.stickon.sqlhtml import formstyle_bootstrap3_custom
 from applications.zcomx.modules.stickon.tools import ModelDb
-from applications.zcomx.modules.stickon.validators import IS_ALLOWED_CHARS
+from applications.zcomx.modules.stickon.validators import \
+    IS_ALLOWED_CHARS, \
+    IS_TWITTER_HANDLE, \
+    IS_URL_FOR_DOMAIN
 
 model_db = ModelDb(globals())
 db = model_db.db
@@ -303,9 +306,10 @@ db.define_table('creator',
         comment='Eg. @username',
         label='twitter',
         represent=lambda twit, row: A(twit,
-            _href='https://twitter.com/{t}'.format(t=twit),
+            _href='https://twitter.com/{t}'.format(t=twit.replace('@', '')),
             _target="_blank",
             ) if twit else '',
+        requires=IS_EMPTY_OR(IS_TWITTER_HANDLE()),
     ),
     Field('tumblr',
         comment='Eg. http://username.tumblr.com',
@@ -314,16 +318,11 @@ db.define_table('creator',
             _href=url,
             _target="_blank",
             ) if url else '',
-        requires=IS_EMPTY_OR(IS_URL(error_message='Enter a valid URL')),
-    ),
-    Field('wikipedia',
-        comment='Eg. http://en.wikipedia.org/wiki/First_Surname',
-        label='wikipedia',
-        represent=lambda url, row: A(url,
-            _href=url,
-            _target="_blank",
-            ) if url else '',
-        requires=IS_EMPTY_OR(IS_URL(error_message='Enter a valid URL')),
+        requires=IS_EMPTY_OR(IS_URL_FOR_DOMAIN(
+            'tumblr.com',
+            error_message='Enter a valid tumblr url, eg.\nhttp://username.tumblr.com'
+            )
+        ),
     ),
     Field('bio', 'text',
         label='bio',

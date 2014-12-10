@@ -8,13 +8,11 @@ Classes extending functionality of gluon/validators.py.
 
 """
 import logging
-from gluon.html import \
-    DIV, \
-    SPAN, \
-    UL, \
-    XML
+import urlparse
 from gluon.validators import \
+    IS_MATCH, \
     IS_NOT_IN_DB, \
+    IS_URL, \
     Validator, \
     translate
 
@@ -67,10 +65,10 @@ class IS_ALLOWED_CHARS(Validator):
                 list_items.append(c)
         # Format error message.
         msg = ' '.join([
-                self.error_message,
-                'Please remove or replace the following characters:',
-                ', '.join(list_items),
-                ])
+            self.error_message,
+            'Please remove or replace the following characters:',
+            ', '.join(list_items),
+        ])
         return (value, msg)
 
 
@@ -180,3 +178,68 @@ class IS_NOT_IN_DB_SCRUBBED(IS_NOT_IN_DB_ANYCASE):
             test_value = self.scrub_callback(value)
         (unused_value, error) = IS_NOT_IN_DB_ANYCASE.__call__(self, test_value)
         return (value, error)
+
+
+class IS_TWITTER_HANDLE(IS_MATCH):
+    """Class representing a validator for twitter handles.
+    """
+    def __init__(
+        self,
+        error_message=None,
+    ):
+        """Constructor
+        Args:
+            error_message: see IS_MATCH
+        """
+        # twitter handles: @username
+        # * Starts with '@'
+        # * from 1 to 15 alphanumeric characters.
+        if error_message is None:
+            error_message = 'Enter a valid twitter handle, eg @username'
+        IS_MATCH.__init__(self, '^@[\w]{1,15}$', error_message)
+
+
+class IS_URL_FOR_DOMAIN(IS_URL):
+    """Class representing a validator like IS_URL but rejects a URL string if
+    it is not from a specific domain.
+    """
+    def __init__(
+        self,
+        domain,
+        error_message=None,
+        mode='http',
+        allowed_schemes=None,
+        prepend_scheme='http',
+    ):
+        """Constructor
+        Args:
+            domain: string, eg example.com
+            error_message: see IS_URL
+            mode: see IS_URL
+            allowed_schemes: see IS_URL
+            prepend_scheme: see IS_URL
+
+        """
+        if error_message is None:
+            error_message = 'Enter a valid {domain} URL'.format(domain=domain)
+        IS_URL.__init__(
+            self,
+            error_message=error_message,
+            mode=mode,
+            allowed_schemes=allowed_schemes,
+            prepend_scheme=prepend_scheme,
+        )
+        self.domain = domain
+
+    def __call__(self, value):
+        result, error = IS_URL()(value)
+        if error != None:
+            return (value, self.error_message)
+
+        o = urlparse.urlparse(result)
+        if not o.hostname:
+            return (result, self.error_message)
+        if not o.hostname == self.domain and \
+                not o.hostname.endswith('.{d}'.format(d=self.domain)):
+            return (result, self.error_message)
+        return (result, None)

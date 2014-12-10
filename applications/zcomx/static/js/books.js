@@ -18,14 +18,33 @@
 
         close_button: function(label) {
             label = typeof label !== 'undefined' ? label : 'Close';
+            var that = this;
             return {
                 id: 'close_button',
                 label: label,
                 cssClass: 'btn_close',
                 action : function(dialog){
+                    if ($('div.editable-error-block').length) {
+                        if (! that.close_confirm()) {
+                            return
+                        }
+                    }
                     dialog.close();
                 }
             };
+        },
+
+        close_confirm: function() {
+            var prompt = [
+                'Click "OK" to continue, ignore errors and close the dialog.',
+                'Click "Cancel" if you changed your mind.'
+               ].join('\n');
+
+            var reply = confirm(prompt);
+            if (!reply) {
+                return false;
+            }
+            return true;
         },
 
         display_message: function(title, msg, panel_class) {
