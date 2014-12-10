@@ -259,10 +259,13 @@ div.centered table {
     text-decoration: none;
 }
 
-#login_page div.error {
+#login_page div.error,
+#account_services_page div.error {
     background: #FF4444;
     border: none;
     border-radius: 0px;
+    margin-bottom: 2em;
+    width: 100%;
 }
 
 #profile_page .books_list_title h4 {
@@ -627,8 +630,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .grid_section .tile_view .item_container .breadcrumb > li + li:before {
     font-weight: normal;
-    margin-left: -4px;
-    margin-right: -6px;
+    margin-left: -2px;
+    margin-right: -2px;
 }
 
 
@@ -1834,6 +1837,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    vertical-align: middle;
     width: 24em;
 }
 #edit_links_container .field_label {
