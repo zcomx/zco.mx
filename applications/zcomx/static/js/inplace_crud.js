@@ -411,6 +411,9 @@
                 if(response.status == 'error') {
                     return response.msg;
                 }
+                if (typeof response.newValue !== 'undefined') {
+                    return {newValue: response.newValue};
+                }
             },
         },
         source_data: {},

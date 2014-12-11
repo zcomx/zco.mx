@@ -511,7 +511,11 @@ def creator_crud():
                 'status': 'error',
                 'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
             }
-    return {'status': 'ok'}
+    result = {'status': 'ok'}
+    if request.vars.name in data \
+            and data[request.vars.name] != request.vars.value:
+        result['newValue'] = data[request.vars.name]
+    return result
 
 
 @auth.requires_login()
@@ -677,6 +681,7 @@ def link_crud():
     record_id = 0
     rows = []
     errors = {}     # Row() or dict
+    new_value = None
 
     book_record = None
     if request.args(0):
@@ -734,6 +739,7 @@ def link_crud():
             for f in ['url']:
                 if f in data:
                     data[f] = data[f].rstrip('/')
+                    new_value = data[f]
 
             if data:
                 query = (db.link.id == link_id)
@@ -752,10 +758,13 @@ def link_crud():
         else:
             return do_error('Invalid data provided.')
     elif action == 'create':
+        url = request.vars.url.rstrip('/')
         ret = db.link.validate_and_insert(
-            url=request.vars.url.rstrip('/'),
+            url=url,
             name=request.vars.name,
         )
+        if url != request.vars.url:
+            new_value = url
         db.commit()
         if ret.id:
             data = dict(
@@ -797,11 +806,14 @@ def link_crud():
             to_link_table.order_no,
             query=reorder_query,
         )
-    return {
+    result = {
         'id': record_id,
         'rows': rows,
         'errors': errors,
     }
+    if new_value != None:
+        result['newValue'] = new_value
+    return result
 
 
 @auth.requires_login()
