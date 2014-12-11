@@ -665,6 +665,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #book_page .image_footer .breadcrumb {
+    margin-bottom: 3em;
     margin-left: -15px;
 }
 
@@ -1090,12 +1091,22 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 
     #book_page #book_cover_img {
-        padding-right: 1.2em;
+        margin-bottom: 0.2em;
+        margin-right: 1.2em;
+        outline: 1px solid #EEEEEE;
+    }
+    #book_page #book_cover_img:hover {
+        outline: 2px solid #FF6600;
     }
 }
 @media screen and (max-width: 767px){
     #book_page #book_cover_img {
+        margin-bottom: 0.2em;
         max-width: 30em;
+        outline: 1px solid #EEEEEE;
+    }
+    #book_page #book_cover_img:hover {
+        outline: 2px solid #FF6600;
     }
 }
 
