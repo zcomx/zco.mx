@@ -494,6 +494,11 @@ def creator_crud():
     if not data:
         return do_error('Invalid data provided.')
 
+    # Strip trailing slash from urls
+    for f in ['website', 'tumblr']:
+        if f in data:
+            data[f] = data[f].rstrip('/')
+
     query = (db.creator.id == creator_record.id)
     ret = db(query).validate_and_update(**data)
     db.commit()
@@ -529,7 +534,6 @@ def creator_img_handler():
     ).first()
     if not creator_record:
         return do_error('Upload service unavailable.')
-    import sys; print >> sys.stderr, 'FIXME creator_record: {var}'.format(var=creator_record)
 
     if request.env.request_method == 'POST':
         # Create a book_page record for each upload.
@@ -725,6 +729,12 @@ def link_crud():
             data = {}
             if request.vars.field is not None and request.vars.value is not None:
                 data = {request.vars.field: request.vars.value}
+
+            # Strip trailing slash from url
+            for f in ['url']:
+                if f in data:
+                    data[f] = data[f].rstrip('/')
+
             if data:
                 query = (db.link.id == link_id)
                 ret = db(query).validate_and_update(**data)
@@ -743,7 +753,7 @@ def link_crud():
             return do_error('Invalid data provided.')
     elif action == 'create':
         ret = db.link.validate_and_insert(
-            url=request.vars.url,
+            url=request.vars.url.rstrip('/'),
             name=request.vars.name,
         )
         db.commit()
