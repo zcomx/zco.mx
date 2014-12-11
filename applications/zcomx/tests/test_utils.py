@@ -9,12 +9,14 @@ Test suite for zcomx/modules/utils.py
 import os
 import shutil
 import unittest
+from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.dal import Reference
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     ItemDescription, \
     entity_to_row, \
+    faq_tabs, \
     markmin_content, \
     move_record, \
     reorder
@@ -158,6 +160,43 @@ class TestFunctions(LocalTestCase):
         for entity in [book, Reference(book.id), book.id]:
             got = entity_to_row(db.book, entity)
             self.assertEqual(book.as_dict(), got.as_dict())
+
+    def test__faq_tabs(self):
+
+        # <div class="faq_options_container">
+        #         <ul class="nav nav-tabs">
+        #             <li class="nav-tab active">
+        #                 <a href="{{=URL(c='default', f='faq')}}">general</a>
+        #             </li>
+        #             <li class="nav-tab">
+        #                 <a href="{{=URL(c='default', f='faqc')}}">cartoonist</a>
+        #             </li>
+        #         </ul>
+        # </div>
+        tabs = faq_tabs()
+        soup = BeautifulSoup(str(tabs))
+        div = soup.div
+        self.assertEqual(div['class'], 'faq_options_container')
+
+        ul = div.ul
+        self.assertEqual(ul['class'], 'nav nav-tabs')
+
+        lis = ul.findAll('li')
+        self.assertEqual(len(lis), 2)
+
+        li_1 = ul.li
+        self.assertEqual(li_1['class'], 'nav-tab active')
+
+        anchor_1 = li_1.a
+        self.assertEqual(anchor_1['href'], '/faq')
+        self.assertEqual(anchor_1.string, 'general')
+
+        li_2 = li_1.nextSibling
+        self.assertEqual(li_2['class'], 'nav-tab ')
+
+        anchor_2 = li_2.a
+        self.assertEqual(anchor_2['href'], '/faqc')
+        self.assertEqual(anchor_2.string, 'cartoonist')
 
     def test__markmin_content(self):
         faq = markmin_content('faq.mkd')

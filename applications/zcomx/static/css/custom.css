@@ -321,7 +321,7 @@ div.centered table {
 }
 
 #profile_page .faq_options_container {
-    margin-bottom: 1em;
+    margin: 1em 0;
 }
 
 #profile_page .faq_options_container ul.nav-tabs {

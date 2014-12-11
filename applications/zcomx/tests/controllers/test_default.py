@@ -25,7 +25,10 @@ class TestFunctions(LocalTestCase):
         'data': '<h2>Not authorized</h2>',
         'expenses': '<h1>Expenses</h1>',
         'faq': '<h1>FAQ</h1>',
-        'faqc': '<h1>Creator FAQ</h1>',
+        'faqc': [
+            '<h1>FAQ</h1>',
+            '<div class="faq_options_container">',
+        ],
         'files': '<div id="files_page">',
         'goodwill': '<h1>Goodwill</h1>',
         'index': '<div id="front_page">',

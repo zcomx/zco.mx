@@ -609,30 +609,6 @@ def creator_img_handler():
 
 
 @auth.requires_login()
-def faq():
-    """FAQ login controller."""
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        redirect(URL(c='default', f='index'))
-
-    return dict(text=markmin_content('faq.mkd'))
-
-
-@auth.requires_login()
-def faqc():
-    """Creator FAQ login controller."""
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        redirect(URL(c='default', f='index'))
-
-    return dict(text=markmin_content('faqc.mkd'))
-
-
-@auth.requires_login()
 def index():
     """Default login controller."""
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
