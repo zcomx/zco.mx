@@ -3,13 +3,13 @@ VERSION 2 - Before Going Live
 [x] recolour logos - #FF6600
     [x] update logo on zco.mx
 [s] kb.zco.mx
-    [ ] update logo
+    [x] update logo
     [x] change url colour
     [x] upgrade base code
     [ ] git-ify and add to zco.mx
         [ ] update dns
-    [ ] use roboto serif
-[s] Front Page - more space between 'contribute | download'
+    [-] use roboto serif
+[x] Front Page - more space between 'contribute | download'
 [x] css on reset password
 [ ] 'Forgot password?' link doesn't send email
 [ ] Login -> Profile
@@ -27,6 +27,7 @@ VERSION 2 - Before Going Live
 [ ] David Blumenstein - $0
     https://dev.zco.mx/David_Blumenstein
     He has uploaded 17 pages
+[ ] Change the header on paypal from 233 to zco.mx
 
 [ ] Update FAQ
     [x] Intro Email
