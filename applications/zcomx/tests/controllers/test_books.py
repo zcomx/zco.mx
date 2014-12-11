@@ -22,7 +22,7 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'book': '<div id="book_page">',
-        'default': 'zco.mx is a not-for-profit comic-sharing website',
+        'default': '<div id="front_page">',
         'reader': '<div id="reader_section">',
         'scroller': '<div id="scroller_page">',
         'slider': '<div id="slider_page">',

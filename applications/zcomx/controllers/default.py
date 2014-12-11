@@ -199,6 +199,11 @@ def data():
     return dict(form=crud())
 
 
+def about():
+    """About page"""
+    return dict(text=markmin_content('about.mkd'))
+
+
 def contribute():
     """Contribute to zcomx admin controller"""
     redirect(URL(c='contributions', f='paypal', extension=False))
@@ -351,20 +356,16 @@ def top():
             delimiter_class = 'gt_delimiter'
             left_links.append(search_link(request))
 
-    right_links.append(A(
-        'about',
-        _href='#',
-        _id='about_link',
-    ))
-
     breadcrumbs = {}
     breadcrumbs['left'] = OL(
         left_links,
         _class='breadcrumb left {d}'.format(d=delimiter_class),
     )
-    breadcrumbs['right'] = OL(
-        right_links,
-        _class='breadcrumb right',
-    )
+
+    if right_links:
+        breadcrumbs['right'] = OL(
+            right_links,
+            _class='breadcrumb right',
+        )
 
     return dict(breadcrumbs=breadcrumbs)

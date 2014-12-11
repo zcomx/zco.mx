@@ -20,6 +20,7 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         '404': 'Page not found',
+        'about': '<h1>About</h1>',
         'contribute': '<form id="paypal_form"',
         'data': '<h2>Not authorized</h2>',
         'expenses': '<h1>Expenses</h1>',
@@ -27,7 +28,7 @@ class TestFunctions(LocalTestCase):
         'faqc': '<h1>Creator FAQ</h1>',
         'files': '<div id="files_page">',
         'goodwill': '<h1>Goodwill</h1>',
-        'index': 'zco.mx is a not-for-profit comic-sharing website',
+        'index': '<div id="front_page">',
         'logos': '<h1>Logos</h1>',
         'overview': '<h1>Overview</h1>',
         'page_not_found': '<h3>Page not found</h3>',
@@ -48,6 +49,12 @@ class TestFunctions(LocalTestCase):
     def setUp(cls):
         # Prevent 'Change session ID' warnings.
         web.sessions = {}
+
+    def test__about(self):
+        self.assertTrue(web.test(
+            '{url}/about'.format(url=self.url),
+            self.titles['about']
+        ))
 
     def test__call(self):
         with self.assertRaises(urllib2.HTTPError) as cm:

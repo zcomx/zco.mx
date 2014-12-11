@@ -62,7 +62,7 @@ class TestFunctions(LocalTestCase):
         'book_release': '<div id="book_release_section">',
         'book_release_invalid': 'Invalid data provided.',
         'books': '<div id="ongoing_book_list" class="book_list">',
-        'default': 'zco.mx is a not-for-profit comic-sharing website',
+        'default': '<div id="front_page">',
         'faq': [
             '<div id="faq_section" class="doc_section">',
             'What is zco.mx?',

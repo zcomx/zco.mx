@@ -101,6 +101,9 @@
                 </div>
                 <div id="footer_links">
                     <ul class="breadcrumb pipe_delimiter">
+                    <li>
+                        <a href="{{=URL(c='default', f='about')}}" >about</a>
+                    </li>
                     {{if auth.user_id:}}
                         <li>
                             <a href="{{=URL(c='login', f='faq')}}" >faq</a>

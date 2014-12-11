@@ -19,7 +19,7 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'box': '<div id="search">',
-        'index': 'zco.mx is a not-for-profit comic-sharing website',
+        'index': '<div id="front_page">',
         'list_grid': '<div class="web2py_grid grid_view_list ',
         'list_grid_tile': '<div class="web2py_grid grid_view_tile ',
         'tile_grid': '<div class="row tile_view">',

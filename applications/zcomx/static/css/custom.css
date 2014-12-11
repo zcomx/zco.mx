@@ -1920,15 +1920,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
   transition: opacity 0.15s linear;
 }
 
-#intro_section {
-    display: none;
-    margin-left: auto;
-    margin-right: auto;
-    opacity: 0;
-    width: 300px;
-    padding-bottom: 1.6em;
-}
-
 /* temp stuff start \\\*/
 .x_editable_textarea {
     width: 40em;

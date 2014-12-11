@@ -32,7 +32,7 @@ class TestFunctions(LocalTestCase):
             '</div>',
         ],
         'faq': '<h1>FAQ</h1>',
-        'index': 'zco.mx is a not-for-profit comic-sharing website',
+        'index': '<div id="front_page">',
         'modal': 'Your donations help cover the costs of hosting',
         'modal_book': 'Contributions go directly to the cartoonist',
         'paypal': '<form id="paypal_form"',

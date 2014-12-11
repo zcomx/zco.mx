@@ -1,11 +1,13 @@
-{{from applications.zcomx.modules.books import page_url, url as book_url}}
-{{from applications.zcomx.modules.creators import url as creator_url}}
 <div class="row" id="top_section">
     <div class="col-xs-12 col-sm-8 col-lg-9 breadcrumb_container">
         <div class="row">
             <div class="col-xs-12">
-                {{=breadcrumbs['left']}}
-                {{=breadcrumbs['right']}}
+                {{if 'left' in breadcrumbs:}}
+                    {{=breadcrumbs['left']}}
+                {{pass}}
+                {{if 'right' in breadcrumbs:}}
+                    {{=breadcrumbs['right']}}
+                {{pass}}
             </div>
         </div>
     </div>
@@ -15,9 +17,3 @@
         </div>
     </div>
 </div>
-<div class="row" id="intro_section">
-    <div class="col-sm-7 bubble">
-    zco.mx is a not-for-profit comic-sharing website for self-publishing cartoonists and their readers.
-    </div>
-</div>
-
