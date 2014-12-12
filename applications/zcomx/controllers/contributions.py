@@ -16,50 +16,6 @@ from applications.zcomx.modules.utils import \
 LOG = logging.getLogger('app')
 
 
-def contribute_widget():
-    """Contribute widget component controller.
-
-    request.vars.book_id: id of book, optional
-    request.vars.creator_id: id of creator, optional
-
-    if request.vars.book_id is provided, a contribution to a book is presumed.
-    if request.vars.creator_id is provided, a contribution to a creator is
-        presumed.
-    if neither request.vars.book_id nor request.vars.creator_id are provided
-        a contribution to zco.mx is presumed.
-    request.vars.book_id takes precendence over request.vars.creator_id.
-
-    Notes:
-        This function doesnt' check if the creator is eligible for
-        contributions. Do this before calling.
-        If any errors occur, nothing is displayed.
-    """
-    book_record = None
-    creator_record = None
-    if request.vars.book_id:
-        book_record = entity_to_row(db.book, request.vars.book_id)
-
-    if book_record:
-        creator_record = entity_to_row(db.creator, book_record.creator_id)
-
-    if not creator_record and request.vars.creator_id:
-        creator_record = entity_to_row(db.creator, request.vars.creator_id)
-
-    amount = default_contribute_amount(db, book_record) if book_record \
-        else 1.00
-
-    paypal_vars = {}
-    if book_record:
-        paypal_vars['book_id'] = book_record.id
-    elif creator_record:
-        paypal_vars['creator_id'] = creator_record.id
-
-    return dict(
-        amount='{a:0.2f}'.format(a=amount),
-        paypal_vars=paypal_vars,
-    )
-
-
 def modal():
     """Contributions input controller for modal view.
 
@@ -106,6 +62,17 @@ def paypal():
     if neither request.vars.book_id nor request.vars.creator_id are provided
         a contribution to zco.mx is presumed.
     request.vars.book_id takes precendence over request.vars.creator_id.
+
+    session.paypal_in_progress:
+        Used to prevent endless loop on browser Back.
+        When the paypal controller is run it redirects automatically to
+        paypal.com. If the user uses the browser Back button, it will redirect
+        from paypal.com back to this controller, which then automatically
+        redirects to paypal.com. The paypal_in_progress session variable is
+        set to prevent this looping. When the controller is first run,
+        session.paypal_in_progress is set to True. When the controller is
+        re-run on browser Back, the value is checked. If True, don't display
+        the page, redirect to next_url.
     """
     next_url = session.next_url or URL(c='search', f='index')
     if session.paypal_in_progress:
@@ -237,3 +204,50 @@ def paypal_notify():
         redirect(request.vars.custom)
     else:
         redirect(URL(c='search', f='index'))
+
+
+def widget():
+    """Contribute widget component controller.
+
+    request.vars.book_id: id of book, optional
+    request.vars.creator_id: id of creator, optional
+    request.vars.link_type: 'button' or 'link', optional
+
+    if request.vars.book_id is provided, a contribution to a book is presumed.
+    if request.vars.creator_id is provided, a contribution to a creator is
+        presumed.
+    if neither request.vars.book_id nor request.vars.creator_id are provided
+        a contribution to zco.mx is presumed.
+    request.vars.book_id takes precendence over request.vars.creator_id.
+
+    Notes:
+        This function doesnt' check if the creator is eligible for
+        contributions. Do this before calling.
+        If any errors occur, nothing is displayed.
+    """
+    session.paypal_in_progress = None
+    book_record = None
+    creator_record = None
+    if request.vars.book_id:
+        book_record = entity_to_row(db.book, request.vars.book_id)
+
+    if book_record:
+        creator_record = entity_to_row(db.creator, book_record.creator_id)
+
+    if not creator_record and request.vars.creator_id:
+        creator_record = entity_to_row(db.creator, request.vars.creator_id)
+
+    amount = default_contribute_amount(db, book_record) if book_record \
+        else 1.00
+
+    paypal_vars = {}
+    if book_record:
+        paypal_vars['book_id'] = book_record.id
+    elif creator_record:
+        paypal_vars['creator_id'] = creator_record.id
+
+    return dict(
+        amount='{a:0.2f}'.format(a=amount),
+        paypal_vars=paypal_vars,
+        link_type=request.vars.link_type or 'link',
+    )

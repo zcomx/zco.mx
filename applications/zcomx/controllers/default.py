@@ -208,6 +208,7 @@ def about():
 
 def contribute():
     """Contribute to zcomx admin controller"""
+    session.paypal_in_progress = None
     redirect(URL(c='contributions', f='paypal', extension=False))
 
 
@@ -257,6 +258,12 @@ def files():
 
 def goodwill():
     """Goodwill page"""
+    session.next_url = URL(
+        c=request.controller,
+        f=request.function,
+        args=request.args,
+        vars=request.vars
+    )
     response.files.append(
         URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
     )

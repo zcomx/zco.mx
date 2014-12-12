@@ -1,0 +1,12 @@
+<div class="row contribute_widget"></div>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('.contribute_widget').contribute_widget(
+            '{{=amount}}',
+            "{{=URL(c='contributions', f='paypal', vars=paypal_vars, extension=False)}}", {link_type: '{{=link_type}}'}
+        );
+        $('.currency').format_number();
+    });
+//]]>
+</script>

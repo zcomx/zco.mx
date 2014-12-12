@@ -104,12 +104,7 @@ class TestCustomLinks(LocalTestCase):
         soup = BeautifulSoup(str(form))
         trs = soup.findAll('tr')
         tr_ids = [x['id'] for x in trs]
-        self.assertTrue('creator_wikipedia__row' in tr_ids)
-        self.assertTrue('creator_custom_links__row' in tr_ids)
-        self.assertEqual(
-            tr_ids.index('creator_custom_links__row'),
-            tr_ids.index('creator_wikipedia__row') + 1
-        )
+        self.assertTrue('creator_twitter__row' in tr_ids)
 
     def test__links(self):
         links = CustomLinks(db.creator, self._creator['id'])

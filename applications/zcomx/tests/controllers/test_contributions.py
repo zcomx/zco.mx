@@ -9,6 +9,7 @@ Test suite for zcomx/controllers/contributions.py
 import datetime
 import unittest
 import urllib
+from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.test_runner import LocalTestCase
 
 
@@ -23,19 +24,23 @@ class TestFunctions(LocalTestCase):
     _invalid_book_id = None
 
     titles = {
-        'contribute_widget': [
-            '<input type="text" id="contribute_amount"',
-            ' id="contribute_link">contribute</a>',
-        ],
-        'contribute_widget_nada': [
-            '<div class="row contribute_widget">',
-            '</div>',
-        ],
         'faq': '<h1>FAQ</h1>',
         'index': '<div id="front_page">',
-        'modal': 'Your donations help cover the costs of hosting',
-        'modal_book': 'Contributions go directly to the cartoonist',
+        'modal': [
+            '<div id="contribute_modal_page">',
+            'Your donations help cover the'
+        ],
+        'modal_book': [
+            '<div id="contribute_modal_page">',
+            'Contributions go directly to the cartoonist',
+        ],
         'paypal': '<form id="paypal_form"',
+        'widget': [
+            '<div class="row contribute_widget"></div>'
+        ],
+        'widget_nada': [
+            '<div class="row contribute_widget"></div>'
+        ],
     }
     url = '/zcomx/contributions'
 
@@ -68,24 +73,6 @@ class TestFunctions(LocalTestCase):
         if not cls._creator:
             raise SyntaxError('Unable to get creator.')
 
-    def test__contribute_widget(self):
-        # Should handle no id, but display nothing.
-        self.assertTrue(web.test('{url}/contribute_widget.load'.format(
-            url=self.url),
-            self.titles['contribute_widget_nada']))
-
-        # Invalid id, should display nothing.
-        self.assertTrue(web.test('{url}/contribute_widget.load/{bid}'.format(
-            url=self.url,
-            bid=self._invalid_book_id),
-            self.titles['contribute_widget_nada']))
-
-        # Test valid id
-        self.assertTrue(web.test('{url}/contribute_widget.load/{bid}'.format(
-            url=self.url,
-            bid=self._book.id),
-            self.titles['contribute_widget']))
-
     def test__index(self):
         self.assertTrue(
             web.test(
@@ -103,23 +90,27 @@ class TestFunctions(LocalTestCase):
         )
 
         # Test with book_id
+        expect = list(self.titles['modal_book'])
+        expect.append(self._book.name)
         self.assertTrue(
             web.test(
                 '{url}/modal?book_id={bid}'.format(
                     url=self.url,
                     bid=self._book.id
                 ),
-                [self.titles['modal_book'], self._book.name]
+                expect
             )
         )
         # Test with creator_id
+        expect = list(self.titles['modal_book'])
+        expect.append(formatted_name(self._creator))
         self.assertTrue(
             web.test(
                 '{url}/modal?creator_id={cid}'.format(
                     url=self.url,
                     cid=self._creator.id
                 ),
-                self.titles['modal_book']
+                expect
             )
         )
         # Book is not found.
@@ -134,13 +125,15 @@ class TestFunctions(LocalTestCase):
         )
 
         # Test with book_id and creator_id
+        expect = list(self.titles['modal_book'])
+        expect.append(self._book.name)
         self.assertTrue(
             web.test(
                 '{url}/modal?book_id={bid}'.format(
                     url=self.url,
                     bid=self._book.id
                 ),
-                [self.titles['modal_book'], self._book.name]
+                expect
             )
         )
 
@@ -265,6 +258,24 @@ class TestFunctions(LocalTestCase):
         delete_paypal_log(txn_id)
         logs = get_paypal_log(txn_id)
         self.assertEqual(len(logs), 0)
+
+    def test__widget(self):
+        # Should handle no id, but display nothing.
+        self.assertTrue(web.test('{url}/widget.load'.format(
+            url=self.url),
+            self.titles['widget']))
+
+        # Invalid id, should handle gracefully
+        self.assertTrue(web.test('{url}/widget.load/{bid}'.format(
+            url=self.url,
+            bid=self._invalid_book_id),
+            self.titles['widget']))
+
+        # Test valid id
+        self.assertTrue(web.test('{url}/widget.load/{bid}'.format(
+            url=self.url,
+            bid=self._book.id),
+            self.titles['widget']))
 
 
 def setUpModule():

@@ -1,11 +1,3 @@
 <div class="row">
 {{=grid.form_grid}}
 </div>
-<script src="{{=URL(r=request, c='static', f='js/contribute_button.js')}}"> </script>
-<script>
-//<![CDATA[
-    $(document).ready(function(){
-        $('.contribute_button').contribute_button();
-    });
-//]]>
-</script>

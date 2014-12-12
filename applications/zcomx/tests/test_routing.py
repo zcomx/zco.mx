@@ -810,6 +810,7 @@ class TestFunctions(LocalTestCase):
 
             # Test default functions
             ('http://my.domain.com/zcomx/default/contribute', '/contribute'),
+            ('http://my.domain.com/zcomx/default/expenses', '/expenses'),
             ('http://my.domain.com/zcomx/default/faq', '/faq'),
             ('http://my.domain.com/zcomx/default/faqc', '/faqc'),
             ('http://my.domain.com/zcomx/default/files', '/files'),

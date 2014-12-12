@@ -24,8 +24,7 @@ encourages cartoonists to produce books.
 </div>
 
 {{else:}}
-zco.mx is not-for-profit. Your donations help cover the costs of hosting
-servers and bandwidth.
+zco.mx is not-for-profit. Your donations help cover the <a href="{{=URL(c='default', f='expenses')}}" target="_blank">costs</a> of hosting servers and bandwidth.
 {{pass}}
 
 <div id="contribute_widget_container"></div>
@@ -34,13 +33,13 @@ servers and bandwidth.
 <script>
 //<![CDATA[
     $(document).ready(function(){
-        {{widget_vars = {} }}
+        {{widget_vars = {'link_type': 'button'} }}
         {{if book:}}
         {{widget_vars['book_id'] = book.id}}
         {{elif creator:}}
         {{widget_vars['creator_id'] = creator.id}}
         {{pass}}
-        {{url = URL(c='contributions', f='contribute_widget', vars=widget_vars, extension='load')}}
+        {{url = URL(c='contributions', f='widget', vars=widget_vars, extension='load')}}
         var url = "{{=url}}";
         web2py_component(url, 'contribute_widget_container');
     });
