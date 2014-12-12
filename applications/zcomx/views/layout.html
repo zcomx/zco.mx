@@ -169,6 +169,11 @@
       <script src="{{=URL('static','js/dd_belatedpng.js')}}"></script>
       <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
       <![endif]-->
+  {{if DEBUG:}}
+    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
+  {{else:}}
+    <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
+  {{pass}}
   {{block post_bootstrap_js}}
   {{end}}
   {{if response.google_analytics_id:}}

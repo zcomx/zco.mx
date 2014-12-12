@@ -7,6 +7,7 @@
 
     $(document).ready(function(){
         setTimeout(function() {
+            $('.contribute_button').contribute_button();
             $('.fixme').click(function(e) {
                 alert('This feature is not working yet.');
                 e.preventDefault();

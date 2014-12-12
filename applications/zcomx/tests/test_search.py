@@ -17,7 +17,10 @@ from applications.zcomx.modules.books import \
     formatted_name, \
     page_url, \
     url_name as book_url_name
-from applications.zcomx.modules.creators import url_name
+from applications.zcomx.modules.creators import \
+    can_receive_contributions, \
+    formatted_name as formatted_creator_name, \
+    url_name
 from applications.zcomx.modules.search import \
     BookTile, \
     CartoonistTile, \
@@ -37,6 +40,7 @@ from applications.zcomx.modules.search import \
     read_link, \
     torrent_link
 from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -559,6 +563,8 @@ class TestBookTile(LocalTestCase):
     _grid = None
     _row = None
     _value = None
+    _creator = None
+
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
@@ -567,6 +573,7 @@ class TestBookTile(LocalTestCase):
         cls._grid = OngoingGrid()
         cls._row = cls._grid.rows()[0]
         cls._value = cls._grid.tile_value(cls._row)
+        cls._creator = entity_to_row(db.creator, cls._row.creator.id)
 
     def test____init__(self):
         tile = BookTile(db, self._value, self._row)
@@ -601,6 +608,7 @@ class TestBookTile(LocalTestCase):
         soup = BeautifulSoup(str(footer))
         # <div class="col-sm-12">
         #   <ul class="breadcrumb pipe_delimiter">
+        #     <li><a class="contribute_button" href="/contributions/modal?book_id=64">contribute</a></li>
         #     <li><a class="fixme" href="#">download</a></li>
         #   </ul>
         #   <div class="orderby_field_value">1 week ago</div>
@@ -612,9 +620,24 @@ class TestBookTile(LocalTestCase):
         ul = div.ul
         self.assertEqual(ul['class'], 'breadcrumb pipe_delimiter')
         lis = ul.findAll('li')
-        self.assertEqual(len(lis), 1)
-        li = lis[0]
-        anchor = li.a
+        dl_li = None
+        if can_receive_contributions(db, self._creator):
+            self.assertEqual(len(lis), 2)
+            li = lis[0]
+            anchor = li.a
+            self.assertEqual(anchor['class'], 'contribute_button')
+            self.assertEqual(
+                anchor['href'],
+                '/contributions/modal?book_id={id}'.format(
+                    id=self._row.book.id)
+            )
+            self.assertEqual(anchor.string, 'contribute')
+            dl_li = li.nextSibling
+        else:
+            self.assertEqual(len(lis), 1)
+            dl_li = lis[0]
+
+        anchor = dl_li.a
         self.assertEqual(anchor['class'], 'fixme')
         self.assertEqual(anchor['href'], '#')
         self.assertEqual(anchor.string, 'download')
@@ -716,14 +739,16 @@ class TestCartoonistTile(LocalTestCase):
     _grid = None
     _row = None
     _value = None
+    _creator = None
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     @classmethod
     def setUpClass(cls):
-        cls._grid = OngoingGrid()
+        cls._grid = CartoonistsGrid()
         cls._row = cls._grid.rows()[0]
         cls._value = cls._grid.tile_value(cls._row)
+        cls._creator = entity_to_row(db.creator, cls._row.creator.id)
 
     def test____init__(self):
         tile = CartoonistTile(db, self._value, self._row)
@@ -761,6 +786,7 @@ class TestCartoonistTile(LocalTestCase):
         soup = BeautifulSoup(str(footer))
         # <div class="col-sm-12">
         #   <ul class="breadcrumb pipe_delimiter">
+        #     <li><a class="contribute_button" href="/contributions/modal?creator_id=101">contribute</a></li>
         #     <li><a href="/Jim_Karsten">download</a></li>
         #   </ul>
         #   <div class="orderby_field_value">1 week ago</div>
@@ -771,46 +797,82 @@ class TestCartoonistTile(LocalTestCase):
         ul = div.ul
         self.assertEqual(ul['class'], 'breadcrumb pipe_delimiter')
         lis = ul.findAll('li')
-        self.assertEqual(len(lis), 1)
-        li = lis[0]
-        anchor = li.a
+        dl_li = None
+        if can_receive_contributions(db, self._creator):
+            self.assertEqual(len(lis), 2)
+            li = lis[0]
+            anchor = li.a
+            self.assertEqual(anchor['class'], 'contribute_button')
+            self.assertEqual(
+                anchor['href'],
+                '/contributions/modal?creator_id={id}'.format(
+                    id=self._row.creator.id)
+            )
+            self.assertEqual(anchor.string, 'contribute')
+            dl_li = li.nextSibling
+        else:
+            self.assertEqual(len(lis), 1)
+            dl_li = lis[0]
+
+        anchor = dl_li.a
         self.assertEqual(
             anchor['href'],
             '/{name}'.format(
                 name=url_name(self._row.creator.id))
         )
+        self.assertEqual(anchor.string, 'download')
 
         div_2 = div.div
         self.assertEqual(div_2['class'], 'orderby_field_value')
         self.assertEqual(
             div_2.string,
-            str(prettydate(self._row.book_page.created_on))
+            db.creator.contributions_remaining.represent(self._row.creator.contributions_remaining, self._row)
         )
 
     def test__image(self):
         tile = CartoonistTile(db, self._value, self._row)
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div))
-        # <div class="col-sm-12 image_container">
-        #   <a href="/Jim_Karsten" title="">
-        #   <div alt="Jim Karsten" class="preview placeholder_torso">
-        #     <i class="icon zc-torso"></i>
-        #   </div>
-        #   </a>
-        # </div>
-        div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 image_container')
-        anchor = div.a
-        self.assertEqual(
-            anchor['href'],
-            '/{name}'.format(
-                name=url_name(self._row.creator.id))
-        )
-        self.assertEqual(anchor['title'], '')
-        div_2 = div.div
-        self.assertEqual(div_2['class'], 'preview placeholder_torso')
-        icon = div_2.i
-        self.assertEqual(icon['class'], 'icon zc-torso')
+        if self._creator.image:
+            # <div class="col-sm-12 image_container">
+            #   <a href="/Charles_Forsman" title="">
+            #     <img alt="Charles Forsman" src="/images/download/creator.image.966676d4ae36a2bf.636875636b5f666f72736d616e2d677261792e6a7067.jpg?size=tbn" />
+            #   </a>
+            # </div
+            div = soup.div
+            self.assertEqual(div['class'], 'col-sm-12 image_container')
+            anchor = div.a
+            self.assertEqual(
+                anchor['href'],
+                '/{name}'.format(
+                    name=url_name(self._row.creator.id))
+            )
+            self.assertEqual(anchor['title'], '')
+            img = anchor.img
+            self.assertEqual(img['alt'], formatted_creator_name(self._creator))
+            self.assertTrue('/images/download/creator.image' in img['src'])
+
+        else:
+            # <div class="col-sm-12 image_container">
+            #   <a href="/Jim_Karsten" title="">
+            #   <div alt="Jim Karsten" class="preview placeholder_torso">
+            #     <i class="icon zc-torso"></i>
+            #   </div>
+            #   </a>
+            # </div>
+            div = soup.div
+            self.assertEqual(div['class'], 'col-sm-12 image_container')
+            anchor = div.a
+            self.assertEqual(
+                anchor['href'],
+                '/{name}'.format(
+                    name=url_name(self._row.creator.id))
+            )
+            self.assertEqual(anchor['title'], '')
+            div_2 = div.div
+            self.assertEqual(div_2['class'], 'preview placeholder_torso')
+            icon = div_2.i
+            self.assertEqual(icon['class'], 'icon zc-torso')
 
     def test_render(self):
         tile = CartoonistTile(db, self._value, self._row)
