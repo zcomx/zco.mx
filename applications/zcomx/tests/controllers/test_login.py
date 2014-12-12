@@ -63,14 +63,6 @@ class TestFunctions(LocalTestCase):
         'book_release_invalid': 'Invalid data provided.',
         'books': '<div id="ongoing_book_list" class="book_list">',
         'default': '<div id="front_page">',
-        'faq': [
-            '<div id="faq_section" class="doc_section">',
-            'What is zco.mx?',
-        ],
-        'faqc': [
-            '<div id="faq_section" class="doc_section">',
-            'As a cartoonist, why would I want to use zco.mx?'
-        ],
         'links': [
             'href="/zcomx/login/links.load/new/link',
             'Add</span>',
@@ -565,22 +557,6 @@ class TestFunctions(LocalTestCase):
             verify=False,
         )
         self.assertEqual(response.status_code, 200)
-
-    def test__faq(self):
-        self.assertTrue(
-            web.test(
-                '{url}/faq'.format(url=self.url),
-                self.titles['faq']
-            )
-        )
-
-    def test__faqc(self):
-        self.assertTrue(
-            web.test(
-                '{url}/faqc'.format(url=self.url),
-                self.titles['faqc']
-            )
-        )
 
     def test__index(self):
         self.assertTrue(

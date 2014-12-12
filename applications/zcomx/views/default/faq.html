@@ -1,7 +1,15 @@
-{{extend 'layout_main.html'}}
-{{=LOAD(c='default', f='top', args='faq', extension='load', ajax=False, content='')}}
-<div id="faq_page" class="doc_section row">
+{{extend layout}}
+{{if layout == 'layout_main.html':}}
+    {{=LOAD(c='default', f='top', args='faq', extension='load', ajax=False, content='')}}
+    {{row_class='row'}}
+{{else:}}
+    {{row_class=''}}
+{{pass}}
+<div id="faq_page" class="doc_section {{=row_class}}">
 <h1>FAQ</h1>
+{{if auth.is_logged_in():}}
+{{=tabs}}
+{{pass}}
 {{=MARKMIN(text, id_prefix='', extra=dict(contribute_link=lambda t: '<a href="/contributions/modal" class="contribute_button">'+t+'</a>'))}}
 </div>
 {{block post_bootstrap_js}}

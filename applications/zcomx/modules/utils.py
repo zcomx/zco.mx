@@ -5,7 +5,6 @@
 
 Utilty classes and functions.
 """
-import collections
 import os
 from gluon import *
 from gluon.dal import Row
@@ -99,6 +98,50 @@ def entity_to_row(table, entity):
     # pylint: disable=W0212
     db = table._db
     return db(table.id == int(entity)).select().first()
+
+
+def faq_tabs(active='faq'):
+    """Return a div of clickable tabs for cartoonists' faq page.
+
+    Args:
+        active: string, the tab with this controller is flagged as active.
+
+    Returns:
+        DIV instance.
+    """
+
+    lis = []
+    tabs = [
+        {
+            'label': 'general',
+            'controller': 'faq',
+        },
+        {
+            'label': 'cartoonist',
+            'controller': 'faqc',
+        },
+    ]
+
+    if active not in [x['controller'] for x in tabs]:
+        active = 'faq'
+
+    for t in tabs:
+        active_css = 'active' if t['controller'] == active else ''
+        lis.append(LI(
+            A(
+                t['label'],
+                _href=URL(c='default', f=t['controller'])
+            ),
+            _class='nav-tab {a}'.format(a=active_css),
+        ))
+
+    return DIV(
+        UL(
+            lis,
+            _class='nav nav-tabs',
+        ),
+        _class='faq_options_container',
+    )
 
 
 def markmin_content(filename):

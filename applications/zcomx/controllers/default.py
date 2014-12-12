@@ -19,7 +19,9 @@ from applications.zcomx.modules.stickon.tools import ExposeImproved
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_SCRUBBED
-from applications.zcomx.modules.utils import markmin_content
+from applications.zcomx.modules.utils import \
+    faq_tabs, \
+    markmin_content
 
 LOG = logging.getLogger('app')
 
@@ -217,6 +219,8 @@ def expenses():
 def faq():
     """FAQ page"""
     # Set up for 'donations' contributions to paypal handling.
+    layout = 'login/layout.html' if auth and auth.user_id \
+        else 'layout_main.html'
     session.next_url = URL(
         c=request.controller,
         f=request.function,
@@ -226,12 +230,22 @@ def faq():
     response.files.append(
         URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
     )
-    return dict(text=markmin_content('faq.mkd'))
+    return dict(
+        tabs=faq_tabs(active='faq'),
+        layout=layout,
+        text=markmin_content('faq.mkd')
+    )
 
 
 def faqc():
     """Creator FAQ page"""
-    return dict(text=markmin_content('faqc.mkd'))
+    if not auth or not auth.user_id:
+        redirect(URL('faq'))
+
+    return dict(
+        tabs=faq_tabs(active='faqc'),
+        text=markmin_content('faqc.mkd')
+    )
 
 
 def files():

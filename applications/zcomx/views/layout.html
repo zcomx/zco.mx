@@ -104,15 +104,9 @@
                     <li>
                         <a href="{{=URL(c='default', f='about')}}" >about</a>
                     </li>
-                    {{if auth.user_id:}}
-                        <li>
-                            <a href="{{=URL(c='login', f='faq')}}" >faq</a>
-                        </li>
-                    {{else:}}
-                        <li>
-                            <a href="{{=URL(c='default', f='faq')}}" >faq</a>
-                        </li>
-                    {{pass}}
+                    <li>
+                        <a href="{{=URL(c='default', f='faq')}}" >faq</a>
+                    </li>
                     {{if auth.user_id:}}
                         <li>
                         <a href="{{=URL(c='login', f='books')}}" >{{try:}}{{=auth.user.name.lower()}}{{except:}}my account{{pass}}</a>
