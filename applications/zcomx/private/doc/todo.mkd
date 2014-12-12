@@ -1,36 +1,19 @@
 ``
 VERSION 2 - Before Going Live
-[x] recolour logos - #FF6600
-    [x] update logo on zco.mx
-[s] kb.zco.mx
-    [x] update logo
-    [x] change url colour
-    [x] upgrade base code
-    [ ] git-ify and add to zco.mx
-        [ ] update dns
-    [-] use roboto serif
-[x] Front Page - more space between 'contribute | download'
-[x] css on reset password
-[x] book page -> add outline to cover image
-        #book_page #book_cover_img { outline: 1px solid #EEEEEE; }
-        #book_page #book_cover_img:hover { outline: 2px solid #FF6600; }
-[x] 'Forgot password?' link doesn't send email
-[x] Login -> Profile
-    Use greyed out placeholders on profile page
-[ ] Login -> Profile
-    * Data check fields
-      + ensure twitter handle starts with '@', etc.
-      + strip trailing /'s
-[x] Login -> Profile
-    Keiler's label for 'facebook' is missing.  It seem only the word
-    'facebook' is the problem -- that makes no sense.
-[x] Remove js logout popup
-[x] Add an About page
-    [logo] about | faq | login | all.torrent
-[x] David Blumenstein - $0
-    https://dev.zco.mx/David_Blumenstein
-    He has uploaded 17 pages
-[ ] Change the header on paypal from 233 to zco.mx
+[ ] cartoonist page -> replace 'facebook' w/'patreon' placeholder
+    eg http://patreon.com/name
+[ ] cartoonist page -> add shop link
+    ...
+    email name@email.com
+    links   shop | tumblr | ....
+    torrent ALL-fixme.torrent
+[ ] contribute modal
+    [ ] if $0, give error
+    [ ] if click contribute, submit $1 ?
+    [ ] make contribute a button ?
+    [ ] remove close button, rely on 'X' ?
+    [ ] Add "The expenses for zco.mx can be found <here>." ?
+    [ ] click input box, adding 1 and then click contribute -- modal closes
 
 [ ] Update FAQ
     [x] Intro Email
@@ -47,36 +30,7 @@ VERSION 2 - Before Going Live
 
 [S] Setup mailing list
 
-[x] Book Page
-    * Bottom left, below cover, add 'contribute | download' links
-        + is clicking on the cover enough to replace the 'Read' button ?
-            - if not use 'read | contribute | download'
-    * Remove input box contribute link
-    * Remove 'Read' and 'Download' buttons
-    * change 'creator' to 'cartoonist'
-
-    [x] Book Page -> fix up css
-        * cartoon..     ## make div wider
-
-[x] Front Page -> cartoonist report
-    * make the 'list' view the default
-    * photos are upscaling
-        + Generate larger photos and downscale the photo on the cartoonist page
-            or
-        + use 'max-width:' only on that page ?
-
-[x] Front Page
-    navbar - remove the link from the last word in the breadcrumbs(?)
-
-[x] 12554 - Renumber cartoonist IDs
-    98 & 99 jimk and sinus
-    100 < blank >
-    101 forsman
-    102 huizenga
-    103 crane
-    104 bell
-
-[ ] Indicia Page - html version
+[S] Indicia Page - html version
         * last page of comic (scroll/slider)
         * call to action
             + donate, download, social media, copyright
@@ -88,7 +42,7 @@ VERSION 2 - Before Going Live
         * choose licence
         * preview
 
-[ ] Indicia Page - png version
+[S] Indicia Page - png version
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
@@ -100,28 +54,21 @@ VERSION 2 - Before Going Live
     [ ] redirect - http://101.zco.mx/Name_of_Comic_01_of_04.torrent http://101.zco.mx/Name_of_Comic_001.torrent
     [ ] metadata
 
-[ ] Reader notifications of new material (rss? and mailing list?)
+[S] Reader notifications of new material (rss? and mailing list?)
 
 [ ] Upload Modal
     Can we downscale the web images for the thumbnails and remove the
     actual thumbnails?
 
-[ ] Front Page -> All Reports
-    * Add '...more info' to the end of each row in any report viewed by list
-    * have it open in a new window/tab (?)  modal (?)
-    * book info would go to the book page and cartoonist info to the cartoonist page
-
 [ ] Front Page/Book Page
-    The same stats on the front page should be on the book page and vice versa
+    The same stats on the front page should be on the book page and
+    vice versa
 
-[ ] Obfuscate Email Addresses
+[S] Obfuscate Email Addresses
     See how dokuwiki does it
 
 [S] wildcard ssl cert for zco.mx
 
-[x] 12429 - Search should be unicode safe.
-[ ] 12327 - Prevent duplicate file from uploading.
-[ ] 12344 - Errors not visible on modal close
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
 [ ] 12426 - Add robots.txt to prevent bots from accessing dev.zco.mx
 [ ] 12354 - Test scripts
@@ -188,9 +135,13 @@ VERSION 3
     [ ] Kickstarter
     [ ] Information on copyright licencing
 
+[ ] KB
+    [ ] git-ify and add to zco.mx server
+    [ ] update dns for kb.zco.mx
+    [ ] add link to footer
+        [logo] about | faq | kb | login | all.torrent
 
 IDEAS
-
 [ ] bug/feature tracker
     * public or developer only?
     * vote up/down
