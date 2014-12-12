@@ -1,5 +1,6 @@
 ``
 VERSION 2 - Before Going Live
+[S] test on phone
 [ ] cartoonist page -> replace 'facebook' w/'patreon' placeholder
     eg http://patreon.com/name
 [ ] cartoonist page -> add shop link
