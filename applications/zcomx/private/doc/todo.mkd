@@ -1,20 +1,22 @@
 ``
 VERSION 2 - Before Going Live
-[S] test on phone
 [ ] cartoonist page -> replace 'facebook' w/'patreon' placeholder
     eg http://patreon.com/name
+
 [ ] cartoonist page -> add shop link
     ...
     email name@email.com
     links   shop | tumblr | ....
     torrent ALL-fixme.torrent
-[ ] contribute modal
-    [ ] if $0, give error
-    [ ] if click contribute, submit $1 ?
-    [ ] make contribute a button ?
-    [ ] remove close button, rely on 'X' ?
-    [ ] Add "The expenses for zco.mx can be found <here>." ?
-    [ ] click input box, adding 1 and then click contribute -- modal closes
+
+[x] css for AOSP browser on cell phone
+[x] contribute modal
+    [x] if $0, give error
+    [x] if click contribute, submit $1 ?
+    [x] make contribute a button ?
+    [x] remove close button, rely on 'X' ?
+    [x] Add "The expenses for zco.mx can be found <here>." ?
+    [x] click input box, adding 1 and then click contribute -- modal closes
 
 [ ] Update FAQ
     [x] Intro Email

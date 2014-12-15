@@ -194,6 +194,7 @@ div.centered table {
     background-color: #FF6600;
     color: #FFFFFF;
     font-size: 12px;
+    min-width: 35em;
     padding: 0 6px;
 }
 
@@ -554,17 +555,17 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 @media screen and (max-width: 767px) {
     .grid_section .tile_view .item_container {
-        margin: 0 0.15em 2.4em;
+        margin: 0 0.15em 4em;
     }
 }
 @media screen and (min-width: 768px) and (max-width: 991px) {
     .grid_section .tile_view .item_container {
-        margin: 0 2.7em 3.4em;
+        margin: 0 2.7em 4em;
     }
 }
 @media screen and (min-width: 992px) and (max-width: 1200px) {
     .grid_section .tile_view .item_container {
-        margin: 0 1.2em 3.4em;
+        margin: 0 1.2em 4em;
     }
 }
 
@@ -576,7 +577,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     outline: 0.1em solid #DDDDDD;
     display: block;
     width: 100%;
-    height: 100%;
+    height: auto%;
 }
 
 .grid_section .tile_view .item_container img:hover, img:focus {
@@ -840,6 +841,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #contribute_modal_page {
+    font-size: 18px;
     margin: 1em;
 }
 
@@ -853,7 +855,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #contribute_modal_page #contribute_widget_container {
-    margin: 0 0 0 1em;
+    margin: 1em 0 0 1em;
 }
 
 @media screen and (min-width: 768px){
@@ -862,12 +864,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 
     #contribute_modal_page #contribute_widget_container {
-        margin: 1em 1em 1em 3em;
+        margin: 1.4em 1em 1em 0.8em;
     }
 
     .contribute_modal .modal-dialog {
-        width: 60%;
-        margin-left: 20%;
+        margin-left: 30%;
+        width: 40%;
     }
 
 }
@@ -915,6 +917,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     background-color: inherit;
     border-style: none;
     color: #666666;
+    font-size: 23px;
     padding-left: 0;
     padding-right: 0.1em;
     padding-top: 0.2em;
@@ -925,10 +928,17 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border-radius: 3px;
     border: 1px solid #666666;
     color: #333333;
+    font-size: 23px;
     font-weight: bold;
     height: inherit;
+    margin-right: 10px;
     padding: 0;
     width: 4em;
+}
+
+#reader_page_footer .contribute_widget .input-group-addon,
+#reader_page_footer .contribute_widget input {
+    font-size: 14px;
 }
 
 .contribute_widget input.indented {
@@ -1466,6 +1476,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .footer {
     border-top: none;
+    min-width: 35em;
     padding-top: 0;
 }
 
