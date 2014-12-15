@@ -295,7 +295,7 @@ class UploadedArchive(UploadedFile):
                 c='images',
                 f='download',
                 args=cover_page.image,
-                vars={'size': 'tbn'},
+                vars={'size': 'web'},
             )
 
         json_data = dict(

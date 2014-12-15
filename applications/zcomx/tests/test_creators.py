@@ -278,18 +278,27 @@ class TestFunctions(LocalTestCase):
 
         image_json = image_as_json(db, creator.id)
         image = loads(image_json)
+
         self.assertTrue('files' in image.keys())
         self.assertEqual(len(image['files']), 1)
+
+        filename, unused_original_fullname = db.creator.image.retrieve(
+            creator.image,
+            nameonly=True,
+        )
+        down_url = '/images/download/{img}'.format(img=creator.image)
+        thumb = '/images/download/{img}?size=web'.format(img=creator.image)
+        delete_url = '/login/creator_img_handler'
         self.assertEqual(
-            sorted(image['files'][0].keys()),
-            [
-                'deleteType',
-                'deleteUrl',
-                'name',
-                'size',
-                'thumbnailUrl',
-                'url',
-            ]
+            image['files'][0],
+            {
+                'name': filename,
+                'size': 87423,
+                'url': down_url,
+                'thumbnailUrl': thumb,
+                'deleteUrl': delete_url,
+                'deleteType': 'DELETE',
+            }
         )
 
     def test__on_change_name(self):

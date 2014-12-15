@@ -1436,6 +1436,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding-top: 2em;
 }
 
+#profile_book_pages_page .template-download span.preview img {
+    max-height: 170px;
+    max-width: 170px;
+}
+
 #profile_book_pages_page .template-download span.glyphicon {
     color: black;
     opacity: 0.3;
@@ -1710,6 +1715,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #mug_shot .template-download .button_container .btn {
     min-width: 6em;
+}
+
+#mug_shot .template-download span.preview img {
+    max-height: 170px;
+    max-width: 170px;
 }
 
 .placeholder_torso {
