@@ -495,7 +495,7 @@ def creator_crud():
         return do_error('Invalid data provided.')
 
     # Strip trailing slash from urls
-    for f in ['website', 'tumblr']:
+    for f in ['website', 'shop', 'tumblr']:
         if f in data:
             data[f] = data[f].rstrip('/')
 

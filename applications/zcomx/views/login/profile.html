@@ -179,10 +179,20 @@
                 'placeholder': '@username',
             },
         },
+        'shop': {
+            'label': '{{=db.creator.shop.label}}',
+            'value': '{{=creator.shop or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter the url of the site where your books can be purchased. (Optional)',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_tumblr_input',
+                'emptytext': 'http://my.shop.com',
+                'placeholder': 'http://my.shop.com',
+            },
+        },
         'tumblr': {
             'label': '{{=db.creator.tumblr.label}}',
             'value': '{{=creator.tumblr or ""}}',
-            'append_to': '#edit_links_container',
             'x_editable_settings': {
                 'title': 'Enter your tumblr account. (Optional)',
                 'escape': true,

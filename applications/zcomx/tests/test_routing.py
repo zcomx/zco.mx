@@ -63,7 +63,6 @@ class TestRouter(LocalTestCase):
         cls._request.args = List()
         cls._request.vars = Storage()
 
-        query = (db.auth_user.email == web.username)
         first = db().select(
             db.book_page.id,
             db.book.id,
@@ -471,6 +470,7 @@ class TestRouter(LocalTestCase):
         router = Router(db, self._request, auth)
 
         self._creator.update_record(
+            shop=None,
             tumblr=None,
         )
         db.commit()
@@ -478,23 +478,50 @@ class TestRouter(LocalTestCase):
         # Creator not set.
         self.assertEqual(router.preset_links(), [])
 
-        # creator.tumbler not set
+        # Set creator but still no presets
         router.request.vars.creator = 'First_Last'
         self.assertEqual(router.preset_links(), [])
 
+        def test_presets(links, expect):
+            soups = [BeautifulSoup(str(x)) for x in links]
+            anchors = [x.find('a') for x in soups]
+            self.assertEqual(
+                [x.string for x in anchors],
+                expect
+            )
+            for anchor in anchors:
+                if anchor.string == 'shop':
+                    self.assertEqual(anchor['href'], 'http://www.shop.com')
+                elif anchor.string == 'tumblr':
+                    self.assertEqual(anchor['href'], 'user.tumblr.com')
+                self.assertEqual(anchor['target'], '_blank')
+
+        # Set creator.shop
         self._creator.update_record(
+            shop='http://www.shop.com',
+            tumblr=None
+        )
+        db.commit()
+        router.creator_record = None
+        test_presets(router.preset_links(), ['shop'])
+
+        # Set creator.tumblr
+        self._creator.update_record(
+            shop=None,
             tumblr='user.tumblr.com',
         )
         db.commit()
         router.creator_record = None
-        links = router.preset_links()
-        self.assertEqual(len(links), 1)
+        test_presets(router.preset_links(), ['tumblr'])
 
-        tumblr_link = BeautifulSoup(str(links[0]))
-        anchor = tumblr_link.find('a')
-        self.assertEqual(anchor.string, 'tumblr')
-        self.assertEqual(anchor['href'], 'user.tumblr.com')
-        self.assertEqual(anchor['target'], '_blank')
+        # Set both creator.shop and creator.tumblr
+        self._creator.update_record(
+            shop='http://www.shop.com',
+            tumblr='user.tumblr.com',
+        )
+        db.commit()
+        router.creator_record = None
+        test_presets(router.preset_links(), ['shop', 'tumblr'])
 
     def test__route(self):
         router = Router(db, self._request, auth)
