@@ -218,6 +218,14 @@ class Router(object):
         creator_record = self.get_creator()
         if not creator_record:
             return []
+        if creator_record.shop:
+            pre_links.append(
+                A(
+                    'shop',
+                    _href=creator_record.shop,
+                    _target='_blank'
+                )
+            )
         if creator_record.tumblr:
             pre_links.append(
                 A(

@@ -174,7 +174,7 @@ def book_page_for_json(db, book_page_id):
         c='images',
         f='download',
         args=book_page.image,
-        vars={'size': 'tbn'},
+        vars={'size': 'web'},
     )
 
     delete_url = URL(

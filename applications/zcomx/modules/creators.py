@@ -197,7 +197,7 @@ def image_as_json(db, creator_id):
         c='images',
         f='download',
         args=creator_record.image,
-        vars={'size': 'tbn'},
+        vars={'size': 'web'},
     )
 
     delete_url = URL(
