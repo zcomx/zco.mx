@@ -6,8 +6,10 @@
 Test suite for zcomx/modules/creators.py
 
 """
+import os
 import unittest
 from BeautifulSoup import BeautifulSoup
+from PIL import Image
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
@@ -272,34 +274,62 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(formatted_name(creator.id), 'Test Name')
 
     def test__image_as_json(self):
-        query = (db.creator.image != None)
+        query = (db.creator.image != None) & \
+                (db.creator.indicia_image != None)
         creator = db(query).select(db.creator.ALL).first()
         self.assertTrue(creator)
 
-        image_json = image_as_json(db, creator.id)
-        image = loads(image_json)
+        def do_test(image, expect):
+            self.assertTrue('files' in image.keys())
+            self.assertEqual(len(image['files']), 1)
+            self.assertEqual(
+                image['files'][0],
+                {
+                    'name': expect.filename,
+                    'size': expect.size,
+                    'url': expect.down_url,
+                    'thumbnailUrl': expect.thumb,
+                    'deleteUrl': expect.delete_url,
+                    'deleteType': 'DELETE',
+                }
+            )
 
-        self.assertTrue('files' in image.keys())
-        self.assertEqual(len(image['files']), 1)
+        # Test creator.image
+        for entity in [creator.id, creator]:
+            image_json = image_as_json(db, entity)
+            expect = Storage({})
+            filename, fullname = db.creator.image.retrieve(
+                creator.image,
+                nameonly=True,
+            )
+            expect.filename = filename
+            im = Image.open(fullname)
+            expect.size = size = os.stat(fullname).st_size
+            expect.down_url = '/images/download/{img}'.format(
+                img=creator.image)
+            expect.thumb = '/images/download/{img}?size=web'.format(
+                img=creator.image)
+            expect.delete_url = '/login/creator_img_handler/image'
 
-        filename, unused_original_fullname = db.creator.image.retrieve(
-            creator.image,
-            nameonly=True,
-        )
-        down_url = '/images/download/{img}'.format(img=creator.image)
-        thumb = '/images/download/{img}?size=web'.format(img=creator.image)
-        delete_url = '/login/creator_img_handler'
-        self.assertEqual(
-            image['files'][0],
-            {
-                'name': filename,
-                'size': 87423,
-                'url': down_url,
-                'thumbnailUrl': thumb,
-                'deleteUrl': delete_url,
-                'deleteType': 'DELETE',
-            }
-        )
+            do_test(loads(image_json), expect)
+
+        # Test creator.indicia_image
+        for entity in [creator.id, creator]:
+            image_json = image_as_json(db, entity, field='indicia_image')
+            expect = Storage({})
+            filename, fullname = db.creator.indicia_image.retrieve(
+                creator.indicia_image,
+                nameonly=True,
+            )
+            expect.filename = filename
+            expect.size = size = os.stat(fullname).st_size
+            expect.down_url = '/images/download/{img}'.format(
+                img=creator.indicia_image)
+            expect.thumb = '/images/download/{img}?size=web'.format(
+                img=creator.indicia_image)
+            expect.delete_url = '/login/creator_img_handler/indicia_image'
+
+            do_test(loads(image_json), expect)
 
     def test__on_change_name(self):
         auth_user = self.add(db.auth_user, dict(

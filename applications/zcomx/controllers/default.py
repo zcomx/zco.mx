@@ -370,6 +370,7 @@ def top():
         elif request.args(0) == 'login':
             delimiter_class = 'pipe_delimiter'
             left_links.append(login_link('books'))
+            left_links.append(login_link('indicia'))
             left_links.append(login_link('profile'))
             left_links.append(login_link('account'))
     else:

@@ -523,8 +523,12 @@ def creator_img_handler():
     """Callback function for the jQuery-File-Upload plugin.
 
     # POST
+    request.args(0): string, name if creator field to update.
+            Optional, if not set, update creator.image
+            Eg 'indicia_image': update creator.indicia_image
     request.vars.up_files: list of files representing creator image.
     """
+
     def do_error(msg, files=None):
         """Error handler."""
         if files == None:
@@ -538,6 +542,21 @@ def creator_img_handler():
     ).first()
     if not creator_record:
         return do_error('Upload service unavailable.')
+
+    img_field = 'image'
+    if request.args(0):
+        if request.args(0) not in db.creator.fields:
+            print >> sys.stderr, \
+                'creator_img_handler invalid field: {fld}'.format(
+                        fld=request.vargs(0))
+            return do_error('Upload service unavailable.')
+        img_field = request.args(0)
+
+    minimum_widths = {
+        # 'field': width in px
+        'image': 263,
+        'indicia_image': 600,
+    }
 
     if request.env.request_method == 'POST':
         # Create a book_page record for each upload.
@@ -553,15 +572,20 @@ def creator_img_handler():
                 shutil.copyfileobj(up_file.file, lf)
 
             with open(local_filename, 'r') as lf:
-                im = Image.open(lf)
-                if im.size[0] < 263:
+                try:
+                    im = Image.open(lf)
+                except IOError as err:
+                    return do_error(str(err))
+
+                if im.size[0] < minimum_widths[img_field]:
+                    fmt = 'Image is too small. Minimum image width: {min}px'
                     return do_error(
-                            'Image is too small. Minimum image width: 263px',
+                        fmt.format(min=minimum_widths[img_field]),
                         files=[up_file.filename]
                     )
 
             try:
-                stored_filename = store(db.creator.image, local_filename)
+                stored_filename = store(db.creator[img_field], local_filename)
             except Exception as err:
                 print >> sys.stderr, \
                     'Creator image upload error: {err}'.format(err=err)
@@ -573,39 +597,40 @@ def creator_img_handler():
                 files=[up_file.filename]
             )
 
-        if creator_record.image and creator_record.image != stored_filename:
-            filename, _ = db.creator.image.retrieve(
-                creator_record.image,
+        if creator_record[img_field] and creator_record[img_field] != stored_filename:
+            filename, _ = db.creator[img_field].retrieve(
+                creator_record[img_field],
                 nameonly=True,
             )
-            db(db.creator.id == creator_record.id).update(image=None)
+            data = {img_field: None}
+            db(db.creator.id == creator_record.id).update(**data)
             db.commit()
-            up_image = UploadImage(db.creator.image, creator_record.image)
+            up_image = UploadImage(db.creator[img_field], creator_record[img_field])
             up_image.delete_all()
 
-        db(db.creator.id == creator_record.id).update(
-            image=stored_filename,
-        )
+        data = {img_field: stored_filename}
+        db(db.creator.id == creator_record.id).update(**data)
         db.commit()
-        return image_as_json(db, creator_record.id)
+        return image_as_json(db, creator_record.id, field=img_field)
 
     elif request.env.request_method == 'DELETE':
         # retrieve real file name
-        if not creator_record.image:
+        if not creator_record[img_field]:
             return do_error('')
 
-        filename, _ = db.creator.image.retrieve(
-            creator_record.image,
+        filename, _ = db.creator[img_field].retrieve(
+            creator_record[img_field],
             nameonly=True,
         )
-        db(db.creator.id == creator_record.id).update(image=None)
+        data = {img_field: None}
+        db(db.creator.id == creator_record.id).update(**data)
         db.commit()
-        up_image = UploadImage(db.creator.image, creator_record.image)
+        up_image = UploadImage(db.creator[img_field], creator_record[img_field])
         up_image.delete_all()
         return dumps({"files": [{filename: 'true'}]})
 
     # GET
-    return image_as_json(db, creator_record.id)
+    return image_as_json(db, creator_record.id, field=img_field)
 
 
 @auth.requires_login()
@@ -617,6 +642,42 @@ def index():
     if not creator_record:
         redirect(URL(c='default', f='index'))
     redirect(URL(c='login', f='books'))
+
+
+@auth.requires_login()
+def indicia():
+    """Indicia controller.
+    """
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL('index'))
+
+    response.files.append(
+        URL('static', 'blueimp/jQuery-File-Upload/css/jquery.fileupload.css')
+    )
+    response.files.append(
+        URL(
+            'static',
+            'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
+        )
+    )
+
+    return dict()
+
+
+@auth.requires_login()
+def indicia_preview():
+    """Indicia preview controller.
+    """
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL('index'))
+
+    return dict()
 
 
 @auth.requires_login()

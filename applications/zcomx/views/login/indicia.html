@@ -1,16 +1,20 @@
 {{extend 'login/layout.html'}}
-{{from gluon.contrib.simplejson import dumps}}
-<div id="creator_section">
+<div id="indicia_section">
 
-<div id="editable_fields_container"></div>
-<div id="links_container">
-    <div id="edit_links_container"></div>
+<div id="instructions_container">
+    <h4>Instructions</h4>
+    <ul>
+        <li>The indicia image is displayed on the indicia page of your books.</li>
+        <li>Minimum size: 1600px x 1600px</li>
+        <li>A white or light colour background works best.</li>
+        <li>Click the preview button to see how it will look.</li>
+        <li>blah blah blah... FIXME </li>
+    </ul>
 </div>
-<div id="bio_container"></div>
-<div id="mug_shot">
+
+<div id="indicia_image">
     <div class="row_container">
         <div class="arrow_container"></div>
-        <div class="field_label">{{=db.creator.image.label}}</div>
         <div class="image_field_container">
             <div class="fileupload_container">
                 <form id="fileupload" action="/zcomx/login/creator_img_handler" method="POST" enctype="multipart/form-data">
@@ -95,6 +99,11 @@
                     <span>Change</span>
                 </button>
                 </div>
+                <div>
+                <button id="preview_button" class="btn btn-default">
+                    <span>Preview</span>
+                </button>
+                </div>
             {% } else { %}
                 <div class="cancel_container">
                 <button class="btn btn-warning cancel">
@@ -134,130 +143,15 @@
 <![endif]-->
 <script>
 //<![CDATA[
-    var creator_data = {
-        'email': {
-            'label': '{{=db.creator.email.label}}',
-            'value': '{{=creator.email or ""}}',
-            'x_editable_settings': {
-                'title': 'Enter your contact email address. (Optional)',
-                'escape': true,
-                'inputclass': 'inplace_crud creator_email_input',
-                'emptytext': 'username@example.com',
-                'placeholder': 'username@example.com',
-            },
-        },
-        'paypal_email': {
-            'label': '{{=db.creator.paypal_email.label}}',
-            'value': '{{=creator.paypal_email or ""}}',
-            'x_editable_settings': {
-                'title': 'Enter your paypal email address. (Optional. Required to receive payments.)',
-                'escape': true,
-                'inputclass': 'inplace_crud creator_paypal_email_input',
-                'emptytext': 'username@example.com',
-                'placeholder': 'username@example.com',
-            },
-        },
-        'website': {
-            'label': '{{=db.creator.website.label}}',
-            'value': '{{=creator.website or ""}}',
-            'x_editable_settings': {
-                'title': 'Enter your website address. (Optional)',
-                'escape': true,
-                'inputclass': 'inplace_crud creator_website_input',
-                'emptytext': 'http://www.example.com',
-                'placeholder': 'http://www.example.com',
-            },
-        },
-        'twitter': {
-            'label': '{{=db.creator.twitter.label}}',
-            'value': '{{=creator.twitter or ""}}',
-            'x_editable_settings': {
-                'title': 'Enter your twitter handle. (Optional)',
-                'escape': true,
-                'inputclass': 'inplace_crud creator_twitter_input',
-                'emptytext': '@username',
-                'placeholder': '@username',
-            },
-        },
-        'shop': {
-            'label': '{{=db.creator.shop.label}}',
-            'value': '{{=creator.shop or ""}}',
-            'x_editable_settings': {
-                'title': 'Enter the url of the site where your books can be purchased. (Optional)',
-                'escape': true,
-                'inputclass': 'inplace_crud creator_tumblr_input',
-                'emptytext': 'http://my.shop.com',
-                'placeholder': 'http://my.shop.com',
-            },
-        },
-        'tumblr': {
-            'label': '{{=db.creator.tumblr.label}}',
-            'value': '{{=creator.tumblr or ""}}',
-            'x_editable_settings': {
-                'title': 'Enter your tumblr account. (Optional)',
-                'escape': true,
-                'inputclass': 'inplace_crud creator_tumblr_input',
-                'emptytext': 'http://username.tumblr.com',
-                'placeholder': 'http://username.tumblr.com',
-            },
-        },
-    }
-
-    var bio_data = {
-        'bio': {
-            'label': '{{=db.creator.bio.label}}',
-            'value': '{{=dumps(creator.bio or "").strip('"')}}',
-            'x_editable_settings': {
-                'title': 'Enter a brief biography.',
-                'escape': true,
-                'inputclass': 'inplace_crud creator_bio_input',
-                'type': 'textarea',
-            },
-        },
-    }
-//]]>
-</script>
-<script>
-//<![CDATA[
     $(document).ready(function(){
-        $('#editable_fields_container').inplace_crud(
-            '{{=URL(c='login', f='creator_crud.json')}}',
-            '{{=creator.id}}',
-            {
-                source_data: creator_data,
-            }
-        );
-
-        $('#edit_links_container').inplace_link_crud(
-            '{{=URL(c='login', f='link_crud.json')}}',
-            '',
-            {
-                placeholders: {
-                    name: 'eg. patreon',
-                    url: 'http://patreon.com/name',
-                }
-            }
-        );
-
-        $('#bio_container').inplace_crud(
-            '{{=URL(c='login', f='creator_crud.json')}}',
-            '{{=creator.id}}',
-            { source_data: bio_data }
-        );
         $('#fileupload').image_upload(
-            'creator',
-            '/zcomx/login/creator_img_handler/image'
+            'indicia',
+            '/zcomx/login/creator_img_handler/indicia_image'
         );
         $('#fileupload').removeClass('fileupload-processing');
     });
 //]]>
 </script>
 {{block post_bootstrap_js}}
-    {{if DEBUG:}}
-        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.js')}}"></script>
-    {{else:}}
-        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.min.js')}}"></script>
-    {{pass}}
-    <script src="{{=URL(c='static', f='js/inplace_crud.js')}}"> </script>
     <script src="{{=URL(c='static', f='js/image_upload.js')}}"> </script>
 {{end}}
