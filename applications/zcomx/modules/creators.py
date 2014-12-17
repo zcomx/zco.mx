@@ -5,12 +5,15 @@
 
 Creator classes and functions.
 """
+import logging
 import os
 from gluon import *
 from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.utils import entity_to_row
+
+LOG = logging.getLogger('app')
 
 
 def add_creator(form):
@@ -165,20 +168,26 @@ def formatted_name(creator_entity):
     return auth_user.name
 
 
-def image_as_json(db, creator_id):
+def image_as_json(db, creator_entity, field='image'):
     """Return the creator image as json.
 
     Args:
         db: gluon.dal.DAL instance
-        creator_id: integer, id of creator record.
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+        field: string, the name of the creator field to get the image from.
     """
     images = []
-    creator_record = entity_to_row(db.creator, creator_id)
+    creator_record = entity_to_row(db.creator, creator_entity)
     if not creator_record or not creator_record.image:
         return dumps(dict(files=images))
 
-    filename, original_fullname = db.creator.image.retrieve(
-        creator_record.image,
+    if field not in db.creator.fields:
+        LOG.error('Invalid creator image field: {fld}'.format(fld=field))
+        return dumps(dict(files=images))
+
+    filename, original_fullname = db.creator[field].retrieve(
+        creator_record[field],
         nameonly=True,
     )
 
@@ -190,19 +199,20 @@ def image_as_json(db, creator_id):
     image_url = URL(
         c='images',
         f='download',
-        args=creator_record.image,
+        args=creator_record[field],
     )
 
     thumb = URL(
         c='images',
         f='download',
-        args=creator_record.image,
+        args=creator_record[field],
         vars={'size': 'web'},
     )
 
     delete_url = URL(
         c='login',
         f='creator_img_handler',
+        args=[field]
     )
 
     images.append(

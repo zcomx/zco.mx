@@ -1678,6 +1678,90 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+#indicia_image {
+    margin-top: 1.2em;
+}
+
+#indicia_image {
+    padding: 1em;
+    min-width: 23em;
+    width: 100%;
+}
+@media screen and (max-width: 767px){
+    #indicia_image {
+        padding: inherit;
+    }
+}
+
+#indicia_image input[type=submit] {
+    margin-top: 1em;
+}
+
+#indicia_image .files .btn span {
+    display: block;
+}
+
+#indicia_image .template-download .button_container .btn {
+    min-width: 6em;
+}
+
+#indicia_image .template-download span.preview img {
+    max-height: 170px;
+    max-width: 170px;
+}
+
+#indicia_image .row_container .arrow_container {
+    display: none;
+}
+
+@media (min-width: 768px) {
+
+    #indicia_image {
+        max-width: 65em;
+        padding: 1em 1em 1em 0;
+    }
+
+    #indicia_image .template-download,
+    #indicia_image .img_preview_container,
+    #indicia_image .button_container {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    #indicia_image .img_preview_container {
+        padding-right: 1em;
+    }
+
+    #indicia_image .row_container .arrow_container {
+        display: inline-block;
+    }
+
+    #indicia_image .no_photo_section {
+        display: none;
+        vertical-align: top;
+    }
+    #indicia_image .has_photo_section {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    #indicia_image .has_photo_section .files > div {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    #indicia_image .template-upload .progress_buttons_container > div {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    #indicia_image .template-upload .progress_buttons_container .progress-striped {
+        min-width: 20em;
+    }
+}
+
+
+
 /* icon sizes start */
 .size-08 { font-size:  8px; }
 .size-12 { font-size: 12px; }

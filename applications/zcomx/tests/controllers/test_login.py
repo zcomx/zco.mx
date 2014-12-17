@@ -63,6 +63,11 @@ class TestFunctions(LocalTestCase):
         'book_release_invalid': 'Invalid data provided.',
         'books': '<div id="ongoing_book_list" class="book_list">',
         'default': '<div id="front_page">',
+        'indicia': [
+            '<div id="profile_page">',
+            '<div id="indicia_section">',
+        ],
+        'indicia_preview': '<div id="indicia_preview_section">',
         'links': [
             'href="/zcomx/login/links.load/new/link',
             'Add</span>',
@@ -563,6 +568,22 @@ class TestFunctions(LocalTestCase):
             web.test(
                 '{url}/index'.format(url=self.url),
                 self.titles['books']
+            )
+        )
+
+    def test__indicia(self):
+        self.assertTrue(
+            web.test(
+                '{url}/indicia'.format(url=self.url),
+                self.titles['indicia']
+            )
+        )
+
+    def test__indicia_preview(self):
+        self.assertTrue(
+            web.test(
+                '{url}/indicia_preview'.format(url=self.url),
+                self.titles['indicia_preview']
             )
         )
 

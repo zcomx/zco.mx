@@ -132,6 +132,7 @@
 //<![CDATA[
     $(document).ready(function(){
         $('#fileupload').image_upload(
+            'book_page',
             '/zcomx/login/book_pages_handler/{{=book.id}}'
         );
         $('#fileupload').removeClass('fileupload-processing');
