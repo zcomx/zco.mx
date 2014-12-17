@@ -37,6 +37,11 @@ h1, h2, h3, h4, h5 {
     background-color: #FF6600 !important;
 }
 
+.modal-expanded {
+    width: 90%;
+    min-width: 10em;
+}
+
 .bootstrap-dialog-title {
     font-weight: bold;
     min-height: 1.6em;
@@ -1747,6 +1752,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     #indicia_image .has_photo_section .files > div {
         display: inline-block;
+        padding: 1em;
         vertical-align: top;
     }
 
@@ -1760,6 +1766,68 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+#indicia_section .previews_section {
+    padding: 1em;
+}
+
+
+#indicia_section .indicia_preview_section {
+    border: 1px solid #dddddd;
+    display: inline-block;
+}
+
+#indicia_section .indicia_preview_section.portrait .indicia_image_container {
+    width: 280px;
+    height: 280px;
+}
+#indicia_section .indicia_preview_section.portrait .indicia_text_container {
+    width: 280px;
+    height: 280px;
+    padding: 10px;
+}
+
+#indicia_section .indicia_preview_section.landscape .indicia_image_container {
+    display: inline-block;
+    width: 280px;
+    height: 280px;
+}
+#indicia_section .indicia_preview_section.landscape .indicia_text_container {
+    display: inline-block;
+    width: 280px;
+    height: 280px;
+    padding: 10px;
+}
+
+#indicia_section .indicia_image_container img {
+    width: 100%;
+}
+
+
+.indicia_preview_modal .indicia_preview_section.portrait .indicia_image_container {
+    width: 100%;
+    height: auto;
+}
+.indicia_preview_modal .indicia_preview_section.portrait .indicia_text_container {
+    width: 100%;
+    height: auto;
+    padding: 10px;
+}
+
+.indicia_preview_modal .indicia_preview_section.landscape .indicia_image_container {
+    display: inline-block;
+    width: 49%;
+    height: auto;
+}
+.indicia_preview_modal .indicia_preview_section.landscape .indicia_text_container {
+    display: inline-block;
+    width: 49%;
+    height: auto;
+    padding: 10px;
+}
+
+.indicia_preview_modal .indicia_image_container img {
+    width: 100%;
+}
 
 
 /* icon sizes start */

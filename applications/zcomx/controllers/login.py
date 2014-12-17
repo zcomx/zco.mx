@@ -605,6 +605,7 @@ def creator_img_handler():
             data = {img_field: None}
             db(db.creator.id == creator_record.id).update(**data)
             db.commit()
+            # Delete an existing image before it is replaced
             up_image = UploadImage(db.creator[img_field], creator_record[img_field])
             up_image.delete_all()
 
@@ -655,8 +656,13 @@ def indicia():
         redirect(URL('index'))
 
     response.files.append(
+        URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
+    )
+
+    response.files.append(
         URL('static', 'blueimp/jQuery-File-Upload/css/jquery.fileupload.css')
     )
+
     response.files.append(
         URL(
             'static',
@@ -669,7 +675,7 @@ def indicia():
 
 @auth.requires_login()
 def indicia_preview():
-    """Indicia preview controller.
+    """Indicia preview component controller.
     """
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
@@ -677,7 +683,11 @@ def indicia_preview():
     if not creator_record:
         redirect(URL('index'))
 
-    return dict()
+    img_src = URL(c='static', f='images/indicia_image.png')
+    if creator_record.indicia_image:
+        img_src = URL(c='images', f='download', args=creator_record.indicia_image, vars={'size': 'web'})
+
+    return dict(img_src=img_src)
 
 
 @auth.requires_login()

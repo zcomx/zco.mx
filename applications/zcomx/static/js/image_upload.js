@@ -31,28 +31,6 @@
             return;
         },
 
-        display_download: function() {
-            var that = this;
-            $('#fileupload').addClass('fileupload-processing');
-            $.ajax({
-                // Uncomment the following to send cross-domain cookies:
-                //xhrFields: {withCredentials: true},
-                url: $('#fileupload').fileupload('option', 'url'),
-                dataType: 'json',
-                context: $('#fileupload')[0]
-            }).always(function () {
-                $(this).removeClass('fileupload-processing');
-            }).done(function (result) {
-                $(this).fileupload('option', 'done')
-                    .call(this, $.Event('done'), {result: result});
-                that.done_callback(this);
-            });
-        },
-
-        done_callback: function(e) {
-            return;
-        },
-
         error_scrub: function(raw_msg) {
             var translation = {
                 'Request Entity Too Large': 'The file is too large (max 500 MB).',
@@ -63,6 +41,22 @@
                 return translation[raw_msg];
             }
             return raw_msg;
+        },
+
+        img_error: function(image) {
+            var that = this;
+            var tries = $(image).data('retries');
+            if (isNaN(tries)) {
+                tries = 0;
+            }
+            if (tries >= 5) {
+                image.onerror = "";
+            }
+            $(image).data('retries', tries + 1);
+            setTimeout( function() {
+                that.reload_img(image);
+            }, 2000);
+            return true;
         },
 
         load: function (elem) {
@@ -90,23 +84,26 @@
                 }
             });
 
-            that.display_download();
+
+            /* that.display_download(); */
+            $(elem).addClass('fileupload-processing');
+            $.ajax({
+                // Uncomment the following to send cross-domain cookies:
+                //xhrFields: {withCredentials: true},
+                url: $(elem).fileupload('option', 'url'),
+                dataType: 'json',
+                context: $(elem)[0]
+            }).always(function () {
+                $(elem).removeClass('fileupload-processing');
+            }).done(function (result) {
+                $(elem).fileupload('option', 'done')
+                    .call(this, $.Event('done'), {result: result});
+                that.loaded_callback(this);
+            });
         },
 
-        img_error: function(image) {
-            var that = this;
-            var tries = $(image).data('retries');
-            if (isNaN(tries)) {
-                tries = 0;
-            }
-            if (tries >= 5) {
-                image.onerror = "";
-            }
-            $(image).data('retries', tries + 1);
-            setTimeout( function() {
-                that.reload_img(image);
-            }, 2000);
-            return true;
+        loaded_callback: function(e) {
+            return;
         },
 
         reload_img: function(elem) {
@@ -149,7 +146,7 @@
             this.set_arrows();
         },
 
-        done_callback: function(e) {
+        loaded_callback: function(e) {
             $('span.preview').removeClass('hidden');
         },
 
@@ -163,7 +160,7 @@
             var obj = this;
             $(elem).click(function(e) {
                 e.preventDefault();
-                $('#fileupload').addClass('fileupload-processing');
+                obj.$element.addClass('fileupload-processing');
                 var that = $(this);
                 var tr = that.closest('tr');
                 tr.fadeOut(400, function() {
@@ -177,7 +174,7 @@
                         obj.set_arrows();
                     });
                 });
-                $('#fileupload').removeClass('fileupload-processing');
+                obj.$element.removeClass('fileupload-processing');
             });
         },
 
@@ -200,8 +197,15 @@
         },
 
         completed_callback: function(e, data) {
+            this.show_buttons();
+        },
+
+        deleted_callback: function(e, data) {
+            this.show_buttons();
+        },
+
+        loaded_callback: function(e) {
             var that = this;
-            that.show_buttons();
             $(document).on('click', '#change_button', function(e) {
                 that.clear_error();
                 $('input[type=file]').trigger('click');
@@ -213,13 +217,6 @@
             $(document).on('click', '.fileinput-button', function(e) {
                 that.clear_error();
             });
-        },
-
-        deleted_callback: function(e, data) {
-            this.show_buttons();
-        },
-
-        done_callback: function(e) {
             this.show_buttons();
         },
 
@@ -241,15 +238,39 @@
     }
     $.fn.zco_utils.inherit(IndiciaImageUpload, CreatorImageUpload);
     $.extend(IndiciaImageUpload.prototype, {
+        change_callback: function(e, data) {
+            return;
+            /* $('button.delete').trigger('click'); */
+        },
+
         completed_callback: function(e, data) {
             CreatorImageUpload.prototype.completed_callback.apply(this)
-            var that = this;
-            $(document).on('click', '#preview_button', function(e) {
-                that.clear_error();
-                e.preventDefault();
-                location.href = '/zcomx/login/indicia_preview';
-            });
+            if (data.result.files[0].error === undefined) {
+                // Remove all but last template-download div in filesContainer
+                var filesList = this.$element.fileupload('option', 'filesContainer');
+                var files = filesList.find('.template-download');
+                for (var i=0; i < (files.length - 1); i++) {
+                    files[i].remove();
+                }
+                this.reload_previews()
+            }
         },
+
+        deleted_callback: function(e, data) {
+            CreatorImageUpload.prototype.deleted_callback.apply(this)
+            this.reload_previews()
+        },
+
+        reload_previews: function() {
+            var formats = ['portrait', 'landscape'];
+            for (var i = formats.length - 1; i >= 0; i--) {
+                formats[i]
+                var url = '/zcomx/login/indicia_preview.load/' + formats[i];
+                var target = formats[i];
+                web2py_component(url, target);
+            }
+        },
+
     });
 
     $.fn.image_upload = function (type, url, options) {

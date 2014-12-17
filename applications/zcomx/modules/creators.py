@@ -179,11 +179,14 @@ def image_as_json(db, creator_entity, field='image'):
     """
     images = []
     creator_record = entity_to_row(db.creator, creator_entity)
-    if not creator_record or not creator_record.image:
+    if not creator_record:
         return dumps(dict(files=images))
 
     if field not in db.creator.fields:
         LOG.error('Invalid creator image field: {fld}'.format(fld=field))
+        return dumps(dict(files=images))
+
+    if not creator_record[field]:
         return dumps(dict(files=images))
 
     filename, original_fullname = db.creator[field].retrieve(

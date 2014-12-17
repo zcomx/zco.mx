@@ -1,0 +1,23 @@
+<div class="indicia_preview_section {{=request.args(0)}}">
+    <div class="indicia_image_container">
+        <img src="{{=img_src}}">
+    </div>
+    <div class="indicia_text_container">
+        <div>
+        If you enjoyed this book...
+        consider giving monies !!!
+        Or share on twitter, tumblr and facebook!.
+        </div>
+
+        <div>
+        contribute: http://123.zco.mx/monies
+        contact info: http://123.zco.mx
+        </div>
+
+        <div>
+        NAME OF BOOK copyright @ 2014 by CREATOR NAME
+        All rights reserved. No copying without written
+        consent from the author.
+        </div>
+    </div>
+</div>
