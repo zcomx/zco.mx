@@ -623,8 +623,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .grid_section .tile_view .item_container .breadcrumb > li + li:before {
     font-weight: normal;
-    margin-left: -2px;
-    margin-right: -2px;
+    margin-left: 0px;
+    margin-right: 0px;
 }
 
 
@@ -920,7 +920,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-size: 23px;
     padding-left: 0;
     padding-right: 0.1em;
-    padding-top: 0.2em;
+    padding-top: 0.5em;
 }
 
 .contribute_widget input {
@@ -933,12 +933,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
     height: inherit;
     margin-right: 10px;
     padding: 0;
+    text-align: center;
     width: 4em;
 }
 
 #reader_page_footer .contribute_widget .input-group-addon,
 #reader_page_footer .contribute_widget input {
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .contribute_widget input.indented {
@@ -1286,7 +1287,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #reader_page_footer .breadcrumb > li + li {
-    margin-left: -0.4em;
+    margin-left: -0.1em;
 }
 
 #reader_page_footer .page_nav_container {
@@ -1538,7 +1539,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .row_container .field_container input:not(.sp-input):not([type=radio]) {
     border: 1px solid #333333;
     border-radius: 0;
-    min-width: 12em;
 }
 
 .row_container input.inplace_crud {
@@ -1549,7 +1549,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .row_container .link_name_input {
-    width: 12em !important;
+    width: 12em;
 }
 
 .row_container .editable-error-block {
@@ -1568,7 +1568,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #add_link_container > div {
-    margin-left: 0.3em;
+    margin-left: 0.2em;
     margin-right: 1em;
 }
 
@@ -1671,11 +1671,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #profile_page #creator_section .img_preview_container {
     padding-bottom: 0.2em;
 }
-
-#profile_page #creator_section .editableform .form-control {
-    width: 390px;
-}
-
 
 @media screen and (max-width: 992px){
     #profile_page #creator_section .editableform .form-control {
@@ -1868,6 +1863,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 24em;
 }
 #edit_links_container .field_label {
+    margin-left: -0.3em;
     width: 12em;
 }
 
