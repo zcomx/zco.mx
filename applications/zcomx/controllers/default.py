@@ -201,6 +201,7 @@ def data():
     return dict(form=crud())
 
 
+@auth.requires_login()
 def about():
     """About page"""
     return dict(text=markmin_content('about.mkd'))
@@ -212,11 +213,13 @@ def contribute():
     redirect(URL(c='contributions', f='paypal', extension=False))
 
 
+@auth.requires_login()
 def expenses():
     """Expenses page"""
     return dict(text=markmin_content('expenses.mkd'))
 
 
+@auth.requires_login()
 def faq():
     """FAQ page"""
     # Set up for 'donations' contributions to paypal handling.
@@ -238,6 +241,7 @@ def faq():
     )
 
 
+@auth.requires_login()
 def faqc():
     """Creator FAQ page"""
     if not auth or not auth.user_id:
@@ -249,6 +253,7 @@ def faqc():
     )
 
 
+@auth.requires_login()
 def files():
     """Logos page"""
     base_path = os.path.join(request.folder, 'static', 'files')
@@ -256,6 +261,7 @@ def files():
     return dict(expose=expose)
 
 
+@auth.requires_login()
 def goodwill():
     """Goodwill page"""
     session.next_url = URL(
@@ -277,11 +283,13 @@ def logos():
     return dict(expose=expose)
 
 
+@auth.requires_login()
 def overview():
     """Overview page"""
     return dict(text=markmin_content('overview.mkd'))
 
 
+@auth.requires_login()
 def todo():
     """Todo page"""
     return dict(text=markmin_content('todo.mkd'))
