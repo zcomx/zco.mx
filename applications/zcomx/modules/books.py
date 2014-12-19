@@ -13,8 +13,12 @@ from gluon.storage import Storage
 from gluon.validators import urlify
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.creators import url_name as creator_url_name
-from applications.zcomx.modules.images import ImgTag
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.images import \
+    ImgTag, \
+    UploadImage
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 
 DEFAULT_BOOK_TYPE = 'one-shot'
@@ -351,25 +355,30 @@ def contributions_target(db, book_entity):
     return amount
 
 
-def cover_image(db, book_id, size='original', img_attributes=None):
+def cover_image(db, book_entity, size='original', img_attributes=None):
     """Return html code suitable for the cover image.
 
     Args:
         db: gluon.dal.DAL instance
-        book_id: integer, the id of the book
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
         size: string, the size of the image. One of SIZES
         img_attributes: dict of attributes for IMG
     """
-    page = first_page(db, book_id)
-    image = page.image if page else None
+    try:
+        first_page = get_page(book_entity, page_no='first')
+    except NotFoundError:
+        first_page = None
+
+    image = first_page.image if first_page else None
 
     attributes = {'_alt': ''}
 
     if size == 'tbn':
         thumb_w = thumb_h = 170
-        if not page:
+        if not first_page:
             # Create a dummy book_page record
-            page = Storage(
+            first_page = Storage(
                 thumb_w=thumb_w,
                 thumb_h=thumb_h,
             )
@@ -379,8 +388,8 @@ def cover_image(db, book_id, size='original', img_attributes=None):
             'height: {h}px;',
             'margin: {pv}px {pr}px {pv}px {pl}px;',
         ])
-        width = page.thumb_w
-        height = page.thumb_h
+        width = first_page.thumb_w
+        height = first_page.thumb_h
         padding_vertical = (thumb_h - height) / 2
         if padding_vertical < 0:
             padding_vertical = 0
@@ -457,20 +466,6 @@ def defaults(db, name, creator_entity):
     return data
 
 
-def first_page(db, book_id, orderby=None):
-    """Return the first page for the book.
-
-    Args
-        db: gluon.dal.DAL instance
-        book_id: integer, the id of the book
-        orderby: gluon.dal.Field used to order pages.
-                Default db.book_page.page_no
-    """
-    order_by = orderby or db.book_page.page_no
-    query = (db.book_page.book_id == book_id)
-    return db(query).select(db.book_page.ALL, orderby=order_by).first()
-
-
 def formatted_name(db, book_entity, include_publication_year=True):
     """Return the formatted name of the book
 
@@ -503,6 +498,54 @@ def formatted_name(db, book_entity, include_publication_year=True):
         fmt = ' '.join([fmt, '({year})'])
         data['year'] = book.publication_year
     return fmt.format(**data)
+
+
+def get_page(book_entity, page_no=1):
+    """Return a page of a book.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+        page_no: integer or string, if integer, the book_page record with
+            page_no matching is returned.
+            The following strings are acceptable.
+            'first': equivalent to page_no=1
+            'last': returns the last page in book (excluding indicia)
+    Returns:
+        Row instance representing a book_page.
+    Raises:
+        NotFoundError, if book_entity doesn't match a book, or book doesn't
+            have a page associated with the provided page_no value.
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    want_page_no = None
+    if page_no == 'first':
+        want_page_no = 1
+    elif page_no == 'last':
+        page_max = db.book_page.page_no.max()
+        query = (db.book_page.book_id == book_record.id)
+        want_page_no = db(query).select(page_max)[0][page_max]
+    else:
+        try:
+            want_page_no = int(page_no)
+        except (TypeError, ValueError):
+            want_page_no = None
+    if want_page_no is None:
+        raise NotFoundError('Book id {b}, page not found, {p}'.format(
+            b=book_record.id, p=page_no))
+
+    query = (db.book_page.book_id == book_record.id) & \
+            (db.book_page.page_no == want_page_no)
+    book_page = db(query).select(db.book_page.ALL, limitby=(0, 1)).first()
+    if not book_page:
+        raise NotFoundError('Book id {b}, page not found, {p}'.format(
+            b=book_record.id, p=page_no))
+
+    return book_page
 
 
 def is_releasable(db, book_entity):
@@ -540,6 +583,31 @@ def numbers_for_book_type(db, book_type_id):
         return {'number': True, 'of_number': True}
     else:
         return default
+
+
+def orientation(book_page_entity):
+    """Return the orientation of the book page.
+
+    Args:
+        book_page_entity: Row instance or integer, if integer, this is the id
+            of the book_page. The book_page record is read.
+    """
+    db = current.app.db
+    book_page = entity_to_row(db.book_page, book_page_entity)
+    if not book_page:
+        raise NotFoundError('book page not found')
+    if not book_page.image:
+        raise NotFoundError('Book page has no image, book_page.id {i}'.format(
+            i=book_page.id))
+
+    up_image = UploadImage(db.book_page.image, book_page.image)
+    width, height = up_image.dimensions()
+    if width == height:
+        return 'square'
+    elif width > height:
+        return 'landscape'
+    else:
+        return 'portrait'
 
 
 def page_url(book_page_entity, reader=None, **url_kwargs):
@@ -677,8 +745,9 @@ def read_link(db, book_entity, components=None, **attributes):
     if not book:
         return empty
 
-    page = first_page(db, book.id)
-    if not page:
+    try:
+        first_page = get_page(book, page_no='first')
+    except NotFoundError:
         return empty
 
     if not components:
@@ -688,7 +757,7 @@ def read_link(db, book_entity, components=None, **attributes):
     kwargs.update(attributes)
 
     if '_href' not in attributes:
-        kwargs['_href'] = page_url(page, extension=False)
+        kwargs['_href'] = page_url(first_page, extension=False)
 
     return A(*components, **kwargs)
 

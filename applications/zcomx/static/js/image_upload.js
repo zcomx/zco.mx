@@ -262,11 +262,10 @@
         },
 
         reload_previews: function() {
-            var formats = ['portrait', 'landscape'];
-            for (var i = formats.length - 1; i >= 0; i--) {
-                formats[i]
-                var url = '/zcomx/login/indicia_preview.load/' + formats[i];
-                var target = formats[i];
+            var orientations = ['portrait', 'landscape'];
+            for (var i = orientations.length - 1; i >= 0; i--) {
+                var url = '/zcomx/login/indicia_preview.load/' + orientations[i];
+                var target = orientations[i];
                 web2py_component(url, target);
             }
         },

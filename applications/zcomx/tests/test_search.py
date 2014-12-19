@@ -13,7 +13,7 @@ from gluon import *
 from gluon.storage import Storage
 from gluon.tools import prettydate
 from applications.zcomx.modules.books import \
-    first_page, \
+    get_page, \
     formatted_name, \
     page_url, \
     url_name as book_url_name
@@ -217,8 +217,8 @@ class TestGrid(LocalTestCase):
     def test__tabs(self):
         grid = SubGrid()
         # Default as per front page
-        if 'o' in grid.request.vars:
-            del grid.request.vars.o
+        for key in grid.request.vars.keys():
+            del grid.request.vars[key]
         tabs = grid.tabs()
         soup = BeautifulSoup(str(tabs))
         # <ul class="nav nav-tabs">
@@ -280,8 +280,8 @@ class TestGrid(LocalTestCase):
     def test__viewby_buttons(self):
         grid = SubGrid()
         # Default as per front page
-        if 'o' in grid.request.vars:
-            del grid.request.vars.o
+        for key in grid.request.vars.keys():
+            del grid.request.vars[key]
         buttons = grid.viewby_buttons()
         soup = BeautifulSoup(str(buttons))
         # <div class="btn-group">
@@ -662,7 +662,7 @@ class TestBookTile(LocalTestCase):
         self.assertEqual(div['class'], 'col-sm-12 image_container')
         anchor = div.a
         self.assertEqual(anchor['class'], 'book_page_image')
-        first = first_page(db, self._row.book.id)
+        first = get_page(self._row.book, page_no='first')
         self.assertEqual(anchor['href'], page_url(first))
         self.assertEqual(anchor['title'], '')
 

@@ -143,12 +143,11 @@
         );
         $('#fileupload').removeClass('fileupload-processing');
         $(document.body).on('click', '.indicia_preview_section' ,function() {
-            var format = 'portrait';
+            var orientation = 'portrait';
             if ($(this).hasClass('landscape')) {
-                format = 'landscape';
+                orientation = 'landscape';
             }
-            console.log('format: %o', format);
-            var url = '/zcomx/login/indicia_preview.load/' + format;
+            var url = '/zcomx/login/indicia_preview.load/' + orientation;
             console.log('url: %o', url);
             var dialog = new BootstrapDialog({
                 title: ' ',

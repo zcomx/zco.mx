@@ -1,12 +1,12 @@
-{{from applications.zcomx.modules.books import first_page, formatted_name as formatted_book_name, url as book_url}}
+{{from applications.zcomx.modules.books import formatted_name as formatted_book_name, get_page, url as book_url}}
 {{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name as formatted_creator_name, url as creator_url}}
 {{creator_name = formatted_creator_name(creator)}}
 {{extend 'layout.html'}}
 <div class="container">
     <div id="reader_page_header_margin">
         <div id="reader_page_header">
-            {{first = first_page(db, book)}}
-            {{book_page_id = first.id if first else 0}}
+            {{try:}}{{first_page = get_page(book, page_no='first')}}{{except:}}{{first_page = None}}{{pass}}
+            {{book_page_id = first_page.id if first_page else 0}}
             {{=LOAD(c='default', f='top', args='reader', vars={'book_id': book.id, 'creator_id': book.creator_id, 'book_page_id': book_page_id}, extension='load', ajax=False, content='')}}
             <div class="row" id="name_creator_section">
                 <div class="col-sm-12" id="name_creator_inlay">

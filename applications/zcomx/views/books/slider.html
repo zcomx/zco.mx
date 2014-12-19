@@ -7,8 +7,12 @@
         {{if pages:}}
             {{for count, page in enumerate(pages):}}
                 <div id="img-{{=count}}" class="slide">
+                    {{if str(page.image) == 'indicia':}}
+                    {{=page.content}}
+                    {{else:}}
                     <span class="vertical_align_helper"></span>
                     {{=ImgTag(page.image, size=size, attributes={'_alt': 'page {p:03d}'.format(p=page.page_no)})()}}
+                    {{pass}}
                 </div>
             {{pass}}
         {{else:}}

@@ -18,12 +18,13 @@ from applications.zcomx.modules.creators import image_as_json
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
+from applications.zcomx.modules.indicias import \
+    CreatorIndiciaPage
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import \
     TemporaryDirectory
 from applications.zcomx.modules.utils import \
     entity_to_row, \
-    markmin_content, \
     reorder
 
 
@@ -86,8 +87,9 @@ def book_crud():
         except (TypeError, ValueError):
             return do_error('Invalid data provided.')
         book_record = entity_to_row(db.book, book_id)
-        if not book_record or \
-            (book_record and book_record.creator_id != creator_record.id):
+        if not book_record or (
+            book_record and book_record.creator_id != creator_record.id
+        ):
             return do_error('Invalid data provided.')
 
     if action == 'create':
@@ -173,7 +175,7 @@ def book_crud():
                     'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
                 }
         numbers = numbers_for_book_type(db, request.vars.value) \
-                if request.vars.name == 'book_type_id' else None
+            if request.vars.name == 'book_type_id' else None
         return {'status': 'ok', 'numbers': numbers}
     return {'status': 'ok'}
 
@@ -548,7 +550,7 @@ def creator_img_handler():
         if request.args(0) not in db.creator.fields:
             print >> sys.stderr, \
                 'creator_img_handler invalid field: {fld}'.format(
-                        fld=request.vargs(0))
+                    fld=request.vargs(0))
             return do_error('Upload service unavailable.')
         img_field = request.args(0)
 
@@ -676,6 +678,7 @@ def indicia():
 @auth.requires_login()
 def indicia_preview():
     """Indicia preview component controller.
+    request.args(0): orientation, one of 'portrait' or 'landscape'
     """
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
@@ -683,11 +686,12 @@ def indicia_preview():
     if not creator_record:
         redirect(URL('index'))
 
-    img_src = URL(c='static', f='images/indicia_image.png')
-    if creator_record.indicia_image:
-        img_src = URL(c='images', f='download', args=creator_record.indicia_image, vars={'size': 'web'})
-
-    return dict(img_src=img_src)
+    orientation = request.args(0) or 'portrait'
+    return dict(
+        indicia=CreatorIndiciaPage(creator_record).render(
+            orientation=orientation
+        )
+    )
 
 
 @auth.requires_login()

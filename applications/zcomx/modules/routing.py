@@ -13,16 +13,19 @@ from applications.zcomx.modules.books import \
     ViewEvent, \
     by_attributes, \
     cover_image, \
-    first_page, \
+    get_page, \
     page_url, \
     parse_url_name, \
     read_link, \
     url as book_url
 from applications.zcomx.modules.creators import \
     url as creator_url
+from applications.zcomx.modules.indicias import BookIndiciaPage
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.search import classified
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 
 class Router(object):
@@ -92,7 +95,7 @@ class Router(object):
 
         return self.creator_record
 
-    def get_page(self):
+    def get_book_page(self):
         """Get the record of the book page based on request.vars.page.
 
         Returns:
@@ -150,7 +153,7 @@ class Router(object):
         #   else: use first page of first book with pages from first creator
         creator_record = self.get_creator()
         book_record = self.get_book()
-        page_record = self.get_page()
+        page_record = self.get_book_page()
 
         query_wants = []
         if page_record and page_record.id:
@@ -259,7 +262,7 @@ class Router(object):
                 return
 
         if request.vars.page:
-            if not self.get_page():
+            if not self.get_book_page():
                 self.page_not_found()
                 return
 
@@ -304,7 +307,7 @@ class Router(object):
                 book_record,
                 [cover_image(
                     db,
-                    book_record.id,
+                    book_record,
                     size='web',
                     img_attributes={
                         '_alt': book_record.name,
@@ -315,7 +318,7 @@ class Router(object):
         else:
             cover = cover_image(
                 db,
-                book_record.id,
+                book_record,
                 size='web',
                 img_attributes={
                     '_alt': book_record.name,
@@ -380,30 +383,42 @@ class Router(object):
         request = self.request
         creator_record = self.get_creator()
         book_record = self.get_book()
-        book_page_record = self.get_page()
+        book_page_record = self.get_book_page()
 
         reader = self.get_reader()
 
-        page_images = db(db.book_page.book_id == book_record.id).select(
+        rows = db(db.book_page.book_id == book_record.id).select(
             db.book_page.image,
             db.book_page.page_no,
             orderby=[db.book_page.page_no, db.book_page.id]
         )
 
+        page_images = [Storage(x) for x in rows.as_list()]
+        # Add indicia page
+        indicia = BookIndiciaPage(book_record)
+        page_images.append(Storage({
+            'image': 'indicia',
+            'page_no': max([x.page_no for x in page_images]),
+            'content': indicia.render()
+        }))
+
         ViewEvent(book_record, self.auth.user_id).log()
 
-        first_book_page = first_page(db, book_record.id)
+        try:
+            first_page = get_page(book_record, page_no='first')
+        except NotFoundError:
+            first_page = None
 
         scroll_link = A(
             SPAN('scroll'),
-            _href=page_url(first_book_page, reader='scroller'),
+            _href=page_url(first_page, reader='scroller'),
             _class='btn btn-default {st}'.format(
                 st='disabled' if reader == 'scroller' else 'active'),
             cid=request.cid
         )
 
         slider_data = dict(
-            _href=page_url(first_book_page, reader='slider'),
+            _href=page_url(first_page, reader='slider'),
             _class='btn btn-default active',
             cid=request.cid
         )

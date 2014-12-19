@@ -34,10 +34,11 @@ from applications.zcomx.modules.books import \
     cover_image, \
     default_contribute_amount, \
     defaults, \
-    first_page, \
     formatted_name, \
+    get_page, \
     is_releasable, \
     numbers_for_book_type, \
+    orientation, \
     page_url, \
     parse_url_name, \
     publication_year_range, \
@@ -47,8 +48,11 @@ from applications.zcomx.modules.books import \
     update_rating, \
     url, \
     url_name
+from applications.zcomx.modules.images import store
 from applications.zcomx.modules.test_runner import LocalTestCase
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -187,14 +191,45 @@ class ImageTestCase(LocalTestCase):
     _image_original = os.path.join(_image_dir, 'original')
     _image_name = 'file.jpg'
     _image_name_2 = 'file_2.jpg'
+    _test_data_dir = None
     _type_id_by_name = {}
 
     _objects = []
+
+    @classmethod
+    def _prep_image(cls, img, working_directory=None, to_name=None):
+        """Prepare an image for testing.
+        Copy an image from private/test/data to a working directory.
+
+        Args:
+            img: string, name of source image, eg file.jpg
+                must be in cls._test_data_dir
+            working_directory: string, path of working directory to copy to.
+                If None, uses cls._image_dir
+            to_name: string, optional, name of image to copy file to.
+                If None, img is used.
+        """
+        src_filename = os.path.join(
+            os.path.abspath(cls._test_data_dir),
+            img
+        )
+
+        if working_directory is None:
+            working_directory = os.path.abspath(cls._image_dir)
+
+        if to_name is None:
+            to_name = img
+
+        filename = os.path.join(working_directory, to_name)
+        shutil.copy(src_filename, filename)
+        return filename
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     @classmethod
     def setUp(cls):
+        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+
         if not os.path.exists(cls._image_original):
             os.makedirs(cls._image_original)
 
@@ -574,7 +609,8 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(name='test__cover_image'))
 
         # Book has no pages
-        self.assertEqual(str(cover_image(db, book.id)), placeholder)
+        for book_entity in [book, book.id]:
+            self.assertEqual(str(cover_image(db, book_entity)), placeholder)
 
         images = [
             'book_page.image.page_trees.png',
@@ -590,10 +626,12 @@ class TestFunctions(ImageTestCase):
 
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
-        self.assertEqual(
-            str(cover_image(db, book.id)),
-            '<img alt="" src="/images/download/book_page.image.page_trees.png?size=original" />'
-        )
+
+        for book_entity in [book, book.id]:
+            self.assertEqual(
+                str(cover_image(db, book_entity)),
+                '<img alt="" src="/images/download/book_page.image.page_trees.png?size=original" />'
+            )
 
     def test__default_contribute_amount(self):
         book = self.add(db.book, dict(name='test__default_contribute_amount'))
@@ -701,30 +739,6 @@ class TestFunctions(ImageTestCase):
         got = defaults(db, self._book.name, -1)
         self.assertEqual(got, {})
 
-    def test__first_page(self):
-        book = self.add(db.book, dict(name='test__first_page'))
-
-        # Book has no pages
-        self.assertEqual(first_page(db, book.id), None)
-
-        for count in range(0, 3):
-            page = self.add(db.book_page, dict(
-                book_id=book.id,
-                page_no=(count + 1),
-            ))
-
-        tests = [
-            #(order_by, expect page_no)
-            (None, 1),
-            (db.book_page.page_no, 1),
-            (~db.book_page.page_no, 3),
-        ]
-        for t in tests:
-            page = first_page(db, book.id, orderby=t[0])
-            for f in db.book_page.fields:
-                self.assertTrue(f in page.keys())
-            self.assertEqual(page.page_no, t[1])
-
     def test__formatted_name(self):
         book = self.add(db.book, dict(name='My Book'))
 
@@ -756,6 +770,44 @@ class TestFunctions(ImageTestCase):
             )
             self.assertEqual(formatted_name(db, book), t[6])
             self.assertEqual(formatted_name(db, book.id), t[6])
+
+    def test__get_page(self):
+        book = self.add(db.book, dict(name='test__get_page'))
+
+        def do_test(page_no, expect):
+            kwargs = {}
+            if page_no is not None:
+                kwargs = {'page_no': page_no}
+            if expect is not None:
+                book_page = get_page(book, **kwargs)
+                self.assertEqual(book_page.id, expect.id)
+            else:
+                self.assertRaises(NotFoundError, get_page, book, **kwargs)
+
+
+        for page_no in ['first', 'last', 1, 2, None]:
+            do_test(page_no, None)
+
+        book_page_1 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+        ))
+
+        for page_no in ['first', 'last', 1, None]:
+            do_test(page_no, book_page_1)
+
+        do_test(2, None)
+
+        book_page_2 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=2,
+        ))
+
+        for page_no in ['first', 1, None]:
+            do_test(page_no, book_page_1)
+        for page_no in ['last', 2]:
+            do_test(page_no, book_page_2)
+        do_test(3, None)
 
     def test__is_releasable(self):
         book = self.add(db.book, dict(name='test__is_releasable'))
@@ -802,6 +854,29 @@ class TestFunctions(ImageTestCase):
             numbers_for_book_type(db, -1),
             {'of_number': False, 'number': False}
         )
+
+    def test__orientation(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
+        # Test invalid book entity
+        self.assertRaises(NotFoundError, orientation, -1)
+
+        # Test booke without an image.
+        book_page = self.add(db.book_page, dict(
+            image=None,
+        ))
+        self.assertRaises(NotFoundError, orientation, book_page)
+
+        for t in ['portrait', 'landscape', 'square']:
+            img = '{n}.png'.format(n=t)
+            filename = self._prep_image(img)
+            stored_filename = store(db.book_page.image, filename)
+
+            book_page = self.add(db.book_page, dict(
+                image=stored_filename,
+            ))
+            self.assertEqual(orientation(book_page), t)
 
     def test__page_url(self):
         creator = self.add(db.creator, dict(
