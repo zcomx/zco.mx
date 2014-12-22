@@ -2284,3 +2284,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: table-cell;
     padding-right: 0.4em;
 }
+
+
+.development_notice {
+    text-align: center;
+}
