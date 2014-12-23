@@ -253,6 +253,14 @@ db.define_table('book_type',
     migrate=True,
 )
 
+db.define_table('cc_licence',
+    Field('number', 'integer'),
+    Field('code'),
+    Field('url'),
+    Field('template'),
+    migrate=True,
+)
+
 db.define_table('contribution',
     Field(
         'auth_user_id',
