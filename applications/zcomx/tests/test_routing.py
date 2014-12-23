@@ -271,31 +271,31 @@ class TestRouter(LocalTestCase):
         self.assertEqual(got.path_name, 'First Last')
         self.assertTrue(router.creator_record is not None)
 
-    def test__get_page(self):
+    def test__get_book_page(self):
         router = Router(db, self._request, auth)
         self.assertTrue(router.book_page_record is None)
 
         # request.vars.page not set
-        got = router.get_page()
+        got = router.get_book_page()
         self.assertEqual(got, None)
         self.assertTrue(router.book_page_record is None)
 
         router.request.vars.creator = 'First Last'
         router.request.vars.book = 'My Book'
         router.request.vars.page = '999.jpg'
-        got = router.get_page()
+        got = router.get_book_page()
         self.assertEqual(got, None)
         self.assertTrue(router.book_page_record is None)
 
         router.request.vars.page = '001.jpg'
-        got = router.get_page()
+        got = router.get_book_page()
         self.assertEqual(got.book_id, self._book.id)
         self.assertEqual(got.page_no, 1)
         self.assertTrue(router.book_page_record is not None)
 
         # Subsequent calls get value from cache
         router.request.vars.page = '999.jpg'
-        got = router.get_page()
+        got = router.get_book_page()
         self.assertEqual(got.book_id, self._book.id)
         self.assertEqual(got.page_no, 1)
         self.assertTrue(router.book_page_record is not None)
@@ -303,14 +303,14 @@ class TestRouter(LocalTestCase):
         # Test as page no.
         router.book_page_record = None
         router.request.vars.page = '001'
-        got = router.get_page()
+        got = router.get_book_page()
         self.assertEqual(got.book_id, self._book.id)
         self.assertEqual(got.page_no, 1)
         self.assertTrue(router.book_page_record is not None)
 
         router.book_page_record = None
         router.request.vars.page = '002'
-        got = router.get_page()
+        got = router.get_book_page()
         self.assertEqual(got.book_id, self._book.id)
         self.assertEqual(got.page_no, 2)
         self.assertTrue(router.book_page_record is not None)
@@ -318,7 +318,7 @@ class TestRouter(LocalTestCase):
         # Handle non-page value
         router.book_page_record = None
         router.request.vars.page = 'not_a_page'
-        got = router.get_page()
+        got = router.get_book_page()
         self.assertEqual(got, None)
         self.assertTrue(router.book_page_record is None)
 

@@ -7,8 +7,8 @@
         <li>The indicia image is displayed on the indicia page of your books.</li>
         <li>Minimum size: 1600px x 1600px</li>
         <li>A white or light colour background works best.</li>
-        <li>Click the preview button to see how it will look.</li>
-        <li>blah blah blah... FIXME </li>
+        <li>Click the <i>Upload</i> button to upload a custom indicia page image.</li>
+        <li>Click the <i>Remove</i> button to remove your indicia image. Without an image, the default is used. See the previews below.</li>
     </ul>
 </div>
 
@@ -23,11 +23,6 @@
                         <div class="col-xs-12">
                             <div class="no_photo_section">
                                 <span class="fileupload-process"></span>
-                                <div class="img_preview_container">
-                                    <div class="preview placeholder_torso">
-                                    <i class="icon zc-torso"></i>
-                                    </div>
-                                </div>
                                 <div class="button_container">
                                     <div class="btn btn-default fileinput-button">
                                         <span>Upload</span>
@@ -44,6 +39,15 @@
                 <br>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="previews_section row">
+    <div id="portrait" class="indicia_portrait_section col-sm-12 col-md-4">
+    {{=LOAD(c='login', f='indicia_preview', args=['portrait'], extension='load', ajax=True)}}
+    </div>
+    <div id="landscape" class="indicia_landscape_section col-sm-12 col-md-8">
+    {{=LOAD(c='login', f='indicia_preview', args=['landscape'], extension='load', ajax=True)}}
     </div>
 </div>
 
@@ -80,13 +84,6 @@
 <script id="template-download" type="text/x-tmpl">
 {% for (var i=0, file; file=o.files[i]; i++) { %}
     <div class="template-download fade">
-        <div class="img_preview_container">
-            <span class="preview">
-                {% if (file.thumbnailUrl) { %}
-                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img src="{%=file.thumbnailUrl%}" alt=""></a>
-                {% } %}
-            </span>
-        </div>
         <div class="button_container">
             {% if (file.deleteUrl) { %}
                 <div>
@@ -96,12 +93,7 @@
                 </div>
                 <div>
                 <button id="change_button" class="btn btn-default">
-                    <span>Change</span>
-                </button>
-                </div>
-                <div>
-                <button id="preview_button" class="btn btn-default">
-                    <span>Preview</span>
+                    <span>Upload</span>
                 </button>
                 </div>
             {% } else { %}
@@ -143,15 +135,40 @@
 <![endif]-->
 <script>
 //<![CDATA[
+
     $(document).ready(function(){
         $('#fileupload').image_upload(
             'indicia',
             '/zcomx/login/creator_img_handler/indicia_image'
         );
         $('#fileupload').removeClass('fileupload-processing');
+        $(document.body).on('click', '.indicia_preview_section' ,function() {
+            var orientation = 'portrait';
+            if ($(this).hasClass('landscape')) {
+                orientation = 'landscape';
+            }
+            var url = '/zcomx/login/indicia_preview.load/' + orientation;
+            console.log('url: %o', url);
+            var dialog = new BootstrapDialog({
+                title: ' ',
+                message: $('<div></div>').load(url),
+                buttons: [],
+                cssClass: 'indicia_preview_modal',
+                onshow: function(dialog) {
+                    dialog.getModalDialog().addClass('modal-expanded');
+                },
+            });
+            dialog.open();
+            e.preventDefault();
+        })
     });
 //]]>
 </script>
 {{block post_bootstrap_js}}
+    {{if DEBUG:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.js')}}"></script>
+    {{else:}}
+        <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.min.js')}}"></script>
+    {{pass}}
     <script src="{{=URL(c='static', f='js/image_upload.js')}}"> </script>
 {{end}}

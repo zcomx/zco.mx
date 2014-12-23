@@ -22,7 +22,7 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-12 image_container">
-                        {{=read_link(db, row.book.id, components=[cover_image(db, row.book.id, size='web')], **dict(_class='book_page_image', _title=''))}}
+                        {{=read_link(db, row.book.id, components=[cover_image(db, row.book, size='web')], **dict(_class='book_page_image', _title=''))}}
                     </div>
                 </div>
                 <div class="row">

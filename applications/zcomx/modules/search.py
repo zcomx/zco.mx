@@ -855,7 +855,7 @@ class BookTile(Tile):
             book_read_link(
                 db,
                 row.book.id,
-                components=[cover_image(db, row.book.id, size='web')],
+                components=[cover_image(db, row.book, size='web')],
                 **dict(_class='book_page_image', _title='')
             ),
             _class='col-sm-12 image_container',
