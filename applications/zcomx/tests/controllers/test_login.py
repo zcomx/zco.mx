@@ -519,6 +519,8 @@ class TestFunctions(LocalTestCase):
         creator = get_creator()
 
     def test__creator_img_handler(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def get_creator():
             """Return a creator"""

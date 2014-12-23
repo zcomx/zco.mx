@@ -86,7 +86,7 @@ material.
 
 [[goodwill]]
 #### How can goodwill be created?
-[[Goodwill https://dev.zco.mx/goodwill]]
+[[Goodwill /goodwill]]
 
 
 [[paper]]

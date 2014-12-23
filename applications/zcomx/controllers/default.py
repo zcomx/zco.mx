@@ -21,7 +21,7 @@ from applications.zcomx.modules.stickon.validators import \
     IS_NOT_IN_DB_SCRUBBED
 from applications.zcomx.modules.utils import \
     faq_tabs, \
-    markmin_content
+    markmin
 
 LOG = logging.getLogger('app')
 
@@ -204,7 +204,7 @@ def data():
 @auth.requires_login()
 def about():
     """About page"""
-    return dict(text=markmin_content('about.mkd'))
+    return markmin('about')
 
 
 def contribute():
@@ -216,7 +216,7 @@ def contribute():
 @auth.requires_login()
 def expenses():
     """Expenses page"""
-    return dict(text=markmin_content('expenses.mkd'))
+    return markmin('expenses')
 
 
 @auth.requires_login()
@@ -225,20 +225,11 @@ def faq():
     # Set up for 'donations' contributions to paypal handling.
     layout = 'login/layout.html' if auth and auth.user_id \
         else 'layout_main.html'
-    session.next_url = URL(
-        c=request.controller,
-        f=request.function,
-        args=request.args,
-        vars=request.vars
-    )
-    response.files.append(
-        URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
-    )
-    return dict(
+    extra = dict(
         tabs=faq_tabs(active='faq'),
         layout=layout,
-        text=markmin_content('faq.mkd')
     )
+    return markmin('faq', extra=extra)
 
 
 @auth.requires_login()
@@ -247,10 +238,11 @@ def faqc():
     if not auth or not auth.user_id:
         redirect(URL('faq'))
 
-    return dict(
+    extra = dict(
         tabs=faq_tabs(active='faqc'),
-        text=markmin_content('faqc.mkd')
     )
+
+    return markmin('faqc', extra=extra)
 
 
 @auth.requires_login()
@@ -264,16 +256,7 @@ def files():
 @auth.requires_login()
 def goodwill():
     """Goodwill page"""
-    session.next_url = URL(
-        c=request.controller,
-        f=request.function,
-        args=request.args,
-        vars=request.vars
-    )
-    response.files.append(
-        URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
-    )
-    return dict(text=markmin_content('goodwill.mkd'))
+    return markmin('goodwill')
 
 
 def logos():
@@ -286,13 +269,13 @@ def logos():
 @auth.requires_login()
 def overview():
     """Overview page"""
-    return dict(text=markmin_content('overview.mkd'))
+    return markmin('overview')
 
 
 @auth.requires_login()
 def todo():
     """Todo page"""
-    return dict(text=markmin_content('todo.mkd'))
+    return markmin('todo')
 
 
 def top():

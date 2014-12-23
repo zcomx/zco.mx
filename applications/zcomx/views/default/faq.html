@@ -10,5 +10,5 @@
 {{if auth.is_logged_in():}}
 {{=tabs}}
 {{pass}}
-{{=MARKMIN(text, id_prefix='', extra=dict(contribute_link=lambda t: '<a href="/contributions/modal" class="contribute_button">'+t+'</a>'))}}
+{{=MARKMIN(text, id_prefix='', extra=markmin_extra)}}
 </div>

@@ -144,6 +144,35 @@ def faq_tabs(active='faq'):
     )
 
 
+def markmin(controller, extra=None):
+    """Return data for a controller displaying a markmin doc."""
+
+    current.session.next_url = URL(
+        c=current.request.controller,
+        f=current.request.function,
+        args=current.request.args,
+        vars=current.request.vars
+    )
+    current.response.files.append(
+        URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
+    )
+
+    contribute_link_func = lambda t: A(
+        t,
+        _href='/contributions/modal',
+        _class='contribute_button'
+    )
+
+    data = dict(
+        text=markmin_content('{ctrllr}.mkd'.format(ctrllr=controller)),
+        markmin_extra=dict(contribute_link=contribute_link_func),
+    )
+
+    if extra:
+        data.update(extra)
+    return data
+
+
 def markmin_content(filename):
     """Return markmin content."""
     content = ''

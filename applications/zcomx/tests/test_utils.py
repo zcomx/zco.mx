@@ -17,6 +17,7 @@ from applications.zcomx.modules.utils import \
     ItemDescription, \
     entity_to_row, \
     faq_tabs, \
+    markmin, \
     markmin_content, \
     move_record, \
     reorder
@@ -164,14 +165,14 @@ class TestFunctions(LocalTestCase):
     def test__faq_tabs(self):
 
         # <div class="faq_options_container">
-        #         <ul class="nav nav-tabs">
-        #             <li class="nav-tab active">
-        #                 <a href="{{=URL(c='default', f='faq')}}">general</a>
-        #             </li>
-        #             <li class="nav-tab">
-        #                 <a href="{{=URL(c='default', f='faqc')}}">cartoonist</a>
-        #             </li>
-        #         </ul>
+        #    <ul class="nav nav-tabs">
+        #        <li class="nav-tab active">
+        #            <a href="{{=URL(c='default', f='faq')}}">general</a>
+        #        </li>
+        #        <li class="nav-tab">
+        #            <a href="{{=URL(c='default', f='faqc')}}">cartoonist</a>
+        #        </li>
+        #    </ul>
         # </div>
         tabs = faq_tabs()
         soup = BeautifulSoup(str(tabs))
@@ -197,6 +198,25 @@ class TestFunctions(LocalTestCase):
         anchor_2 = li_2.a
         self.assertEqual(anchor_2['href'], '/faqc')
         self.assertEqual(anchor_2.string, 'cartoonist')
+
+    def test__markmin(self):
+        got = markmin('faq')
+        self.assertEqual(sorted(got.keys()), ['markmin_extra', 'text'])
+        self.assertTrue('#### What is zco.mx?' in got['text'])
+        self.assertEqual(
+            sorted(got['markmin_extra'].keys()),
+            ['contribute_link']
+        )
+
+        got = markmin('faq', extra={'aaa': 111, 'bbb': 222})
+        self.assertEqual(
+            sorted(got.keys()),
+            ['aaa', 'bbb', 'markmin_extra', 'text']
+        )
+        self.assertEqual(got['aaa'], 111)
+        self.assertEqual(got['bbb'], 222)
+
+        self.assertRaises(IOError, markmin, '_fake_')
 
     def test__markmin_content(self):
         faq = markmin_content('faq.mkd')

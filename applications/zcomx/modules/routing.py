@@ -396,11 +396,17 @@ class Router(object):
         page_images = [Storage(x) for x in rows.as_list()]
         # Add indicia page
         indicia = BookIndiciaPage(book_record)
-        page_images.append(Storage({
-            'image': 'indicia',
-            'page_no': max([x.page_no for x in page_images]),
-            'content': indicia.render()
-        }))
+        try:
+            content = indicia.render()
+        except NotFoundError:
+            content = ''
+
+        if content:
+            page_images.append(Storage({
+                'image': 'indicia',
+                'page_no': max([x.page_no for x in page_images]),
+                'content': content,
+            }))
 
         ViewEvent(book_record, self.auth.user_id).log()
 
