@@ -27,6 +27,8 @@ LOG = logging.getLogger('cli')
 # line-too-long (C0301): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
 
+# The TEMPLATES elements are matched to cc_licence db records on the 'number'
+# field. Changing 'number' values may result in data corruption.
 TEMPLATES = [
     {
         'number': 0,
@@ -87,6 +89,10 @@ USAGE
 
 
 OPTIONS
+    -c, --clear
+        Truncate the cc_licence table before updating table. Warning:
+        cc_licence records are referenced by other tables. Truncating may
+        corrupt data.
 
     -d, --dry-run
         Do not create licence records, only report what would be done.
@@ -112,6 +118,11 @@ def main():
     usage = '%prog [options] [path/for/images]'
     parser = OptionParser(usage=usage, version=VERSION)
 
+    parser.add_option(
+        '-c', '--clear',
+        action='store_true', dest='clear', default=False,
+        help='Truncate cc_licence table.',
+    )
     parser.add_option(
         '-d', '--dry-run',
         action='store_true', dest='dry_run', default=False,
@@ -146,24 +157,32 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
+    if options.clear:
+        LOG.debug('Truncating cc_licence table.')
+        if not options.dry_run:
+            db.cc_licence.truncate()
+            db.commit()
+        else:
+            LOG.debug('Dry run. No changes made.')
+
     LOG.info('Started.')
 
     for template_dict in TEMPLATES:
         template = Storage(template_dict)
-        cc_licence = db(db.cc_licence.code == template.code).select().first()
+        cc_licence = db(db.cc_licence.number == template.number).select().first()
         if cc_licence:
-            LOG.debug('Updating: {var}'.format(var=template.code))
+            LOG.debug('Updating: {var}'.format(var=template.number))
         else:
-            LOG.debug('Adding: {var}'.format(var=template.code))
+            LOG.debug('Adding: {var}'.format(var=template.number))
             if not options.dry_run:
-                db.cc_licence.insert(code=template.code)
-                cc_licence = db(db.cc_licence.code == template.code).select().first()
+                db.cc_licence.insert(number=template.number)
+                cc_licence = db(db.cc_licence.number == template.number).select().first()
         if not cc_licence:
-            raise NotFoundError('cc_licence not found, code: {code}'.format(
-                code=template.code))
+            raise NotFoundError('cc_licence not found, number: {number}'.format(
+                number=template.number))
         if not options.dry_run:
             cc_licence.update_record(
-                number=template.number,
+                code=template.code,
                 url=template.url,
                 template=template.template
             )
