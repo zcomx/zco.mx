@@ -524,6 +524,11 @@
                 if (data.callback) {
                     data.callback(link);
                 }
+                if (data.shown) {
+                    $('#' + field).on('shown', function(e, editable) {
+                        data.shown(e, editable);
+                    });
+                }
             },
 
             _row_container: function(anchor, name, options) {

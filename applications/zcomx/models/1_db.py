@@ -199,6 +199,16 @@ db.define_table('book',
         'urlify_name'
     ),
     Field(
+        'cc_licence_id',
+        'integer',
+        label='Licence',
+    ),
+    Field(
+        'cc_licence_place',
+        label='Territory',
+        comment='Jurisdiction from which the work is being offered under CC0.'
+    ),
+    Field(
         'status',
         'boolean',
         default=True,

@@ -334,13 +334,15 @@ div.centered table {
     margin-left: 0;
 }
 
-.editable-radiolist label {
+.editable-radiolist label,
+.editable-radiolist-w-info label {
     display: block;
     font-weight: normal;
     margin-bottom: 0;
 }
 
-.editable-radiolist label > span {
+.editable-radiolist label > span,
+.editable-radiolist-w-info label > span {
     margin-left: 0.4em;
 }
 
@@ -2261,6 +2263,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     text-align: left;
     max-width: 60em;
     padding: 15px;
+    white-space: normal
 }
 
 .tooltip.top .tooltip-arrow {

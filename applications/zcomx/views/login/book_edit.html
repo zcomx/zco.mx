@@ -1,6 +1,6 @@
 {{import datetime}}
 {{from gluon.contrib.simplejson import dumps}}
-{{from applications.zcomx.modules.books import book_types}}
+{{from applications.zcomx.modules.books import book_types, cc_licences}}
 <div id="book_edit_section">
 
 {{if book and not book.status:}}
@@ -142,6 +142,26 @@
                     'placement': 'bottom',
                     'title': 'Enter a color for the border',
                     'type': 'colour_picker',
+                },
+            },
+            'cc_licence_id': {
+                'label': '{{=db.book.cc_licence_id.label}}',
+                'value': "{{try:}}{{=db(db.cc_licence.id == book.cc_licence_id).select(db.cc_licence.code).first()['code']}}{{except:}}{{='n/a'}}{{pass}}",
+                'callback': function(elem) {
+                    $('.cc_licence_id_input span').text('aaaa');
+                    console.log('elem: %o', elem);
+                    $('#book_reader_info').tooltip({
+                        'html': true,
+                        'title': '<div><b>scroller</b> - vertical layout, several images per page</div><div><b>slider</b> - horizontal layout, one image per page</div>',
+                        'template': '<div class="tooltip book_reader_tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+                    });
+                },
+                'x_editable_settings': {
+                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'inputclass': 'inplace_crud cc_licence_id_input',
+                    'source': [ {{=cc_licences(book)}} ],
+                    'type': 'radiolist_w_info',
+                    'value': '{{=book.cc_licence_id if book else 0}}',
                 },
             },
         };

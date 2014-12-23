@@ -99,6 +99,12 @@ def book_crud():
             book_name = request.vars.value.strip()
             data = book_defaults(db, book_name, creator_record)
             data[request.vars.name] = book_name
+            # Set the cc_licence_id to default.
+            data['cc_licence_id'] = db(
+                db.cc_licence.code == 'All Rights Reserved').select(
+                db.cc_licence.id
+            ).first().id
+
         ret = db.book.validate_and_insert(**data)
 
         if ret.errors:

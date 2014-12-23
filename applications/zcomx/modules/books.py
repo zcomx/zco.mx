@@ -12,7 +12,9 @@ from gluon import *
 from gluon.storage import Storage
 from gluon.validators import urlify
 from gluon.contrib.simplejson import dumps
-from applications.zcomx.modules.creators import url_name as creator_url_name
+from applications.zcomx.modules.creators import \
+    formatted_name as creator_formatted_name, \
+    url_name as creator_url_name
 from applications.zcomx.modules.images import \
     ImgTag, \
     UploadImage
@@ -200,6 +202,22 @@ def book_page_for_json(db, book_page_id):
     )
 
 
+def book_pages_years(book_entity):
+    """Return a list of years for the pages of a book.
+
+    The years can be used for copyright.
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    query = (db.book_page.book_id == book_record.id)
+    return sorted(set(
+        [x.created_on.year for x in db(query).select(db.book_page.created_on)]
+    ))
+
+
 def book_types(db):
     """Return a XML instance representing book types suitable for
     an HTML radio button input.
@@ -268,6 +286,34 @@ def calc_contributions_remaining(db, book_entity):
     if remaining < 0:
         remaining = 0.00
     return remaining
+
+
+def cc_licences(book_entity):
+    """Return a XML instance representing book cc licences suitable for
+    an HTML radio button input.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    # {'value': record_id, 'text': description}, ...
+    licences = db(db.cc_licence).select(
+        db.cc_licence.ALL,
+        orderby=db.cc_licence.number
+    )
+
+    info = lambda x: render_cc_licence(book_record, cc_licence_entity=x)
+
+    return XML(
+        ','.join(
+            ["{{'value':'{x.id}', 'text':'{x.code}', 'info': '{i}'}}".format(
+                x=x, i=info(x)) for x in licences])
+    )
 
 
 def contribute_link(db, book_entity, components=None, **attributes):
@@ -760,6 +806,53 @@ def read_link(db, book_entity, components=None, **attributes):
         kwargs['_href'] = page_url(first_page, extension=False)
 
     return A(*components, **kwargs)
+
+
+def render_cc_licence(book_entity, cc_licence_entity=None):
+    """Render the cc licence for the book.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+        cc_licence_entity: Row instance or integer represent cc_licence.
+            If None, the book.cc_licence_id is used.
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    if cc_licence_entity is None:
+        cc_licence_entity = book_record.cc_licence_id
+
+    cc_licence_record = entity_to_row(db.cc_licence, cc_licence_entity)
+    if not cc_licence_record:
+        raise NotFoundError('CC licence not found, {e}'.format(e=cc_licence_entity))
+
+    creator_record = entity_to_row(db.creator, book_record.creator_id)
+    if not creator_record:
+        raise NotFoundError('Creator not found, {e}'.format(e=book_record.creator_id))
+
+    year_list = book_pages_years(book_record)
+    if not year_list:
+        year_list = [datetime.date.today().year]
+
+    if len(year_list) == 1:
+        years = str(year_list[0])
+    else:
+        years = '{f}-{l}'.format(f=year_list[0], l=year_list[-1])
+
+    scrub = lambda x: x.upper() if x else 'n/a'
+
+    text = cc_licence_record.template.format(
+
+        owner=scrub(creator_formatted_name(creator_record)),
+        title=scrub(book_record.name),
+        year=years,
+        place=scrub(book_record.cc_licence_place or '&lt;your country&gt;'),
+        url=cc_licence_record.url,
+    )
+    return '<div>{t}</div>'.format(t=text)
 
 
 def update_contributions_remaining(db, book_entity):
