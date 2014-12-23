@@ -253,12 +253,6 @@ def files():
     return dict(expose=expose)
 
 
-@auth.requires_login()
-def goodwill():
-    """Goodwill page"""
-    return markmin('goodwill')
-
-
 def logos():
     """Logos page"""
     base_path = os.path.join(request.folder, 'static', 'images', 'logos')

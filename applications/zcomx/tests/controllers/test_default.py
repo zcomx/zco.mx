@@ -30,7 +30,6 @@ class TestFunctions(LocalTestCase):
             '<div class="faq_options_container">',
         ],
         'files': '<div id="files_page">',
-        'goodwill': '<h1>Goodwill</h1>',
         'index': '<div id="front_page">',
         'logos': '<h1>Logos</h1>',
         'overview': '<h1>Overview</h1>',
@@ -114,13 +113,6 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test(
             '{url}/files'.format(url=self.url),
             self.titles['files']
-        ))
-
-    def test__goodwill(self):
-        web.sessions = {}
-        self.assertTrue(web.test(
-            '{url}/goodwill'.format(url=self.url),
-            self.titles['goodwill']
         ))
 
     def test__index(self):

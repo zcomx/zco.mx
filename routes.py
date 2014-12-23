@@ -51,7 +51,6 @@ DEFAULT_FUNCTIONS = '|'.join([
     'faq',
     'faqc',
     'files',
-    'goodwill',
     'logos',
     'overview',
     'todo',
