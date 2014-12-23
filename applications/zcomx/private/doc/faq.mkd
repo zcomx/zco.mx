@@ -1,38 +1,31 @@
 ##### [[What is zco.mx? #zco.mx]]
 ##### [[How is zco.mx pronounced? #pronounce]]
 ##### [[Can anyone upload content? #upload]]
-##### [[What does the information on the front page mean? #frontpage]]
+##### [[What do the sections on the front page mean? #frontpage]]
 ##### [[How do the contributions work? #contribution]]
+##### [[What is a cbr/cbz file? #cbz]]
 ##### [[Who is behind zco.mx? #behind]]
 ##### [[How does zco.mx pay its expenses? #expenses]]
 ##### [[What is up with the design of the site? #design]]
-##### [[What is a cbr/cbz file? #cbz]]
+##### [[Why use P2P networks to distribute the files? #distribute]]
 ##### [[What is the Direct Connect (DC) network? #dc]]
 ##### [[Where do I get a DC client? #dcclient]]
 ##### [[What is the BitTorrent Network? #bittorrent]]
 ##### [[Where do I get a BitTorrent client? #btclient]]
-##### [[Why use P2P networks to distribute the files? #distribute]]
 ##### [[Where do I get a comic reader for my computer/tablet? #reader]]
 
 -----
 
 [[zco.mx]]
 #### What is zco.mx?
-zco.mx is a curated, not-for-profit comic-sharing website for
-self-publishing cartoonists and their readers.
-
-Cartoonists are coming together to build and share an audience. Readers
-can contribute money ''directly'' to the cartoonist for works they
-enjoy.
-
-Self-publishing cartoonists can make their material available to readers
-with a simple-to-use user interface. Books can be uploaded within
-minutes.
+zco.mx is a curated not-for-profit comic-sharing website for
+self-publishing cartoonists and their readers. More information can be
+found on the [[About page /about]].
 
 
 [[pronounce]]
 #### How is zco.mx pronounced?
-zco.mx is pronounced **''zee·com·ics''**
+zco.mx is pronounced **''zee·com·ics''**.
 
 
 [[upload]]
@@ -41,47 +34,58 @@ To start, due to scalability, the site will be curated.
 
 
 [[frontpage]]
-#### What does the information on the front page mean?
-**ongoing** - This is a list of titles which are currently ongoing or
-the cartoonist has decided not to release a cbz file of the work. cbz
-files contain hi-res images which are suitable for tablets.  These
-titles are ordered by the title with the most recent image uploaded.
+#### What do the sections on the front page mean?
+**ongoing** - This is a list of titles that are either currently in
+progress (that is, that the cartoonist is currently working on) or that
+have not been released as cbz files, which would contain hi-res images
+suitable for tablets. This section is organized by title, with the most
+recently uploaded image listed first.
 
-**releases** - This is a list of titles which have been released as a
-cbz file.  The newest releases are listed first.
+**releases** - This is a list of titles that have been released as cbz
+files. The newest releases are listed first.
 
-**contributions** - Each title is listed by the minimum amount of money
-remaining zco.mx hopes to raise for the cartoonist for that specific
-book.
+**contributions** - Readers can support cartoonists through
+contributions. zco.mx hopes to raise a set amount to support specific
+books, and these titles are listed by the minimum amount of money
+remaining for each goal.
 
 **cartoonist** - This is an alphabetical list, by first name, of every
 cartoonist on the site.
 
-Note: switching from the 'tile' view mode to 'detail' will display more
+Note: Switching from the “tile” view mode to “detail” will display more
 information.
 
 
 [[contribution]]
 #### How do the contributions work?
-The idea is to create a fun way which encourages readers to help out
-self-publishing cartoonists by contributing money to them. If a reader
-really enjoys the comic, hopefully they will consider 'voting with their
-money'.
+The idea behind contributions is to promote a fun way for readers to
+connect with and support self-publishing cartoonists. zco.mx is
+not-for-profit, and all contributions go ''directly'' to cartoonists. If
+a reader really enjoys the comic, they can consider "voting with their
+money".
 
-Each comic page a cartoonist uploads increases the goal for the total
-amount of contributions zco.mx hopes to raise for that book by $10.
-Every dollar a reader contributes lowers the remaining amount of the
-goal for that specific book. When the goal is met (ie $0 or higher) the
-book is removed from the contribution list -- hooray! The book will
-still be available to read and download.  Many books will be ongoing and
-may reappear when a new page is added.
+Every page that a cartoonist uploads increases the total amount that
+zco.mx hopes to raise for that book by $10, and every dollar that a
+reader contributes lowers the remaining amount of that goal. When the
+goal is met, the book is removed from the contribution list — hooray!
+The book will still be available to read and download, and many books
+will be ongoing and may reappear when a new page is added.
+
+
+[[cbz]]
+#### What is a cbr/cbz file?
+cbr files are archive files that use the RAR file format, while cbz
+files use zip. A cbr/cbz file contains nothing more than image files,
+such as JPEGs. From a technical standpoint, there is no difference
+between foo.cbz and foo.zip, except for the filename. RAR, however, is
+an antiquated proprietary file format that is no longer recommended.
 
 
 [[behind]]
 #### Who is behind zco.mx?
-Jim Karsten and Steve Blatchford write the code but zco.mx is very much
-a group effort.  Many people have contributed to the project thus far.
-Those people are,
+Jim Karsten and Steve Blatchford write the code, but zco.mx is very much
+a group effort. Many people have contributed to the project thus far.
+Those people are
 [[dfkt http://dfkt.tk/]],
 [[Chuck Forsman charlesforsman.com]],
 [[Kevin Huizenga https://plus.google.com/107420980080038159626/about]],
@@ -89,48 +93,46 @@ Those people are,
 [[Jordan Crane www.matthuynh.com]],
 [[Matt Huynh www.matthuynh.com]],
 [[Tony Zuvela www.berserkalert.com.au]],
-[[Jonathan Rotsztain rotsztain.com]]
 and [[Connor Willumsen www.connorwillumsen.com]].
 
 
 [[expenses]]
 #### How does zco.mx pay its expenses?
-zco.mx is not-for-profit.  It raises money for hosting expenses the
-same way cartoonists raise money, via
-``donations``:contribute_link.
-The time to create and maintain the site is donated free of charge --
-this project is a labour of love.  The code for the site is [[open
-source https://github.com/zcomix]].  A breakdown for zco.mx's income
-and expenses can be found [[here /expenses]].
+zco.mx is not-for-profit. It raises money for hosting expenses the same
+way cartoonists raise money, via ``donations``:contribute_link. The time
+to create and maintain the site is donated free of charge — this project
+is a labour of love. The code for the site is [[open source
+https://github.com/zcomix]], and a breakdown for zco.mx's income and
+expenses can be found [[here /expenses]].
 
 
 [[design]]
 #### What is up with the design of the site?
-We've tried to keep the look generic and neutral, wikipedia-like,
-without imposing any brand or image. The goal is not to promote zco.mx
-itself, but to put cartoonists and their work front and centre.
+We've tried to keep the look generic and neutral, Wikipedia-like,
+without imposing a brand or image. The goal is to put cartoonists and
+their work front and centre.
 
-Most sites use their own comic veiwer.  Some sites use a scroll method,
-others a slider. Many sites use Flash viewers which do not allow direct
-linking to pages of a book.  This creates a unpredictable and unsettling
-user experience. The aim for zco.mx is for a consistent, simple
+Most sites use their own comic viewer; some sites use a scroll method,
+others a slider. Many sites use Flash viewers, which do not allow direct
+linking to pages in a book. This creates an unpredictable and unsettling
+user experience. The aim for zco.mx is to use a consistent, simple
 interface.
 
 
-[[cbz]]
-#### What is a cbr/cbz file?
-cbr files are archive files which use the RAR file format, while cbz
-files use zip. A cbr/cbz file containts nothing more than image files
-(eg jpg).  From a technical standpoint there is no difference between
-foo.cbz and foo.zip except for the filename. RAR is an antiquated,
-proprietary file format that is no longer recommended.
+[[distribute]]
+#### Why use P2P networks to distribute the files?
+P2P networks save on bandwidth and alleviate network congestion. These
+networks also ensure that there are multiple copies of the files
+available. This has the benefit of acting as a file backup. If the
+zco.mx server (or any user) were to lose their data, files could be
+restored via the P2P networks.
 
 
 [[dc]]
 #### What is the Direct Connect (DC) network?
-DC is a peer-to-peer (P2P) file sharing network.  It's like napster
-(file list) meets BitTorrent (segmented downloading) meets IRC (chat).
-Many comic readers use DC to share digital material.
+DC is a peer-to-peer (P2P) file sharing network. It's like Napster (file
+lists) meets BitTorrent (segmented downloading) meets IRC (chat). Many
+comic readers use DC to share digital material.
 
 
 [[dcclient]]
@@ -144,7 +146,7 @@ Linux   | [[Linuxdc++ https://launchpad.net/linuxdcpp]]
 
 
 [[bittorrent]]
-#### What is the BitTorrent Network?
+#### What is the BitTorrent network?
 [[BitTorrent http://en.wikipedia.org/wiki/Bittorrent ]] is a
 peer-to-peer (P2P) file sharing network.
 
@@ -156,15 +158,6 @@ Windows | [[uTorrent http://www.utorrent.com]]
 Mac     | [[Deluge http://deluge-torrent.org]]
 Linux   | [[Deluge http://deluge-torrent.org]]
 ---------
-
-
-[[distribute]]
-#### Why use P2P networks to distribute the files?
-P2P networks save on bandwidth and alleviate network congestion. These
-networks also ensure there are multiple copies of the files available.
-This has the benefit of acting as a file backup.  If the zco.mx server
-(or any user) were to lose their data, files could be restored via the
-P2P networks.
 
 
 [[reader]]

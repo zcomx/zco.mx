@@ -1,22 +1,25 @@
 ``
 VERSION 2 - Before Going Live
-[ ] Update FAQ
+[x] Update FAQ
     [x] Intro Email
         Have Sara edit the intro email for cartoonists as she sees fit.
 
-    [R] Goodwill -> About page
+    [x] Goodwill -> About page
         Sara is going to morph the goodwill ideas into an About page
 
-    [R] faq
+    [x] faq
         Have Sara edit the reader FAQ as she sees fit.
 
-    [R] faqc
+    [x] faqc
         Have Sara edit the cartoonist FAQ as she sees fit.
+
+[x] css - https://dev.zco.mx/contributions/modal
+
+[S] Rename github account zcomx ?
 
 [S] Setup mailing list
 
 [S] Indicia Page - png version
-    * for png indicia https://101.zco.mx/Name_of_Comic_001/  ?
 
 [S] Indicia Page - html version
     * last page of comic (scroll/slider)
@@ -24,13 +27,13 @@ VERSION 2 - Before Going Live
         + donate, download, social media, copyright
     * creative commons licence
 
-    'indicia' in navbar ?
+    'indicia' in navbar
     * upload
-    * choose licence
     * preview
 
 [ ] monies URL
     http://131.zco.mx/monies
+    https://zco.mx/monies        ## for zco.mx donation page ?
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
@@ -41,6 +44,7 @@ VERSION 2 - Before Going Live
     [ ] rewrite - https://zco.mx/ALL.torrent
     [ ] redirect - http://101.zco.mx/Name_of_Comic_01_of_04.torrent http://101.zco.mx/Name_of_Comic_001.torrent
     [ ] metadata
+        $ zip test.zip -z <<< '2014|Cartoonist Name|Title of Book|64'   ## add metadata to zip comment field
 
 [S] Reader notifications of new material
     rss? and mailing list?
@@ -68,6 +72,16 @@ VERSION 2 - Before Going Live
     Can we downscale the web images for the thumbnails and remove the
     actual thumbnails?
     [ ] Testing
+
+[ ] Terms and Conditions
+
+[ ] Add CC licence to zco.mx
+                                                 [CC BY]
+    Except where  otherwise noted,  content on this site
+    is licensed under a CC BY 4.0 International license.
+
+[ ] Remove 'dev.' from domain name
+    Search for all instances of 'dev.zco.mx'
 
 VERSION 3
 [ ] Read Page -> Scroll

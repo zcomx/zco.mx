@@ -1,1 +1,94 @@
-zco.mx is a not-for-profit comic-sharing website for self-publishing cartoonists and their readers.
+#### What is zco.mx?
+zco.mx is a curated not-for-profit comic-sharing website for
+self-publishing cartoonists and their readers. The site brings
+cartoonists together to build and share an audience, and readers can
+contribute money directly to cartoonists for works they enjoy. zco.mx
+offers a platform where self-publishing cartoonists can make their
+material available to readers with a simple-to-use user interface and
+where books can be uploaded within minutes.
+
+zco.mx was created around the idea of goodwill and inspired by the
+comics communities that are formed through events such as TCAF.
+
+
+#### The Whole Is Greater Than the Sum of Its Parts
+zco.mx is excited to have a variety of stories, genres and styles from
+different cartoonists available on one site. We hope that by building
+this community, readers will be motivated to give back and support
+cartoonists and their work. People can contribute in many ways: donating
+money, blogging, posting comments on social media, and recommending
+cartoonists' work to others.
+
+
+#### Money Model
+Most paper and digital comics use the "buy before you try" model, where
+buyers purchase a book without knowing exactly what they're getting. In
+general, this means that sellers depend on marketing to overcome a
+buyer's reluctance to purchase unfamiliar content.
+
+zco.mx hopes to use the appeal of a "try before you buy" model, which
+cartoonists are already using when posting work online or giving it away
+for free. Many comics are digitized and available on P2P networks, which
+is appealing to readers because they can try the material before
+purchasing. If a book is great, the reader can decide to purchase a
+paper copy. The goal is to develop a readership first and create
+secondary streams of income through paper copy sales, collectable items
+and commissions.
+
+If self-publishing cartoonists worked together, the "try before you buy"
+method could generate a huge amount of goodwill and community support.
+zco.mx offers a platform for this exchange, including [[ways to support /faq#contribution]]
+cartoonists' work directly.
+
+
+#### Convenient Content
+It can be tedious for readers to track new releases from their favourite
+cartoonists when the material is presented in different locations (some
+on personal blogs, some on Tumblr pages, some on small/micro-press
+sites, etc.) We hope to make accessing the material simple, convenient
+and familiar, to make the experience for the reader as seamless as
+possible.
+
+
+#### Leveraging File Sharing Communities
+Comic file sharing communities have been around since the '90s. They
+have a tried-and-tested method for distributing digital material. The
+community has momentum and numbers. Cartoonists could take part in this
+community and mirror their methods, by using consistent and familiar
+file names and formats (such as cbz files) and P2P networks (such as
+BitTorrent and Direct Connect) for distribution. The community will give
+back. They will report mistakes and issues, such as missing pages or
+corrupt files, and cartoonists can gain instant readership if work
+catches on.
+
+
+#### Cartoonist Documentation
+zco.mx is easy to use and provides howtos for common tasks to ease the
+learning curve for cartoonists wanting to publish digitally for the
+first time. This includes instructions on the following:
+    - Scanning and Photoshop
+    - Information on PNG vs. JPEG vs. GIF
+    - Setting up a Paypal Micropayments account
+    - Copyright licencing
+
+
+#### Site Costs
+To maximize the return for cartoonists, zco.mx is not-for-profit. This
+helps create goodwill. Readers can support cartoonists knowing that
+their payments are going directly to them, and not to a middleman. The
+intention is to connect cartoonists and readers, not to benefit
+developers.
+
+Site administrators donate their time and the site accepts
+``donations``:contribute_link. which are used to offset hosting costs.
+Any surplus is put towards the site and its community. The site code is
+open source and made available on [[github https://github.com/zcomix]],
+so the community has an opportunity to contribute features and bug
+fixes.
+
+
+#### Copyright
+By using a [[Creative Commons http://creativecommons.org/]] [[licences
+http://creativecommons.org/licenses]], cartoonists also add a level of
+goodwill to the community, by attracting readers and maintaining
+interest in the site.

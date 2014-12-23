@@ -1,246 +1,204 @@
+##### [[What type of content will be on the site? #content]]
 ##### [[What file types can be uploaded? #filetypes]]
-##### [[What terms or licence does zco.mx have on the work I post? #terms]]
-##### [[Am I able to remove any of the work I have post on zco.mx? #remove]]
+##### [[What terms or licence does zco.mx have over the work I post? #terms]]
+##### [[Am I able to remove any of the work I posted on zco.mx? #remove]]
+##### [[Should I post my older work or only new comics? Are you looking for short comics or longer works? #content2]]
 ##### [[As a cartoonist, why would I want to use zco.mx? #use]]
-##### [[Why would I not use my own website? #own]]
-##### [[How can goodwill be created? #goodwill]]
-##### [[Doesn't paper offer a superior reading experience? #paper]]
-##### [[I run a successful webcomic, wouldn't zco.mx lower my web traffic? #traffic]]
-##### [[As an established artist, why would I want to associate my work with others? #associate]]
-##### [[Why use file-sharing networks to distribute the files? #p2p]]
-##### [[Do digital comics take away from paper sales? #digital]]
+##### [[Why not just use my own website? #own]]
+##### [[I run a successful webcomic. Wouldn't zco.mx lower my web traffic? #traffic]]
+##### [[Why use file sharing networks to distribute the files? #p2p]]
 ##### [[How are cartoonists leaving money on the table? #money]]
-##### [[What content will be on the site? #content]]
-##### [[Why should I setup a Micropayments paypal account? #whymp]]
-##### [[How do I setup a Micropayments paypal account? #howmp]]
+##### [[Do digital comics take away from paper sales? #digital]]
+##### [[Doesn't paper offer a superior reading experience? #paper]]
+##### [[What is a Micropayments Paypal account? #whatmp]]
+##### [[How do I setup a Micropayments Paypal account? #howmp]]
 
 -----
 
+[[content]]
+#### What type of content will be on the site?
+Current minicomics, webcomics and strips are of interest. As well, we'd
+like to excavate older material from the ‘80s, ‘90s and ‘00s.
+
+
 [[filetypes]]
 #### What file types can be uploaded?
-GIF, JPEG and PNG.  It would be ideal to upload files which have a
-higher resolution than 1600px for portrait images and 2560px for
-landscape.  This way the images will look great on tablets.
+GIF, JPEG and PNG. Ideally, file resolutions should be higher than
+1600px for portrait images and 2560px for landscape. This will ensure
+that images look great on tablets.
 
-For tablets we're using cbz files.  We downsample images to 1600px for
-portrait images and 2560px for landscape.  For the web we downsample to
-resolutions of 750px and 1200px. All aspect ratios are preserved.
+For tablets, we use the image files that are uploaded to create cbz
+files. We downsample images to 1600px for portrait images and 2560px for
+landscape. For the web, we downsample to resolutions of 750px and
+1200px. All aspect ratios are preserved.
 
-If the images is black and white or uses few colours, we recommend
-exporting to an 8 colour png or 16 colour png. These will drastically
+If the image is black and white or uses few colours, we recommend
+exporting to an 8-colour PNG or 16-colour PNG. This will drastically
 reduce the filesize and keep the image crisp.
 
 
 [[terms]]
-#### What terms or licence does zco.mx have on the work I post?
-The only licence used is the licence the cartoonist places their work.
-zco.mx claims no ownership or control over the cartoonist or their work.
+#### What terms or licence does zco.mx have over the work I post?
+The only licence used is the licence the cartoonist applies to their
+work. zco.mx claims no ownership or control over the cartoonist or their
+work.
 
 
 [[remove]]
-#### Am I able to remove any of the work I have post on zco.mx?
-A cartoonist can add and remove their work from the site as they see
-fit.
+#### Am I able to remove any of the work I posted on zco.mx?
+A cartoonist can add or remove their work from the site as they see fit.
+
+[[content2]]
+#### Should I post my older work or only new comics? Are you looking for short comics or longer works?
+Any work you've completed in the past and comics you're currently
+working on are welcome.
+
+As for length, we recommend uploading works of at least eight pages and
+approaching content as if it were being published in print. It is also
+much more enjoyable to read a longer anthology by a cartoonist than it
+is to open and close many small cbz files.
 
 
 [[use]]
 #### As a cartoonist, why would I want to use zco.mx?
-People love to share their culture with others.  Virtually every popular
-comic is freely available online.  In this digital age it's impossible
-to stop readers from sharing the comics they enjoy. Self-publishing
-cartoonist could leverage this sharing. The main reason people try to
-control content is not to control distribution but to ensure they can
-monetize it.
-
-One way to leverage the Internet and monetize the content is for
-self-publishing cartoonists to work together and generate as much
-goodwill as possible. Goodwill creates trust and loyalty in readers, who
-in turn spread the word, increasing audience size and resulting in more
-exposure and more sales -- for both paper and digital comics.
+People love sharing content. Virtually every popular comic is freely
+available online. It's impossible to stop readers from sharing the
+comics they enjoy, and self-publishing cartoonists could leverage this
+sharing. zco.mx is a way for cartoonists and readers to work together
+and generate a community of goodwill, to create trust and build loyalty
+in readers, who in turn will spread the word. zco.mx hopes that this
+increased exposure and audience base will result in more sales for both
+paper and digital comics.
 
 
 [[own]]
-#### Why would I not use my own website?
-When self-publishing cartoonists work together they generate much more
-goodwill then they could on their own. A comic festival (eg TCAF) is a
-good example.  Cartoonists and publishers come from all over to
-participate. They volunteer their time, sign autographs and give away
-free sketches. Cartoonists generate a lot of goodwill at TCAF and TCAF
-generates goodwill for them in return.
+#### Why not just use my own website?
+zco.mx is inspired by comics communities that are generated by events
+like TCAF, where cartoonists and readers come together. These events
+foster goodwill and communities of exchange, bringing in fans and
+creating positive buzz. Some highlights at these events include:
 
     - Many cartoonists in one area (300+ at TCAF 2014)
     - Signatures and sketches
     - Engaging the cartoonists
-    - Free talks/panels
+    - Free talks and panels
     - Free comics and doodads
-    - Pre-release of books
+    - Prerelease of books
     - Meeting other readers
     - Saving on shipping costs
 
-A single cartoonist making the same presentation on their own doesn't
-have near the same effect as it does at TCAF. Many cartoonists bring
-many fans which creates a positive buzz.  This buzz or goodwill
-encourages readers to support cartoonists with purchases of their
-material.
-
-
-[[goodwill]]
-#### How can goodwill be created?
-[[Goodwill https://dev.zco.mx/goodwill]]
-
-
-[[paper]]
-#### Doesn't paper offer a superior reading experience?
-Many readers think so but what about comics that are out of print?  A
-digital version may be their only option.
-
-What about readers who live outside the US? The shipping costs on a $5
-minicomic to destinations outside the US is often prohibitive. On top of
-that, there are exchange rates and import fees to consider.
-
-As well the new generation of readers will not likely have the same
-fondness towards paper -- this is a by-product of our
-childhood``1``:cite. In a few years teenagers will be as old as the
-first-gen iPad. They will have used a tablet all their lives.  They will
-find digital media very natural.  The demand for digital content should
-increase immensely.
+zco.mx hopes to create a similar buzz online, by bringing
+self-publishing cartoonists and readers together.
 
 
 [[traffic]]
-#### I run a successful webcomic, wouldn't zco.mx lower my web traffic?
-The design of zco.mx is intentionally simple and unassuming. zco.mx is
-about making content available.  Each cartoonist on zco.mx has a page
-with a brief description and a list of all their work. Cartoonists can
-add custom links including their website, social media (blogs, twitter,
-tumblr, etc), and any webpages where their work can be found -- both
-digital and print.
-
-If zco.mx can increase the audience size, and give readers access to
-cartoonists' work in a consistent, familiar way, this should drive even
-more traffic to personal sites and increase the volume on social media
-(eg tumblr, blogs, twitter, facebook, etc).
-
-
-[[associate]]
-#### As an established artist, why would I want to associate my work with others?
-If there are many comics hosted on zco.mx, then there should be no
-positive or negative association with the content (similar to Tumblr).
+#### I run a successful webcomic. Wouldn't zco.mx lower my web traffic?
+zco.mx hopes to build a bigger audience for cartoonists. The design of
+the site is intentionally simple and unassuming, with the goal of making
+content available. Giving readers access to comics in a consistent,
+familiar way should help drive more traffic to personal sites and
+increase volume on social media. Each cartoonist page includes a brief
+description and list of their work, as well as custom links to their
+website, social media (blogs, Twitter, Tumblr, etc.) and any webpages
+where their work can be found — in both digital and print.
 
 
 [[p2p]]
-#### Why use file-sharing networks to distribute the files?
-From a technical standpoint file-sharing or peer-to-peer (P2P) networks
-save on bandwidth and reduce network congestion. As well, these networks
-ensure there are multiple copies of the files available.  This has the
-benefit of acting like a file backup.  If the zco.mx server (or any
+#### Why use file sharing networks to distribute the files?
+From a technical standpoint, file sharing or peer-to-peer (P2P) networks
+save on bandwidth and reduce network congestion. These networks also
+ensure that there are multiple copies of the files available. This has
+the benefit of acting as a file backup. If the zco.mx server (or any
 user) were to lose their data, it could be rebuilt via P2P networks.
 
-More importantly the P2P communities, especially the Direct Connect (DC)
-network, is the nucleus of digital comics on the Internet.  Comics are
-competing for people's leisure time.  They're up against Internet, TV,
-movies, video games, etc.  The more readers the industry has, the more
-readers there are to spend money.
+More importantly, P2P communities, especially the Direct Connect (DC)
+network, are the nucleus of digital comics on the Internet, and file
+sharing communities have been around for over 20 years (though they have
+often been branded negatively). Self-publishing cartoonists could make
+use of this technology, which plays nicely into the countercultural
+roots of underground comix. P2P communities are already distributing and
+marketing comics, and this could be leveraged as an opportunity for
+self-publishing cartoonists. Making use of these groups can expand
+audiences and generate more sales.
 
-P2P networks can expand a cartoonist's audience. On one P2P network
-which only shares comics, it was found that 63% of the users were from
-outside the US.
-
-Here is a breakdown of downloaders in the top 13 countries:
-
+P2P networks also have the advantage of reaching international
+audiences, where there is a demand for digital comics. For example, on
+one P2P network (which only shares comics) 63% of users are from outside
+the US. Here is a breakdown of downloaders in the top 13 countries:
 ``
-37.06%  US, United States
- 6.61%  CA, Canada
- 6.33%  BR, Brazil
- 6.02%  GB, United Kingdom
- 3.39%  RU, Russian Federation
- 3.17%  ES, Spain
- 3.11%  SE, Sweden
- 2.53%  AU, Australia
- 2.39%  IT, Italy
- 2.25%  DE, Germany
- 2.16%  FR, France
- 1.92%  PL, Poland
- 1.83%  NL, Netherlands
+37.06% United States
+ 6.61% Canada
+ 6.33% Brazil
+ 6.02% United Kingdom
+ 3.39% Russian Federation
+ 3.17% Spain
+ 3.11% Sweden
+ 2.53% Australia
+ 2.39% Italy
+ 2.25% Germany
+ 2.16% France
+ 1.92% Poland
+ 1.83% Netherlands
 ``
-
-These numbers illustrate there is a large demand for digital comics
-outside the US.
-
-I think it is important to mirror how file-sharing communities have done
-things. File-sharing communities have been at it for 20+ years. Their
-methods are tried and tested. There are advantages to mirroring their
-approach. It's unfortunate P2P networks have been branded negatively
-(mostly by large corporation via the media) but there is an opportunity
-here. Self-publishing cartoonists could make use of this technology and
-show how efficient and effective it is, ignoring big corps attempt to
-demonize it. This plays nicely into self-publishing cartoonists'
-counter-culture roots (ie Underground Comix). If handled right, this
-could be a huge boon for self-publishing cartoonists.
-
-People love to share their culture with others.  In this digital age
-it's impossible to stop and it shouldn't be -- it should be leveraged.
-The current P2P communities are distributing and marketing cartoonists'
-material. Make use of these groups to expand audiences and to generate
-more sales.
-
-
-[[digital]]
-#### Do digital comics take away from paper sales?
-Some people suggest digital comics hurt the paper comics industry,
-saying it will take away from paper sales and lead to store closings. Is
-it not possible that digital and paper are two sides of the same coin?
-Maybe paper and digital sales are directly proportional: the more paper
-copies sold, the more digital copies sold; the more digital sales, the
-more paper sales.
-
-Consider the vinyl record industry. In theory this industry should have
-died years ago and yet sales are higher now than they've been in
-decades. There are music enthusiasts that listen to digital material
-only, there are traditionalists that swear by vinyl, and some enjoy the
-benefits of both.  There is no reason why comics are different.
 
 
 [[money]]
 #### How are cartoonists leaving money on the table?
-Small/micro/self-publishers lose sales with traditional publishing
-methods in several ways:
-    - Out of print books (demand not being met)
+Small/micro/self-publishers lose sales with traditional publishing methods in several ways:
+    - Out-of-print books (where demand is not being met)
     - Shipping costs (especially to countries outside the US)
     - Poor exchange rates with the USD
 
-By using sites like Comixology, self-publishers lose sales because of:
+By using sites like ComiXology, self-publishers lose sales in several ways:
     - Regional locks
-    - DRM
+    - Digital Rights Management (DRM)
     - Over-priced books
-    - Unfair compensation``2``:cite
+    - Unfair compensation``1``:cite
 
 
-[[content]]
-#### What content will be on the site?
-Current minicomics, webcomics and strips are of interest.  As well we'd
-like to excavate older material from the 80's, 90's, 00's.
+[[digital]]
+#### Do digital comics take away from paper sales?
+zco.mx hopes to promote paper sales through exposure to digital content.
+Is it possible that digital and paper sales are two sides of the same
+coin, and that their sales are directly proportional? Some readers will
+purchase hard copies of comics they accessed digitally.
+
+Consider the vinyl record industry. In theory, this industry should have
+died years ago, and yet sales are higher now than they've been in
+decades. There are music enthusiasts who listen to digital material
+only, traditionalists who swear by vinyl, and some who enjoy the
+benefits of both. There is no reason why comics should be different.
 
 
-[[whymp]]
-#### Why should I setup a Micropayments paypal account?
-If transactions average $12 or less, the fees with a Micropayments
-paypal account will be lower than with a Standard account.  For more
-information, go [[here https://www.paypal.com/ca/webapps/mpp/merchant-fees]]
+[[paper]]
+#### Doesn't paper offer a superior reading experience?
+Many readers think so. The aim of zco.mx is not to take away from paper
+sales or quality, but to provide a digital platform to supplement paper
+comics. For example, comics that are out of print can be accessed
+digitally, and readers outside the US can support cartoonists without
+paying shipping fees or exchange rates. As well, new generations of
+readers might prefer digital media and reading on tablets. zco.mx is
+just one way for self-publishing cartoonists to meet the demand for
+digital content.
+
+
+[[whatmp]]
+#### What is a Micropayments Paypal account?
+To receive payments, we recommend setting up a Micropayments Paypal
+account, which has lower fees for transactions that average $12 or less
+than a Standard account. More information can be found here.
 
 
 [[howmp]]
-#### How do I setup a Micropayments paypal account?
-An active paypal account can be switched from Standard to Micropayments,
-see step 3, otherwise a new account is required.
+#### How do I set up a Micropayments Paypal account?
+An active Paypal account can be switched from Standard to Micropayments
+(see step 3). Otherwise, a new account is required:
 
-+ To setup a new account, go [[here
-https://www.paypal.com/ca/cgi-bin/marketingweb?cmd=_product-go&product=none]].
-+ After creating an account, paypal will send you an email with an activation link.
-+ To switch a paypal account from 'Standard' to 'Micropayment', you must call paypal.  To find the number in your country, go [[here
-https://www.paypal.com/ca/cgi-bin/webscr?cmd=_contact-phone]].  Their auto-attendant is voice operated.  None of their options are for switching to a micropayment account.  To drop out of their auto-attendant and speak to an agent, say the word "agent".
-
++ To set up a new account, go [[here https://www.paypal.com/ca/cgi-bin/marketingweb?cmd=_product-go&product=none]].
++ After creating an account, Paypal will send you an email with an activation link.
++ To switch a Paypal account from Standard to Micropayments, you must call Paypal and speak with an agent directly. To find the number in your country, go [[here
+https://www.paypal.com/ca/cgi-bin/webscr?cmd=_contact-phone]]. Their auto-attendant is voice operated. None of their options are for switching to a Micropayments account. To drop out of their auto-attendant and speak to an agent, say the word "agent."
 
 -----
 
-###### [[1]] 1. That said, I think there will always be demand for paper comics.
-###### [[2]] 2. "...with ComiXology I’m only guaranteed 33 cents on every dollar if it’s bought through the Apple store." Becky Cloonan, [[Self Publish or Perish http://beckycloonan.tumblr.com/post/71721963332/self-publish-or-perish-a-short-essay-or-4-000]]
+###### [[1]] 1. See, for example, Becky Cloonan, [[Self Publish or Perish http://beckycloonan.tumblr.com/post/71721963332/self-publish-or-perish-a-short-essay-or-4-000]] "...with ComiXology I’m only guaranteed 33 cents on every dollar if it’s bought through the Apple store."
