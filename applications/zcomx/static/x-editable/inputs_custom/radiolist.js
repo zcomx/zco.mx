@@ -59,7 +59,7 @@
         },
 
         autosubmit: function() {
-            this.$input.off('keydown.editable').on('change.editable', function(){
+            this.$input.off('keydown.editable').on('change.editable click.editable', function(){
                 $(this).closest('form').submit();
             });
         }

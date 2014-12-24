@@ -201,6 +201,7 @@ db.define_table('book',
     Field(
         'cc_licence_id',
         'integer',
+        default=0,
         label='Licence',
     ),
     Field(

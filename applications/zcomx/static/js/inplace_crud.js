@@ -268,7 +268,7 @@
 
             _display_row_message: function(elem, msg, text_class) {
                 var row = $(elem).closest('.row_container');
-                msg_div = row.find('.row_message');
+                var msg_div = row.find('.row_message');
                 if (!msg_div) {
                     return;
                 }
@@ -523,6 +523,21 @@
                 );
                 if (data.callback) {
                     data.callback(link);
+                }
+                if (data.hidden) {
+                    $('#' + field).on('hidden', function(e, reason) {
+                        data.hidden(e, reason);
+                    });
+                }
+                if (data.init) {
+                    $('#' + field).on('init', function(e, editable) {
+                        data.init(e, editable);
+                    });
+                }
+                if (data.save) {
+                    $('#' + field).on('save', function(e, params) {
+                        data.save(e, params);
+                    });
                 }
                 if (data.shown) {
                     $('#' + field).on('shown', function(e, editable) {
