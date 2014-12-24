@@ -60,6 +60,7 @@
 
         autosubmit: function() {
             this.$input.off('keydown.editable').on('change.editable click.editable', function(){
+                console.log('change/click registered');
                 $(this).closest('form').submit();
             });
         }

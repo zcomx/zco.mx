@@ -1,6 +1,6 @@
 {{import datetime}}
 {{from gluon.contrib.simplejson import dumps}}
-{{from applications.zcomx.modules.books import book_types, cc_licences}}
+{{from applications.zcomx.modules.books import book_types, cc_licences, cc_licence_places}}
 <div id="book_edit_section">
 
 {{if book and not book.status:}}
@@ -40,12 +40,10 @@
     }
 
     function numbers_99(scope) {
-        console.log('scope: %o', scope);
         return numbers(1, 99);
     }
 
     function numbers_999(scope) {
-        console.log('scope: %o', scope);
         return numbers(1, 999);
     }
 
@@ -69,6 +67,11 @@
             'book_type_id': {
                 'label': '{{=db.book.book_type_id.label}}',
                 'value': "{{try:}}{{=db(db.book_type.id == book.book_type_id).select(db.book_type.description).first()['description']}}{{except:}}{{='n/a'}}{{pass}}",
+                'save': function(e, params) {
+                    setTimeout( function() {
+                        set_number_containers(params.response.numbers);
+                    }, 400);
+                },
                 'x_editable_settings': {
                     'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
                     'inputclass': 'inplace_crud book_type_id_input',
@@ -154,6 +157,11 @@
                         cc_link_div.fadeOut();
                     }
                 },
+                'save': function(e, params) {
+                    setTimeout( function() {
+                        set_cc_licence_place(params.response.show_cc_licence_place);
+                    }, 400);
+                },
                 'shown': function (e, editable) {
                     var cc_link_div = editable.$element.closest('.row_container')
                         .find('.cc_licences_info_link_container');
@@ -177,7 +185,24 @@
                     'inputclass': 'inplace_crud cc_licence_id_input',
                     'source': [ {{=cc_licences(book)}} ],
                     'type': 'radiolist_w_info',
-                    'value': '{{=book.cc_licence_id if book else 0}}',
+                    'value': '{{=book.cc_licence_id if book and book.cc_licence_id else 0}}',
+                },
+            },
+            'cc_licence_place': {
+                'label': '{{=db.book.cc_licence_place.label}}',
+                'value': '{{=book.cc_licence_place if book and book.cc_licence_place else ""}}',
+                'info': '<span class="btn info_icon_container"><i id="book_cc_licence_place_info" class="icon zc-info"></i></span>',
+                'callback': function(elem) {
+                        $('#book_cc_licence_place_info').tooltip({
+                            'html': true,
+                            'title': '<div>Jurisdiction from which the work is being offered under CC0.</div>',
+                            'template': '<div class="tooltip book_cc_licence_place_tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+                        });
+                },
+                'x_editable_settings': {
+                    'inputclass': 'inplace_crud book_cc_licence_place_input',
+                    'source': [ {{=cc_licence_places()}} ],
+                    'type': 'select',
                 },
             },
         };
@@ -238,6 +263,16 @@
                 source_data: book_of_number_data,
             }
         );
+    }
+    function set_cc_licence_place(is_shown) {
+        //Only display if licence == CC0
+        var duration = 400;
+        if (is_shown) {
+            $('#row_container_cc_licence_place').fadeIn(duration);
+        } else {
+            $('#row_container_cc_licence_place').fadeOut(duration);
+        }
+
     }
     function set_number(length) {
         var source = length === 3 ? numbers_999 : numbers_99;
@@ -326,13 +361,8 @@
             }, 300);
         {{pass}}
 
-        $('#book_type_id').on('save', function(e, params) {
-            setTimeout( function() {
-                set_number_containers(params.response.numbers);
-            }, 400);
-        });
-
         set_number_containers({{=XML(numbers)}});
+        set_cc_licence_place({{=XML(show_cc_licence_place)}});
     });
 
 //]]>

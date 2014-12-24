@@ -65,19 +65,19 @@ def book_crud():
 
     def do_error(msg=None):
         """Error handler."""
-        return {'status': 'error', 'msg': msg or 'Server request failed.'}
+        return {'status': 'error', 'msg': msg or 'Server request failed'}
 
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()
     if not creator_record:
-        return do_error('Permission denied.')
+        return do_error('Permission denied')
 
     # W0212 (protected-access): *Access to a protected member %%s of a client class*
     # pylint: disable=W0212
     actions = ['create', 'delete', 'release', 'update']
     if not request.vars._action or request.vars._action not in actions:
-        return do_error('Invalid data provided.')
+        return do_error('Invalid data provided')
     action = request.vars._action
 
     book_record = None
@@ -85,12 +85,12 @@ def book_crud():
         try:
             book_id = int(request.vars.pk)
         except (TypeError, ValueError):
-            return do_error('Invalid data provided.')
+            return do_error('Invalid data provided')
         book_record = entity_to_row(db.book, book_id)
         if not book_record or (
             book_record and book_record.creator_id != creator_record.id
         ):
-            return do_error('Invalid data provided.')
+            return do_error('Invalid data provided')
 
     if action == 'create':
         data = {}
@@ -115,7 +115,7 @@ def book_crud():
                 'id': ret.id,
                 'status': 'ok',
             }
-        return do_error('Unable to create book.')
+        return do_error('Unable to create book')
 
     if action == 'delete':
         # FIXME delete torrent
@@ -152,13 +152,16 @@ def book_crud():
 
     if action == 'update':
         if request.vars.name is not None and request.vars.name not in db.book.fields:
-            return do_error('Invalid data provided.')
+            return do_error('Invalid data provided')
 
         data = {}
-        if request.vars.name is not None and request.vars.value is not None:
+        if request.vars.name == 'cc_licence_id' and request.vars.value is None:
+            # Allow cc_licence_id=0
+            data = {request.vars.name: 0}
+        elif request.vars.name is not None and request.vars.value is not None:
             data = {request.vars.name: request.vars.value}
         if not data:
-            return do_error('Invalid data provided.')
+            return do_error('Invalid data provided')
 
         if 'name' in data:
             data['urlify_name'] = urlify(data['name'], maxlen=99999)
@@ -177,7 +180,15 @@ def book_crud():
                 }
         numbers = numbers_for_book_type(db, request.vars.value) \
             if request.vars.name == 'book_type_id' else None
-        return {'status': 'ok', 'numbers': numbers}
+        show_cc_licence_place = False
+        # FIXME don't hardcode 1, match on CC0
+        if request.vars.name == 'cc_licence_id' and request.vars.value == '1':
+            show_cc_licence_place = True
+        return {
+            'show_cc_licence_place': show_cc_licence_place,
+            'numbers': numbers,
+            'status': 'ok',
+        }
     return {'status': 'ok'}
 
 
@@ -191,14 +202,14 @@ def book_delete():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('modal_error', vars={'message': 'Permission denied.'}))
+        redirect(URL('modal_error', vars={'message': 'Permission denied'}))
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
         redirect(
-            URL('modal_error', vars={'message': 'Invalid data provided.'}))
+            URL('modal_error', vars={'message': 'Invalid data provided'}))
 
     return dict(book=book_record)
 
@@ -213,7 +224,7 @@ def book_edit():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('modal_error', vars={'message': 'Permission denied.'}))
+        redirect(URL('modal_error', vars={'message': 'Permission denied'}))
 
     book_record = None
     if request.args(0):
@@ -222,7 +233,14 @@ def book_edit():
     book_type_id = book_record.book_type_id if book_record else 0
     numbers = numbers_for_book_type(db, book_type_id)
 
-    return dict(book=book_record, numbers=dumps(numbers))
+    show_cc_licence_place = False
+    if book_record.cc_licence_id == 1:          # FIXME don't hardcode 1, match on CC0
+        show_cc_licence_place = True
+    return dict(
+        book=book_record,
+        show_cc_licence_place=dumps(show_cc_licence_place),
+        numbers=dumps(numbers),
+    )
 
 
 @auth.requires_login()
@@ -268,14 +286,14 @@ def book_pages():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('modal_error', vars={'message': 'Permission denied.'}))
+        redirect(URL('modal_error', vars={'message': 'Permission denied'}))
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
         redirect(
-            URL('modal_error', vars={'message': 'Invalid data provided.'}))
+            URL('modal_error', vars={'message': 'Invalid data provided'}))
 
     read_button = read_link(
         db,
@@ -317,13 +335,13 @@ def book_pages_handler():
         db.creator.ALL
     ).first()
     if not creator_record:
-        return do_error('Upload service unavailable.')
+        return do_error('Upload service unavailable')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
-        return do_error('Upload service unavailable.')
+        return do_error('Upload service unavailable')
 
     if request.env.request_method == 'POST':
         # Create a book_page record for each upload.
@@ -342,7 +360,7 @@ def book_pages_handler():
     elif request.env.request_method == 'DELETE':
         book_page = entity_to_row(db.book_page, request.vars.book_page_id)
         if not book_page:
-            return do_error('Unable to delete page.')
+            return do_error('Unable to delete page')
 
         # retrieve real file name
         filename, _ = db.book_page.image.retrieve(
@@ -374,13 +392,13 @@ def book_pages_reorder():
         db.creator.ALL
     ).first()
     if not creator_record:
-        return do_error('Reorder service unavailable.')
+        return do_error('Reorder service unavailable')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
-        return do_error('Reorder service unavailable.')
+        return do_error('Reorder service unavailable')
 
     if not 'book_page_ids[]' in request.vars:
         # Nothing to do
@@ -413,14 +431,14 @@ def book_release():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('modal_error', vars={'message': 'Permission denied.'}))
+        redirect(URL('modal_error', vars={'message': 'Permission denied'}))
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
         redirect(
-            URL('modal_error', vars={'message': 'Invalid data provided.'}))
+            URL('modal_error', vars={'message': 'Invalid data provided'}))
 
     return dict(
         book=book_record,
@@ -480,22 +498,22 @@ def creator_crud():
 
     def do_error(msg=None):
         """Error handler."""
-        return {'status': 'error', 'msg': msg or 'Server request failed.'}
+        return {'status': 'error', 'msg': msg or 'Server request failed'}
 
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()
     if not creator_record:
-        return do_error('Permission denied.')
+        return do_error('Permission denied')
 
     if request.vars.name is not None and request.vars.name not in db.creator.fields:
-        return do_error('Invalid data provided.')
+        return do_error('Invalid data provided')
 
     data = {}
     if request.vars.name is not None and request.vars.value is not None:
         data = {request.vars.name: request.vars.value}
     if not data:
-        return do_error('Invalid data provided.')
+        return do_error('Invalid data provided')
 
     # Strip trailing slash from urls
     for f in ['website', 'shop', 'tumblr']:
@@ -544,7 +562,7 @@ def creator_img_handler():
         db.creator.ALL
     ).first()
     if not creator_record:
-        return do_error('Upload service unavailable.')
+        return do_error('Upload service unavailable')
 
     img_field = 'image'
     if request.args(0):
@@ -552,7 +570,7 @@ def creator_img_handler():
             print >> sys.stderr, \
                 'creator_img_handler invalid field: {fld}'.format(
                     fld=request.vargs(0))
-            return do_error('Upload service unavailable.')
+            return do_error('Upload service unavailable')
         img_field = request.args(0)
 
     minimum_widths = {
@@ -596,7 +614,7 @@ def creator_img_handler():
 
         if not stored_filename:
             return do_error(
-                'File upload failed.',
+                'File upload failed',
                 files=[up_file.filename]
             )
 
@@ -722,7 +740,7 @@ def link_crud():
 
     def do_error(msg=None):
         """Error handler."""
-        return {'status': 'error', 'msg': msg or 'Server request failed.'}
+        return {'status': 'error', 'msg': msg or 'Server request failed'}
 
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
@@ -739,7 +757,7 @@ def link_crud():
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
         if not book_record:
-            return do_error('Invalid data provided.')
+            return do_error('Invalid data provided')
 
     if book_record:
         entity_table = db.book
@@ -765,7 +783,7 @@ def link_crud():
     if link_id:
         link_record = entity_to_row(db.link, link_id)
         if not link_record:
-            return do_error('Invalid data provided.')
+            return do_error('Invalid data provided')
 
     do_reorder = False
     if action == 'get':
@@ -808,7 +826,7 @@ def link_crud():
                         }
                 do_reorder = True
         else:
-            return do_error('Invalid data provided.')
+            return do_error('Invalid data provided')
     elif action == 'create':
         url = request.vars.url.rstrip('/')
         ret = db.link.validate_and_insert(
@@ -843,7 +861,7 @@ def link_crud():
             record_id = link_id
             do_reorder = True
         else:
-            return do_error('Invalid data provided.')
+            return do_error('Invalid data provided')
     elif action == 'move':
         if link_id:
             to_link_record = db(to_link_table.link_id == link_id).select(to_link_table.ALL).first()
@@ -851,7 +869,7 @@ def link_crud():
             links.move_link(to_link_record.id, direction=request.vars.dir)
             record_id = link_id
         else:
-            return do_error('Invalid data provided.')
+            return do_error('Invalid data provided')
     if do_reorder:
         reorder_query = (to_link_join_field == record.id)
         reorder(

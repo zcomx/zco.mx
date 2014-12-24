@@ -206,7 +206,8 @@ db.define_table('book',
     ),
     Field(
         'cc_licence_place',
-        label='Territory',
+        label='Licence Territory',
+        requires=IS_NOT_EMPTY(error_message='Select a territory'),
         comment='Jurisdiction from which the work is being offered under CC0.'
     ),
     Field(
