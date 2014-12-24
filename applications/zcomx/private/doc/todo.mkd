@@ -15,7 +15,7 @@ VERSION 2 - Before Going Live
 
 [x] css - https://dev.zco.mx/contributions/modal
 
-[S] Rename github account zcomx ?
+[x] Rename github account zcomx
 
 [S] Setup mailing list
 
@@ -152,7 +152,6 @@ IDEAS
 [ ] Front Page - Add 'download' report
     downloading all.torrent gives +1 to all books
     downloading cartoonist.torrent gives +1 to all that cartoonist's books
-[ ] How best to use the front page?
 
 [-] Guided view using Perfect Viewer ?
     The main dev, Lin Rookie (rookiestudio@gmail.com), suggests guided view is
@@ -164,8 +163,8 @@ IDEAS
     https://github.com/goldsmith/Wikipedia          ## wikipedia api
 
 [ ] user comments? - disqus api? reddit api?
-    * creators choose comments to form a digital letters page?
-[ ] how best to promote micro-publisher and things like the Muster List
+    * cartoonist chooses comments to form a digital letters page?
+[ ] how best to promote micro-publishers and things like the Muster List
 [ ] site for original art?
 [ ] youtube/google hangout - drawing of a page live ?
 ``
