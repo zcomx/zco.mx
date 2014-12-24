@@ -34,57 +34,57 @@ TEMPLATES = [
         'number': 0,
         'code': 'CC0',
         'url': 'http://creativecommons.org/publicdomain/zero/1.0',
-        'template_img': """TO THE EXTENT POSSIBLE UNDER LAW, {owner} HAS WAIVED ALL COPYRIGHT AND RELATED OR NEIGHBORING RIGHTS TO "{title}".  THIS WORK IS PUBLISHED FROM: {place}.  FOR MORE INFORMATION, VISIT {url}."""
-        'template_web': """TO THE EXTENT POSSIBLE UNDER LAW, {owner} HAS <a herf="{url}">WAIVED ALL COPYRIGHT AND RELATED OR NEIGHBORING RIGHTS</a> TO <i>{title}</i>".  THIS WORK IS PUBLISHED FROM: {place}."""
+        'template_img': """TO THE EXTENT POSSIBLE UNDER LAW, {owner} HAS WAIVED ALL COPYRIGHT AND RELATED OR NEIGHBORING RIGHTS TO "{title}".  THIS WORK IS PUBLISHED FROM: {place}.  FOR MORE INFORMATION, VISIT {url}.""",
+        'template_web': """TO THE EXTENT POSSIBLE UNDER LAW, {owner} HAS <a herf="{url}">WAIVED ALL COPYRIGHT AND RELATED OR NEIGHBORING RIGHTS</a> TO <i>{title}</i>.  THIS WORK IS PUBLISHED FROM: {place}."""
     },
     {
         'number': 1,
         'code': 'CC BY',
         'url': 'http://creativecommons.org/licenses/by/4.0',
-        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}."""
-        'template_web': """ <i>{title}</i>" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY 4.0 INT'L LICENSE</a>."""
+        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
+        'template_web': """ <i>{title}</i> IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY 4.0 INT`L LICENSE</a>."""
     },
     {
         'number': 2,
         'code': 'CC BY-ND',
         'url': 'http://creativecommons.org/licenses/by-nd/4.0',
-        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}."""
-        'template_web': """ <i>{title}</i>" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-ND 4.0 INT'L LICENSE</a>."""
+        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
+        'template_web': """ <i>{title}</i> IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-ND 4.0 INT`L LICENSE</a>."""
     },
     {
         'number': 3,
         'code': 'CC BY-SA',
         'url': 'http://creativecommons.org/licenses/by-sa/4.0',
-        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-SHAREALIKE 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}."""
-        'template_web': """ <i>{title}</i>" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-SA 4.0 INT'L LICENSE</a>."""
+        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-SHAREALIKE 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
+        'template_web': """ <i>{title}</i> IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-SA 4.0 INT`L LICENSE</a>."""
     },
     {
         'number': 4,
         'code': 'CC BY-NC',
         'url': 'http://creativecommons.org/licenses/by-nc/4.0',
-        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}."""
-        'template_web': """ <i>{title}</i>" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-NC 4.0 INT'L LICENSE</a>."""
+        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
+        'template_web': """ <i>{title}</i> IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-NC 4.0 INT`L LICENSE</a>."""
     },
     {
         'number': 5,
         'code': 'CC BY-NC-ND',
         'url': 'http://creativecommons.org/licenses/by-nc-nd/4.0',
-        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}."""
-        'template_web': """ <i>{title}</i>" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-NC-ND 4.0 INT'L LICENSE</a>."""
+        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
+        'template_web': """ <i>{title}</i> IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-NC-ND 4.0 INT`L LICENSE</a>."""
     },
     {
         'number': 6,
         'code': 'CC BY-NC-SA',
         'url': 'http://creativecommons.org/licenses/by-nc-sa/4.0',
-        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-SHAREALIKE 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}."""
-        'template_web': """ <i>{title}</i>" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-NC-SA 4.0 INT'L LICENSE</a>."""
+        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-SHAREALIKE 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
+        'template_web': """ <i>{title}</i> IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE <a herf="{url}">CC BY-NC-SA 4.0 INT`L LICENSE</a>."""
     },
     {
         'number': 7,
         'code': 'All Rights Reserved',
         'url': '',
-        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
-        'template_web': """ <i>{title}</i>" IS COPYRIGHT (C) {year} BY {owner}.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
+        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.""",
+        'template_web': """ <i>{title}</i> IS COPYRIGHT (C) {year} BY {owner}.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
     },
 ]
 
@@ -192,7 +192,8 @@ def main():
             cc_licence.update_record(
                 code=template.code,
                 url=template.url,
-                template=template.template
+                template_img=template.template_img,
+                template_web=template.template_web
             )
             db.commit()
         else:

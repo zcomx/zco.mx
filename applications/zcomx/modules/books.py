@@ -1071,7 +1071,7 @@ def read_link(db, book_entity, components=None, **attributes):
     return A(*components, **kwargs)
 
 
-def render_cc_licence(book_entity, cc_licence_entity=None):
+def render_cc_licence(book_entity, cc_licence_entity=None, template_field='template_web'):
     """Render the cc licence for the book.
 
     Args:
@@ -1107,7 +1107,7 @@ def render_cc_licence(book_entity, cc_licence_entity=None):
 
     scrub = lambda x: x.upper().replace("'", '`') if x else 'n/a'
 
-    text = cc_licence_record.template.format(
+    text = cc_licence_record[template_field].format(
 
         owner=scrub(creator_formatted_name(creator_record)),
         title=scrub(book_record.name),

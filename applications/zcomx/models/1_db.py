@@ -269,7 +269,8 @@ db.define_table('cc_licence',
     Field('number', 'integer'),
     Field('code'),
     Field('url'),
-    Field('template'),
+    Field('template_img'),
+    Field('template_web'),
     migrate=True,
 )
 
