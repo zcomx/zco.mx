@@ -2080,7 +2080,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .sp-replacer {
     border: 1px solid #666666;
-    padding: 3px;
+    padding: 2px 3px;
 }
 
 .sp-preview {
@@ -2090,6 +2090,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .sp-dd {
+    line-height: inherit;
     padding: 0;
 }
 
@@ -2127,6 +2128,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #book_edit_section .editableform .control-group {
+    margin-bottom: 1em;
     vertical-align: top;
 }
 
@@ -2207,29 +2209,34 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #book_edit_section .field_container_reader {
-    min-width: 3em;
-}
-
-#book_edit_section #book_reader_info {
-    color: #666666;
-    margin-top: 2px;
+    min-width: 2.8em;
 }
 
 #book_edit_section .info_icon_container {
+    color: #666666;
     font-size: 13px;
+    line-height: 1.2em;
     margin: 0;
     padding: 0;
-    padding-bottom: 0.6em;
+    vertical-align: top;
 }
 
 #book_edit_section #description {
-    color: #666666;
-    font-size: 9pt;
+    color: #BBBBBB;
+    font-size: 13px;
+}
+
+#book_edit_section #cc_licence_id {
+    font-size: 13px;
+}
+#book_edit_section .editable-radiolist label > span, .editable-radiolist-w-info label > span {
+    margin-right: 0.4em;
 }
 
 #book_edit_section .cc_licences_info_link_container {
-    padding-top: 5.4em;
-    font-size: 10pt;
+    padding: 3em 0.3em 0 1em;
+    font-size: 9pt;
+    text-align: justify;
 }
 
 #book_delete_section .instruction em {
@@ -2278,6 +2285,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-bottom: -5px;
     border-top-color: #999999;
     border-width: 10px 10px 0;
+}
+
+#book_edit_section .field_container_cc_licence_id .tooltip-inner {
+    max-width: 30em;
+    text-align: justify;
 }
 
 #help_section ul {
