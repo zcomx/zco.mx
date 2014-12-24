@@ -842,7 +842,7 @@ def render_cc_licence(book_entity, cc_licence_entity=None):
     else:
         years = '{f}-{l}'.format(f=year_list[0], l=year_list[-1])
 
-    scrub = lambda x: x.upper() if x else 'n/a'
+    scrub = lambda x: x.upper().replace("'", '`') if x else 'n/a'
 
     text = cc_licence_record.template.format(
 
