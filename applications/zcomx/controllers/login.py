@@ -234,7 +234,7 @@ def book_edit():
     numbers = numbers_for_book_type(db, book_type_id)
 
     show_cc_licence_place = False
-    if book_record.cc_licence_id == 1:          # FIXME don't hardcode 1, match on CC0
+    if book_record and book_record.cc_licence_id == 1:          # FIXME don't hardcode 1, match on CC0
         show_cc_licence_place = True
     return dict(
         book=book_record,
