@@ -2132,6 +2132,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     vertical-align: top;
 }
 
+#book_edit_section .field_container_reader .editableform .control-group,
+#book_edit_section .field_container_cc_licence_place .editableform .control-group {
+    margin-bottom: 0em;
+}
+
 #book_edit_section .editable-container.editable-inline {
     vertical-align: top;
 }
@@ -2139,11 +2144,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #book_edit_section .book_publication_year_input,
 #book_edit_section .book_reader_input,
 #book_edit_section .book_number_input,
-#book_edit_section .book_of_number_input {
+#book_edit_section .book_of_number_input,
+#book_edit_section .book_cc_licence_place_input {
     border: none;
     color: #333333;
     height: inherit;
-    padding: 2px 0 0;
+    padding: 0 2px 0 0;
     transition: none;
 }
 
@@ -2155,7 +2161,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     vertical-align: middle;
 }
 
-#book_edit_section .book_description_input {
+#book_edit_section .book_description_input,
+#profile_page .creator_bio_input {
     border-color: #999999;
     color: #333333;
     transition: none;
@@ -2178,7 +2185,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     #book_edit_section .field_container_description {
         max-width: 20em;
     }
-    #book_edit_section .book_description_input {
+    #book_edit_section .book_description_input,
+    #profile_page .creator_bio_input {
         width: 24em;
     }
     #edit_links_container .field_container {
@@ -2212,6 +2220,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     min-width: 2.8em;
 }
 
+#book_edit_section .field_container_cc_licence_place {
+    min-width: 5.6em;
+}
+
 #book_edit_section .info_icon_container {
     color: #666666;
     font-size: 13px;
@@ -2221,14 +2233,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     vertical-align: top;
 }
 
-#book_edit_section #description {
+#book_edit_section .editable-empty, .editable-empty:hover, .editable-empty:focus {
     color: #BBBBBB;
     font-size: 13px;
 }
 
-#book_edit_section #cc_licence_id {
-    font-size: 13px;
-}
 #book_edit_section .editable-radiolist label > span, .editable-radiolist-w-info label > span {
     margin-right: 0.4em;
 }

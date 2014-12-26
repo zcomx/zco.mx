@@ -1,5 +1,13 @@
 ``
 VERSION 2 - Before Going Live
+[ ] Login -> Book -> Add
+    I get this on both dev.zco.mx and jimk.zsw.ca:
+
+        Server error
+
+        The server was not able to display the requested page.
+
+
 [x] Update FAQ
     [x] Intro Email
         Have Sara edit the intro email for cartoonists as she sees fit.
@@ -14,6 +22,13 @@ VERSION 2 - Before Going Live
         Have Sara edit the cartoonist FAQ as she sees fit.
 
 [x] css - https://dev.zco.mx/contributions/modal
+[/] css - sync up book edit page and profile
+    [x] book edit -> Reader -> choosing causes a jump
+    [x] book edit -> CC0 too small
+    [x] book edit -> Licence Territory (i)
+    [x] book edit -> Licence Territory -> remove border
+    [x] profile -> bio -> text box width is too narrow
+    [J] book edit -> Licence (i)'s missing div's
 
 [x] Rename github account zcomx
 
@@ -72,6 +87,9 @@ VERSION 2 - Before Going Live
     Can we downscale the web images for the thumbnails and remove the
     actual thumbnails?
     [ ] Testing
+
+[ ] Rethink Crowdfunding Idea
+    see email with blumenstein
 
 [ ] Terms and Conditions
 
