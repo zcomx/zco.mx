@@ -25,9 +25,11 @@ from applications.zcomx.modules.books import \
     DEFAULT_BOOK_TYPE, \
     book_page_for_json, \
     book_pages_as_json, \
+    book_pages_years, \
     book_types, \
     by_attributes, \
     calc_contributions_remaining, \
+    cc_licence_data, \
     contribute_link, \
     contributions_remaining_by_creator, \
     contributions_target, \
@@ -344,12 +346,41 @@ class TestFunctions(ImageTestCase):
             }
         )
 
+    def test__book_pages_years(self):
+        book = self.add(db.book, dict(name='test__book_pages_years'))
+
+        self.assertEqual(book_pages_years(book), [])
+
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            created_on='2010-12-31 01:01:01',
+        ))
+
+        self.assertEqual(book_pages_years(book), [2010])
+
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=2,
+            created_on='2011-12-31 01:01:01',
+        ))
+
+        self.assertEqual(book_pages_years(book), [2010, 2011])
+
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=3,
+            created_on='2014-12-31 01:01:01',
+        ))
+
+        self.assertEqual(book_pages_years(book), [2010, 2011, 2014])
+
     def test__book_types(self):
         xml = book_types(db)
         expect = (
-            """{'value':'1', 'text':'Ongoing (eg 001, 002, 003, etc)'},"""
-            """{'value':'2', 'text':'Mini-series (eg 01 of 04)'},"""
-            """{'value':'3', 'text':'One-shot/Graphic Novel'}"""
+            """{"value":"1", "text":"Ongoing (eg 001, 002, 003, etc)"},"""
+            """{"value":"2", "text":"Mini-series (eg 01 of 04)"},"""
+            """{"value":"3", "text":"One-shot/Graphic Novel"}"""
         )
         self.assertEqual(xml.xml(), expect)
 
@@ -457,6 +488,74 @@ class TestFunctions(ImageTestCase):
             amount=35.99,
         ))
         self.assertEqual(calc_contributions_remaining(db, book), 49.01)
+
+    def test__cc_licence_data(self):
+        self.assertRaises(NotFoundError, cc_licence_data, -1)
+
+        book = self.add(db.book, dict(
+            name='test__cc_licence_data',
+            creator_id=-1,
+        ))
+
+        # no creator
+        self.assertRaises(NotFoundError, cc_licence_data, book)
+
+        auth_user = self.add(db.auth_user, dict(name='Test CC Licence Data'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+
+        book.update_record(creator_id=creator.id)
+        self.assertEqual(
+            cc_licence_data(book),
+            {
+                'owner': 'Test CC Licence Data',
+                'year': '2014',
+                'place': None,
+                'title': 'test__cc_licence_data'
+            }
+        )
+
+        book.update_record(cc_licence_place='Canada')
+        self.assertEqual(
+            cc_licence_data(book),
+            {
+                'owner': 'Test CC Licence Data',
+                'year': '2014',
+                'place': 'Canada',
+                'title': 'test__cc_licence_data'
+            }
+        )
+
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            created_on='2010-12-31 01:01:01',
+        ))
+
+        self.assertEqual(
+            cc_licence_data(book),
+            {
+                'owner': 'Test CC Licence Data',
+                'year': '2010',
+                'place': 'Canada',
+                'title': 'test__cc_licence_data'
+            }
+        )
+
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=2,
+            created_on='2014-12-31 01:01:01',
+        ))
+
+        self.assertEqual(
+            cc_licence_data(book),
+            {
+                'owner': 'Test CC Licence Data',
+                'year': '2010-2014',
+                'place': 'Canada',
+                'title': 'test__cc_licence_data'
+            }
+        )
 
     def test__contribute_link(self):
         empty = '<span></span>'
@@ -783,7 +882,6 @@ class TestFunctions(ImageTestCase):
                 self.assertEqual(book_page.id, expect.id)
             else:
                 self.assertRaises(NotFoundError, get_page, book, **kwargs)
-
 
         for page_no in ['first', 'last', 1, 2, None]:
             do_test(page_no, None)

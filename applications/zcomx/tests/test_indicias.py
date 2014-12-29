@@ -6,28 +6,52 @@
 Test suite for zcomx/modules/indicias.py
 
 """
+import datetime
 import os
 import shutil
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
+from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
     CreatorIndiciaPage, \
-    IndiciaPage
+    IndiciaPage, \
+    cc_licence_places, \
+    cc_licences, \
+    render_cc_licence
 from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.utils import NotFoundError
 
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+# (C0301): *Line too long (%%s/%%s)*
+# pylint: disable=C0301
 
 
 class TestIndiciaPage(LocalTestCase):
     def test____init__(self):
         indicia = IndiciaPage(None)
         self.assertTrue(indicia)
+
+    def test__default_licence(self):
+        indicia = IndiciaPage(None)
+        default = indicia.default_licence()
+        self.assertEqual(default.code, 'All Rights Reserved')
+        fields = ['id', 'number', 'code', 'url', 'template_img', 'template_web']
+        for f in fields:
+            self.assertTrue(f in default.keys())
+
+    def test__licence_text(self):
+        indicia = IndiciaPage(None)
+        this_year = datetime.date.today().year
+        self.assertEqual(
+            indicia.licence_text(),
+            ' <i>NAME OF BOOK</i> IS COPYRIGHT (C) {y} BY CREATOR NAME.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+        )
 
     def test__render(self):
         indicia = IndiciaPage(None)
@@ -46,9 +70,9 @@ class TestIndiciaPage(LocalTestCase):
         #           <div>contact info: http://1234.zco.mx</div>
         #         </div>
         #         <div>
-        #     NAME OF BOOK copyright @ 2014 by CREATOR NAME
-        #     All rights reserved. No copying without written
-        #     consent from the author.
+        #          <i>NAME OF BOOK</i> IS COPYRIGHT (C) 2014 BY CREATOR NAME.
+        #          ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST
+        #          BE OBTAINED FROM THE AUTHOR.
         #         </div>
         #     </div>
         # </div>
@@ -64,7 +88,7 @@ class TestIndiciaPage(LocalTestCase):
         div_2a = div_2.div
         self.assertTrue(div_2a.string.startswith('If you enjoyed '))
         div_2b = div_2a.nextSibling
-        self.assertTrue(div_2b.string.find('All rights reserved') > 0)
+        self.assertTrue('ALL RIGHTS RESERVED' in div_2b.contents[2])
 
         # test orientation
         got = indicia.render(orientation='landscape')
@@ -101,7 +125,7 @@ class TestIndiciaPage(LocalTestCase):
             'contact info: http://1234.zco.mx'
         )
         div_2c = div_2b.nextSibling
-        self.assertTrue(div_2c.string.find('All rights reserved') > 0)
+        self.assertTrue('ALL RIGHTS RESERVED' in div_2c.contents[2])
 
         # test creator with indicia
         indicia = IndiciaPage(None)
@@ -168,6 +192,33 @@ class TestBookIndiciaPage(LocalTestCase):
         indicia = BookIndiciaPage(book)
         self.assertTrue(indicia)
 
+    def test__licence_text(self):
+        auth_user = self.add(db.auth_user, dict(name='Test Licence Text'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        book = self.add(db.book, dict(
+            name='test__licence_text',
+            creator_id=creator.id,
+        ))
+
+        indicia = BookIndiciaPage(book)
+        this_year = datetime.date.today().year
+        self.assertEqual(
+            indicia.licence_text(),
+            ' <i>TEST__LICENCE_TEXT</i> IS COPYRIGHT (C) {y} BY TEST LICENCE TEXT.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+        )
+
+        query = (db.cc_licence.code == 'CC BY')
+        cc_licence = db(query).select().first()
+        book.update_record(cc_licence_id=cc_licence.id)
+        db.commit()
+        book = db(db.book.id == book.id).select().first()
+
+        indicia = BookIndiciaPage(book)
+        self.assertEqual(
+            indicia.licence_text(),
+            ' <i>TEST__LICENCE_TEXT</i> IS COPYRIGHT (C) {y} BY TEST LICENCE TEXT.  THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0">CC BY 4.0 INT`L LICENSE</a>.'.format(y=this_year)
+        )
+
     def test__render(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
@@ -214,6 +265,109 @@ class TestCreatorIndiciaPage(LocalTestCase):
         creator = self.add(db.creator, dict(path_name='CreatorIndiciaPage'))
         indicia = CreatorIndiciaPage(creator)
         self.assertTrue(indicia)
+
+    def test__licence_text(self):
+        auth_user = self.add(db.auth_user, dict(name='Creator Licence Text'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        this_year = datetime.date.today().year
+
+        indicia = CreatorIndiciaPage(creator)
+        self.assertEqual(
+            indicia.licence_text(),
+            ' <i>NAME OF BOOK</i> IS COPYRIGHT (C) {y} BY CREATOR LICENCE TEXT.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+        )
+
+
+class TestFunctions(LocalTestCase):
+
+    def test__cc_licence_places(self):
+        places = cc_licence_places()
+        got = loads('[' + str(places) + ']')
+        self.assertTrue({'text': 'Canada', 'value': 'Canada'} in got)
+        self.assertTrue(len(got) > 245)
+        for d in got:
+            self.assertEqual(sorted(d.keys()), ['text', 'value'])
+            self.assertEqual(d['text'], d['value'])
+
+    def test__cc_licences(self):
+        auth_user = self.add(db.auth_user, dict(name='Test CC Licence'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        book = self.add(db.book, dict(
+            name='test__cc_licences',
+            creator_id=creator.id,
+        ))
+
+        # Add a cc_licence with quotes in the template. Should be handled.
+        self.add(db.cc_licence, dict(
+            number=999,
+            code='test__cc_licences',
+            url='http://cc_licence.com',
+            template_img='',
+            template_web="""It's {title} the "in" from {owner}."""
+        ))
+
+        licences = cc_licences(book)
+        # loads(dumps(str)) escapes double quotes.
+        got = loads('[' + str(licences) + ']')
+        self.assertEqual(len(got), 8 + 1)
+        for d in got:
+            self.assertEqual(sorted(d.keys()), ['info', 'text', 'value'])
+            query = (db.cc_licence.id == d['value'])
+            cc_licence = db(query).select().first()
+            self.assertEqual(cc_licence.code, d['text'])
+
+    def test__render_cc_licence(self):
+
+        cc_licence = self.add(db.cc_licence, dict(
+            number=999,
+            code='test__render_cc_licence',
+            url='http://cc_licence.com',
+            template_img='The {title} is owned by {owner} for {year} in {place} at {url}.',
+            template_web='THE {title} IS OWNED BY {owner} FOR {year} IN {place} AT {url}.'
+        ))
+
+        this_year = datetime.date.today().year
+
+        tests = [
+            #(data, template, expect)
+            (
+                {},
+                'template_img',
+                'The NAME OF BOOK is owned by CREATOR NAME for {y} in &LT;YOUR COUNTRY&GT; at http://cc_licence.com.'.format(y=this_year)
+            ),
+            (
+                {},
+                'template_web',
+                'THE NAME OF BOOK IS OWNED BY CREATOR NAME FOR {y} IN &LT;YOUR COUNTRY&GT; AT http://cc_licence.com.'.format(y=this_year)
+            ),
+            (
+                {
+                    'title': "My Book's",
+                    'owner': 'Joe Doe',
+                    'year': '1999',
+                    'place': 'Canada'
+                },
+                'template_img',
+                'The MY BOOK`S is owned by JOE DOE for 1999 in CANADA at http://cc_licence.com.'
+            ),
+            (
+                {
+                    'title': "My Book's",
+                    'owner': 'Joe Doe',
+                    'year': '1999',
+                    'place': 'Canada'
+                },
+                'template_web',
+                'THE MY BOOK`S IS OWNED BY JOE DOE FOR 1999 IN CANADA AT http://cc_licence.com.'
+            ),
+        ]
+        for t in tests:
+            self.assertEqual(
+                render_cc_licence(t[0], cc_licence, template_field=t[1]),
+                t[2]
+            )
+
+        self.assertRaises(NotFoundError, render_cc_licence, {}, -1)
 
 
 def setUpModule():

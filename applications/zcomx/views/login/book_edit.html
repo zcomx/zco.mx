@@ -1,6 +1,7 @@
 {{import datetime}}
 {{from gluon.contrib.simplejson import dumps}}
-{{from applications.zcomx.modules.books import book_types, cc_licences, cc_licence_places}}
+{{from applications.zcomx.modules.books import book_types}}
+{{from applications.zcomx.modules.indicias import cc_licences, cc_licence_places}}
 <div id="book_edit_section">
 
 {{if book and not book.status:}}
