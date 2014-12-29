@@ -32,7 +32,7 @@ class TestFunctions(LocalTestCase):
     titles = {
         'account': ['account_profile_container', 'change_password_container'],
         'book_delete': '<div id="book_delete_section">',
-        'book_delete_invalid': 'Invalid data provided.',
+        'book_delete_invalid': 'Invalid data provided',
         'book_edit_no_id': '<div id="book_edit_section">',
         'book_edit': [
             '<div id="book_edit_section">',
@@ -43,7 +43,7 @@ class TestFunctions(LocalTestCase):
         'book_list_ongoing': '<div id="ongoing_container">',
         'book_list_released': '<div id="released_container">',
         'book_pages': '<div id="profile_book_pages_page">',
-        'book_pages_invalid': 'Invalid data provided.',
+        'book_pages_invalid': 'Invalid data provided',
         'book_pages_handler_fail': [
             '{"files":',
             'Upload service unavailable',
@@ -54,13 +54,13 @@ class TestFunctions(LocalTestCase):
         ],
         'book_pages_reorder_fail': [
             '"success": false',
-            '"error": "Reorder service unavailable."',
+            '"error": "Reorder service unavailable"',
         ],
         'book_pages_reorder': [
             '"success": true',
         ],
         'book_release': '<div id="book_release_section">',
-        'book_release_invalid': 'Invalid data provided.',
+        'book_release_invalid': 'Invalid data provided',
         'books': '<div id="ongoing_book_list" class="book_list">',
         'default': '<div id="front_page">',
         'indicia': [
@@ -219,7 +219,7 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"status": "error", "msg": "Invalid data provided."}\n'
+            '{"status": "error", "msg": "Invalid data provided"}\n'
         )
         book = get_book(book_id)
         self.assertEqual(book.name, 'Test Book CRUD')
@@ -234,7 +234,7 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"status": "error", "msg": "Invalid data provided."}\n'
+            '{"status": "error", "msg": "Invalid data provided"}\n'
         )
 
         # Invalid action
@@ -248,7 +248,7 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"status": "error", "msg": "Invalid data provided."}\n'
+            '{"status": "error", "msg": "Invalid data provided"}\n'
         )
 
         # Invalid book id
@@ -262,7 +262,7 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"status": "error", "msg": "Invalid data provided."}\n'
+            '{"status": "error", "msg": "Invalid data provided"}\n'
         )
 
         # Invalid data
@@ -276,7 +276,7 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"status": "error", "msg": "Invalid data provided."}\n'
+            '{"status": "error", "msg": "Invalid data provided"}\n'
         )
 
         # No data
@@ -284,7 +284,7 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"status": "error", "msg": "Invalid data provided."}\n'
+            '{"status": "error", "msg": "Invalid data provided"}\n'
         )
 
         # Delete book
@@ -503,7 +503,7 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"status": "error", "msg": "Invalid data provided."}\n'
+            '{"status": "error", "msg": "Invalid data provided"}\n'
         )
 
         # No data
@@ -511,7 +511,7 @@ class TestFunctions(LocalTestCase):
         web.post(url, data=data)
         self.assertEqual(
             web.text,
-            '{"status": "error", "msg": "Invalid data provided."}\n'
+            '{"status": "error", "msg": "Invalid data provided"}\n'
         )
 
         db(db.creator.id == old_creator.id).update(**old_creator.as_dict())
@@ -717,7 +717,7 @@ class TestFunctions(LocalTestCase):
                 'field': 'url',
                 'value': 'http://www.linkcrud2.com',
             }
-            do_test(record_id, data, [], 'Invalid data provided.')
+            do_test(record_id, data, [], 'Invalid data provided')
 
             # Action: update, Invalid url
             data = {
@@ -771,7 +771,7 @@ class TestFunctions(LocalTestCase):
                 'action': 'delete',
                 'link_id': 0,
             }
-            do_test(record_id, data, [], 'Invalid data provided.')
+            do_test(record_id, data, [], 'Invalid data provided')
 
             reset(record_id, 'test_do_not_delete')
 

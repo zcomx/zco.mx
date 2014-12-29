@@ -232,7 +232,7 @@ def book_types(db):
     )
     return XML(
         ','.join(
-            ["{{'value':'{x.id}', 'text':'{x.description}'}}".format(x=x)
+            ['{{"value":"{x.id}", "text":"{x.description}"}}'.format(x=x)
                 for x in types])
     )
 
@@ -288,272 +288,8 @@ def calc_contributions_remaining(db, book_entity):
     return remaining
 
 
-def cc_licence_places():
-    """Return a XML instance representing book cc licence places suitable for
-    an HTML radio button input.
-
-    """
-    countries = [
-        '',
-        'Afghanistan',
-        'Aland Islands Aland Islands',
-        'Albania',
-        'Algeria',
-        'American Samoa',
-        'Andorra',
-        'Angola',
-        'Anguilla',
-        'Antarctica',
-        'Antigua and Barbuda',
-        'Argentina',
-        'Armenia',
-        'Aruba',
-        'Australia',
-        'Austria',
-        'Azerbaijan',
-        'Bahamas',
-        'Bahrain',
-        'Bangladesh',
-        'Barbados',
-        'Belarus',
-        'Belgium',
-        'Belize',
-        'Benin',
-        'Bermuda',
-        'Bhutan',
-        'Bolivia',
-        'Bosnia and Herzegovina',
-        'Botswana',
-        'Bouvet Island',
-        'Brazil',
-        'British Indian Ocean Territory',
-        'Brunei Darussalam',
-        'Bulgaria',
-        'Burkina Faso',
-        'Burundi',
-        'Cambodia',
-        'Cameroon',
-        'Canada',
-        'Cape Verde',
-        'Cayman Islands',
-        'Central African Republic',
-        'Chad',
-        'Chile',
-        'China Mainland',
-        'Christmas Island',
-        'Cocos (Keeling) Islands',
-        'Colombia',
-        'Comoros',
-        'Congo',
-        'Congo, the Democratic Republic of the',
-        'Cook Islands',
-        'Costa Rica',
-        'Cote d`Ivoire',
-        'Croatia',
-        'Cuba',
-        'Cyprus',
-        'Czech Republic',
-        'Denmark',
-        'Djibouti',
-        'Dominica',
-        'Dominican Republic',
-        'Ecuador',
-        'Egypt',
-        'El Salvador',
-        'Equatorial Guinea',
-        'Eritrea',
-        'Estonia',
-        'Ethiopia',
-        'Falkland Islands (Malvinas)',
-        'Faroe Islands',
-        'Fiji',
-        'Finland',
-        'France',
-        'French Guiana',
-        'French Polynesia',
-        'French Southern Territories',
-        'Gabon',
-        'Gambia',
-        'Georgia',
-        'Germany',
-        'Ghana',
-        'Gibraltar',
-        'Greece',
-        'Greenland',
-        'Grenada',
-        'Guadeloupe',
-        'Guam',
-        'Guatemala',
-        'Guernsey',
-        'Guinea',
-        'Guinea-Bissau',
-        'Guyana',
-        'Haiti',
-        'Heard Island and McDonald Islands',
-        'Holy See (Vatican City State)',
-        'Honduras',
-        'Hong Kong',
-        'Hungary',
-        'Iceland',
-        'India',
-        'Indonesia',
-        'Iran, Islamic Republic of',
-        'Iraq',
-        'Ireland',
-        'Isle of Man',
-        'Israel',
-        'Italy',
-        'Jamaica',
-        'Japan',
-        'Jersey',
-        'Jordan',
-        'Kazakhstan',
-        'Kenya',
-        'Kiribati',
-        'Korea, Democratic People`s Republic of',
-        'Korea, Republic of',
-        'Kuwait',
-        'Kyrgyzstan',
-        'Lao People`s Democratic Republic',
-        'Latvia',
-        'Lebanon',
-        'Lesotho',
-        'Liberia',
-        'Libyan Arab Jamahiriya',
-        'Liechtenstein',
-        'Lithuania',
-        'Luxembourg',
-        'Macao',
-        'Macedonia, the former Yugoslav Republic of',
-        'Madagascar',
-        'Malawi',
-        'Malaysia',
-        'Maldives',
-        'Mali',
-        'Malta',
-        'Marshall Islands',
-        'Martinique',
-        'Mauritania',
-        'Mauritius',
-        'Mayotte',
-        'Mexico',
-        'Micronesia, Federated States of',
-        'Moldova',
-        'Monaco',
-        'Mongolia',
-        'Montenegro',
-        'Montserrat',
-        'Morocco',
-        'Mozambique',
-        'Myanmar',
-        'Namibia',
-        'Nauru',
-        'Nepal',
-        'Netherlands',
-        'Netherlands Antilles',
-        'New Caledonia',
-        'New Zealand',
-        'Nicaragua',
-        'Niger',
-        'Nigeria',
-        'Niue',
-        'Norfolk Island',
-        'Northern Mariana Islands',
-        'Norway',
-        'Oman',
-        'Pakistan',
-        'Palau',
-        'Palestinian Territory, Occupied',
-        'Panama',
-        'Papua New Guinea',
-        'Paraguay',
-        'Peru',
-        'Philippines',
-        'Pitcairn',
-        'Poland',
-        'Portugal',
-        'Puerto Rico',
-        'Qatar',
-        'Reunion',
-        'Romania',
-        'Russian Federation',
-        'Rwanda',
-        'Saint Barthelemy',
-        'Saint Helena',
-        'Saint Kitts and Nevis',
-        'Saint Lucia',
-        'Saint Martin (French part)',
-        'Saint Pierre and Miquelon',
-        'Saint Vincent and the Grenadines',
-        'Samoa',
-        'San Marino',
-        'Sao Tome and Principe',
-        'Saudi Arabia',
-        'Senegal',
-        'Serbia',
-        'Seychelles',
-        'Sierra Leone',
-        'Singapore',
-        'Slovakia',
-        'Slovenia',
-        'Solomon Islands',
-        'Somalia',
-        'South Africa',
-        'South Georgia and the South Sandwich Islands',
-        'Spain',
-        'Sri Lanka',
-        'Sudan',
-        'Suriname',
-        'Svalbard and Jan Mayen',
-        'Swaziland',
-        'Sweden',
-        'Switzerland',
-        'Syrian Arab Republic',
-        'Taiwan',
-        'Tajikistan',
-        'Tanzania, United Republic of',
-        'Thailand',
-        'Timor-Leste',
-        'Togo',
-        'Tokelau',
-        'Tonga',
-        'Trinidad and Tobago',
-        'Tunisia',
-        'Turkey',
-        'Turkmenistan',
-        'Turks and Caicos Islands',
-        'Tuvalu',
-        'Uganda',
-        'Ukraine',
-        'United Arab Emirates',
-        'United Kingdom',
-        'United States',
-        'United States Minor Outlying Islands',
-        'Uruguay',
-        'Uzbekistan',
-        'Vanuatu',
-        'Venezuela',
-        'Viet Nam',
-        'Virgin Islands, British',
-        'Virgin Islands, U.S.',
-        'Wallis and Futuna',
-        'Western Sahara',
-        'Yemen',
-        'Zambia',
-        'Zimbabwe',
-    ]
-
-    return XML(
-        ','.join(
-            ["{{'value':'{x}', 'text':'{x}'}}".format(x=x) for x in countries]
-        )
-    )
-
-
-
-def cc_licences(book_entity):
-    """Return a XML instance representing book cc licences suitable for
-    an HTML radio button input.
+def cc_licence_data(book_entity):
+    """Return data required for the cc licence for the book.
 
     Args:
         book_entity: Row instance or integer, if integer, this is the id of the
@@ -564,18 +300,25 @@ def cc_licences(book_entity):
     if not book_record:
         raise NotFoundError('Book not found, {e}'.format(e=book_entity))
 
-    # {'value': record_id, 'text': description}, ...
-    licences = db(db.cc_licence).select(
-        db.cc_licence.ALL,
-        orderby=db.cc_licence.number
-    )
+    creator_record = entity_to_row(db.creator, book_record.creator_id)
+    if not creator_record:
+        raise NotFoundError('Creator not found, {e}'.format(
+            e=book_record.creator_id))
 
-    info = lambda x: render_cc_licence(book_record, cc_licence_entity=x)
+    year_list = book_pages_years(book_record)
+    if not year_list:
+        year_list = [datetime.date.today().year]
 
-    return XML(
-        ','.join(
-            ["{{'value':'{x.id}', 'text':'{x.code}', 'info': '{i}'}}".format(
-                x=x, i=info(x)) for x in licences])
+    if len(year_list) == 1:
+        years = str(year_list[0])
+    else:
+        years = '{f}-{l}'.format(f=year_list[0], l=year_list[-1])
+
+    return dict(
+        owner=creator_formatted_name(creator_record),
+        title=book_record.name,
+        year=years,
+        place=book_record.cc_licence_place,
     )
 
 
@@ -1033,7 +776,7 @@ def publication_years():
     # {'value': '1900', 'text': '1900'}, ...
     return XML(
         ','.join(
-            ["{{'value':'{x}', 'text':'{x}'}}".format(x=x)
+            ['{{"value":"{x}", "text":"{x}"}}'.format(x=x)
                 for x in range(*publication_year_range())])
     )
 
@@ -1069,53 +812,6 @@ def read_link(db, book_entity, components=None, **attributes):
         kwargs['_href'] = page_url(first_page, extension=False)
 
     return A(*components, **kwargs)
-
-
-def render_cc_licence(book_entity, cc_licence_entity=None, template_field='template_web'):
-    """Render the cc licence for the book.
-
-    Args:
-        book_entity: Row instance or integer, if integer, this is the id of the
-            book. The book record is read.
-        cc_licence_entity: Row instance or integer represent cc_licence.
-            If None, the book.cc_licence_id is used.
-    """
-    db = current.app.db
-    book_record = entity_to_row(db.book, book_entity)
-    if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
-
-    if cc_licence_entity is None:
-        cc_licence_entity = book_record.cc_licence_id
-
-    cc_licence_record = entity_to_row(db.cc_licence, cc_licence_entity)
-    if not cc_licence_record:
-        raise NotFoundError('CC licence not found, {e}'.format(e=cc_licence_entity))
-
-    creator_record = entity_to_row(db.creator, book_record.creator_id)
-    if not creator_record:
-        raise NotFoundError('Creator not found, {e}'.format(e=book_record.creator_id))
-
-    year_list = book_pages_years(book_record)
-    if not year_list:
-        year_list = [datetime.date.today().year]
-
-    if len(year_list) == 1:
-        years = str(year_list[0])
-    else:
-        years = '{f}-{l}'.format(f=year_list[0], l=year_list[-1])
-
-    scrub = lambda x: x.upper().replace("'", '`') if x else 'n/a'
-
-    text = cc_licence_record[template_field].format(
-
-        owner=scrub(creator_formatted_name(creator_record)),
-        title=scrub(book_record.name),
-        year=years,
-        place=scrub(book_record.cc_licence_place or '&lt;your country&gt;'),
-        url=cc_licence_record.url,
-    )
-    return '<div>{t}</div>'.format(t=text)
 
 
 def update_contributions_remaining(db, book_entity):
