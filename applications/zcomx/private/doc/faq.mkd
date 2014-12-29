@@ -62,7 +62,7 @@ The idea behind contributions is to promote a fun way for readers to
 connect with and support self-publishing cartoonists. zco.mx is
 not-for-profit, and all contributions go ''directly'' to cartoonists. If
 a reader really enjoys the comic, they can consider "voting with their
-money".
+money."
 
 Every page that a cartoonist uploads increases the total amount that
 zco.mx hopes to raise for that book by $10, and every dollar that a

@@ -185,5 +185,9 @@ IDEAS
 [ ] how best to promote micro-publishers and things like the Muster List
 [ ] site for original art?
 [ ] youtube/google hangout - drawing of a page live ?
+[ ] RDFa-html meta
+    https://wiki.creativecommons.org/Frequently_Asked_Questions#What_does_it_mean_that_Creative_Commons_licenses_are_.22machine-readable.22.3F
+    http://www.w3.org/TR/html-rdfa/
+[ ] RiP!: remix torrent ?
 ``
 # vim:set ft=dm:

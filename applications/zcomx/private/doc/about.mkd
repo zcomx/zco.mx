@@ -1,4 +1,4 @@
-#### What is zco.mx?
+#### What Is zco.mx?
 zco.mx is a curated not-for-profit comic-sharing website for
 self-publishing cartoonists and their readers. The site brings
 cartoonists together to build and share an audience, and readers can
@@ -80,7 +80,7 @@ intention is to connect cartoonists and readers, not to benefit
 developers.
 
 Site administrators donate their time and the site accepts
-``donations``:contribute_link. which are used to offset hosting costs.
+``donations``:contribute_link, which are used to offset hosting costs.
 Any surplus is put towards the site and its community. The site code is
 open source and made available on [[github https://github.com/zcomix]],
 so the community has an opportunity to contribute features and bug
@@ -88,7 +88,7 @@ fixes.
 
 
 #### Copyright
-By using a [[Creative Commons http://creativecommons.org/]] [[licences
+By using a [[Creative Commons http://creativecommons.org/]] [[licence
 http://creativecommons.org/licenses]], cartoonists also add a level of
 goodwill to the community, by attracting readers and maintaining
 interest in the site.

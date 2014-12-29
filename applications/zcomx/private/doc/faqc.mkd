@@ -11,7 +11,7 @@
 ##### [[Do digital comics take away from paper sales? #digital]]
 ##### [[Doesn't paper offer a superior reading experience? #paper]]
 ##### [[What is a Micropayments Paypal account? #whatmp]]
-##### [[How do I setup a Micropayments Paypal account? #howmp]]
+##### [[How do I set up a Micropayments Paypal account? #howmp]]
 
 -----
 
@@ -186,7 +186,7 @@ digital content.
 #### What is a Micropayments Paypal account?
 To receive payments, we recommend setting up a Micropayments Paypal
 account, which has lower fees for transactions that average $12 or less
-than a Standard account. More information can be found here.
+than a Standard account. More information can be found [[here https://www.paypal.com/ca/webapps/mpp/merchant-fees]].
 
 
 [[howmp]]
@@ -201,4 +201,4 @@ https://www.paypal.com/ca/cgi-bin/webscr?cmd=_contact-phone]]. Their auto-attend
 
 -----
 
-###### [[1]] 1. See, for example, Becky Cloonan, [[Self Publish or Perish http://beckycloonan.tumblr.com/post/71721963332/self-publish-or-perish-a-short-essay-or-4-000]] "...with ComiXology I’m only guaranteed 33 cents on every dollar if it’s bought through the Apple store."
+###### [[1]] 1. See, for example, Becky Cloonan, [[Self Publish or Perish: http://beckycloonan.tumblr.com/post/71721963332/self-publish-or-perish-a-short-essay-or-4-000]] "...with ComiXology I’m only guaranteed 33 cents on every dollar if it’s bought through the Apple store."
