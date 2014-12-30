@@ -5,13 +5,17 @@ INCOME
 EXPENSES
     Jun 2014    Server Hosting          $ 40
     Jun 2014    Domain Registration     $ 45
-    Jun 2014    Contract Work           $225
+    Jun 2014    Contract Work - css     $225
     Jul 2014    Server Hosting          $ 40
     Aug 2014    Server Hosting          $ 40
     Sep 2014    Server Hosting          $ 40
     Oct 2014    Server Hosting          $ 40
-  TOTAL Expense                                 $470
+    Nov 2014    Server Hosting          $ 40
+    Dec 2014    Server Hosting          $ 40
+    Dec 2014    Contract Work - copy    $280
+    Dec 2014    Contract Work - kb      $222
+  TOTAL Expense                                 $1052
 
 
-NET TOTAL                                      -$470
+NET TOTAL                                      -$1052
 ``

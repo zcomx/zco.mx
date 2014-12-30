@@ -1,23 +1,12 @@
 ``
 VERSION 2 - Before Going Live
-[ ] Login -> Book -> Add
-    I get this on both dev.zco.mx and jimk.zsw.ca:
-
-        Server error
-
-        The server was not able to display the requested page.
-
-
 [x] Update FAQ
     [x] Intro Email
         Have Sara edit the intro email for cartoonists as she sees fit.
-
     [x] Goodwill -> About page
         Sara is going to morph the goodwill ideas into an About page
-
     [x] faq
         Have Sara edit the reader FAQ as she sees fit.
-
     [x] faqc
         Have Sara edit the cartoonist FAQ as she sees fit.
 
