@@ -40,6 +40,7 @@ h1, h2, h3, h4, h5 {
 .modal-expanded {
     width: 90%;
     min-width: 10em;
+    max-width: 100em;
 }
 
 .bootstrap-dialog-title {
@@ -1196,7 +1197,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #reader_section,
 #reader_section #slider_page,
 #reader_section #reader_container,
-#reader_section .slide {
+#reader_section .slide,
+#reader_section .indicia_preview_section {
     width: 100%;
     height: 100%;
     margin: 0;
@@ -1772,7 +1774,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding: 1em;
 }
 
-
 #indicia_section .indicia_preview_section {
     border: 1px solid #dddddd;
     display: inline-block;
@@ -1784,7 +1785,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 #indicia_section .indicia_preview_section.portrait .indicia_text_container {
     width: 280px;
-    height: 280px;
+    height: 140px;
     padding: 10px;
 }
 
@@ -1796,7 +1797,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #indicia_section .indicia_preview_section.landscape .indicia_text_container {
     display: inline-block;
     width: 280px;
-    height: 280px;
+    min-height: 140px;
     padding: 10px;
 }
 
@@ -1804,33 +1805,66 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 100%;
 }
 
+.indicia_preview_modal .modal-expanded {
+    width: 90%;
+    min-width: 10em;
+    max-width: 60em;
+}
 
 .indicia_preview_modal .indicia_preview_section.portrait .indicia_image_container {
     width: 100%;
     height: auto;
 }
 .indicia_preview_modal .indicia_preview_section.portrait .indicia_text_container {
-    width: 100%;
     height: auto;
     padding: 10px;
+    text-align: center;
+    width: 100%;
 }
 
 .indicia_preview_modal .indicia_preview_section.landscape .indicia_image_container {
     display: inline-block;
-    width: 49%;
     height: auto;
+    vertical-align: top;
+    width: 49%;
 }
 .indicia_preview_modal .indicia_preview_section.landscape .indicia_text_container {
     display: inline-block;
-    width: 49%;
     height: auto;
     padding: 10px;
+    text-align: center;
+    width: 49%;
 }
 
 .indicia_preview_modal .indicia_image_container img {
     width: 100%;
 }
 
+.indicia_image_container {
+    height: auto;
+    width: auto;
+}
+
+
+.indicia_text_container {
+    font-family: 'sfcartoonisthandbold', sans-serif;
+    font-size: 18pt;
+    white-space: normal;
+    min-height: 5em;
+}
+
+.indicia_text_container .contribute_contact_urls {
+    margin: 1em 0;
+}
+
+#indicia_section .indicia_text_container {
+    text-align: center;
+    font-size: 6pt;
+}
+
+#reader_section .indicia_preview_section {
+    background-color: #ffffff;
+}
 
 /* icon sizes start */
 .size-08 { font-size:  8px; }

@@ -64,7 +64,7 @@ class TestIndiciaPage(LocalTestCase):
         #         <img src="/zcomx/static/images/indicia_image.png" />
         #     </div>
         #     <div class="indicia_text_container">
-        #         <div>If you enjoyed this book... consider giving monies</div>
+        #         <div>IF  YOU  ENJOYED THIS WORK... TUMBLR AND FACEBOOK</div>
         #         <div>
         #           <div>contribute: http://1234.zco.mx/monies</div>
         #           <div>contact info: http://1234.zco.mx</div>
@@ -86,7 +86,7 @@ class TestIndiciaPage(LocalTestCase):
         div_2 = div_1.nextSibling
         self.assertEqual(div_2['class'], 'indicia_text_container')
         div_2a = div_2.div
-        self.assertTrue(div_2a.string.startswith('If you enjoyed '))
+        self.assertTrue(div_2a.string.startswith('IF  YOU  ENJOYED '))
         div_2b = div_2a.nextSibling
         self.assertTrue('ALL RIGHTS RESERVED' in div_2b.contents[2])
 
@@ -112,7 +112,7 @@ class TestIndiciaPage(LocalTestCase):
         div_2 = div_1.nextSibling
         self.assertEqual(div_2['class'], 'indicia_text_container')
         div_2a = div_2.div
-        self.assertTrue(div_2a.string.startswith('If you enjoyed '))
+        self.assertTrue(div_2a.string.startswith('IF  YOU  ENJOYED '))
         div_2b = div_2a.nextSibling
         div_2b1 = div_2b.div
         self.assertTrue(
