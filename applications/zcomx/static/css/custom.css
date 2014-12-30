@@ -1845,12 +1845,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: auto;
 }
 
-
 .indicia_text_container {
     font-family: 'sfcartoonisthandbold', sans-serif;
     font-size: 18pt;
     white-space: normal;
+    margin-left: auto;
+    margin-right: auto;
     min-height: 5em;
+    width: 30em;
 }
 
 .indicia_text_container .contribute_contact_urls {
