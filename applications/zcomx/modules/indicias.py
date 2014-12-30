@@ -72,17 +72,22 @@ class IndiciaPage(object):
             )
 
         text_divs = []
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-        text_divs.append(DIV(
-            """If you enjoyed this book... consider giving monies !!! Or share on twitter, tumblr and facebook!."""
-        ))
+
+        intro = """
+        IF  YOU  ENJOYED THIS WORK YOU CAN
+        HELP OUT BY  GIVING  SOME MONIES!!
+        OR BY TELLING OTHERS ON  TWITTER,
+        TUMBLR  AND  FACEBOOK.
+        """
+        text_divs.append(DIV(intro.strip()))
+
         if self.creator:
             text_divs.append(DIV(
-                DIV('contribute: http://{i:03d}.zco.mx/monies'.format(
+                DIV('CONTRIBUTE MONIES: http://{i:03d}.zco.mx/monies'.format(
                     i=self.creator.id)),
-                DIV('contact info: http://{i:03d}.zco.mx'.format(
+                DIV('CONTACT INFO: http://{i:03d}.zco.mx'.format(
                     i=self.creator.id)),
+                _class='contribute_contact_urls',
             ))
 
         text_divs.append(DIV(XML(self.licence_text())))

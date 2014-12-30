@@ -137,6 +137,12 @@
             var buffer = 10;
             $('#reader_section').height(section_h - buffer);
 
+            /* Set heights of indicia page containers. */
+            var indicia_text_container_h = 300;
+            var indicia_img_h = (section_h - buffer - indicia_text_container_h);
+            $('#reader_section .indicia_text_container').height(indicia_text_container_h);
+            $('#reader_section .indicia_image_container img').height(indicia_img_h);
+
             var left_cursor = num == 0 ? 'auto' : 'w-resize';
             $('#reader_section_left').css({cursor: left_cursor});
             var right_cursor = num == this.image_count() ? 'auto' : 'e-resize';
