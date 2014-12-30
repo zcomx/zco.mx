@@ -43,10 +43,10 @@ def index():
         if router.view == 'books/scroller.html' \
             or router.view == 'books/slider.html':
             response.files.append(
-                URL(
-                    'static',
-                    'fonts/sf_cartoonist/stylesheet.css'
-                )
+                URL('static', 'fonts/sf_cartoonist/stylesheet.css')
+            )
+            response.files.append(
+                URL('static', 'fonts/brushy_cre/stylesheet.css')
             )
         response.view = router.view
     if router.view_dict:
