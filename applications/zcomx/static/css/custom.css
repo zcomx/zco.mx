@@ -1855,6 +1855,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 30em;
 }
 
+.indicia_text_container .call_to_action {
+    font-family: 'brushy_cre', sans-serif;
+}
+
 .indicia_text_container .contribute_contact_urls {
     margin: 1em 0;
 }

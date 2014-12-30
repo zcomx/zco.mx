@@ -79,7 +79,12 @@ class IndiciaPage(object):
         OR BY TELLING OTHERS ON  TWITTER,
         TUMBLR  AND  FACEBOOK.
         """
-        text_divs.append(DIV(intro.strip()))
+        text_divs.append(
+            DIV(
+                intro.strip(),
+                _class='call_to_action',
+            )
+        )
 
         if self.creator:
             text_divs.append(DIV(
@@ -90,7 +95,12 @@ class IndiciaPage(object):
                 _class='contribute_contact_urls',
             ))
 
-        text_divs.append(DIV(XML(self.licence_text())))
+        text_divs.append(
+            DIV(
+                XML(self.licence_text()),
+                _class='copyright_licence',
+            )
+        )
 
         return DIV(
             DIV(

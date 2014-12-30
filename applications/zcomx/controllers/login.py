@@ -691,12 +691,8 @@ def indicia():
         )
     )
 
-    response.files.append(
-        URL(
-            'static',
-            'fonts/sf_cartoonist/stylesheet.css'
-        )
-    )
+    response.files.append(URL('static', 'fonts/sf_cartoonist/stylesheet.css'))
+    response.files.append(URL('static', 'fonts/brushy_cre/stylesheet.css'))
 
     return dict()
 
