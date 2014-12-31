@@ -395,6 +395,42 @@ db.define_table('creator_to_link',
     migrate=True,
 )
 
+db.define_table('derivative',
+    Field(
+        'book_id',
+        'integer',
+    ),
+    Field(
+        'title',
+        label='Derivative Title',
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        'creator',
+        label='Derivative Creator Name',
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        'cc_licence_id',
+        'integer',
+        label='Derivative Licence',
+        requires=IS_IN_DB(db, db.cc_licence.id, '%(code)s', zero=None),
+    ),
+    Field(
+        'from_year',
+        'integer',
+        default=request.now.year,
+        label='Derivative Pub Year',
+    ),
+    Field(
+        'to_year',
+        'integer',
+        default=request.now.year,
+        label='To',
+    ),
+    migrate=True,
+)
+
 db.define_table('link',
     Field('url',
         requires=IS_URL(error_message='Enter a valid URL'),
@@ -466,6 +502,105 @@ db.define_table('paypal_log',
     Field('custom'),
     Field('verify_sign'),
     format='%(txn_id)s',
+    migrate=True,
+)
+
+db.define_table('publication_metadata',
+    Field(
+        'book_id',
+        'integer',
+    ),
+    Field(
+        'republished',
+        'boolean',
+        label='',
+        requires=IS_IN_SET(
+            [True, False],
+            error_message='Please select an option',
+        ),
+    ),
+    Field(
+        'published_type',
+        label='',
+    ),
+    Field(
+        'published_name',
+        label='Original Book Title',
+    ),
+    Field(
+        'published_format',
+        label='Format',
+    ),
+    Field(
+        'publisher_type',
+        label='Publisher',
+    ),
+    Field(
+        'publisher',
+        label='Publisher Name',
+    ),
+    Field(
+        'from_year',
+        'integer',
+        default=str(request.now.year),
+        label='Year',
+    ),
+    Field(
+        'to_year',
+        'integer',
+        default=str(request.now.year),
+        label='To',
+    ),
+    migrate=True,
+)
+
+db.define_table('publication_serial',
+    Field(
+        'book_id',
+        'integer',
+    ),
+    Field(
+        'published_name',
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        'published_format',
+        label='Format',
+        requires=IS_IN_SET(['digital', 'paper']),
+    ),
+    Field(
+        'publisher_type',
+        requires=IS_IN_SET(['press', 'self']),
+    ),
+    Field(
+        'publisher',
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        'story_number',
+        'integer',
+    ),
+    Field(
+        'serial_title',
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        'serial_number',
+        'integer',
+        default=1,
+    ),
+    Field(
+        'from_year',
+        'integer',
+        default=request.now.year,
+        label='Year',
+    ),
+    Field(
+        'to_year',
+        'integer',
+        default=request.now.year,
+        label='To',
+    ),
     migrate=True,
 )
 

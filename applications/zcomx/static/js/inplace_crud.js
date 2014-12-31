@@ -507,20 +507,25 @@
                     link = $(anchor);
                 }
                 link.appendTo(elem);
-                $.fn.inplace_crud_utils.set_editable(
-                    $('#' + field),
-                    settings.auto_open,
-                    {
-                        url: settings.url,
-                        pk: settings.record_id || null,
-                        params: {
-                            '_action': (! settings.record_id || settings.record_id === "0") ? 'create' : 'update',
+                if (data.x_editable_settings.type !== null) {
+                    $.fn.inplace_crud_utils.set_editable(
+                        $('#' + field),
+                        settings.auto_open,
+                        {
+                            url: settings.url,
+                            pk: settings.record_id || null,
+                            params: {
+                                '_action': (! settings.record_id || settings.record_id === "0") ? 'create' : 'update',
+                            },
                         },
-                    },
-                    settings.x_editable_settings,
-                    {'name': field, 'value': data.value},
-                    data.x_editable_settings
-                );
+                        settings.x_editable_settings,
+                        {'name': field, 'value': data.value},
+                        data.x_editable_settings
+                    );
+                } else {
+                    $(link).find('a#' + field).addClass('editable-empty');
+                }
+
                 if (data.callback) {
                     data.callback(link);
                 }

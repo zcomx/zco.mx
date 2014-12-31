@@ -6,6 +6,7 @@
 Utilty classes and functions.
 """
 import os
+import re
 from gluon import *
 from gluon.dal import Row
 
@@ -258,3 +259,38 @@ def reorder(sequential_field, record_ids=None, query=None, start=1):
             (sequential_field != count)       # Only update if value is changed
         db(update_query).update(**{sequential_field.name: count})
         db.commit()
+
+
+def vars_to_records(request_vars, table, multiple=False):
+    """Convert request.vars to dicts representing records in table.
+
+    Args:
+        request_vars: Storage, eg request.vars
+        table: str, name of table
+        multiple: If True, expect multiple records per table.
+            multiple        format
+            False           tablename_fieldname
+            True            tablename_fieldname__n where n is the index
+
+    Returns:
+        list of dicts
+
+    Notes:
+        Generally with multiple=True the index values are sequential starting
+            at 0 but this is not required. Index values can start anywhere,
+            have non-sequential values, and fields are expected to be in
+            random order in request_vars.
+    """
+    records = {}
+    for k, v in sorted(request_vars.items()):
+        if k.find(table) == 0:
+            if multiple:
+                table_field, index = k.split('__')
+            else:
+                table_field, index = k, None
+            field = re.sub(r'^{s}_'.format(s=table), '', table_field)
+            if index not in records:
+                records[index] = {}
+            records[index][field] = v
+
+    return [records[x] for x in sorted(records.keys())]

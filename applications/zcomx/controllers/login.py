@@ -13,13 +13,15 @@ from applications.zcomx.modules.books import \
     defaults as book_defaults, \
     is_releasable, \
     numbers_for_book_type, \
+    publication_year_range, \
     read_link
 from applications.zcomx.modules.creators import image_as_json
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
 from applications.zcomx.modules.indicias import \
-    CreatorIndiciaPage
+    CreatorIndiciaPage, \
+    PublicationMetadata
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import \
     TemporaryDirectory
@@ -234,12 +236,21 @@ def book_edit():
     numbers = numbers_for_book_type(db, book_type_id)
 
     show_cc_licence_place = False
-    if book_record and book_record.cc_licence_id == 1:          # FIXME don't hardcode 1, match on CC0
-        show_cc_licence_place = True
+    if book_record:
+        query = (db.cc_licence.code == 'CC0')
+        cc0_licence = db(query).select().first()
+        if cc0_licence and book_record.cc_licence_id == cc0_licence.id:
+            show_cc_licence_place = True
+
+    meta = PublicationMetadata(book_record)
+    meta.load()
+    import sys; print >> sys.stderr, 'FIXME meta: X{var}X'.format(var=str(meta))
+
     return dict(
         book=book_record,
-        show_cc_licence_place=dumps(show_cc_licence_place),
+        metadata=str(meta),
         numbers=dumps(numbers),
+        show_cc_licence_place=dumps(show_cc_licence_place),
     )
 
 
@@ -400,7 +411,7 @@ def book_pages_reorder():
     if not book_record or book_record.creator_id != creator_record.id:
         return do_error('Reorder service unavailable')
 
-    if not 'book_page_ids[]' in request.vars:
+    if 'book_page_ids[]' not in request.vars:
         # Nothing to do
         return dumps({'success': True})
 
@@ -896,6 +907,254 @@ def modal_error():
     request.vars.message: string, error message
     """
     return dict(message=request.vars.message)
+
+
+@auth.requires_login()
+def metadata_poc():
+    """Temporary controller for metadata POC. FIXME delete"""
+    query = db.book.name == 'Test Do Not Delete'
+    book = db(query).select().first()
+    return dict(book=book)
+
+
+@auth.requires_login()
+def metadata_crud():
+    """Handler for ajax metadata CRUD calls.
+
+    request.args(0): integer, book id.
+
+    request.vars._action: string, 'get', 'update'
+
+        get: Return the metadata in json format.
+        update: expect POST json data and create/update metadata records as
+            necesary.
+    """
+    import sys; print >> sys.stderr, 'FIXME request.vars: {var}'.format(var=request.vars)
+    response.generic_patterns = ['json']
+
+    def do_error(msg=None):
+        """Error handler."""
+        return {'status': 'error', 'msg': msg or 'Server request failed'}
+
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        return do_error('Permission denied')
+
+    # W0212 (protected-access): *Access to a protected member %%s of a client class*
+    # pylint: disable=W0212
+    actions = ['get', 'update']
+    if not request.vars._action or request.vars._action not in actions:
+        return do_error('Invalid data provided')
+    action = request.vars._action
+
+    book_record = None
+    try:
+        book_id = int(request.args(0))
+    except (TypeError, ValueError):
+        return do_error('Invalid data provided')
+    book_record = entity_to_row(db.book, book_id)
+    if not book_record or (
+        book_record and book_record.creator_id != creator_record.id
+    ):
+        return do_error('Invalid data provided')
+
+    if action == 'get':
+        data = {}
+
+        data['publication_metadata'] = {}
+        for f in db.publication_metadata.fields:
+            data['publication_metadata'][f] = {
+                'name': db.publication_metadata[f].name,
+                'label': db.publication_metadata[f].label,
+            }
+
+        published_format_ddm = {
+            'type': 'select',
+            'source': [{'value': 'digital', 'text': 'Digital'}, {'value': 'paper', 'text': 'Paper'}],
+        }
+
+        publisher_type_ddm = {
+            'type': 'select',
+            'source': [{'value': 'press', 'text': 'Press'}, {'value': 'self', 'text': 'Self'}],
+        }
+
+        year_ddm = {
+            'type': 'select',
+            'source': [{'value': x, 'text': x} for x in sorted(range(*publication_year_range()), reverse=True)]
+        }
+
+        data['publication_metadata']['republished'].update({
+            'type': 'select',
+            'source': [{'value': '', 'text': ''}, {'value': 'first', 'text': 'First publication'}, {'value': 'repub', 'text': 'Re-publication'}],
+        })
+
+        data['publication_metadata']['published_type'].update({
+            'type': 'select',
+            'source': [{'value': '', 'text': ''}, {'value': 'whole', 'text': 'Republished - whole'}, {'value': 'serial', 'text': 'Republished -serial'}],
+        })
+
+        data['publication_metadata']['published_format'].update(
+            published_format_ddm)
+        data['publication_metadata']['publisher_type'].update(
+            publisher_type_ddm)
+        data['publication_metadata']['from_year'].update(year_ddm)
+        data['publication_metadata']['to_year'].update(year_ddm)
+
+        data['publication_serial'] = {}
+        for f in db.publication_serial.fields:
+            data['publication_serial'][f] = {
+                'name': db.publication_serial[f].name,
+                'label': db.publication_serial[f].label,
+            }
+
+        data['publication_serial']['published_format'].update(
+            published_format_ddm)
+        data['publication_serial']['publisher_type'].update(
+            publisher_type_ddm)
+        data['publication_serial']['from_year'].update(year_ddm)
+        data['publication_serial']['to_year'].update(year_ddm)
+
+        data['derivative_fields'] = {}
+        for f in db.derivative.fields:
+            data['derivative_fields'][f] = {
+                'name': db.derivative[f].name,
+                'label': db.derivative[f].label,
+            }
+        data['derivative_fields']['is_derivative'] = {
+            'name': 'is_derivative',
+            'label': 'Is this work a derivative?',
+            'type': 'select',
+            'source': [{'value': 'no', 'text': 'No'}, {'value': 'yes', 'text': 'Yes'}],
+        }
+        data['derivative_fields']['from_year'].update(year_ddm)
+        data['derivative_fields']['to_year'].update(year_ddm)
+
+        licences = db(db.cc_licence).select(
+            db.cc_licence.ALL,
+            orderby=db.cc_licence.number
+        )
+
+        data['derivative_fields']['cc_licence_id'].update({
+            'type': 'select',
+            'source': [{'value': x.id, 'text': x.code} for x in licences]
+        })
+
+        data['default'] = {}
+
+        data['default']['publication_metadata'] = {
+            'republished': '',
+            'published_type': '',
+            'published_name': book_record.name,
+            'published_format': 'digital',
+            'publisher_type': 'press',
+            'publisher': '',
+            'from_year': request.now.year,
+            'to_year': request.now.year,
+        }
+
+        data['default']['publication_serial'] = {
+            'published_name': book_record.name,
+            'published_format': 'digital',
+            'publisher_type': 'press',
+            'publisher': '',
+            'story_number': 1,
+            'serial_title': book_record.name,
+            'serial_number': 1,
+            'from_year': request.now.year,
+            'to_year': request.now.year,
+        }
+
+        query = (db.cc_licence.code == CreatorIndiciaPage.default_licence_code)
+        cc_licence = db(query).select().first()
+
+        data['default']['derivative'] = {
+            'is_derivative': 'no',
+            'title': '',
+            'creator': '',
+            'cc_licence_id': cc_licence.id if cc_licence else 0,
+            'from_year': request.now.year,
+            'to_year': request.now.year,
+        }
+
+        query = (db.publication_metadata.book_id == book_record.id)
+        metadata_record = db(query).select(
+            orderby=[db.publication_metadata.id],
+        ).first()
+        if metadata_record:
+            data['metadata'] = metadata_record.as_dict()
+        else:
+            data['metadata'] = data['default']['publication_metadata']
+
+        query = (db.publication_serial.book_id == book_record.id)
+        data['serials'] = db(query).select(
+            orderby=[
+                db.publication_serial.story_number,
+                db.publication_serial.id,
+            ],
+        ).as_list()
+
+        query = (db.derivative.book_id == book_record.id)
+        derivative_record = db(query).select().first()
+        if derivative_record:
+            data['derivative'] = derivative_record.as_dict()
+            data['derivative']['is_derivative'] = 'yes'
+        else:
+            data['derivative'] = data['default']['derivative']
+        return {'status': 'ok', 'data': data}
+
+    if action == 'update':
+        meta = PublicationMetadata(book_record)
+        meta.load_from_vars(dict(request.vars))
+        meta.validate()
+        if meta.errors:
+            return {'status': 'error', 'fields': meta.errors}
+        meta.update()
+        return {'status': 'ok'}
+    return do_error('Invalid data provided')
+
+
+@auth.requires_login()
+def metadata_text():
+    """Handler for ajax call to get metadata text.
+
+    request.args(0): integer, book id.
+
+    request.vars._action: string, 'get', 'update'
+
+        get: Return the metadata in json format.
+        update: expect POST json data and create/update metadata records as
+            necesary.
+    """
+    response.generic_patterns = ['json']
+
+    def do_error(msg=None):
+        """Error handler."""
+        return {'status': 'error', 'msg': msg or 'Server request failed'}
+
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        return do_error('Permission denied')
+
+    book_record = None
+    try:
+        book_id = int(request.args(0))
+    except (TypeError, ValueError):
+        return do_error('Invalid data provided')
+    book_record = entity_to_row(db.book, book_id)
+    if not book_record or (
+        book_record and book_record.creator_id != creator_record.id
+    ):
+        return do_error('Invalid data provided')
+
+    meta = PublicationMetadata(book_record)
+    if not meta:
+        return do_error('Invalid data provided')
+    meta.load()
+    return {'status': 'ok', 'text': str(meta)}
 
 
 @auth.requires_login()

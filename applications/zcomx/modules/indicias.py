@@ -16,7 +16,8 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name
 from applications.zcomx.modules.utils import \
     NotFoundError, \
-    entity_to_row
+    entity_to_row, \
+    vars_to_records
 
 DEFAULT_BOOK_TYPE = 'one-shot'
 
@@ -139,6 +140,7 @@ class BookIndiciaPage(IndiciaPage):
         page.
         """
         db = current.app.db
+        sections = []
         data = cc_licence_data(self.book)
         cc_licence_entity = None
         if self.book.cc_licence_id:
@@ -151,10 +153,16 @@ class BookIndiciaPage(IndiciaPage):
         if not cc_licence_entity:
             cc_licence_entity = self.default_licence()
 
-        return render_cc_licence(
+        sections.append(render_cc_licence(
             data,
             cc_licence_entity
-        )
+        ))
+
+        meta = PublicationMetadata(self.book, first_publication_text='')
+        meta.load()
+        sections.append(str(meta))
+
+        return ' '.join([x for x in sections if x])
 
     def render(self, orientation=None):
         """Render the indicia page."""
@@ -190,6 +198,512 @@ class CreatorIndiciaPage(IndiciaPage):
             data,
             self.default_licence()
         )
+
+
+class PublicationMetadata(object):
+    """Class representing publication metadata"""
+
+    def __init__(
+            self,
+            book_entity,
+            metadata=None,
+            serials=None,
+            derivative=None,
+            first_publication_text=None):
+        """Constructor.
+
+        Args:
+            book_entity: Row instance representing book or integer (id of book)
+            metadata: dict representing publication_metadata record.
+            serials: list of dicts representing publication_serial records.
+            derivative: dict representing derivative record.
+            first_publication_text: string, text to use if this is the first
+                publication. If None, uses 'First publication: zco.mx 2014.'
+        """
+        db = current.app.db
+        book_record = entity_to_row(db.book, book_entity)
+        if not book_record:
+            raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        self.book = book_record
+        self.metadata = metadata if metadata is not None else {}
+        self.serials = serials if serials is not None else []
+        self.derivative = derivative if derivative is not None else {}
+        self.first_publication_text = first_publication_text
+        if first_publication_text is None:
+            fmt = 'First publication: zco.mx {y}.'
+            self.first_publication_text = fmt.format(
+                y=datetime.date.today().year)
+
+        self.errors = {}
+
+    def __str__(self):
+        return ' '.join(self.texts())
+
+    def derivative_text(self):
+        """Return the sentence form of a derivative record.
+
+        Returns: string
+        """
+        db = current.app.db
+        if not self.derivative:
+            return ''
+
+        fmt = (
+            '"{name}" is a derivative of "{title}" '
+            'from {y} by {creator} used under {cc_code}.'
+        )
+
+        years = '-'.join(
+            sorted(set(
+                [
+                    str(self.derivative['from_year']),
+                    str(self.derivative['to_year'])
+                ]
+            ))
+        )
+
+        query = (db.cc_licence.id == self.derivative['cc_licence_id'])
+        cc_licence = db(query).select().first()
+        cc_code = cc_licence.code if cc_licence \
+            else CreatorIndiciaPage.default_licence_code
+
+        return fmt.format(
+            name=self.book.name,
+            title=self.derivative['title'],
+            y=years,
+            creator=self.derivative['creator'],
+            cc_code=cc_code,
+        )
+
+    def load(self):
+        """Load the metadata, serials and derivative data from db."""
+        db = current.app.db
+        ignore_fields = ['id', 'created_on', 'updated_on']
+        scrub = lambda d: {i:d[i] for i in d if i not in ignore_fields}
+
+        self.metadata = {}
+        query = (db.publication_metadata.book_id == self.book.id)
+        metadata = db(query).select()
+        if metadata:
+            self.metadata = scrub(metadata.first().as_dict())
+
+        self.serials = []
+        query = (db.publication_serial.book_id == self.book.id)
+        serials = db(query).select(
+            orderby=[
+                db.publication_serial.story_number,
+                db.publication_serial.id,
+            ],
+        ).as_list()
+        self.serials = [scrub(x) for x in serials]
+
+        self.derivative = {}
+        query = (db.derivative.book_id == self.book.id)
+        derivative = db(query).select()
+        if derivative:
+            self.derivative = scrub(derivative.first().as_dict())
+        return self
+
+    def load_from_vars(self, request_vars):
+        """Set the metadata, serials and derivative properties from
+        request.vars.
+
+        Args:
+            request_vars: dict(request.vars)
+
+        Returns:
+            self
+        """
+        # The request_vars may include the following
+        #     publication_metadata (none or one record)
+        #     publication_serial   (none, one or more records)
+        #     deravitive           (none or one record)
+
+        # Convert republished from string to boolean
+        if 'publication_metadata_republished' in request_vars:
+            if request_vars['publication_metadata_republished'] == 'first':
+                request_vars['publication_metadata_republished'] = False
+            elif request_vars['publication_metadata_republished'] == 'repub':
+                request_vars['publication_metadata_republished'] = True
+            else:
+                # This should trigger a validation error.
+                request_vars['publication_metadata_republished'] = None
+
+        metadatas = vars_to_records(
+            request_vars, 'publication_metadata', multiple=False)
+        if not metadatas:
+            raise NotFoundError('Unable to convert vars to metadata.')
+        self.metadata = metadatas[0]
+        if self.metadata['republished'] \
+                and self.metadata['published_type'] == 'serial':
+            self.serials = vars_to_records(
+                request_vars, 'publication_serial', multiple=True)
+        if 'is_derivative' in request_vars \
+                and request_vars['is_derivative'] == 'yes':
+            derivatives = vars_to_records(
+                request_vars, 'derivative', multiple=False)
+            if not derivatives:
+                raise NotFoundError('Unable to convert vars to derivative.')
+            self.derivative = derivatives[0]
+        else:
+            self.derivative = {}
+        return self
+
+    def metadata_text(self):
+        """Return the sentence form of a publication_metadata record.
+
+        Returns: string
+        """
+        if not self.metadata:
+            return ''
+
+        if not self.metadata['republished']:
+            return self.first_publication_text
+
+        # From here on: self.metadata['republished'] == True
+
+        fmt = (
+            'This work was originally '
+            '{pubr_type} {pubd_type} in {y}{old}{publr}.'
+        )
+        pubr_type = 'self-published' \
+            if self.metadata['published_format'] == 'paper' \
+            and self.metadata['publisher_type'] == 'self' \
+            else 'published'
+        by = 'by' if self.metadata['publisher_type'] == 'press' else 'at'
+        pubd_type = 'digitally' \
+            if self.metadata['published_format'] == 'digital' \
+            else 'in print'
+        years = '-'.join(
+            sorted(
+                set([
+                    str(self.metadata['from_year']),
+                    str(self.metadata['to_year'])
+                ])
+            )
+        )
+
+        publr = ''
+        if self.metadata['publisher']:
+            by = 'by' if self.metadata['publisher_type'] == 'press' else 'at'
+            publr = ' {by} {name}'.format(
+                by=by,
+                name=self.metadata['publisher'],
+            )
+
+        old = ''
+        if self.book.name != self.metadata['published_name']:
+            old = ' as "{name}"'.format(name=self.metadata['published_name'])
+
+        return fmt.format(
+            pubr_type=pubr_type,
+            pubd_type=pubd_type,
+            y=years,
+            old=old,
+            publr=publr.rstrip('.'),
+        )
+
+    def serial_text(self, serial, single=True):
+        """Return the sentence form of a publication_serial record.
+
+        Args:
+            serial: dict representing publication_serial record.
+            single: if False, assume serial is one of several stories.
+
+        Returns: string
+        """
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+
+        if not serial:
+            return ''
+
+        fmt = (
+            '"{story}" was originally '
+            '{pubr_type} {pubd_type} in "{serial}" in {y}{publr}.'
+        )
+        num = ''
+        if not single:
+            num = ' #{num}'.format(num=serial['story_number'])
+        story = '{name}{num}'.format(name=serial['published_name'], num=num)
+
+        pubr_type = 'self-published' \
+            if serial['published_format'] == 'paper' \
+            and serial['publisher_type'] == 'self' \
+            else 'published'
+        by = 'by' if serial['publisher_type'] == 'press' else 'at'
+        pubd_type = 'digitally' \
+            if serial['published_format'] == 'digital' \
+            else 'in print'
+
+        serial_num = ''
+        if serial['serial_number'] and serial['serial_number'] > 1:
+            serial_num = ' #{num}'.format(num=serial['serial_number'])
+        serial_name = '{name}{num}'.format(
+            name=serial['serial_title'], num=serial_num)
+
+        years = '-'.join(
+            sorted(
+                set([str(serial['from_year']), str(serial['to_year'])])
+            )
+        )
+
+        publr = ''
+        if serial['publisher']:
+            by = 'by' if serial['publisher_type'] == 'press' else 'at'
+            publr = ' {by} {name}'.format(
+                by=by,
+                name=serial['publisher'],
+            )
+
+        return fmt.format(
+            story=story,
+            num=num,
+            pubr_type=pubr_type,
+            pubd_type=pubd_type,
+            serial=serial_name,
+            y=years,
+            publr=publr.rstrip('.'),
+        )
+
+    def serials_text(self):
+        """Return a list of sentence forms of publication_serial records.
+
+        Returns: list of strings
+        """
+        single = len(self.serials) <= 1
+        return [self.serial_text(x, single=single) for x in self.serials]
+
+    def texts(self):
+        """Return a list of sentence forms of publication metadata:
+        metadata, serials, and derivative.
+
+        Returns: list of strings
+        """
+        data = []
+        data.append(self.metadata_text())
+        data.extend(self.serials_text())
+        data.append(self.derivative_text())
+        return [x for x in data if x]
+
+    def update(self):
+        """Update db records."""
+        db = current.app.db
+
+        query = (db.publication_metadata.book_id == self.book.id)
+        existing = db(query).select(orderby=[db.publication_metadata.id])
+
+        # There should be exactly one publication_metadata record per book
+        if len(existing) > 1:
+            for record in existing[1:]:
+                db(db.publication_metadata.id == record.id).delete()
+                db.commit()
+
+        if not existing:
+            db.publication_metadata.insert(book_id=self.book.id)
+
+        publication_metadata = db(query).select(
+            orderby=[db.publication_metadata.id],
+        ).first()
+
+        if not publication_metadata:
+            raise NotFoundError('publication_metadata record not found')
+
+        default = dict(
+            book_id=self.book.id,
+            republished=False,
+            published_type='',
+            published_name='',
+            published_format='',
+            publisher_type='',
+            publisher='',
+            from_year=datetime.date.today().year,
+            to_year=datetime.date.today().year,
+        )
+
+        data = dict(default)
+        data.update(self.metadata)
+        publication_metadata.update_record(**data)
+
+        # Update publication_serial records
+        query = (db.publication_serial.book_id == self.book.id)
+        existing = db(query).select(
+            orderby=[
+                db.publication_serial.story_number,
+                db.publication_serial.id,
+            ],
+        )
+
+        if len(self.serials) < len(existing):
+            for serial in existing[len(self.serials):]:
+                db(db.publication_serial.id == serial.id).delete()
+                db.commit()
+
+        if len(self.serials) > len(existing):
+            for serial in self.serials[len(existing):]:
+                db.publication_serial.insert(book_id=self.book.id)
+
+        query = (db.publication_serial.book_id == self.book.id)
+        existing = db(query).select(
+            orderby=[
+                db.publication_serial.story_number,
+                db.publication_serial.id,
+            ],
+        )
+
+        if len(self.serials) != len(existing):
+            raise NotFoundError('publication_serial do not match')
+
+        default = dict(
+            book_id=self.book.id,
+            published_name='',
+            published_format='',
+            publisher_type='',
+            publisher='',
+            story_number=1,
+            serial_title='',
+            serial_number=0,
+            from_year=datetime.date.today().year,
+            to_year=datetime.date.today().year,
+        )
+
+        for c, record in enumerate(self.serials):
+            data = dict(default)
+            data.update(record)
+            existing[c].update_record(**data)
+
+        db.commit()
+
+        # Update derivative record.
+        query = (db.derivative.book_id == self.book.id)
+        existing = db(query).select(orderby=[db.derivative.id])
+
+        # There should at most one derivative record per book
+        if self.derivative:
+            if len(existing) > 1:
+                for record in existing[1:]:
+                    db(db.derivative.id == record.id).delete()
+                    db.commit()
+
+            if not existing:
+                db.derivative.insert(book_id=self.book.id)
+
+            derivative = db(query).select(orderby=[db.derivative.id]).first()
+
+            if not derivative:
+                raise NotFoundError('derivative record not found')
+
+            query = (
+                db.cc_licence.code == CreatorIndiciaPage.default_licence_code)
+            cc_licence = db(query).select().first()
+
+            default = dict(
+                book_id=self.book.id,
+                title='',
+                creator='',
+                cc_licence_id=(cc_licence.id if cc_licence else 0),
+                from_year=datetime.date.today().year,
+                to_year=datetime.date.today().year,
+            )
+
+            data = dict(default)
+            data.update(self.derivative)
+            derivative.update_record(**data)
+            db.commit()
+        else:
+            # Delete any existing records
+            for record in existing:
+                db(db.derivative.id == record.id).delete()
+                db.commit()
+
+    def validate(self):
+        """Validate data.
+
+        Returns:
+            dict, if no errors {}, else {field1: message, field2: message, ...}
+        """
+        db = current.app.db
+        db_meta = db.publication_metadata
+        db_serial = db.publication_serial
+
+        self.errors = {}
+        if self.metadata['republished']:
+            db_meta.published_type.requires = IS_IN_SET(
+                ['whole', 'serial'],
+                error_message='Please select an option',
+            )
+            if self.metadata['published_type'] == 'whole':
+                db_meta.published_name.requires = IS_NOT_EMPTY()
+                db_meta.published_format.requires = IS_IN_SET(
+                    ['digital', 'paper'])
+                db_meta.publisher_type.requires = IS_IN_SET(['press', 'self'])
+                db_meta.publisher.requires = IS_NOT_EMPTY()
+                db_meta.from_year.requires = IS_INT_IN_RANGE(1900, 2999)
+                try:
+                    min_to_year = int(self.metadata['from_year'])
+                except (ValueError, TypeError):
+                    min_to_year = 1900
+                db_meta.to_year.requires = IS_INT_IN_RANGE(
+                    min_to_year, 2999,
+                    error_message='Enter a year {y} or greater'.format(
+                        y=min_to_year)
+                )
+            elif self.metadata['published_type'] == 'serial':
+                db_serial.published_name.requires = IS_NOT_EMPTY()
+                db_serial.published_format.requires = IS_IN_SET(
+                    ['digital', 'paper'])
+                db_serial.publisher_type.requires = IS_IN_SET(
+                    ['press', 'self'])
+                db_serial.publisher.requires = IS_NOT_EMPTY()
+                db_serial.from_year.requires = IS_INT_IN_RANGE(1900, 2999)
+
+        for field, value in self.metadata.items():
+            if field in db_meta.fields:
+                value, error = db_meta[field].validate(value)
+                if error:
+                    key = '{t}_{f}'.format(
+                        t=str(db_meta), f=field)
+                    self.errors[key] = error
+                self.metadata[field] = value
+
+        for index, serial in enumerate(self.serials):
+            for field, value in serial.items():
+                if field in db_serial.fields:
+                    if field == 'to_year':
+                        try:
+                            min_to_year = int(serial['from_year'])
+                        except (ValueError, TypeError):
+                            min_to_year = 1900
+                        db_serial.to_year.requires = IS_INT_IN_RANGE(
+                            min_to_year, 2999,
+                            error_message='Enter a year {y} or greater'.format(
+                                y=min_to_year)
+                        )
+                    value, error = db_serial[field].validate(value)
+                    if error:
+                        key = '{t}_{f}__{i}'.format(
+                            t=str(db_serial), f=field, i=index)
+                        self.errors[key] = error
+                    serial[field] = value
+
+        for field, value in self.derivative.items():
+            if field in db.derivative.fields:
+                if field == 'to_year':
+                    try:
+                        min_to_year = int(self.derivative['from_year'])
+                    except (ValueError, TypeError):
+                        min_to_year = 1900
+                    db.derivative.to_year.requires = IS_INT_IN_RANGE(
+                        min_to_year, 2999,
+                        error_message='Enter a year {y} or greater'.format(
+                            y=min_to_year)
+                    )
+                value, error = db.derivative[field].validate(value)
+                if error:
+                    key = '{t}_{f}'.format(
+                        t=str(db.derivative), f=field)
+                    self.errors[key] = error
+                self.derivative[field] = value
 
 
 def cc_licence_places():

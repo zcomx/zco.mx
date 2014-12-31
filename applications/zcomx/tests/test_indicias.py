@@ -19,10 +19,13 @@ from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
     CreatorIndiciaPage, \
     IndiciaPage, \
+    PublicationMetadata, \
     cc_licence_places, \
     cc_licences, \
     render_cc_licence
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.test_runner import \
+    LocalTestCase, \
+    _mock_date as mock_date
 from applications.zcomx.modules.utils import NotFoundError
 
 # C0111: Missing docstring
@@ -278,6 +281,723 @@ class TestCreatorIndiciaPage(LocalTestCase):
         )
 
 
+class TestPublicationMetadata(LocalTestCase):
+    def test____init__(self):
+        str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
+        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
+        # date.today overridden
+        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
+
+        book = self.add(db.book, dict(
+            name='TestPublicationMetadata',
+        ))
+        meta = PublicationMetadata(book.id)
+        self.assertTrue(meta)
+        self.assertEqual(
+            meta.first_publication_text,
+            'First publication: zco.mx 2014.'
+        )
+
+    def test____str__(self):
+        book = self.add(db.book, dict(name='My Book'))
+
+        meta = PublicationMetadata(book.id)
+        self.assertEqual(str(meta), '')
+
+        meta.metadata = dict(
+            book_id=book.id,
+            republished=True,
+            published_type='whole',
+            published_name='My Old Book',
+            published_format='paper',
+            publisher_type='press',
+            publisher='Acme Pub Inc',
+            from_year=2014,
+            to_year=2015,
+        )
+
+        meta.serials = [
+            dict(
+                book_id=book.id,
+                published_name='My Story',
+                published_format='paper',
+                publisher_type='press',
+                publisher='Acme Pub Inc',
+                story_number=1,
+                serial_title='Aaa Series',
+                serial_number=2,
+                from_year=2014,
+                to_year=2015,
+            ),
+            dict(
+                book_id=book.id,
+                published_name='My Story',
+                published_format='paper',
+                publisher_type='press',
+                publisher='Acme Pub Inc',
+                story_number=2,
+                serial_title='Aaa Series',
+                serial_number=2,
+                from_year=2014,
+                to_year=2015,
+            ),
+        ]
+
+        query = (db.cc_licence.code == 'CC BY-NC-SA')
+        cc_licence = db(query).select().first()
+
+        meta.derivative = dict(
+            book_id=book.id,
+            title='My Derivative',
+            creator='John Doe',
+            cc_licence_id=cc_licence.id,
+            from_year=2014,
+            to_year=2015,
+        )
+
+        self.assertEqual(
+            str(meta),
+            (
+                'This work was originally published in print in 2014-2015 as "My Old Book" by Acme Pub Inc. '
+                '"My Story #1" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc. '
+                '"My Story #2" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc. '
+                '"My Book" is a derivative of "My Derivative" from 2014-2015 by John Doe used under CC BY-NC-SA.'
+            )
+        )
+
+    def test__derivative_text(self):
+
+        # METADATA see mod 12687
+
+        # if [[ derivative ]]; then
+        #     input:their_works_name && input:their_YYYY && input:their_name && their_licence && append [14] to above
+        # fi
+
+        # [14] "Name of Book", is a derivative of "Their work's name" from "their_YYYY" by Their_Name, used under Their_Licence eg CC BY.
+
+        book = self.add(db.book, dict(name='My Book'))
+
+        query = (db.cc_licence.code == 'CC BY-ND')
+        cc_licence = db(query).select().first()
+
+        meta = PublicationMetadata(book.id)
+        derivative = dict(
+            book_id=book.id,
+            title='My Derivative',
+            creator='John Doe',
+            cc_licence_id=cc_licence.id,
+            from_year=2014,
+            to_year=2015,
+        )
+
+        meta.derivative = dict(derivative)
+        self.assertEqual(
+            meta.derivative_text(),
+            '"My Book" is a derivative of "My Derivative" from 2014-2015 by John Doe used under CC BY-ND.'
+        )
+
+    def test__load(self):
+        book = self.add(db.book, dict(
+            name='test__load',
+        ))
+
+        def test_meta(meta, expect):
+            self.assertEqual(meta.metadata, expect.metadata)
+            self.assertEqual(meta.serials, expect.serials)
+            self.assertEqual(meta.derivative, expect.derivative)
+
+        meta = PublicationMetadata(book.id)
+        expect = Storage({})
+        expect.metadata = {}
+        expect.serials = []
+        expect.derivative = {}
+        test_meta(meta, expect)
+        meta.load()
+        test_meta(meta, expect)
+
+        metadata = dict(
+            book_id=book.id,
+            republished=True,
+            published_type='whole',
+            published_name='My Book',
+            published_format='digital',
+            publisher_type='press',
+            publisher='Acme',
+            from_year=2014,
+            to_year=2015,
+        )
+
+        self.add(db.publication_metadata, metadata)
+        meta.load()
+        expect.metadata = metadata
+        test_meta(meta, expect)
+
+        serial_1 = dict(
+            book_id=book.id,
+            published_name='My Book',
+            published_format='digital',
+            publisher_type='press',
+            publisher='Acme',
+            story_number=99,
+            serial_title='Sheerios',
+            serial_number=1,
+            from_year=1998,
+            to_year=1999,
+        )
+
+        serial_2 = dict(
+            book_id=book.id,
+            published_name='My Book 2',
+            published_format='digital',
+            publisher_type='press',
+            publisher='Acme 2',
+            story_number=11,
+            serial_title='Sheerios 2',
+            serial_number=2,
+            from_year=2000,
+            to_year=2001,
+        )
+
+        self.add(db.publication_serial, serial_1)
+        meta.load()
+        expect.metadata = metadata
+        expect.serials = [serial_1]
+        test_meta(meta, expect)
+
+        self.add(db.publication_serial, serial_2)
+        meta.load()
+        expect.metadata = metadata
+        expect.serials = [serial_2, serial_1]   # Sorted by story_number
+        test_meta(meta, expect)
+
+        derivative_data = dict(
+            book_id=book.id,
+            title='Derivative',
+            creator='Dr Drawer',
+            cc_licence_id=1,
+            from_year=2006,
+            to_year=2007,
+        )
+
+        self.add(db.derivative, derivative_data)
+        meta.load()
+        expect.metadata = metadata
+        expect.serials = [serial_2, serial_1]   # Sorted by story_number
+        expect.derivative = derivative_data
+        test_meta(meta, expect)
+
+        # Test chaining.
+        self.assertEqual(meta.load().metadata, expect.metadata)
+        self.assertEqual(
+            str(meta.load()),
+            (
+                'This work was originally published digitally in 2014-2015 as "My Book" by Acme. '
+                '"My Book 2 #11" was originally published digitally in "Sheerios 2 #2" in 2000-2001 by Acme 2. '
+                '"My Book #99" was originally published digitally in "Sheerios" in 1998-1999 by Acme. '
+                '"test__load" is a derivative of "Derivative" from 2006-2007 by Dr Drawer used under CC0.'
+            )
+        )
+
+    def test__metadata_text(self):
+
+        # METADATA see mod 12687
+        # If 'first publication'; then
+        #     echo [1]
+
+        # elif 'republish - in-whole'; then
+        #     if old_bookname == name; then
+        #         [[ digital ]]       && input:site_name  && echo [2]
+        #         [[ paper - press ]] && input:press_name && echo [3]
+        #         [[ paper - self ]]  && [4]
+        #     elif old_bookname != name; then
+        #         input:old_bookname
+        #         [[ digital ]]       && input:site_name  && echo [5]
+        #         [[ paper - press ]] && input:press_name && echo [6]
+        #         [[ paper - self ]]  && [7]
+        #     fi
+
+        #     ---
+        # [1] First publication: zco.mx YYYY.
+        #     ---
+        # [2] This work was originally published digitally in YYYY at username.tumblr.com.
+        #     ---
+        # [3] This work was originally published in print in YYYY by publisher/press.
+        #     ---
+        # [4] This work was originally self-published in print in YYYY.
+        #     ---
+        # [5] This work was originally published digitally in YYYY as old_name at username.tumblr.com.
+        #     ---
+        # [6] This work was originally published in print in YYYY as old_name by publisher/press.
+        #     ---
+        # [7] This work was originally self-published in print as old_name in YYYY.
+        #     ---
+
+        book_name = 'My Book'
+        original_name = 'My Old Book'
+
+        book = self.add(db.book, dict(name=book_name))
+
+        meta = PublicationMetadata(book.id)
+        metadata = Storage(dict(
+            book_id=book.id,
+            republished=False,
+            published_type='',
+            published_name=original_name,
+            published_format='',
+            publisher_type='',
+            publisher='',
+            from_year=2014,
+            to_year=2015,
+        ))
+
+        str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
+        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
+        # date.today overridden
+        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
+
+        # [1]
+        meta.metadata = dict(metadata)
+        self.assertEqual(
+            meta.metadata_text(),
+            'First publication: zco.mx 2014.'
+        )
+        # Test variations on first_publication_text
+
+        meta.first_publication_text = ''
+        self.assertEqual(meta.metadata_text(), '')
+        meta.first_publication_text = 'La de do la de da'
+        self.assertEqual(meta.metadata_text(), 'La de do la de da')
+
+        # [2]
+        meta.metadata = Storage(metadata)
+        meta.metadata.republished = True
+        meta.metadata.published_type = 'whole'
+        meta.metadata.published_name = book_name
+        meta.metadata.published_format = 'digital'
+        meta.metadata.publisher_type = 'self'
+        meta.metadata.publisher = 'tumblr.com'
+        self.assertEqual(
+            meta.metadata_text(),
+            'This work was originally published digitally in 2014-2015 at tumblr.com.'
+        )
+
+        # [3]
+        meta.metadata = Storage(metadata)
+        meta.metadata.republished = True
+        meta.metadata.published_type = 'whole'
+        meta.metadata.published_name = book_name
+        meta.metadata.published_format = 'paper'
+        meta.metadata.publisher_type = 'press'
+        meta.metadata.publisher = 'Acme Pub Inc.'
+        self.assertEqual(
+            meta.metadata_text(),
+            'This work was originally published in print in 2014-2015 by Acme Pub Inc.'
+        )
+
+        # [4]
+        meta.metadata = Storage(metadata)
+        meta.metadata.republished = True
+        meta.metadata.published_type = 'whole'
+        meta.metadata.published_name = book_name
+        meta.metadata.published_format = 'paper'
+        meta.metadata.publisher_type = 'self'
+        meta.metadata.publisher = ''
+        self.assertEqual(
+            meta.metadata_text(),
+            'This work was originally self-published in print in 2014-2015.'
+        )
+
+        # [5]
+        meta.metadata = Storage(metadata)
+        meta.metadata.republished = True
+        meta.metadata.published_type = 'whole'
+        meta.metadata.published_name = original_name
+        meta.metadata.published_format = 'digital'
+        meta.metadata.publisher_type = 'self'
+        meta.metadata.publisher = 'tumblr.com'
+        self.assertEqual(
+            meta.metadata_text(),
+            'This work was originally published digitally in 2014-2015 as "My Old Book" at tumblr.com.'
+        )
+
+        # [6]
+        meta.metadata = Storage(metadata)
+        meta.metadata.republished = True
+        meta.metadata.published_type = 'whole'
+        meta.metadata.published_name = original_name
+        meta.metadata.published_format = 'paper'
+        meta.metadata.publisher_type = 'press'
+        meta.metadata.publisher = 'Acme Pub Inc.'
+        self.assertEqual(
+            meta.metadata_text(),
+            'This work was originally published in print in 2014-2015 as "My Old Book" by Acme Pub Inc.'
+        )
+
+        # [7]
+        meta.metadata = Storage(metadata)
+        meta.metadata.republished = True
+        meta.metadata.published_type = 'whole'
+        meta.metadata.published_name = original_name
+        meta.metadata.published_format = 'paper'
+        meta.metadata.publisher_type = 'self'
+        meta.metadata.publisher = ''
+        self.assertEqual(
+            meta.metadata_text(),
+            'This work was originally self-published in print in 2014-2015 as "My Old Book".'
+        )
+
+    def test__serial_text(self):
+
+        # METADATA see mod 12687
+
+        # elif 'republish - serial/anthology'; then
+        #     while read input; do
+        #         [[ $input == done ]] && coninute
+        #         num=( input:story_name && input:anthology/serial name && input:a/s YYYY )
+        #     done
+
+        #     [[ digital ]] && num=0 && input:site_name && printf [8]
+        #     [[ digital ]] && num>1 && input:site_name && printf [9]
+        #     [[ paper - press ]] && num=0 && input:press_name && echo [10]
+        #     [[ paper - press ]] && num>1 && input:press_name && echo [11]
+        #     [[ paper - self ]] && num=0 && echo [12]
+        #     [[ paper - self ]] && num>1 && echo [13]
+        # fi
+
+        # [8] Story Name was originally published digitally in anthology/serial name in YYYY at username.tumblr.com
+        # [9] Story Name #1 was originally serialized digitally in anthology/serial name in YYYY at username.tumblr.com
+        #     Story Name #2 was originally serialized digitally in anthology/serial name in YYYY at username.tumblr.com
+        #     ...
+        #     ---
+        # [10] Story Name was originally published in print in anthology/serial name in YYYY by publisher/press
+        # [11] Story Name #1 was originally published in print in anthology/serial name in YYYY by publisher/press
+        #      Story Name #2 was originally published in print in anthology/serial name in YYYY by publisher/press
+        #     ...
+        #     ---
+        # [12] Story Name was originally self-published in print in anthology/serial name in YYYY by publisher/press
+        # [13] Story Name #1 was originally self-published in print in anthology/serial name in YYYY by publisher/press
+        #      Story Name #2 was originally self-published in print in anthology/serial name in YYYY by publisher/press
+        #     ...
+
+        book = self.add(db.book, dict(name='test__serials_text'))
+
+        meta = PublicationMetadata(book.id)
+        default_serial = Storage(dict(
+            book_id=book.id,
+            published_name='',
+            published_format='',
+            publisher_type='',
+            publisher='',
+            story_number=0,
+            serial_title='',
+            serial_number=0,
+            from_year=2014,
+            to_year=2015,
+        ))
+
+        # [8]
+        s = Storage(default_serial)
+        s.published_name = 'My Story'
+        s.published_format = 'digital'
+        s.publisher_type = 'self'
+        s.publisher = 'tumblr.com'
+        s.story_number = 1
+        s.serial_title = 'Aaa Series'
+        s.serial_number = 0
+
+        self.assertEqual(
+            meta.serial_text(s, single=True),
+            '"My Story" was originally published digitally in "Aaa Series" in 2014-2015 at tumblr.com.'
+        )
+
+        # [9]
+        s.story_number = 1
+        self.assertEqual(
+            meta.serial_text(s, single=False),
+            '"My Story #1" was originally published digitally in "Aaa Series" in 2014-2015 at tumblr.com.'
+        )
+        s.story_number = 2
+        self.assertEqual(
+            meta.serial_text(s, single=False),
+            '"My Story #2" was originally published digitally in "Aaa Series" in 2014-2015 at tumblr.com.'
+        )
+
+        # [10]
+        s = Storage(default_serial)
+        s.published_name = 'My Story'
+        s.published_format = 'paper'
+        s.publisher_type = 'press'
+        s.publisher = 'Acme Pub Inc.'
+        s.story_number = 1
+        s.serial_title = 'Aaa Series'
+        s.serial_number = 0
+
+        self.assertEqual(
+            meta.serial_text(s, single=True),
+            '"My Story" was originally published in print in "Aaa Series" in 2014-2015 by Acme Pub Inc.'
+        )
+
+        # [11]
+        s.story_number = 1
+        self.assertEqual(
+            meta.serial_text(s, single=False),
+            '"My Story #1" was originally published in print in "Aaa Series" in 2014-2015 by Acme Pub Inc.'
+        )
+        s.story_number = 2
+        self.assertEqual(
+            meta.serial_text(s, single=False),
+            '"My Story #2" was originally published in print in "Aaa Series" in 2014-2015 by Acme Pub Inc.'
+        )
+
+        # [12]
+        s = Storage(default_serial)
+        s.published_name = 'My Story'
+        s.published_format = 'paper'
+        s.publisher_type = 'self'
+        s.publisher = ''
+        s.story_number = 1
+        s.serial_title = 'Aaa Series'
+        s.serial_number = 0
+
+        self.assertEqual(
+            meta.serial_text(s, single=True),
+            '"My Story" was originally self-published in print in "Aaa Series" in 2014-2015.'
+        )
+
+        # [13]
+        s.story_number = 1
+        self.assertEqual(
+            meta.serial_text(s, single=False),
+            '"My Story #1" was originally self-published in print in "Aaa Series" in 2014-2015.'
+        )
+        s.story_number = 2
+        self.assertEqual(
+            meta.serial_text(s, single=False),
+            '"My Story #2" was originally self-published in print in "Aaa Series" in 2014-2015.'
+        )
+
+        # Test serial_number variations.
+        s.serial_number = 1
+        self.assertEqual(
+            meta.serial_text(s, single=False),
+            '"My Story #2" was originally self-published in print in "Aaa Series" in 2014-2015.'
+        )
+        s.serial_number = 2
+        self.assertEqual(
+            meta.serial_text(s, single=False),
+            '"My Story #2" was originally self-published in print in "Aaa Series #2" in 2014-2015.'
+        )
+
+    def test__serials_text(self):
+        book = self.add(db.book, dict(name='test__serials_text'))
+
+        meta = PublicationMetadata(book.id)
+        serial_1 = Storage(dict(
+            book_id=book.id,
+            published_name='My Story',
+            published_format='paper',
+            publisher_type='press',
+            publisher='Acme Pub Inc',
+            story_number=1,
+            serial_title='Aaa Series',
+            serial_number=2,
+            from_year=2014,
+            to_year=2015,
+        ))
+
+        serial_2 = Storage(dict(
+            book_id=book.id,
+            published_name='My Story',
+            published_format='paper',
+            publisher_type='press',
+            publisher='Acme Pub Inc',
+            story_number=2,
+            serial_title='Aaa Series',
+            serial_number=2,
+            from_year=2014,
+            to_year=2015,
+        ))
+
+        meta.serials = [serial_1]
+        self.assertEqual(
+            meta.serials_text(),
+            ['"My Story" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.']
+        )
+
+        meta.serials = [serial_1, serial_2]
+        self.assertEqual(
+            meta.serials_text(),
+            [
+                '"My Story #1" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.',
+                '"My Story #2" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.',
+            ]
+        )
+
+    def test__texts(self):
+        book = self.add(db.book, dict(name='My Book'))
+
+        meta = PublicationMetadata(book.id)
+
+        meta.metadata = dict(
+            book_id=book.id,
+            republished=True,
+            published_type='whole',
+            published_name='My Old Book',
+            published_format='paper',
+            publisher_type='press',
+            publisher='Acme Pub Inc',
+            from_year=2014,
+            to_year=2015,
+        )
+
+        meta.serials = [
+            dict(
+                book_id=book.id,
+                published_name='My Story',
+                published_format='paper',
+                publisher_type='press',
+                publisher='Acme Pub Inc',
+                story_number=1,
+                serial_title='Aaa Series',
+                serial_number=2,
+                from_year=2014,
+                to_year=2015,
+            ),
+            dict(
+                book_id=book.id,
+                published_name='My Story',
+                published_format='paper',
+                publisher_type='press',
+                publisher='Acme Pub Inc',
+                story_number=2,
+                serial_title='Aaa Series',
+                serial_number=2,
+                from_year=2014,
+                to_year=2015,
+            ),
+        ]
+
+        query = (db.cc_licence.code == 'CC BY-NC-SA')
+        cc_licence = db(query).select().first()
+
+        meta.derivative = dict(
+            book_id=book.id,
+            title='My Derivative',
+            creator='John Doe',
+            cc_licence_id=cc_licence.id,
+            from_year=2014,
+            to_year=2015,
+        )
+
+        self.assertEqual(
+            meta.texts(),
+            [
+                'This work was originally published in print in 2014-2015 as "My Old Book" by Acme Pub Inc.',
+                '"My Story #1" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.',
+                '"My Story #2" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.',
+                '"My Book" is a derivative of "My Derivative" from 2014-2015 by John Doe used under CC BY-NC-SA.',
+            ]
+        )
+
+    def test__update(self):
+        # invalid-name (C0103): *Invalid %%s name "%%s"*
+        # pylint: disable=C0103
+        book = self.add(db.book, dict(
+            name='test__update',
+        ))
+
+        meta = PublicationMetadata(book.id)
+
+        def get_metadatas(book_id):
+            query = (db.publication_metadata.book_id == book_id)
+            return db(query).select(
+                orderby=[db.publication_metadata.id],
+            )
+
+        def get_serials(book_id):
+            query = (db.publication_serial.book_id == book_id)
+            return db(query).select(
+                orderby=[
+                    db.publication_serial.story_number,
+                    db.publication_serial.id,
+                ],
+            )
+
+        self.assertEqual(len(get_metadatas(book.id)), 0)
+        self.assertEqual(len(get_serials(book.id)), 0)
+
+        # Add blank record
+        meta.metadata = {}
+        meta.serials = [{}]
+        meta.update()
+        got = get_metadatas(book.id)
+        self.assertEqual(len(got), 1)
+        metadata_id = got[0].id
+
+        got = get_serials(book.id)
+        self.assertEqual(len(got), 1)
+        serial_ids = [got[0].id]
+
+        # Add populated records
+        meta.metadata = {'publisher': 'aaa'}
+        meta.serials = [
+            {
+                'publisher': 'bbb',
+                'story_number': 1,
+            },
+            {
+                'publisher': 'ccc',
+                'story_number': 2,
+            },
+        ]
+
+        meta.update()
+        got = get_metadatas(book.id)
+        self.assertEqual(len(got), 1)
+        self.assertEqual(got[0].publisher, 'aaa')
+        # existing record should be reused.
+        self.assertTrue(got[0].id == metadata_id)
+
+        got = get_serials(book.id)
+        self.assertEqual(len(got), 2)
+        self.assertEqual(got[0].publisher, 'bbb')
+        self.assertEqual(got[0].story_number, 1)
+        self.assertEqual(got[1].publisher, 'ccc')
+        self.assertEqual(got[1].story_number, 2)
+
+        # existing record should be reused.
+        self.assertTrue(got[0].id in serial_ids or got[1].id in serial_ids)
+        serial_ids = [got[0].id, got[1].id]
+
+        # Add fewer serial records
+        meta.serials = [
+            {
+                'publisher': 'ddd',
+                'story_number': 3,
+            },
+        ]
+
+        meta.update()
+        got = get_metadatas(book.id)
+        self.assertEqual(len(got), 1)
+        self.assertEqual(got[0].publisher, 'aaa')
+        # existing record should be reused.
+        self.assertTrue(got[0].id == metadata_id)
+
+        got = get_serials(book.id)
+        self.assertEqual(len(got), 1)
+        self.assertEqual(got[0].publisher, 'ddd')
+        self.assertEqual(got[0].story_number, 3)
+        # existing record should be reused.
+        self.assertTrue(got[0].id in serial_ids)
+
+        # cleanup
+        for record in get_metadatas(book.id):
+            self._objects.append(record)
+        for record in get_serials(book.id):
+            self._objects.append(record)
+
+
 class TestFunctions(LocalTestCase):
 
     def test__cc_licence_places(self):
@@ -329,7 +1049,7 @@ class TestFunctions(LocalTestCase):
         this_year = datetime.date.today().year
 
         tests = [
-            #(data, template, expect)
+            # (data, template, expect)
             (
                 {},
                 'template_img',

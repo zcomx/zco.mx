@@ -12,6 +12,7 @@ import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.dal import Reference
+from gluon.storage import Storage
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     ItemDescription, \
@@ -20,7 +21,8 @@ from applications.zcomx.modules.utils import \
     markmin, \
     markmin_content, \
     move_record, \
-    reorder
+    reorder, \
+    vars_to_records
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -310,6 +312,49 @@ class TestFunctions(LocalTestCase):
         reorder(db.test__reorder.order_no)
         self.assertEqual(self._ordered_values(), ['a', 'c', 'd'])
         self.assertEqual(self._ordered_values(field='order_no'), [1, 2, 3])
+
+    def test__vars_to_records(self):
+        tests = [
+            #(vars, table, multiple, expect)
+            ({}, '', False, []),
+            ({}, '', True, []),
+            (
+                {
+                    'a_name': 1,
+                    'a_type': 2,
+                    'b_size': 3,
+                    'a_field_name': 4,
+                    'a_wide_0': 5,
+                },
+                'a',
+                False,
+                [{'name': 1, 'type': 2, 'field_name': 4, 'wide_0': 5}]
+            ),
+            # Handle mixed and missing indexes.
+            (
+                {
+                    'a_b_field_name__2': 22,
+                    'a_b_name__4': 111,
+                    'a_b_field_name__0': 2,
+                    'a_b_name__0': 1,
+                    'a_b_field_name__4': 222,
+                    'a_b_name__2': 11,
+                },
+                'a_b',
+                True,
+                [
+                    {'name': 1, 'field_name': 2},
+                    {'name': 11, 'field_name': 22},
+                    {'name': 111, 'field_name': 222},
+                ]
+            ),
+        ]
+
+        for t in tests:
+            self.assertEqual(
+                vars_to_records(Storage(t[0]), t[1], multiple=t[2]),
+                t[3]
+            )
 
 
 def setUpModule():

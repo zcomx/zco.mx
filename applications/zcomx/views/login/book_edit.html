@@ -17,6 +17,7 @@
 {{pass}}
 
 <div id="editable_fields_container"></div>
+<div id="metadata_fields_container" class="hidden"></div>
 <div id="links_container">
     <div id="edit_links_container"></div>
 </div>
@@ -206,6 +207,46 @@
                     'type': 'select',
                 },
             },
+            'publication_metadata': {
+                'label': 'Publication Metadata',
+                'value': '{{=metadata or "Click to edit"}}',
+                'callback': function(elem) {
+                    {{if metadata: }}
+                    $(elem).find('.field_container').find('a').removeClass('editable-empty');
+                    {{pass}}
+                    $('#publication_metadata').click(function(e){
+                        $('#metadata_fields_container').metadata_crud(
+                            '{{=URL(c='login', f='metadata_crud.json', args=book.id)}}',
+                            '{{=book.id}}',
+                            {
+                                'on_submit_success': function() {
+                                    $('#metadata_fields_container').addClass('hidden');
+                                    var anchor = $(elem).find('.field_container').find('a');
+                                    if (anchor) {
+                                        jQuery.ajax({
+                                            url: '{{=URL(c='login', f='metadata_text.json', args=book.id)}}',
+                                            type: 'POST',
+                                            error: function (data, textStatus) {
+                                                console.log('textStatus: %o', textStatus);
+                                            },
+                                            success: function (data) {
+                                                if (data.status == 'ok') {
+                                                    anchor.text(data.text);
+                                                    anchor.removeClass('editable-empty');
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        );
+                        $('#metadata_fields_container').toggleClass('hidden');
+                    });
+                },
+                'x_editable_settings': {
+                    'type': null,
+                },
+            },
         };
     {{else:}}
         {{# Add mode}}
@@ -361,7 +402,6 @@
 
             }, 300);
         {{pass}}
-
         set_number_containers({{=XML(numbers)}});
         set_cc_licence_place({{=XML(show_cc_licence_place)}});
     });
