@@ -627,44 +627,45 @@ class PublicationMetadata(object):
         db_serial = db.publication_serial
 
         self.errors = {}
-        if self.metadata['republished']:
-            db_meta.published_type.requires = IS_IN_SET(
-                ['whole', 'serial'],
-                error_message='Please select an option',
-            )
-            if self.metadata['published_type'] == 'whole':
-                db_meta.published_name.requires = IS_NOT_EMPTY()
-                db_meta.published_format.requires = IS_IN_SET(
-                    ['digital', 'paper'])
-                db_meta.publisher_type.requires = IS_IN_SET(['press', 'self'])
-                db_meta.publisher.requires = IS_NOT_EMPTY()
-                db_meta.from_year.requires = IS_INT_IN_RANGE(1900, 2999)
-                try:
-                    min_to_year = int(self.metadata['from_year'])
-                except (ValueError, TypeError):
-                    min_to_year = 1900
-                db_meta.to_year.requires = IS_INT_IN_RANGE(
-                    min_to_year, 2999,
-                    error_message='Enter a year {y} or greater'.format(
-                        y=min_to_year)
+        if self.metadata:
+            if self.metadata['republished']:
+                db_meta.published_type.requires = IS_IN_SET(
+                    ['whole', 'serial'],
+                    error_message='Please select an option',
                 )
-            elif self.metadata['published_type'] == 'serial':
-                db_serial.published_name.requires = IS_NOT_EMPTY()
-                db_serial.published_format.requires = IS_IN_SET(
-                    ['digital', 'paper'])
-                db_serial.publisher_type.requires = IS_IN_SET(
-                    ['press', 'self'])
-                db_serial.publisher.requires = IS_NOT_EMPTY()
-                db_serial.from_year.requires = IS_INT_IN_RANGE(1900, 2999)
+                if self.metadata['published_type'] == 'whole':
+                    db_meta.published_name.requires = IS_NOT_EMPTY()
+                    db_meta.published_format.requires = IS_IN_SET(
+                        ['digital', 'paper'])
+                    db_meta.publisher_type.requires = IS_IN_SET(['press', 'self'])
+                    db_meta.publisher.requires = IS_NOT_EMPTY()
+                    db_meta.from_year.requires = IS_INT_IN_RANGE(1900, 2999)
+                    try:
+                        min_to_year = int(self.metadata['from_year'])
+                    except (ValueError, TypeError):
+                        min_to_year = 1900
+                    db_meta.to_year.requires = IS_INT_IN_RANGE(
+                        min_to_year, 2999,
+                        error_message='Enter a year {y} or greater'.format(
+                            y=min_to_year)
+                    )
+                elif self.metadata['published_type'] == 'serial':
+                    db_serial.published_name.requires = IS_NOT_EMPTY()
+                    db_serial.published_format.requires = IS_IN_SET(
+                        ['digital', 'paper'])
+                    db_serial.publisher_type.requires = IS_IN_SET(
+                        ['press', 'self'])
+                    db_serial.publisher.requires = IS_NOT_EMPTY()
+                    db_serial.from_year.requires = IS_INT_IN_RANGE(1900, 2999)
 
-        for field, value in self.metadata.items():
-            if field in db_meta.fields:
-                value, error = db_meta[field].validate(value)
-                if error:
-                    key = '{t}_{f}'.format(
-                        t=str(db_meta), f=field)
-                    self.errors[key] = error
-                self.metadata[field] = value
+            for field, value in self.metadata.items():
+                if field in db_meta.fields:
+                    value, error = db_meta[field].validate(value)
+                    if error:
+                        key = '{t}_{f}'.format(
+                            t=str(db_meta), f=field)
+                        self.errors[key] = error
+                    self.metadata[field] = value
 
         for index, serial in enumerate(self.serials):
             for field, value in serial.items():

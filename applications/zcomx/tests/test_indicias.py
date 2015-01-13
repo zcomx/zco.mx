@@ -498,6 +498,114 @@ class TestPublicationMetadata(LocalTestCase):
             )
         )
 
+    def test__load_from_vars(self):
+        book = self.add(db.book, dict(
+            name='test__load_from_vars',
+        ))
+
+        meta = PublicationMetadata(book.id)
+        self.assertEqual(meta.metadata, {})
+        self.assertEqual(meta.serials, [])
+        self.assertEqual(meta.derivative, {})
+
+        metadata = dict(
+            republished='first',
+            published_type='whole',
+            published_name='My Book',
+            published_format='paper',
+            publisher_type='press',
+            publisher='Acme',
+            from_year=1999,
+            to_year=2000,
+        )
+
+        serials = [
+            dict(
+                published_name='My Story',
+                published_format='paper',
+                publisher_type='press',
+                publisher='Acme Pub Inc',
+                story_number=1,
+                serial_title='Aaa Series',
+                serial_number=2,
+                from_year=2014,
+                to_year=2015,
+            ),
+            dict(
+                published_name='My Story',
+                published_format='paper',
+                publisher_type='press',
+                publisher='Acme Pub Inc',
+                story_number=2,
+                serial_title='Aaa Series',
+                serial_number=2,
+                from_year=2014,
+                to_year=2015,
+            )
+        ]
+
+        derivative = dict(
+            title='My Derivative',
+            creator='John Doe',
+            cc_licence_id=1,
+            from_year=2014,
+            to_year=2015,
+        )
+
+        request_vars = {}
+        for k, v in metadata.items():
+            request_vars['publication_metadata_' + k] = v
+        for count, serial in enumerate(serials):
+            for k, v in serial.items():
+                request_vars['publication_serial_' + k + '__' + str(count)] = v
+        for k, v in derivative.items():
+            request_vars['derivative_' + k] = v
+        request_vars['is_derivative'] = 'no'
+
+        meta.load_from_vars(request_vars)
+        expect = dict(metadata)
+        expect['republished'] = False
+        self.assertEqual(meta.metadata, expect)
+        self.assertEqual(len(meta.serials), 0)
+        self.assertEqual(meta.derivative, {})
+
+        request_vars['publication_metadata_republished'] = 'repub'
+        request_vars['publication_metadata_published_type'] = 'whole'
+        meta.load_from_vars(request_vars)
+        self.assertEqual(len(meta.serials), 0)
+
+        request_vars['publication_metadata_republished'] = 'repub'
+        request_vars['publication_metadata_published_type'] = 'serial'
+        meta.load_from_vars(request_vars)
+        self.assertEqual(len(meta.serials), 2)
+        self.assertEqual(meta.serials[0], serials[0])
+        self.assertEqual(meta.serials[1], serials[1])
+
+        request_vars['is_derivative'] = 'yes'
+        meta.load_from_vars(request_vars)
+        self.assertEqual(meta.derivative, derivative)
+
+        # Test 'republished' variations
+        tests = [
+            #(republished, expect)
+            ('', None),
+            ('first', False),
+            ('repub', True),
+            ('_fake_', None),
+        ]
+        for t in tests:
+            request_vars['publication_metadata_republished'] = t[0]
+            meta.load_from_vars(request_vars)
+            self.assertEqual(meta.metadata['republished'], t[1])
+
+        # Test chaining.   FIXME
+        request_vars['publication_metadata_republished'] = 'repub'
+        request_vars['publication_metadata_published_type'] = 'whole'
+        expect = dict(metadata)
+        expect['republished'] = True
+        self.assertEqual(meta.load_from_vars(request_vars).metadata, expect)
+
+
     def test__metadata_text(self):
 
         # METADATA see mod 12687
@@ -996,6 +1104,71 @@ class TestPublicationMetadata(LocalTestCase):
             self._objects.append(record)
         for record in get_serials(book.id):
             self._objects.append(record)
+
+    def test__validate(self):
+        book = self.add(db.book, dict(
+            name='test__validate',
+        ))
+
+        meta = PublicationMetadata(book.id)
+        self.assertEqual(meta.errors, {})
+        meta.validate()
+        self.assertEqual(meta.errors, {})
+
+        metadata = dict(
+            republished=True,
+            published_type='whole',
+            published_name='My Book',
+            published_format='paper',
+            publisher_type='press',
+            publisher='Acme',
+            from_year=1999,
+            to_year=2000,
+        )
+
+        serials = [
+            dict(
+                published_name='My Story',
+                published_format='paper',
+                publisher_type='press',
+                publisher='Acme Pub Inc',
+                story_number=1,
+                serial_title='Aaa Series',
+                serial_number=2,
+                from_year=2014,
+                to_year=2015,
+            ),
+            dict(
+                published_name='My Story',
+                published_format='paper',
+                publisher_type='press',
+                publisher='Acme Pub Inc',
+                story_number=2,
+                serial_title='Aaa Series',
+                serial_number=2,
+                from_year=2014,
+                to_year=2015,
+            )
+        ]
+
+        derivative = dict(
+            title='My Derivative',
+            creator='John Doe',
+            cc_licence_id=1,
+            from_year=2014,
+            to_year=2015,
+        )
+
+        meta.metadata = metadata
+        meta.validate()
+        self.assertEqual(meta.errors, {})
+
+        meta.metadata['published_type'] = '_fake_'
+        meta.validate()
+        self.assertEqual(
+            meta.errors['publication_metadata_published_type'],
+           'Please select an option'
+        )
 
 
 class TestFunctions(LocalTestCase):
