@@ -992,7 +992,7 @@ def metadata_crud():
 
         data['publication_metadata']['published_type'].update({
             'type': 'select',
-            'source': [{'value': '', 'text': ''}, {'value': 'whole', 'text': 'Republished - whole'}, {'value': 'serial', 'text': 'Republished -serial'}],
+            'source': [{'value': '', 'text': ''}, {'value': 'whole', 'text': 'Republished - whole'}, {'value': 'serial', 'text': 'Republished - serial'}],
         })
 
         data['publication_metadata']['published_format'].update(
