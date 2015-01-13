@@ -135,15 +135,17 @@
                 })).append($('<span>').text(this.sourceData[i].text)
                 ).append($icon_span);
 
-                // Add radio buttons to template
-                this.$tpl.append($label);
-
-                $('#' + $icon_id).tooltip({
+                $icon_span.tooltip({
                     'html': true,
                     'title': this.sourceData[i].info,
-                    'template': '<div class="tooltip ' + $item_id + '_tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+                    'template': '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+                    'delay': { "show": 200, "hide": 200 },
                 });
+
+                // Add radio buttons to template
+                this.$tpl.append($label);
             }
+
 
             this.$input = this.$tpl.find('input[type="radio"]');
         },

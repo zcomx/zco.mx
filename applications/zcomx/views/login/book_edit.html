@@ -116,10 +116,11 @@
                 'value': '{{=book.reader if book else db.book.reader.default}}',
                 'info': '<span class="btn info_icon_container"><i id="book_reader_info" class="icon zc-info"></i></span>',
                 'callback': function(elem) {
-                        $('#book_reader_info').tooltip({
+                        $('#book_reader_info').closest('.info_icon_container').tooltip({
                             'html': true,
                             'title': '<div><b>scroller</b> - vertical layout, several images per page</div><div><b>slider</b> - horizontal layout, one image per page</div>',
                             'template': '<div class="tooltip book_reader_tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+                            'delay': { "show": 200, "hide": 200 },
                         });
                 },
                 'x_editable_settings': {
@@ -195,10 +196,11 @@
                 'value': '{{=book.cc_licence_place if book and book.cc_licence_place else ""}}',
                 'info': '<span class="btn info_icon_container"><i id="book_cc_licence_place_info" class="icon zc-info"></i></span>',
                 'callback': function(elem) {
-                        $('#book_cc_licence_place_info').tooltip({
+                        $('#book_cc_licence_place_info').closest('.info_icon_container').tooltip({
                             'html': true,
                             'title': '<div>Jurisdiction from which the work is being offered under CC0.</div>',
                             'template': '<div class="tooltip book_cc_licence_place_tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+                            'delay': { "show": 200, "hide": 200 },
                         });
                 },
                 'x_editable_settings': {

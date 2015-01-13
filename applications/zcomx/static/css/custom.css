@@ -2274,7 +2274,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-size: 13px;
     line-height: 1.2em;
     margin: 0;
-    padding: 0;
+    padding: 0.1em 0.1em;
     vertical-align: top;
 }
 
