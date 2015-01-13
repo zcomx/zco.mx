@@ -236,19 +236,19 @@ def book_edit():
     numbers = numbers_for_book_type(db, book_type_id)
 
     show_cc_licence_place = False
+    meta = None
     if book_record:
         query = (db.cc_licence.code == 'CC0')
         cc0_licence = db(query).select().first()
         if cc0_licence and book_record.cc_licence_id == cc0_licence.id:
             show_cc_licence_place = True
 
-    meta = PublicationMetadata(book_record)
-    meta.load()
-    import sys; print >> sys.stderr, 'FIXME meta: X{var}X'.format(var=str(meta))
+        meta = PublicationMetadata(book_record)
+        meta.load()
 
     return dict(
         book=book_record,
-        metadata=str(meta),
+        metadata=str(meta) if meta else '',
         numbers=dumps(numbers),
         show_cc_licence_place=dumps(show_cc_licence_place),
     )
@@ -929,7 +929,6 @@ def metadata_crud():
         update: expect POST json data and create/update metadata records as
             necesary.
     """
-    import sys; print >> sys.stderr, 'FIXME request.vars: {var}'.format(var=request.vars)
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
