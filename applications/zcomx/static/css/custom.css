@@ -1856,11 +1856,16 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .indicia_text_container .call_to_action {
-    font-family: 'brushy_cre', sans-serif;
+    font-family: 'brushy_creregular', sans-serif;
+    font-size: 28px;
 }
 
 .indicia_text_container .contribute_contact_urls {
     margin: 1em 0;
+}
+
+.indicia_text_container .copyright_licence {
+    font-size: 14px;
 }
 
 #indicia_section .indicia_text_container {
