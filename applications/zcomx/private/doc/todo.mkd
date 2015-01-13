@@ -21,11 +21,9 @@ VERSION 2 - Before Going Live
 
 [x] Rename github account zcomx
 
-[S] Setup mailing list
+[ ] Indicia Page - png version
 
-[S] Indicia Page - png version
-
-[S] Indicia Page - html version
+[ ] Indicia Page - html version
     * last page of comic (scroll/slider)
     * call to action
         + donate, download, social media, copyright
@@ -35,9 +33,13 @@ VERSION 2 - Before Going Live
     * upload
     * preview
 
+[S] Get Marc's permission to use Shrimpy
+
 [ ] monies URL
     http://131.zco.mx/monies
     https://zco.mx/monies        ## for zco.mx donation page ?
+
+[S] Setup mailing list
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
@@ -82,10 +84,10 @@ VERSION 2 - Before Going Live
 
 [ ] Terms and Conditions
 
-[ ] Add CC licence to zco.mx
+[ ] Add CC licence to zco.mx footer
                                                  [CC BY]
-    Except where  otherwise noted,  content on this site
-    is licensed under a CC BY 4.0 International license.
+        Except  where  otherwise noted, content  on this
+        site is licenced under a CC BY 4.0 Int'l licence
 
 [ ] Remove 'dev.' from domain name
     Search for all instances of 'dev.zco.mx'
