@@ -986,12 +986,12 @@ def metadata_crud():
 
         data['publication_metadata']['republished'].update({
             'type': 'select',
-            'source': [{'value': '', 'text': ''}, {'value': 'first', 'text': 'First publication'}, {'value': 'repub', 'text': 'Re-publication'}],
+            'source': [{'value': '', 'text': ''}, {'value': 'first', 'text': 'First publication'}, {'value': 'repub', 'text': 'Republication'}],
         })
 
         data['publication_metadata']['published_type'].update({
             'type': 'select',
-            'source': [{'value': '', 'text': ''}, {'value': 'whole', 'text': 'Republished - whole'}, {'value': 'serial', 'text': 'Republished - serial'}],
+            'source': [{'value': '', 'text': ''}, {'value': 'whole', 'text': 'Republication - whole'}, {'value': 'serial', 'text': 'Republication - serial'}],
         })
 
         data['publication_metadata']['published_format'].update(
@@ -1023,7 +1023,7 @@ def metadata_crud():
             }
         data['derivative_fields']['is_derivative'] = {
             'name': 'is_derivative',
-            'label': 'Is this work a derivative?',
+            'label': 'Derivative Work',
             'type': 'select',
             'source': [{'value': 'no', 'text': 'No'}, {'value': 'yes', 'text': 'Yes'}],
         }

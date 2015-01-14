@@ -513,7 +513,7 @@ db.define_table('publication_metadata',
     Field(
         'republished',
         'boolean',
-        label='',
+        label='Publication Type',
         requires=IS_IN_SET(
             [True, False],
             error_message='Please select an option',
@@ -521,7 +521,7 @@ db.define_table('publication_metadata',
     ),
     Field(
         'published_type',
-        label='',
+        label='Republication Type',
     ),
     Field(
         'published_name',
