@@ -10,6 +10,7 @@ import requests
 import os
 import unittest
 from gluon.contrib.simplejson import loads
+from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.test_runner import LocalTestCase
 
 
@@ -81,6 +82,7 @@ class TestFunctions(LocalTestCase):
             'Add</span>',
             'order_no_handler/book_to_link',
         ],
+        'metadata_poc': '<h2>Metadata POC</h2>',
         'modal_error': 'An error occurred. Please try again.',
         'order_no_handler': '<div id="creator_page">',
         'profile': '<div id="creator_section">',
@@ -464,7 +466,7 @@ class TestFunctions(LocalTestCase):
     def test__books(self):
         self.assertTrue(
             web.test(
-                '{url}/books'.format(bid=self._book.id, url=self.url),
+                '{url}/books'.format(url=self.url),
                 self.titles['books']
             )
         )
@@ -774,6 +776,155 @@ class TestFunctions(LocalTestCase):
             do_test(record_id, data, [], 'Invalid data provided')
 
             reset(record_id, 'test_do_not_delete')
+
+    def test__metadata_crud(self):
+
+        book = self.add(db.book, dict(
+            name='test__metadata_crud',
+            creator_id=self._creator.id,
+        ))
+
+        def get_records(table, book_id):
+            """Return a book"""
+            query = (table.book_id == book_id)
+            return db(query).select(table.ALL)
+
+        self.assertEqual(len(get_records(db.publication_metadata, book.id)), 0)
+        self.assertEqual(len(get_records(db.publication_serial, book.id)), 0)
+        self.assertEqual(len(get_records(db.derivative, book.id)), 0)
+
+        web.login()
+
+        # update
+        url = '{url}/metadata_crud.json/{bid}'.format(
+            url=self.url, bid=str(book.id))
+        data = {
+            '_action': 'update',
+            'publication_metadata_republished': 'repub',
+            'publication_metadata_published_type': 'serial',
+            'publication_serial_published_name__0': 'My Story',
+            'publication_serial_story_number__0': '1',
+            'publication_serial_published_name__1': 'My Story',
+            'publication_serial_story_number__1': '2',
+            'is_derivative': 'yes',
+            'derivative_title': 'My D Title',
+            'derivative_creator': 'Creator Smith',
+            'derivative_cc_licence_id': '1',
+        }
+        web.post(url, data)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+
+        metadatas = get_records(db.publication_metadata, book.id)
+        self.assertEqual(len(metadatas), 1)
+        metadata = metadatas[0]
+        self.assertEqual(metadata.republished, True)
+
+        serials = get_records(db.publication_serial, book.id)
+        self.assertEqual(len(serials), 2)
+
+        derivatives = get_records(db.derivative, book.id)
+        self.assertEqual(len(derivatives), 1)
+
+        # get
+        url = '{url}/metadata_crud.json/{bid}'.format(
+            url=self.url, bid=str(book.id))
+        data = {
+            '_action': 'get',
+        }
+        web.post(url, data)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+        self.assertTrue('data' in result)
+        self.assertEqual(
+            sorted(result['data'].keys()),
+            sorted([
+                'default',
+                'publication_metadata',
+                'publication_serial',
+                'derivative',
+                'metadata',
+                'serials',
+                'derivative_fields',
+            ])
+        )
+
+        # Invalids
+
+        # No action
+        url = '{url}/metadata_crud.json/{bid}'.format(
+            url=self.url, bid=str(book.id))
+        data = {
+            '_action': '_fake_',
+            'publication_metadata_republished': 'first',
+        }
+        web.post(url, data)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['msg'], 'Invalid data provided')
+
+        # No book_id
+        url = '{url}/metadata_crud.json'.format(url=self.url)
+        data = {
+            '_action': 'get',
+        }
+        web.post(url, data)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['msg'], 'Invalid data provided')
+
+    def test__metadata_poc(self):
+        self.assertTrue(
+            web.test(
+                '{url}/metadata_poc'.format(url=self.url),
+                self.titles['metadata_poc']
+            )
+        )
+
+    def test__metadata_text(self):
+
+        book = self.add(db.book, dict(
+            name='test__metadata_text',
+            creator_id=self._creator.id,
+        ))
+
+        self.add(db.publication_metadata, dict(
+            book_id=book.id,
+            republished=True,
+            published_type='whole',
+            published_name='My Book',
+            published_format='paper',
+            publisher_type='press',
+            publisher='Acme',
+            from_year=1999,
+            to_year=2000,
+        ))
+
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+
+        text = 'This work was originally published in print in 1999-2000 as "My Book" by Acme.'
+
+        meta = PublicationMetadata(book.id)
+        meta.load()
+        self.assertEqual(str(meta), text)
+
+        web.login()
+
+        url = '{url}/metadata_text.json/{bid}'.format(
+            url=self.url, bid=str(book.id))
+        web.post(url)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+        self.assertEqual(result['text'], text)
+
+        # Invalid book id
+        url = '{url}/metadata_text.json/{bid}'.format(
+            url=self.url, bid=str(9999999))
+        web.post(url)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['msg'], 'Invalid data provided')
 
     def test__modal_error(self):
         self.assertTrue(

@@ -178,8 +178,12 @@
             options
         );
 
-        var containers = {};
-        var form = null;
+        var vars = {
+            'containers': {},
+            'data': null,
+            'form': null,
+        };
+
         var _data = null;
 
         var methods = {
@@ -221,185 +225,45 @@
                 return row;
             },
 
-            _create_form: function(elem, data) {
-                var metadata_fields = data.publication_metadata;
-                var metadata = data.metadata;
-                var serial_fields = data.publication_serial;
-                var serials = data.serials;
-                var derivative_fields = data.derivative_fields;
-                var derivative = data.derivative;
-
-                var row;
+            _create_form: function(elem) {
                 var form_div = $(
-                    '<div>'
-                  + '<form id="idForm">'
-                  + '</form>'
-                  + '</div>'
-                );
-                form_div.appendTo(elem);
-                form = form_div.find('form');
+                    '<div><form></form></div>'
+                ).appendTo(elem);
+                vars.form = form_div.find('form');
 
-                $.each(metadata_fields, function(idx, option) {
-                    metadata_fields[option.name]._class_name = 'publication_metadata_' + option.name;
-                    metadata_fields[option.name]._input_name = 'publication_metadata_' + option.name;
-                });
-
-                var republished = '';
-                if (metadata.republished !== '') {
-                    republished = metadata.republished ? 'repub' : 'first';
-                }
-
-                row = methods._append_row(
-                    form,
-                    metadata_fields.republished,
-                    {
-                        value: republished,
-                        events: {
-                            'change': function(e) {
-                                methods._show();
-                            }
-                        }
-                    }
+                methods._whole_container(
+                    _data.publication_metadata.fields,
+                    _data.publication_metadata.record
                 );
-                containers['republished'] = row;
-
-                row = methods._append_row(
-                    form,
-                    metadata_fields.published_type,
-                    {
-                        value: metadata.published_type,
-                        class: 'hidden',
-                        events: {
-                            'change': function(e) {
-                                methods._show();
-                            }
-                        }
-                    }
-                );
-                containers['published_type'] = row;
-
-                var whole_container = $('<div class="whole_container"></div>')
-                    .addClass('hidden')
-                    .appendTo(form);
-                containers['whole_container'] = whole_container;
-                methods._append_row(whole_container, metadata_fields.published_name,
-                    {
-                        value: metadata.published_name,
-                    }
-                );
-                methods._append_row(whole_container, metadata_fields.published_format,
-                    {
-                        value: metadata.published_format,
-                        events: {
-                            'change': function(e) {
-                                methods._show_published_format($(e.target));
-                            }
-                        }
-                    }
-                );
-                methods._append_row(whole_container, metadata_fields.publisher_type,
-                    {
-                        value: metadata.publisher_type,
-                        events: {
-                            'change': function(e) {
-                                methods._show_publisher_type($(e.target));
-                            }
-                        }
-                    }
-                );
-                methods._append_row(whole_container, metadata_fields.publisher,
-                    {
-                        value: metadata.publisher,
-                    }
-                );
-
-                methods._append_row(whole_container, metadata_fields.from_year,
-                    {
-                        value: metadata.from_year,
-                    }
-                );
-
-                methods._append_row(whole_container, metadata_fields.to_year,
-                    {
-                        value: metadata.to_year,
-                    }
-                );
-
 
                 var serials_container = $('<div class="serials_container"></div>')
                     .addClass('hidden')
-                    .appendTo(form);
-                containers['serials_container'] = serials_container;
+                    .appendTo(vars.form);
+                vars.containers['serials_container'] = serials_container;
 
-
-                if (! serials.length) {
-                    serials = [data.default.publication_serial];
+                if (! _data.publication_serial.records.length) {
+                    _data.publication_serial.records = [_data.publication_serial.default];
                 }
 
-                $.each(serials, function(index, record) {
-                    methods._serial_container(serial_fields, record).appendTo(serials_container);
+                $.each(_data.publication_serial.records, function(index, record) {
+                    methods._serial_container(_data.publication_serial.fields, record).appendTo(serials_container);
                 });
 
-                $.each(derivative_fields, function(idx, option) {
-                    var prefix = option.name == 'is_derivative' ?  '' : 'derivative_';
-                    derivative_fields[option.name]._class_name = prefix + option.name;
-                    derivative_fields[option.name]._input_name = prefix + option.name;
-                });
-
-                row = methods._append_row(
-                    form,
-                    derivative_fields.is_derivative,
-                    {
-                        value: derivative.is_derivative,
-                        events: {
-                            'change': function(e) {
-                                methods._show();
-                            }
-                        }
-                    }
-                );
-                containers['is_derivative'] = row;
-
-                var derivative_container = $('<div class="derivative_container"></div>')
-                    .addClass('hidden')
-                    .appendTo(form);
-                containers['derivative_container'] = derivative_container;
-                methods._append_row(derivative_container, derivative_fields.title,
-                    {
-                        value: derivative.title,
-                    }
-                );
-                methods._append_row(derivative_container, derivative_fields.from_year,
-                    {
-                        value: derivative.from_year,
-                    }
-                );
-                methods._append_row(derivative_container, derivative_fields.to_year,
-                    {
-                        value: derivative.to_year,
-                    }
-                );
-                methods._append_row(derivative_container, derivative_fields.creator,
-                    {
-                        value: derivative.creator,
-                    }
-                );
-                methods._append_row(derivative_container, derivative_fields.cc_licence_id,
-                    {
-                        value: derivative.cc_licence_id,
-                    }
+                methods._derivative_container(
+                    _data.derivative.fields,
+                    _data.derivative.record
                 );
 
-                $('<input type="hidden" name="_action" value="update"/>').appendTo(form);
-                $('<button id="done-btn" class="btn btn-default">done</button>').appendTo(form);
+                $('<input type="hidden" name="_action" value="update"/>').appendTo(vars.form);
+                $('<button id="done-btn" class="btn btn-default">done</button>').appendTo(vars.form);
                 $('#done-btn').click(function(e){
                     $(this).closest('form').submit();
                     e.preventDefault();
                 });
 
-                form.submit(function(e){
+                vars.form.submit(function(e){
                     methods._hide_errors();
-                    methods._sequence_serials(form);
+                    methods._sequence_serials(vars.form);
                     $.ajax({
                         url: settings.url,
                         type: 'POST',
@@ -407,7 +271,7 @@
                         data: $(this).serialize(),
                         complete: function (jqXHR, textStatus) {
                             if($.web2py !== undefined) {
-                                var done_button = form.find('button#done-btn').first();
+                                var done_button = vars.form.find('button#done-btn').first();
                                 $.web2py.enableElement(done_button);
                             }
                         },
@@ -428,16 +292,57 @@
                 });
             },
 
+            _derivative_container: function(fields, record) {
+                $.each(fields, function(idx, option) {
+                    var prefix = option.name == 'is_derivative' ?  '' : 'derivative_';
+                    fields[option.name]._class_name = prefix + option.name;
+                    fields[option.name]._input_name = prefix + option.name;
+                });
+
+                vars.containers['is_derivative'] = methods._append_row(
+                    vars.form,
+                    fields.is_derivative,
+                    {
+                        value: record.is_derivative,
+                        events: {
+                            'change': function(e) {
+                                methods._show();
+                            }
+                        }
+                    }
+                );
+
+                var derivative_container = $('<div class="derivative_container"></div>')
+                    .addClass('hidden')
+                    .appendTo(vars.form);
+                vars.containers['derivative_container'] = derivative_container;
+
+                var display_fields = [
+                    'title',
+                    'from_year',
+                    'to_year',
+                    'creator',
+                    'cc_licence_id'
+                ];
+
+                $.each(display_fields, function(idx, field) {
+                    methods._append_row(
+                        derivative_container,
+                        fields[field],
+                        {value: record[field]}
+                    );
+                });
+            },
+
             _endswith: function(str, suffix) {
                 return str.indexOf(suffix, str.length - suffix.length) !== -1;
             },
 
             _hide_errors: function(data) {
-                form.find('.error_wrapper').hide();
+                vars.form.find('.error_wrapper').hide();
             },
 
             _load: function(elem) {
-                var metadata, derivative_data;
                 $.ajax({
                     url: settings.url,
                     type: 'POST',
@@ -445,7 +350,7 @@
                     data: $.param({_action: 'get'}),
                     success: function (data, textStatus, jqXHR) {
                         _data = data.data;
-                        methods._create_form(elem, data.data);
+                        methods._create_form(elem);
                         methods._show();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
@@ -501,9 +406,9 @@
 
                 if (type == 'plus') {
                     button.find('a').first().click(function(e) {
-                        var last_serial = containers['serials_container'].find('.serial_container').last();
+                        var last_serial = vars.containers['serials_container'].find('.serial_container').last();
                         if (last_serial) {
-                            var klon = last_serial.clone(true).appendTo(containers['serials_container']);
+                            var klon = last_serial.clone(true).appendTo(vars.containers['serials_container']);
                             last_serial.find('select').each(function(i) {
                                 klon.find('select').eq(i).val($(this).val())
                             })
@@ -512,7 +417,7 @@
                                 klon.find(story_num).val(last_serial.find(story_num).val() / 1 + 1);
                             }
                             klon.find('.serial_button_container').replaceWith(methods._serial_button('minus'));
-                            klon.appendTo(containers['serials_container']);
+                            klon.appendTo(vars.containers['serials_container']);
                         }
                         e.preventDefault();
                     });
@@ -537,63 +442,39 @@
                 var button_type = serial_count > 0 ? 'minus' : 'plus';
                 var serial_container = $('<div class="serial_container"></div>')
                 methods._serial_button(button_type).appendTo(serial_container);
-                methods._append_row(serial_container, fields.published_name,
-                    {
-                        value: record.published_name,
-                    }
-                );
-                methods._append_row(serial_container, fields.published_format,
-                    {
-                        value: record.published_format,
+
+                var display_fields = {
+                    'published_name': {},
+                    'published_format': {
                         events: {
                             'change': function(e) {
                                 methods._show_published_format($(e.target));
                             }
                         }
-                    }
-                );
-                methods._append_row(serial_container, fields.publisher_type,
-                    {
-                        value: record.publisher_type,
+                    },
+                    'publisher_type': {
                         events: {
                             'change': function(e) {
                                 methods._show_publisher_type($(e.target));
                             }
                         }
-                    }
-                );
-                methods._append_row(serial_container, fields.publisher,
-                    {
-                        value: record.publisher,
-                    }
-                );
+                    },
+                    'publisher': {},
+                    'story_number': {},
+                    'serial_title': {},
+                    'serial_number': {},
+                    'from_year': {},
+                    'to_year': {},
+                }
 
-                methods._append_row(serial_container, fields.story_number,
-                    {
-                        value: record.story_number,
-                    }
-                );
-                methods._append_row(serial_container, fields.serial_title,
-                    {
-                        value: record.serial_title,
-                    }
-                );
-                methods._append_row(serial_container, fields.serial_number,
-                    {
-                        value: record.serial_number,
-                    }
-                );
-                methods._append_row(serial_container, fields.from_year,
-                    {
-                        value: record.from_year,
-                    }
-                );
+                $.each(display_fields, function(field, options) {
+                    methods._append_row(
+                        serial_container,
+                        fields[field],
+                        $.extend({value: record[field]}, options)
+                    );
+                });
 
-                methods._append_row(serial_container, fields.to_year,
-                    {
-                        value: record.to_year,
-                    }
-                );
                 return serial_container;
             },
 
@@ -606,24 +487,24 @@
                     'is_derivative': true,
                     'derivative_container': false,
                 }
-                var republished = containers['republished'].find('select').val();
+                var republished = vars.containers['republished'].find('select').val();
                 if (!republished) {
                     shows['is_derivative'] = false;
                 } else if (republished == 'repub') {
                     shows['published_type'] = true;
-                    var published_type = containers['published_type'].find('select').val();
+                    var published_type = vars.containers['published_type'].find('select').val();
                     if (published_type == 'whole') {
                         shows['whole_container'] = true;
-                        var published_format_ddm = containers['whole_container'].find('select[name=publication_metadata_published_format]').first();
+                        var published_format_ddm = vars.containers['whole_container'].find('select[name=publication_metadata_published_format]').first();
                         methods._show_published_format(published_format_ddm);
-                        var publisher_type_ddm = containers['whole_container'].find('select[name=publication_metadata_publisher_type]').first();
+                        var publisher_type_ddm = vars.containers['whole_container'].find('select[name=publication_metadata_publisher_type]').first();
                         methods._show_publisher_type(publisher_type_ddm);
                     } else if (published_type == 'serial') {
                         shows['serials_container'] = true;
-                        $.each(containers['serials_container'].find('select[name=publication_serial_published_format]'), function(idx, published_format_ddm) {
+                        $.each(vars.containers['serials_container'].find('select[name=publication_serial_published_format]'), function(idx, published_format_ddm) {
                             methods._show_published_format($(published_format_ddm));
                         });
-                        $.each(containers['serials_container'].find('select[name=publication_serial_publisher_type]'), function(idx, publisher_type_ddm) {
+                        $.each(vars.containers['serials_container'].find('select[name=publication_serial_publisher_type]'), function(idx, publisher_type_ddm) {
                             methods._show_publisher_type($(publisher_type_ddm));
                         });
                     } else {
@@ -632,7 +513,7 @@
                 }
 
                 if (shows['is_derivative'] == true) {
-                    var is_derivative = containers['is_derivative'].find('select').val();
+                    var is_derivative = vars.containers['is_derivative'].find('select').val();
                     if (is_derivative === 'yes') {
                         shows['derivative_container'] = true;
                     }
@@ -640,16 +521,16 @@
 
                 $.each(shows, function(selector, is_shown) {
                     if (is_shown) {
-                        containers[selector].removeClass('hidden');
+                        vars.containers[selector].removeClass('hidden');
                     } else {
-                        containers[selector].addClass('hidden');
+                        vars.containers[selector].addClass('hidden');
                     }
                 });
             },
 
             _show_errors: function(data) {
                 if (data.msg) {
-                    methods._append_error(form, data.msg);
+                    methods._append_error(vars.form, data.msg);
                 }
                 $.each(data.fields, function(field, msg) {
                     var parts = field.split('__');
@@ -700,6 +581,79 @@
                 } else {
                     publisher.closest('.row_container').removeClass('hidden');
                 }
+            },
+
+            _whole_container: function(fields, record) {
+                $.each(fields, function(idx, option) {
+                    fields[option.name]._class_name = 'publication_metadata_' + option.name;
+                    fields[option.name]._input_name = 'publication_metadata_' + option.name;
+                });
+
+                var republished = '';
+                if (record.republished !== '') {
+                    republished = record.republished ? 'repub' : 'first';
+                }
+
+                vars.containers['republished'] = methods._append_row(
+                    vars.form,
+                    fields.republished,
+                    {
+                        value: republished,
+                        events: {
+                            'change': function(e) {
+                                methods._show();
+                            }
+                        }
+                    }
+                );
+
+                vars.containers['published_type'] = methods._append_row(
+                    vars.form,
+                    fields.published_type,
+                    {
+                        value: record.published_type,
+                        'class': 'hidden',
+                        events: {
+                            'change': function(e) {
+                                methods._show();
+                            }
+                        }
+                    }
+                );
+
+                var whole_container = $('<div class="whole_container"></div>')
+                    .addClass('hidden')
+                    .appendTo(vars.form);
+                vars.containers['whole_container'] = whole_container;
+
+                var display_fields = {
+                    'published_name': {},
+                    'published_format': {
+                        events: {
+                            'change': function(e) {
+                                methods._show_published_format($(e.target));
+                            }
+                        }
+                    },
+                    'publisher_type': {
+                        events: {
+                            'change': function(e) {
+                                methods._show_publisher_type($(e.target));
+                            }
+                        }
+                    },
+                    'publisher': {},
+                    'from_year': {},
+                    'to_year': {},
+                }
+
+                $.each(display_fields, function(field, options) {
+                    methods._append_row(
+                        whole_container,
+                        fields[field],
+                        $.extend({value: record[field]}, options)
+                    );
+                });
             }
         };
 
