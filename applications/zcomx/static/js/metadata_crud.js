@@ -1,3 +1,172 @@
+/*
+ * MetadataCrudInput: input for metadata_crud
+ */
+(function ($) {
+    "use strict";
+
+    var MetadataCrudInput = function (element, type, options) {
+        this.init(element, type, options);
+    };
+
+    MetadataCrudInput.prototype = {
+        constructor: MetadataCrudInput,
+        init: function (element, type, options) {
+            this.$element = $(element);
+            this.$type = type;
+            this.options = $.extend(
+                {},
+                $.fn.metadata_crud_input.defaults,
+                options
+            );
+            this.$input = this.create();
+            this.$element.append(this.$input);
+            this.post_create();
+        },
+
+        create: function () {
+            return;
+        },
+
+        post_create: function () {
+            var that = this;
+
+            this.$input.attr('name', this.options.name)
+                .addClass('metadata_crud')
+                .addClass(this.options.class)
+
+            if (this.options.events) {
+                $.each(this.options.events, function(event, callback) {
+                    that.$input.on(event, callback);
+                });
+            }
+        },
+    };
+
+    var SelectMetadataCrudInput = function (element, type, options) {
+        this.init(element, type, options);
+    }
+    $.fn.zco_utils.inherit(SelectMetadataCrudInput, MetadataCrudInput);
+    $.extend(SelectMetadataCrudInput.prototype, {
+        create: function () {
+            var input, option_tag;
+            var that = this;
+            input = $('<select class="form-control"></select>');
+            $.each(this.options.source, function(idx, source_data) {
+                option_tag = $("<option></option>")
+                     .val(source_data.value)
+                     .attr('style', 'color:#333;')
+                     .text(source_data.text);
+                if ('value' in source_data && source_data.value === that.options.value) {
+                     option_tag.attr('selected', 'selected');
+                }
+                if (source_data.value === '' ) {
+                     option_tag.attr('disabled', 'disabled');
+                     option_tag.attr('style', 'display:none;');
+                     option_tag.text('Click to edit');
+                }
+                input.append(option_tag);
+            });
+            return input;
+        },
+    });
+
+    var TextMetadataCrudInput = function (element, type, options) {
+        this.init(element, type, options);
+    }
+    $.fn.zco_utils.inherit(TextMetadataCrudInput, MetadataCrudInput);
+    $.extend(TextMetadataCrudInput.prototype, {
+        create: function () {
+            var input;
+            input = $('<input class="form-control" type="text">');
+            input.attr('value', this.options.value);
+            return input;
+        },
+
+        post_create: function () {
+            TextMetadataCrudInput.superclass.post_create.call(this);
+            this.renderClear();
+        },
+
+
+        /*
+         * renderClear, toggleClear, and clear copied from
+         * ! X-editable - v1.5.1
+         * In-place editing with Twitter Bootstrap, jQuery UI or pure jQuery
+         * http://github.com/vitalets/x-editable
+         * Copyright (c) 2013 Vitaliy Potapov; Licensed MIT
+         */
+        //render clear button
+        renderClear:  function() {
+           this.$clear = $('<span class="editable-clear-x"></span>');
+           this.$input.after(this.$clear)
+                      .css('padding-right', 24)
+                      .keyup($.proxy(function(e) {
+                          //arrows, enter, tab, etc
+                          if(~$.inArray(e.keyCode, [40,38,9,13,27])) {
+                            return;
+                          }
+
+                          clearTimeout(this.t);
+                          var that = this;
+                          this.t = setTimeout(function() {
+                            that.toggleClear(e);
+                          }, 100);
+                      }, this))
+                      .parent().css('position', 'relative');
+           this.$clear.click($.proxy(this.clear, this));
+        },
+
+        //show / hide clear button
+        toggleClear: function(e) {
+            if(!this.$clear) {
+                return;
+            }
+            var len = this.$input.val().length,
+            visible = this.$clear.is(':visible');
+            if(len && !visible) {
+                this.$clear.show();
+            }
+            if(!len && visible) {
+                this.$clear.hide();
+            }
+        },
+
+        clear: function() {
+           this.$clear.hide();
+           this.$input.val('').focus();
+        }
+    });
+
+    $.fn.metadata_crud_input = function (type, options) {
+        var datakey = 'metadata_crud_input';
+        return this.each(function () {
+            var $this = $(this),
+                data = $this.data(datakey)
+
+            if (!data) {
+                var obj = null;
+                switch(type) {
+                    case 'select':
+                        obj = new SelectMetadataCrudInput(this, type, options);
+                        break;
+                    default:
+                        obj = new TextMetadataCrudInput(this, type, options);
+                }
+                $this.data(datakey, (data = obj));
+            }
+        });
+    };
+
+    $.fn.metadata_crud_input.defaults = {
+        'class': '',
+        events: [],
+        'name': '',
+        source: null,
+        value: null,
+    };
+
+}(window.jQuery));
+
 (function( $ ) {
     "use strict";
     $.fn.metadata_crud = function (url, book_id, options) {
@@ -30,38 +199,17 @@
             },
 
             _append_row: function(elem, input_data, options) {
-                var input, option_tag, row_options, row;
-                if (input_data.type === 'select'){
-                    input = $('<select class="form-control"></select>');
-                    $.each(input_data.source, function(idx, source_data) {
-                        option_tag = $("<option></option>")
-                             .val(source_data.value)
-                             .attr('style', 'color:#333;')
-                             .text(source_data.text);
-                        if ('value' in source_data && source_data.value === options.value) {
-                             option_tag.attr('selected', 'selected');
-                        }
-                        if (source_data.value === '' ) {
-                             option_tag.attr('disabled', 'disabled');
-                             option_tag.attr('style', 'display:none;');
-                             option_tag.text('Click to edit');
-                        }
-                        input.append(option_tag);
-                    });
-                } else {
-                    input = $('<input class="form-control" type="text">');
-                    input.attr('value', options.value);
-                }
+                var input, row_options, row;
+                var input_options = {
+                    'class': input_data._class_name + '_input',
+                    events: options.events,
+                    name: input_data._input_name,
+                    source: input_data.source,
+                    value: options.value,
+                };
 
-                input.attr('name', input_data._input_name)
-                    .addClass('metadata_crud')
-                    .addClass(input_data._class_name + '_input')
-
-                if (options.events) {
-                    $.each(options.events, function(event, callback) {
-                        input.on(event, callback);
-                    });
-                }
+                input = $('<div class="editable-input"></div>')
+                    .metadata_crud_input(input_data.type, input_options);
 
                 row_options = {'label': input_data.label};
                 row = methods._row_container(input, input_data._class_name, row_options);
