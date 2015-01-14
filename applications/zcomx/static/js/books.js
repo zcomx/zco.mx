@@ -352,18 +352,12 @@
             });
             return btns;
         },
-        init: function (element, action, options) {
-            options = $.extend(
-                true,
-                {'bootstrap_dialog_options':  {'closable': false}, },
-                options
-            );
-            UploadModalize.superclass.init.call(this, element, action, options);
-        },
+
         onhidden: function(dialog) {
             this.reorder_pages(dialog);
             UploadModalize.superclass.onhidden.call(this, dialog);
         },
+
         reorder_pages: function(dialog) {
             var page_ids = [];
             var book_id = 0;
@@ -429,7 +423,9 @@
     $.fn.modalize.defaults = {
         book_id: null,
         book_title: null,
-        bootstrap_dialog_options: {},
+        bootstrap_dialog_options: {
+            'closable': false,
+        },
         message_panel: '#message_panel',
         onhidden: null,
         onshow: null,

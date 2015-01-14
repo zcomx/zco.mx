@@ -36,9 +36,15 @@
                     $.each(input_data.source, function(idx, source_data) {
                         option_tag = $("<option></option>")
                              .val(source_data.value)
+                             .attr('style', 'color:#333;')
                              .text(source_data.text);
                         if ('value' in source_data && source_data.value === options.value) {
                              option_tag.attr('selected', 'selected');
+                        }
+                        if (source_data.value === '' ) {
+                             option_tag.attr('disabled', 'disabled');
+                             option_tag.attr('style', 'display:none;');
+                             option_tag.text('Click to edit');
                         }
                         input.append(option_tag);
                     });
@@ -78,7 +84,6 @@
                 var row;
                 var form_div = $(
                     '<div>'
-                  + '<div class="publication_history_title">Original Publication History</div>'
                   + '<form id="idForm">'
                   + '</form>'
                   + '</div>'
@@ -454,7 +459,9 @@
                     'derivative_container': false,
                 }
                 var republished = containers['republished'].find('select').val();
-                if (republished == 'repub') {
+                if (!republished) {
+                    shows['is_derivative'] = false;
+                } else if (republished == 'repub') {
                     shows['published_type'] = true;
                     var published_type = containers['published_type'].find('select').val();
                     if (published_type == 'whole') {
@@ -471,12 +478,16 @@
                         $.each(containers['serials_container'].find('select[name=publication_serial_publisher_type]'), function(idx, publisher_type_ddm) {
                             methods._show_publisher_type($(publisher_type_ddm));
                         });
+                    } else {
+                        shows['is_derivative'] = false;
                     }
                 }
 
-                var is_derivative = containers['is_derivative'].find('select').val();
-                if (is_derivative === 'yes') {
-                    shows['derivative_container'] = true;
+                if (shows['is_derivative'] == true) {
+                    var is_derivative = containers['is_derivative'].find('select').val();
+                    if (is_derivative === 'yes') {
+                        shows['derivative_container'] = true;
+                    }
                 }
 
                 $.each(shows, function(selector, is_shown) {

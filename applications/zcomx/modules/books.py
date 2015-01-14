@@ -766,14 +766,14 @@ def parse_url_name(name):
 def publication_year_range():
     """Return a tuple representing the start and end range of publication years
     """
-    return (1900, datetime.date.today().year + 5)
+    return (1970, datetime.date.today().year + 5)
 
 
 def publication_years():
     """Return a XML instance representing publication years suitable for
     drop down menu.
     """
-    # {'value': '1900', 'text': '1900'}, ...
+    # {'value': '1970', 'text': '1970'}, ...
     return XML(
         ','.join(
             ['{{"value":"{x}", "text":"{x}"}}'.format(x=x)

@@ -51,7 +51,9 @@ from applications.zcomx.modules.books import \
     url, \
     url_name
 from applications.zcomx.modules.images import store
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.test_runner import \
+    LocalTestCase, \
+    _mock_date as mock_date
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -490,6 +492,12 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(calc_contributions_remaining(db, book), 49.01)
 
     def test__cc_licence_data(self):
+        str_to_date = lambda x: datetime.datetime.strptime(
+            x, "%Y-%m-%d").date()
+        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
+        # date.today overridden
+        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
+
         self.assertRaises(NotFoundError, cc_licence_data, -1)
 
         book = self.add(db.book, dict(
@@ -1077,15 +1085,15 @@ class TestFunctions(ImageTestCase):
 
     def test__publication_year_range(self):
         start, end = publication_year_range()
-        self.assertEqual(start, 1900)
+        self.assertEqual(start, 1970)
         self.assertEqual(end, datetime.date.today().year + 5)
 
     def test__publication_years(self):
         xml = publication_years()
         got = ast.literal_eval(xml.xml())
-        self.assertEqual(got[0], {'value':'1900', 'text':'1900'})
-        self.assertEqual(got[1], {'value':'1901', 'text':'1901'})
-        self.assertEqual(got[100], {'value':'2000', 'text':'2000'})
+        self.assertEqual(got[0], {'value':'1970', 'text':'1970'})
+        self.assertEqual(got[1], {'value':'1971', 'text':'1971'})
+        self.assertEqual(got[30], {'value':'2000', 'text':'2000'})
         final_year = datetime.date.today().year + 5 - 1
         self.assertEqual(
             got[-1],
@@ -1357,10 +1365,8 @@ class TestFunctions(ImageTestCase):
         tests = [
             #(name, pub year, type, number, of_number, expect),
             (None, None, 'one-shot', None, None, None),
-            ('My Book', 1999, 'one-shot', 1, 999,
-                '/First_Last/My_Book'),
-            ('My Book', 1999, 'ongoing', 12, 999,
-                '/First_Last/My_Book_012'),
+            ('My Book', 1999, 'one-shot', 1, 999, '/First_Last/My_Book'),
+            ('My Book', 1999, 'ongoing', 12, 999, '/First_Last/My_Book_012'),
             ('My Book', 1999, 'mini-series', 2, 9,
                 '/First_Last/My_Book_02_%28of_09%29'),
             ("Hélè d'Eñça", 1999, 'mini-series', 2, 9,
