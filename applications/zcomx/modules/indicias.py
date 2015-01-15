@@ -17,6 +17,7 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name
 from applications.zcomx.modules.utils import \
     NotFoundError, \
+    default_record, \
     entity_to_row, \
     vars_to_records
 
@@ -527,17 +528,11 @@ class PublicationMetadata(object):
         if not publication_metadata:
             raise NotFoundError('publication_metadata record not found')
 
-        default = dict(
-            book_id=self.book.id,
-            republished=False,
-            published_type='',
-            published_name='',
-            published_format='',
-            publisher_type='',
-            publisher='',
-            from_year=datetime.date.today().year,
-            to_year=datetime.date.today().year,
-        )
+        default = default_record(
+            db.publication_metadata, ignore_fields='common')
+        default.update({
+            'book_id': self.book.id,
+        })
 
         data = dict(default)
         data.update(self.metadata)
@@ -572,18 +567,10 @@ class PublicationMetadata(object):
         if len(self.serials) != len(existing):
             raise NotFoundError('publication_serial do not match')
 
-        default = dict(
-            book_id=self.book.id,
-            published_name='',
-            published_format='',
-            publisher_type='',
-            publisher='',
-            story_number=1,
-            serial_title='',
-            serial_number=0,
-            from_year=datetime.date.today().year,
-            to_year=datetime.date.today().year,
-        )
+        default = default_record(db.publication_serial, ignore_fields='common')
+        default.update({
+            'book_id': self.book.id,
+        })
 
         for c, record in enumerate(self.serials):
             data = dict(default)
@@ -617,14 +604,11 @@ class PublicationMetadata(object):
                 default=0
             )
 
-            default = dict(
-                book_id=self.book.id,
-                title='',
-                creator='',
-                cc_licence_id=(cc_licence_id),
-                from_year=datetime.date.today().year,
-                to_year=datetime.date.today().year,
-            )
+            default = default_record(db.derivative, ignore_fields='common')
+            default.update({
+                'book_id': self.book.id,
+                'cc_licence_id':cc_licence_id,
+            })
 
             data = dict(default)
             data.update(self.derivative)

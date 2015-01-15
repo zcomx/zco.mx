@@ -27,6 +27,7 @@ from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import \
     TemporaryDirectory
 from applications.zcomx.modules.utils import \
+    default_record, \
     entity_to_row, \
     reorder
 
@@ -1088,7 +1089,9 @@ def metadata_crud():
         data['derivative']['fields']['from_year'].update(year_ddm)
         data['derivative']['fields']['to_year'].update(year_ddm)
 
-        licences = db(db.cc_licence).select(
+        # Exclude 'NoDerivs' licences
+        query = ~db.cc_licence.code.belongs(['CC BY-ND', 'CC BY-NC-ND'])
+        licences = db(query).select(
             db.cc_licence.ALL,
             orderby=db.cc_licence.number
         )
@@ -1101,37 +1104,23 @@ def metadata_crud():
             'source': [{'value': x.id, 'text': x.code} for x in licences]
         })
 
-        data['publication_metadata']['default'] = {
-            'republished': '',
-            'published_type': '',
-            'published_name': book_record.name,
-            'published_format': 'digital',
-            'publisher_type': 'press',
-            'publisher': '',
-            'from_year': request.now.year,
-            'to_year': request.now.year,
-        }
+        for table in data.keys():
+            data[table]['default'] = default_record(
+                db[table], ignore_fields='common')
 
-        data['publication_serial']['default'] = {
+        data['publication_metadata']['default'].update({
             'published_name': book_record.name,
-            'published_format': 'digital',
-            'publisher_type': 'press',
-            'publisher': '',
-            'story_number': 1,
+        })
+
+        data['publication_serial']['default'].update({
+            'published_name': book_record.name,
             'serial_title': book_record.name,
-            'serial_number': 1,
-            'from_year': request.now.year,
-            'to_year': request.now.year,
-        }
+        })
 
-        data['derivative']['default'] = {
+        data['derivative']['default'].update({
             'is_derivative': 'no',
-            'title': '',
-            'creator': '',
             'cc_licence_id': cc_licence_id,
-            'from_year': request.now.year,
-            'to_year': request.now.year,
-        }
+        })
 
         query = (db.publication_metadata.book_id == book_record.id)
         metadata_record = db(query).select(

@@ -78,7 +78,7 @@
         create: function () {
             var input;
             input = $('<input class="form-control" type="text">');
-            input.attr('value', this.options.value);
+            input.attr('value', this.options.value || '');
             return input;
         },
 
@@ -191,15 +191,16 @@
                 var error_wrapper = container.find('.error_wrapper');
                 if (error_wrapper.length === 0) {
                     error_wrapper = $(
-                            '<div class="error_wrapper has-error">'
+                            '<div class="error_wrapper">'
                           + '    <div class="help-block"></div>'
                           + '</div>'
                         );
                     container.append(error_wrapper);
                 }
-                error_wrapper.show();
-                var error_div = error_wrapper.find('.help-block');
-                error_div.text(msg);
+                if (msg) {
+                    error_wrapper.addClass('has-error').show();
+                    error_wrapper.find('.help-block').text(msg);
+                }
             },
 
             _append_row: function(elem, input_data, options) {
@@ -339,7 +340,8 @@
             },
 
             _hide_errors: function(data) {
-                vars.form.find('.error_wrapper').hide();
+                vars.form.find('.error_wrapper').hide()
+                    .removeClass('has-error');
             },
 
             _load: function(elem) {
@@ -590,7 +592,7 @@
                 });
 
                 var republished = '';
-                if (record.republished !== '') {
+                if (record.republished != null && record.republished !== '') {
                     republished = record.republished ? 'repub' : 'first';
                 }
 
@@ -611,7 +613,7 @@
                     vars.form,
                     fields.published_type,
                     {
-                        value: record.published_type,
+                        value: record.published_type || '',
                         'class': 'hidden',
                         events: {
                             'change': function(e) {

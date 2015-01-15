@@ -83,6 +83,31 @@ class ItemDescription(object):
         return DIV(*divs, **kwargs)
 
 
+def default_record(table, ignore_fields=None):
+    """Return a dict represent a record from the table with all fields set to
+    their default values.
+
+    Args:
+        table: gluon.dal.Table instance
+        ignore_fields: list of strings, or string. Field names to exclude
+            from the returned result.
+            None: Return all field names of the table.
+            list: List of field names
+            string: 'common' => ['id', 'created_on', 'updated_on']
+
+    Returns:
+        dict
+    """
+    record = {}
+    if ignore_fields is not None:
+        if ignore_fields == 'common':
+            ignore_fields = ['id', 'created_on', 'updated_on']
+    for f in table.fields:
+        if ignore_fields is None or f not in ignore_fields:
+            record[f] = table[f].default
+    return record
+
+
 def entity_to_row(table, entity):
     """Return a Row instance for the entity.
 
