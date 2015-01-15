@@ -24,9 +24,16 @@
                 label: label,
                 cssClass: 'btn_close',
                 action : function(dialog){
-                    if ($('div.editable-error-block').length) {
-                        if (! that.close_confirm()) {
+                    if (dialog.$modalBody.find('.has-error').length) {
+                        if (! that.close_confirm('errors')) {
                             return
+                        }
+                    } else {
+                        var meta_container = dialog.$modalBody.find('#metadata_fields_container').first();
+                        if (meta_container && ! meta_container.hasClass('hidden')) {
+                            if (! that.close_confirm('changes to metadata')) {
+                                return
+                            }
                         }
                     }
                     dialog.close();
@@ -34,13 +41,18 @@
             };
         },
 
-        close_confirm: function() {
-            var prompt = [
-                'Click "OK" to continue, ignore errors and close the dialog.',
-                'Click "Cancel" if you changed your mind.'
-               ].join('\n');
+        close_confirm: function(ignore) {
+            if (typeof(ignore) == 'undefined') {
+                ignore = 'changes'
+            }
+            var prompts = [];
+            if (ignore === 'changes to metadata') {
+                prompts.push('The "done" button must be clicked to save changes to metadata.');
+            }
+            prompts.push('Click "OK" to continue, ignore ' + ignore + ' and close the dialog.');
+            prompts.push('Click "Cancel" if you changed your mind.');
 
-            var reply = confirm(prompt);
+            var reply = confirm(prompts.join('\n'));
             if (!reply) {
                 return false;
             }

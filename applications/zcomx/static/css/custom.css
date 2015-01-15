@@ -1533,6 +1533,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .row_container .field_container {
     display: inline-block;
     min-height: 1.8em;                  /* >= input height */
+    overflow: hidden;
+    text-overflow: ellipsis;
     vertical-align: top;
 }
 
@@ -1994,6 +1996,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     .row_container .image_button_container {
         display: inline-block;
+    }
+
+    #metadata_fields_container .row_container .field_container {
+        max-width: 24.4em;
     }
 
     #edit_links_container .field_label {

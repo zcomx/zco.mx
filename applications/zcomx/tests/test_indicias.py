@@ -14,12 +14,14 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
+from gluon.validators import IS_INT_IN_RANGE
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
     CreatorIndiciaPage, \
     IndiciaPage, \
     PublicationMetadata, \
+    cc_licence_by_code, \
     cc_licence_places, \
     cc_licences, \
     render_cc_licence
@@ -210,9 +212,8 @@ class TestBookIndiciaPage(LocalTestCase):
             ' <i>TEST__LICENCE_TEXT</i> IS COPYRIGHT (C) {y} BY TEST LICENCE TEXT.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
         )
 
-        query = (db.cc_licence.code == 'CC BY')
-        cc_licence = db(query).select().first()
-        book.update_record(cc_licence_id=cc_licence.id)
+        cc_licence_id = cc_licence_by_code('CC BY', want='id', default=0)
+        book.update_record(cc_licence_id=cc_licence_id)
         db.commit()
         book = db(db.book.id == book.id).select().first()
 
@@ -343,14 +344,13 @@ class TestPublicationMetadata(LocalTestCase):
             ),
         ]
 
-        query = (db.cc_licence.code == 'CC BY-NC-SA')
-        cc_licence = db(query).select().first()
+        cc_licence_id = cc_licence_by_code('CC BY-NC-SA', want='id', default=0)
 
         meta.derivative = dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
-            cc_licence_id=cc_licence.id,
+            cc_licence_id=cc_licence_id,
             from_year=2014,
             to_year=2015,
         )
@@ -377,15 +377,14 @@ class TestPublicationMetadata(LocalTestCase):
 
         book = self.add(db.book, dict(name='My Book'))
 
-        query = (db.cc_licence.code == 'CC BY-ND')
-        cc_licence = db(query).select().first()
+        cc_licence_id = cc_licence_by_code('CC BY-ND', want='id', default=0)
 
         meta = PublicationMetadata(book.id)
         derivative = dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
-            cc_licence_id=cc_licence.id,
+            cc_licence_id=cc_licence_id,
             from_year=2014,
             to_year=2015,
         )
@@ -587,7 +586,7 @@ class TestPublicationMetadata(LocalTestCase):
 
         # Test 'republished' variations
         tests = [
-            #(republished, expect)
+            # (republished, expect)
             ('', None),
             ('first', False),
             ('repub', True),
@@ -604,7 +603,6 @@ class TestPublicationMetadata(LocalTestCase):
         expect = dict(metadata)
         expect['republished'] = True
         self.assertEqual(meta.load_from_vars(request_vars).metadata, expect)
-
 
     def test__metadata_text(self):
 
@@ -985,14 +983,13 @@ class TestPublicationMetadata(LocalTestCase):
             ),
         ]
 
-        query = (db.cc_licence.code == 'CC BY-NC-SA')
-        cc_licence = db(query).select().first()
+        cc_licence_id = cc_licence_by_code('CC BY-NC-SA', want='id', default=0)
 
         meta.derivative = dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
-            cc_licence_id=cc_licence.id,
+            cc_licence_id=cc_licence_id,
             from_year=2014,
             to_year=2015,
         )
@@ -1005,6 +1002,31 @@ class TestPublicationMetadata(LocalTestCase):
                 '"My Story #2" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.',
                 '"My Book" is a derivative of "My Derivative" from 2014-2015 by John Doe used under CC BY-NC-SA.',
             ]
+        )
+
+    def test__to_year_requires(self):
+        book = self.add(db.book, dict(
+            name='test__to_year_requires',
+        ))
+        meta = PublicationMetadata(book.id)
+        min_year, max_year = meta.year_range()
+
+        requires = meta.to_year_requires('2000')
+        self.assertTrue(isinstance(requires, IS_INT_IN_RANGE))
+        self.assertEqual(requires.minimum, 2000)
+        self.assertEqual(requires.maximum, max_year)
+        self.assertEqual(
+            requires.error_message,
+            'Enter a year 2000 or greater'
+        )
+
+        requires = meta.to_year_requires('_fake_')
+        self.assertTrue(isinstance(requires, IS_INT_IN_RANGE))
+        self.assertEqual(requires.minimum, min_year)
+        self.assertEqual(requires.maximum, max_year)
+        self.assertEqual(
+            requires.error_message,
+            'Enter a year 1970 or greater'
         )
 
     def test__update(self):
@@ -1159,7 +1181,7 @@ class TestPublicationMetadata(LocalTestCase):
             to_year=2015,
         )
 
-        meta.metadata = metadata
+        meta.metadata = dict(metadata)
         meta.validate()
         self.assertEqual(meta.errors, {})
 
@@ -1167,11 +1189,175 @@ class TestPublicationMetadata(LocalTestCase):
         meta.validate()
         self.assertEqual(
             meta.errors['publication_metadata_published_type'],
-           'Please select an option'
+            'Please select an option'
         )
+
+        # whole
+        meta.metadata['published_type'] = 'whole'
+        meta.metadata['published_name'] = ''
+        meta.metadata['published_format'] = '_fake_'
+        meta.metadata['publisher_type'] = '_fake_'
+        meta.metadata['publisher'] = ''
+        meta.metadata['from_year'] = -1
+        meta.metadata['to_year'] = -2
+        meta.validate()
+        self.assertEqual(
+            sorted(meta.errors.keys()),
+            sorted([
+                'publication_metadata_published_name',
+                'publication_metadata_published_format',
+                'publication_metadata_publisher_type',
+                'publication_metadata_publisher',
+                'publication_metadata_from_year',
+                'publication_metadata_to_year',
+            ])
+        )
+        meta.metadata = dict(metadata)
+        meta.metadata['from_year'] = 2000
+        meta.metadata['to_year'] = 1999
+        meta.validate()
+        self.assertEqual(
+            meta.errors['publication_metadata_to_year'],
+            'Enter a year 2000 or greater'
+        )
+
+        # serial
+        meta.metadata = dict(metadata)
+        meta.metadata['published_type'] = 'serial'
+        meta.serials = []
+        meta.derivative = {}
+        meta.validate()
+        self.assertEqual(meta.errors, {})
+
+        meta.serials = [dict(serials[0])]
+        meta.validate()
+        self.assertEqual(meta.errors, {})
+
+        meta.serials[0]['published_name'] = ''
+        meta.serials[0]['published_format'] = '_fake_'
+        meta.serials[0]['publisher_type'] = '_fake_'
+        meta.serials[0]['publisher'] = ''
+        meta.serials[0]['from_year'] = -1
+        meta.serials[0]['to_year'] = -2
+        meta.validate()
+        self.assertEqual(
+            sorted(meta.errors.keys()),
+            sorted([
+                'publication_serial_published_name__0',
+                'publication_serial_published_format__0',
+                'publication_serial_publisher_type__0',
+                'publication_serial_publisher__0',
+                'publication_serial_from_year__0',
+                'publication_serial_to_year__0',
+            ])
+        )
+        meta.serials = [dict(serials[0])]
+        meta.validate()
+        self.assertEqual(meta.errors, {})
+        meta.serials[0]['from_year'] = 1981
+        meta.serials[0]['to_year'] = 1980
+        meta.validate()
+        self.assertEqual(
+            meta.errors['publication_serial_to_year__0'],
+            'Enter a year 1981 or greater'
+        )
+
+        meta.serials = list(serials)
+        meta.validate()
+        self.assertEqual(meta.errors, {})
+        meta.serials[0]['published_name'] = ''
+        meta.serials[1]['published_format'] = '_fake_'
+        meta.validate()
+        self.assertEqual(
+            sorted(meta.errors.keys()),
+            sorted([
+                'publication_serial_published_name__0',
+                'publication_serial_published_format__1',
+            ])
+        )
+
+        # derivative
+        meta.metadata = dict(metadata)
+        meta.serials = list(serials)
+        meta.deriviate = dict(derivative)
+        meta.validate()
+        self.assertEqual(meta.errors, {})
+
+        meta.derivative['title'] = ''
+        meta.derivative['creator'] = ''
+        meta.derivative['cc_licence_id'] = 999999
+        meta.derivative['from_year'] = -1
+        meta.derivative['to_year'] = -2
+        meta.validate()
+        self.assertEqual(
+            sorted(meta.errors.keys()),
+            sorted([
+                'derivative_title',
+                'derivative_creator',
+                'derivative_cc_licence_id',
+                'derivative_from_year',
+                'derivative_to_year',
+            ])
+        )
+        meta.deriviate = dict(derivative)
+        meta.derivative['from_year'] = 1977
+        meta.derivative['to_year'] = 1976
+        meta.validate()
+        self.assertEqual(
+            meta.errors['derivative_to_year'],
+            'Enter a year 1977 or greater'
+        )
+
+    def test__year_range(self):
+        str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
+        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
+        # date.today overridden
+        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
+
+        book = self.add(db.book, dict(
+            name='test__year_range',
+        ))
+
+        meta = PublicationMetadata(book.id)
+
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        self.assertEqual(
+            meta._publication_year_range,
+            (None, None)
+        )
+        min_year, max_year = meta.year_range()
+        self.assertEqual(min_year, 1970)
+        self.assertEqual(max_year, 2014 + 5)
+        self.assertEqual(
+            meta._publication_year_range,
+            (1970, 2014 + 5)
+        )
+
+        # Test cache
+        meta._publication_year_range = (888, 999)
+        self.assertEqual(meta.year_range(), (888, 999))
 
 
 class TestFunctions(LocalTestCase):
+
+    def test__cc_licence_by_code(self):
+        cc_licence = self.add(db.cc_licence, dict(
+            code='_test_'
+        ))
+
+        got = cc_licence_by_code('_test_')
+        self.assertEqual(got.id, cc_licence.id)
+        self.assertEqual(got.code, '_test_')
+
+        self.assertEqual(cc_licence_by_code(
+            '_test_', want='id'), cc_licence.id)
+        self.assertEqual(cc_licence_by_code('_test_', want='code'), '_test_')
+
+        self.assertEqual(cc_licence_by_code('_fake_', default={}), {})
+        self.assertEqual(cc_licence_by_code('_fake_', want='id', default=0), 0)
+        self.assertEqual(cc_licence_by_code(
+            '_fake_', want='code', default='mycode'), 'mycode')
 
     def test__cc_licence_places(self):
         places = cc_licence_places()

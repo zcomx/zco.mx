@@ -21,11 +21,13 @@ from applications.zcomx.modules.images import \
     store
 from applications.zcomx.modules.indicias import \
     CreatorIndiciaPage, \
-    PublicationMetadata
+    PublicationMetadata, \
+    cc_licence_by_code
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import \
     TemporaryDirectory
 from applications.zcomx.modules.utils import \
+    default_record, \
     entity_to_row, \
     reorder
 
@@ -63,6 +65,9 @@ def book_crud():
     request.vars.name: string, book table field name
     request.vars.value: string, value of book table field.
     """
+    # too-many-return-statements (R0911): *Too many return statements*
+    # pylint: disable=R0911
+
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
@@ -75,7 +80,7 @@ def book_crud():
     if not creator_record:
         return do_error('Permission denied')
 
-    # W0212 (protected-access): *Access to a protected member %%s of a client class*
+    # W0212 (protected-access): *Access to a protected member
     # pylint: disable=W0212
     actions = ['create', 'delete', 'release', 'update']
     if not request.vars._action or request.vars._action not in actions:
@@ -90,8 +95,7 @@ def book_crud():
             return do_error('Invalid data provided')
         book_record = entity_to_row(db.book, book_id)
         if not book_record or (
-            book_record and book_record.creator_id != creator_record.id
-        ):
+                book_record and book_record.creator_id != creator_record.id):
             return do_error('Invalid data provided')
 
     if action == 'create':
@@ -106,11 +110,17 @@ def book_crud():
 
         if ret.errors:
             if request.vars.name in ret.errors:
-                return {'status': 'error', 'msg': ret.errors[request.vars.name]}
+                return {
+                    'status': 'error',
+                    'msg': ret.errors[request.vars.name]
+                }
             else:
                 return {
                     'status': 'error',
-                    'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
+                    'msg': ', '.join([
+                        '{k}: {v}'.format(k=k, v=v)
+                        for k, v in ret.errors.items()
+                    ])
                 }
         if ret.id:
             return {
@@ -120,10 +130,7 @@ def book_crud():
         return do_error('Unable to create book')
 
     if action == 'delete':
-        # FIXME delete torrent
-        # FIXME remove book from creator torrent
-        # FIXME remove book from ALL torrent
-
+        # FIXME delete torrent, remove book from creator and ALL torrent
         # Delete all records associated with the book.
         for t in ['book_page', 'book_view', 'contribution', 'rating']:
             db(db[t].book_id == book_record.id).delete()
@@ -147,13 +154,12 @@ def book_crud():
             release_date=datetime.datetime.today()
         )
         db.commit()
-        # FIXME create torrent
-        # FIXME add book to creator torrent
-        # FIXME add book to ALL torrent
+        # FIXME create torrent, add book to creator and ALL torrent
         return {'status': 'ok'}
 
     if action == 'update':
-        if request.vars.name is not None and request.vars.name not in db.book.fields:
+        if request.vars.name is not None \
+                and request.vars.name not in db.book.fields:
             return do_error('Invalid data provided')
 
         data = {}
@@ -174,17 +180,24 @@ def book_crud():
 
         if ret.errors:
             if request.vars.name in ret.errors:
-                return {'status': 'error', 'msg': ret.errors[request.vars.name]}
+                return {
+                    'status': 'error',
+                    'msg': ret.errors[request.vars.name]
+                }
             else:
                 return {
                     'status': 'error',
-                    'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
+                    'msg': ', '.join([
+                        '{k}: {v}'.format(k=k, v=v)
+                        for k, v in ret.errors.items()
+                    ])
                 }
         numbers = numbers_for_book_type(db, request.vars.value) \
             if request.vars.name == 'book_type_id' else None
         show_cc_licence_place = False
-        # FIXME don't hardcode 1, match on CC0
-        if request.vars.name == 'cc_licence_id' and request.vars.value == '1':
+        cc0_licence_id = cc_licence_by_code('CC0', want='id', default=0)
+        if request.vars.name == 'cc_licence_id' \
+                and request.vars.value == str(cc0_licence_id):
             show_cc_licence_place = True
         return {
             'show_cc_licence_place': show_cc_licence_place,
@@ -238,9 +251,8 @@ def book_edit():
     show_cc_licence_place = False
     meta = None
     if book_record:
-        query = (db.cc_licence.code == 'CC0')
-        cc0_licence = db(query).select().first()
-        if cc0_licence and book_record.cc_licence_id == cc0_licence.id:
+        cc0_licence_id = cc_licence_by_code('CC0', want='id', default=0)
+        if book_record.cc_licence_id == cc0_licence_id:
             show_cc_licence_place = True
 
         meta = PublicationMetadata(book_record)
@@ -282,7 +294,8 @@ def book_list():
     elif request.args(0) == 'disabled':
         query = creator_query & (db.book.status == False)
     if query:
-        book_records = db(query).select(db.book.ALL, orderby=[db.book.name, db.book.number])
+        book_records = db(query).select(
+            db.book.ALL, orderby=[db.book.name, db.book.number])
     return dict(books=book_records)
 
 
@@ -334,6 +347,9 @@ def book_pages_handler():
     request.vars.book_page_id: integer, id of book_page to delete
 
     """
+    # too-many-return-statements (R0911): *Too many return statements*
+    # pylint: disable=R0911
+
     def do_error(msg, files=None):
         """Error handler."""
         if files == None:
@@ -359,6 +375,8 @@ def book_pages_handler():
         files = request.vars['up_files[]']
         if not isinstance(files, list):
             files = [files]
+        # Catching too general exception (W0703)
+        # pylint: disable=W0703
         try:
             result = BookPageUploader(book_record.id, files).upload()
         except Exception as err:
@@ -488,7 +506,10 @@ def books():
         )
     )
     response.files.append(
-        URL('static', 'x-editable/bootstrap3-editable/css/bootstrap-editable.css')
+        URL(
+            'static',
+            'x-editable/bootstrap3-editable/css/bootstrap-editable.css'
+        )
     )
 
     query = (db.book.creator_id == creator_record.id) & \
@@ -517,7 +538,8 @@ def creator_crud():
     if not creator_record:
         return do_error('Permission denied')
 
-    if request.vars.name is not None and request.vars.name not in db.creator.fields:
+    if request.vars.name is not None \
+            and request.vars.name not in db.creator.fields:
         return do_error('Invalid data provided')
 
     data = {}
@@ -541,7 +563,10 @@ def creator_crud():
         else:
             return {
                 'status': 'error',
-                'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
+                'msg': ', '.join([
+                    '{k}: {v}'.format(k=k, v=v)
+                    for k, v in ret.errors.items()
+                ])
             }
     result = {'status': 'ok'}
     if request.vars.name in data \
@@ -560,6 +585,8 @@ def creator_img_handler():
             Eg 'indicia_image': update creator.indicia_image
     request.vars.up_files: list of files representing creator image.
     """
+    # too-many-return-statements (R0911): *Too many return statements*
+    # pylint: disable=R0911
 
     def do_error(msg, files=None):
         """Error handler."""
@@ -615,7 +642,8 @@ def creator_img_handler():
                         fmt.format(min=minimum_widths[img_field]),
                         files=[up_file.filename]
                     )
-
+            # Catching too general exception (W0703)
+            # pylint: disable=W0703
             try:
                 stored_filename = store(db.creator[img_field], local_filename)
             except Exception as err:
@@ -629,7 +657,8 @@ def creator_img_handler():
                 files=[up_file.filename]
             )
 
-        if creator_record[img_field] and creator_record[img_field] != stored_filename:
+        if creator_record[img_field] \
+                and creator_record[img_field] != stored_filename:
             filename, _ = db.creator[img_field].retrieve(
                 creator_record[img_field],
                 nameonly=True,
@@ -638,7 +667,8 @@ def creator_img_handler():
             db(db.creator.id == creator_record.id).update(**data)
             db.commit()
             # Delete an existing image before it is replaced
-            up_image = UploadImage(db.creator[img_field], creator_record[img_field])
+            up_image = UploadImage(
+                db.creator[img_field], creator_record[img_field])
             up_image.delete_all()
 
         data = {img_field: stored_filename}
@@ -658,7 +688,8 @@ def creator_img_handler():
         data = {img_field: None}
         db(db.creator.id == creator_record.id).update(**data)
         db.commit()
-        up_image = UploadImage(db.creator[img_field], creator_record[img_field])
+        up_image = UploadImage(
+            db.creator[img_field], creator_record[img_field])
         up_image.delete_all()
         return dumps({"files": [{filename: 'true'}]})
 
@@ -734,7 +765,8 @@ def link_crud():
         actions are done on book links. If not provided, actions are done on
         creator links.
 
-    request.vars.action: string, one of 'get', 'create', 'update', 'delete', 'move'
+    request.vars.action: string, one of
+        'get', 'create', 'update', 'delete', 'move'
 
     # action = 'update', 'delete', 'move'
     request.vars.link_id: integer, id of link record
@@ -750,6 +782,8 @@ def link_crud():
     # action = 'move'
     request.vars.dir: string, 'up' or 'down'
     """
+    # too-many-return-statements (R0911): *Too many return statements*
+    # pylint: disable=R0911
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
@@ -816,7 +850,8 @@ def link_crud():
     elif action == 'update':
         if link_id:
             data = {}
-            if request.vars.field is not None and request.vars.value is not None:
+            if request.vars.field is not None \
+                    and request.vars.value is not None:
                 data = {request.vars.field: request.vars.value}
 
             # Strip trailing slash from url
@@ -832,11 +867,17 @@ def link_crud():
                 record_id = link_id
                 if ret.errors:
                     if request.vars.field in ret.errors:
-                        return {'status': 'error', 'msg': ret.errors[request.vars.field]}
+                        return {
+                            'status': 'error',
+                            'msg': ret.errors[request.vars.field]
+                        }
                     else:
                         return {
                             'status': 'error',
-                            'msg': ', '.join(['{k}: {v}'.format(k=k, v=v) for k, v in ret.errors.items()])
+                            'msg': ', '.join([
+                                '{k}: {v}'.format(k=k, v=v)
+                                for k, v in ret.errors.items()
+                            ])
                         }
                 do_reorder = True
         else:
@@ -878,7 +919,8 @@ def link_crud():
             return do_error('Invalid data provided')
     elif action == 'move':
         if link_id:
-            to_link_record = db(to_link_table.link_id == link_id).select(to_link_table.ALL).first()
+            to_link_record = db(to_link_table.link_id == link_id).select(
+                to_link_table.ALL).first()
             links = CustomLinks(entity_table, record.id)
             links.move_link(to_link_record.id, direction=request.vars.dir)
             record_id = link_id
@@ -901,23 +943,6 @@ def link_crud():
 
 
 @auth.requires_login()
-def modal_error():
-    """Controller for displaying error messages within modal.
-
-    request.vars.message: string, error message
-    """
-    return dict(message=request.vars.message)
-
-
-@auth.requires_login()
-def metadata_poc():
-    """Temporary controller for metadata POC. FIXME delete"""
-    query = db.book.name == 'Test Do Not Delete'
-    book = db(query).select().first()
-    return dict(book=book)
-
-
-@auth.requires_login()
 def metadata_crud():
     """Handler for ajax metadata CRUD calls.
 
@@ -929,6 +954,8 @@ def metadata_crud():
         update: expect POST json data and create/update metadata records as
             necesary.
     """
+    # too-many-return-statements (R0911): *Too many return statements*
+    # pylint: disable=R0911
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
@@ -941,7 +968,7 @@ def metadata_crud():
     if not creator_record:
         return do_error('Permission denied')
 
-    # W0212 (protected-access): *Access to a protected member %%s of a client class*
+    # W0212 (protected-access): *Access to a protected member
     # pylint: disable=W0212
     actions = ['get', 'update']
     if not request.vars._action or request.vars._action not in actions:
@@ -955,139 +982,158 @@ def metadata_crud():
         return do_error('Invalid data provided')
     book_record = entity_to_row(db.book, book_id)
     if not book_record or (
-        book_record and book_record.creator_id != creator_record.id
-    ):
+            book_record and book_record.creator_id != creator_record.id):
         return do_error('Invalid data provided')
 
     if action == 'get':
-        data = {}
+        data = {
+            'publication_metadata': {
+                'fields': {},
+                'record': {},
+                'default': {},
+            },
+            'publication_serial': {
+                'fields': {},
+                'records': [],
+                'default': {},
+            },
+            'derivative': {
+                'fields': {},
+                'record': {},
+                'default': {},
+            },
+        }
 
-        data['publication_metadata'] = {}
         for f in db.publication_metadata.fields:
-            data['publication_metadata'][f] = {
+            data['publication_metadata']['fields'][f] = {
                 'name': db.publication_metadata[f].name,
                 'label': db.publication_metadata[f].label,
             }
 
         published_format_ddm = {
             'type': 'select',
-            'source': [{'value': 'digital', 'text': 'Digital'}, {'value': 'paper', 'text': 'Paper'}],
+            'source': [
+                {'value': 'digital', 'text': 'Digital'},
+                {'value': 'paper', 'text': 'Paper'}
+            ],
         }
 
         publisher_type_ddm = {
             'type': 'select',
-            'source': [{'value': 'press', 'text': 'Press'}, {'value': 'self', 'text': 'Self'}],
+            'source': [
+                {'value': 'press', 'text': 'Press'},
+                {'value': 'self', 'text': 'Self'}
+            ],
         }
 
         year_ddm = {
             'type': 'select',
-            'source': [{'value': x, 'text': x} for x in sorted(range(*publication_year_range()), reverse=True)]
+            'source': [
+                {'value': x, 'text': x}
+                for x in sorted(range(*publication_year_range()), reverse=True)
+            ]
         }
 
-        data['publication_metadata']['republished'].update({
+        data['publication_metadata']['fields']['republished'].update({
             'type': 'select',
-            'source': [{'value': '', 'text': ''}, {'value': 'first', 'text': 'First publication'}, {'value': 'repub', 'text': 'Republication'}],
+            'source': [
+                {'value': '', 'text': ''},
+                {'value': 'first', 'text': 'First publication'},
+                {'value': 'repub', 'text': 'Republication'}
+            ],
         })
 
-        data['publication_metadata']['published_type'].update({
+        data['publication_metadata']['fields']['published_type'].update({
             'type': 'select',
-            'source': [{'value': '', 'text': ''}, {'value': 'whole', 'text': 'Republication - whole'}, {'value': 'serial', 'text': 'Republication - serial'}],
+            'source': [
+                {'value': '', 'text': ''},
+                {'value': 'whole', 'text': 'Republication - whole'},
+                {'value': 'serial', 'text': 'Republication - serial'}
+            ],
         })
 
-        data['publication_metadata']['published_format'].update(
+        data['publication_metadata']['fields']['published_format'].update(
             published_format_ddm)
-        data['publication_metadata']['publisher_type'].update(
+        data['publication_metadata']['fields']['publisher_type'].update(
             publisher_type_ddm)
-        data['publication_metadata']['from_year'].update(year_ddm)
-        data['publication_metadata']['to_year'].update(year_ddm)
+        data['publication_metadata']['fields']['from_year'].update(year_ddm)
+        data['publication_metadata']['fields']['to_year'].update(year_ddm)
 
-        data['publication_serial'] = {}
         for f in db.publication_serial.fields:
-            data['publication_serial'][f] = {
+            data['publication_serial']['fields'][f] = {
                 'name': db.publication_serial[f].name,
                 'label': db.publication_serial[f].label,
             }
 
-        data['publication_serial']['published_format'].update(
+        data['publication_serial']['fields']['published_format'].update(
             published_format_ddm)
-        data['publication_serial']['publisher_type'].update(
+        data['publication_serial']['fields']['publisher_type'].update(
             publisher_type_ddm)
-        data['publication_serial']['from_year'].update(year_ddm)
-        data['publication_serial']['to_year'].update(year_ddm)
+        data['publication_serial']['fields']['from_year'].update(year_ddm)
+        data['publication_serial']['fields']['to_year'].update(year_ddm)
 
-        data['derivative_fields'] = {}
         for f in db.derivative.fields:
-            data['derivative_fields'][f] = {
+            data['derivative']['fields'][f] = {
                 'name': db.derivative[f].name,
                 'label': db.derivative[f].label,
             }
-        data['derivative_fields']['is_derivative'] = {
+        data['derivative']['fields']['is_derivative'] = {
             'name': 'is_derivative',
             'label': 'Derivative Work',
             'type': 'select',
-            'source': [{'value': 'no', 'text': 'No'}, {'value': 'yes', 'text': 'Yes'}],
+            'source': [
+                {'value': 'no', 'text': 'No'},
+                {'value': 'yes', 'text': 'Yes'}
+            ],
         }
-        data['derivative_fields']['from_year'].update(year_ddm)
-        data['derivative_fields']['to_year'].update(year_ddm)
+        data['derivative']['fields']['from_year'].update(year_ddm)
+        data['derivative']['fields']['to_year'].update(year_ddm)
 
-        licences = db(db.cc_licence).select(
+        # Exclude 'NoDerivs' licences
+        query = ~db.cc_licence.code.belongs(['CC BY-ND', 'CC BY-NC-ND'])
+        licences = db(query).select(
             db.cc_licence.ALL,
             orderby=db.cc_licence.number
         )
 
-        data['derivative_fields']['cc_licence_id'].update({
+        cc_licence_id = cc_licence_by_code(
+            CreatorIndiciaPage.default_licence_code, want='id', default=0)
+
+        data['derivative']['fields']['cc_licence_id'].update({
             'type': 'select',
             'source': [{'value': x.id, 'text': x.code} for x in licences]
         })
 
-        data['default'] = {}
+        for table in data.keys():
+            data[table]['default'] = default_record(
+                db[table], ignore_fields='common')
 
-        data['default']['publication_metadata'] = {
-            'republished': '',
-            'published_type': '',
+        data['publication_metadata']['default'].update({
             'published_name': book_record.name,
-            'published_format': 'digital',
-            'publisher_type': 'press',
-            'publisher': '',
-            'from_year': request.now.year,
-            'to_year': request.now.year,
-        }
+        })
 
-        data['default']['publication_serial'] = {
+        data['publication_serial']['default'].update({
             'published_name': book_record.name,
-            'published_format': 'digital',
-            'publisher_type': 'press',
-            'publisher': '',
-            'story_number': 1,
             'serial_title': book_record.name,
-            'serial_number': 1,
-            'from_year': request.now.year,
-            'to_year': request.now.year,
-        }
+        })
 
-        query = (db.cc_licence.code == CreatorIndiciaPage.default_licence_code)
-        cc_licence = db(query).select().first()
-
-        data['default']['derivative'] = {
+        data['derivative']['default'].update({
             'is_derivative': 'no',
-            'title': '',
-            'creator': '',
-            'cc_licence_id': cc_licence.id if cc_licence else 0,
-            'from_year': request.now.year,
-            'to_year': request.now.year,
-        }
+            'cc_licence_id': cc_licence_id,
+        })
 
         query = (db.publication_metadata.book_id == book_record.id)
         metadata_record = db(query).select(
             orderby=[db.publication_metadata.id],
         ).first()
         if metadata_record:
-            data['metadata'] = metadata_record.as_dict()
+            data['publication_metadata']['record'] = metadata_record.as_dict()
         else:
-            data['metadata'] = data['default']['publication_metadata']
+            data['publication_metadata']['record'] = \
+                data['publication_metadata']['default']
 
         query = (db.publication_serial.book_id == book_record.id)
-        data['serials'] = db(query).select(
+        data['publication_serial']['records'] = db(query).select(
             orderby=[
                 db.publication_serial.story_number,
                 db.publication_serial.id,
@@ -1097,10 +1143,10 @@ def metadata_crud():
         query = (db.derivative.book_id == book_record.id)
         derivative_record = db(query).select().first()
         if derivative_record:
-            data['derivative'] = derivative_record.as_dict()
-            data['derivative']['is_derivative'] = 'yes'
+            data['derivative']['record'] = derivative_record.as_dict()
+            data['derivative']['record']['is_derivative'] = 'yes'
         else:
-            data['derivative'] = data['default']['derivative']
+            data['derivative']['record'] = data['derivative']['default']
         return {'status': 'ok', 'data': data}
 
     if action == 'update':
@@ -1115,16 +1161,18 @@ def metadata_crud():
 
 
 @auth.requires_login()
+def metadata_poc():
+    """Temporary controller for metadata POC. FIXME delete"""
+    query = db.book.name == 'Test Do Not Delete'
+    book = db(query).select().first()
+    return dict(book=book)
+
+
+@auth.requires_login()
 def metadata_text():
     """Handler for ajax call to get metadata text.
 
     request.args(0): integer, book id.
-
-    request.vars._action: string, 'get', 'update'
-
-        get: Return the metadata in json format.
-        update: expect POST json data and create/update metadata records as
-            necesary.
     """
     response.generic_patterns = ['json']
 
@@ -1145,8 +1193,7 @@ def metadata_text():
         return do_error('Invalid data provided')
     book_record = entity_to_row(db.book, book_id)
     if not book_record or (
-        book_record and book_record.creator_id != creator_record.id
-    ):
+            book_record and book_record.creator_id != creator_record.id):
         return do_error('Invalid data provided')
 
     meta = PublicationMetadata(book_record)
@@ -1154,6 +1201,15 @@ def metadata_text():
         return do_error('Invalid data provided')
     meta.load()
     return {'status': 'ok', 'text': str(meta)}
+
+
+@auth.requires_login()
+def modal_error():
+    """Controller for displaying error messages within modal.
+
+    request.vars.message: string, error message
+    """
+    return dict(message=request.vars.message)
 
 
 @auth.requires_login()
@@ -1175,7 +1231,10 @@ def profile():
         )
     )
     response.files.append(
-        URL('static', 'x-editable/bootstrap3-editable/css/bootstrap-editable.css')
+        URL(
+            'static',
+            'x-editable/bootstrap3-editable/css/bootstrap-editable.css'
+        )
     )
 
     return dict(creator=creator_record)

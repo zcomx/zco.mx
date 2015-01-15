@@ -11,11 +11,13 @@ from gluon import *
 from applications.zcomx.modules.books import \
     cc_licence_data, \
     get_page, \
-    orientation as page_orientation
+    orientation as page_orientation, \
+    publication_year_range
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name
 from applications.zcomx.modules.utils import \
     NotFoundError, \
+    default_record, \
     entity_to_row, \
     vars_to_records
 
@@ -44,10 +46,9 @@ class IndiciaPage(object):
 
     def default_licence(self):
         """Return the default licence record."""
-        db = current.app.db
-        query = (db.cc_licence.code == self.default_licence_code)
-        cc_licence_entity = db(query).select().first()
-        if not cc_licence_entity:
+        cc_licence_entity = cc_licence_by_code(
+            self.default_licence_code, default=None)
+        if cc_licence_entity is None:
             raise NotFoundError('CC licence not found: {code}'.format(
                 code=self.default_licence_code))
         return cc_licence_entity
@@ -233,7 +234,7 @@ class PublicationMetadata(object):
             fmt = 'First publication: zco.mx {y}.'
             self.first_publication_text = fmt.format(
                 y=datetime.date.today().year)
-
+        self._publication_year_range = (None, None)
         self.errors = {}
 
     def __str__(self):
@@ -486,6 +487,24 @@ class PublicationMetadata(object):
         data.append(self.derivative_text())
         return [x for x in data if x]
 
+    def to_year_requires(self, from_year):
+        """Return requires for to_year.
+
+        Args:
+            from_year: value of the record from_year
+        """
+        min_year, max_year = self.year_range()
+
+        try:
+            min_to_year = int(from_year)
+        except (ValueError, TypeError):
+            min_to_year = min_year
+        return IS_INT_IN_RANGE(
+            min_to_year, max_year,
+            error_message='Enter a year {y} or greater'.format(
+                y=str(min_to_year))
+        )
+
     def update(self):
         """Update db records."""
         db = current.app.db
@@ -509,17 +528,11 @@ class PublicationMetadata(object):
         if not publication_metadata:
             raise NotFoundError('publication_metadata record not found')
 
-        default = dict(
-            book_id=self.book.id,
-            republished=False,
-            published_type='',
-            published_name='',
-            published_format='',
-            publisher_type='',
-            publisher='',
-            from_year=datetime.date.today().year,
-            to_year=datetime.date.today().year,
-        )
+        default = default_record(
+            db.publication_metadata, ignore_fields='common')
+        default.update({
+            'book_id': self.book.id,
+        })
 
         data = dict(default)
         data.update(self.metadata)
@@ -554,18 +567,10 @@ class PublicationMetadata(object):
         if len(self.serials) != len(existing):
             raise NotFoundError('publication_serial do not match')
 
-        default = dict(
-            book_id=self.book.id,
-            published_name='',
-            published_format='',
-            publisher_type='',
-            publisher='',
-            story_number=1,
-            serial_title='',
-            serial_number=0,
-            from_year=datetime.date.today().year,
-            to_year=datetime.date.today().year,
-        )
+        default = default_record(db.publication_serial, ignore_fields='common')
+        default.update({
+            'book_id': self.book.id,
+        })
 
         for c, record in enumerate(self.serials):
             data = dict(default)
@@ -593,18 +598,17 @@ class PublicationMetadata(object):
             if not derivative:
                 raise NotFoundError('derivative record not found')
 
-            query = (
-                db.cc_licence.code == CreatorIndiciaPage.default_licence_code)
-            cc_licence = db(query).select().first()
-
-            default = dict(
-                book_id=self.book.id,
-                title='',
-                creator='',
-                cc_licence_id=(cc_licence.id if cc_licence else 0),
-                from_year=datetime.date.today().year,
-                to_year=datetime.date.today().year,
+            cc_licence_id = cc_licence_by_code(
+                CreatorIndiciaPage.default_licence_code,
+                want='id',
+                default=0
             )
+
+            default = default_record(db.derivative, ignore_fields='common')
+            default.update({
+                'book_id': self.book.id,
+                'cc_licence_id':cc_licence_id,
+            })
 
             data = dict(default)
             data.update(self.derivative)
@@ -626,37 +630,43 @@ class PublicationMetadata(object):
         db_meta = db.publication_metadata
         db_serial = db.publication_serial
 
+        published_types = ['whole', 'serial']
+        published_formats = ['digital', 'paper']
+        publisher_types = ['press', 'self']
+        min_year, max_year = self.year_range()
+
         self.errors = {}
         if self.metadata:
             if self.metadata['republished']:
                 db_meta.published_type.requires = IS_IN_SET(
-                    ['whole', 'serial'],
+                    published_types,
                     error_message='Please select an option',
                 )
                 if self.metadata['published_type'] == 'whole':
                     db_meta.published_name.requires = IS_NOT_EMPTY()
                     db_meta.published_format.requires = IS_IN_SET(
-                        ['digital', 'paper'])
-                    db_meta.publisher_type.requires = IS_IN_SET(['press', 'self'])
+                        published_formats)
+                    db_meta.publisher_type.requires = IS_IN_SET(
+                        publisher_types)
                     db_meta.publisher.requires = IS_NOT_EMPTY()
-                    db_meta.from_year.requires = IS_INT_IN_RANGE(1900, 2999)
-                    try:
-                        min_to_year = int(self.metadata['from_year'])
-                    except (ValueError, TypeError):
-                        min_to_year = 1900
-                    db_meta.to_year.requires = IS_INT_IN_RANGE(
-                        min_to_year, 2999,
-                        error_message='Enter a year {y} or greater'.format(
-                            y=min_to_year)
-                    )
+                    db_meta.from_year.requires = IS_INT_IN_RANGE(
+                        min_year, max_year)
+                    db_meta.to_year.requires = self.to_year_requires(
+                        self.metadata['from_year'])
+                    for f in db_serial.fields:
+                        db_serial[f].requires = None
                 elif self.metadata['published_type'] == 'serial':
+                    for f in db_meta.fields:
+                        if f not in ['republished', 'published_type']:
+                            db_meta[f].requires = None
                     db_serial.published_name.requires = IS_NOT_EMPTY()
                     db_serial.published_format.requires = IS_IN_SET(
-                        ['digital', 'paper'])
+                        published_formats)
                     db_serial.publisher_type.requires = IS_IN_SET(
-                        ['press', 'self'])
+                        publisher_types)
                     db_serial.publisher.requires = IS_NOT_EMPTY()
-                    db_serial.from_year.requires = IS_INT_IN_RANGE(1900, 2999)
+                    db_serial.from_year.requires = IS_INT_IN_RANGE(
+                        min_year, max_year)
 
             for field, value in self.metadata.items():
                 if field in db_meta.fields:
@@ -671,15 +681,8 @@ class PublicationMetadata(object):
             for field, value in serial.items():
                 if field in db_serial.fields:
                     if field == 'to_year':
-                        try:
-                            min_to_year = int(serial['from_year'])
-                        except (ValueError, TypeError):
-                            min_to_year = 1900
-                        db_serial.to_year.requires = IS_INT_IN_RANGE(
-                            min_to_year, 2999,
-                            error_message='Enter a year {y} or greater'.format(
-                                y=min_to_year)
-                        )
+                        db_serial.to_year.requires = self.to_year_requires(
+                            serial['from_year'])
                     value, error = db_serial[field].validate(value)
                     if error:
                         key = '{t}_{f}__{i}'.format(
@@ -687,24 +690,51 @@ class PublicationMetadata(object):
                         self.errors[key] = error
                     serial[field] = value
 
+        db.derivative.from_year.requires = IS_INT_IN_RANGE(min_year, max_year)
         for field, value in self.derivative.items():
             if field in db.derivative.fields:
                 if field == 'to_year':
-                    try:
-                        min_to_year = int(self.derivative['from_year'])
-                    except (ValueError, TypeError):
-                        min_to_year = 1900
-                    db.derivative.to_year.requires = IS_INT_IN_RANGE(
-                        min_to_year, 2999,
-                        error_message='Enter a year {y} or greater'.format(
-                            y=min_to_year)
-                    )
+                    db.derivative.to_year.requires = self.to_year_requires(
+                        self.derivative['from_year'])
                 value, error = db.derivative[field].validate(value)
                 if error:
                     key = '{t}_{f}'.format(
                         t=str(db.derivative), f=field)
                     self.errors[key] = error
                 self.derivative[field] = value
+
+    def year_range(self):
+        """Return a tuple representing the start and end range of publication
+        years.
+
+        Returns:
+            tuple: (integer, integer)
+        """
+        if self._publication_year_range == (None, None):
+            self._publication_year_range = publication_year_range()
+        return self._publication_year_range
+
+
+def cc_licence_by_code(code, want=None, default=None):
+    """Return the cc_licence record or field for a given code.
+
+    Args:
+        code: string, cc_licence.code
+        want: string, cc_licence field name. If None return Row instance.
+        default: value to return if cc_licence record not found.
+
+    Return:
+        mixed, field value or Row if want=None.
+    """
+    db = current.app.db
+    query = (db.cc_licence.code == code)
+    cc_licence = db(query).select().first()
+    if not cc_licence:
+        return default
+
+    if want is not None:
+        return cc_licence[want]
+    return cc_licence
 
 
 def cc_licence_places():

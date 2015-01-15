@@ -92,8 +92,7 @@
                 }
                 $('#' + settings.add_container_id).addClass('has-error');
                 error_wrapper.show();
-                var error_div = error_wrapper.find('.help-block');
-                error_div.text(msg);
+                error_wrapper.find('.help-block').text(msg);
             },
 
             _clear_add_inputs: function() {

@@ -6,6 +6,7 @@
 Test suite for zcomx/modules/utils.py
 
 """
+import datetime
 import os
 import shutil
 import unittest
@@ -16,6 +17,7 @@ from gluon.storage import Storage
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     ItemDescription, \
+    default_record, \
     entity_to_row, \
     faq_tabs, \
     markmin, \
@@ -156,6 +158,68 @@ class TestFunctions(LocalTestCase):
         )
         return [x[field] for x in values]
 
+    def test__default_record(self):
+
+        record = default_record(db.book)
+        # The date fields are set to now() which needs special handling.
+        for date_field in ['created_on', 'updated_on']:
+            self.assertAlmostEqual(
+                record[date_field],
+                datetime.datetime.now(),
+                delta=datetime.timedelta(minutes=1)
+            )
+            del record[date_field]
+
+        self.assertEqual(
+            record,
+            {
+                'background_colour': 'white',
+                'book_type_id': None,
+                'border_colour': 'white',
+                'cc_licence_id': 0,
+                'cc_licence_place': None,
+                'contributions': 0,
+                'contributions_remaining': 0,
+                'creator_id': None,
+                'description': None,
+                'downloads': 0,
+                'id': None,
+                'name': None,
+                'number': 1,
+                'of_number': 1,
+                'publication_year': datetime.date.today().year,
+                'rating': 0,
+                'reader': 'slider',
+                'release_date': None,
+                'status': True,
+                'urlify_name': None,
+                'views': 0
+            }
+        )
+
+        all_fields = default_record(db.book)
+
+        ignore_fields = ['book_type_id', 'number', 'rating', 'urlify_name']
+        ignored = default_record(db.book, ignore_fields=ignore_fields)
+        self.assertEqual(
+            sorted(set(all_fields.keys()).difference(set(ignored.keys()))),
+            ignore_fields
+        )
+
+        common = default_record(db.book, ignore_fields='common')
+        self.assertEqual(
+            sorted(set(all_fields.keys()).difference(set(common.keys()))),
+            ['created_on', 'id', 'updated_on']
+        )
+
+
+        import pprint
+        for table in ['publication_metadata', 'publication_serial', 'derivative']:
+            record = default_record(db[table], ignore_fields='common')
+            print 'FIXME table: {var}'.format(var=table)
+            pprint.pprint(record)
+
+
     def test__entity_to_row(self):
         book = self.add(db.book, dict(name='test__entity_to_row'))
 
@@ -257,8 +321,10 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(self._ordered_values(), ['a', 'b', 'c'])
 
         # Test query
-        query = (db.test__reorder.id.belongs(
-            [self._by_name['a'], self._by_name['b']])
+        query = (
+            db.test__reorder.id.belongs(
+                [self._by_name['a'], self._by_name['b']]
+            )
         )
         test_move('a', 'down', ['b', 'a', 'c'], query=query)
         # 'c' is not included in query so it doesn't move.
@@ -315,7 +381,7 @@ class TestFunctions(LocalTestCase):
 
     def test__vars_to_records(self):
         tests = [
-            #(vars, table, multiple, expect)
+            # (vars, table, multiple, expect)
             ({}, '', False, []),
             ({}, '', True, []),
             (
