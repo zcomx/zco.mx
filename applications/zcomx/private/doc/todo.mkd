@@ -1,21 +1,45 @@
 ``
 VERSION 2 - Before Going Live
 [ ] Metadata Changes
-    [ ] Adding a book produces an error:
+    [x] Adding a book produces an error:
         Server error
         The server was not able to display the requested page.
-    [ ] on 'Edit' something showing/flickering above 'Publication Metadata'
-    [ ] Only close modal when 'Close' is clicked ?
-    [ ] remove 'Original Publication History' ?
-    [ ] Hide Derivative until something is choosen
-    [ ] Change Re-publication to Republication
-    [ ] Change Republished to Republication - whole/- serial
-    [ ] Add Label: 'Publication Type'    [ click to edit ]
-    [ ] Add Label: 'Republication Type'  [ click to edit ]
-    [ ] Add Placeholder: 'Publication Type'    [ click to edit ]
-    [ ] Add Placeholder: 'Republication Type'  [ click to edit ]
-    [ ] year drop down can start at 1970
-    [ ] Change 'Is this work a derivative?' -> 'Derivative Work'
+    [x] on 'Edit' something showing/flickering above 'Publication Metadata'
+    [x] Only close modal when 'Close' is clicked ?
+    [x] remove 'Original Publication History' ?
+    [x] Hide Derivative until something is choosen
+    [x] Change Re-publication to Republication
+    [x] Change Republished to Republication - whole/- serial
+    [x] Add Label: 'Publication Type'    [ click to edit ]
+    [x] Add Label: 'Republication Type'  [ click to edit ]
+    [x] Add Placeholder: 'Publication Type'    [ click to edit ]
+    [x] Add Placeholder: 'Republication Type'  [ click to edit ]
+    [x] year drop down can start at 1970
+    [x] Change 'Is this work a derivative?' -> 'Derivative Work'
+
+    [ ] add 'X' to top right corner of modal
+    [ ] add (i)'s
+        Publication Type
+            First Publication - the first time the world will be seeing
+            this work, choose this option
+
+            Republication - past work that has been either been posted
+            online or published on paper
+
+        Republication Type
+            Whole - If the work being upload to zco.mx that was
+            *previously* published (digital or print) in whole.
+
+            Serial - If the work being upload to zco.mx that was
+            *previously* published (digital or print) was serialized or
+            a story from an anthology or a serialized story in an
+            anthology.
+
+        Derviative Work
+            Set to 'Yes' if you've built upon or reused another
+            cartoonists' work. Their original work needs to use a
+            Creative Commons licence, ie BY, BY-SA, BY-NC or BY-NC-SA.
+
 
 [ ] Indicia Page - png version
 

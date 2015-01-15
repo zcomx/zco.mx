@@ -2116,6 +2116,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .editable-clear-x {
+    top: 25%;
+    margin: inherit;
     right: 12px;
 }
 
