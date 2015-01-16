@@ -43,7 +43,7 @@ from applications.zcomx.modules.utils import entity_to_row
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
 # W0212 (protected-access): *Access to a protected member
- # pylint: disable=W0212
+# pylint: disable=W0212
 
 
 class ImageTestCase(LocalTestCase):
@@ -361,7 +361,6 @@ class TestResizeImg(ImageTestCase):
         filename = os.path.join(self._test_data_dir, 'file.jpg')
         resize_img = ResizeImg(filename)
         self.assertTrue(resize_img)
-        self.assertEqual(resize_img.filename_base, 'file.jpg')
         self.assertEqual(resize_img._temp_directory, None)
         self.assertEqual(
             resize_img.filenames,
@@ -412,6 +411,14 @@ class TestResizeImg(ImageTestCase):
                         )
 
         # Test: test the md5 sum of files.
+        #
+        # cp applications/zcomx/private/test/data/256* ~/tmp/img/before/
+        # pushd ~/tmp/img
+        # rm *.jpg
+        # rm *.png
+        # rm *.gif
+        # ./applications/zcomx/private/bin/resize_img.sh before/*
+        # md5sum ~/tmp/img/*
 
         md5s = {
             '6.7.0-8': {
@@ -447,6 +454,24 @@ class TestResizeImg(ImageTestCase):
                 'tbn-256colour-png.png': 'dc1360d982d2d874e9c9fc88f27b1cf3',
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
                 'web-256colour-gif.png': 'babcef0095c0082c7b9ffbea2b4bc89c',
+                'web-256colour-jpg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
+                'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
+            },
+            '6.9.0-0': {
+                'cbz-256+colour.jpg': '0e11a2cf49d1c1c4166969f463744bc2',
+                'cbz-256colour-gif.png': 'eae9a553f44c6dadf7f34bf3b34b8302',
+                'cbz-256colour-jpg.jpg': '1bf61782de787ba0e4982f87a6617d3e',
+                'cbz-256colour-png.png': '9b2e81c0cf9e27f591d9bd24310fbece',
+                'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
+                'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
+                'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
+                'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
+                'tbn-256+colour.jpg': '8dc7e66f436eb9d0519d071897bdcd91',
+                'tbn-256colour-gif.png': '81d2f48c73f3bea23faf58f0c3b01d8b',
+                'tbn-256colour-jpg.jpg': 'e90043960e8afdfaffa4d166e46164f0',
+                'tbn-256colour-png.png': 'dc1360d982d2d874e9c9fc88f27b1cf3',
+                'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
+                'web-256colour-gif.png': '6f2f036ea8d66d53d46b734445c076a1',
                 'web-256colour-jpg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
                 'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
             },
@@ -739,7 +764,7 @@ class TestFunctions(ImageTestCase):
 
     def test__filename_for_size(self):
         tests = [
-            #(original, size, expect),
+            # (original, size, expect),
             ('/path/original/file.jpg', 'cbz', '/path/cbz/file.jpg'),
             ('/path/original/file.jpg', 'web', '/path/web/file.jpg'),
             ('/path/original/file.jpg', 'tbn', '/path/tbn/file.jpg'),

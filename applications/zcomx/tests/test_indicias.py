@@ -11,6 +11,7 @@ import os
 import shutil
 import unittest
 from BeautifulSoup import BeautifulSoup
+from PIL import Image
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
@@ -18,8 +19,11 @@ from gluon.validators import IS_INT_IN_RANGE
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
+    BookIndiciaPagePng, \
     CreatorIndiciaPage, \
     IndiciaPage, \
+    IndiciaSh, \
+    IndiciaShError, \
     PublicationMetadata, \
     cc_licence_by_code, \
     cc_licence_places, \
@@ -28,6 +32,7 @@ from applications.zcomx.modules.indicias import \
 from applications.zcomx.modules.test_runner import \
     LocalTestCase, \
     _mock_date as mock_date
+from applications.zcomx.modules.shell_utils import UnixFile
 from applications.zcomx.modules.utils import NotFoundError
 
 # C0111: Missing docstring
@@ -35,6 +40,251 @@ from applications.zcomx.modules.utils import NotFoundError
 # pylint: disable=C0111,R0904
 # (C0301): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
+
+
+class ImageTestCase(LocalTestCase):
+    """ Base class for Image test cases. Sets up test data."""
+
+    _auth_user = None
+    _book = None
+    _book_page = None
+    _creator = None
+    _image_dir = '/tmp/test_indicias'
+    _image_name = 'file.jpg'
+    _test_data_dir = None
+
+    _objects = []
+
+    @classmethod
+    def _prep_image(cls, img, working_directory=None, to_name=None):
+        """Prepare an image for testing.
+        Copy an image from private/test/data to a working directory.
+
+        Args:
+            img: string, name of source image, eg file.jpg
+                must be in cls._test_data_dir
+            working_directory: string, path of working directory to copy to.
+                If None, uses cls._image_dir
+            to_name: string, optional, name of image to copy file to.
+                If None, img is used.
+        """
+        src_filename = os.path.join(
+            os.path.abspath(cls._test_data_dir),
+            img
+        )
+
+        if working_directory is None:
+            working_directory = os.path.abspath(cls._image_dir)
+
+        if to_name is None:
+            to_name = img
+
+        filename = os.path.join(working_directory, to_name)
+        shutil.copy(src_filename, filename)
+        return filename
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUp(cls):
+        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+
+        if not os.path.exists(cls._image_dir):
+            os.makedirs(cls._image_dir)
+
+        def create_image(image_name):
+            image_filename = os.path.join(cls._image_dir, image_name)
+
+            # Create an image to test with.
+            im = Image.new('RGB', (1200, 1200))
+            with open(image_filename, 'wb') as f:
+                im.save(f)
+
+            # Store the image in the uploads/original directory
+            stored_filename = None
+            with open(image_filename, 'rb') as f:
+                stored_filename = db.book_page.image.store(f)
+            return stored_filename
+
+        cls._auth_user = cls.add(db.auth_user, dict(
+            name='First Last'
+        ))
+
+        cls._creator = cls.add(db.creator, dict(
+            auth_user_id=cls._auth_user.id,
+            email='image_test_case@example.com',
+        ))
+
+        cls._book = cls.add(db.book, dict(
+            name='Image Test Case',
+            creator_id=cls._creator.id,
+        ))
+
+        cls._book_page = cls.add(db.book_page, dict(
+            book_id=cls._book.id,
+            page_no=1,
+            image=create_image('file.jpg'),
+        ))
+
+    @classmethod
+    def tearDown(cls):
+        if os.path.exists(cls._image_dir):
+            shutil.rmtree(cls._image_dir)
+
+
+class TestBookIndiciaPage(ImageTestCase):
+
+    def test____init__(self):
+        indicia = BookIndiciaPage(self._book)
+        self.assertTrue(indicia)
+
+    def test__get_orientation(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        indicia = BookIndiciaPage(self._book)
+        self.assertEqual(indicia._orientation, None)
+
+        for t in ['portrait', 'landscape', 'square']:
+            img = '{n}.png'.format(n=t)
+            filename = self._prep_image(img)
+            stored_filename = store(db.book_page.image, filename)
+            self._book_page.update_record(image=stored_filename)
+            db.commit()
+
+            indicia._orientation = None     # Clear cache
+            self.assertEqual(
+                indicia.get_orientation(),
+                'portrait' if t == 'square' else t
+            )
+
+        # Test cache
+        indicia._orientation = '_cache_'
+        self.assertEqual(indicia.get_orientation(), '_cache_')
+
+    def test__licence_text(self):
+        indicia = BookIndiciaPage(self._book)
+        this_year = datetime.date.today().year
+        self.assertEqual(
+            indicia.licence_text(),
+            ' <i>IMAGE TEST CASE</i> IS COPYRIGHT (C) {y} BY FIRST LAST.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+        )
+
+        cc_licence_id = cc_licence_by_code('CC BY', want='id', default=0)
+        self._book.update_record(cc_licence_id=cc_licence_id)
+        db.commit()
+        book = db(db.book.id == self._book.id).select().first()
+
+        indicia = BookIndiciaPage(book)
+        self.assertEqual(
+            indicia.licence_text(),
+            ' <i>IMAGE TEST CASE</i> IS COPYRIGHT (C) {y} BY FIRST LAST.  THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0">CC BY 4.0 INT`L LICENSE</a>.'.format(y=this_year)
+        )
+
+    def test__render(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
+        portrait_filename = store(
+            db.book_page.image, self._prep_image('portrait.png'))
+
+        self._book_page.update_record(image=portrait_filename)
+        db.commit()
+        indicia = BookIndiciaPage(self._book)
+
+        got = indicia.render()
+        soup = BeautifulSoup(str(got))
+        div = soup.div
+        self.assertEqual(div['class'], 'indicia_preview_section portrait')
+
+        landscape_filename = store(
+            db.book_page.image, self._prep_image('landscape.png'))
+        self._book_page.update_record(image=landscape_filename)
+        db.commit()
+
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        indicia._orientation = None     # clear cache
+        got = indicia.render()
+        soup = BeautifulSoup(str(got))
+        div = soup.div
+        self.assertEqual(div['class'], 'indicia_preview_section landscape')
+
+
+class TestBookIndiciaPagePng(ImageTestCase):
+    def test____init__(self):
+        png_page = BookIndiciaPagePng(self._book)
+        self.assertTrue(png_page)
+        self.assertEqual(png_page.book.id, self._book.id)
+
+    def test__create(self):
+        png_page = BookIndiciaPagePng(self._book)
+        png = png_page.create()
+
+        output, error = UnixFile(png).file()
+        self.assertTrue('PNG image' in output)
+        self.assertEqual(error, '')
+
+    def test__create_metatext_file(self):
+        png_page = BookIndiciaPagePng(self._book)
+        png_page.create_metatext_file()
+
+        output, error = UnixFile(png_page.metadata_filename).file()
+        self.assertTrue('ASCII text' in output)
+        self.assertEqual(error, '')
+        lines = []
+        with open(png_page.metadata_filename, 'r') as f:
+            lines.append(f.read())
+
+        self.assertEqual(len(lines), 1)
+        self.assertEqual(
+            lines[0],
+            """ <i>IMAGE TEST CASE</i> IS COPYRIGHT (C) 2015 BY FIRST LAST.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
+        )
+
+    def test__get_indicia_filename(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        png_page = BookIndiciaPagePng(self._book)
+        self.assertEqual(png_page._indicia_filename, None)
+
+        # No creator indicia image, should use default.
+        self.assertEqual(
+            png_page.get_indicia_filename(),
+            'applications/zcomx/static/images/indicia_image.png'
+        )
+
+        # Add creator indicia_image
+        filename = self._prep_image('file.png', to_name='indicia.png')
+        stored_filename = store(db.creator.indicia_image, filename)
+        png_page.creator.update_record(indicia_image=stored_filename)
+        db.commit()
+
+        png_page._indicia_filename = None       # Clear cache
+        _, expect = db.creator.indicia_image.retrieve(
+            png_page.creator.indicia_image, nameonly=True)
+        self.assertEqual(png_page.get_indicia_filename(), expect)
+
+        # Test cache
+        png_page._indicia_filename = '_cache_'
+        self.assertEqual(
+            png_page.get_indicia_filename(),
+            '_cache_'
+        )
+
+
+class TestCreatorIndiciaPage(ImageTestCase):
+    def test____init__(self):
+        indicia = CreatorIndiciaPage(self._creator)
+        self.assertTrue(indicia)
+
+    def test__licence_text(self):
+        this_year = datetime.date.today().year
+
+        indicia = CreatorIndiciaPage(self._creator)
+        self.assertEqual(
+            indicia.licence_text(),
+            ' <i>NAME OF BOOK</i> IS COPYRIGHT (C) {y} BY FIRST LAST.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+        )
 
 
 class TestIndiciaPage(LocalTestCase):
@@ -145,141 +395,66 @@ class TestIndiciaPage(LocalTestCase):
             img['src'], '/images/download/path/to/file.png?size=web')
 
 
-class TestBookIndiciaPage(LocalTestCase):
-
-    _image_dir = '/tmp/image_for_books'
-    _image_original = os.path.join(_image_dir, 'original')
-    _test_data_dir = None
-
-    @classmethod
-    def _prep_image(cls, img, working_directory=None, to_name=None):
-        """Prepare an image for testing.
-        Copy an image from private/test/data to a working directory.
-
-        Args:
-            img: string, name of source image, eg file.jpg
-                must be in cls._test_data_dir
-            working_directory: string, path of working directory to copy to.
-                If None, uses cls._image_dir
-            to_name: string, optional, name of image to copy file to.
-                If None, img is used.
-        """
-        src_filename = os.path.join(
-            os.path.abspath(cls._test_data_dir),
-            img
-        )
-
-        if working_directory is None:
-            working_directory = os.path.abspath(cls._image_dir)
-
-        if to_name is None:
-            to_name = img
-
-        filename = os.path.join(working_directory, to_name)
-        shutil.copy(src_filename, filename)
-        return filename
-
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
-
-        if not os.path.exists(cls._image_original):
-            os.makedirs(cls._image_original)
+class TestIndiciaSh(ImageTestCase):
 
     def test____init__(self):
-        creator = self.add(db.creator, dict(path_name='BookIndiciaPage'))
-        book = self.add(db.book, dict(
-            name='BookIndiciaPage__init__',
-            creator_id=creator.id,
-        ))
-        indicia = BookIndiciaPage(book)
-        self.assertTrue(indicia)
+        indicia_sh = IndiciaSh(101, '', '')
+        self.assertTrue(indicia_sh)
 
-    def test__licence_text(self):
-        auth_user = self.add(db.auth_user, dict(name='Test Licence Text'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
-        book = self.add(db.book, dict(
-            name='test__licence_text',
-            creator_id=creator.id,
-        ))
+    def test__run(self):
+        creator_id = 919
 
-        indicia = BookIndiciaPage(book)
-        this_year = datetime.date.today().year
-        self.assertEqual(
-            indicia.licence_text(),
-            ' <i>TEST__LICENCE_TEXT</i> IS COPYRIGHT (C) {y} BY TEST LICENCE TEXT.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+        metadata_filename = os.path.join(self._image_dir, 'meta.txt')
+        with open(metadata_filename, 'w') as f:
+            f.write(
+                'This is a test metadata text. Copyright 2014.'
+            )
+
+        indicia_filename = self._prep_image('file.png', to_name='indicia.png')
+        indicia_sh = IndiciaSh(creator_id, metadata_filename, indicia_filename)
+        indicia_sh.run()
+        png_filename = os.path.join(
+            indicia_sh.temp_directory(),
+            '919-indicia.png'
         )
+        self.assertEqual(indicia_sh.png_filename, png_filename)
+        self.assertTrue(os.path.exists(indicia_sh.png_filename))
+        output, error = UnixFile(indicia_sh.png_filename).file()
+        self.assertTrue('PNG image' in output)
+        self.assertEqual(error, '')
 
-        cc_licence_id = cc_licence_by_code('CC BY', want='id', default=0)
-        book.update_record(cc_licence_id=cc_licence_id)
-        db.commit()
-        book = db(db.book.id == book.id).select().first()
+        im = Image.open(indicia_sh.png_filename)
+        width, height = im.size
+        self.assertTrue(height > width)
 
-        indicia = BookIndiciaPage(book)
-        self.assertEqual(
-            indicia.licence_text(),
-            ' <i>TEST__LICENCE_TEXT</i> IS COPYRIGHT (C) {y} BY TEST LICENCE TEXT.  THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0">CC BY 4.0 INT`L LICENSE</a>.'.format(y=this_year)
-        )
+        # Test: landscape option.
+        indicia_sh.landscape = True
+        indicia_sh.run()
+        im = Image.open(indicia_sh.png_filename)
+        width, height = im.size
+        self.assertTrue(width > height)
 
-    def test__render(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
+        def do_invalid(obj, msg):
+            try:
+                obj.run()
+            except IndiciaShError as err:
+                self.assertTrue(msg in str(err))
+            else:
+                self.fail('IndiciaShError not raised.')
 
-        creator = self.add(db.creator, dict(path_name='BookIndiciaPage'))
-        book = self.add(db.book, dict(
-            name='BookIndiciaPage__init__',
-            creator_id=creator.id,
-        ))
+        # Invalid: creator id is not an integer
+        indicia_sh = IndiciaSh('abc', metadata_filename, indicia_filename)
+        do_invalid(indicia_sh, 'ID is not an integer')
 
-        portrait_filename = store(
-            db.book_page.image, self._prep_image('portrait.png'))
+        # Invalid: metadata_filename is not text
+        indicia_sh = IndiciaSh(creator_id, indicia_filename, indicia_filename)
+        do_invalid(indicia_sh, 'File {f} is not a text file'.format(
+            f=indicia_filename))
 
-        self.add(db.book_page, dict(
-            book_id=book.id,
-            image=portrait_filename,
-            page_no=1,
-        ))
-
-        indicia = BookIndiciaPage(book)
-
-        got = indicia.render()
-        soup = BeautifulSoup(str(got))
-        div = soup.div
-        self.assertEqual(div['class'], 'indicia_preview_section portrait')
-
-        landscape_filename = store(
-            db.book_page.image, self._prep_image('landscape.png'))
-
-        self.add(db.book_page, dict(
-            book_id=book.id,
-            image=landscape_filename,
-            page_no=2,
-        ))
-
-        got = indicia.render()
-        soup = BeautifulSoup(str(got))
-        div = soup.div
-        self.assertEqual(div['class'], 'indicia_preview_section landscape')
-
-
-class TestCreatorIndiciaPage(LocalTestCase):
-    def test____init__(self):
-        creator = self.add(db.creator, dict(path_name='CreatorIndiciaPage'))
-        indicia = CreatorIndiciaPage(creator)
-        self.assertTrue(indicia)
-
-    def test__licence_text(self):
-        auth_user = self.add(db.auth_user, dict(name='Creator Licence Text'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
-        this_year = datetime.date.today().year
-
-        indicia = CreatorIndiciaPage(creator)
-        self.assertEqual(
-            indicia.licence_text(),
-            ' <i>NAME OF BOOK</i> IS COPYRIGHT (C) {y} BY CREATOR LICENCE TEXT.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
-        )
+        # Invalid: indicia_filename is not image
+        indicia_sh = IndiciaSh(creator_id, metadata_filename, metadata_filename)
+        do_invalid(indicia_sh, 'File {f} is not an image file'.format(
+            f=metadata_filename))
 
 
 class TestPublicationMetadata(LocalTestCase):
@@ -597,7 +772,7 @@ class TestPublicationMetadata(LocalTestCase):
             meta.load_from_vars(request_vars)
             self.assertEqual(meta.metadata['republished'], t[1])
 
-        # Test chaining.   FIXME
+        # Test chaining
         request_vars['publication_metadata_republished'] = 'repub'
         request_vars['publication_metadata_published_type'] = 'whole'
         expect = dict(metadata)

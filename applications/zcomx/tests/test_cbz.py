@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import unittest
 from gluon import *
-from gluon.dal import Row
+from gluon.storage import Storage
 from applications.zcomx.modules.books import DEFAULT_BOOK_TYPE
 from applications.zcomx.modules.cbz import \
     CBZCreateError, \
@@ -170,11 +170,15 @@ class TestCBZCreator(ImageTestCase):
         # One-shot
         book_type_id = types_by_name['one-shot'].id
         tests = [
-            #(name, year, creator_id, expect)
+            # (name, year, creator_id, expect)
             ('My Book', 1999, 1, 'My Book (1999) (1.zco.mx).cbz'),
             ('My Book', 1999, 123, 'My Book (1999) (123.zco.mx).cbz'),
-            (r'A !@#$%^&*?/\[]{};:" B', 1999, 123,
-                r'A !@#$^&[]{}; -  B (1999) (123.zco.mx).cbz'),
+            (
+                r'A !@#$%^&*?/\[]{};:" B',
+                1999,
+                123,
+                r'A !@#$^&[]{}; -  B (1999) (123.zco.mx).cbz'
+            ),
             ('A B', 1999, 123, 'A B (1999) (123.zco.mx).cbz'),
             ('A  B', 1999, 123, 'A  B (1999) (123.zco.mx).cbz'),
             ('A   B', 1999, 123, 'A   B (1999) (123.zco.mx).cbz'),
@@ -186,16 +190,36 @@ class TestCBZCreator(ImageTestCase):
             ('A : B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
             ('A :B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
             ("A'B", 1999, 123, "A'B (1999) (123.zco.mx).cbz"),
-            ('Berserk Alert!', 2014, 6,
-                'Berserk Alert! (2014) (6.zco.mx).cbz'),
-            ('SUPER-ENIGMATIX', 2014, 11,
-                'SUPER-ENIGMATIX (2014) (11.zco.mx).cbz'),
-            ('Tarzan Comic #v2#7', 2014, 123,
-                'Tarzan Comic #v2#7 (2014) (123.zco.mx).cbz'),
-            ('Hämähäkkimies #11/1986', 1986, 123,
-                'Hämähäkkimies #111986 (1986) (123.zco.mx).cbz'),
-            ('Warcraft: Legends', 2008, 123,
-                'Warcraft - Legends (2008) (123.zco.mx).cbz'),
+            (
+                'Berserk Alert!',
+                2014,
+                6,
+                'Berserk Alert! (2014) (6.zco.mx).cbz'
+            ),
+            (
+                'SUPER-ENIGMATIX',
+                2014,
+                11,
+                'SUPER-ENIGMATIX (2014) (11.zco.mx).cbz'
+            ),
+            (
+                'Tarzan Comic #v2#7',
+                2014,
+                123,
+                'Tarzan Comic #v2#7 (2014) (123.zco.mx).cbz'
+            ),
+            (
+                'Hämähäkkimies #11/1986',
+                1986,
+                123,
+                'Hämähäkkimies #111986 (1986) (123.zco.mx).cbz'
+            ),
+            (
+                'Warcraft: Legends',
+                2008,
+                123,
+                'Warcraft - Legends (2008) (123.zco.mx).cbz'
+            ),
         ]
 
         for t in tests:
@@ -213,7 +237,7 @@ class TestCBZCreator(ImageTestCase):
         # Ongoing
         book_type_id = types_by_name['ongoing'].id
         tests = [
-            #(name, number, year, creator_id, expect)
+            # (name, number, year, creator_id, expect)
             ('My Book', 1, 1999, 1, 'My Book 001 (1999) (1.zco.mx).cbz'),
             ('My Book', 2, 1999, 1, 'My Book 002 (1999) (1.zco.mx).cbz'),
             ('My Book', 999, 1999, 1, 'My Book 999 (1999) (1.zco.mx).cbz'),
@@ -234,13 +258,31 @@ class TestCBZCreator(ImageTestCase):
         # Mini-series
         book_type_id = types_by_name['mini-series'].id
         tests = [
-            #(name, number, of_number, year, creator_id, expect)
-            ('My Book', 1, 4, 1999, 1,
-                'My Book 01 (of 04) (1999) (1.zco.mx).cbz'),
-            ('My Book', 2, 9, 1999, 1,
-                'My Book 02 (of 09) (1999) (1.zco.mx).cbz'),
-            ('My Book', 99, 99, 1999, 1,
-                'My Book 99 (of 99) (1999) (1.zco.mx).cbz'),
+            # (name, number, of_number, year, creator_id, expect)
+            (
+                'My Book',
+                1,
+                4,
+                1999,
+                1,
+                'My Book 01 (of 04) (1999) (1.zco.mx).cbz'
+            ),
+            (
+                'My Book',
+                2,
+                9,
+                1999,
+                1,
+                'My Book 02 (of 09) (1999) (1.zco.mx).cbz'
+            ),
+            (
+                'My Book',
+                99,
+                99,
+                1999,
+                1,
+                'My Book 99 (of 99) (1999) (1.zco.mx).cbz'
+            ),
         ]
 
         for t in tests:
@@ -259,7 +301,41 @@ class TestCBZCreator(ImageTestCase):
         self._book.update_record(creator_id=self._creator.id)
         db.commit()
 
-    def test__image_filename(self):
+    def test__get_img_filename_fmt(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+        creator = CBZCreator(self._book)
+
+        tests = [
+            # (pages (excluding indicia page), expect)
+            (1, '{p:03d}{e}'),
+            (10, '{p:03d}{e}'),
+            (100, '{p:03d}{e}'),
+            (998, '{p:03d}{e}'),
+            (999, '{p:04d}{e}'),
+            (1000, '{p:04d}{e}'),
+            (9998, '{p:04d}{e}'),
+            (9999, '{p:05d}{e}'),
+            (10000, '{p:05d}{e}'),
+            (99998, '{p:05d}{e}'),
+            (99999, '{p:06d}{e}'),
+            (100000, '{p:06d}{e}'),
+        ]
+
+        for t in tests:
+            creator._max_page_no = t[0]
+            creator._img_filename_fmt = None            # clear cache
+            self.assertEqual(creator.get_img_filename_fmt(), t[1])
+
+        # Test cache
+        creator._img_filename_fmt = '_cache_'
+        self.assertEqual(creator.get_img_filename_fmt(), '_cache_')
+
+    def test__get_max_page_no(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
         creator = CBZCreator(self._book)
@@ -270,29 +346,45 @@ class TestCBZCreator(ImageTestCase):
             db(query).update(page_no=page_no)
             db.commit()
 
+        tests = [1, 10, 100, 1000]
+        for t in tests:
+            set_page_no(self._book_page, t)
+            creator._max_page_no = None            # clear cache
+            self.assertEqual(
+                creator.get_max_page_no(),
+                max(t, 2)                   # self._book page 2 has page_no=2
+            )
+
+        # Test cache
+        creator._max_page_no = -1
+        self.assertEqual(creator.get_max_page_no(), -1)
+
+    def test__image_filename(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+        creator = CBZCreator(self._book)
+
         tests = [
-            #(pages, image name, page_no, expect)
-            (1, 'file.jpg', 1, '001.jpg'),
-            (10, 'file.jpg', 1, '001.jpg'),
-            (100, 'file.jpg', 1, '001.jpg'),
-            (999, 'file.jpg', 1, '001.jpg'),
-            (1000, 'file.jpg', 1, '0001.jpg'),
-            (9999, 'file.jpg', 1, '0001.jpg'),
-            (10000, 'file.jpg', 1, '00001.jpg'),
-            (99999, 'file.jpg', 1, '00001.jpg'),
-            (100000, 'file.jpg', 1, '000001.jpg'),
-            (10, 'file.png', 1, '001.png'),
-            (10, 'file.jpg', 2, '002.jpg'),
-            (999, 'file.jpg', 999, '999.jpg'),
+            # (image name, page_no, fmt, extension, expect)
+            ('file.jpg', 1, '{p}{e}', None, '1.jpg'),
+            ('file.jpg', 1, '{p:03d}{e}', None, '001.jpg'),
+            ('file.jpg', 9, '{p:03d}{e}', None, '009.jpg'),
+            ('file.jpg', 1, '{p:03d}{e}', '.png', '001.png'),
+            ('file.png', 1, '{p:03d}{e}', '.jpg', '001.jpg'),
         ]
 
         for t in tests:
-            set_page_no(self._book_page, t[0])
-            book_page = Row(dict(
-                image=t[1],
-                page_no=t[2]
+            book_page = Storage(dict(
+                image=t[0],
+                page_no=t[1],
             ))
-            self.assertEqual(creator.image_filename(book_page), t[3])
+            self.assertEqual(
+                creator.image_filename(book_page, t[2], extension=t[3]),
+                t[4]
+            )
 
     def test__run(self):
         if self._opts.quick:
@@ -311,7 +403,7 @@ class TestCBZCreator(ImageTestCase):
         self.assertEqual(p_stderr, '')
 
         pages = db(db.book_page.book_id == self._book.id).count()
-        files_comment = 'Files: {c}'.format(c=pages)
+        files_comment = 'Files: {c}'.format(c=pages + 1)    # +1 for indicia
         self.assertTrue(files_comment in p_stdout)
 
     def test__working_directory(self):

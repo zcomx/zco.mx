@@ -968,7 +968,7 @@ class TestFunctions(ImageTestCase):
         # Test invalid book entity
         self.assertRaises(NotFoundError, orientation, -1)
 
-        # Test booke without an image.
+        # Test book without an image.
         book_page = self.add(db.book_page, dict(
             image=None,
         ))

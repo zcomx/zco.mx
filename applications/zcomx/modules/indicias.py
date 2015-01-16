@@ -6,6 +6,11 @@
 Indicias classes and functions.
 """
 import datetime
+import glob
+import logging
+import os
+import shutil
+import subprocess
 from gluon import *
 
 from applications.zcomx.modules.books import \
@@ -15,12 +20,14 @@ from applications.zcomx.modules.books import \
     publication_year_range
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name
+from applications.zcomx.modules.shell_utils import TempDirectoryMixin
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     default_record, \
     entity_to_row, \
     vars_to_records
 
+LOG = logging.getLogger('app')
 DEFAULT_BOOK_TYPE = 'one-shot'
 
 
@@ -30,7 +37,7 @@ class IndiciaPage(object):
     The indicia page is the web version of the indicia (as opposed to the
     indicia image)
     """
-    default_indicia_image = URL(c='static', f='images/indicia_image.png')
+    default_indicia_paths = ['static', 'images', 'indicia_image.png']
     default_licence_code = 'All Rights Reserved'
 
     def __init__(self, entity):
@@ -39,7 +46,6 @@ class IndiciaPage(object):
         Args:
             entity: Row instance or integer representing a record,
                 if integer, this is the id of the record. The record is read.
-            user_id: integer, id of user triggering event.
         """
         self.entity = entity
         self.creator = None     # Row instance representing creator
@@ -63,8 +69,15 @@ class IndiciaPage(object):
         )
 
     def render(self, orientation='portrait'):
-        """Render the indicia page."""
-        img_src = self.default_indicia_image
+        """Render the indicia page.
+
+        Args:
+            orientation: string, one of 'portrait' or 'landscape'
+        """
+        img_src = URL(
+            c=self.default_indicia_paths[0],
+            f=os.path.join(*self.default_indicia_paths[1:])
+        )
         if self.creator and self.creator.indicia_image:
             img_src = URL(
                 c='images',
@@ -128,13 +141,27 @@ class BookIndiciaPage(IndiciaPage):
         Args:
             entity: Row instance or integer representing a record,
                 if integer, this is the id of the record. The record is read.
-            user_id: integer, id of user triggering event.
         """
         db = current.app.db
         IndiciaPage.__init__(self, entity)
         self.table = db.book
         self.book = entity_to_row(db.book, self.entity)
         self.creator = entity_to_row(db.creator, self.book.creator_id)
+        self._orientation = None
+
+    def get_orientation(self):
+        """Return the orientation of the book (based on its last page)."""
+        if self._orientation is None:
+            orientation = None
+            try:
+                orientation = page_orientation(
+                    get_page(self.book, page_no='last'))
+            except NotFoundError:
+                orientation = 'portrait'
+            if orientation != 'landscape':
+                orientation = 'portrait'
+            self._orientation = orientation
+        return self._orientation
 
     def licence_text(self):
         """Return the licence record used for the licence text on the indicia
@@ -166,17 +193,19 @@ class BookIndiciaPage(IndiciaPage):
         return ' '.join([x for x in sections if x])
 
     def render(self, orientation=None):
-        """Render the indicia page."""
+        """Render the indicia page.
+
+        Args:
+            orientation: string, one of 'portrait' or 'landscape'
+                If None, the orientation of the last page of the book is used.
+        """
         if orientation is None:
-            orientation = page_orientation(
-                get_page(self.book, page_no='last'))
-            if orientation != 'landscape':
-                orientation = 'portrait'
+            orientation = self.get_orientation()
         return IndiciaPage.render(self, orientation=orientation)
 
 
-class CreatorIndiciaPage(IndiciaPage):
-    """Class representing a book indicia page."""
+class BookIndiciaPagePng(BookIndiciaPage, TempDirectoryMixin):
+    """Class representing a book indicia page in png format."""
 
     def __init__(self, entity):
         """Constructor
@@ -184,7 +213,73 @@ class CreatorIndiciaPage(IndiciaPage):
         Args:
             entity: Row instance or integer representing a record,
                 if integer, this is the id of the record. The record is read.
-            user_id: integer, id of user triggering event.
+        """
+        BookIndiciaPage.__init__(self, entity)
+        self.metadata_filename = None
+        self._indicia_filename = None
+
+    def create(self, orientation=None):
+        """Create the indicia png file for the book.
+
+        Args:
+            orientation: string, one of 'portrait' or 'landscape'
+                If None, the orientation of the last page of the book is used.
+        """
+        if orientation is None:
+            orientation = self.get_orientation()
+        self.create_metatext_file()
+        indicia_sh = IndiciaSh(
+            self.book.creator_id,
+            self.metadata_filename,
+            self.get_indicia_filename(),
+            landscape=(orientation == 'landscape')
+        )
+        indicia_sh.run(nice=True)
+        # Copy png file to this classes temp directory.
+        # IndiciaSh creates file in a temp directory that is removed as soon
+        # as the instance is destroyed.
+        filename = os.path.join(self.temp_directory(), 'indicia.png')
+        shutil.copy(indicia_sh.png_filename, filename)
+        return filename
+
+    def create_metatext_file(self):
+        """Create a text file containing the book metadata."""
+        self.metadata_filename = os.path.join(
+            self.temp_directory(), 'meta.txt')
+        with open(self.metadata_filename, 'w') as f:
+            f.write(self.licence_text())
+
+    def get_indicia_filename(self):
+        """Return the name of the indicia image file."""
+        db = current.app.db
+        if not self._indicia_filename:
+            indicia_filename = None
+            if self.creator.indicia_image:
+                _, indicia_filename = db.creator.indicia_image.retrieve(
+                    self.creator.indicia_image, nameonly=True)
+            if not indicia_filename:
+                # Use default
+                indicia_filename = os.path.join(
+                    current.request.folder,
+                    *self.default_indicia_paths
+                )
+            self._indicia_filename = indicia_filename
+        return self._indicia_filename
+
+
+class CreatorIndiciaPage(IndiciaPage):
+    """Class representing a creator indicia page.
+
+    A creator indicia page is used to preview what a creator's book indicia
+    page would look like.
+    """
+
+    def __init__(self, entity):
+        """Constructor
+
+        Args:
+            entity: Row instance or integer representing a record,
+                if integer, this is the id of the record. The record is read.
         """
         db = current.app.db
         IndiciaPage.__init__(self, entity)
@@ -199,6 +294,91 @@ class CreatorIndiciaPage(IndiciaPage):
             data,
             self.default_licence()
         )
+
+
+class IndiciaShError(Exception):
+    """Exception class for IndiciaSh errors."""
+    pass
+
+
+class IndiciaSh(TempDirectoryMixin):
+    """Class representing a handler for interaction with indicia.sh"""
+
+    def __init__(
+            self,
+            creator_id,
+            metadata_filename,
+            indicia_filename,
+            landscape=False):
+        """Constructor
+
+        Args:
+            creator_id: integer, id of creator record
+            metadata_filename: string, name of metadata text file
+            indicia_filename: string, name of indicia image file
+            landscape: If True, use indicia.sh -l
+        """
+        self.creator_id = creator_id
+        self.metadata_filename = metadata_filename
+        self.indicia_filename = indicia_filename
+        self.landscape = landscape
+        self.png_filename = None
+
+    def run(self, nice=False):
+        """Run the shell script and get the output.
+
+        Args:
+            nice: If True, run resize script with nice.
+        """
+        script = os.path.abspath(
+            os.path.join(
+                current.request.folder, 'private', 'bin', 'indicia.sh')
+        )
+
+        real_metadata_filename = os.path.abspath(self.metadata_filename)
+        real_indicia_filename = os.path.abspath(self.indicia_filename)
+
+        args = []
+        if nice:
+            args.append('nice')
+        args.append(script)
+        if self.landscape:
+            args.append('-l')
+        args.append(str(self.creator_id))
+        args.append(real_metadata_filename)
+        args.append(real_indicia_filename)
+
+        # The image created by indicia.sh is placed in the current
+        # directory. Use cwd= to change to the temp directory so it is
+        # created there.
+        p = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=self.temp_directory()
+        )
+        p_stdout, p_stderr = p.communicate()
+        # Generally there should be no output. Log to help troubleshoot.
+        if p_stdout:
+            LOG.warn('IndiciaSh run stdout: %s', p_stdout)
+        if p_stderr:
+            LOG.error('IndiciaSh run stderr: %s', p_stderr)
+
+        # E1101 (no-member): *%%s %%r has no %%r member*
+        # pylint: disable=E1101
+        if p.returncode:
+            raise IndiciaShError('Indicia png creation failed: {err}'.format(
+                err=p_stderr or p_stdout))
+
+        # png file name has format <creator_id>-indicia.png
+        png_filename = '{cid}-indicia.png'.format(cid=str(self.creator_id))
+        path = os.path.join(
+            self.temp_directory(),
+            png_filename
+        )
+        matches = glob.glob(path)
+        if matches:
+            self.png_filename = matches[0]
 
 
 class PublicationMetadata(object):

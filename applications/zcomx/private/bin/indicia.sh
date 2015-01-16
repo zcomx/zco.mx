@@ -22,7 +22,7 @@ EOF
 }
 
 _check() {
-    [[ $foo != *[!0-9]* ]] || _me "ID is not an integer"
+    [[ $cid != *[!0-9]* ]] || _me "ID is not an integer"
     IFS=\/ read -r t _ < <(file -ib -- $metadata)
     [[ $t == text ]]  || _me "File $metadata is not a text file"
     metadata=$(< $metadata)

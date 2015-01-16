@@ -97,13 +97,12 @@ class ImgTag(object):
     placeholder_tag = DIV
 
     def __init__(
-        self,
-        image,
-        size='original',
-        tag=None,
-        components=None,
-        attributes=None
-    ):
+            self,
+            image,
+            size='original',
+            tag=None,
+            components=None,
+            attributes=None):
         """Constructor
 
         Args:
@@ -184,10 +183,8 @@ class ResizeImg(TempDirectoryMixin):
 
         Args:
             filename: string, name of original image file
-            nice: If True, run resize script with nice.
         """
         self.filename = filename
-        self.filename_base = os.path.basename(self.filename)
         self.filenames = {'ori': None, 'cbz': None, 'web': None, 'tbn': None}
 
     def run(self, nice=False):
@@ -221,9 +218,9 @@ class ResizeImg(TempDirectoryMixin):
         p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
         if p_stdout:
-            LOG.warn('ResizeImg run stdout: {out}'.format(out=p_stdout))
+            LOG.warn('ResizeImg run stdout: %s', p_stdout)
         if p_stderr:
-            LOG.error('ResizeImg run stderr: {err}'.format(err=p_stderr))
+            LOG.error('ResizeImg run stderr: %s', p_stderr)
 
         # E1101 (no-member): *%%s %%r has no %%r member*
         # pylint: disable=E1101
@@ -253,7 +250,8 @@ class UploadImage(object):
         Args:
             field: gluon.dal.Field instance, eg db.creator.image
             field, image_name: string, the name of the image.
-                Eg creator.image.944cdb07605150ca.636875636b5f666f72736d616e2e6a7067.jpg
+                Eg creator.image.944cdb07605150ca. ...
+                        636875636b5f666f72736d616e2e6a7067.jpg
         """
         self.field = field
         self.image_name = image_name
@@ -413,7 +411,7 @@ def store(field, filename):
     This will create all sizes of the image file.
 
     Args:
-        field: gluon.dal.Field instance (this should be a field of type 'upload'
+        field: gluon.dal.Field instance (field type 'upload')
         filename: name of file to store.
 
     Return:
