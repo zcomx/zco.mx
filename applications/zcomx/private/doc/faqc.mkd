@@ -23,9 +23,9 @@ like to excavate older material from the ‘80s, ‘90s and ‘00s.
 
 [[filetypes]]
 #### What file types can be uploaded?
-GIF, JPEG and PNG. Ideally, file resolutions should be higher than
-1600px for portrait images and 2560px for landscape. This will ensure
-that images look great on tablets.
+GIF, JPEG and PNG. Ideally, file resolutions should be higher than a
+width of 1600px for portrait images and 2560px for landscape. This will
+ensure that images look great on tablets.
 
 For tablets, we use the image files that are uploaded to create cbz
 files. We downsample images to 1600px for portrait images and 2560px for

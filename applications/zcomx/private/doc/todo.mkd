@@ -18,6 +18,16 @@ VERSION 2 - Before Going Live
     [x] Change 'Is this work a derivative?' -> 'Derivative Work'
 
     [ ] add 'X' to top right corner of modal
+
+    [ ] repub - serial -> Published Name
+        change to 'Book/Anthology Name'
+    [ ] repub - serial -> Serial Number
+        change to 'Book/Anthology Number'
+        move under 'Book/Anthology Name'
+        Enter an integer between -2.14748e+09 and 2.14748e+09
+
+    [ ] repub - serial -> pub type: press -> Press Name
+        should not be tumblr
     [ ] add (i)'s
         Publication Type
             First Publication - the first time the world will be seeing
@@ -27,19 +37,35 @@ VERSION 2 - Before Going Live
             online or published on paper
 
         Republication Type
-            Whole - If the work being upload to zco.mx that was
+            Whole - If the work that is being upload to zco.mx was
             *previously* published (digital or print) in whole.
 
-            Serial - If the work being upload to zco.mx that was
-            *previously* published (digital or print) was serialized or
-            a story from an anthology or a serialized story in an
-            anthology.
+            Serial - If the work being upload is also being *collected*
+            and was *previously* published (digital or print) was
+            serialized or a story from an anthology or a serialized
+            story in an anthology.
+
+            Original Book Title - If the name has changed since it was
+            originally published.
+
+            Site Name - The name of the site where the work was first
+            published, eg username.tumblr.com or mydomain.com
+
+            Press Name - Name of the small press/publishing company.
+
+            Year - The year the work first appeared online or in print.
+
+            To - The year the work was completed.
+
+
 
         Derviative Work
             Set to 'Yes' if you've built upon or reused another
             cartoonists' work. Their original work needs to use a
             Creative Commons licence, ie BY, BY-SA, BY-NC or BY-NC-SA.
 
+
+[ ] https://dev.zco.mx/login/indicia
 
 [ ] Indicia Page - png version
 
@@ -51,7 +77,6 @@ VERSION 2 - Before Going Live
 
     'indicia' in navbar
     * upload
-    * preview
 
 [S] Get Marc's permission to use Shrimpy
 
