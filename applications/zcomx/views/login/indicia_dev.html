@@ -1,0 +1,72 @@
+{{extend 'login/layout.html'}}
+<div id="indicia_section">
+
+<div id="instructions_container">
+    <h4>Instructions</h4>
+    <ul>
+        <li>The indicia image is displayed on the indicia page of your books.</li>
+        <li>Minimum size: 1600px x 1600px</li>
+        <li>A white or light colour background works best.</li>
+        <li>Click the <i>Upload</i> button to upload a custom indicia page image.</li>
+        <li>Click the <i>Remove</i> button to remove your indicia image. Without an image, the default is used. See the previews below.</li>
+    </ul>
+</div>
+
+<div id="indicia_dev">
+    <div id="buttons_container">
+    <button class="btn btn-default" id="btn-bigger">Bigger</button>
+    <button class="btn btn-default" id="btn-smaller">Smaller</button>
+        <span class="labelx">Width: </span>
+        <span id="width">100</span>
+        <span class="labelx">Height: </span>
+        <span id="height">100</span>
+    <br>
+    <button class="btn btn-default" id="btn-stack">Unstack</button>
+    </div>
+
+    <div id="portrait_container" class="img_container">
+    <img style="width: 100%;" src="{{=URL(c='static', f='images/099-indicia.png')}}">
+    </div>
+
+    <div id="landscape_container" class="img_container">
+    <img style="height: 100%;" src="{{=URL(c='static', f='images/099-l-indicia.png')}}">
+    </div>
+
+</div>
+
+<script>
+//<![CDATA[
+    function display_dim() {
+        var w = $('#portrait_container').width();
+        $('#width').text(w);
+        var h = $('#portrait_container').height();
+        $('#height').text(h);
+    }
+
+    $(document).ready(function(){
+        $('#btn-bigger').click(function(e){
+            var w = $('#portrait_container').width();
+            $('#portrait_container').width(w + 50);
+            $('#landscape_container').height(w + 50);
+            display_dim()
+        });
+        $('#btn-smaller').click(function(e){
+            var w = $('#portrait_container').width();
+            $('#portrait_container').width(w - 50);
+            $('#landscape_container').height(w - 50);
+            display_dim()
+        });
+        $('#btn-stack').click(function(e){
+            var text = $(this).text();
+            if (text === 'Unstack') {
+                $('.img_container').css('display', 'inline-block');
+                $(this).text('Stack');
+            } else {
+                $('.img_container').css('display', 'block');
+                $(this).text('Unstack');
+            }
+        });
+        display_dim();
+    });
+//]]>
+</script>

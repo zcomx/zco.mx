@@ -740,6 +740,36 @@ def indicia():
 
 
 @auth.requires_login()
+def indicia_dev():
+    """Indicia dev controller """
+    # FIXME delete me
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL('index'))
+
+    response.files.append(
+        URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
+    )
+
+    response.files.append(
+        URL('static', 'blueimp/jQuery-File-Upload/css/jquery.fileupload.css')
+    )
+
+    response.files.append(
+        URL(
+            'static',
+            'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
+        )
+    )
+
+    response.files.append(URL('static', 'fonts/sf_cartoonist/stylesheet.css'))
+    response.files.append(URL('static', 'fonts/brushy_cre/stylesheet.css'))
+    return dict()
+
+
+@auth.requires_login()
 def indicia_preview():
     """Indicia preview component controller.
     request.args(0): orientation, one of 'portrait' or 'landscape'
