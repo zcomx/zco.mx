@@ -59,13 +59,18 @@ class IndiciaPage(object):
                 code=self.default_licence_code))
         return cc_licence_entity
 
-    def licence_text(self):
+    def licence_text(self, template_field='template_web'):
         """Return the licence record used for the licence text on the indicia
         page.
+
+        Args:
+            template_field: string, name of cc_licence template field. One of
+                'template_img', 'template_web'
         """
         return render_cc_licence(
             {},
-            self.default_licence()
+            self.default_licence(),
+            template_field=template_field,
         )
 
     def render(self, orientation='portrait'):
@@ -163,9 +168,13 @@ class BookIndiciaPage(IndiciaPage):
             self._orientation = orientation
         return self._orientation
 
-    def licence_text(self):
+    def licence_text(self, template_field='template_web'):
         """Return the licence record used for the licence text on the indicia
         page.
+
+        Args:
+            template_field: string, name of cc_licence template field. One of
+                'template_img', 'template_web'
         """
         db = current.app.db
         sections = []
@@ -183,7 +192,8 @@ class BookIndiciaPage(IndiciaPage):
 
         sections.append(render_cc_licence(
             data,
-            cc_licence_entity
+            cc_licence_entity,
+            template_field=template_field,
         ))
 
         meta = PublicationMetadata(self.book, first_publication_text='')
@@ -235,9 +245,9 @@ class BookIndiciaPagePng(BookIndiciaPage, TempDirectoryMixin):
             landscape=(orientation == 'landscape')
         )
         indicia_sh.run(nice=True)
-        # Copy png file to this classes temp directory.
         # IndiciaSh creates file in a temp directory that is removed as soon
         # as the instance is destroyed.
+        # Copy png file to this classes temp directory.
         filename = os.path.join(self.temp_directory(), 'indicia.png')
         shutil.copy(indicia_sh.png_filename, filename)
         return filename
@@ -247,7 +257,7 @@ class BookIndiciaPagePng(BookIndiciaPage, TempDirectoryMixin):
         self.metadata_filename = os.path.join(
             self.temp_directory(), 'meta.txt')
         with open(self.metadata_filename, 'w') as f:
-            f.write(self.licence_text())
+            f.write(self.licence_text(template_field='template_img'))
 
     def get_indicia_filename(self):
         """Return the name of the indicia image file."""
@@ -285,15 +295,80 @@ class CreatorIndiciaPage(IndiciaPage):
         IndiciaPage.__init__(self, entity)
         self.creator = entity_to_row(db.creator, self.entity)
 
-    def licence_text(self):
+    def licence_text(self, template_field='template_web'):
         """Return the licence record used for the licence text on the indicia
         page.
+
+        Args:
+            template_field: string, name of cc_licence template field. One of
+                'template_img', 'template_web'
         """
         data = dict(owner=creator_formatted_name(self.creator))
         return render_cc_licence(
             data,
-            self.default_licence()
+            self.default_licence(),
+            template_field=template_field,
         )
+
+
+class CreatorIndiciaPagePng(CreatorIndiciaPage, TempDirectoryMixin):
+    """Class representing a creator indicia page in png format."""
+
+    def __init__(self, entity):
+        """Constructor
+
+        Args:
+            entity: Row instance or integer representing a record,
+                if integer, this is the id of the record. The record is read.
+        """
+        CreatorIndiciaPage.__init__(self, entity)
+        self.metadata_filename = None
+        self._indicia_filename = None
+
+    def create(self, orientation):
+        """Create the indicia png file for the creator.
+
+        Args:
+            orientation: string, one of 'portrait' or 'landscape'
+        """
+        self.create_metatext_file()
+        indicia_sh = IndiciaSh(
+            self.creator.id,
+            self.metadata_filename,
+            self.get_indicia_filename(),
+            landscape=(orientation == 'landscape')
+        )
+        indicia_sh.run(nice=True)
+        # IndiciaSh creates file in a temp directory that is removed as soon
+        # as the instance is destroyed.
+        # Copy png file to this classes temp directory.
+        filename = os.path.join(self.temp_directory(), 'indicia.png')
+        shutil.copy(indicia_sh.png_filename, filename)
+        return filename
+
+    def create_metatext_file(self):
+        """Create a text file containing the book metadata."""
+        self.metadata_filename = os.path.join(
+            self.temp_directory(), 'meta.txt')
+        with open(self.metadata_filename, 'w') as f:
+            f.write(self.licence_text(template_field='template_img'))
+
+    def get_indicia_filename(self):
+        """Return the name of the indicia image file."""
+        db = current.app.db
+        if not self._indicia_filename:
+            indicia_filename = None
+            if self.creator.indicia_image:
+                _, indicia_filename = db.creator.indicia_image.retrieve(
+                    self.creator.indicia_image, nameonly=True)
+            if not indicia_filename:
+                # Use default
+                indicia_filename = os.path.join(
+                    current.request.folder,
+                    *self.default_indicia_paths
+                )
+            self._indicia_filename = indicia_filename
+        return self._indicia_filename
 
 
 class IndiciaShError(Exception):
@@ -1219,6 +1294,8 @@ def render_cc_licence(
     Args:
         data: dict of data for the template.
         cc_licence_entity: Row instance or integer (id) representing cc_licence
+        template_field: string, name of cc_licence template field. One of
+            'template_img', 'template_web'
     """
     db = current.app.db
     cc_licence_record = entity_to_row(db.cc_licence, cc_licence_entity)

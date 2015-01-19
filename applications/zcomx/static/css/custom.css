@@ -2409,3 +2409,16 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin: 1em;
     padding: 1em;
 }
+
+#indicia_dev #portrait_container {
+    border: 1px solid #DDD;
+    height: auto;
+    vertical-align: top;
+    width: 400px;
+}
+#indicia_dev #landscape_container {
+    border: 1px solid #DDD;
+    height: 400px;
+    vertical-align: top;
+    width: auto;
+}

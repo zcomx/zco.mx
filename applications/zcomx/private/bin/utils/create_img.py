@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-jimk.py
+create_img.py
 
-Scratch script.
+Script to create images.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
@@ -28,12 +28,38 @@ def create_img(filename, dimensions):
         im.save(f)
 
 
+def man_page():
+    """Print manual page-like help"""
+    print """
+USAGE
+    create_img.py [OPTIONS] path/to/outfile.jpg width height
+
+OPTIONS
+    -h, --help
+        Print a brief help.
+
+    --man
+        Print man page-like help.
+
+    -v, --verbose
+        Print information messages to stdout.
+
+    --vv,
+        More verbose. Print debug messages to stdout.
+    """
+
+
 def main():
     """Main processing."""
 
     usage = '%prog [options] path/to/outfile.jpg width height'
     parser = OptionParser(usage=usage, version=VERSION)
 
+    parser.add_option(
+        '--man',
+        action='store_true', dest='man', default=False,
+        help='Display manual page-like help and exit.',
+    )
     parser.add_option(
         '-v', '--verbose',
         action='store_true', dest='verbose', default=False,
@@ -46,6 +72,10 @@ def main():
     )
 
     (options, args) = parser.parse_args()
+
+    if options.man:
+        man_page()
+        quit(0)
 
     if options.verbose or options.vv:
         level = logging.DEBUG if options.vv else logging.INFO
