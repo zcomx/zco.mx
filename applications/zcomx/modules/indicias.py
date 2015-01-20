@@ -379,12 +379,16 @@ class IndiciaShError(Exception):
 class IndiciaSh(TempDirectoryMixin):
     """Class representing a handler for interaction with indicia.sh"""
 
+    font_path = 'applications/zcomx/static/fonts'
+
     def __init__(
             self,
             creator_id,
             metadata_filename,
             indicia_filename,
-            landscape=False):
+            landscape=False,
+            font=None,
+            action_font=None):
         """Constructor
 
         Args:
@@ -397,6 +401,16 @@ class IndiciaSh(TempDirectoryMixin):
         self.metadata_filename = metadata_filename
         self.indicia_filename = indicia_filename
         self.landscape = landscape
+        self.font = font if font is not None \
+            else os.path.abspath(os.path.join(
+                self.font_path,
+                'sf_cartoonist/SF-Cartoonist-Hand-Bold.ttf'
+            ))
+        self.action_font = action_font if action_font is not None \
+            else os.path.abspath(os.path.join(
+                self.font_path,
+                'brushy_cre/Brushy-Cre.ttf'
+            ))
         self.png_filename = None
 
     def run(self, nice=False):
@@ -419,6 +433,12 @@ class IndiciaSh(TempDirectoryMixin):
         args.append(script)
         if self.landscape:
             args.append('-l')
+        if self.font:
+            args.append('-f')
+            args.append(self.font)
+        if self.action_font:
+            args.append('-c')
+            args.append(self.action_font)
         args.append(str(self.creator_id))
         args.append(real_metadata_filename)
         args.append(real_indicia_filename)

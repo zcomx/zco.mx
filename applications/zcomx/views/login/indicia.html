@@ -1,3 +1,4 @@
+{{from applications.zcomx.modules.images import ImgTag}}
 {{extend 'login/layout.html'}}
 <div id="indicia_section">
 
@@ -42,12 +43,19 @@
     </div>
 </div>
 
+<div class="ajax-content">
+    <img src="{{=URL(c='static', f='images/loading.gif')}}" alt="Loading" class="loading-gif" />
+    <img id="fill_img"/>
+</div>
+
+<div id="p_img_container"></div>
+
 <div class="previews_section row">
     <div id="portrait" class="indicia_portrait_section col-sm-12 col-md-4">
-    {{=LOAD(c='login', f='indicia_preview', args=['portrait'], extension='load', ajax=True)}}
+        {{=ImgTag(creator.indicia_portrait, size='web', attributes={'_alt': 'Preview of indicia, orientation: portrait'})()}}
     </div>
     <div id="landscape" class="indicia_landscape_section col-sm-12 col-md-8">
-    {{=LOAD(c='login', f='indicia_preview', args=['landscape'], extension='load', ajax=True)}}
+        {{=ImgTag(creator.indicia_landscape, size='web', attributes={'_alt': 'Preview of indicia, orientation: landscape'})()}}
     </div>
 </div>
 
@@ -161,6 +169,31 @@
             dialog.open();
             e.preventDefault();
         })
+        $(".loading-gif").show();
+        $('#fill_img').addClass('hidden');
+        var url = "{{=URL(c='login', f='indicia_poc.json')}}";
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {
+                sleep: 1,
+            },
+            error: function (data, textStatus) {
+                console.log('textStatus: %o', textStatus);
+                console.log('data: %o', data);
+            },
+            success: function (data) {
+                console.log('data: %o', data);
+                $(".loading-gif").hide();
+                /*
+                $('#fill_img').attr({'src': data.url})
+                    .removeClass('hidden');
+                */
+            }
+        });
+        $('#p_img_container').css({'border': '1px solid red'});
+        var url = "{{=URL(c='login', f='indicia_poc_p.load', vars={'sleep': 100})}}";
+        web2py_component(url, 'p_img_container');
     });
 //]]>
 </script>

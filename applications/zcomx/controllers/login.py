@@ -21,11 +21,11 @@ from applications.zcomx.modules.images import \
     store
 from applications.zcomx.modules.indicias import \
     CreatorIndiciaPage, \
+    CreatorIndiciaPagePng, \
     PublicationMetadata, \
     cc_licence_by_code
 from applications.zcomx.modules.links import CustomLinks
-from applications.zcomx.modules.shell_utils import \
-    TemporaryDirectory
+from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
@@ -736,7 +736,26 @@ def indicia():
     response.files.append(URL('static', 'fonts/sf_cartoonist/stylesheet.css'))
     response.files.append(URL('static', 'fonts/brushy_cre/stylesheet.css'))
 
-    return dict()
+    if not request.vars.quick:
+        for orientation in ['portrait', 'landscape']:
+            field = 'indicia_{o}'.format(o=orientation)
+            if not creator_record[field]:
+                page = CreatorIndiciaPagePng(creator_record)
+                png = page.create(orientation=orientation)
+
+                stored_filename = None
+                try:
+                    stored_filename = store(db.creator[field], png)
+                except Exception as err:
+                    print >> sys.stderr, \
+                        'Creator indicia image upload error: {err}'.format(err=err)
+                    stored_filename = None
+                if stored_filename:
+                    data = {field: stored_filename}
+                    creator_record.update_record(**data)
+                    db.commit()
+
+    return dict(creator=creator_record)
 
 
 @auth.requires_login()
@@ -766,6 +785,35 @@ def indicia_dev():
 
     response.files.append(URL('static', 'fonts/sf_cartoonist/stylesheet.css'))
     response.files.append(URL('static', 'fonts/brushy_cre/stylesheet.css'))
+
+    return dict()
+
+@auth.requires_login()
+def indicia_poc_p():
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL('index'))
+    if request.vars.sleep:
+        import time
+        time.sleep(int(request.vars.sleep))
+    from applications.zcomx.modules.images import ImgTag
+    x = ImgTag(creator_record.indicia_portrait, size='web', attributes={'_alt':    'Preview of indicia, orientation: portrait'})()
+    return dict(x=x)
+
+@auth.requires_login()
+def indicia_poc():
+    response.generic_patterns = ['html', 'json']
+    if request.vars.sleep:
+        import time
+        time.sleep(int(request.vars.sleep))
+
+    if request.ajax:
+        return {
+            'status': 'ok',
+            'url': 'http://s2.cdn.memeburn.com/wp-content/uploads/google_logo.jpg'
+        }
     return dict()
 
 
