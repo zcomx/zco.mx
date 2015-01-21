@@ -9,28 +9,71 @@ Script to create indicia png files for a creator or a book.
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
 import logging
+import os
 import shutil
-from PIL import Image
 from optparse import OptionParser
 from applications.zcomx.modules.indicias import \
     BookIndiciaPagePng, \
-    CreatorIndiciaPagePng
+    CreatorIndiciaPagePng, \
+    IndiciaPage, \
+    IndiciaSh
 from applications.zcomx.modules.utils import entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
 
 
-def create_img(filename, dimensions):
-    """Create an image.
+def create_generic_png(options):
+    """Create a generic png file.
 
     Args:
-        filename: string, name of output file
-        dimenstions: tuple, (width, height)
+        options: dict of OptionParser options
+
     """
-    im = Image.new('RGB', dimensions)
-    with open(filename, 'wb') as f:
-        im.save(f)
+    creator_id = 0
+
+    indicia = IndiciaPage(None)
+    meta_text = indicia.licence_text(template_field='template_img')
+    metadata_filename = os.path.join('/tmp', 'meta.txt')
+    with open(metadata_filename, 'w') as f:
+        f.write(meta_text)
+
+    indicia_filename = os.path.join(
+        request.folder,
+        *IndiciaPage.default_indicia_paths
+    )
+    indicia_sh = IndiciaSh(
+        '{c:03d}'.format(c=creator_id),
+        metadata_filename,
+        indicia_filename,
+        landscape=options.landscape
+    )
+    indicia_sh.run()
+    if options.output:
+        shutil.copy(indicia_sh.png_filename, options.output)
+    else:
+        shutil.copy(indicia_sh.png_filename, os.getcwd())
+    os.unlink(metadata_filename)
+
+
+def create_png(record, options):
+    """Create a png file.
+
+    Args:
+        record: Row instance representing record.
+        options: dict of OptionParser options
+
+    """
+    obj_class = CreatorIndiciaPagePng if options.creator \
+        else BookIndiciaPagePng
+
+    orientation = 'landscape' if options.landscape else 'portrait'
+    png_page = obj_class(record)
+    png = png_page.create(orientation=orientation)
+    if options.output:
+        shutil.copy(png, options.output)
+    else:
+        shutil.copy(png, os.getcwd())
 
 
 def man_page():
@@ -45,6 +88,7 @@ USAGE
     indicia_png.py -c 'Charles Forsman'     # Create png for creator by name
     indicia_png.py 64 --out /path/to/file.png  # Specify the output file.
     indicia_png.py 64 --landscape           # Orientation is landscape
+    indicia_png.py -c 0                     # Create generic png
 
 OPTIONS
     -c, --creator
@@ -136,11 +180,12 @@ def main():
 
     table = db.creator if options.creator else db.book
 
-    if record_id:
-        record = entity_to_row(table, record_id)
-        if not record:
-            print 'No {t} found, id: {i}'.format(t=str(table), i=record_id)
-            quit(1)
+    if record_id is not None:
+        if not options.creator or record_id != 0:
+            record = entity_to_row(table, record_id)
+            if not record:
+                print 'No {t} found, id: {i}'.format(t=str(table), i=record_id)
+                quit(1)
     else:
         if options.creator:
             query = (db.auth_user.name == name)
@@ -162,15 +207,10 @@ def main():
             quit(1)
         record = rows[0]
 
-    obj_class = CreatorIndiciaPagePng if options.creator \
-        else BookIndiciaPagePng
-
-    orientation = 'landscape' if options.landscape else 'portrait'
-
-    png_page = obj_class(record)
-    png = png_page.create(orientation=orientation)
-    if options.output:
-        shutil.copy(png, options.output)
+    if options.creator and record_id == 0:
+        create_generic_png(options)
+    else:
+        create_png(record, options)
 
 
 if __name__ == '__main__':

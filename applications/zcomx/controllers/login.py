@@ -17,13 +17,16 @@ from applications.zcomx.modules.books import \
     read_link
 from applications.zcomx.modules.creators import image_as_json
 from applications.zcomx.modules.images import \
+    ResizeImgIndicia, \
     UploadImage, \
     store
 from applications.zcomx.modules.indicias import \
     CreatorIndiciaPage, \
     CreatorIndiciaPagePng, \
+    IndiciaUpdateInProgress, \
     PublicationMetadata, \
-    cc_licence_by_code
+    cc_licence_by_code, \
+    update_creator_indicia
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.utils import \
@@ -644,8 +647,10 @@ def creator_img_handler():
                     )
             # Catching too general exception (W0703)
             # pylint: disable=W0703
+            resizer = ResizeImgIndicia if img_field == 'indicia_image' \
+                else None
             try:
-                stored_filename = store(db.creator[img_field], local_filename)
+                stored_filename = store(db.creator[img_field], local_filename, resizer=resizer)
             except Exception as err:
                 print >> sys.stderr, \
                     'Creator image upload error: {err}'.format(err=err)
@@ -674,6 +679,36 @@ def creator_img_handler():
         data = {img_field: stored_filename}
         db(db.creator.id == creator_record.id).update(**data)
         db.commit()
+        if img_field == 'indicia_image':
+            # Delete existing if applicable
+            for orientation in ['portrait', 'landscape']:
+                f = 'indicia_{o}'.format(o=orientation)
+                if creator_record[f]:
+                    up_image = UploadImage(
+                        db.creator[f], creator_record[f])
+                    up_image.delete_all()
+            # First: run quickly in foreground
+            try:
+                update_creator_indicia(
+                    creator_record,
+                    background=False,
+                    nice=True,
+                    resize=False,
+                    optimize=False
+                )
+            except IndiciaUpdateInProgress as err:
+                print >> sys.stderr, 'IndiciaUpdateInProgress quick: ', err
+            # Second: background the slower version
+            try:
+                update_creator_indicia(
+                    creator_record,
+                    background=True,
+                    nice=True,
+                    resize=True,
+                    optimize=True
+                )
+            except IndiciaUpdateInProgress as err:
+                print >> sys.stderr, 'IndiciaUpdateInProgress slow: ', err
         return image_as_json(db, creator_record.id, field=img_field)
 
     elif request.env.request_method == 'DELETE':
@@ -685,12 +720,21 @@ def creator_img_handler():
             creator_record[img_field],
             nameonly=True,
         )
+        # Clear the images from the record
         data = {img_field: None}
-        db(db.creator.id == creator_record.id).update(**data)
-        db.commit()
+        # Delete existing images in uploads subdirectories
         up_image = UploadImage(
             db.creator[img_field], creator_record[img_field])
         up_image.delete_all()
+        if img_field == 'indicia_image':
+            for orientation in ['portrait', 'landscape']:
+                f = 'indicia_{o}'.format(o=orientation)
+                data[f] = None
+                up_image = UploadImage(
+                    db.creator[f], creator_record[f])
+                up_image.delete_all()
+        db(db.creator.id == creator_record.id).update(**data)
+        db.commit()
         return dumps({"files": [{filename: 'true'}]})
 
     # GET
@@ -733,107 +777,67 @@ def indicia():
         )
     )
 
-    response.files.append(URL('static', 'fonts/sf_cartoonist/stylesheet.css'))
-    response.files.append(URL('static', 'fonts/brushy_cre/stylesheet.css'))
-
-    if not request.vars.quick:
-        for orientation in ['portrait', 'landscape']:
-            field = 'indicia_{o}'.format(o=orientation)
-            if not creator_record[field]:
-                page = CreatorIndiciaPagePng(creator_record)
-                png = page.create(orientation=orientation)
-
-                stored_filename = None
-                try:
-                    stored_filename = store(db.creator[field], png)
-                except Exception as err:
-                    print >> sys.stderr, \
-                        'Creator indicia image upload error: {err}'.format(err=err)
-                    stored_filename = None
-                if stored_filename:
-                    data = {field: stored_filename}
-                    creator_record.update_record(**data)
-                    db.commit()
-
     return dict(creator=creator_record)
 
 
 @auth.requires_login()
-def indicia_dev():
-    """Indicia dev controller """
-    # FIXME delete me
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        redirect(URL('index'))
-
-    response.files.append(
-        URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
-    )
-
-    response.files.append(
-        URL('static', 'blueimp/jQuery-File-Upload/css/jquery.fileupload.css')
-    )
-
-    response.files.append(
-        URL(
-            'static',
-            'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
-        )
-    )
-
-    response.files.append(URL('static', 'fonts/sf_cartoonist/stylesheet.css'))
-    response.files.append(URL('static', 'fonts/brushy_cre/stylesheet.css'))
-
-    return dict()
-
-@auth.requires_login()
-def indicia_poc_p():
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        redirect(URL('index'))
-    if request.vars.sleep:
-        import time
-        time.sleep(int(request.vars.sleep))
-    from applications.zcomx.modules.images import ImgTag
-    x = ImgTag(creator_record.indicia_portrait, size='web', attributes={'_alt':    'Preview of indicia, orientation: portrait'})()
-    return dict(x=x)
-
-@auth.requires_login()
-def indicia_poc():
-    response.generic_patterns = ['html', 'json']
-    if request.vars.sleep:
-        import time
-        time.sleep(int(request.vars.sleep))
-
-    if request.ajax:
-        return {
-            'status': 'ok',
-            'url': 'http://s2.cdn.memeburn.com/wp-content/uploads/google_logo.jpg'
-        }
-    return dict()
-
-
-@auth.requires_login()
-def indicia_preview():
-    """Indicia preview component controller.
-    request.args(0): orientation, one of 'portrait' or 'landscape'
+def indicia_preview_urls():
+    """Handler for ajax link CRUD calls.
     """
+    response.generic_patterns = ['json']
+
+    def do_error(msg=None):
+        """Error handler."""
+        return {'status': 'error', 'msg': msg or 'Server request failed'}
+
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('index'))
+        return do_error('Permission denied')
 
-    orientation = request.args(0) or 'portrait'
-    return dict(
-        indicia=CreatorIndiciaPage(creator_record).render(
-            orientation=orientation
-        )
-    )
+    # Trigger background process to update creator indicia if necessary
+    if not creator_record.indicia_portrait \
+            or not creator_record.indicia_landscape:
+        try:
+            # Run quickly in foreground
+            update_creator_indicia(
+                creator_record,
+                background=False,
+                nice=True,
+                resize=False,
+                optimize=False
+            )
+        except IndiciaUpdateInProgress as err:
+            print >> sys.stderr, 'IndiciaUpdateInProgress: ', err
+        # Reload creator record to update indicia_* fields.
+        creator_record = entity_to_row(db.creator, creator_record.id)
+
+    urls = {
+        'portrait': None,
+        'landscape': None,
+    }
+
+    for orientation in urls.keys():
+        field = 'indicia_{o}'.format(o=orientation)
+        if creator_record[field]:
+            urls[orientation] = URL(
+                c='images',
+                f='download',
+                args=creator_record[field],
+                vars={'size': 'web'},
+            )
+        else:
+            # Use generic images if creator indicias not set.
+            urls[orientation] = URL(
+                c='static',
+                f='images/generic_indicia_{o}.png'.format(o=orientation),
+            )
+
+    return dumps({
+        'status': 'ok',
+        'urls': urls,
+    })
 
 
 @auth.requires_login()

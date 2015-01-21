@@ -396,6 +396,7 @@ db.define_table('creator',
         uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
         uploadseparate=True,
     ),
+    Field('indicia_start', 'datetime'),
     format='%(path_name)s',
     migrate=True,
 )

@@ -24,16 +24,20 @@ from applications.zcomx.modules.indicias import \
     IndiciaPage, \
     IndiciaSh, \
     IndiciaShError, \
+    IndiciaUpdateInProgress, \
     PublicationMetadata, \
     cc_licence_by_code, \
     cc_licence_places, \
     cc_licences, \
-    render_cc_licence
+    render_cc_licence, \
+    update_creator_indicia
 from applications.zcomx.modules.test_runner import \
     LocalTestCase, \
     _mock_date as mock_date
 from applications.zcomx.modules.shell_utils import UnixFile
-from applications.zcomx.modules.utils import NotFoundError
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -1622,6 +1626,65 @@ class TestFunctions(LocalTestCase):
             )
 
         self.assertRaises(NotFoundError, render_cc_licence, {}, -1)
+
+    def test__update_creator_indicia(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
+        creator = self.add(
+            db.creator,
+            dict(path_name='Update Creator Indicia')
+        )
+        self.assertEqual(creator.indicia_portrait, None)
+        self.assertEqual(creator.indicia_landscape, None)
+        self.assertEqual(creator.indicia_start, None)
+
+        update_creator_indicia(creator)
+
+        creator_1 = entity_to_row(db.creator, creator.id)
+        self.assertEqual(creator_1.indicia_start, None)
+        # creator.indicia_portrait.ae60e66e0ada0b82.696e64696369612e706e67.png
+        self.assertRegexpMatches(
+            creator_1.indicia_portrait,
+            r'^creator\.indicia_portrait\.[a-z0-9.]+\.png$'
+        )
+        self.assertRegexpMatches(
+            creator_1.indicia_landscape,
+            r'^creator\.indicia_landscape\.[a-z0-9.]+\.png$'
+        )
+
+        # Test in progress
+        creator.update_record(
+            indicia_portrait=None,
+            indicia_landscape=None,
+            indicia_start=datetime.datetime.now(),
+        )
+        db.commit()
+
+        self.assertRaises(
+            IndiciaUpdateInProgress, update_creator_indicia, creator)
+        # The function should see it as in progress, so the indicias should
+        # not be updated.
+        creator_1 = entity_to_row(db.creator, creator.id)
+        self.assertEqual(creator_1.indicia_portrait, None)
+        self.assertEqual(creator_1.indicia_landscape, None)
+
+        # Test background
+        creator.update_record(
+            indicia_portrait=None,
+            indicia_landscape=None,
+            indicia_start=None,
+        )
+        db.commit()
+
+        update_creator_indicia(creator, background=True, nice=True)
+
+        creator_1 = entity_to_row(db.creator, creator.id)
+        self.assertAlmostEqual(
+            creator_1.indicia_start,
+            datetime.datetime.now(),
+            delta=datetime.timedelta(minutes=1)
+        )
 
 
 def setUpModule():

@@ -869,14 +869,14 @@ class TestFunctions(ImageTestCase):
 
         # Check that files exists for all sizes
         up_image = UploadImage(db.book_page.image, got)
-        for size in ['original', 'cbz', 'web', 'tbn']:
+        for size in ['original', 'cbz', 'web']:
             filename = up_image.fullname(size=size)
             self.assertTrue(os.path.exists(filename))
             self.assertEqual(owner(filename), ('http', 'http'))
 
         # Cleanup: Remove all files
         up_image.delete_all()
-        for size in ['original', 'cbz', 'web', 'tbn']:
+        for size in ['original', 'cbz', 'web']:
             filename = up_image.fullname(size=size)
             # os.unlink(filename)
             self.assertFalse(os.path.exists(filename))
