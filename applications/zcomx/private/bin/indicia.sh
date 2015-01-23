@@ -5,11 +5,13 @@ _mw() { [[ -t 1 ]] && local r=$RED coff=$COLOUROFF; printf "$r===: %s$coff\n" "$
 _me() { [[ -t 1 ]] && local r=$RED coff=$COLOUROFF; printf "$r===> ERROR: %s$coff\n" "$@"; exit 1; } >&2
 
 _u() { script=${0##*/}; cat << EOF
-usage: $script [-l] nnn /path/to/metadatafile /path/to/indicia-img
+usage: $script [-c|-f|-l] nnn /path/to/metadatafile /path/to/indicia-img
 
 This script will generate an indicia file which is used in cbz files on
 zco.mx.
 
+    -c      Call-to-action font
+    -f      Font
     -l      Generate landscape indicia file
     nnn     Cartoonist ID
 
@@ -44,7 +46,7 @@ d=" 960 54 center #333333 46   0  80 IF  YOU  ENJOYED THIS WORK YOU CAN
      $w $h center #333333 26  $x  $y $metadata"
 
     while read -r w h pos colour pt x y text; do
-        (( $pt == 46 )) && font=Brushy-Cre || font=SF-Cartoonist-Hand-Bold
+        (( $pt == 46 )) && font=$action_font || font=$text_font
         [[ $l ]] && (( $pt == 46 )) && pt=42
 
         convert -size ${w}x$h -gravity $pos -fill $colour \
@@ -59,7 +61,7 @@ d=" 960 54 center #333333 46   0  80 IF  YOU  ENJOYED THIS WORK YOU CAN
 
 _textbox() {
     b=960
-    font=SF-Cartoonist-Hand-Bold
+    font=$text_font
     read -r w pos colour pt x y text <<< $"960 center #333333 26 0 560 $metadata"
     [[ $l ]] && w=800 x=80
     h=$(identify -format "%@" <(convert -size ${w}x -gravity $pos -font "$font" -pointsize $pt caption:"$text" miff:-))
@@ -74,9 +76,13 @@ _textbox() {
 _options() {
     args=()
     unset l
+    action_font=Brushy-Cre
+    text_font=SF-Cartoonist-Hand-Bold
 
     while [[ $1 ]]; do
         case "$1" in
+            -c) shift; action_font=$1;;
+            -f) shift; text_font=$1;;
             -l) l=1             ;;
             -h) _u; exit 0      ;;
             --) shift; [[ $* ]] && args+=( "$@" ); break ;;

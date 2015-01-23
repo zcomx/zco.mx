@@ -245,14 +245,14 @@
 
         completed_callback: function(e, data) {
             CreatorImageUpload.prototype.completed_callback.apply(this)
-            if (data.result.files[0].error === undefined) {
+            if (data.result.files.length && data.result.files[0].error === undefined) {
                 // Remove all but last template-download div in filesContainer
                 var filesList = this.$element.fileupload('option', 'filesContainer');
                 var files = filesList.find('.template-download');
                 for (var i=0; i < (files.length - 1); i++) {
                     files[i].remove();
                 }
-                this.reload_previews()
+                this.reload_previews();
             }
         },
 
@@ -262,12 +262,7 @@
         },
 
         reload_previews: function() {
-            var orientations = ['portrait', 'landscape'];
-            for (var i = orientations.length - 1; i >= 0; i--) {
-                var url = '/zcomx/login/indicia_preview.load/' + orientations[i];
-                var target = orientations[i];
-                web2py_component(url, target);
-            }
+            $('.previews_section').data('indicia_preview').load();
         },
 
     });

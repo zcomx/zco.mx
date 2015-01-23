@@ -238,6 +238,81 @@ class ResizeImg(TempDirectoryMixin):
                 self.filenames[prefix] = matches[0]
 
 
+class ResizeImgIndicia(ResizeImg):
+    """Class representing a handler for interaction with resizing an indicia
+    image.
+
+    Features:
+    * minimal resizing: 'ori' only
+    * quick: uses convert command directly, resizes img to max 1600px
+    """
+
+    def __init__(self, filename):
+        """Constructor
+
+        Args:
+            filename: string, name of original image file
+        """
+        ResizeImg.__init__(self, filename)
+        self.filenames = {'ori': None}
+
+    def run(self, nice=False):
+        """Run the shell script and get the output.
+
+        Args:
+            nice: If True, run resize script with nice.
+        """
+        #  $ convert infile -quiet -filter catrom -resize 1600x1600> \
+        #     -colorspace sRGB +repage outfile
+
+        real_filename = os.path.abspath(self.filename)
+
+        args = []
+        if nice:
+            args.append('nice')
+        args.append('convert')
+        if self.filename:
+            args.append(real_filename)
+        args.append('-quiet')
+        args.extend('-filter catrom'.split())
+        args.extend('-resize 1600x1600>'.split())
+        args.extend('-colorspace sRGB'.split())
+        args.append('+repage')
+
+        outfile = os.path.abspath(os.path.join(
+            self.temp_directory(),
+            'ori-{n}'.format(n=os.path.basename(real_filename))
+        ))
+        args.append(outfile)
+
+        p = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        p_stdout, p_stderr = p.communicate()
+        # Generally there should be no output. Log to help troubleshoot.
+        if p_stdout:
+            LOG.warn('ResizeImgIndicia run stdout: %s', p_stdout)
+        if p_stderr:
+            LOG.error('ResizeImgIndicia run stderr: %s', p_stderr)
+
+        # E1101 (no-member): *%%s %%r has no %%r member*
+        # pylint: disable=E1101
+        if p.returncode:
+            raise ResizeImgError('Resize failed: {err}'.format(
+                err=p_stderr or p_stdout))
+
+        for prefix in ['ori']:
+            path = os.path.join(
+                self.temp_directory(),
+                '{pfx}-*'.format(pfx=prefix)
+            )
+            matches = glob.glob(path)
+            if matches:
+                self.filenames[prefix] = matches[0]
+
+
 class UploadImage(object):
     """Class representing an uploaded image.
 
@@ -406,7 +481,7 @@ def set_thumb_dimensions(db, book_page_id, dimensions):
     db.commit()
 
 
-def store(field, filename):
+def store(field, filename, resize=True, resizer=None, run_optimize=True):
     """Store an image file in an uploads directory.
     This will create all sizes of the image file.
 
@@ -417,14 +492,21 @@ def store(field, filename):
     Return:
         string, the name of the file in storage.
     """
-    resize_img = ResizeImg(filename)
-    resize_img.run(nice=True)
+    obj_class = resizer if resizer is not None else ResizeImg
+    resize_img = obj_class(filename)
+    if resize:
+        resize_img.run(nice=True)
+    else:
+        # Copy the files as is
+        for size in resize_img.filenames.keys():
+            resize_img.filenames[size] = filename
     original_filename = resize_img.filenames['ori']
     with open(original_filename, 'r+b') as f:
         stored_filename = field.store(f, filename=filename)
     # stored_filename doesn't have a full path. Use retreive to get
     # file name will full path.
     unused_name, fullname = field.retrieve(stored_filename, nameonly=True)
+    set_owner(os.path.dirname(fullname))                # store creates subdir
     set_owner(fullname)
     for size, name in resize_img.filenames.items():
         if size == 'ori':
@@ -435,10 +517,15 @@ def store(field, filename):
         sized_path = os.path.dirname(sized_filename)
         if not os.path.exists(sized_path):
             os.makedirs(sized_path)
-        # $ mv name sized_filename
-        shutil.move(name, sized_filename)
+        set_owner(sized_path)
+        if resize:
+            # $ mv name sized_filename
+            shutil.move(name, sized_filename)
+        else:
+            shutil.copy(name, sized_filename)
         set_owner(sized_filename)
-        optimize(sized_filename, nice=True)
+        if run_optimize:
+            optimize(sized_filename, nice=True)
 
     resize_img.cleanup()
     return stored_filename

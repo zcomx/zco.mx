@@ -379,16 +379,20 @@ class IndiciaShError(Exception):
 class IndiciaSh(TempDirectoryMixin):
     """Class representing a handler for interaction with indicia.sh"""
 
+    font_path = 'applications/zcomx/static/fonts'
+
     def __init__(
             self,
             creator_id,
             metadata_filename,
             indicia_filename,
-            landscape=False):
+            landscape=False,
+            font=None,
+            action_font=None):
         """Constructor
 
         Args:
-            creator_id: integer, id of creator record
+            creator_id: integer, id of creator record (can be a string)
             metadata_filename: string, name of metadata text file
             indicia_filename: string, name of indicia image file
             landscape: If True, use indicia.sh -l
@@ -397,6 +401,16 @@ class IndiciaSh(TempDirectoryMixin):
         self.metadata_filename = metadata_filename
         self.indicia_filename = indicia_filename
         self.landscape = landscape
+        self.font = font if font is not None \
+            else os.path.abspath(os.path.join(
+                self.font_path,
+                'sf_cartoonist/SF-Cartoonist-Hand-Bold.ttf'
+            ))
+        self.action_font = action_font if action_font is not None \
+            else os.path.abspath(os.path.join(
+                self.font_path,
+                'brushy_cre/Brushy-Cre.ttf'
+            ))
         self.png_filename = None
 
     def run(self, nice=False):
@@ -419,6 +433,12 @@ class IndiciaSh(TempDirectoryMixin):
         args.append(script)
         if self.landscape:
             args.append('-l')
+        if self.font:
+            args.append('-f')
+            args.append(self.font)
+        if self.action_font:
+            args.append('-c')
+            args.append(self.action_font)
         args.append(str(self.creator_id))
         args.append(real_metadata_filename)
         args.append(real_indicia_filename)
@@ -1326,3 +1346,92 @@ def render_cc_licence(
 
     text = cc_licence_record[template_field].format(**data)
     return '{t}'.format(t=text)
+
+
+class IndiciaUpdateInProgress(Exception):
+    """Exception class for indicia update-in-progress errors."""
+    pass
+
+
+def update_creator_indicia(
+        creator_entity,
+        background=False,
+        nice=False,
+        resize=True,
+        optimize=True):
+    """Update a creator's indicia images.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator record.
+        background: if True, the update process is backgrounded
+        nice: if True, nice update process
+        resize: if True, create various sizes of indicia images
+        optimize: if True, optimize images
+    """
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        return
+
+    if creator.indicia_start:
+        age = (datetime.datetime.now() - creator.indicia_start).seconds
+        if age < (60 * 60):             # 1 hour
+            # update may be in progress
+            raise IndiciaUpdateInProgress(
+                'creator indicia update in progress: {id}'.format(
+                    id=creator.id)
+            )
+
+    creator.update_record(indicia_start=datetime.datetime.now())
+    db.commit()
+
+    run_py = os.path.abspath(os.path.join(
+        current.request.folder,
+        'private',
+        'bin',
+        'run_py.sh'
+    ))
+
+    script = os.path.join(
+        'applications',
+        current.request.application,
+        'private',
+        'bin',
+        'update_creator_indicia.py'
+    )
+
+    args = []
+    if nice:
+        args.append('nice')
+    args.append(run_py)
+    args.append(script)
+    if resize:
+        args.append('-r')
+    if optimize:
+        args.append('-o')
+    args.append(str(creator.id))
+    if background:
+        args.append('&')
+
+    p = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+
+    if not background:
+        p_stdout, p_stderr = p.communicate()
+
+        # Generally there should be no output. Log to help troubleshoot.
+        if p_stdout:
+            LOG.warn('update_creator_indicia run stdout: %s', p_stdout)
+        if p_stderr:
+            LOG.error('update_creator_indicia run stderr: %s', p_stderr)
+
+        # E1101 (no-member): *%%s %%r has no %%r member*
+        # pylint: disable=E1101
+        if p.returncode:
+            raise IndiciaShError(
+                'update_creator_indicia run failed: {err}'.format(
+                    err=p_stderr or p_stdout)
+            )

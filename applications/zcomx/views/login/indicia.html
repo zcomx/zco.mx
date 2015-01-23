@@ -1,3 +1,4 @@
+{{from applications.zcomx.modules.images import ImgTag}}
 {{extend 'login/layout.html'}}
 <div id="indicia_section">
 
@@ -29,6 +30,7 @@
                                         <input id="up_files_input" type="file" name="up_files" multiple>
                                     </div>
                                 </div>
+                                <div class="loading"></div>
                             </div>
                             <div class="has_photo_section">
                                 <div class="files"> </div>
@@ -43,12 +45,6 @@
 </div>
 
 <div class="previews_section row">
-    <div id="portrait" class="indicia_portrait_section col-sm-12 col-md-4">
-    {{=LOAD(c='login', f='indicia_preview', args=['portrait'], extension='load', ajax=True)}}
-    </div>
-    <div id="landscape" class="indicia_landscape_section col-sm-12 col-md-8">
-    {{=LOAD(c='login', f='indicia_preview', args=['landscape'], extension='load', ajax=True)}}
-    </div>
 </div>
 
 </div>
@@ -133,34 +129,19 @@
 <!--[if (gte IE 8)&(lt IE 10)]>
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/cors/jquery.xdr-transport.js')}}"></script>
 <![endif]-->
+<script src="{{=URL(c='static', f='js/indicias.js')}}"> </script>
 <script>
 //<![CDATA[
 
     $(document).ready(function(){
         $('#fileupload').image_upload(
             'indicia',
-            '/zcomx/login/creator_img_handler/indicia_image'
+            "{{=URL(c='login', f='creator_img_handler', args='indicia_image')}}"
         );
         $('#fileupload').removeClass('fileupload-processing');
-        $(document.body).on('click', '#indicia_section .indicia_preview_section' ,function() {
-            var orientation = 'portrait';
-            if ($(this).hasClass('landscape')) {
-                orientation = 'landscape';
-            }
-            var url = '/zcomx/login/indicia_preview.load/' + orientation;
-            console.log('url: %o', url);
-            var dialog = new BootstrapDialog({
-                title: ' ',
-                message: $('<div></div>').load(url),
-                buttons: [],
-                cssClass: 'indicia_preview_modal',
-                onshow: function(dialog) {
-                    dialog.getModalDialog().addClass('modal-expanded');
-                },
-            });
-            dialog.open();
-            e.preventDefault();
-        })
+        $('.previews_section').indicia_preview(
+            "{{=URL(c='login', f='indicia_preview_urls')}}"
+        );
     });
 //]]>
 </script>

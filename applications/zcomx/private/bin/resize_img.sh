@@ -3,8 +3,8 @@ export MAGICK_THREAD_LIMIT=4
 
 r1='GIF|JPEG|PNG'
 d1='cbz 1600 2560 625 1600
-    web  750 1200 625 1600
-    tbn  140  168 882 1133'
+    web  750 1200 625 1600'
+#   tbn  140  168 882 1133'
 
 _mi() { local e=$?; [[ -t 1 ]] && local g=$LIGHTGREEN coff=$COLOUROFF; printf "$g===: %s$coff\n" "$@"; return "$e"; }
 _mw() { [[ -t 1 ]] && local r=$RED coff=$COLOUROFF; printf "$r===: %s$coff\n" "$@"; return 1; } >&2

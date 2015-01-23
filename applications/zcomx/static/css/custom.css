@@ -2334,6 +2334,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     text-align: justify;
 }
 
+#book_edit_section #metadata_fields_container {
+    border: 1px solid #DDDDDD;
+    margin: 1em;
+    padding: 1em;
+}
+
 #book_delete_section .instruction em {
     color: #8A6D3B;
     padding: 0 2px;
@@ -2357,6 +2363,52 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding: 0 0 0.8em 0.8em;
 }
 
+#indicia_section .previews_section #portrait {
+    border: 0.2em solid #DDDDDD;
+    height: auto;
+    vertical-align: top;
+    width: 750px;
+    padding: 1em;
+    margin: 1em;
+}
+
+#indicia_section .previews_section #portrait img {
+    width: 100%;
+    height: auto;
+}
+
+#indicia_section .previews_section #landscape {
+    border: 0.2em solid #DDDDDD;
+    height: 750px;
+    vertical-align: top;
+    width: auto;
+    padding: 1em;
+    margin: 1em;
+}
+
+#indicia_section .previews_section #landscape img {
+    height: 100%;
+    width: auto;
+}
+
+#indicia_section .previews_section #portrait .portrait_placeholder {
+    width: 100%;
+    height: 900px;
+}
+
+#indicia_section .previews_section #landscape .portrait_placeholder {
+    width: 900px;
+    height: 100%;
+}
+
+#indicia_section .processing {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background: url("../images/loading.gif") center no-repeat;
+    background-size: contain;
+    margin-left: 1em;
+}
 
 .tooltip.in {
     opacity: 1;
@@ -2404,21 +2456,3 @@ a.modal-link-btn, a.modal-link-btn:hover {
     text-align: center;
 }
 
-#metadata_fields_container {
-    border: 1px solid #DDDDDD;
-    margin: 1em;
-    padding: 1em;
-}
-
-#indicia_dev #portrait_container {
-    border: 1px solid #DDD;
-    height: auto;
-    vertical-align: top;
-    width: 400px;
-}
-#indicia_dev #landscape_container {
-    border: 1px solid #DDD;
-    height: 400px;
-    vertical-align: top;
-    width: auto;
-}
