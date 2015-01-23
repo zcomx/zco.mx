@@ -1637,12 +1637,10 @@ class TestFunctions(LocalTestCase):
         )
         self.assertEqual(creator.indicia_portrait, None)
         self.assertEqual(creator.indicia_landscape, None)
-        self.assertEqual(creator.indicia_start, None)
 
         update_creator_indicia(creator)
 
         creator_1 = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator_1.indicia_start, None)
         # creator.indicia_portrait.ae60e66e0ada0b82.696e64696369612e706e67.png
         self.assertRegexpMatches(
             creator_1.indicia_portrait,
@@ -1653,38 +1651,7 @@ class TestFunctions(LocalTestCase):
             r'^creator\.indicia_landscape\.[a-z0-9.]+\.png$'
         )
 
-        # Test in progress
-        creator.update_record(
-            indicia_portrait=None,
-            indicia_landscape=None,
-            indicia_start=datetime.datetime.now(),
-        )
-        db.commit()
-
-        self.assertRaises(
-            IndiciaUpdateInProgress, update_creator_indicia, creator)
-        # The function should see it as in progress, so the indicias should
-        # not be updated.
-        creator_1 = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator_1.indicia_portrait, None)
-        self.assertEqual(creator_1.indicia_landscape, None)
-
-        # Test background
-        creator.update_record(
-            indicia_portrait=None,
-            indicia_landscape=None,
-            indicia_start=None,
-        )
-        db.commit()
-
-        update_creator_indicia(creator, background=True, nice=True)
-
-        creator_1 = entity_to_row(db.creator, creator.id)
-        self.assertAlmostEqual(
-            creator_1.indicia_start,
-            datetime.datetime.now(),
-            delta=datetime.timedelta(minutes=1)
-        )
+        # Test background # FIXME
 
 
 def setUpModule():

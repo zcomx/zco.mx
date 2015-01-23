@@ -47,6 +47,8 @@ def add_creator(form):
         creator_id = db.creator.insert(
             auth_user_id=auth_user.id,
             email=auth_user.email,
+            indicia_modified=current.request.now,     # Trigger update of
+                                                      # indicia_* fields
         )
         db.commit()
         on_change_name(creator_id)
@@ -183,7 +185,7 @@ def image_as_json(db, creator_entity, field='image'):
         return dumps(dict(files=images))
 
     if field not in db.creator.fields:
-        LOG.error('Invalid creator image field: {fld}'.format(fld=field))
+        LOG.error('Invalid creator image field: %s', field)
         return dumps(dict(files=images))
 
     if not creator_record[field]:

@@ -6,6 +6,7 @@
 Test suite for zcomx/modules/creators.py
 
 """
+import datetime
 import os
 import unittest
 from BeautifulSoup import BeautifulSoup
@@ -73,6 +74,11 @@ class TestFunctions(LocalTestCase):
         self._objects.append(creator)
         self.assertEqual(creator.email, email)
         self.assertEqual(creator.auth_user_id, user.id)
+        self.assertAlmostEqual(
+            creator.indicia_modified,
+            datetime.datetime.now(),
+            delta=datetime.timedelta(minutes=1)
+        )
         self.assertEqual(creator.path_name, 'First Last')
         self.assertEqual(creator.urlify_name, 'first-last')
 

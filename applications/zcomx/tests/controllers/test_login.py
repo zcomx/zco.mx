@@ -68,10 +68,6 @@ class TestFunctions(LocalTestCase):
             '<div id="profile_page">',
             '<div id="indicia_section">',
         ],
-        'indicia_preview': [
-            '<div class="indicia_image_container">',
-            '<div class="indicia_text_container">',
-        ],
         'links': [
             'href="/zcomx/login/links.load/new/link',
             'Add</span>',
@@ -583,14 +579,6 @@ class TestFunctions(LocalTestCase):
             web.test(
                 '{url}/indicia'.format(url=self.url),
                 self.titles['indicia']
-            )
-        )
-
-    def test__indicia_preview(self):
-        self.assertTrue(
-            web.test(
-                '{url}/indicia_preview.load'.format(url=self.url),
-                self.titles['indicia_preview']
             )
         )
 

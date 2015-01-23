@@ -262,7 +262,9 @@
         },
 
         reload_previews: function() {
-            $('.previews_section').data('indicia_preview').load();
+            if ($('.previews_section').data) {
+                $('.previews_section').data('indicia_preview').load();
+            }
         },
 
     });
