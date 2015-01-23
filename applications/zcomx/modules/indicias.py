@@ -20,6 +20,9 @@ from applications.zcomx.modules.books import \
     publication_year_range
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name
+from applications.zcomx.modules.images import \
+    UploadImage, \
+    store
 from applications.zcomx.modules.shell_utils import TempDirectoryMixin
 from applications.zcomx.modules.utils import \
     NotFoundError, \
@@ -1307,6 +1310,58 @@ def cc_licences(book_entity):
     )
 
 
+def clear_creator_indicia(creator, field=None):
+    """Clear indicia for creator.
+
+    Args:
+        creator: creator Row instance
+    Returns:
+        creator
+    """
+    db = current.app.db
+    if field is not None:
+        fields = [field]
+    else:
+        fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
+
+    data = {}
+    for field in fields:
+        if creator[field]:
+            up_image = UploadImage(db.creator[field], creator[field])
+            up_image.delete_all()
+            data[field] = None
+    creator.update_record(**data)
+    db.commit()
+
+
+def create_creator_indicia(creator, resize=False, optimize=False):
+    """Create indicia for creator.
+
+    Args:
+        creator: Row instance representing creator.
+        resize: If true, sizes of images are created
+        optimize: If true, all images are optimized
+    """
+    db = current.app.db
+    data = {}
+    for orientation in ['portrait', 'landscape']:
+        field = 'indicia_{o}'.format(o=orientation)
+        clear_creator_indicia(creator, field=field)
+        png_page = CreatorIndiciaPagePng(creator)
+        png = png_page.create(orientation=orientation)
+        stored_filename = store(
+            db.creator[field],
+            png,
+            resize=resize,
+            run_optimize=optimize,
+        )
+        if stored_filename:
+            data[field] = stored_filename
+
+    creator.update_record(**data)
+    db.commit()
+
+
 def render_cc_licence(
         data, cc_licence_entity, template_field='template_web'):
     """Render the cc licence for the book.
@@ -1354,7 +1409,7 @@ class IndiciaUpdateInProgress(Exception):
 
 
 def update_creator_indicia(
-        creator_entity,
+        creator,
         background=False,
         nice=False,
         resize=True,
@@ -1362,29 +1417,27 @@ def update_creator_indicia(
     """Update a creator's indicia images.
 
     Args:
-        creator_entity: Row instance or integer representing a creator record.
+        creator: Row instance representing a creator record.
         background: if True, the update process is backgrounded
         nice: if True, nice update process
         resize: if True, create various sizes of indicia images
         optimize: if True, optimize images
+
+    Returns:
+        creator_record if background is False
     """
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
     if not creator:
         return
 
-    if creator.indicia_start:
-        age = (datetime.datetime.now() - creator.indicia_start).seconds
-        if age < (60 * 60):             # 1 hour
-            # update may be in progress
-            raise IndiciaUpdateInProgress(
-                'creator indicia update in progress: {id}'.format(
-                    id=creator.id)
-            )
+    if not background:
+        create_creator_indicia(
+            creator,
+            resize=resize,
+            optimize=optimize,
+        )
+        return
 
-    creator.update_record(indicia_start=datetime.datetime.now())
-    db.commit()
-
+    # Run background command
     run_py = os.path.abspath(os.path.join(
         current.request.folder,
         'private',
@@ -1413,25 +1466,8 @@ def update_creator_indicia(
     if background:
         args.append('&')
 
-    p = subprocess.Popen(
+    subprocess.Popen(
         args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
-
-    if not background:
-        p_stdout, p_stderr = p.communicate()
-
-        # Generally there should be no output. Log to help troubleshoot.
-        if p_stdout:
-            LOG.warn('update_creator_indicia run stdout: %s', p_stdout)
-        if p_stderr:
-            LOG.error('update_creator_indicia run stderr: %s', p_stderr)
-
-        # E1101 (no-member): *%%s %%r has no %%r member*
-        # pylint: disable=E1101
-        if p.returncode:
-            raise IndiciaShError(
-                'update_creator_indicia run failed: {err}'.format(
-                    err=p_stderr or p_stdout)
-            )

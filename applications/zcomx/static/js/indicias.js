@@ -73,7 +73,7 @@
             } else if (action == 'hide') {
                 loading_div.removeClass('processing');
             }
-            this.$element.parent().find('.fileinput-button').each(function(i) {
+            this.$element.parent().find('.btn').each(function(i) {
                 if (action == 'show') {
                     $(this).addClass('disabled');
                 } else if (action == 'hide') {

@@ -2401,6 +2401,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     height: 100%;
 }
 
+#indicia_section .fileupload-buttonbar div {
+    vertical-align: middle;
+}
+
 #indicia_section .processing {
     display: inline-block;
     width: 32px;

@@ -26,6 +26,7 @@ from applications.zcomx.modules.indicias import \
     IndiciaUpdateInProgress, \
     PublicationMetadata, \
     cc_licence_by_code, \
+    clear_creator_indicia, \
     update_creator_indicia
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
@@ -662,53 +663,33 @@ def creator_img_handler():
                 files=[up_file.filename]
             )
 
-        if creator_record[img_field] \
-                and creator_record[img_field] != stored_filename:
-            filename, _ = db.creator[img_field].retrieve(
-                creator_record[img_field],
-                nameonly=True,
-            )
-            data = {img_field: None}
-            db(db.creator.id == creator_record.id).update(**data)
-            db.commit()
-            # Delete an existing image before it is replaced
-            up_image = UploadImage(
-                db.creator[img_field], creator_record[img_field])
-            up_image.delete_all()
+        if creator_record[img_field] != stored_filename:
+            if creator_record[img_field] is not None:
+                filename, _ = db.creator[img_field].retrieve(
+                    creator_record[img_field],
+                    nameonly=True,
+                )
+                # Delete an existing image before it is replaced
+                up_image = UploadImage(
+                    db.creator[img_field], creator_record[img_field])
+                up_image.delete_all()
+                data = {img_field: None}
+                creator_record.update_record(**data)
+                db.commit()
+            if img_field == 'indicia_image':
+                # Clear the indicia png fields. This will trigger a rebuild
+                # in indicia_preview_urls
+                for f in ['indicia_portrait', 'indicia_landscape']:
+                    if creator_record[f] is not None:
+                        clear_creator_indicia(creator_record, field=f)
+                # Set that indicia was modified. This will trigger a
+                # resize/optimize by cron later.
+                creator_record.update_record(indicia_modified=request.now)
+                db.commit()
 
         data = {img_field: stored_filename}
-        db(db.creator.id == creator_record.id).update(**data)
+        creator_record.update_record(**data)
         db.commit()
-        if img_field == 'indicia_image':
-            # Delete existing if applicable
-            for orientation in ['portrait', 'landscape']:
-                f = 'indicia_{o}'.format(o=orientation)
-                if creator_record[f]:
-                    up_image = UploadImage(
-                        db.creator[f], creator_record[f])
-                    up_image.delete_all()
-            # First: run quickly in foreground
-            try:
-                update_creator_indicia(
-                    creator_record,
-                    background=False,
-                    nice=True,
-                    resize=False,
-                    optimize=False
-                )
-            except IndiciaUpdateInProgress as err:
-                print >> sys.stderr, 'IndiciaUpdateInProgress quick: ', err
-            # Second: background the slower version
-            try:
-                update_creator_indicia(
-                    creator_record,
-                    background=True,
-                    nice=True,
-                    resize=True,
-                    optimize=True
-                )
-            except IndiciaUpdateInProgress as err:
-                print >> sys.stderr, 'IndiciaUpdateInProgress slow: ', err
         return image_as_json(db, creator_record.id, field=img_field)
 
     elif request.env.request_method == 'DELETE':
@@ -810,8 +791,6 @@ def indicia_preview_urls():
             )
         except IndiciaUpdateInProgress as err:
             print >> sys.stderr, 'IndiciaUpdateInProgress: ', err
-        # Reload creator record to update indicia_* fields.
-        creator_record = entity_to_row(db.creator, creator_record.id)
 
     urls = {
         'portrait': None,

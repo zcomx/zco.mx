@@ -67,5 +67,8 @@ py=$web2py_root/applications/zcomx/private/bin/python_web2py.sh
 __v && __md "Start: tally_book_ratings.py"
 $py applications/zcomx/private/bin/tally_book_ratings.py
 
+__v && __md "Start: update_creator_indicia.py"
+$py applications/zcomx/private/bin/update_creator_indicia.py --modified 3600
+
 __v && __md "Done ${0##*/}"
 exit 0
