@@ -942,7 +942,6 @@ class PublicationMetadata(object):
                         published_formats)
                     db_serial.publisher_type.requires = IS_IN_SET(
                         publisher_types)
-                    db_serial.publisher.requires = IS_NOT_EMPTY()
                     db_serial.from_year.requires = IS_INT_IN_RANGE(
                         min_year, max_year)
 
@@ -958,6 +957,11 @@ class PublicationMetadata(object):
         for index, serial in enumerate(self.serials):
             for field, value in serial.items():
                 if field in db_serial.fields:
+                    if field == 'publisher':
+                        db_serial.publisher.requires = IS_NOT_EMPTY()
+                        if serial['published_format'] == 'paper' and \
+                                serial['publisher_type'] == 'self':
+                            db_serial.publisher.requires = None
                     if field == 'to_year':
                         db_serial.to_year.requires = self.to_year_requires(
                             serial['from_year'])
