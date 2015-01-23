@@ -21,20 +21,31 @@ VERSION 2 - Before Going Live
 
     [ ] buggy
         Republication - serial -> Digital -> Done -> Paper
+
     [ ] repub - serial -> Published Name
         change to 'Book/Anthology Title'
+
     [ ] repub - serial -> Serial Number
         change to 'Book/Anthology Number'
         move under 'Book/Anthology Title'
+
+    [ ] Should 'Book/Anthology Number' and 'Story Number' be a dropdown ?
+        range of 1-100
+
+    [ ] repub - serial -> Serial Number
+        story number = abc
         Enter an integer between -2.14748e+09 and 2.14748e+09
+
+    [ ] repub - serial -> Serial Number
+        If there is two stories and both serial and story are blank,
+        then -> "Name of Book #NONE"
+
+===
     [ ] repub - serial -> Serial Title
         Story yes/no (if yes)
             Story Name
             Story Number
-    [ ] Should 'Book/Anthology Number' 'Story Number' be a dropdown ?
 
-    [ ] repub - serial -> pub type: press -> Press Name
-        should not be tumblr
     [ ] add (i)'s
         Publication Type
             First Publication - the first time the world will be seeing
@@ -71,6 +82,7 @@ VERSION 2 - Before Going Live
 
 
 [ ] https://dev.zco.mx/login/indicia
+    Should we do a quick convert of if portrait, then 750x, else 1200x
 
 [x] Indicia Page - png version
 
