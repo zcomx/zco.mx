@@ -1071,6 +1071,11 @@ def metadata_crud():
                 'label': db.publication_metadata[f].label,
             }
 
+        number_ddm = {
+            'type': 'select',
+            'source': [{'value': x, 'text': x} for x in range(1, 101)]
+        }
+
         published_format_ddm = {
             'type': 'select',
             'source': [
@@ -1126,10 +1131,14 @@ def metadata_crud():
                 'label': db.publication_serial[f].label,
             }
 
+        data['publication_serial']['fields']['serial_number'].update(
+            number_ddm)
         data['publication_serial']['fields']['published_format'].update(
             published_format_ddm)
         data['publication_serial']['fields']['publisher_type'].update(
             publisher_type_ddm)
+        data['publication_serial']['fields']['story_number'].update(
+            number_ddm)
         data['publication_serial']['fields']['from_year'].update(year_ddm)
         data['publication_serial']['fields']['to_year'].update(year_ddm)
 
@@ -1151,7 +1160,8 @@ def metadata_crud():
         data['derivative']['fields']['to_year'].update(year_ddm)
 
         # Exclude 'NoDerivs' licences
-        query = ~db.cc_licence.code.belongs(['CC BY-ND', 'CC BY-NC-ND'])
+        query = (db.cc_licence.code.like('CC BY%')) & \
+                (~db.cc_licence.code.like('%-ND'))
         licences = db(query).select(
             db.cc_licence.ALL,
             orderby=db.cc_licence.number

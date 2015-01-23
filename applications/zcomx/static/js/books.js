@@ -18,24 +18,11 @@
 
         close_button: function(label) {
             label = typeof label !== 'undefined' ? label : 'Close';
-            var that = this;
             return {
                 id: 'close_button',
                 label: label,
                 cssClass: 'btn_close',
                 action : function(dialog){
-                    if (dialog.$modalBody.find('.has-error').length) {
-                        if (! that.close_confirm('errors')) {
-                            return
-                        }
-                    } else {
-                        var meta_container = dialog.$modalBody.find('#metadata_fields_container').first();
-                        if (meta_container && ! meta_container.hasClass('hidden')) {
-                            if (! that.close_confirm('changes to metadata')) {
-                                return
-                            }
-                        }
-                    }
                     dialog.close();
                 }
             };
@@ -123,6 +110,13 @@
                     {
                         title: this.options.title || this.modal_title(),
                         message: this.get_message(),
+                        onhide: function(dialog) {
+                            var ok = that.onhide(dialog);
+                            if ($.isFunction(that.options.onhide)) {
+                                ok && that.options.onhide.call(that, dialog);
+                            }
+                            return ok;
+                        },
                         onhidden: function(dialog) {
                             that.onhidden(dialog);
                             if ($.isFunction(that.options.onhidden)) {
@@ -197,6 +191,21 @@
             }
             title += this.get_book_title();
             return title;
+        },
+
+        onhide: function(dialog) {
+            if (dialog.$modalBody.find('.has-error').length) {
+                if (! this.close_confirm('errors')) {
+                    return false;
+                }
+            } else {
+                var meta_container = dialog.$modalBody.find('#metadata_fields_container').first();
+                if (meta_container.length && ! meta_container.hasClass('hidden')) {
+                    if (! this.close_confirm('changes to metadata')) {
+                        return false;
+                    }
+                }
+            }
         },
 
         onhidden: function(dialog) {
@@ -465,7 +474,14 @@
             'title': 'Add book'
         });
         $('.modal-delete-btn').modalize('delete', {'onhidden': display_book_lists});
-        $('.modal-edit-btn').modalize('edit', {'onhidden': display_book_lists});
+        $('.modal-edit-btn').modalize('edit', {
+            'onhidden': display_book_lists,
+            'bootstrap_dialog_options':  {
+                'closable': true,
+                'closeByBackdrop': false,
+                'closeByKeyboard': false,
+            }
+        });
         $('.modal-release-btn').modalize('release', {
             'onhidden': display_book_lists,
             'bootstrap_dialog_options':  {

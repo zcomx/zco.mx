@@ -578,6 +578,7 @@ db.define_table('publication_serial',
     ),
     Field(
         'published_name',
+        label='Book/Anthology Title',
         requires=IS_NOT_EMPTY(),
     ),
     Field(
@@ -607,6 +608,7 @@ db.define_table('publication_serial',
     Field(
         'serial_number',
         'integer',
+        label='Book/Anthology Number',
         default=1,
     ),
     Field(

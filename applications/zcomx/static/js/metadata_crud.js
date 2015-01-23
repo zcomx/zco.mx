@@ -250,6 +250,8 @@
                     methods._serial_container(_data.publication_serial.fields, record).appendTo(serials_container);
                 });
 
+                methods._sequence_serials(vars.form);
+
                 methods._derivative_container(
                     _data.derivative.fields,
                     _data.derivative.record
@@ -339,6 +341,19 @@
                 return str.indexOf(suffix, str.length - suffix.length) !== -1;
             },
 
+            _get_input: function(context, name) {
+                var container = context.closest('.whole_container');
+                var table = 'publication_metadata';
+                if (!container.length) {
+                    container = context.closest('.serial_container');
+                    table = 'publication_serial';
+                }
+                if (!container.length) {
+                    return;
+                }
+                return container.find('.' + table + '_' + name + '_input').first();
+            },
+
             _hide_errors: function(data) {
                 vars.form.find('.error_wrapper').hide()
                     .removeClass('has-error');
@@ -420,6 +435,7 @@
                             }
                             klon.find('.serial_button_container').replaceWith(methods._serial_button('minus'));
                             klon.appendTo(vars.containers['serials_container']);
+                            methods._sequence_serials(vars.form);
                         }
                         e.preventDefault();
                     });
@@ -428,6 +444,7 @@
                 if (type == 'minus') {
                     button.find('a').first().click(function(e) {
                         $(this).closest('.serial_container').remove();
+                        methods._sequence_serials(vars.form);
                         e.preventDefault();
                     });
                 }
@@ -447,6 +464,7 @@
 
                 var display_fields = {
                     'published_name': {},
+                    'serial_number': {},
                     'published_format': {
                         events: {
                             'change': function(e) {
@@ -464,7 +482,6 @@
                     'publisher': {},
                     'story_number': {},
                     'serial_title': {},
-                    'serial_number': {},
                     'from_year': {},
                     'to_year': {},
                 }
@@ -497,17 +514,21 @@
                     var published_type = vars.containers['published_type'].find('select').val();
                     if (published_type == 'whole') {
                         shows['whole_container'] = true;
-                        var published_format_ddm = vars.containers['whole_container'].find('select[name=publication_metadata_published_format]').first();
-                        methods._show_published_format(published_format_ddm);
-                        var publisher_type_ddm = vars.containers['whole_container'].find('select[name=publication_metadata_publisher_type]').first();
-                        methods._show_publisher_type(publisher_type_ddm);
+                        methods._show_published_format(
+                            methods._get_input(vars.containers['whole_container'], 'published_format')
+                        );
+                        methods._show_publisher_type(
+                            methods._get_input(vars.containers['whole_container'], 'publisher_type')
+                        );
                     } else if (published_type == 'serial') {
                         shows['serials_container'] = true;
-                        $.each(vars.containers['serials_container'].find('select[name=publication_serial_published_format]'), function(idx, published_format_ddm) {
-                            methods._show_published_format($(published_format_ddm));
-                        });
-                        $.each(vars.containers['serials_container'].find('select[name=publication_serial_publisher_type]'), function(idx, publisher_type_ddm) {
-                            methods._show_publisher_type($(publisher_type_ddm));
+                        $.each(vars.containers['serials_container'].find('.serial_container'), function( idx, serial_container) {
+                            methods._show_published_format(
+                                methods._get_input($(serial_container), 'published_format')
+                            );
+                            methods._show_publisher_type(
+                                methods._get_input($(serial_container), 'publisher_type')
+                            );
                         });
                     } else {
                         shows['is_derivative'] = false;
@@ -553,11 +574,10 @@
 
             _show_published_format: function(elem) {
                 var value = elem.val();
-                var publisher_type = elem.closest('.whole_container, .serial_container')
-                    .find('select[name=publication_metadata_publisher_type], select[name=publication_serial_publisher_type]').first();
-                var publisher = elem.closest('.whole_container, .serial_container')
-                    .find('input[name=publication_metadata_publisher], input[name=publication_serial_publisher]').first();
-                var publisher_label = publisher.closest('.row_container').find('.field_label').first();
+                var publisher_type = methods._get_input(elem, 'publisher_type');
+                var publisher = methods._get_input(elem, 'publisher');
+                var publisher_label = publisher.closest('.row_container')
+                    .find('.field_label').first();
                 if (value == 'digital') {
                     publisher_type.closest('.row_container').addClass('hidden');
                     publisher_label.text('Site Name');
@@ -574,10 +594,8 @@
 
             _show_publisher_type: function(elem) {
                 var value = elem.val();
-                var published_format = elem.closest('.whole_container, .serial_container')
-                    .find('select[name=publication_metadata_published_format], select[name=publication_serial_published_format]').first();
-                var publisher = elem.closest('.whole_container, .serial_container')
-                    .find('input[name=publication_metadata_publisher], input[name=publication_serial_publisher]').first();
+                var published_format = methods._get_input(elem, 'published_format');
+                var publisher = methods._get_input(elem, 'publisher');
                 if (published_format.val() == 'paper' && value == 'self') {
                     publisher.closest('.row_container').addClass('hidden');
                 } else {
