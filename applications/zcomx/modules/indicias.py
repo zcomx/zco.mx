@@ -140,6 +140,36 @@ class IndiciaPage(object):
         )
 
 
+class IndiciaPagePng(TempDirectoryMixin):
+    """Base class representing a indicia page in png format."""
+    _indicia_filename = None
+    metadata_filename = None
+
+    def create_metatext_file(self):
+        """Create a text file containing the book metadata."""
+        self.metadata_filename = os.path.join(
+            self.temp_directory(), 'meta.txt')
+        with open(self.metadata_filename, 'w') as f:
+            f.write(self.licence_text(template_field='template_img'))
+
+    def get_indicia_filename(self):
+        """Return the name of the indicia image file."""
+        db = current.app.db
+        if not self._indicia_filename:
+            indicia_filename = None
+            if self.creator.indicia_image:
+                _, indicia_filename = db.creator.indicia_image.retrieve(
+                    self.creator.indicia_image, nameonly=True)
+            if not indicia_filename:
+                # Use default
+                indicia_filename = os.path.join(
+                    current.request.folder,
+                    *self.default_indicia_paths
+                )
+            self._indicia_filename = indicia_filename
+        return self._indicia_filename
+
+
 class BookIndiciaPage(IndiciaPage):
     """Class representing a book indicia page."""
 
@@ -217,7 +247,7 @@ class BookIndiciaPage(IndiciaPage):
         return IndiciaPage.render(self, orientation=orientation)
 
 
-class BookIndiciaPagePng(BookIndiciaPage, TempDirectoryMixin):
+class BookIndiciaPagePng(BookIndiciaPage, IndiciaPagePng):
     """Class representing a book indicia page in png format."""
 
     def __init__(self, entity):
@@ -255,30 +285,6 @@ class BookIndiciaPagePng(BookIndiciaPage, TempDirectoryMixin):
         shutil.copy(indicia_sh.png_filename, filename)
         return filename
 
-    def create_metatext_file(self):
-        """Create a text file containing the book metadata."""
-        self.metadata_filename = os.path.join(
-            self.temp_directory(), 'meta.txt')
-        with open(self.metadata_filename, 'w') as f:
-            f.write(self.licence_text(template_field='template_img'))
-
-    def get_indicia_filename(self):
-        """Return the name of the indicia image file."""
-        db = current.app.db
-        if not self._indicia_filename:
-            indicia_filename = None
-            if self.creator.indicia_image:
-                _, indicia_filename = db.creator.indicia_image.retrieve(
-                    self.creator.indicia_image, nameonly=True)
-            if not indicia_filename:
-                # Use default
-                indicia_filename = os.path.join(
-                    current.request.folder,
-                    *self.default_indicia_paths
-                )
-            self._indicia_filename = indicia_filename
-        return self._indicia_filename
-
 
 class CreatorIndiciaPage(IndiciaPage):
     """Class representing a creator indicia page.
@@ -314,7 +320,7 @@ class CreatorIndiciaPage(IndiciaPage):
         )
 
 
-class CreatorIndiciaPagePng(CreatorIndiciaPage, TempDirectoryMixin):
+class CreatorIndiciaPagePng(CreatorIndiciaPage, IndiciaPagePng):
     """Class representing a creator indicia page in png format."""
 
     def __init__(self, entity):
@@ -348,30 +354,6 @@ class CreatorIndiciaPagePng(CreatorIndiciaPage, TempDirectoryMixin):
         filename = os.path.join(self.temp_directory(), 'indicia.png')
         shutil.copy(indicia_sh.png_filename, filename)
         return filename
-
-    def create_metatext_file(self):
-        """Create a text file containing the book metadata."""
-        self.metadata_filename = os.path.join(
-            self.temp_directory(), 'meta.txt')
-        with open(self.metadata_filename, 'w') as f:
-            f.write(self.licence_text(template_field='template_img'))
-
-    def get_indicia_filename(self):
-        """Return the name of the indicia image file."""
-        db = current.app.db
-        if not self._indicia_filename:
-            indicia_filename = None
-            if self.creator.indicia_image:
-                _, indicia_filename = db.creator.indicia_image.retrieve(
-                    self.creator.indicia_image, nameonly=True)
-            if not indicia_filename:
-                # Use default
-                indicia_filename = os.path.join(
-                    current.request.folder,
-                    *self.default_indicia_paths
-                )
-            self._indicia_filename = indicia_filename
-        return self._indicia_filename
 
 
 class IndiciaShError(Exception):

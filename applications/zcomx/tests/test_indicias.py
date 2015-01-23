@@ -21,6 +21,7 @@ from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
     BookIndiciaPagePng, \
     CreatorIndiciaPage, \
+    CreatorIndiciaPagePng, \
     IndiciaPage, \
     IndiciaSh, \
     IndiciaShError, \
@@ -29,6 +30,8 @@ from applications.zcomx.modules.indicias import \
     cc_licence_by_code, \
     cc_licence_places, \
     cc_licences, \
+    clear_creator_indicia, \
+    create_creator_indicia, \
     render_cc_licence, \
     update_creator_indicia
 from applications.zcomx.modules.test_runner import \
@@ -228,53 +231,6 @@ class TestBookIndiciaPagePng(ImageTestCase):
         self.assertTrue('PNG image' in output)
         self.assertEqual(error, '')
 
-    def test__create_metatext_file(self):
-        png_page = BookIndiciaPagePng(self._book)
-        png_page.create_metatext_file()
-
-        output, error = UnixFile(png_page.metadata_filename).file()
-        self.assertTrue('ASCII text' in output)
-        self.assertEqual(error, '')
-        lines = []
-        with open(png_page.metadata_filename, 'r') as f:
-            lines.append(f.read())
-
-        self.assertEqual(len(lines), 1)
-        self.assertEqual(
-            lines[0],
-            """ <i>IMAGE TEST CASE</i> IS COPYRIGHT (C) 2015 BY FIRST LAST.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
-        )
-
-    def test__get_indicia_filename(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-        png_page = BookIndiciaPagePng(self._book)
-        self.assertEqual(png_page._indicia_filename, None)
-
-        # No creator indicia image, should use default.
-        self.assertEqual(
-            png_page.get_indicia_filename(),
-            'applications/zcomx/static/images/indicia_image.png'
-        )
-
-        # Add creator indicia_image
-        filename = self._prep_image('file.png', to_name='indicia.png')
-        stored_filename = store(db.creator.indicia_image, filename)
-        png_page.creator.update_record(indicia_image=stored_filename)
-        db.commit()
-
-        png_page._indicia_filename = None       # Clear cache
-        _, expect = db.creator.indicia_image.retrieve(
-            png_page.creator.indicia_image, nameonly=True)
-        self.assertEqual(png_page.get_indicia_filename(), expect)
-
-        # Test cache
-        png_page._indicia_filename = '_cache_'
-        self.assertEqual(
-            png_page.get_indicia_filename(),
-            '_cache_'
-        )
-
 
 class TestCreatorIndiciaPage(ImageTestCase):
     def test____init__(self):
@@ -289,6 +245,39 @@ class TestCreatorIndiciaPage(ImageTestCase):
             indicia.licence_text(),
             ' <i>NAME OF BOOK</i> IS COPYRIGHT (C) {y} BY FIRST LAST.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
         )
+
+
+class TestCreatorIndiciaPagePng(ImageTestCase):
+    def test____init__(self):
+        png_page = CreatorIndiciaPagePng(self._creator)
+        self.assertTrue(png_page)
+        self.assertEqual(png_page.creator.id, self._creator.id)
+
+    def test__create(self):
+        self._creator.update_record(
+            indicia_portrait=None,
+            indicia_landscape=None,
+        )
+        db.commit()
+
+        png_page = CreatorIndiciaPagePng(self._creator)
+        filename = png_page.create('portrait')
+        self.assertRegexpMatches(
+            filename,
+            r'^applications/zcomx/uploads/original/../tmp/tmp.*/indicia.png$'
+        )
+        im = Image.open(filename)
+        width, height = im.size
+        self.assertTrue(height > width)
+
+        filename = png_page.create('landscape')
+        self.assertRegexpMatches(
+            filename,
+            r'^applications/zcomx/uploads/original/../tmp/tmp.*/indicia.png$'
+        )
+        im = Image.open(filename)
+        width, height = im.size
+        self.assertTrue(width > height)
 
 
 class TestIndiciaPage(LocalTestCase):
@@ -397,6 +386,57 @@ class TestIndiciaPage(LocalTestCase):
         img = div_1.img
         self.assertEqual(
             img['src'], '/images/download/path/to/file.png?size=web')
+
+class TestIndiciaPagePng(ImageTestCase):
+
+    # Use BookIndiciaPagePng (which subclasses IndiciaPagePng) to test.
+    def test__create_metatext_file(self):
+        png_page = BookIndiciaPagePng(self._book)
+        png_page.create_metatext_file()
+
+        output, error = UnixFile(png_page.metadata_filename).file()
+        self.assertTrue('ASCII text' in output)
+        self.assertEqual(error, '')
+        lines = []
+        with open(png_page.metadata_filename, 'r') as f:
+            lines.append(f.read())
+
+        self.assertEqual(len(lines), 1)
+        self.assertEqual(
+            lines[0],
+            """ "IMAGE TEST CASE" IS COPYRIGHT (C) 2015 BY FIRST LAST.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
+        )
+
+    def test__get_indicia_filename(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        png_page = BookIndiciaPagePng(self._book)
+        self.assertEqual(png_page._indicia_filename, None)
+
+        # No creator indicia image, should use default.
+        self.assertEqual(
+            png_page.get_indicia_filename(),
+            'applications/zcomx/static/images/indicia_image.png'
+        )
+
+        # Add creator indicia_image
+        filename = self._prep_image('file.png', to_name='indicia.png')
+        stored_filename = store(db.creator.indicia_image, filename)
+        png_page.creator.update_record(indicia_image=stored_filename)
+        db.commit()
+
+        png_page._indicia_filename = None       # Clear cache
+        _, expect = db.creator.indicia_image.retrieve(
+            png_page.creator.indicia_image, nameonly=True)
+        self.assertEqual(png_page.get_indicia_filename(), expect)
+
+        # Test cache
+        png_page._indicia_filename = '_cache_'
+        self.assertEqual(
+            png_page.get_indicia_filename(),
+            '_cache_'
+        )
+
 
 
 class TestIndiciaSh(ImageTestCase):
@@ -1518,7 +1558,7 @@ class TestPublicationMetadata(LocalTestCase):
         self.assertEqual(meta.year_range(), (888, 999))
 
 
-class TestFunctions(LocalTestCase):
+class TestFunctions(ImageTestCase):
 
     def test__cc_licence_by_code(self):
         cc_licence = self.add(db.cc_licence, dict(
@@ -1573,6 +1613,126 @@ class TestFunctions(LocalTestCase):
             query = (db.cc_licence.id == d['value'])
             cc_licence = db(query).select().first()
             self.assertEqual(cc_licence.code, d['text'])
+
+    def test__clear_creator_indicia(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+        fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
+
+        def exists(field, img_name):
+            _, f = db.creator[field].retrieve(img_name, nameonly=True)
+            return os.path.exists(f)
+
+        # Test cleared
+        self._creator.update_record(
+            indicia_image=None,
+            indicia_portrait=None,
+            indicia_landscap=None,
+        )
+        db.commit()
+
+        clear_creator_indicia(self._creator)
+
+        creator = entity_to_row(db.creator, self._creator.id)
+        for f in fields:
+            # Field is cleared
+            self.assertEqual(creator[f], None)
+
+        filename = self._prep_image('cbz_plus.png')
+        indicia_image = store(db.creator.indicia_image, filename)
+        self._creator.update_record(
+            indicia_image=indicia_image,
+        )
+        db.commit()
+        create_creator_indicia(self._creator)
+
+        creator_1 = entity_to_row(db.creator, self._creator.id)
+        # Prove images exist
+        for f in fields:
+            # Field is not clear
+            self.assertNotEqual(creator_1[f], None)
+            # Prove image exists
+            self.assertTrue(exists(f, creator_1[f]))
+
+        # Clear single field
+        clear_creator_indicia(self._creator, field='indicia_portrait')
+        creator_2 = entity_to_row(db.creator, self._creator.id)
+        for f in fields:
+            if f == 'indicia_portrait':
+                # Field is cleared
+                self.assertEqual(creator_2[f], None)
+                # Prove images no longer exist
+                # Use creator_1 since it will have the original image names
+                # saved.
+                self.assertFalse(exists(f, creator_1[f]))
+            else:
+                # Field is not clear
+                self.assertNotEqual(creator_1[f], None)
+                # Prove image exists
+                self.assertTrue(exists(f, creator_1[f]))
+
+        # Reset
+        create_creator_indicia(self._creator)
+        creator_1 = entity_to_row(db.creator, self._creator.id)
+        # Prove images exist
+        for f in fields:
+            # Field is not clear
+            self.assertNotEqual(creator_1[f], None)
+            # Prove image exists
+            self.assertTrue(exists(f, creator_1[f]))
+
+        # Clear all fields
+        clear_creator_indicia(self._creator)
+        creator_3 = entity_to_row(db.creator, self._creator.id)
+        for f in fields:
+            # Field is cleared
+            self.assertEqual(creator_3[f], None)
+            # Prove images no longer exist
+            # Use creator_1 since it will have the original image names
+            # saved.
+            self.assertFalse(exists(f, creator_1[f]))
+
+    def test__create_creator_indicia(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
+        fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
+
+        def exists(field, img_name):
+            _, f = db.creator[field].retrieve(img_name, nameonly=True)
+            return os.path.exists(f)
+
+        # Test cleared
+        self._creator.update_record(
+            indicia_image=None,
+            indicia_portrait=None,
+            indicia_landscap=None,
+        )
+        db.commit()
+
+        creator = entity_to_row(db.creator, self._creator.id)
+        for f in fields:
+            # Field is cleared
+            self.assertEqual(creator[f], None)
+
+        filename = self._prep_image('cbz_plus.png')
+        indicia_image = store(db.creator.indicia_image, filename)
+        self._creator.update_record(
+            indicia_image=indicia_image,
+        )
+        db.commit()
+
+        create_creator_indicia(self._creator)
+
+        creator_1 = entity_to_row(db.creator, self._creator.id)
+        # Prove images exist
+        for f in fields:
+            # Field is not clear
+            self.assertNotEqual(creator_1[f], None)
+            # Prove image exists
+            self.assertTrue(exists(f, creator_1[f]))
+
+        clear_creator_indicia(self._creator)
 
     def test__render_cc_licence(self):
 

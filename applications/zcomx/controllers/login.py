@@ -708,12 +708,10 @@ def creator_img_handler():
             db.creator[img_field], creator_record[img_field])
         up_image.delete_all()
         if img_field == 'indicia_image':
-            for orientation in ['portrait', 'landscape']:
-                f = 'indicia_{o}'.format(o=orientation)
-                data[f] = None
-                up_image = UploadImage(
-                    db.creator[f], creator_record[f])
-                up_image.delete_all()
+            for f in ['indicia_portrait', 'indicia_landscape']:
+                if creator_record[f] is not None:
+                    clear_creator_indicia(creator_record, field=f)
+            data['indicia_modified'] = request.now
         db(db.creator.id == creator_record.id).update(**data)
         db.commit()
         return dumps({"files": [{filename: 'true'}]})
