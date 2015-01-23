@@ -19,12 +19,19 @@ VERSION 2 - Before Going Live
 
     [ ] add 'X' to top right corner of modal
 
+    [ ] buggy
+        Republication - serial -> Digital -> Done -> Paper
     [ ] repub - serial -> Published Name
-        change to 'Book/Anthology Name'
+        change to 'Book/Anthology Title'
     [ ] repub - serial -> Serial Number
         change to 'Book/Anthology Number'
-        move under 'Book/Anthology Name'
+        move under 'Book/Anthology Title'
         Enter an integer between -2.14748e+09 and 2.14748e+09
+    [ ] repub - serial -> Serial Title
+        Story yes/no (if yes)
+            Story Name
+            Story Number
+    [ ] Should 'Book/Anthology Number' 'Story Number' be a dropdown ?
 
     [ ] repub - serial -> pub type: press -> Press Name
         should not be tumblr
@@ -57,8 +64,6 @@ VERSION 2 - Before Going Live
 
             To - The year the work was completed.
 
-
-
         Derviative Work
             Set to 'Yes' if you've built upon or reused another
             cartoonists' work. Their original work needs to use a
@@ -67,16 +72,19 @@ VERSION 2 - Before Going Live
 
 [ ] https://dev.zco.mx/login/indicia
 
-[ ] Indicia Page - png version
+[x] Indicia Page - png version
 
 [ ] Indicia Page - html version
+    [ ] invisible layer needs to be shortened
+    [ ] direct link indicia html
+        eg https://dev.zco.mx/David_C_Mahler/Food_Magik/025
+
     * last page of comic (scroll/slider)
     * call to action
         + donate, download, social media, copyright
     * creative commons licence
 
-    'indicia' in navbar
-    * upload
+    see mockup: ~/code/zco.mx/indicia/indicia-html.png
 
 [S] Get Marc's permission to use Shrimpy
 
