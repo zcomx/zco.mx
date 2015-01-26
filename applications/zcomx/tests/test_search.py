@@ -6,8 +6,8 @@
 Test suite for zcomx/modules/search.py
 
 """
-
 import unittest
+import urllib
 from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.storage import Storage
@@ -726,7 +726,7 @@ class TestBookTile(LocalTestCase):
         anchor = div.a
         self.assertEqual(anchor['href'], '/{c}/{b}'.format(
             c=url_name(self._row.creator.id),
-            b=book_url_name(self._row.book.id)
+            b=urllib.quote(book_url_name(self._row.book.id))
         ))
         book_name = formatted_name(db, self._row.book.id,
                 include_publication_year=False)

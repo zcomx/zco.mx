@@ -627,6 +627,7 @@ class TestUploadImage(ImageTestCase):
             nameonly=True,
         )
         for size in have:
+            print 'FIXME size: {var}'.format(var=size)
             self.assertTrue(os.path.exists(filename_for_size(
                 original_fullname, size)))
         for size in have_not:

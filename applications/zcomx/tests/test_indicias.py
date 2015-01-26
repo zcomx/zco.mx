@@ -25,7 +25,6 @@ from applications.zcomx.modules.indicias import \
     IndiciaPage, \
     IndiciaSh, \
     IndiciaShError, \
-    IndiciaUpdateInProgress, \
     PublicationMetadata, \
     cc_licence_by_code, \
     cc_licence_places, \
@@ -387,6 +386,7 @@ class TestIndiciaPage(LocalTestCase):
         self.assertEqual(
             img['src'], '/images/download/path/to/file.png?size=web')
 
+
 class TestIndiciaPagePng(ImageTestCase):
 
     # Use BookIndiciaPagePng (which subclasses IndiciaPagePng) to test.
@@ -436,7 +436,6 @@ class TestIndiciaPagePng(ImageTestCase):
             png_page.get_indicia_filename(),
             '_cache_'
         )
-
 
 
 class TestIndiciaSh(ImageTestCase):
@@ -578,8 +577,8 @@ class TestPublicationMetadata(LocalTestCase):
             str(meta),
             (
                 'This work was originally published in print in 2014-2015 as "My Old Book" by Acme Pub Inc. '
-                '"My Story #1" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc. '
-                '"My Story #2" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc. '
+                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc. '
+                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc. '
                 '"My Book" is a derivative of "My Derivative" from 2014-2015 by John Doe used under CC BY-NC-SA.'
             )
         )
@@ -637,6 +636,7 @@ class TestPublicationMetadata(LocalTestCase):
             book_id=book.id,
             republished=True,
             published_type='whole',
+            is_anthology=False,
             published_name='My Book',
             published_format='digital',
             publisher_type='press',
@@ -652,6 +652,7 @@ class TestPublicationMetadata(LocalTestCase):
 
         serial_1 = dict(
             book_id=book.id,
+            sequence=1,
             published_name='My Book',
             published_format='digital',
             publisher_type='press',
@@ -665,6 +666,7 @@ class TestPublicationMetadata(LocalTestCase):
 
         serial_2 = dict(
             book_id=book.id,
+            sequence=0,
             published_name='My Book 2',
             published_format='digital',
             publisher_type='press',
@@ -685,7 +687,7 @@ class TestPublicationMetadata(LocalTestCase):
         self.add(db.publication_serial, serial_2)
         meta.load()
         expect.metadata = metadata
-        expect.serials = [serial_2, serial_1]   # Sorted by story_number
+        expect.serials = [serial_2, serial_1]   # Sorted by sequence
         test_meta(meta, expect)
 
         derivative_data = dict(
@@ -710,8 +712,8 @@ class TestPublicationMetadata(LocalTestCase):
             str(meta.load()),
             (
                 'This work was originally published digitally in 2014-2015 as "My Book" by Acme. '
-                '"My Book 2 #11" was originally published digitally in "Sheerios 2 #2" in 2000-2001 by Acme 2. '
-                '"My Book #99" was originally published digitally in "Sheerios" in 1998-1999 by Acme. '
+                'This work was originally published digitally in 2000-2001 as "Sheerios 2 #2" at Acme 2. '
+                'This work was originally published digitally in 1998-1999 as "Sheerios #1" at Acme. '
                 '"test__load" is a derivative of "Derivative" from 2006-2007 by Dr Drawer used under CC0.'
             )
         )
@@ -975,34 +977,36 @@ class TestPublicationMetadata(LocalTestCase):
 
         # METADATA see mod 12687
 
-        # elif 'republish - serial/anthology'; then
-        #     while read input; do
-        #         [[ $input == done ]] && coninute
-        #         num=( input:story_name && input:anthology/serial name && input:a/s YYYY )
-        #     done
+        #     repub -> repub - serial -> anthology no -> digital [8]
+        #     repub -> repub - serial -> anthology no -> paper -> press [9]
+        #     repub -> repub - serial -> anthology no -> paper -> self [10]
+        #     repub -> repub - serial -> anthology yes -> digital [11]
+        #     repub -> repub - serial -> anthology yes -> paper -> press [12]
+        #     repub -> repub - serial -> anthology yes -> paper -> self [13]
 
-        #     [[ digital ]] && num=0 && input:site_name && printf [8]
-        #     [[ digital ]] && num>1 && input:site_name && printf [9]
-        #     [[ paper - press ]] && num=0 && input:press_name && echo [10]
-        #     [[ paper - press ]] && num>1 && input:press_name && echo [11]
-        #     [[ paper - self ]] && num=0 && echo [12]
-        #     [[ paper - self ]] && num>1 && echo [13]
-        # fi
-
-        # [8] Story Name was originally published digitally in anthology/serial name in YYYY at username.tumblr.com
-        # [9] Story Name #1 was originally serialized digitally in anthology/serial name in YYYY at username.tumblr.com
-        #     Story Name #2 was originally serialized digitally in anthology/serial name in YYYY at username.tumblr.com
-        #     ...
-        #     ---
-        # [10] Story Name was originally published in print in anthology/serial name in YYYY by publisher/press
-        # [11] Story Name #1 was originally published in print in anthology/serial name in YYYY by publisher/press
-        #      Story Name #2 was originally published in print in anthology/serial name in YYYY by publisher/press
-        #     ...
-        #     ---
-        # [12] Story Name was originally self-published in print in anthology/serial name in YYYY by publisher/press
-        # [13] Story Name #1 was originally self-published in print in anthology/serial name in YYYY by publisher/press
-        #      Story Name #2 was originally self-published in print in anthology/serial name in YYYY by publisher/press
-        #     ...
+        # [8] This work was originally published digitally in YYYY as NAME #1 at username.tumblr.com.
+        #     This work was originally published digitally in YYYY as NAME #2 at username.tumblr.com.
+        # ...
+        #
+        # [9] This work was originally published in print in YYYY as NAME #1 by publisher/press.
+        #     This work was originally published in print in YYYY as NAME #2 by publisher/press.
+        # ...
+        #
+        # [10] This work was originally self-published in print in as NAME #1 YYYY.
+        #      This work was originally self-published in print in as NAME #2 YYYY.
+        # ...
+        #
+        # [11] STORY_NAME #1 was originally published digitally in ANTHOLOGY_NAME in YYYY at username.tumblr.com.
+        #      STORY_NAME #2 was originally published digitally in ANTHOLOGY_NAME in YYYY at username.tumblr.com.
+        # ...
+        #
+        # [12] STORY_NAME #1 was originally published in print in ANTHOLOGY_NAME in YYYY by publisher/press.
+        #      STORY_NAME #2 was originally published in print in ANTHOLOGY_NAME in YYYY by publisher/press.
+        # ...
+        #
+        # [13] STORY_NAME #1 was originally self-published in print in ANTHOLOGY_NAME in YYYY.
+        #      STORY_NAME #2 was originally self-published in print in ANTHOLOGY_NAME in YYYY.
+        # ...
 
         book = self.add(db.book, dict(name='test__serials_text'))
 
@@ -1022,95 +1026,122 @@ class TestPublicationMetadata(LocalTestCase):
 
         # [8]
         s = Storage(default_serial)
-        s.published_name = 'My Story'
+        s.published_name = '-'
         s.published_format = 'digital'
         s.publisher_type = 'self'
         s.publisher = 'tumblr.com'
-        s.story_number = 1
-        s.serial_title = 'Aaa Series'
-        s.serial_number = 0
+        s.serial_title = 'My Story'
+        s.story_number = 0
 
+        s.serial_number = 1
         self.assertEqual(
-            meta.serial_text(s, single=True),
-            '"My Story" was originally published digitally in "Aaa Series" in 2014-2015 at tumblr.com.'
+            meta.serial_text(s, is_anthology=False),
+            'This work was originally published digitally in 2014-2015 as "My Story #1" at tumblr.com.'
+        )
+        s.serial_number = 2
+        self.assertEqual(
+            meta.serial_text(s, is_anthology=False),
+            'This work was originally published digitally in 2014-2015 as "My Story #2" at tumblr.com.'
         )
 
         # [9]
-        s.story_number = 1
+        s = Storage(default_serial)
+        s.published_name = '-'
+        s.published_format = 'paper'
+        s.publisher_type = 'press'
+        s.publisher = 'Acme Pub Inc.'
+        s.serial_title = 'My Story'
+        s.story_number = 0
+
+        s.serial_number = 1
         self.assertEqual(
-            meta.serial_text(s, single=False),
-            '"My Story #1" was originally published digitally in "Aaa Series" in 2014-2015 at tumblr.com.'
+            meta.serial_text(s, is_anthology=False),
+            'This work was originally published in print in 2014-2015 as "My Story #1" by Acme Pub Inc.'
         )
-        s.story_number = 2
+        s.serial_number = 2
         self.assertEqual(
-            meta.serial_text(s, single=False),
-            '"My Story #2" was originally published digitally in "Aaa Series" in 2014-2015 at tumblr.com.'
+            meta.serial_text(s, is_anthology=False),
+            'This work was originally published in print in 2014-2015 as "My Story #2" by Acme Pub Inc.'
         )
 
         # [10]
         s = Storage(default_serial)
-        s.published_name = 'My Story'
+        s.published_name = '-'
         s.published_format = 'paper'
-        s.publisher_type = 'press'
+        s.publisher_type = 'self'
         s.publisher = 'Acme Pub Inc.'
-        s.story_number = 1
-        s.serial_title = 'Aaa Series'
-        s.serial_number = 0
+        s.serial_title = 'My Story'
+        s.story_number = 0
 
+        s.serial_number = 1
         self.assertEqual(
-            meta.serial_text(s, single=True),
-            '"My Story" was originally published in print in "Aaa Series" in 2014-2015 by Acme Pub Inc.'
+            meta.serial_text(s, is_anthology=False),
+            'This work was originally self-published in print in 2014-2015 as "My Story #1".'
+        )
+        s.serial_number = 2
+        self.assertEqual(
+            meta.serial_text(s, is_anthology=False),
+            'This work was originally self-published in print in 2014-2015 as "My Story #2".'
         )
 
         # [11]
+        s = Storage(default_serial)
+        s.published_name = 'My Story'
+        s.published_format = 'digital'
+        s.publisher_type = 'self'
+        s.publisher = 'tumblr.com'
+        s.serial_title = 'Aaa Series'
+        s.serial_number = 9
+
         s.story_number = 1
         self.assertEqual(
-            meta.serial_text(s, single=False),
-            '"My Story #1" was originally published in print in "Aaa Series" in 2014-2015 by Acme Pub Inc.'
+            meta.serial_text(s, is_anthology=True),
+            '"My Story #1" was originally published digitally in "Aaa Series #9" in 2014-2015 at tumblr.com.'
         )
         s.story_number = 2
         self.assertEqual(
-            meta.serial_text(s, single=False),
-            '"My Story #2" was originally published in print in "Aaa Series" in 2014-2015 by Acme Pub Inc.'
+            meta.serial_text(s, is_anthology=True),
+            '"My Story #2" was originally published digitally in "Aaa Series #9" in 2014-2015 at tumblr.com.'
         )
 
         # [12]
         s = Storage(default_serial)
         s.published_name = 'My Story'
         s.published_format = 'paper'
-        s.publisher_type = 'self'
-        s.publisher = ''
-        s.story_number = 1
+        s.publisher_type = 'press'
+        s.publisher = 'Acme Pub Inc.'
         s.serial_title = 'Aaa Series'
-        s.serial_number = 0
+        s.serial_number = 9
 
-        self.assertEqual(
-            meta.serial_text(s, single=True),
-            '"My Story" was originally self-published in print in "Aaa Series" in 2014-2015.'
-        )
-
-        # [13]
         s.story_number = 1
         self.assertEqual(
-            meta.serial_text(s, single=False),
-            '"My Story #1" was originally self-published in print in "Aaa Series" in 2014-2015.'
+            meta.serial_text(s, is_anthology=True),
+            '"My Story #1" was originally published in print in "Aaa Series #9" in 2014-2015 by Acme Pub Inc.'
         )
         s.story_number = 2
         self.assertEqual(
-            meta.serial_text(s, single=False),
-            '"My Story #2" was originally self-published in print in "Aaa Series" in 2014-2015.'
+            meta.serial_text(s, is_anthology=True),
+            '"My Story #2" was originally published in print in "Aaa Series #9" in 2014-2015 by Acme Pub Inc.'
         )
 
-        # Test serial_number variations.
-        s.serial_number = 1
+        # [13]
+        s = Storage(default_serial)
+        s.published_name = 'My Story'
+        s.published_format = 'paper'
+        s.publisher_type = 'self'
+        s.publisher = 'Acme Pub Inc.'
+        s.serial_title = 'Aaa Series'
+        s.serial_number = 9
+
+        s.story_number = 1
         self.assertEqual(
-            meta.serial_text(s, single=False),
-            '"My Story #2" was originally self-published in print in "Aaa Series" in 2014-2015.'
+            meta.serial_text(s, is_anthology=True),
+            '"My Story #1" was originally self-published in print in "Aaa Series #9" in 2014-2015.'
         )
-        s.serial_number = 2
+        s.story_number = 2
         self.assertEqual(
-            meta.serial_text(s, single=False),
-            '"My Story #2" was originally self-published in print in "Aaa Series #2" in 2014-2015.'
+            meta.serial_text(s, is_anthology=True),
+            '"My Story #2" was originally self-published in print in "Aaa Series #9" in 2014-2015.'
         )
 
     def test__serials_text(self):
@@ -1119,6 +1150,7 @@ class TestPublicationMetadata(LocalTestCase):
         meta = PublicationMetadata(book.id)
         serial_1 = Storage(dict(
             book_id=book.id,
+            sequence=0,
             published_name='My Story',
             published_format='paper',
             publisher_type='press',
@@ -1132,6 +1164,7 @@ class TestPublicationMetadata(LocalTestCase):
 
         serial_2 = Storage(dict(
             book_id=book.id,
+            sequence=1,
             published_name='My Story',
             published_format='paper',
             publisher_type='press',
@@ -1143,10 +1176,27 @@ class TestPublicationMetadata(LocalTestCase):
             to_year=2015,
         ))
 
+        meta.metadata = {'is_anthology': False}
         meta.serials = [serial_1]
         self.assertEqual(
             meta.serials_text(),
-            ['"My Story" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.']
+            ['This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.']
+        )
+
+        meta.serials = [serial_1, serial_2]
+        self.assertEqual(
+            meta.serials_text(),
+            [
+                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.',
+                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.',
+            ]
+        )
+
+        meta.metadata = {'is_anthology': True}
+        meta.serials = [serial_1]
+        self.assertEqual(
+            meta.serials_text(),
+            ['"My Story #1" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.']
         )
 
         meta.serials = [serial_1, serial_2]
@@ -1217,8 +1267,8 @@ class TestPublicationMetadata(LocalTestCase):
             meta.texts(),
             [
                 'This work was originally published in print in 2014-2015 as "My Old Book" by Acme Pub Inc.',
-                '"My Story #1" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.',
-                '"My Story #2" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.',
+                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.',
+                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.',
                 '"My Book" is a derivative of "My Derivative" from 2014-2015 by John Doe used under CC BY-NC-SA.',
             ]
         )
@@ -1359,6 +1409,7 @@ class TestPublicationMetadata(LocalTestCase):
         metadata = dict(
             republished=True,
             published_type='whole',
+            is_anthology=True,
             published_name='My Book',
             published_format='paper',
             publisher_type='press',
@@ -1470,6 +1521,28 @@ class TestPublicationMetadata(LocalTestCase):
                 'publication_serial_to_year__0',
             ])
         )
+
+        meta.metadata['is_anthology'] = False
+        meta.validate()
+        meta.serials[0]['published_name'] = ''
+        meta.serials[0]['published_format'] = '_fake_'
+        meta.serials[0]['publisher_type'] = '_fake_'
+        meta.serials[0]['publisher'] = ''
+        meta.serials[0]['from_year'] = -1
+        meta.serials[0]['to_year'] = -2
+        meta.validate()
+        self.assertEqual(
+            sorted(meta.errors.keys()),
+            sorted([
+                'publication_serial_published_format__0',
+                'publication_serial_publisher_type__0',
+                'publication_serial_publisher__0',
+                'publication_serial_from_year__0',
+                'publication_serial_to_year__0',
+            ])
+        )
+
+        meta.metadata['is_anthology'] = True
         meta.serials = [dict(serials[0])]
         meta.validate()
         self.assertEqual(meta.errors, {})

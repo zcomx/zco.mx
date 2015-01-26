@@ -552,7 +552,7 @@ class PublicationMetadata(object):
         query = (db.publication_serial.book_id == self.book.id)
         serials = db(query).select(
             orderby=[
-                db.publication_serial.story_number,
+                db.publication_serial.sequence,
                 db.publication_serial.id,
             ],
         ).as_list()
@@ -590,6 +590,11 @@ class PublicationMetadata(object):
                 # This should trigger a validation error.
                 request_vars['publication_metadata_republished'] = None
 
+        if 'publication_metadata_is_anthology' in request_vars:
+            request_vars['publication_metadata_is_anthology'] = True \
+                if request_vars['publication_metadata_is_anthology'] == 'yes' \
+                else False
+
         metadatas = vars_to_records(
             request_vars, 'publication_metadata', multiple=False)
         if not metadatas:
@@ -620,6 +625,10 @@ class PublicationMetadata(object):
 
         if not self.metadata['republished']:
             return self.first_publication_text
+
+        if self.metadata['published_type'] == 'serial' and self.serials:
+            # Set def serial_text produce the text.
+            return ''
 
         # From here on: self.metadata['republished'] == True
 
@@ -664,44 +673,44 @@ class PublicationMetadata(object):
             publr=publr.rstrip('.'),
         )
 
-    def serial_text(self, serial, single=True):
+    def serial_text(self, serial, is_anthology=False):
         """Return the sentence form of a publication_serial record.
 
         Args:
             serial: dict representing publication_serial record.
-            single: if False, assume serial is one of several stories.
+            is_anthology: If True, serial is an anthology.
 
         Returns: string
         """
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+
         # no-self-use (R0201): *Method could be a function*
         # pylint: disable=R0201
 
         if not serial:
             return ''
 
-        fmt = (
-            '"{story}" was originally '
-            '{pubr_type} {pubd_type} in "{serial}" in {y}{publr}.'
-        )
-        num = ''
-        if not single:
-            num = ' #{num}'.format(num=serial['story_number'])
-        story = '{name}{num}'.format(name=serial['published_name'], num=num)
+        fmts = {
+            True: {
+                'digital': '"{story} #{story_no}" was originally published digitally in "{title} #{serial_no}" in {y} at {publr}.',
+                'paper': {
+                    'press': '"{story} #{story_no}" was originally published in print in "{title} #{serial_no}" in {y} by {publr}.',
+                    'self':  '"{story} #{story_no}" was originally self-published in print in "{title} #{serial_no}" in {y}.',
+                },
+            },
+            False: {
+                'digital': 'This work was originally published digitally in {y} as "{title} #{serial_no}" at {publr}.',
+                'paper': {
+                    'press': 'This work was originally published in print in {y} as "{title} #{serial_no}" by {publr}.',
+                    'self':  'This work was originally self-published in print in {y} as "{title} #{serial_no}".',
+                },
+            }
+        }
 
-        pubr_type = 'self-published' \
-            if serial['published_format'] == 'paper' \
-            and serial['publisher_type'] == 'self' \
-            else 'published'
-        by = 'by' if serial['publisher_type'] == 'press' else 'at'
-        pubd_type = 'digitally' \
-            if serial['published_format'] == 'digital' \
-            else 'in print'
-
-        serial_num = ''
-        if serial['serial_number'] and serial['serial_number'] > 1:
-            serial_num = ' #{num}'.format(num=serial['serial_number'])
-        serial_name = '{name}{num}'.format(
-            name=serial['serial_title'], num=serial_num)
+        fmt = fmts[is_anthology][serial['published_format']]
+        if serial['published_format'] == 'paper':
+            fmt = fmts[is_anthology][serial['published_format']][serial['publisher_type']]
 
         years = '-'.join(
             sorted(
@@ -709,22 +718,13 @@ class PublicationMetadata(object):
             )
         )
 
-        publr = ''
-        if serial['publisher']:
-            by = 'by' if serial['publisher_type'] == 'press' else 'at'
-            publr = ' {by} {name}'.format(
-                by=by,
-                name=serial['publisher'],
-            )
-
         return fmt.format(
-            story=story,
-            num=num,
-            pubr_type=pubr_type,
-            pubd_type=pubd_type,
-            serial=serial_name,
+            story=serial['published_name'],
+            story_no=serial['story_number'],
+            title=serial['serial_title'],
+            serial_no=serial['serial_number'],
             y=years,
-            publr=publr.rstrip('.'),
+            publr=serial['publisher'].rstrip('.'),
         )
 
     def serials_text(self):
@@ -732,8 +732,11 @@ class PublicationMetadata(object):
 
         Returns: list of strings
         """
-        single = len(self.serials) <= 1
-        return [self.serial_text(x, single=single) for x in self.serials]
+        is_anthology = False
+        if self.metadata and 'is_anthology' in self.metadata:
+            is_anthology = self.metadata['is_anthology']
+        return [self.serial_text(x, is_anthology=is_anthology)
+                for x in self.serials]
 
     def texts(self):
         """Return a list of sentence forms of publication metadata:
@@ -802,7 +805,7 @@ class PublicationMetadata(object):
         query = (db.publication_serial.book_id == self.book.id)
         existing = db(query).select(
             orderby=[
-                db.publication_serial.story_number,
+                db.publication_serial.sequence,
                 db.publication_serial.id,
             ],
         )
@@ -819,7 +822,7 @@ class PublicationMetadata(object):
         query = (db.publication_serial.book_id == self.book.id)
         existing = db(query).select(
             orderby=[
-                db.publication_serial.story_number,
+                db.publication_serial.sequence,
                 db.publication_serial.id,
             ],
         )
@@ -835,6 +838,7 @@ class PublicationMetadata(object):
         for c, record in enumerate(self.serials):
             data = dict(default)
             data.update(record)
+            data['sequence'] = c
             existing[c].update_record(**data)
 
         db.commit()
@@ -919,7 +923,10 @@ class PublicationMetadata(object):
                     for f in db_meta.fields:
                         if f not in ['republished', 'published_type']:
                             db_meta[f].requires = None
-                    db_serial.published_name.requires = IS_NOT_EMPTY()
+                    if 'is_anthology' in self.metadata and self.metadata['is_anthology']:
+                        db_serial.published_name.requires = IS_NOT_EMPTY()
+                    else:
+                        db_serial.published_name.requires = None
                     db_serial.published_format.requires = IS_IN_SET(
                         published_formats)
                     db_serial.publisher_type.requires = IS_IN_SET(

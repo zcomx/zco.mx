@@ -824,16 +824,13 @@ class TestFunctions(LocalTestCase):
         result = loads(web.text)
         self.assertEqual(result['status'], 'ok')
         self.assertTrue('data' in result)
+
         self.assertEqual(
             sorted(result['data'].keys()),
             sorted([
-                'default',
                 'publication_metadata',
                 'publication_serial',
                 'derivative',
-                'metadata',
-                'serials',
-                'derivative_fields',
             ])
         )
 

@@ -22,7 +22,6 @@ from applications.zcomx.modules.images import \
     store
 from applications.zcomx.modules.indicias import \
     CreatorIndiciaPage, \
-    CreatorIndiciaPagePng, \
     IndiciaUpdateInProgress, \
     PublicationMetadata, \
     cc_licence_by_code, \
@@ -651,7 +650,8 @@ def creator_img_handler():
             resizer = ResizeImgIndicia if img_field == 'indicia_image' \
                 else None
             try:
-                stored_filename = store(db.creator[img_field], local_filename, resizer=resizer)
+                stored_filename = store(
+                    db.creator[img_field], local_filename, resizer=resizer)
             except Exception as err:
                 print >> sys.stderr, \
                     'Creator image upload error: {err}'.format(err=err)
@@ -1116,6 +1116,14 @@ def metadata_crud():
             ],
         })
 
+        data['publication_metadata']['fields']['is_anthology'].update({
+            'type': 'select',
+            'source': [
+                {'value': 'yes', 'text': 'Yes'},
+                {'value': 'no', 'text': 'No'}
+            ],
+        })
+
         data['publication_metadata']['fields']['published_format'].update(
             published_format_ddm)
         data['publication_metadata']['fields']['publisher_type'].update(
@@ -1204,7 +1212,7 @@ def metadata_crud():
         query = (db.publication_serial.book_id == book_record.id)
         data['publication_serial']['records'] = db(query).select(
             orderby=[
-                db.publication_serial.story_number,
+                db.publication_serial.sequence,
                 db.publication_serial.id,
             ],
         ).as_list()
