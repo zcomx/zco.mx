@@ -17,9 +17,11 @@ from applications.zcomx.modules.books import \
     cc_licence_data, \
     get_page, \
     orientation as page_orientation, \
-    publication_year_range
+    publication_year_range, \
+    url as book_url
 from applications.zcomx.modules.creators import \
-    formatted_name as creator_formatted_name
+    formatted_name as creator_formatted_name, \
+    url as creator_url
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
@@ -109,13 +111,21 @@ class IndiciaPage(object):
             )
         )
 
+        # js is used to flesh out the contribute widget
+        text_divs.append(
+            DIV(
+                _class='contribute_widget',
+            )
+        )
+
         if self.creator:
             text_divs.append(DIV(
-                DIV('CONTRIBUTE MONIES: http://{i:03d}.zco.mx/monies'.format(
-                    i=self.creator.id)),
-                DIV('CONTACT INFO: http://{i:03d}.zco.mx'.format(
-                    i=self.creator.id)),
-                _class='contribute_contact_urls',
+                'FOLLOW',
+                A(
+                    self.creator.path_name,
+                    _href=creator_url(self.creator),
+                ),
+                _class='follow_creator',
             ))
 
         text_divs.append(
@@ -312,7 +322,10 @@ class CreatorIndiciaPage(IndiciaPage):
             template_field: string, name of cc_licence template field. One of
                 'template_img', 'template_web'
         """
-        data = dict(owner=creator_formatted_name(self.creator))
+        data = dict(
+            owner=creator_formatted_name(self.creator),
+            owner_url=creator_url(self.creator)
+        )
         return render_cc_licence(
             data,
             self.default_licence(),
@@ -923,7 +936,8 @@ class PublicationMetadata(object):
                     for f in db_meta.fields:
                         if f not in ['republished', 'published_type']:
                             db_meta[f].requires = None
-                    if 'is_anthology' in self.metadata and self.metadata['is_anthology']:
+                    if 'is_anthology' in self.metadata \
+                            and self.metadata['is_anthology']:
                         db_serial.published_name.requires = IS_NOT_EMPTY()
                     else:
                         db_serial.published_name.requires = None
@@ -1371,11 +1385,19 @@ def render_cc_licence(
         raise NotFoundError('CC licence not found, {e}'.format(
             e=cc_licence_entity))
 
+    default_url = URL(c='search', f='index')
+
     if 'owner' not in data:
         data['owner'] = 'CREATOR NAME'
 
+    if 'owner_url' not in data:
+        data['owner_url'] = default_url
+
     if 'title' not in data:
         data['title'] = 'NAME OF BOOK'
+
+    if 'title_url' not in data:
+        data['title_url'] = default_url
 
     if 'place' not in data or not data['place']:
         data['place'] = '&lt;YOUR COUNTRY&gt;'

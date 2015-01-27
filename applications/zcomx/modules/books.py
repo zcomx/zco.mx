@@ -14,6 +14,7 @@ from gluon.validators import urlify
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
+    url as creator_url, \
     url_name as creator_url_name
 from applications.zcomx.modules.images import \
     ImgTag, \
@@ -232,8 +233,11 @@ def book_types(db):
     )
     return XML(
         ','.join(
-            ['{{"value":"{x.id}", "text":"{x.description}"}}'.format(x=x)
-                for x in types])
+            [
+                '{{"value":"{x.id}", "text":"{x.description}"}}'.format(x=x)
+                for x in types
+            ]
+        )
     )
 
 
@@ -316,7 +320,9 @@ def cc_licence_data(book_entity):
 
     return dict(
         owner=creator_formatted_name(creator_record),
+        owner_url=creator_url(creator_record),
         title=book_record.name,
+        title_url=url(book_record),
         year=years,
         place=book_record.cc_licence_place,
     )
@@ -563,6 +569,12 @@ def get_page(book_entity, page_no=1):
             The following strings are acceptable.
             'first': equivalent to page_no=1
             'last': returns the last page in book (excluding indicia)
+            'indicia': returns a dummy page representing the indicia
+                    id: None
+                    book_id: id of book
+                    page_no: last page page_no + 1
+                    image: None
+
     Returns:
         Row instance representing a book_page.
     Raises:
@@ -577,7 +589,7 @@ def get_page(book_entity, page_no=1):
     want_page_no = None
     if page_no == 'first':
         want_page_no = 1
-    elif page_no == 'last':
+    elif page_no in ['last', 'indicia']:
         page_max = db.book_page.page_no.max()
         query = (db.book_page.book_id == book_record.id)
         want_page_no = db(query).select(page_max)[0][page_max]
@@ -596,6 +608,11 @@ def get_page(book_entity, page_no=1):
     if not book_page:
         raise NotFoundError('Book id {b}, page not found, {p}'.format(
             b=book_record.id, p=page_no))
+
+    if page_no == 'indicia':
+        book_page.id = None
+        book_page.image = None
+        book_page.page_no = book_page.page_no + 1
 
     return book_page
 
@@ -776,8 +793,11 @@ def publication_years():
     # {'value': '1970', 'text': '1970'}, ...
     return XML(
         ','.join(
-            ['{{"value":"{x}", "text":"{x}"}}'.format(x=x)
-                for x in range(*publication_year_range())])
+            [
+                '{{"value":"{x}", "text":"{x}"}}'.format(x=x)
+                for x in range(*publication_year_range())
+            ]
+        )
     )
 
 

@@ -95,29 +95,67 @@ class Router(object):
 
         return self.creator_record
 
-    def get_book_page(self):
+    def _get_book_page(self):
         """Get the record of the book page based on request.vars.page.
+
+        This is a helper function for get_book_page(). It makes it possible
+        to return early and reduce nesting.
 
         Returns:
             gluon.dal.Row representing book_page record
         """
         db = self.db
         request = self.request
+        if not request.vars.page:
+            return
+
+        book_record = self.get_book()
+        if not book_record:
+            return
+
+        # Strip off extension
+        parts = request.vars.page.split('.')
+        raw_page_no = parts[0]
+        try:
+            page_no = int(raw_page_no)
+        except (TypeError, ValueError):
+            page_no = None
+        if not page_no:
+            return
+
+        record = None
+        try:
+            record = get_page(book_record, page_no=page_no)
+        except NotFoundError:
+            pass
+        if record:
+            return record
+
+        # Check if indicia page is requested.
+        last_page = None
+        try:
+            last_page = get_page(
+                book_record, page_no='last')
+        except NotFoundError:
+            pass
+
+        if not last_page or page_no != last_page.page_no + 1:
+            return
+
+        try:
+            record = get_page(book_record, page_no='indicia')
+        except NotFoundError:
+            record = None
+        return record
+
+    def get_book_page(self):
+        """Get the record of the book page based on request.vars.page.
+
+        Returns:
+            gluon.dal.Row representing book_page record
+        """
         if not self.book_page_record:
-            if request.vars.page:
-                book_record = self.get_book()
-                if book_record:
-                    # Strip off extension
-                    parts = request.vars.page.split('.')
-                    raw_page_no = parts[0]
-                    try:
-                        page_no = int(raw_page_no)
-                    except (TypeError, ValueError):
-                        page_no = None
-                    if page_no:
-                        query = (db.book_page.book_id == book_record.id) & \
-                                (db.book_page.page_no == page_no)
-                        self.book_page_record = db(query).select().first()
+            self.book_page_record = self._get_book_page()
         return self.book_page_record
 
     def get_reader(self):

@@ -1862,8 +1862,17 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-size: 28px;
 }
 
-.indicia_text_container .contribute_contact_urls {
-    margin: 1em 0;
+.indicia_text_container .contribute_widget {
+    margin-top: 2em;
+    margin-bottom: 0.2em;
+}
+
+.indicia_text_container .follow_creator {
+    margin: 0.4em 0;
+}
+
+.indicia_text_container .follow_creator a {
+    margin-left: 0.4em;
 }
 
 .indicia_text_container .copyright_licence {

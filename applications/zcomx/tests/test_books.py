@@ -692,7 +692,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(contributions_target(db, -1), 0.00)
 
         tests = [
-            #(pages, expect)
+            # (pages, expect)
             (0, 0.00),
             (1, 10.00),
             (19, 190.00),
@@ -747,7 +747,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(default_contribute_amount(db, book), 1.00)
 
         tests = [
-            #(pages, expect)
+            # (pages, expect)
             (0, 1.00),
             (1, 1.00),
             (19, 1.00),
@@ -850,7 +850,7 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(name='My Book'))
 
         tests = [
-            #(name, pub year, type, number, of_number, expect, expect pub yr),
+            # (name, pub year, type, number, of_number, expect, expect pub yr),
             ('My Book', 1999, 'one-shot', 1, 999,
                 'My Book', 'My Book (1999)'),
             ('My Book', 1999, 'ongoing', 12, 999,
@@ -891,7 +891,7 @@ class TestFunctions(ImageTestCase):
             else:
                 self.assertRaises(NotFoundError, get_page, book, **kwargs)
 
-        for page_no in ['first', 'last', 1, 2, None]:
+        for page_no in ['first', 'last', 'indicia', 1, 2, None]:
             do_test(page_no, None)
 
         book_page_1 = self.add(db.book_page, dict(
@@ -914,6 +914,13 @@ class TestFunctions(ImageTestCase):
         for page_no in ['last', 2]:
             do_test(page_no, book_page_2)
         do_test(3, None)
+
+        last = get_page(book, page_no='last')
+        indicia = get_page(book, page_no='indicia')
+        self.assertEqual(indicia.id, None)
+        self.assertEqual(indicia.book_id, book.id)
+        self.assertEqual(indicia.page_no, last.page_no + 1)
+        self.assertEqual(indicia.image, None)
 
     def test__is_releasable(self):
         book = self.add(db.book, dict(name='test__is_releasable'))
@@ -945,7 +952,7 @@ class TestFunctions(ImageTestCase):
             type_id_by_name[t.name] = t.id
 
         tests = [
-            #(name, expect)
+            # (name, expect)
             ('ongoing', {'of_number': False, 'number': True}),
             ('mini-series', {'of_number': True, 'number': True}),
             ('one-shot', {'of_number': False, 'number': False}),
@@ -1033,7 +1040,7 @@ class TestFunctions(ImageTestCase):
     def test__parse_url_name(self):
 
         tests = [
-            #(url_name, expect),
+            # (url_name, expect),
             (None, None),
             ('My_Book', {
                 'name': 'My Book',
@@ -1291,7 +1298,7 @@ class TestFunctions(ImageTestCase):
         do_test(book, None, expect)
 
         records = [
-            #(table, days_ago, amount)
+            # (table, days_ago, amount)
             (db.contribution, 0, 11.11),
             (db.contribution, 100, 22.22),
             (db.contribution, 500, 44.44),
@@ -1363,7 +1370,7 @@ class TestFunctions(ImageTestCase):
         # Note: The publication year was removed from the url.
 
         tests = [
-            #(name, pub year, type, number, of_number, expect),
+            # (name, pub year, type, number, of_number, expect),
             (None, None, 'one-shot', None, None, None),
             ('My Book', 1999, 'one-shot', 1, 999, '/First_Last/My_Book'),
             ('My Book', 1999, 'ongoing', 12, 999, '/First_Last/My_Book_012'),
@@ -1390,7 +1397,7 @@ class TestFunctions(ImageTestCase):
 
         # Note: The publication year was removed from the url.
         tests = [
-            #(name, pub year, type, number, of_number, expect),
+            # (name, pub year, type, number, of_number, expect),
             (None, None, 'one-shot', None, None, None),
             ('My Book', 1999, 'one-shot', 1, 999,
                 'My_Book'),
