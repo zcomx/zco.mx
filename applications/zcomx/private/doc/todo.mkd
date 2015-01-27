@@ -17,35 +17,36 @@ VERSION 2 - Before Going Live
     [x] year drop down can start at 1970
     [x] Change 'Is this work a derivative?' -> 'Derivative Work'
 
-    [ ] add 'X' to top right corner of modal
+    [x] add 'X' to top right corner of modal
 
-    [ ] buggy
+    [x] buggy
         Republication - serial -> Digital -> Done -> Paper
 
-    [ ] repub - serial -> Published Name
+    [x] repub - serial -> Published Name
         change to 'Book/Anthology Title'
 
-    [ ] repub - serial -> Serial Number
+    [x] repub - serial -> Serial Number
         change to 'Book/Anthology Number'
         move under 'Book/Anthology Title'
 
-    [ ] Should 'Book/Anthology Number' and 'Story Number' be a dropdown ?
+    [x] Should 'Book/Anthology Number' and 'Story Number' be a dropdown ?
         range of 1-100
 
-    [ ] repub - serial -> Serial Number
+    [-] repub - serial -> Serial Number
         story number = abc
         Enter an integer between -2.14748e+09 and 2.14748e+09
 
-    [ ] repub - serial -> Serial Number
+    [x] repub - serial -> Serial Number
         If there is two stories and both serial and story are blank,
         then -> "Name of Book #NONE"
 
-===
-    [ ] repub - serial -> Serial Title
-        Story yes/no (if yes)
-            Story Name
-            Story Number
+    [ ] bug
+        Remove -- "This work was originally published digitally in 2015."
 
+    [ ] repub -> repub serial
+        See: http://p.zsw.ca/SL
+
+---
     [ ] add (i)'s
         Publication Type
             First Publication - the first time the world will be seeing
@@ -80,9 +81,11 @@ VERSION 2 - Before Going Live
             cartoonists' work. Their original work needs to use a
             Creative Commons licence, ie BY, BY-SA, BY-NC or BY-NC-SA.
 
+        Anthology yes/no (if no)    ## (i) was this work apart of an atholoogy?
 
+---
 [ ] https://dev.zco.mx/login/indicia
-    Should we do a quick convert of if portrait, then 750x, else 1200x
+    Should we do a quick convert of if portrait, then 750x, else 1200x ?
 
 [x] Indicia Page - png version
 
