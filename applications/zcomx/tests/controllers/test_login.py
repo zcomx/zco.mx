@@ -628,6 +628,14 @@ class TestFunctions(LocalTestCase):
                 i=creator.indicia_portrait)
         )
 
+        # Re-run should return exact same results
+        url = '{url}/indicia_preview_urls.json'.format(url=self.url)
+        web.post(url, data={})
+        result_2 = loads(web.text)
+        self.assertEqual(result, result_2)
+        creator_2 = get_creator()
+        self.assertEqual(creator, creator_2)
+
     def test__link_crud(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
