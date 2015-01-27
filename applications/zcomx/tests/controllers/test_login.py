@@ -582,6 +582,52 @@ class TestFunctions(LocalTestCase):
             )
         )
 
+    def test__indicia_preview_urls(self):
+
+        def get_creator():
+            """Return creator"""
+            query = (db.creator.id == self._creator.id)
+            return db(query).select(db.creator.ALL).first()
+
+        web.login()
+
+        self._creator.update_record(
+            indicia_portrait=None,
+            indicia_landscape=None,
+        )
+        db.commit()
+
+        creator = get_creator()
+        self.assertEqual(creator.indicia_portrait, None)
+        self.assertEqual(creator.indicia_landscape, None)
+
+        # Create book
+        url = '{url}/indicia_preview_urls.json'.format(url=self.url)
+        web.post(url, data={})
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+
+        creator = get_creator()
+        self.assertRegexpMatches(
+            creator.indicia_landscape,
+            r'^creator.indicia_landscape.[a-z0-9.]+\.png$'
+        )
+        self.assertRegexpMatches(
+            creator.indicia_portrait,
+            r'^creator.indicia_portrait.[a-z0-9.]+\.png$'
+        )
+
+        self.assertEqual(
+            result['urls']['landscape'],
+            '/images/download.json/{i}?size=web'.format(
+                i=creator.indicia_landscape)
+        )
+        self.assertEqual(
+            result['urls']['portrait'],
+            '/images/download.json/{i}?size=web'.format(
+                i=creator.indicia_portrait)
+        )
+
     def test__link_crud(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')

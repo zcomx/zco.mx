@@ -775,7 +775,7 @@ def indicia_preview_urls():
     if not creator_record:
         return do_error('Permission denied')
 
-    # Trigger background process to update creator indicia if necessary
+    # If indicias are blank, create them.
     if not creator_record.indicia_portrait \
             or not creator_record.indicia_landscape:
         try:
