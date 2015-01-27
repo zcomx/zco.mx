@@ -537,6 +537,16 @@ db.define_table('publication_metadata',
         label='Republication Type',
     ),
     Field(
+        'is_anthology',
+        'boolean',
+        default=False,
+        label='Anthology',
+        requires=IS_IN_SET(
+            [True, False],
+            error_message='Please select an option',
+        ),
+    ),
+    Field(
         'published_name',
         label='Original Book Title',
         default='',
@@ -576,9 +586,10 @@ db.define_table('publication_serial',
         'book_id',
         'integer',
     ),
+    Field('sequence', 'integer'),
     Field(
         'published_name',
-        label='Book/Anthology Title',
+        label='Story Name',
         requires=IS_NOT_EMPTY(),
     ),
     Field(

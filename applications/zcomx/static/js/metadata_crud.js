@@ -463,8 +463,10 @@
                 methods._serial_button(button_type).appendTo(serial_container);
 
                 var display_fields = {
-                    'published_name': {},
+                    'serial_title': {},
                     'serial_number': {},
+                    'published_name': {},
+                    'story_number': {},
                     'published_format': {
                         events: {
                             'change': function(e) {
@@ -480,8 +482,6 @@
                         }
                     },
                     'publisher': {},
-                    'story_number': {},
-                    'serial_title': {},
                     'from_year': {},
                     'to_year': {},
                 }
@@ -501,6 +501,7 @@
                 var shows = {
                     'republished': true,
                     'published_type': false,
+                    'is_anthology': false,
                     'whole_container': false,
                     'serials_container': false,
                     'is_derivative': true,
@@ -521,8 +522,11 @@
                             methods._get_input(vars.containers['whole_container'], 'publisher_type')
                         );
                     } else if (published_type == 'serial') {
+                        shows['is_anthology'] = true;
                         shows['serials_container'] = true;
+                        var is_anthology = vars.containers['is_anthology'].find('select').val();
                         $.each(vars.containers['serials_container'].find('.serial_container'), function( idx, serial_container) {
+                            methods._show_is_anthology($(serial_container), is_anthology);
                             methods._show_published_format(
                                 methods._get_input($(serial_container), 'published_format')
                             );
@@ -549,6 +553,28 @@
                         vars.containers[selector].addClass('hidden');
                     }
                 });
+            },
+
+            _show_is_anthology: function($serial, is_anthology) {
+                var serial_title = methods._get_input($serial, 'serial_title');
+                var serial_title_label = serial_title.closest('.row_container')
+                    .find('.field_label').first();
+                var serial_number = methods._get_input($serial, 'serial_number');
+                var serial_number_label = serial_number.closest('.row_container')
+                    .find('.field_label').first();
+                var published_name = methods._get_input($serial, 'published_name');
+                var story_number = methods._get_input($serial, 'story_number');
+                if (is_anthology === 'yes') {
+                    serial_title_label.text('Anthology Title');
+                    serial_number_label.text('Anthology Number');
+                    published_name.closest('.row_container').removeClass('hidden');
+                    story_number.closest('.row_container').removeClass('hidden');
+                } else {
+                    serial_title_label.text('Original Book Title');
+                    serial_number_label.text('Original Book Number');
+                    published_name.closest('.row_container').addClass('hidden');
+                    story_number.closest('.row_container').addClass('hidden');
+                }
             },
 
             _show_errors: function(data) {
@@ -632,6 +658,20 @@
                     fields.published_type,
                     {
                         value: record.published_type || '',
+                        'class': 'hidden',
+                        events: {
+                            'change': function(e) {
+                                methods._show();
+                            }
+                        }
+                    }
+                );
+
+                vars.containers['is_anthology'] = methods._append_row(
+                    vars.form,
+                    fields.is_anthology,
+                    {
+                        value: record.is_anthology ? 'yes' : 'no',
                         'class': 'hidden',
                         events: {
                             'change': function(e) {

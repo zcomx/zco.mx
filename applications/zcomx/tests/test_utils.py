@@ -212,14 +212,6 @@ class TestFunctions(LocalTestCase):
             ['created_on', 'id', 'updated_on']
         )
 
-
-        import pprint
-        for table in ['publication_metadata', 'publication_serial', 'derivative']:
-            record = default_record(db[table], ignore_fields='common')
-            print 'FIXME table: {var}'.format(var=table)
-            pprint.pprint(record)
-
-
     def test__entity_to_row(self):
         book = self.add(db.book, dict(name='test__entity_to_row'))
 

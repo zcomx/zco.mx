@@ -170,9 +170,9 @@ class Router(object):
 
         for query_want in query_wants:
             queries = []
-            if query_want:
+            if query_want is not None:
                 queries.append(query_want)
-            queries.append((db.book_page.id is not None))
+            queries.append((db.book_page.id != None))
             query = reduce(lambda x, y: x & y, queries) if queries else None
             rows = db(query).select(
                 db.book_page.id,
@@ -186,15 +186,18 @@ class Router(object):
                 limitby=(0, 1),
             )
             if rows:
-                url_page_record = entity_to_row(
-                    db.book_page,
-                    rows[0].book_page.id
-                )
-                url_book_record = entity_to_row(db.book, rows[0].book.id)
-                url_creator_record = entity_to_row(
-                    db.creator,
-                    rows[0].creator.id
-                )
+                if rows[0].book_page.id:
+                    url_page_record = entity_to_row(
+                        db.book_page,
+                        rows[0].book_page.id
+                    )
+                if rows[0].book.id:
+                    url_book_record = entity_to_row(db.book, rows[0].book.id)
+                if rows[0].creator.id:
+                    url_creator_record = entity_to_row(
+                        db.creator,
+                        rows[0].creator.id
+                    )
                 break
 
         urls.page = urllib.unquote(
