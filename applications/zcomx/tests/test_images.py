@@ -47,7 +47,6 @@ from applications.zcomx.modules.utils import entity_to_row
 # pylint: disable=W0212
 
 
-
 class ImageTestCase(LocalTestCase):
     """ Base class for Image test cases. Sets up test data."""
 
@@ -427,7 +426,7 @@ class TestResizeImg(ImageTestCase):
         # rm *.png
         # rm *.gif
         # ./applications/zcomx/private/bin/resize_img.sh before/*
-        # md5sum ~/tmp/img/*
+        # md5sum * | awk -v q="'" '{print q$2q": " q$1q","}'
 
         md5s = {
             '6.7.0-8': {
@@ -468,21 +467,17 @@ class TestResizeImg(ImageTestCase):
             },
             '6.9.0-0': {
                 'cbz-256+colour.jpg': '0e11a2cf49d1c1c4166969f463744bc2',
-                'cbz-256colour-gif.png': 'eae9a553f44c6dadf7f34bf3b34b8302',
-                'cbz-256colour-jpg.jpg': '1bf61782de787ba0e4982f87a6617d3e',
-                'cbz-256colour-png.png': '9b2e81c0cf9e27f591d9bd24310fbece',
+                'cbz-256colour-gif.png': 'a98552ba461b7a71e4afbc99d6f7fa81',
+                'cbz-256colour-jpg.jpg': 'e248e32cc276d7e7ec02de22ad98e702',
+                'cbz-256colour-png.png': '6042555ff848013101cda16bc3d9e5cf',
                 'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
                 'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
                 'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
-                'tbn-256+colour.jpg': '8dc7e66f436eb9d0519d071897bdcd91',
-                'tbn-256colour-gif.png': '81d2f48c73f3bea23faf58f0c3b01d8b',
-                'tbn-256colour-jpg.jpg': 'e90043960e8afdfaffa4d166e46164f0',
-                'tbn-256colour-png.png': 'dc1360d982d2d874e9c9fc88f27b1cf3',
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
-                'web-256colour-gif.png': '6f2f036ea8d66d53d46b734445c076a1',
-                'web-256colour-jpg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
-                'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
+                'web-256colour-gif.png': '9951bff8ec37124ac7989e0fc465880e',
+                'web-256colour-jpg.jpg': 'd4643040166b53463d04947677b72c74',
+                'web-256colour-png.png': '9aeb09f87128926f280879ba33d2c5ff',
             },
         }
 
@@ -501,7 +496,7 @@ class TestResizeImg(ImageTestCase):
                 img,
                 {
                     fmt_ori: ['ori'],
-                    fmt: ['cbz', 'web', 'tbn'],
+                    fmt: ['cbz', 'web'],
                 },
                 md5s=md5s[imagemagick_ver],
             )
@@ -510,7 +505,7 @@ class TestResizeImg(ImageTestCase):
         test_it(
             'cbz_plus.jpg',
             {
-                '{typ}-cbz_plus.jpg': ['ori', 'cbz', 'web', 'tbn'],
+                '{typ}-cbz_plus.jpg': ['ori', 'cbz', 'web'],
             }
         )
 
@@ -519,7 +514,7 @@ class TestResizeImg(ImageTestCase):
             'image_with_no_ext',
             {
                 # Image is not big enough to produce a cbz file.
-                '{typ}-image_with_no_ext.jpg': ['ori', 'web', 'tbn'],
+                '{typ}-image_with_no_ext.jpg': ['ori', 'web'],
             }
         )
 
@@ -528,8 +523,8 @@ class TestResizeImg(ImageTestCase):
             'eg.gif',
             {
                 '{typ}-eg.gif': ['ori'],
-                # Image is small so only a thumbnail should be produced.
-                '{typ}-eg.png': ['tbn'],
+                # Image is not big enough to produce a cbz file.
+                '{typ}-eg.png': ['web'],
             }
         )
 
@@ -538,8 +533,8 @@ class TestResizeImg(ImageTestCase):
             'animated.gif',
             {
                 '{typ}-animated.gif': ['ori'],
-                # Image is small so only a thumbnail should be produced.
-                '{typ}-animated.png': ['tbn'],
+                # Image is not big enough to produce a cbz file.
+                '{typ}-animated.png': ['web'],
             }
         )
 
@@ -547,8 +542,8 @@ class TestResizeImg(ImageTestCase):
         test_it(
             'cmyk.jpg',
             {
-                # Image is small so only a thumbnail should be produced.
-                '{typ}-cmyk.jpg': ['ori', 'tbn'],
+                # Image is small so only an original should be produced.
+                '{typ}-cmyk.jpg': ['ori'],
             }
         )
 
@@ -557,7 +552,7 @@ class TestResizeImg(ImageTestCase):
             'jpg_with_wrong_ext.png',
             {
                 # Image is not big enough to produce a cbz file.
-                '{typ}-jpg_with_wrong_ext.jpg': ['ori', 'web', 'tbn'],
+                '{typ}-jpg_with_wrong_ext.jpg': ['ori', 'web'],
             }
         )
 
@@ -567,7 +562,7 @@ class TestResizeImg(ImageTestCase):
             test_it(
                 'file.png',
                 {
-                    fmt: ['ori', 'web', 'tbn'],
+                    fmt: ['ori', 'web'],
                 },
                 to_name=dest,
             )

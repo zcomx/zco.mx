@@ -1,10 +1,9 @@
 #!/bin/bash
 export MAGICK_THREAD_LIMIT=4
 
-r1='GIF|JPEG|PNG'
 d1='cbz 1600 2560 625 1600
     web  750 1200 625 1600'
-#   tbn  140  168 882 1133'
+#    tbn  140  168 882 1133'
 
 _mi() { local e=$?; [[ -t 1 ]] && local g=$LIGHTGREEN coff=$COLOUROFF; printf "$g===: %s$coff\n" "$@"; return "$e"; }
 _mw() { [[ -t 1 ]] && local r=$RED coff=$COLOUROFF; printf "$r===: %s$coff\n" "$@"; return 1; } >&2
@@ -21,6 +20,7 @@ EOF
 }
 
 _check_files() {
+    r1='GIF|JPEG|PNG'
     identify "$i" &>/dev/null || _me "$i is not an image or image is corrupt"
     identify -regard-warnings -format "%g" "$i" &>/dev/null || _me "$i is corrupt"
     ext=$(identify -format '%m' "$i"[0] 2>/dev/null)
@@ -42,6 +42,7 @@ _colourmap() {
 }
 
 _resize() {
+    _colourmap
     while read -r fmt t1 t2 arl arh; do
         IFS=x read -r w h < <(identify -format '%P' "$f"[0])
         #(( $w < $t2 && $h < $t2 )) && continue      ## if image is too small, then continue
