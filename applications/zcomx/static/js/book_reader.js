@@ -83,16 +83,19 @@
             });
 
             $(window).keyup(function(e) {
-                if (e.which == 37) {
-                    // left arrow
-                    that.prev_slide(NO_ROTATE);
-                    e.preventDefault();
-                }
-                if (e.which == 39) {
-                    // right arrow
-                    that.next_slide(NO_ROTATE);
-                    e.preventDefault();
-                }
+                    if (e.which == 37) {
+                        // left arrow
+                        that.prev_slide(NO_ROTATE);
+                        e.preventDefault();
+                    }
+                    if (e.which == 39) {
+                        // right arrow
+                        that.next_slide(NO_ROTATE);
+                        e.preventDefault();
+                    }
+                })
+                .resize(function(e) {
+                    that.set_overlays();
             });
         },
 
@@ -128,28 +131,84 @@
             });
         },
 
+        set_overlays: function(reader_section, num) {
+            if (typeof(reader_section) === 'undefined') {
+                reader_section = $('#reader_section');
+            }
+
+            var img = reader_section.find('img:visible'),
+                left_section = $('#reader_section_left'),
+                right_section = $('#reader_section_right');
+
+            if (typeof(num) === 'undefined') {
+                num = reader_section.find('.slide:visible').first().attr('id').split('-')[1];
+            }
+
+            var left_cursor = num == 0 ? 'auto' : 'w-resize';
+            left_section.css({cursor: left_cursor});
+            var right_cursor = num == this.image_count() ? 'auto' : 'e-resize';
+            right_section.css({cursor: right_cursor});
+
+            var img_h = img.outerHeight();
+            var img_w = img.outerWidth();
+
+            left_section.css({
+                height: img_h,
+                width: img_w/2.0,
+            })
+
+            right_section.css({
+                height: img_h,
+                width: img_w/2.0,
+            })
+
+            $(left_section).jquery_ui_position(
+                {
+                my: 'left top',
+                at: 'left top',
+                of: $(img),
+                collision: 'none',
+                }
+            );
+
+            $(right_section).jquery_ui_position(
+                {
+                my: 'right top',
+                at: 'right top',
+                of: $(img),
+                collision: 'none',
+                }
+            );
+        },
+
         show_slide: function(num) {
-            $('#reader_section .slide').hide();
-            $('#reader_section').height('100%');
+            var reader_section = $('#reader_section');
+            reader_section.find('.slide').hide();
+            reader_section.height('100%');
 
             /* Resize the container div to fit viewport. */
             var section_h = $(window).height();
             var buffer = 10;
-            $('#reader_section').height(section_h - buffer);
+            if (num < this.image_count()) {
+                reader_section.height(section_h - buffer);
+            }else {
+                /* Auto height on indicia page */
+                reader_section.height('auto');
+                reader_section.css({
+                    'min-height': section_h -buffer,
+                });
+            }
 
             /* Set heights of indicia page containers. */
             var indicia_text_container_h = 300;
             var indicia_img_h = (section_h - buffer - indicia_text_container_h);
-            $('#reader_section .indicia_text_container').height(indicia_text_container_h);
-            $('#reader_section .indicia_image_container img').height(indicia_img_h);
+            reader_section.find('.indicia_text_container').height(indicia_text_container_h);
+            reader_section.find('.indicia_image_container').first().find('img').height(indicia_img_h);
 
-            var left_cursor = num == 0 ? 'auto' : 'w-resize';
-            $('#reader_section_left').css({cursor: left_cursor});
-            var right_cursor = num == this.image_count() ? 'auto' : 'e-resize';
-            $('#reader_section_right').css({cursor: right_cursor});
-
-            $('#reader_section #img-' + num).css( "display", "inline-block")
+            reader_section.find('#img-' + num).css( "display", "inline-block")
             $('#page_nav_page_no').val(num + 1);
+
+            this.set_overlays(reader_section, num);
         },
 
         to_page: function(page_no) {

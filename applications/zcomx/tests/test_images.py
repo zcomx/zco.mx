@@ -28,6 +28,7 @@ from applications.zcomx.modules.images import \
     ImgTag, \
     ResizeImgError, \
     ResizeImg, \
+    ResizeImgIndicia, \
     SIZES, \
     UploadImage, \
     filename_for_size, \
@@ -46,6 +47,7 @@ from applications.zcomx.modules.utils import entity_to_row
 # pylint: disable=W0212
 
 
+
 class ImageTestCase(LocalTestCase):
     """ Base class for Image test cases. Sets up test data."""
 
@@ -54,10 +56,19 @@ class ImageTestCase(LocalTestCase):
     _image_dir = '/tmp/image_resizer'
     _image_original = os.path.join(_image_dir, 'original')
     _image_name = 'file.jpg'
-    _uuid_key = None
     _test_data_dir = None
+    _uuid_key = None
 
     _objects = []
+
+    @classmethod
+    def _md5sum(cls, file_obj):
+        """Return md5sum of a file.
+
+        Args:
+            file_obj: file or file like object.
+        """
+        return hashlib.md5(open(file_obj, 'rb').read()).hexdigest()
 
     @classmethod
     def _prep_image(cls, img, working_directory=None, to_name=None):
@@ -390,8 +401,6 @@ class TestResizeImg(ImageTestCase):
             self.fail(msg)
             return
 
-        md5sum = lambda f: hashlib.md5(open(f, 'rb').read()).hexdigest()
-
         def test_it(image_name, expect, to_name=None, md5s=None):
             filename = self._prep_image(image_name, to_name=to_name)
             resize_img = ResizeImg(filename)
@@ -406,7 +415,7 @@ class TestResizeImg(ImageTestCase):
                     )
                     if md5s is not None:
                         self.assertEqual(
-                            md5sum(resize_img.filenames[prefix]),
+                            self._md5sum(resize_img.filenames[prefix]),
                             md5s[fmt.format(typ=prefix)]
                         )
 
@@ -612,6 +621,45 @@ class TestResizeImg(ImageTestCase):
             self.assertTrue(expect in str(err))
         else:
             self.fail('ResizeImgError not raised.')
+
+
+class TestResizeImgIndicia(ImageTestCase):
+
+    def test____init__(self):
+        filename = os.path.join(self._test_data_dir, 'file.jpg')
+        resize_img = ResizeImgIndicia(filename)
+        self.assertTrue(resize_img)
+        self.assertEqual(resize_img._temp_directory, None)
+        self.assertEqual(
+            resize_img.filenames,
+            {'ori': None}
+        )
+
+    def test__run(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
+        filename = self._prep_image('256colour-jpg.jpg')
+        resize_img = ResizeImgIndicia(filename)
+        resize_img.run()
+        tmp_dir = resize_img.temp_directory()
+        self.assertEqual(resize_img.filenames.keys(), ['ori'])
+        self.assertEqual(
+            resize_img.filenames['ori'],
+            os.path.join(tmp_dir, 'ori-256colour-jpg.jpg')
+        )
+
+        md5s = {
+            '6.9.0-0': {
+                'ori-256colour-jpg.jpg': 'c7d7ec3181be621f576111a2569935f2'
+            },
+        }
+
+        imagemagick_ver = imagemagick_version()
+        self.assertEqual(
+            self._md5sum(resize_img.filenames['ori']),
+            md5s[imagemagick_ver]['ori-256colour-jpg.jpg']
+        )
 
 
 class TestUploadImage(ImageTestCase):

@@ -61,29 +61,30 @@
 
         load: function (elem) {
             var that = this;
-            $(elem).fileupload({
-                url: that.$url,
-                autoUpload: true,
-                limitConcurrentUploads: 3,
-                previewMaxWidth:  170,
-                previewMaxHeight: 170,
-                change: function(e, data) {
-                    that.change_callback(e, data);
+            var fileupload_opts = $.extend(
+                {},
+                {
+                    url: that.$url,
+                    change: function(e, data) {
+                        that.change_callback(e, data);
+                    },
+                    completed: function(e, data) {
+                        that.completed_callback(e, data);
+                    },
+                    destroyed: function(e, data) {
+                        that.deleted_callback(e, data);
+                    },
+                    stopped: function(e, data) {
+                        that.stopped_callback(e, data);
+                    },
+                    _error_scrub: function(raw_msg) {
+                        return that.error_scrub(raw_msg);
+                    }
                 },
-                completed: function(e, data) {
-                    that.completed_callback(e, data);
-                },
-                destroyed: function(e, data) {
-                    that.deleted_callback(e, data);
-                },
-                stopped: function(e, data) {
-                    that.stopped_callback(e, data);
-                },
-                _error_scrub: function(raw_msg) {
-                    return that.error_scrub(raw_msg);
-                }
-            });
-
+                that.options.fileupload_options
+            );
+            console.log('fileupload_opts: %o', fileupload_opts);
+            $(elem).fileupload(fileupload_opts);
 
             /* that.display_download(); */
             $(elem).addClass('fileupload-processing');
@@ -297,7 +298,12 @@
     };
 
     $.fn.image_upload.defaults = {
-        highlight: '#FFFF80'
+        fileupload_options: {
+            autoUpload: true,
+            limitConcurrentUploads: 3,
+            previewMaxWidth:  170,
+            previewMaxHeight: 170,
+        }
     };
 
 }(window.jQuery));

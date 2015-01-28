@@ -315,6 +315,22 @@ class TestRouter(LocalTestCase):
         self.assertEqual(got.page_no, 2)
         self.assertTrue(router.book_page_record is not None)
 
+        # Test indicia page
+        router.book_page_record = None
+        router.request.vars.page = '003'
+        got = router.get_book_page()
+        self.assertEqual(got.id, None)    # The indicia has no book_page record
+        self.assertEqual(got.book_id, self._book.id)
+        self.assertEqual(got.page_no, 3)
+        self.assertTrue(router.book_page_record is not None)
+
+        # Test request of non-existent page
+        router.book_page_record = None
+        router.request.vars.page = '004'
+        got = router.get_book_page()
+        self.assertEqual(got, None)
+        self.assertTrue(router.book_page_record is None)
+
         # Handle non-page value
         router.book_page_record = None
         router.request.vars.page = 'not_a_page'
@@ -732,7 +748,7 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=C0301
         app_root = '/srv/http/jimk.zsw.ca/web2py/applications'
         in_tests = [
-            #(url, URL)
+            # (url, URL)
             ('http://my.domain.com/', '/zcomx/search/index'),
             ('http://my.domain.com/zcomx', '/zcomx/search/index'),
 
@@ -827,7 +843,7 @@ class TestFunctions(LocalTestCase):
         #     self.assertRaises(HTTP, filter_url, t)
 
         out_tests = [
-            #(URL, url)
+            # (URL, url)
             ('http://my.domain.com/zcomx/search/index', '/'),
 
             ('http://my.domain.com/zcomx/books/index', '/books'),
