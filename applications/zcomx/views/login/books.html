@@ -34,6 +34,12 @@
     </div>
 </div>
 
+<div id="container">
+<div idx="tooltip_test_1" class="tooltip_test" data-title="AAA" data-tooltip_key="aaa" style="height: 40px; width: 40px; border: 1px solid red;"></div>
+<div idx="tooltip_test_2" class="tooltip_test" data-title="BBB" data-tooltip_key="bbb" style="height: 50px; width: 40px; border: 1px solid blue;"></div>
+</div>
+<button id="clicker" class="btn btn-default"> Click Me </button>
+
 <script>
 //<![CDATA[
     var book_list_urls = {
@@ -41,7 +47,42 @@
         'ongoing':  '{{=URL(c='login', f='book_list', args='ongoing', vars=request.vars, extension='load')}}',
         'disabled': '{{=URL(c='login', f='book_list', args='disabled', vars=request.vars, extension='load')}}',
     }
+
+    var deleteme = false;
+
+    $(document).ready(function(){
+        /*
+        var icon = $.fn.zco_utils.tooltip('tooltip_test_1', '<b>Hello!</b>');
+        icon.appendTo($('#tooltip_test_1'));
+        icon = $.fn.zco_utils.tooltip('tooltip_test_2', '<b>Hello!<br>#2</b>');
+        icon.appendTo($('#tooltip_test_2'));
+        */
+        if (deleteme) {
+            $('body').tooltip({
+                'titlex': 'Hi!',
+                'selector': '.tooltip_test',
+            });
+            $('body').on('click', '#clicker', function(e) {
+                var div = $('<div style="height: 10px; width: 10px;">Hi</div>');
+                div.addClass('tooltip_test');
+                div.css({height: '50px', width: '40px', border: '1px solid green'});
+                div.data('title', 'CCC');
+                div.appendTo('#container');
+
+                var want = $('#container').find('div').first();
+                var div_2 = want.clone().appendTo('#container');
+                div_2.data('title', 'DDD');
+                div_2.attr('id', 'tooltip_test_3');
+                var div_3 = want.clone(true).appendTo('#container');
+                div_3.attr('id', 'tooltip_test_4');
+                div_3.data('title', 'EEE');
+            });
+        }
+
+
+    });
 //]]>
+
 </script>
 
 {{block post_bootstrap_js}}

@@ -43,7 +43,12 @@
     };
 
     var SelectMetadataCrudInput = function (element, type, options) {
-        this.init(element, type, options);
+        this.init(element, type,
+            $.extend(
+                {'display_zero': false},
+                options
+            )
+        );
     }
     $.fn.zco_utils.inherit(SelectMetadataCrudInput, MetadataCrudInput);
     $.extend(SelectMetadataCrudInput.prototype, {
@@ -59,10 +64,12 @@
                 if ('value' in source_data && source_data.value === that.options.value) {
                      option_tag.attr('selected', 'selected');
                 }
-                if (source_data.value === '' ) {
-                     option_tag.attr('disabled', 'disabled');
-                     option_tag.attr('style', 'display:none;');
-                     option_tag.text('Click to edit');
+                if (!that.options.display_zero) {
+                    if (source_data.value === '' ) {
+                        option_tag.attr('disabled', 'disabled');
+                        option_tag.attr('style', 'display:none;');
+                        option_tag.text('Click to edit');
+                    }
                 }
                 input.append(option_tag);
             });
@@ -186,6 +193,43 @@
 
         var _data = null;
 
+        // table_field: tooltip title option
+        var _tooltip_titles = {
+            'publication_metadata_republished':
+                  '<p><b>First Publication</b> - this work has never been published before</p> <p><b>Republication</b> - this work has been previously published online or on paper</p>',
+            'publication_metadata_published_type':
+                  '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is a collection of serialized stories previously published (online or paper)</p>',
+            'publication_metadata_is_anthology':
+                  '<p>Was this work previously published as part of an anthology?</p>',
+            'publication_metadata_publisher': function() {
+                  var published_format = methods._get_input($(this), 'published_format');
+                  if (published_format.val() === 'digital') {
+                      return '<p>The name of the site where the work was first published, eg username.tumblr.com or mydomain.com.</p><dl> <dt>Right</dt><dd>username.tumblr.com</dd> <dt>Wrong</dt><dd>https://www.tumblr.com/explore/trending?aaa=123</dd> </dl> ';
+                  } else {
+                      return '<p>The name of the small press/publishing company.</p>'
+                  }
+            },
+            'publication_metadata_from_year': '<p>The year the work was first published (online or paper).</p>',
+            'publication_metadata_to_year': '<p>If published in parts, the year publishing was completed (online or paper).</p>',
+            'publication_serial_serial_title': function() {
+                  var is_anthology = vars.containers['is_anthology'].find('select').val();
+                  if (is_anthology === 'yes') {
+                      return '<p>The name of the anthology the work was published in.</p>';
+                  } else {
+                      return '<p>The name the book was originally published as.</p>';
+                  }
+            },
+            'publication_serial_published_name': '<p>The name of your story as published in the anthology.</p>',
+            'is_derivative': 'Is this work a derivative? A derivative is based on another creator`s work but adapted and modified. To publish a derivative, the other creator`s original work must have been published under a Creative Commons licence, ie BY, BY-SA, BY-NC or BY-NC-SA. </p>',
+            'derivative_title': '<p>The title of the original work you adapted or modified.</p>',
+            'derivative_creator': '<p>The name of the creator who`s work you adapted or modified.</p>',
+            'derivative_from_year': '<p>The year the work you adapted or modified was published.</p>',
+        }
+
+        _tooltip_titles['publication_serial_publisher'] = _tooltip_titles['publication_metadata_publisher'];
+        _tooltip_titles['publication_serial_from_year'] = _tooltip_titles['publication_metadata_from_year'];
+        _tooltip_titles['publication_serial_to_year'] = _tooltip_titles['publication_metadata_to_year'];
+
         var methods = {
             _append_error: function(container, msg) {
                 var error_wrapper = container.find('.error_wrapper');
@@ -211,16 +255,26 @@
                     name: input_data._input_name,
                     source: input_data.source,
                     value: options.value,
+                    display_zero: options.display_zero || false,
                 };
 
                 input = $('<div class="editable-input"></div>')
                     .metadata_crud_input(input_data.type, input_options);
 
-                row_options = {'label': input_data.label};
-                row = methods._row_container(input, input_data._class_name, row_options);
-                if (options.class) {
-                    row.addClass(options.class);
+                var icon = null;
+                if (_tooltip_titles[input_data._input_name]) {
+                    icon = $.fn.zco_utils.tooltip(
+                        input_data._input_name,
+                        _tooltip_titles[input_data._input_name]
+                    );
+                }
+
+                row_options = {
+                    'label': input_data.label,
+                    'info': icon,
                 };
+                row = methods._row_container(input, input_data._class_name, row_options);
+                options.class && row.addClass(options.class);
                 row.appendTo(elem);
 
                 return row;
@@ -376,6 +430,32 @@
                 });
             },
 
+            _onchange_is_anthology: function(input) {
+                var that = this;
+                var update_func = function() {};
+                if (input.val() === 'yes') {
+                    /* User switched to anthology */
+                    update_func = function(input) {
+                        input.val('');          //Clear
+                    }
+                } else {
+                    /* User switched to serial */
+                    update_func = function(input) {
+                        // Don't overwrite existing value.
+                        if (!input.val()) {
+                            input.val(_data.publication_serial.default.serial_title);
+                        }
+                    }
+                }
+
+                $.each(vars.containers['serials_container'].find('.serial_container'), function(idx, container) {
+                    var input = that._get_input($(container), 'serial_title');
+                    if (input) {
+                        update_func(input);
+                    }
+                });
+            },
+
             _row_container: function(anchor, name, options) {
                 var link = $(
                             '<div id="row_container_' + name + '" class="row_container">'
@@ -390,7 +470,7 @@
                 container.append(anchor);
                 container.addClass('field_container_' + name);
                 if (options.info) {
-                    link.find('.field_info').html(options.info);
+                    link.find('.field_info').append(options.info);
                 }
                 return link;
             },
@@ -409,6 +489,7 @@
            },
 
             _serial_button: function(type) {
+                var that = this;
                 if (typeof type == 'undefined') {
                     type = 'plus';
                 }
@@ -423,19 +504,24 @@
 
                 if (type == 'plus') {
                     button.find('a').first().click(function(e) {
+                        var is_anthology = vars.containers['is_anthology'].find('select').val();
                         var last_serial = vars.containers['serials_container'].find('.serial_container').last();
                         if (last_serial) {
                             var klon = last_serial.clone(true).appendTo(vars.containers['serials_container']);
                             last_serial.find('select').each(function(i) {
-                                klon.find('select').eq(i).val($(this).val())
+                                klon.find('select').eq(i).val($(this).val());
+                                if (is_anthology === 'yes' && $(this).hasClass('publication_serial_story_number_input')) {
+                                    klon.find('select').eq(i).val($(this).val() / 1 + 1);
+                                }
+                                if (is_anthology === 'no' && $(this).hasClass('publication_serial_serial_number_input')) {
+                                    klon.find('select').eq(i).val($(this).val() / 1 + 1);
+                                }
                             })
-                            var story_num = 'input[name=publication_serial_story_number]';
-                            if (!isNaN(last_serial.find(story_num).val())) {
-                                klon.find(story_num).val(last_serial.find(story_num).val() / 1 + 1);
-                            }
                             klon.find('.serial_button_container').replaceWith(methods._serial_button('minus'));
                             klon.appendTo(vars.containers['serials_container']);
                             methods._sequence_serials(vars.form);
+                            //clear cloned tooltips, so they are recreated
+                            klon.find('.zco_tooltip').removeData('bs.tooltip');
                         }
                         e.preventDefault();
                     });
@@ -464,9 +550,9 @@
 
                 var display_fields = {
                     'serial_title': {},
-                    'serial_number': {},
+                    'serial_number': {'display_zero': true},
                     'published_name': {},
-                    'story_number': {},
+                    'story_number': {'display_zero': true},
                     'published_format': {
                         events: {
                             'change': function(e) {
@@ -649,7 +735,7 @@
                             'change': function(e) {
                                 methods._show();
                             }
-                        }
+                        },
                     }
                 );
 
@@ -675,6 +761,7 @@
                         'class': 'hidden',
                         events: {
                             'change': function(e) {
+                                methods._onchange_is_anthology($(e.target));
                                 methods._show();
                             }
                         }
