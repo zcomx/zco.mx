@@ -16,38 +16,39 @@ VERSION 2 - Before Going Live
     [x] Add Placeholder: 'Republication Type'  [ click to edit ]
     [x] year drop down can start at 1970
     [x] Change 'Is this work a derivative?' -> 'Derivative Work'
-
     [x] add 'X' to top right corner of modal
-
     [x] buggy
         Republication - serial -> Digital -> Done -> Paper
-
     [x] repub - serial -> Published Name
         change to 'Book/Anthology Title'
-
     [x] repub - serial -> Serial Number
         change to 'Book/Anthology Number'
         move under 'Book/Anthology Title'
-
     [x] Should 'Book/Anthology Number' and 'Story Number' be a dropdown ?
         range of 1-100
-
     [-] repub - serial -> Serial Number
         story number = abc
         Enter an integer between -2.14748e+09 and 2.14748e+09
-
     [x] repub - serial -> Serial Number
         If there is two stories and both serial and story are blank,
         then -> "Name of Book #NONE"
-
-    [ ] bug
+    [x] bug
         Remove -- "This work was originally published digitally in 2015."
 
-    [ ] repub -> repub serial
+    [x] repub -> repub serial
         See: http://p.zsw.ca/SL
 
----
-    [ ] add (i)'s
+    [ ] Books out of order in Metadata
+        Having ten or more books causes the sort order to be incorrect.
+        Zero-padding 1-9 would solve this but is there another way?
+
+    [ ] Leave 'Anthology Title' blank
+
+    [ ] 'Anthology Number' and 'Story Number'
+        Allow 'Anthology Number' and 'Story Number' to be blank, but
+        default to '1'.
+
+    [S] Add (i)'s
         Publication Type
             First Publication - the first time the world will be seeing
             this work, choose this option
@@ -64,6 +65,8 @@ VERSION 2 - Before Going Live
             serialized or a story from an anthology or a serialized
             story in an anthology.
 
+            Anthology - Was this work apart of an atholoogy?
+
             Original Book Title - If the name has changed since it was
             originally published.
 
@@ -76,30 +79,39 @@ VERSION 2 - Before Going Live
 
             To - The year the work was completed.
 
-        Derviative Work
-            Set to 'Yes' if you've built upon or reused another
-            cartoonists' work. Their original work needs to use a
-            Creative Commons licence, ie BY, BY-SA, BY-NC or BY-NC-SA.
+            Anthology Title - The name of the anthology the work was in.
 
-        Anthology yes/no (if no)    ## (i) was this work apart of an atholoogy?
+            Story Name - The name of your story that's in the anthology.
 
----
-[ ] https://dev.zco.mx/login/indicia
-    Should we do a quick convert of if portrait, then 750x, else 1200x ?
+        Derviative Work - Set to 'Yes' if you've built upon or reused
+            another cartoonists' work. Their original work needs to use
+            a Creative Commons licence, ie BY, BY-SA, BY-NC or BY-NC-SA.
+
+            Derivative Title - The title of the work you used to make a
+            derivative work from
+
+            Derivative Pub Year - The years their work was published.
+            Derivative Creator Name - The name of the creator who's work
+            you've altered.
+
 
 [x] Indicia Page - png version
 
 [ ] Indicia Page - html version
-    [ ] invisible layer needs to be shortened
-    [ ] direct link indicia html
+    see example -- http://p.zsw.ca/CO.png
+
+    [ ] Invisible layer needs to be shortened
+
+    [ ] Direct link to the html indicia page
         eg https://dev.zco.mx/David_C_Mahler/Food_Magik/025
 
-    * last page of comic (scroll/slider)
-    * call to action
-        + donate, download, social media, copyright
-    * creative commons licence
+    [S] Social Media - Share Links
+        twitter  - https://twitter.com/share?url=http%3A%2F%2F131.zco.mx%2FName_of_Book&text=Check+out+%27Name+of+Book%27+by+%40Cartoonist&hashtags=
+        tumblr   - I'll work on this
+        facebook - I'll work on this
 
-    see mockup: ~/code/zco.mx/indicia/indicia-html.png
+    [S] Social Media - Follow Icons and Links
+        I'll send you the icons and links later
 
 [S] Get Marc's permission to use Shrimpy
 
