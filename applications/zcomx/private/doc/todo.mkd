@@ -48,7 +48,7 @@ VERSION 2 - Before Going Live
         Allow 'Anthology Number' and 'Story Number' to be blank, but
         default to '1'.
 
-    [S] Add (i)'s
+    [ ] Add (i)'s
         Publication Type
             First Publication - the first time the world will be seeing
             this work, choose this option
@@ -65,7 +65,7 @@ VERSION 2 - Before Going Live
             serialized or a story from an anthology or a serialized
             story in an anthology.
 
-            Anthology - Was this work apart of an atholoogy?
+            Anthology - Was this work apart of an anthology?
 
             Original Book Title - If the name has changed since it was
             originally published.
@@ -83,12 +83,11 @@ VERSION 2 - Before Going Live
 
             Story Name - The name of your story that's in the anthology.
 
-        Derviative Work - Set to 'Yes' if you've built upon or reused
+        Derivative Work - Set to 'Yes' if you've built upon or reused
             another cartoonists' work. Their original work needs to use
             a Creative Commons licence, ie BY, BY-SA, BY-NC or BY-NC-SA.
 
-            Derivative Title - The title of the work you used to make a
-            derivative work from
+            Derivative Title - The title of the original work.
 
             Derivative Pub Year - The years their work was published.
             Derivative Creator Name - The name of the creator who's work
@@ -100,18 +99,36 @@ VERSION 2 - Before Going Live
 [ ] Indicia Page - html version
     see example -- http://p.zsw.ca/CO.png
 
-    [ ] Invisible layer needs to be shortened
+    [x] Invisible layer needs to be shortened
 
-    [ ] Direct link to the html indicia page
+    [x] Direct link to the html indicia page
         eg https://dev.zco.mx/David_C_Mahler/Food_Magik/025
 
-    [S] Social Media - Share Links
-        twitter  - https://twitter.com/share?url=http%3A%2F%2F131.zco.mx%2FName_of_Book&text=Check+out+%27Name+of+Book%27+by+%40Cartoonist&hashtags=
-        tumblr   - I'll work on this
-        facebook - I'll work on this
+    [ ] Text Formatting
+        [ ] GIVING SOME MONIES!! &nbsp; OR BY TELLING OTHERS
+        [ ] &nbsp; IS COPYRIGHT (C) 2014 BY
+        [ ] Remove italics from book name in licence
 
-    [S] Social Media - Follow Icons and Links
-        I'll send you the icons and links later
+    [ ] Social Media - Share Links
+        twitter share link  - https://twitter.com/share?url=http%3A%2F%2F131.zco.mx%2FName_of_Book&text=Check+out+%27Name+of+Book%27+by+%40Cartoonist&hashtags=
+        tumblr share link   - http://www.tumblr.com/share/photo?clickthru=https%3A%2F%2Fi.imgur.com%2Fs4Aps8r.png&source=https%3A%2F%2Fi.imgur.com%2Fs4Aps8r.png&caption=Check+out+Name+of+Book+by+%3Ca+class%3D%22tumblelog%22%3Ezcomx%3C%2Fa%3E
+        facebook share link - http://www.facebook.com/sharer.php?s=100&p[url]=http%3A%2F%2Fi.imgur.com%2Fs4Aps8r.png
+
+    [ ] Social Media - Follow Icons and Links
+        twitter follow link  - https://twitter.com/intent/follow?screen_name=zcomx
+        tumblr follow link   - http://www.tumblr.com/follow/charlesforsman
+        facebook follow link - https://www.facebook.com/keiler.roberts
+
+        logos -- http://p.zsw.ca/3D.zip
+
+    [ ] Page isn't vertically centered
+        I assume the centering algorithm doesn't know about the height
+        of the text below the indicia image
+
+    [ ] $[1.00] contribute -- isn't centered
+
+    [ ] $[1.00] contribute
+        use the same 'contribute' look for indicia and donate modal
 
 [S] Get Marc's permission to use Shrimpy
 

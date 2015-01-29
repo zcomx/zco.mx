@@ -926,9 +926,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border-style: none;
     color: #666666;
     font-size: 23px;
-    padding-left: 0;
-    padding-right: 0.1em;
-    padding-top: 0.2em;
+    padding: 0 0.1em 0 0;
 }
 
 .contribute_widget input {
@@ -1853,22 +1851,29 @@ a.modal-link-btn, a.modal-link-btn:hover {
     white-space: normal;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 1em;
     min-height: 5em;
     width: 30em;
 }
 
 .indicia_text_container .call_to_action {
     font-family: 'brushy_creregular', sans-serif;
-    font-size: 28px;
+    font-size: 26px;
 }
 
 .indicia_text_container .contribute_widget {
-    margin-top: 2em;
-    margin-bottom: 0.2em;
+    font-family: robotoregular;
+    margin-bottom: 1em;
+    margin-top: 1.6em;
+}
+
+.indicia_text_container .contribute_widget #contribute_link {
+    font-size: 20px;
 }
 
 .indicia_text_container .follow_creator {
-    margin: 0.4em 0;
+    margin: 0 0 7em;
+    text-transform: uppercase;
 }
 
 .indicia_text_container .follow_creator a {
@@ -1877,6 +1882,9 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .indicia_text_container .copyright_licence {
     font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 44em;
 }
 
 #indicia_section .indicia_text_container {
