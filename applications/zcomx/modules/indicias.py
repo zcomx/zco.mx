@@ -17,8 +17,7 @@ from applications.zcomx.modules.books import \
     cc_licence_data, \
     get_page, \
     orientation as page_orientation, \
-    publication_year_range, \
-    url as book_url
+    publication_year_range
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     url as creator_url
@@ -706,20 +705,22 @@ class PublicationMetadata(object):
 
         fmts = {
             True: {
-                'digital': '"{story} #{story_no}" was originally published digitally in "{title} #{serial_no}" in {y} at {publr}.',
+                'digital': '"{story}" was originally published digitally in "{title}" in {y} at {publr}.',
                 'paper': {
-                    'press': '"{story} #{story_no}" was originally published in print in "{title} #{serial_no}" in {y} by {publr}.',
-                    'self':  '"{story} #{story_no}" was originally self-published in print in "{title} #{serial_no}" in {y}.',
+                    'press': '"{story}" was originally published in print in "{title}" in {y} by {publr}.',
+                    'self':  '"{story}" was originally self-published in print in "{title}" in {y}.',
                 },
             },
             False: {
-                'digital': 'This work was originally published digitally in {y} as "{title} #{serial_no}" at {publr}.',
+                'digital': 'This work was originally published digitally in {y} as "{title}" at {publr}.',
                 'paper': {
-                    'press': 'This work was originally published in print in {y} as "{title} #{serial_no}" by {publr}.',
-                    'self':  'This work was originally self-published in print in {y} as "{title} #{serial_no}".',
+                    'press': 'This work was originally published in print in {y} as "{title}" by {publr}.',
+                    'self':  'This work was originally self-published in print in {y} as "{title}".',
                 },
             }
         }
+
+        formatted_title = lambda name, num: '{name} #{num}'.format(name=name, num=num) if num else name
 
         fmt = fmts[is_anthology][serial['published_format']]
         if serial['published_format'] == 'paper':
@@ -732,10 +733,8 @@ class PublicationMetadata(object):
         )
 
         return fmt.format(
-            story=serial['published_name'],
-            story_no=serial['story_number'],
-            title=serial['serial_title'],
-            serial_no=serial['serial_number'],
+            story=formatted_title(serial['published_name'], serial['story_number']),
+            title=formatted_title(serial['serial_title'], serial['serial_number']),
             y=years,
             publr=serial['publisher'].rstrip('.'),
         )

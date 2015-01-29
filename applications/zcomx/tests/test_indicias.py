@@ -1033,16 +1033,14 @@ class TestPublicationMetadata(LocalTestCase):
         s.serial_title = 'My Story'
         s.story_number = 0
 
-        s.serial_number = 1
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=False),
-            'This work was originally published digitally in 2014-2015 as "My Story #1" at tumblr.com.'
-        )
-        s.serial_number = 2
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=False),
-            'This work was originally published digitally in 2014-2015 as "My Story #2" at tumblr.com.'
-        )
+        expects = [
+            'This work was originally published digitally in 2014-2015 as "My Story" at tumblr.com.',
+            'This work was originally published digitally in 2014-2015 as "My Story #1" at tumblr.com.',
+            'This work was originally published digitally in 2014-2015 as "My Story #2" at tumblr.com.',
+        ]
+        for idx, expect in enumerate(expects):
+            s.serial_number = idx
+            self.assertEqual(meta.serial_text(s, is_anthology=False), expect)
 
         # [9]
         s = Storage(default_serial)
@@ -1053,16 +1051,15 @@ class TestPublicationMetadata(LocalTestCase):
         s.serial_title = 'My Story'
         s.story_number = 0
 
-        s.serial_number = 1
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=False),
-            'This work was originally published in print in 2014-2015 as "My Story #1" by Acme Pub Inc.'
-        )
-        s.serial_number = 2
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=False),
-            'This work was originally published in print in 2014-2015 as "My Story #2" by Acme Pub Inc.'
-        )
+        expects = [
+            'This work was originally published in print in 2014-2015 as "My Story" by Acme Pub Inc.',
+            'This work was originally published in print in 2014-2015 as "My Story #1" by Acme Pub Inc.',
+            'This work was originally published in print in 2014-2015 as "My Story #2" by Acme Pub Inc.',
+        ]
+
+        for idx, expect in enumerate(expects):
+            s.serial_number = idx
+            self.assertEqual(meta.serial_text(s, is_anthology=False), expect)
 
         # [10]
         s = Storage(default_serial)
@@ -1073,16 +1070,15 @@ class TestPublicationMetadata(LocalTestCase):
         s.serial_title = 'My Story'
         s.story_number = 0
 
-        s.serial_number = 1
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=False),
-            'This work was originally self-published in print in 2014-2015 as "My Story #1".'
-        )
-        s.serial_number = 2
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=False),
-            'This work was originally self-published in print in 2014-2015 as "My Story #2".'
-        )
+        expects = [
+            'This work was originally self-published in print in 2014-2015 as "My Story".',
+            'This work was originally self-published in print in 2014-2015 as "My Story #1".',
+            'This work was originally self-published in print in 2014-2015 as "My Story #2".',
+        ]
+
+        for idx, expect in enumerate(expects):
+            s.serial_number = idx
+            self.assertEqual(meta.serial_text(s, is_anthology=False), expect)
 
         # [11]
         s = Storage(default_serial)
@@ -1093,16 +1089,15 @@ class TestPublicationMetadata(LocalTestCase):
         s.serial_title = 'Aaa Series'
         s.serial_number = 9
 
-        s.story_number = 1
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=True),
-            '"My Story #1" was originally published digitally in "Aaa Series #9" in 2014-2015 at tumblr.com.'
-        )
-        s.story_number = 2
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=True),
-            '"My Story #2" was originally published digitally in "Aaa Series #9" in 2014-2015 at tumblr.com.'
-        )
+        expects = [
+            '"My Story" was originally published digitally in "Aaa Series #9" in 2014-2015 at tumblr.com.',
+            '"My Story #1" was originally published digitally in "Aaa Series #9" in 2014-2015 at tumblr.com.',
+            '"My Story #2" was originally published digitally in "Aaa Series #9" in 2014-2015 at tumblr.com.',
+        ]
+
+        for idx, expect in enumerate(expects):
+            s.story_number = idx
+            self.assertEqual(meta.serial_text(s, is_anthology=True), expect)
 
         # [12]
         s = Storage(default_serial)
@@ -1113,16 +1108,15 @@ class TestPublicationMetadata(LocalTestCase):
         s.serial_title = 'Aaa Series'
         s.serial_number = 9
 
-        s.story_number = 1
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=True),
-            '"My Story #1" was originally published in print in "Aaa Series #9" in 2014-2015 by Acme Pub Inc.'
-        )
-        s.story_number = 2
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=True),
-            '"My Story #2" was originally published in print in "Aaa Series #9" in 2014-2015 by Acme Pub Inc.'
-        )
+        expects = [
+            '"My Story" was originally published in print in "Aaa Series #9" in 2014-2015 by Acme Pub Inc.',
+            '"My Story #1" was originally published in print in "Aaa Series #9" in 2014-2015 by Acme Pub Inc.',
+            '"My Story #2" was originally published in print in "Aaa Series #9" in 2014-2015 by Acme Pub Inc.',
+        ]
+
+        for idx, expect in enumerate(expects):
+            s.story_number = idx
+            self.assertEqual(meta.serial_text(s, is_anthology=True), expect)
 
         # [13]
         s = Storage(default_serial)
@@ -1133,16 +1127,15 @@ class TestPublicationMetadata(LocalTestCase):
         s.serial_title = 'Aaa Series'
         s.serial_number = 9
 
-        s.story_number = 1
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=True),
-            '"My Story #1" was originally self-published in print in "Aaa Series #9" in 2014-2015.'
-        )
-        s.story_number = 2
-        self.assertEqual(
-            meta.serial_text(s, is_anthology=True),
-            '"My Story #2" was originally self-published in print in "Aaa Series #9" in 2014-2015.'
-        )
+        expects = [
+            '"My Story" was originally self-published in print in "Aaa Series #9" in 2014-2015.',
+            '"My Story #1" was originally self-published in print in "Aaa Series #9" in 2014-2015.',
+            '"My Story #2" was originally self-published in print in "Aaa Series #9" in 2014-2015.',
+        ]
+
+        for idx, expect in enumerate(expects):
+            s.story_number = idx
+            self.assertEqual(meta.serial_text(s, is_anthology=True), expect)
 
     def test__serials_text(self):
         book = self.add(db.book, dict(name='test__serials_text'))

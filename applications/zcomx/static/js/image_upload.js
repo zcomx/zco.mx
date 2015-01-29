@@ -83,7 +83,6 @@
                 },
                 that.options.fileupload_options
             );
-            console.log('fileupload_opts: %o', fileupload_opts);
             $(elem).fileupload(fileupload_opts);
 
             /* that.display_download(); */

@@ -1071,7 +1071,7 @@ def metadata_crud():
 
         number_ddm = {
             'type': 'select',
-            'source': [{'value': x, 'text': x} for x in range(1, 101)]
+            'source': [{'value': x, 'text': x or ''} for x in range(0, 101)]
         }
 
         published_format_ddm = {

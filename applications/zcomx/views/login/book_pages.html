@@ -10,9 +10,6 @@
                     <span>Add files...</span>
                     <input type="file" name="up_files[]" multiple>
                 </span>
-                <span class="btn info_icon_container">
-                    <i id="add_files_info" class="icon zc-info"></i>
-                </span>
                 <!--
                 <button type="button" class="btn btn-danger delete">
                     <i class="glyphicon glyphicon-trash"></i>
@@ -136,12 +133,11 @@
             '/zcomx/login/book_pages_handler/{{=book.id}}'
         );
         $('#fileupload').removeClass('fileupload-processing');
-        $('#add_files_info').closest('.info_icon_container').tooltip({
-            'html': true,
-            'title': '<div>To select a range of files, choose the first file to upload, press and hold \'Shift\', then click the last file.</div><br><div>To select individual files, choose files while holding down the \'Ctrl\' key.</div><br><div>Valid file types: gif, jpg and png</div>',
-            'template': '<div class="tooltip add_files_tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
-            'delay': { "show": 100, "hide": 100 },
-        });
+        var icon = $.fn.zco_utils.tooltip(
+            'book_pages_upload',
+            '<div>To select a range of files, choose the first file to upload, press and hold \'Shift\', then click the last file.</div><br><div>To select individual files, choose files while holding down the \'Ctrl\' key.</div><br><div>Valid file types: gif, jpg and png</div>'
+        );
+        $('#fileupload').find('.fileinput-button').first().after(icon);
     });
 //]]>
 </script>
