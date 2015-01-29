@@ -201,6 +201,17 @@
                 'placeholder': 'http://username.tumblr.com',
             },
         },
+        'facebook': {
+            'label': '{{=db.creator.facebook.label}}',
+            'value': '{{=creator.facebook or ""}}',
+            'x_editable_settings': {
+                'title': 'Enter your facebook account. (Optional)',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_facebook_input',
+                'emptytext': 'http://www.facebook.com/username',
+                'placeholder': 'http://www.facebook.com/username',
+            },
+        },
     }
 
     var bio_data = {

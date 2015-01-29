@@ -46,6 +46,8 @@ from applications.zcomx.modules.utils import \
 # pylint: disable=C0111,R0904
 # (C0301): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
+# C0302: *Too many lines in module (%%s)*
+# pylint: disable=C0302
 
 
 class ImageTestCase(LocalTestCase):
@@ -58,6 +60,7 @@ class ImageTestCase(LocalTestCase):
     _image_dir = '/tmp/test_indicias'
     _image_name = 'file.jpg'
     _test_data_dir = None
+    _type_id_by_name = {}
 
     _objects = []
 
@@ -112,6 +115,9 @@ class ImageTestCase(LocalTestCase):
                 stored_filename = db.book_page.image.store(f)
             return stored_filename
 
+        for t in db(db.book_type).select():
+            cls._type_id_by_name[t.name] = t.id
+
         cls._auth_user = cls.add(db.auth_user, dict(
             name='First Last'
         ))
@@ -124,6 +130,7 @@ class ImageTestCase(LocalTestCase):
         cls._book = cls.add(db.book, dict(
             name='Image Test Case',
             creator_id=cls._creator.id,
+            book_type_id=cls._type_id_by_name['one-shot'],
         ))
 
         cls._book_page = cls.add(db.book_page, dict(
@@ -144,9 +151,87 @@ class TestBookIndiciaPage(ImageTestCase):
         indicia = BookIndiciaPage(self._book)
         self.assertTrue(indicia)
 
+    def test__call_to_action_text(self):
+        self._creator.update_record(
+            twitter=None,
+            tumblr=None,
+            facebook=None,
+        )
+        db.commit()
+
+        indicia = BookIndiciaPage(self._book)
+        xml = indicia.call_to_action_text()
+        self.assertEqual(
+            xml.xml(),
+            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
+        )
+
+        self._creator.update_record(
+            twitter='@tweeter',
+            tumblr='http://tmblr.tumblr.com',
+            facebook='http://www.facebook.com/facepalm',
+        )
+        db.commit()
+
+        indicia = BookIndiciaPage(self._book)
+        xml = indicia.call_to_action_text()
+        self.assertEqual(
+            xml.xml(),
+            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/intent/follow?screen_name=@tweeter">TWITTER</a>, <a href="https://www.tumblr.com/follow/tmblr">TUMBLR</a> AND <a href="http://www.facebook.com/facepalm">FACEBOOK</a>.'
+        )
+
+    def test__follow_icons(self):
+        socials = dict(
+            twitter='@tweeter',
+            tumblr='http://tmblr.tumblr.com',
+            facebook='http://www.facebook.com/facepalm',
+        )
+        self._creator.update_record(**socials)
+        indicia = BookIndiciaPage(self._book)
+        icons = indicia.follow_icons()
+        self.assertEqual(sorted(icons.keys()), sorted(socials.keys()))
+
+        # facebook
+        soup = BeautifulSoup(str(icons['facebook']))
+        # <a href="http://www.facebook.com/facepalm" target="_blank">
+        #     <img src="/zcomx/static/images/facebook_logo.svg"/>
+        # </a>
+        anchor = soup.a
+        self.assertEqual(anchor['href'], 'http://www.facebook.com/facepalm')
+        self.assertEqual(anchor['target'], '_blank')
+        img = anchor.img
+        self.assertEqual(img['src'], '/zcomx/static/images/facebook_logo.svg')
+
+        # tumblr
+        soup = BeautifulSoup(str(icons['tumblr']))
+        # <a href="https://www.tumblr.com/follow/tmblr" target="_blank">
+        #     <img src="/zcomx/static/images/tumblr_logo.svg"/>
+        # </a>
+        anchor = soup.a
+        self.assertEqual(anchor['href'], 'https://www.tumblr.com/follow/tmblr')
+        self.assertEqual(anchor['target'], '_blank')
+        img = anchor.img
+        self.assertEqual(img['src'], '/zcomx/static/images/tumblr_logo.svg')
+
+        # twitter
+        soup = BeautifulSoup(str(icons['twitter']))
+        # <a href="http://twitter.com/intent/follow?screen_name=@tweeter" target="_blank">
+        #     <img src="/zcomx/static/images/twitter_logo.svg"/>
+        # </a>
+        anchor = soup.a
+        self.assertEqual(
+            anchor['href'],
+            'https://twitter.com/intent/follow?screen_name=@tweeter'
+        )
+        self.assertEqual(anchor['target'], '_blank')
+        img = anchor.img
+        self.assertEqual(img['src'], '/zcomx/static/images/twitter_logo.svg')
+
     def test__get_orientation(self):
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
         indicia = BookIndiciaPage(self._book)
         self.assertEqual(indicia._orientation, None)
 
@@ -172,7 +257,7 @@ class TestBookIndiciaPage(ImageTestCase):
         this_year = datetime.date.today().year
         self.assertEqual(
             indicia.licence_text(),
-            ' <i>IMAGE TEST CASE</i> IS COPYRIGHT (C) {y} BY FIRST LAST.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+            '<a href="/">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="/">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
         )
 
         cc_licence_id = cc_licence_by_code('CC BY', want='id', default=0)
@@ -183,7 +268,7 @@ class TestBookIndiciaPage(ImageTestCase):
         indicia = BookIndiciaPage(book)
         self.assertEqual(
             indicia.licence_text(),
-            ' <i>IMAGE TEST CASE</i> IS COPYRIGHT (C) {y} BY FIRST LAST.  THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0">CC BY 4.0 INT`L LICENSE</a>.'.format(y=this_year)
+            '<a href="/">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="/">FIRST LAST</a>.  THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0" target="_blank">CC BY 4.0 INT`L LICENSE</a>.'.format(y=this_year)
         )
 
     def test__render(self):
@@ -200,7 +285,63 @@ class TestBookIndiciaPage(ImageTestCase):
         got = indicia.render()
         soup = BeautifulSoup(str(got))
         div = soup.div
+        # <div class="indicia_preview_section portrait">
+        #   <div class="indicia_image_container"><img src="/zcomx/static/images/indicia_image.png" /></div>
+        #   <div class="indicia_text_container">
+        #     <div class="call_to_action">IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=Image_Test_Case&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=Image_Test_Case%2F001.png&amp;clickthru=Image_Test_Case&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="https://www.facebook.com/sharer.php?p%5Burl%5D=Image_Test_Case%2F001.png&amp;s=100" target="_blank">FACEBOOK</a>.
+        #     </div>
+        #     <div class="contribute_widget"></div>
+        #     <div class="follow_creator">FOLLOW<a href="None://9996.zco.mx">First Last</a></div>
+        #     <div class="follow_icons">
+        #       <div class="follow_icon"><a href="https://www.tumblr.com" target="_blank"><img src="/zcomx/static/images/tumblr_logo.svg" /></a>
+        #       </div>
+        #       <div class="follow_icon"><a href="https://twitter.com" target="_blank"><img src="/zcomx/static/images/twitter_logo.svg" /></a>
+        #       </div>
+        #       <div class="follow_icon"><a href="https://www.facebook.com" target="_blank"><img src="/zcomx/static/images/facebook_logo.svg" /></a>
+        #       </div>
+        #     </div>
+        #     <div class="copyright_licence"><a href="Image_Test_Case">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) 2015 BY <a href="None://9996.zco.mx">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.
+        #     </div>
+        #   </div>
+        # </div>
+
         self.assertEqual(div['class'], 'indicia_preview_section portrait')
+        div_1 = div.div
+        div_2 = div_1.nextSibling
+        div_2a = div_2.div
+        div_2b = div_2a.nextSibling
+        div_2c = div_2b.nextSibling
+        div_2d = div_2c.nextSibling
+        div_2e = div_2d.nextSibling
+        div_2di = div_2d.div
+        div_2dii = div_2di.nextSibling
+        div_2diii = div_2dii.nextSibling
+
+        self.assertEqual(div_1['class'], 'indicia_image_container')
+        self.assertEqual(div_2['class'], 'indicia_text_container')
+        self.assertEqual(div_2a['class'], 'call_to_action')
+        self.assertEqual(div_2b['class'], 'contribute_widget')
+        self.assertEqual(div_2c['class'], 'follow_creator')
+        self.assertEqual(div_2d['class'], 'follow_icons')
+        self.assertEqual(div_2e['class'], 'copyright_licence')
+        self.assertEqual(div_2di['class'], 'follow_icon')
+        self.assertEqual(div_2dii['class'], 'follow_icon')
+        self.assertEqual(div_2diii['class'], 'follow_icon')
+
+        self.assertEqual(
+            div_1.img['src'], '/zcomx/static/images/indicia_image.png')
+        self.assertTrue(div_2a.contents[0].startswith('IF YOU ENJOYED '))
+        self.assertEqual(div_2b.contents, [])
+        self.assertEqual(div_2c.contents[0], 'FOLLOW')
+        self.assertEqual(div_2c.a.string, 'First Last')
+        self.assertTrue('ALL RIGHTS RESERVED' in div_2e.contents[3])
+
+        self.assertEqual(div_2di.a['href'], 'https://www.tumblr.com')
+        self.assertEqual(div_2di.img['src'], '/zcomx/static/images/tumblr_logo.svg')
+        self.assertEqual(div_2dii.a['href'], 'https://twitter.com')
+        self.assertEqual(div_2dii.img['src'], '/zcomx/static/images/twitter_logo.svg')
+        self.assertEqual(div_2diii.a['href'], 'https://www.facebook.com')
+        self.assertEqual(div_2diii.img['src'], '/zcomx/static/images/facebook_logo.svg')
 
         landscape_filename = store(
             db.book_page.image, self._prep_image('landscape.png'))
@@ -222,6 +363,13 @@ class TestBookIndiciaPagePng(ImageTestCase):
         self.assertTrue(png_page)
         self.assertEqual(png_page.book.id, self._book.id)
 
+    def test__call_to_action_text(self):
+        indicia = BookIndiciaPagePng(self._book)
+        self.assertEqual(
+            indicia.call_to_action_text(),
+            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
+        )
+
     def test__create(self):
         png_page = BookIndiciaPagePng(self._book)
         png = png_page.create()
@@ -242,7 +390,7 @@ class TestCreatorIndiciaPage(ImageTestCase):
         indicia = CreatorIndiciaPage(self._creator)
         self.assertEqual(
             indicia.licence_text(),
-            ' <i>NAME OF BOOK</i> IS COPYRIGHT (C) {y} BY FIRST LAST.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+            '<a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="/">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
         )
 
 
@@ -284,6 +432,13 @@ class TestIndiciaPage(LocalTestCase):
         indicia = IndiciaPage(None)
         self.assertTrue(indicia)
 
+    def test__call_to_action_text(self):
+        indicia = IndiciaPage(None)
+        self.assertEqual(
+            indicia.call_to_action_text(),
+            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
+        )
+
     def test__default_licence(self):
         indicia = IndiciaPage(None)
         default = indicia.default_licence()
@@ -292,36 +447,41 @@ class TestIndiciaPage(LocalTestCase):
         for f in fields:
             self.assertTrue(f in default.keys())
 
+    def test__follow_icons(self):
+        indicia = IndiciaPage(None)
+        self.assertEqual(indicia.follow_icons(), {})
+
     def test__licence_text(self):
         indicia = IndiciaPage(None)
         this_year = datetime.date.today().year
         self.assertEqual(
             indicia.licence_text(),
-            ' <i>NAME OF BOOK</i> IS COPYRIGHT (C) {y} BY CREATOR NAME.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+            '<a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="/">CREATOR NAME</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
         )
 
     def test__render(self):
         indicia = IndiciaPage(None)
 
+        # test without creator name
         got = indicia.render()
         soup = BeautifulSoup(str(got))
 
         # <div class="indicia_preview_section portrait">
-        #     <div class="indicia_image_container">
-        #         <img src="/zcomx/static/images/indicia_image.png" />
+        #   <div class="indicia_image_container">
+        #     <img src="/zcomx/static/images/indicia_image.png" />
+        #   </div>
+        #   <div class="indicia_text_container">
+        #     <div class="call_to_action">
+        #       IF YOU ENJOYED THIS WORK... TUMBLR AND FACEBOOK.
         #     </div>
-        #     <div class="indicia_text_container">
-        #         <div>IF  YOU  ENJOYED THIS WORK... TUMBLR AND FACEBOOK</div>
-        #         <div>
-        #           <div>contribute: http://1234.zco.mx/monies</div>
-        #           <div>contact info: http://1234.zco.mx</div>
-        #         </div>
-        #         <div>
-        #          <i>NAME OF BOOK</i> IS COPYRIGHT (C) 2014 BY CREATOR NAME.
-        #          ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST
-        #          BE OBTAINED FROM THE AUTHOR.
-        #         </div>
+        #     <div class="contribute_widget"></div>
+        #     <div class="copyright_licence">
+        #       <a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) 2015 BY
+        #       <a href="/">CREATOR NAME</a>.  ALL RIGHTS RESERVED.
+        #       PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED
+        #       FROM THE AUTHOR.
         #     </div>
+        #   </div>
         # </div>
 
         div = soup.div
@@ -333,9 +493,14 @@ class TestIndiciaPage(LocalTestCase):
         div_2 = div_1.nextSibling
         self.assertEqual(div_2['class'], 'indicia_text_container')
         div_2a = div_2.div
-        self.assertTrue(div_2a.string.startswith('IF  YOU  ENJOYED '))
+        self.assertEqual(div_2a['class'], 'call_to_action')
+        self.assertTrue(div_2a.string.startswith('IF YOU ENJOYED '))
         div_2b = div_2a.nextSibling
-        self.assertTrue('ALL RIGHTS RESERVED' in div_2b.contents[2])
+        self.assertEqual(div_2b['class'], 'contribute_widget')
+        self.assertEqual(div_2b.contents, [])
+        div_2c = div_2b.nextSibling
+        self.assertEqual(div_2c['class'], 'copyright_licence')
+        self.assertTrue('ALL RIGHTS RESERVED' in div_2c.contents[3])
 
         # test orientation
         got = indicia.render(orientation='landscape')
@@ -343,13 +508,39 @@ class TestIndiciaPage(LocalTestCase):
         div = soup.div
         self.assertEqual(div['class'], 'indicia_preview_section landscape')
 
-        # test creator
+        # test creator name set but no indicia image
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(
+            auth_user_id=auth_user.id,
+            indicia_image=None,
+        ))
         indicia = IndiciaPage(None)
-        indicia.creator = Storage({'id': 1234})
+        indicia.creator = creator
         got = indicia.render()
 
         soup = BeautifulSoup(str(got))
         div = soup.div
+
+        # <div class="indicia_preview_section portrait">
+        #   <div class="indicia_image_container">
+        #     <img src="/zcomx/static/images/indicia_image.png" />
+        #   </div>
+        #   <div class="indicia_text_container">
+        #     <div class="call_to_action">
+        #       IF YOU ENJOYED THIS WORK... TUMBLR AND FACEBOOK.
+        #     </div>
+        #     <div class="contribute_widget"></div>
+        #     <div class="follow_creator">
+        #       FOLLOW<a href="https://10001.zco.mx">First Last</a>
+        #     </div>
+        #     <div class="copyright_licence">
+        #       <a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) 2015 BY
+        #       <a href="/">CREATOR NAME</a>.  ALL RIGHTS RESERVED.
+        #       PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED
+        #       FROM THE AUTHOR.
+        #     </div>
+        #   </div>
+        # </div>
 
         self.assertEqual(div['class'], 'indicia_preview_section portrait')
         div_1 = div.div
@@ -359,32 +550,27 @@ class TestIndiciaPage(LocalTestCase):
         div_2 = div_1.nextSibling
         self.assertEqual(div_2['class'], 'indicia_text_container')
         div_2a = div_2.div
-        self.assertTrue(div_2a.string.startswith('IF  YOU  ENJOYED '))
         div_2b = div_2a.nextSibling
-        div_2b1 = div_2b.div
-        self.assertTrue(
-            div_2b1.string,
-            'contribute: http://1234.zco.mx/monies'
-        )
-        div_2b2 = div_2b1.nextSibling
-        self.assertTrue(
-            div_2b2.string,
-            'contact info: http://1234.zco.mx'
-        )
+        self.assertEqual(div_2b['class'], 'contribute_widget')
         div_2c = div_2b.nextSibling
-        self.assertTrue('ALL RIGHTS RESERVED' in div_2c.contents[2])
+        self.assertEqual(div_2c['class'], 'follow_creator')
+        self.assertEqual(div_2c.contents[0], 'FOLLOW')
+        self.assertEqual(div_2c.a.string, 'First Last')
+        div_2d = div_2c.nextSibling
+        self.assertTrue('ALL RIGHTS RESERVED' in div_2d.contents[3])
 
         # test creator with indicia
         indicia = IndiciaPage(None)
-        indicia.creator = Storage(
-            {'id': 1234, 'indicia_image': 'path/to/file.png'})
+        creator.update_record(indicia_image='creator.indicia_image.000.aaa.jpg')
+        db.commit()
+        indicia.creator = creator
         got = indicia.render()
         soup = BeautifulSoup(str(got))
         div = soup.div
         div_1 = div.div
         img = div_1.img
         self.assertEqual(
-            img['src'], '/images/download/path/to/file.png?size=web')
+            img['src'], '/images/download/creator.indicia_image.000.aaa.jpg?size=web')
 
 
 class TestIndiciaPagePng(ImageTestCase):
@@ -404,7 +590,7 @@ class TestIndiciaPagePng(ImageTestCase):
         self.assertEqual(len(lines), 1)
         self.assertEqual(
             lines[0],
-            """ "IMAGE TEST CASE" IS COPYRIGHT (C) 2015 BY FIRST LAST.  ALL RIGHTS RESERVED.  PREMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
+            """ "IMAGE TEST CASE" IS COPYRIGHT (C) 2015 BY FIRST LAST.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
         )
 
     def test__get_indicia_filename(self):

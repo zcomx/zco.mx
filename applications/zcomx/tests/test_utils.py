@@ -220,6 +220,10 @@ class TestFunctions(LocalTestCase):
             got = entity_to_row(db.book, entity)
             self.assertEqual(book.as_dict(), got.as_dict())
 
+        # Test invalids
+        for entity in [None, -1, Reference(0)]:
+            self.assertEqual(entity_to_row(db.book, entity), None)
+
     def test__faq_tabs(self):
 
         # <div class="faq_options_container">

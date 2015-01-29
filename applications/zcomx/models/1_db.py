@@ -354,6 +354,19 @@ db.define_table('creator',
             )
         ),
     ),
+    Field('facebook',
+        comment='Eg. http://www.facebook.com/username',
+        label='facebook',
+        represent=lambda url, row: A(url,
+            _href=url,
+            _target="_blank",
+            ) if url else '',
+        requires=IS_EMPTY_OR(IS_URL_FOR_DOMAIN(
+            'facebook.com',
+            error_message='Enter a valid facebook url, eg.\nhttp://www.facebook.com/username'
+            )
+        ),
+    ),
     Field('bio', 'text',
         label='bio',
         comment='Provide a biography, for example, a few sentences similar to the first paragraph of a wikipedia article.'

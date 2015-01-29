@@ -98,9 +98,9 @@
         $('#reader_section').css(
             {'background-color': "{{=book.background_colour or 'white'}}"}
         );
-        $('#reader_section img').css(
-            {'border': "0.4em solid {{=book.border_colour or 'none'}}"}
-        );
+        $('#reader_section').find('img')
+            .not('.indicia_preview_section img')
+            .css({'border': "0.4em solid {{=book.border_colour or 'none'}}"});
         $('#vertical_align_button').click(function(e) {
             if ($(this).hasClass('disabled')) {
                 e.preventDefault();

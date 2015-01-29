@@ -8,13 +8,15 @@ Book classes and functions.
 import datetime
 import os
 import re
+import urlparse
 from gluon import *
+from gluon.dal import REGEX_STORE_PATTERN
 from gluon.storage import Storage
 from gluon.validators import urlify
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
-    url as creator_url, \
+    short_url as creator_short_url, \
     url_name as creator_url_name
 from applications.zcomx.modules.images import \
     ImgTag, \
@@ -320,9 +322,9 @@ def cc_licence_data(book_entity):
 
     return dict(
         owner=creator_formatted_name(creator_record),
-        owner_url=creator_url(creator_record),
+        owner_url=creator_short_url(creator_record),
         title=book_record.name,
-        title_url=url(book_record),
+        title_url=short_url(book_record),
         year=years,
         place=book_record.cc_licence_place,
     )
@@ -832,6 +834,77 @@ def read_link(db, book_entity, components=None, **attributes):
         kwargs['_href'] = page_url(first_page, extension=False)
 
     return A(*components, **kwargs)
+
+
+def short_page_img_url(book_page_entity):
+    """Return a short url for the book page image.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+    Returns:
+        string, url, eg http://101.zco.mx/My_Book/001.jpg
+    """
+    db = current.app.db
+    page_record = entity_to_row(db.book_page, book_page_entity)
+    if not page_record:
+        return
+
+    book_page_url = short_page_url(page_record)
+    if not book_page_url:
+        return
+
+    m = REGEX_STORE_PATTERN.search(page_record.image or '')
+    extension = m and m.group('e') or ''
+    if not extension:
+        return book_page_url
+    return '.'.join([book_page_url, extension])
+
+
+def short_page_url(book_page_entity):
+    """Return a short url for the book page.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+    Returns:
+        string, url, eg http://101.zco.mx/My_Book/001
+    """
+    db = current.app.db
+    page_record = entity_to_row(db.book_page, book_page_entity)
+    if not page_record:
+        return
+
+    book_url = short_url(page_record.book_id)
+    if not book_url:
+        return
+    page_name = '{p:03d}'.format(p=page_record.page_no)
+    return '/'.join([book_url.rstrip('/'), page_name])
+
+
+def short_url(book_entity):
+    """Return a short url for the book webpage.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+    Returns:
+        string, url, eg http://101.zco.mx/My_Book_(2014)
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record or not book_record.name:
+        return
+
+    name = url_name(book_entity)
+    if not name:
+        return
+
+    url_for_creator = creator_short_url(book_record.creator_id)
+    if not url_for_creator:
+        return
+
+    return urlparse.urljoin(url_for_creator, name)
 
 
 def update_contributions_remaining(db, book_entity):

@@ -46,6 +46,9 @@ from applications.zcomx.modules.books import \
     publication_year_range, \
     publication_years, \
     read_link, \
+    short_page_img_url, \
+    short_page_url, \
+    short_url, \
     update_contributions_remaining, \
     update_rating, \
     url, \
@@ -503,6 +506,13 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(
             name='test__cc_licence_data',
             creator_id=-1,
+            book_type_id=self._type_id_by_name['one-shot'],
+        ))
+
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            created_on='2010-12-31 01:01:01',
         ))
 
         # no creator
@@ -516,9 +526,11 @@ class TestFunctions(ImageTestCase):
             cc_licence_data(book),
             {
                 'owner': 'Test CC Licence Data',
-                'year': '2014',
+                'owner_url': 'https://{cid}.zco.mx'.format(cid=creator.id),
+                'year': '2010',
                 'place': None,
-                'title': 'test__cc_licence_data'
+                'title': 'test__cc_licence_data',
+                'title_url': 'https://{cid}.zco.mx/test__cc_licence_data'.format(cid=creator.id),
             }
         )
 
@@ -527,43 +539,23 @@ class TestFunctions(ImageTestCase):
             cc_licence_data(book),
             {
                 'owner': 'Test CC Licence Data',
-                'year': '2014',
-                'place': 'Canada',
-                'title': 'test__cc_licence_data'
-            }
-        )
-
-        self.add(db.book_page, dict(
-            book_id=book.id,
-            page_no=1,
-            created_on='2010-12-31 01:01:01',
-        ))
-
-        self.assertEqual(
-            cc_licence_data(book),
-            {
-                'owner': 'Test CC Licence Data',
+                'owner_url': 'https://{cid}.zco.mx'.format(cid=creator.id),
                 'year': '2010',
                 'place': 'Canada',
-                'title': 'test__cc_licence_data'
+                'title': 'test__cc_licence_data',
+                'title_url': 'https://{cid}.zco.mx/test__cc_licence_data'.format(cid=creator.id),
             }
         )
 
+        self.assertEqual(cc_licence_data(book)['year'], '2010')
+        # Add second book page with different year.
         self.add(db.book_page, dict(
             book_id=book.id,
             page_no=2,
             created_on='2014-12-31 01:01:01',
         ))
 
-        self.assertEqual(
-            cc_licence_data(book),
-            {
-                'owner': 'Test CC Licence Data',
-                'year': '2010-2014',
-                'place': 'Canada',
-                'title': 'test__cc_licence_data'
-            }
-        )
+        self.assertEqual(cc_licence_data(book)['year'], '2010-2014')
 
     def test__contribute_link(self):
         empty = '<span></span>'
@@ -1193,6 +1185,66 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+
+    def test__short_page_img_url(self):
+        book = self.add(db.book, dict(
+            book_type_id=self._type_id_by_name['one-shot'],
+        ))
+        book_page = self.add(db.book_page, dict(
+            book_id=book.id,
+        ))
+        tests = [
+            # (creator_id, book name, page_no, image,  expect)
+            (None, 'My Book', 1, 'book_page.image.000.aaa.jpg', None),
+            (-1, 'My Book', 1, 'book_page.image.000.aaa.jpg', None),
+            (98, 'My Book', 1, 'book_page.image.000.aaa.jpg',
+                'https://98.zco.mx/My_Book/001.jpg'),
+            (101, 'My Book', 2, 'book_page.image.000.aaa.jpg',
+                'https://101.zco.mx/My_Book/002.jpg'),
+            (101, 'My Book', 2, 'book_page.image.000.aaa.png',
+                'https://101.zco.mx/My_Book/002.png'),
+        ]
+        for t in tests:
+            book.update_record(creator_id=t[0], name=t[1])
+            book_page.update_record(page_no=t[2], image=t[3])
+            db.commit()
+            self.assertEqual(short_page_img_url(book_page), t[4])
+
+    def test__short_page_url(self):
+        book = self.add(db.book, dict(
+            book_type_id=self._type_id_by_name['one-shot'],
+        ))
+        book_page = self.add(db.book_page, dict(
+            book_id=book.id,
+        ))
+        tests = [
+            # (creator_id, book name, page_no, expect)
+            (None, 'My Book', 1, None),
+            (-1, 'My Book', 1, None),
+            (98, 'My Book', 1, 'https://98.zco.mx/My_Book/001'),
+            (101, 'My Book', 2, 'https://101.zco.mx/My_Book/002'),
+        ]
+        for t in tests:
+            book.update_record(creator_id=t[0], name=t[1])
+            book_page.update_record(page_no=t[2])
+            db.commit()
+            self.assertEqual(short_page_url(book_page), t[3])
+
+    def test__short_url(self):
+        book = self.add(db.book, dict(
+            book_type_id=self._type_id_by_name['one-shot'],
+        ))
+        tests = [
+            # (creator_id, book name, expect)
+            (None, 'My Book', None),
+            (-1, 'My Book', None),
+            (98, 'My Book', 'https://98.zco.mx/My_Book'),
+            (101, 'My Book', 'https://101.zco.mx/My_Book'),
+        ]
+        for t in tests:
+            book.update_record(creator_id=t[0], name=t[1])
+            db.commit()
+            self.assertEqual(short_url(book), t[2])
 
     def test__update_contributions_remaining(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*

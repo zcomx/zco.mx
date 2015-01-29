@@ -1881,12 +1881,24 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .indicia_text_container .follow_creator {
-    margin: 0 0 7em;
+    margin: 0 0 1em;
     text-transform: uppercase;
 }
 
 .indicia_text_container .follow_creator a {
     margin-left: 0.4em;
+}
+
+.indicia_text_container .follow_icons {
+    margin: 0 0 7em;
+}
+
+.indicia_text_container .follow_icons div {
+    display: inline-block;
+}
+
+.indicia_text_container .follow_icons img {
+    border: none;
 }
 
 .indicia_text_container .copyright_licence {

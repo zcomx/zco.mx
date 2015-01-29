@@ -282,6 +282,32 @@ def profile_onaccept(form):
     on_change_name(creator)
 
 
+def short_url(creator_entity):
+    """Return a shortened url suitable for the creator page.
+
+    Args:
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+    Returns:
+        string, url, eg http://101.zco.mx
+    """
+    if not creator_entity:
+        return
+
+    db = current.app.db
+
+    creator_record = entity_to_row(db.creator, creator_entity)
+    if not creator_record:
+        return
+
+    request = current.request
+
+    return '{scheme}://{cid}.zco.mx'.format(
+        scheme=request.env.wsgi_url_scheme or 'https',
+        cid=creator_record.id,
+    )
+
+
 def torrent_link(creator_entity, components=None, **attributes):
     """Return a link suitable for the torrent file of all of creator's books.
 

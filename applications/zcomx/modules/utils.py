@@ -116,6 +116,9 @@ def entity_to_row(table, entity):
         entity: Row instance or integer, if integer, this is the id of the
             record. The record is read from the table.
     """
+    if not entity:
+        return
+
     if isinstance(entity, Row):
         return entity
 
