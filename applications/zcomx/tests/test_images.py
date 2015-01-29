@@ -400,7 +400,7 @@ class TestResizeImg(ImageTestCase):
             self.fail(msg)
             return
 
-        def test_it(image_name, expect, to_name=None, md5s=None):
+        def test_it(image_name, expect, to_name=None, md5s=None, colors=None):
             filename = self._prep_image(image_name, to_name=to_name)
             resize_img = ResizeImg(filename)
             resize_img.run()
@@ -416,6 +416,12 @@ class TestResizeImg(ImageTestCase):
                         self.assertEqual(
                             self._md5sum(resize_img.filenames[prefix]),
                             md5s[fmt.format(typ=prefix)]
+                        )
+                    if colors is not None:
+                        im = Image.open(resize_img.filenames[prefix])
+                        self.assertEqual(
+                            len(im.getcolors(maxcolors=99999)),
+                            colors
                         )
 
         # Test: test the md5 sum of files.
@@ -499,6 +505,7 @@ class TestResizeImg(ImageTestCase):
                     fmt: ['cbz', 'web'],
                 },
                 md5s=md5s[imagemagick_ver],
+                colors=256,
             )
 
         # Test: standard jpg
