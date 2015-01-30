@@ -29,11 +29,15 @@ _check_files() {
 
 _colourmap() {
     [[ -f colourmap.png ]] && { nf=${nf%.*}.png; return; }      ## skip colourmap if it exists
-    if [[ ${f##*.} == jpg ]]; then
+    unset cm
+    if [[ ${f##*.} == jpg || ${f##*.} == gif ]]; then
         nc=$(identify -format '%k' "$f"[0])
         (( $nc > 256 )) && return
         cj="+dither -colors $nc"
         nf=${nf/.jpg/.png}
+        nf=${nf/.gif/.png}
+    else
+        return
     fi
 
     colours=$(convert "$f" $cj -unique-colors txt: | awk -v _=\" 'NR>1 {print "xc:"_$4_}')
@@ -42,7 +46,7 @@ _colourmap() {
 }
 
 _resize() {
-    _colourmap
+    _colourmap      ## if jpg and < 256, use a colourmap
     while read -r fmt t1 t2 arl arh; do
         IFS=x read -r w h < <(identify -format '%P' "$f"[0])
         #(( $w < $t2 && $h < $t2 )) && continue      ## if image is too small, then continue
