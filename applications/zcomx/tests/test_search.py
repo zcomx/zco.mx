@@ -28,6 +28,7 @@ from applications.zcomx.modules.search import \
     ContributionsGrid, \
     GRID_CLASSES, \
     Grid, \
+    MoniesBookTile, \
     OngoingGrid, \
     ReleasesGrid, \
     SearchGrid, \
@@ -366,6 +367,155 @@ class TestContributionsGrid(LocalTestCase):
         )
 
 
+class TestMoniesBookTile(LocalTestCase):
+
+    _grid = None
+    _row = None
+    _value = None
+    _creator = None
+
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUpClass(cls):
+        cls._grid = OngoingGrid()
+        cls._row = cls._grid.rows()[0]
+        cls._value = cls._grid.tile_value(cls._row)
+        cls._creator = entity_to_row(db.creator, cls._row.creator.id)
+
+    def test____init__(self):
+        tile = MoniesBookTile(db, self._value, self._row)
+        self.assertTrue(tile)
+
+    def test__contribute_link(self):
+        tile = MoniesBookTile(db, self._value, self._row)
+        self.assertEqual(tile.contribute_link(), None)
+
+    def test__download_link(self):
+        tile = MoniesBookTile(db, self._value, self._row)
+        self.assertEqual(tile.contribute_link(), None)
+
+    def test__footer(self):
+        save_paypal = self._row.creator.paypal_email
+
+        # Test: can contribute = True
+        self._row.creator.paypal_email = 'testing@paypal.com'
+        self.assertTrue(can_receive_contributions(db, self._row.creator))
+
+        tile = MoniesBookTile(db, self._value, self._row)
+        footer = tile.footer()
+        soup = BeautifulSoup(str(footer))
+        # <div class="col-sm-12 name">
+        #    <a class="contribute_button" href="/contributions/modal?book_id=64">Test Do Not Delete 01 (of 01)</a>
+        # </div>
+
+        div = soup.div
+        self.assertEqual(div['class'], 'col-sm-12 name')
+
+        anchor = div.a
+        self.assertEqual(anchor['class'], 'contribute_button')
+        self.assertEqual(
+            anchor['href'],
+            '/contributions/modal?book_id={id}'.format(
+                id=self._row.book.id)
+        )
+
+        # Test: can contribute = False
+        self._row.creator.paypal_email = None
+        self.assertFalse(can_receive_contributions(db, self._row.creator))
+        tile = MoniesBookTile(db, self._value, self._row)
+        footer = tile.footer()
+        soup = BeautifulSoup(str(footer))
+        # <div class="col-sm-12 name">Test Do Not Delete 01 (of 01)</div>
+        div = soup.div
+        self.assertEqual(div['class'], 'col-sm-12 name')
+        book_name = formatted_name(db, self._row.book.id,
+                include_publication_year=False)
+        self.assertEqual(div.string, book_name)
+
+        # Restore
+        self._row.creator.paypal_email = save_paypal
+
+    def test__image(self):
+        save_paypal = self._row.creator.paypal_email
+
+        # Test: can contribute = True
+        self._row.creator.paypal_email = 'testing@paypal.com'
+        self.assertTrue(can_receive_contributions(db, self._row.creator))
+
+        tile = MoniesBookTile(db, self._value, self._row)
+        image_div = tile.image()
+        soup = BeautifulSoup(str(image_div))
+        # <div class="col-sm-12 image_container">
+        #   <a class="contribute_button" href="/contributions/modal?book_id=64">
+        #       <img alt="" src="/images/download/book_page.image.ab7ec55b2ce97d6f.626c75655f30302e706e67.png?size=web" />
+        #   </a>
+        # </div>
+
+        div = soup.div
+        self.assertEqual(div['class'], 'col-sm-12 image_container')
+        anchor = div.a
+        self.assertEqual(anchor['class'], 'contribute_button')
+        self.assertEqual(
+            anchor['href'],
+            '/contributions/modal?book_id={id}'.format(
+                id=self._row.book.id)
+        )
+
+        img = anchor.img
+        self.assertEqual(img['alt'], '')
+        first = get_page(self._row.book, page_no='first')
+        self.assertEqual(img['src'], '/images/download/{i}?size=web'.format(
+            i=first.image))
+
+        # Test: can contribute = False
+        self._row.creator.paypal_email = None
+        self.assertFalse(can_receive_contributions(db, self._row.creator))
+        tile = MoniesBookTile(db, self._value, self._row)
+        image_div = tile.image()
+        soup = BeautifulSoup(str(image_div))
+        #  <div class="col-sm-12 image_container">
+        #    <img alt="" src="/images/download/book_page.image.ab7ec55b2ce97d6f.626c75655f30302e706e67.png?size=web" />
+        # </div>
+
+        div = soup.div
+        self.assertEqual(div['class'], 'col-sm-12 image_container')
+
+        img = div.img
+        self.assertEqual(img['alt'], '')
+        first = get_page(self._row.book, page_no='first')
+        self.assertEqual(img['src'], '/images/download/{i}?size=web'.format(
+            i=first.image))
+
+        # Restore
+        self._row.creator.paypal_email = save_paypal
+
+    def test_render(self):
+        tile = MoniesBookTile(db, self._value, self._row)
+        div = tile.render()
+        soup = BeautifulSoup(str(div))
+
+        div = soup.div
+        self.assertEqual(div['class'], 'item_container monies_book_tile_item')
+
+        div_1 = div.div
+        self.assertEqual(div_1['class'], 'row')
+        self.assertEqual(str(div_1.div), str(tile.image()))
+
+        div_2 = div_1.nextSibling
+        self.assertEqual(div_2['class'], 'row')
+        self.assertEqual(str(div_2.div), str(tile.footer()))
+
+    def test__subtitle(self):
+        tile = MoniesBookTile(db, self._value, self._row)
+        self.assertEqual(tile.contribute_link(), None)
+
+    def test__title(self):
+        tile = MoniesBookTile(db, self._value, self._row)
+        self.assertEqual(tile.contribute_link(), None)
+
+
 class TestOngoingGrid(LocalTestCase):
 
     def test____init__(self):
@@ -534,7 +684,7 @@ class TestTile(LocalTestCase):
         #  </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'item_container')
+        self.assertEqual(div['class'], 'item_container tile_item')
 
         div_2 = div.div
         self.assertEqual(div_2['class'], 'row')
@@ -677,7 +827,7 @@ class TestBookTile(LocalTestCase):
         soup = BeautifulSoup(str(div))
 
         div = soup.div
-        self.assertEqual(div['class'], 'item_container')
+        self.assertEqual(div['class'], 'item_container book_tile_item')
 
         div_1 = div.div
         self.assertEqual(div_1['class'], 'row')
@@ -905,7 +1055,7 @@ class TestCartoonistTile(LocalTestCase):
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'item_container')
+        self.assertEqual(div['class'], 'item_container cartoonist_tile_item')
 
         div_1 = div.div
         self.assertEqual(div_1['class'], 'row')

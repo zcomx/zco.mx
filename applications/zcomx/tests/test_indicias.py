@@ -16,6 +16,8 @@ from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from gluon.validators import IS_INT_IN_RANGE
+from applications.zcomx.modules.books import short_url as book_short_url
+from applications.zcomx.modules.creators import short_url as creator_short_url
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
@@ -163,21 +165,7 @@ class TestBookIndiciaPage(ImageTestCase):
         xml = indicia.call_to_action_text()
         self.assertEqual(
             xml.xml(),
-            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
-        )
-
-        self._creator.update_record(
-            twitter='@tweeter',
-            tumblr='http://tmblr.tumblr.com',
-            facebook='http://www.facebook.com/facepalm',
-        )
-        db.commit()
-
-        indicia = BookIndiciaPage(self._book)
-        xml = indicia.call_to_action_text()
-        self.assertEqual(
-            xml.xml(),
-            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/intent/follow?screen_name=@tweeter">TWITTER</a>, <a href="https://www.tumblr.com/follow/tmblr">TUMBLR</a> AND <a href="http://www.facebook.com/facepalm">FACEBOOK</a>.'
+            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=https%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=https%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case%2F001.jpg&amp;clickthru=https%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="https://www.facebook.com/sharer.php?p%5Burl%5D=https%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case%2F001.jpg&amp;s=100" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id)
         )
 
     def test__follow_icons(self):
@@ -257,7 +245,11 @@ class TestBookIndiciaPage(ImageTestCase):
         this_year = datetime.date.today().year
         self.assertEqual(
             indicia.licence_text(),
-            '<a href="/">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="/">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+            '<a href="{b_url}">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(
+                b_url=book_short_url(self._book),
+                c_url=creator_short_url(self._creator),
+                y=this_year
+            )
         )
 
         cc_licence_id = cc_licence_by_code('CC BY', want='id', default=0)
@@ -268,7 +260,11 @@ class TestBookIndiciaPage(ImageTestCase):
         indicia = BookIndiciaPage(book)
         self.assertEqual(
             indicia.licence_text(),
-            '<a href="/">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="/">FIRST LAST</a>.  THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0" target="_blank">CC BY 4.0 INT`L LICENSE</a>.'.format(y=this_year)
+            '<a href="{b_url}">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.  THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0" target="_blank">CC BY 4.0 INT`L LICENSE</a>.'.format(
+                b_url=book_short_url(self._book),
+                c_url=creator_short_url(self._creator),
+                y=this_year
+            )
         )
 
     def test__render(self):
@@ -390,7 +386,7 @@ class TestCreatorIndiciaPage(ImageTestCase):
         indicia = CreatorIndiciaPage(self._creator)
         self.assertEqual(
             indicia.licence_text(),
-            '<a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="/">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+            '<a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="{url}">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(url=creator_short_url(self._creator), y=this_year)
         )
 
 
@@ -1845,6 +1841,7 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(
             name='test__cc_licences',
             creator_id=creator.id,
+            book_type_id=self._type_id_by_name['one-shot'],
         ))
 
         # Add a cc_licence with quotes in the template. Should be handled.

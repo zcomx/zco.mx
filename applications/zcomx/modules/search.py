@@ -327,11 +327,13 @@ class Grid(object):
             rows = self.rows()
             for row in rows:
                 value = self.tile_value(row)
-                if self.request.vars and self.request.vars.o \
-                        and self.request.vars.o == 'creators':
-                    tile_class = CartoonistTile
-                else:
-                    tile_class = BookTile
+                tile_class = BookTile
+                if self.request.vars:
+                    if self.request.vars.o \
+                            and self.request.vars.o == 'creators':
+                        tile_class = CartoonistTile
+                    elif self.request.vars.monies:
+                        tile_class = MoniesBookTile
                 tile = tile_class(db, value, row)
                 tiles.append(tile.render())
 
@@ -725,6 +727,8 @@ GRID_CLASSES['search'] = SearchGrid
 class Tile(object):
     """Class representing a Tile"""
 
+    class_name = 'tile'
+
     def __init__(self, db, value, row):
         """Constructor
 
@@ -797,9 +801,11 @@ class Tile(object):
         append_div(self.image())
         append_div(self.footer())
 
+        unique_class = '_'.join([self.class_name, 'item'])
+
         return DIV(
             *divs,
-            _class='item_container'
+            _class='item_container {u}'.format(u=unique_class)
         )
 
     def subtitle(self):
@@ -817,6 +823,8 @@ class Tile(object):
 
 class BookTile(Tile):
     """Class representing a Tile for a book"""
+
+    class_name = 'book_tile'
 
     def __init__(self, db, value, row):
         """Constructor
@@ -898,6 +906,8 @@ class BookTile(Tile):
 class CartoonistTile(Tile):
     """Class representing a Tile for a cartoonist"""
 
+    class_name = 'cartoonist_tile'
+
     def __init__(self, db, value, row):
         """Constructor
 
@@ -958,6 +968,84 @@ class CartoonistTile(Tile):
             creator_link,
             _class='col-sm-12 name',
         )
+
+
+class MoniesBookTile(BookTile):
+    """Class representing a Tile for a book in Monies format"""
+
+    class_name = 'monies_book_tile'
+
+    def __init__(self, db, value, row):
+        """Constructor
+
+        Args:
+            db: gluon.dal.Dal instance
+            value: string, value to display in footer right side.
+            row: gluon.dal.Row representing row of grid
+        """
+        BookTile.__init__(self, db, value, row)
+
+    def contribute_link(self):
+        """Return the tile contribute link."""
+        return
+
+    def download_link(self):
+        """Return the tile download link."""
+        return
+
+    def footer(self):
+        """Return a div for the tile footer."""
+
+        db = self.db
+        row = self.row
+        book_name = formatted_name(
+            db,
+            row.book,
+            include_publication_year=(row.book.release_date != None)
+        )
+
+        if can_receive_contributions(db, row.creator):
+            inner = book_contribute_link(
+                db,
+                row.book.id,
+                components=[book_name],
+                **dict(_class='contribute_button')
+            )
+        else:
+            inner = book_name
+
+        return DIV(
+            inner,
+            _class='col-sm-12 name',
+        )
+
+    def image(self):
+        """Return a div for the tile image."""
+        db = self.db
+        row = self.row
+        img = cover_image(db, row.book, size='web')
+        if can_receive_contributions(db, row.creator):
+            inner = book_contribute_link(
+                db,
+                row.book.id,
+                components=[img],
+                **dict(_class='contribute_button')
+            ),
+        else:
+            inner = img
+
+        return DIV(
+            inner,
+            _class='col-sm-12 image_container',
+        )
+
+    def subtitle(self):
+        """Return div for the tile subtitle."""
+        return
+
+    def title(self):
+        """Return a div for the tile title"""
+        return
 
 
 def book_contribute_button(row):

@@ -614,6 +614,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     white-space: nowrap;
 }
 
+.grid_section .tile_view .monies_book_tile_item .name a {
+    color: #FF6600;
+}
+
 .grid_section .tile_view .item_container .creator {
     font-size: 9pt;
     margin-bottom: 0.2em;
@@ -885,11 +889,18 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 
     .contribute_modal .modal-dialog {
+        margin-left: 20%;
+        width: 60%;
+    }
+}
+
+@media screen and (min-width: 992px){
+    .contribute_modal .modal-dialog {
         margin-left: 30%;
         width: 40%;
     }
-
 }
+
 
 #creator_page #name h1 {
     margin: 0;
@@ -903,6 +914,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #creator_page #report_section {
     padding-top: 1em;
+}
+
+#creator_monies_page #call_to_action h1 {
+    font-family: 'sfcartoonisthandbold', sans-serif;
+    font-size: 26px;
+    text-transform: uppercase;
 }
 
 #book_page #book_cover_img .portrait_placeholder {

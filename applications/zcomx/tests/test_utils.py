@@ -14,7 +14,9 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.dal import Reference
 from gluon.storage import Storage
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.test_runner import \
+    LocalTestCase, \
+    _mock_date as mock_date
 from applications.zcomx.modules.utils import \
     ItemDescription, \
     default_record, \
@@ -159,7 +161,6 @@ class TestFunctions(LocalTestCase):
         return [x[field] for x in values]
 
     def test__default_record(self):
-
         record = default_record(db.book)
         # The date fields are set to now() which needs special handling.
         for date_field in ['created_on', 'updated_on']:
@@ -187,7 +188,7 @@ class TestFunctions(LocalTestCase):
                 'name': None,
                 'number': 1,
                 'of_number': 1,
-                'publication_year': datetime.date.today().year,
+                'publication_year': 2015,
                 'rating': 0,
                 'reader': 'slider',
                 'release_date': None,

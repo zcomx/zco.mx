@@ -177,6 +177,11 @@ class TestRouter(LocalTestCase):
                 'ongoing_grid',
                 'released_grid',
             ],
+            'creator_monies': [
+                'creator',
+                'ongoing_grid',
+                'released_grid',
+            ],
             'book': [
                 'book',
                 'cover_image',
@@ -683,6 +688,20 @@ class TestRouter(LocalTestCase):
         )
         self.assertEqual(router.redirect, None)
 
+    def test__set_creator_monies_view(self):
+        router = Router(db, self._request, auth)
+        router.creator_record = self._creator
+        router.set_creator_monies_view()
+        self.assertEqual(
+            sorted(router.view_dict.keys()),
+            self._keys_for_view['creator_monies'],
+        )
+        self.assertEqual(
+            router.view,
+            'creators/monies.html',
+        )
+        self.assertEqual(router.redirect, None)
+
     def test__set_creator_view(self):
         router = Router(db, self._request, auth)
         router.creator_record = self._creator
@@ -804,9 +823,11 @@ class TestFunctions(LocalTestCase):
             # Creator variations
             ('http://my.domain.com/aaa', "/zcomx/creators/index ?creator=aaa"),
             ('http://my.domain.com/aaa/bbb', "/zcomx/creators/index ?creator=aaa&book=bbb"),
+            ('http://my.domain.com/aaa/monies', "/zcomx/creators/index ?creator=aaa&monies=1"),
             ('http://my.domain.com/aaa/bbb/ccc', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
             ('http://my.domain.com/zcomx/aaa', "/zcomx/creators/index ?creator=aaa"),
             ('http://my.domain.com/zcomx/aaa/bbb', "/zcomx/creators/index ?creator=aaa&book=bbb"),
+            ('http://my.domain.com/zcomx/aaa/monies', "/zcomx/creators/index ?creator=aaa&monies=1"),
             ('http://my.domain.com/zcomx/aaa/bbb/ccc', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
 
             # Creators
@@ -819,6 +840,11 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/First_Last/My_Book_(2014)', '/zcomx/creators/index ?creator=First_Last&book=My_Book_(2014)'),
             ('http://my.domain.com/First_Last/My_Book_001_(2014)', '/zcomx/creators/index ?creator=First_Last&book=My_Book_001_(2014)'),
             ('http://my.domain.com/First_Last/My_Book_01_of_04_(2014)', '/zcomx/creators/index ?creator=First_Last&book=My_Book_01_of_04_(2014)'),
+
+            # Monies
+            ('http://my.domain.com/First_Last/monies', '/zcomx/creators/index ?creator=First_Last&monies=1'),
+            # if anything after 'monies', assume 'monies' is a book title
+            ('http://my.domain.com/zcomx/First_Last/monies/001', '/zcomx/creators/index ?creator=First_Last&book=monies&page=001'),
 
             # Pages
             ('http://my.domain.com/zcomx/First_Last/My_Book/001', '/zcomx/creators/index ?creator=First_Last&book=My_Book&page=001'),
