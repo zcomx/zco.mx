@@ -141,6 +141,7 @@ class TestRouter(LocalTestCase):
 
         cls._book_page = cls.add(db.book_page, dict(
             book_id=cls._book.id,
+            image='book_page.image.000.aaa.png',
             page_no=1,
         ))
 
@@ -547,6 +548,8 @@ class TestRouter(LocalTestCase):
             self._request.vars = request_vars
             router = Router(db, self._request, auth)
             router.route()
+            if 'redirect' in expect:
+                self.assertEqual(router.redirect, expect.redirect)
             if 'view_dict' in expect:
                 self.assertEqual(
                     dict(router.view_dict['urls']),
@@ -612,7 +615,7 @@ class TestRouter(LocalTestCase):
         # Book page: slider
         request_vars.creator = 'First_Last'
         request_vars.book = 'My_Book'
-        request_vars.page = '001.jpg'
+        request_vars.page = '001'
         expect = Storage({
             'view_dict_keys': self._keys_for_view['reader'],
             'view': 'books/slider.html',
@@ -630,11 +633,13 @@ class TestRouter(LocalTestCase):
         self._book.update_record(reader='slider')
         db.commit()
 
-        # Book page: page no
-        request_vars.page = '001'
+        # Book page image
+        request_vars.page = '001.jpg'
         expect = Storage({
-            'view_dict_keys': self._keys_for_view['reader'],
-            'view': 'books/slider.html',
+            'view_dict_keys': [],
+            'view': None,
+            'redirect':
+                '/images/download/book_page.image.000.aaa.png?size=web',
         })
         do_test(request_vars, expect)
 

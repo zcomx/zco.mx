@@ -5,6 +5,7 @@
 
 Routing classes and functions.
 """
+import os
 import urllib
 from gluon import *
 from gluon.html import A, SPAN
@@ -104,7 +105,6 @@ class Router(object):
         Returns:
             gluon.dal.Row representing book_page record
         """
-        db = self.db
         request = self.request
         if not request.vars.page:
             return
@@ -297,6 +297,7 @@ class Router(object):
                 self.page_not_found()
                 return
 
+        # Handle redirects
         # If the creator is provided as an id, redirect to url with the creator
         # full name.
         if self.creator_record.id == self.request.vars.creator:
@@ -314,6 +315,19 @@ class Router(object):
                 return
             if self.creator_record:
                 self.redirect = creator_url(self.creator_record)
+                return
+
+        # If book page has image extension, redirect to the url pointing
+        # directly at the image.
+        if request.vars.page and self.book_page_record:
+            extension = os.path.splitext(request.vars.page)[1]
+            if extension:
+                self.redirect = URL(
+                    c='images',
+                    f='download',
+                    args=self.book_page_record.image,
+                    vars={'size': 'web'}
+                )
                 return
 
         if self.book_page_record:
