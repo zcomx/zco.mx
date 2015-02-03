@@ -10,7 +10,7 @@ response.logo = None
 # response.subtitle = ''
 
 ## read more at http://dev.w3.org/html5/markup/meta.name.html
-response.meta.author = 'Jim Karsten <jimkarsten@gmail.com>'
+response.meta.author = 'info@zco.mx'
 response.meta.description = 'zco.mx comic books'
 response.meta.keywords = ''
 response.meta.generator = 'Web2py Web Framework'

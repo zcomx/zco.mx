@@ -400,7 +400,7 @@ class TestResizeImg(ImageTestCase):
             self.fail(msg)
             return
 
-        def test_it(image_name, expect, to_name=None, md5s=None):
+        def test_it(image_name, expect, to_name=None, md5s=None, colors=None):
             filename = self._prep_image(image_name, to_name=to_name)
             resize_img = ResizeImg(filename)
             resize_img.run()
@@ -416,6 +416,12 @@ class TestResizeImg(ImageTestCase):
                         self.assertEqual(
                             self._md5sum(resize_img.filenames[prefix]),
                             md5s[fmt.format(typ=prefix)]
+                        )
+                    if colors is not None:
+                        im = Image.open(resize_img.filenames[prefix])
+                        self.assertEqual(
+                            len(im.getcolors(maxcolors=99999)),
+                            colors
                         )
 
         # Test: test the md5 sum of files.
@@ -469,7 +475,7 @@ class TestResizeImg(ImageTestCase):
                 'cbz-256+colour.jpg': '0e11a2cf49d1c1c4166969f463744bc2',
                 'cbz-256colour-gif.png': 'a98552ba461b7a71e4afbc99d6f7fa81',
                 'cbz-256colour-jpg.jpg': 'e248e32cc276d7e7ec02de22ad98e702',
-                'cbz-256colour-png.png': '6042555ff848013101cda16bc3d9e5cf',
+                'cbz-256colour-png.png': '9b2e81c0cf9e27f591d9bd24310fbece',
                 'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
                 'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
@@ -477,12 +483,11 @@ class TestResizeImg(ImageTestCase):
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
                 'web-256colour-gif.png': '9951bff8ec37124ac7989e0fc465880e',
                 'web-256colour-jpg.jpg': 'd4643040166b53463d04947677b72c74',
-                'web-256colour-png.png': '9aeb09f87128926f280879ba33d2c5ff',
+                'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
             },
         }
 
         imgs = [
-            '256+colour.jpg',
             '256colour-jpg.jpg',
             '256colour-png.png',
             '256colour-gif.gif',
@@ -499,7 +504,17 @@ class TestResizeImg(ImageTestCase):
                     fmt: ['cbz', 'web'],
                 },
                 md5s=md5s[imagemagick_ver],
+                colors=256,
             )
+
+        # Test: more than 256 colours
+        test_it(
+            '256+colour.jpg',
+            {
+                '{typ}-256+colour.jpg': ['ori', 'cbz', 'web'],
+            },
+            md5s=md5s[imagemagick_ver],
+        )
 
         # Test: standard jpg
         test_it(

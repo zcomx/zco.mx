@@ -20,11 +20,12 @@ from applications.zcomx.modules.books import \
     publication_year_range
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
-    url as creator_url
+    short_url as creator_short_url
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
 from applications.zcomx.modules.shell_utils import TempDirectoryMixin
+from applications.zcomx.modules.social_media import SOCIAL_MEDIA_CLASSES
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     default_record, \
@@ -41,6 +42,16 @@ class IndiciaPage(object):
     The indicia page is the web version of the indicia (as opposed to the
     indicia image)
     """
+    call_to_action_data = {
+        'space': ' ',
+        'twitter': 'TWITTER',
+        'tumblr': 'TUMBLR',
+        'facebook': 'FACEBOOK',
+    }
+    call_to_action_fmt = (
+        'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!'
+        '{space} OR BY TELLING OTHERS ON {twitter}, {tumblr} AND {facebook}.'
+    )
     default_indicia_paths = ['static', 'images', 'indicia_image.png']
     default_licence_code = 'All Rights Reserved'
 
@@ -54,6 +65,11 @@ class IndiciaPage(object):
         self.entity = entity
         self.creator = None     # Row instance representing creator
 
+    def call_to_action_text(self):
+        """Return the call to action text."""
+        return self.call_to_action_fmt.format(
+            **self.call_to_action_data).strip()
+
     def default_licence(self):
         """Return the default licence record."""
         cc_licence_entity = cc_licence_by_code(
@@ -62,6 +78,15 @@ class IndiciaPage(object):
             raise NotFoundError('CC licence not found: {code}'.format(
                 code=self.default_licence_code))
         return cc_licence_entity
+
+    def follow_icons(self):
+        """Return follow icons.
+
+        Returns:
+            dict representing 'follow' social media icons.
+                {'social media': A()}
+        """
+        return {}
 
     def licence_text(self, template_field='template_web'):
         """Return the licence record used for the licence text on the indicia
@@ -97,15 +122,9 @@ class IndiciaPage(object):
 
         text_divs = []
 
-        intro = """
-        IF  YOU  ENJOYED THIS WORK YOU CAN
-        HELP OUT BY  GIVING  SOME MONIES!!
-        OR BY TELLING OTHERS ON  TWITTER,
-        TUMBLR  AND  FACEBOOK.
-        """
         text_divs.append(
             DIV(
-                intro.strip(),
+                self.call_to_action_text(),
                 _class='call_to_action',
             )
         )
@@ -118,13 +137,32 @@ class IndiciaPage(object):
         )
 
         if self.creator:
+            creator_name = creator_formatted_name(self.creator)
+            if creator_name:
+                creator_href = creator_short_url(self.creator)
+                follow_text = creator_name
+                if creator_href:
+                    follow_text = A(
+                        creator_name,
+                        _href=creator_href,
+                    )
+                text_divs.append(DIV(
+                    'FOLLOW',
+                    follow_text,
+                    _class='follow_creator',
+                ))
+
+        icon_divs = []
+        for name, icon in self.follow_icons().items():
+            icon_divs.append(DIV(
+                icon,
+                _class='follow_icon',
+            ))
+
+        if icon_divs:
             text_divs.append(DIV(
-                'FOLLOW',
-                A(
-                    self.creator.path_name,
-                    _href=creator_url(self.creator),
-                ),
-                _class='follow_creator',
+                icon_divs,
+                _class='follow_icons',
             ))
 
         text_divs.append(
@@ -195,6 +233,43 @@ class BookIndiciaPage(IndiciaPage):
         self.book = entity_to_row(db.book, self.entity)
         self.creator = entity_to_row(db.creator, self.book.creator_id)
         self._orientation = None
+
+    def call_to_action_text(self):
+        """Return the call to action text."""
+
+        call_to_action_data = dict(IndiciaPage.call_to_action_data)
+        call_to_action_data['space'] = '&nbsp;'
+        for name, obj_class in SOCIAL_MEDIA_CLASSES.items():
+            text = IndiciaPage.call_to_action_data[name]
+            media = obj_class(self.book, creator_entity=self.creator)
+            if not media:
+                continue
+            url = media.share_url()
+            if not url:
+                continue
+            call_to_action_data[name] = A(text, _href=url, _target='_blank')
+
+        return XML(
+            self.call_to_action_fmt.format(**call_to_action_data).strip())
+
+    def follow_icons(self):
+        """Return follow icons.
+
+        Returns:
+            dict representing 'follow' social media icons.
+                {'social media': A()}
+        """
+        icons = {}
+        for name, obj_class in SOCIAL_MEDIA_CLASSES.items():
+            media = obj_class(self.book, creator_entity=self.creator)
+            if not media:
+                continue
+            icons[name] = A(
+                IMG(_src=media.icon_url()),
+                _href=media.follow_url() or media.site,
+                _target='_blank',
+            )
+        return icons
 
     def get_orientation(self):
         """Return the orientation of the book (based on its last page)."""
@@ -270,6 +345,10 @@ class BookIndiciaPagePng(BookIndiciaPage, IndiciaPagePng):
         self.metadata_filename = None
         self._indicia_filename = None
 
+    def call_to_action_text(self):
+        """Return the call to action text."""
+        return IndiciaPage.call_to_action_text(self)
+
     def create(self, orientation=None):
         """Create the indicia png file for the book.
 
@@ -323,7 +402,7 @@ class CreatorIndiciaPage(IndiciaPage):
         """
         data = dict(
             owner=creator_formatted_name(self.creator),
-            owner_url=creator_url(self.creator)
+            owner_url=creator_short_url(self.creator)
         )
         return render_cc_licence(
             data,
@@ -1389,13 +1468,13 @@ def render_cc_licence(
     if 'owner' not in data:
         data['owner'] = 'CREATOR NAME'
 
-    if 'owner_url' not in data:
+    if 'owner_url' not in data or data['owner_url'] is None:
         data['owner_url'] = default_url
 
     if 'title' not in data:
         data['title'] = 'NAME OF BOOK'
 
-    if 'title_url' not in data:
+    if 'title_url' not in data or data['title_url'] is None:
         data['title_url'] = default_url
 
     if 'place' not in data or not data['place']:

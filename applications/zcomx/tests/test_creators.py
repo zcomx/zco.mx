@@ -24,6 +24,7 @@ from applications.zcomx.modules.creators import \
     image_as_json, \
     on_change_name, \
     profile_onaccept, \
+    short_url, \
     torrent_link, \
     torrent_name, \
     torrent_url, \
@@ -412,6 +413,17 @@ class TestFunctions(LocalTestCase):
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, 'Test Profile Onaccept')
         self.assertEqual(creator.urlify_name, 'test-profile-onaccept')
+
+    def test__short_url(self):
+        tests = [
+            # (creator_id, expect)
+            (None, None),
+            (-1, None),
+            (98, 'https://98.zco.mx'),
+            (101, 'https://101.zco.mx'),
+        ]
+        for t in tests:
+            self.assertEqual(short_url(t[0]), t[1])
 
     def test__torrent_link(self):
         empty = '<span></span>'

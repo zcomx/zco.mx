@@ -177,7 +177,7 @@ class Router(object):
 
         urls = Storage({})
         urls.invalid = '{scheme}://{host}{uri}'.format(
-            scheme=request.env.wsgi_url_scheme,
+            scheme=request.env.wsgi_url_scheme or 'https',
             host=request.env.http_host,
             uri=request.env.web2py_original_uri or request.env.request_uri
         )
@@ -238,15 +238,12 @@ class Router(object):
                     )
                 break
 
-        urls.page = urllib.unquote(
-            page_url(url_page_record, host=True)
-        ) if url_page_record else None
-        urls.book = urllib.unquote(
-            book_url(url_book_record, host=True)
-        ) if url_book_record else None
-        urls.creator = urllib.unquote(
-            creator_url(url_creator_record, host=True)
-        ) if url_creator_record else None
+        u = page_url(url_page_record, host=True)
+        urls.page = urllib.unquote(u) if url_page_record and u else None
+        u = book_url(url_book_record, host=True)
+        urls.book = urllib.unquote(u) if url_book_record and u else None
+        u = creator_url(url_creator_record, host=True)
+        urls.creator = urllib.unquote(u) if url_creator_record and u else None
         message = 'The requested page was not found on this server.'
 
         self.view_dict = dict(urls=urls, message=message)
@@ -262,22 +259,15 @@ class Router(object):
         creator_record = self.get_creator()
         if not creator_record:
             return []
-        if creator_record.shop:
-            pre_links.append(
-                A(
-                    'shop',
-                    _href=creator_record.shop,
-                    _target='_blank'
+        for preset in ['shop', 'tumblr', 'facebook']:
+            if creator_record[preset]:
+                pre_links.append(
+                    A(
+                        preset,
+                        _href=creator_record[preset],
+                        _target='_blank'
+                    )
                 )
-            )
-        if creator_record.tumblr:
-            pre_links.append(
-                A(
-                    'tumblr',
-                    _href=creator_record.tumblr,
-                    _target='_blank'
-                )
-            )
         return pre_links
 
     def route(self):
