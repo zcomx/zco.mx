@@ -1,99 +1,5 @@
 ``
 VERSION 2 - Before Going Live
-[ ] Metadata Changes
-    [x] Adding a book produces an error:
-        Server error
-        The server was not able to display the requested page.
-    [x] on 'Edit' something showing/flickering above 'Publication Metadata'
-    [x] Only close modal when 'Close' is clicked ?
-    [x] remove 'Original Publication History' ?
-    [x] Hide Derivative until something is choosen
-    [x] Change Re-publication to Republication
-    [x] Change Republished to Republication - whole/- serial
-    [x] Add Label: 'Publication Type'    [ click to edit ]
-    [x] Add Label: 'Republication Type'  [ click to edit ]
-    [x] Add Placeholder: 'Publication Type'    [ click to edit ]
-    [x] Add Placeholder: 'Republication Type'  [ click to edit ]
-    [x] year drop down can start at 1970
-    [x] Change 'Is this work a derivative?' -> 'Derivative Work'
-    [x] add 'X' to top right corner of modal
-    [x] buggy
-        Republication - serial -> Digital -> Done -> Paper
-    [x] repub - serial -> Published Name
-        change to 'Book/Anthology Title'
-    [x] repub - serial -> Serial Number
-        change to 'Book/Anthology Number'
-        move under 'Book/Anthology Title'
-    [x] Should 'Book/Anthology Number' and 'Story Number' be a dropdown ?
-        range of 1-100
-    [-] repub - serial -> Serial Number
-        story number = abc
-        Enter an integer between -2.14748e+09 and 2.14748e+09
-    [x] repub - serial -> Serial Number
-        If there is two stories and both serial and story are blank,
-        then -> "Name of Book #NONE"
-    [x] bug
-        Remove -- "This work was originally published digitally in 2015."
-
-    [x] repub -> repub serial
-        See: http://p.zsw.ca/SL
-
-    [ ] Books out of order in Metadata
-        Having ten or more books causes the sort order to be incorrect.
-        Zero-padding 1-9 would solve this but is there another way?
-
-    [ ] Leave 'Anthology Title' blank
-
-    [ ] 'Anthology Number' and 'Story Number'
-        Allow 'Anthology Number' and 'Story Number' to be blank, but
-        default to '1'.
-
-    [ ] Add (i)'s
-        Publication Type
-            First Publication - the first time the world will be seeing
-            this work, choose this option
-
-            Republication - past work that has been either been posted
-            online or published on paper
-
-        Republication Type
-            Whole - If the work that is being upload to zco.mx was
-            *previously* published (digital or print) in whole.
-
-            Serial - If the work being upload is also being *collected*
-            and was *previously* published (digital or print) was
-            serialized or a story from an anthology or a serialized
-            story in an anthology.
-
-            Anthology - Was this work apart of an anthology?
-
-            Original Book Title - If the name has changed since it was
-            originally published.
-
-            Site Name - The name of the site where the work was first
-            published, eg username.tumblr.com or mydomain.com
-
-            Press Name - Name of the small press/publishing company.
-
-            Year - The year the work first appeared online or in print.
-
-            To - The year the work was completed.
-
-            Anthology Title - The name of the anthology the work was in.
-
-            Story Name - The name of your story that's in the anthology.
-
-        Derivative Work - Set to 'Yes' if you've built upon or reused
-            another cartoonists' work. Their original work needs to use
-            a Creative Commons licence, ie BY, BY-SA, BY-NC or BY-NC-SA.
-
-            Derivative Title - The title of the original work.
-
-            Derivative Pub Year - The years their work was published.
-            Derivative Creator Name - The name of the creator who's work
-            you've altered.
-
-
 [x] Indicia Page - png version
 
 [ ] Indicia Page - html version
@@ -132,11 +38,11 @@ VERSION 2 - Before Going Live
 
 [S] Get Marc's permission to use Shrimpy
 
-[ ] monies URL
+[ ] Monies URL
     http://131.zco.mx/monies
     https://zco.mx/monies        ## for zco.mx donation page ?
 
-[S] Setup mailing list
+[S] Setup Mailing List
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219

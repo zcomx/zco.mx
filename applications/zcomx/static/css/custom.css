@@ -2211,6 +2211,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     vertical-align: top;
 }
 
+#book_edit_section #metadata_fields_container .field_container {
+    display: inline-block;
+    min-width: inherit;
+}
+
 #book_edit_section .field_container_reader .editableform .control-group,
 #book_edit_section .field_container_cc_licence_place .editableform .control-group {
     margin-bottom: 0em;
