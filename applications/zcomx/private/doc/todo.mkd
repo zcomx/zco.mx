@@ -36,11 +36,11 @@ VERSION 2 - Before Going Live
     [ ] $[1.00] contribute
         use the same 'contribute' look for indicia and donate modal
 
-[S] Get Marc's permission to use Shrimpy
+[x] Get Marc's permission to use Shrimpy
 
 [ ] Monies URL
+    Select a book below to give monies to!!
     http://131.zco.mx/monies
-    https://zco.mx/monies        ## for zco.mx donation page ?
 
 [S] Setup Mailing List
 
@@ -54,9 +54,6 @@ VERSION 2 - Before Going Live
     [ ] redirect - http://101.zco.mx/Name_of_Comic_01_of_04.torrent http://101.zco.mx/Name_of_Comic_001.torrent
     [ ] metadata
         $ zip test.zip -z <<< '2014|Cartoonist Name|Title of Book|64'   ## add metadata to zip comment field
-
-[S] Reader notifications of new material
-    rss? and mailing list?
 
 [ ] Front Page/Book Page
     The same stats on the front page should be on the book page and
@@ -96,6 +93,10 @@ VERSION 2 - Before Going Live
     Search for all instances of 'dev.zco.mx'
 
 VERSION 3
+[S] Reader notifications of new material
+    rss? and mailing list?
+
+[ ] https://zco.mx/monies        ## for zco.mx donation page ?
 [ ] login -> books -> edit
     Use unline Editing for metadata
 [ ] Read Page -> Scroll
