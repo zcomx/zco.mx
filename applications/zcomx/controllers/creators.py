@@ -54,6 +54,5 @@ def index():
         session.next_url = request.env.web2py_original_uri
         return router.view_dict
 
-
     # If we get here, we don't have a valid creator
     raise HTTP(404, "Page not found")
