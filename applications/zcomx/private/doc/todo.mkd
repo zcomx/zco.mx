@@ -39,7 +39,10 @@ VERSION 2 - Before Going Live
 [x] Get Marc's permission to use Shrimpy
 
 [ ] Monies URL
-    Select a book below to give monies to!!
+    "Select a book below to give monies to!!"
+    "Choose a book below by CARTOONIST to give monies to!!"
+    "Click on a book below by CARTOONIST to give monies to!!"
+    "Click on one of CARTOONIST's books to give monies to!!"
     http://131.zco.mx/monies
 
 [S] Setup Mailing List
