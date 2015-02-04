@@ -1228,7 +1228,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin: 0;
 }
 
-#reader_section img {
+#reader_section img:not(div.follow_icon img) {
     width: auto;
     height: auto;
     max-width: 100%;
@@ -1917,6 +1917,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .indicia_text_container .follow_icons img {
     border: none;
+    height: auto;
+    width: 42px;
 }
 
 .indicia_text_container .copyright_licence {
