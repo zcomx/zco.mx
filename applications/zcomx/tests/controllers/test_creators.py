@@ -74,6 +74,12 @@ class TestFunctions(LocalTestCase):
             self.titles['creator']
         ))
 
+    def test__monies(self):
+        with self.assertRaises(urllib2.HTTPError) as cm:
+            web.test('{url}/monies'.format(url=self.url), None)
+        self.assertEqual(cm.exception.code, 404)
+        self.assertEqual(cm.exception.msg, 'NOT FOUND')
+
 
 def setUpModule():
     """Set up web2py environment."""

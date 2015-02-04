@@ -335,7 +335,10 @@ class Router(object):
         elif self.book_record:
             self.set_book_view()
         elif self.creator_record:
-            self.set_creator_view()
+            if request.vars.monies:
+                self.set_creator_monies_view()
+            else:
+                self.set_creator_view()
         else:
             self.page_not_found()
 
@@ -382,6 +385,39 @@ class Router(object):
         )
 
         self.view = 'books/book.html'
+
+    def set_creator_monies_view(self):
+        """Set the view for the creator monies page."""
+        db = self.db
+        request = self.request
+        creator_record = self.get_creator()
+
+        if not request.vars.order:
+            request.vars.order = 'book.name'
+
+        creator_query = (db.creator.id == creator_record.id)
+        released_query = (db.book.release_date != None)
+        ongoing_query = (db.book.release_date == None)
+
+        released_grid = None
+        if request.vars.can_release:
+            queries = [creator_query, released_query]
+            grid = classified(request)(queries=queries, default_viewby='list')
+            released_grid = grid.render()
+
+        queries = [creator_query]
+        if request.vars.can_release:
+            queries.append(ongoing_query)
+        grid = classified(request)(queries=queries, default_viewby='tile')
+        ongoing_grid = grid.render()
+
+        self.view_dict = dict(
+            creator=creator_record,
+            ongoing_grid=ongoing_grid,
+            released_grid=released_grid,
+        )
+
+        self.view = 'creators/monies.html'
 
     def set_creator_view(self):
         """Set the view for the creator page."""

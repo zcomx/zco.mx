@@ -85,6 +85,9 @@ routes_in = (
     # Assume everything else doesn't match a controller and is a creator/book/page
     ('/zcomx/{c}/{b}/{p}'.format(c=creator_re, b=book_re, p=page_re),
         '/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
+    # Handle monies specifically
+    ('/zcomx/{c}/monies'.format(c=creator_re),
+        '/zcomx/creators/index?creator=\g<creator>&monies=1'),
     ('/zcomx/{c}/{b}'.format(c=creator_re, b=book_re),
         '/zcomx/creators/index?creator=\g<creator>&book=\g<book>'),
     ('/zcomx/{c}'.format(c=creator_re),
@@ -92,6 +95,9 @@ routes_in = (
 
     ('/{c}/{b}/{p}'.format(c=creator_re, b=book_re, p=page_re),
         '/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
+    # Handle monies specifically
+    ('/{c}/monies'.format(c=creator_re),
+        '/zcomx/creators/index?creator=\g<creator>&monies=1'),
     ('/{c}/{b}'.format(c=creator_re, b=book_re),
         '/zcomx/creators/index?creator=\g<creator>&book=\g<book>'),
     ('/{c}'.format(c=creator_re),

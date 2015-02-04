@@ -4,7 +4,6 @@
 import cgi
 from gluon.storage import Storage
 from applications.zcomx.modules.routing import Router
-from applications.zcomx.modules.search import classified
 
 
 def creator():
@@ -40,8 +39,9 @@ def index():
     if router.redirect:
         redirect(router.redirect)
     if router.view:
-        if router.view == 'books/scroller.html' \
-            or router.view == 'books/slider.html':
+        if router.view == 'creators/monies.html' \
+                or router.view == 'books/scroller.html' \
+                or router.view == 'books/slider.html':
             response.files.append(
                 URL('static', 'fonts/sf_cartoonist/stylesheet.css')
             )
@@ -55,4 +55,10 @@ def index():
         return router.view_dict
 
     # If we get here, we don't have a valid creator
+    raise HTTP(404, "Page not found")
+
+
+def monies():
+    """Creator page."""
+    # The controller is deprecated. The page is handled by routing.
     raise HTTP(404, "Page not found")

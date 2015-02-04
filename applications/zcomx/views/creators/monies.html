@@ -1,0 +1,42 @@
+{{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name, url}}
+{{from applications.zcomx.modules.images import CreatorImgTag}}
+{{from applications.zcomx.modules.utils import ItemDescription}}
+{{extend 'layout_main.html'}}
+{{creator_name = formatted_name(creator)}}
+<div id="creator_monies_page">
+
+{{=LOAD(c='default', f='top', args='creator', vars={'creator_id': creator.id}, extension='load', ajax=False, content='')}}
+
+
+<div class="row" id="call_to_action_section">
+    <div class="col-sm-12" id="call_to_action">
+        <h1>
+        Choose which book by
+        <a href="{{=url(creator.id, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a>
+        to give monies to!!
+        </h1>
+    </div>
+    {{if not can_receive_contributions(db, creator):}}
+    <div class="alert alert-warning col-sm-12" role="alert">
+        Please note {{=creator_name}} is not taking contributions at this time.
+    </div>
+    {{pass}}
+</div>
+
+<div id="report_section">
+
+    {{if released_grid:}}
+        <div class="grid_section">
+        {{=released_grid}}
+        </div>
+
+        <div class="row grid_section_header"><h4>Ongoing</h4></div>
+    {{pass}}
+
+    <div class="grid_section">
+    {{=ongoing_grid}}
+    </div>
+</div>
+
+</div>
+<script src="{{=URL(c='static', f='js/description.js')}}"> </script>
