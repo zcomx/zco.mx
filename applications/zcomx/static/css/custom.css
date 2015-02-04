@@ -1886,12 +1886,16 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .indicia_text_container .call_to_action {
     font-family: 'brushy_creregular', sans-serif;
     font-size: 26px;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 540px;
 }
 
 .indicia_text_container .contribute_widget {
     font-family: robotoregular;
-    margin-bottom: 1em;
-    margin-top: 1.6em;
+    margin-bottom: 0.8em;
+    margin-left: 0.4em;
+    margin-top: 2em;
 }
 
 .indicia_text_container .contribute_widget #contribute_link {
@@ -1899,7 +1903,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .indicia_text_container .follow_creator {
-    margin: 0 0 1em;
+    margin: 0 0 0.2em;
     text-transform: uppercase;
 }
 
@@ -1908,11 +1912,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .indicia_text_container .follow_icons {
-    margin: 0 0 7em;
+    margin: 0 0 3em;
 }
 
 .indicia_text_container .follow_icons div {
     display: inline-block;
+    padding: 5px;
 }
 
 .indicia_text_container .follow_icons img {
@@ -1925,7 +1930,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-size: 14px;
     margin-left: auto;
     margin-right: auto;
-    max-width: 44em;
+    max-width: 540px;
 }
 
 #indicia_section .indicia_text_container {
