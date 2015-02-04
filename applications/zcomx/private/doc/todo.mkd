@@ -11,9 +11,12 @@ VERSION 2 - Before Going Live
         eg https://dev.zco.mx/David_C_Mahler/Food_Magik/025
 
     [ ] Text Formatting
-        [ ] GIVING SOME MONIES!! &nbsp; OR BY TELLING OTHERS
+        [x] GIVING SOME MONIES!! &nbsp; OR BY TELLING OTHERS
         [ ] &nbsp; IS COPYRIGHT (C) 2014 BY
-        [ ] Remove italics from book name in licence
+            Now there is an extra space
+            change ' &nbsp; IS COPYRIGHT'
+            to:    '&nbsp; IS COPYRIGHT'
+        [x] Remove italics from book name in licence
 
     [ ] Social Media - Share Links
         twitter share link  - https://twitter.com/share?url=http%3A%2F%2F131.zco.mx%2FName_of_Book&text=Check+out+%27Name+of+Book%27+by+%40Cartoonist&hashtags=

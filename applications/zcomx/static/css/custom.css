@@ -1358,7 +1358,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     height: inherit;
     margin-left: 2px;
     margin-right: 2px;
-    padding: 0 0 0 2px;
+    padding: 0 3px 0 0;
+    text-align: right;
     width: 2.5em;
 }
 
