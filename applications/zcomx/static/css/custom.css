@@ -1228,7 +1228,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin: 0;
 }
 
-#reader_section img:not(div.follow_icon img) {
+#reader_section img.book_page_img,
+.indicia_image_container img {
     width: auto;
     height: auto;
     max-width: 100%;

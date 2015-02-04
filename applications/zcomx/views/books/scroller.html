@@ -9,7 +9,7 @@
                     {{if str(page.image) == 'indicia':}}
                     {{=page.content}}
                     {{else:}}
-                    {{=ImgTag(page.image, size=size, attributes={'_alt': 'page {p:03d}'.format(p=page.page_no)})()}}
+                    {{=ImgTag(page.image, size=size, attributes={'_alt': 'page {p:03d}'.format(p=page.page_no), '_class': 'book_page_img'})()}}
                     {{pass}}
                 </div>
             </div>
