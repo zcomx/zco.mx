@@ -12,14 +12,22 @@ VERSION 2 - Before Going Live
 
     [ ] Text Formatting
         [x] GIVING SOME MONIES!! &nbsp; OR BY TELLING OTHERS
+        [x] Remove italics from book name in licence
         [ ] &nbsp; IS COPYRIGHT (C) 2014 BY
             Now there is an extra space
             change ' &nbsp; IS COPYRIGHT'
             to:    '&nbsp; IS COPYRIGHT'
-        [x] Remove italics from book name in licence
 
-    [ ] Set bg to white
-        https://dev.zco.mx/David_Blumenstein/Tristian_and_the_Gaza_Strip/020?reader=slider
+            The goal is to have two space between 'Food Magik' and 'is'
+
+    [ ] Set bg to white on indicia page
+        eg https://dev.zco.mx/David_Blumenstein/Tristian_and_the_Gaza_Strip/020?reader=slider
+
+        [ ] check scroll mode as well
+
+    [ ] 'Follow' cartoonist name link on the indicia page
+        [ ] change 'https' should be 'http'
+        [ ] anytime we use a subdomain, we need to use http, not https
 
     [ ] Social Media - Share Links
         twitter share link  - https://twitter.com/share?url=http%3A%2F%2F131.zco.mx%2FName_of_Book&text=Check+out+%27Name+of+Book%27+by+%40Cartoonist&hashtags=
@@ -27,13 +35,21 @@ VERSION 2 - Before Going Live
         facebook share link - http://www.facebook.com/sharer.php?s=100&p[url]=http%3A%2F%2Fi.imgur.com%2Fs4Aps8r.png
         http://i.imgur.com/s4Aps8r.png
 
-        [ ] Tumblr has 'www' for username
-            https://www.tumblr.com/share/photo?source=https%3A%2F%2F128.zco.mx%2FTristian_and_the_Gaza_Strip%2F001.jpg&clickthru=https%3A%2F%2F128.zco.mx%2FTristian_and_the_Gaza_Strip&caption=Check+out+Tristian+and+the+Gaza+Strip+by+%3Ca+class%3D%22tumblelog%22%3Ewww%3C%2Fa%3E
+        [x] Tumblr has 'www' for username
+            screentonetv
+            www.squishfacestudio.com
+            keiler's
 
         [ ] facebook
             [ ] has https, should be http
                 https://www.facebook.com/sharer/sharer.php?p[url]=http%3A%2F%2F128.zco.mx%2FTristian_and_the_Gaza_Strip%2F001.jpg
-                http://128.zco.mx/Tristian_and_the_Gaza_Strip/001.jpg
+            [ ] scrape data
+                when we had the login active, fb scrape some data.  I wonder if
+                fb will use alt tags on an image?
+                How does fb get dev.zco.mx
+            [ ] &s=100
+                It seems like '&s=100' isn't needed in the url
+            [ ] how to clear fb cache ?
 
     [ ] Social Media - Follow Icons and Links
         twitter follow link  - https://twitter.com/intent/follow?screen_name=zcomx
@@ -42,15 +58,14 @@ VERSION 2 - Before Going Live
 
         logos -- http://p.zsw.ca/3D.zip
 
-    [ ] Page isn't vertically centered
-        I assume the centering algorithm doesn't know about the height
-        of the text below the indicia image
+    [ ] Remove Email Address From html Header
+        <meta name="author" content="info@zco.mx" />
 
-    [ ] $[1.00] contribute -- isn't centered
+    [ ] $[1.00] (contribute)
+        Use the same 'contribute' look for indicia and donate modal
+        Add Button like we have on donation modal
 
-    [ ] $[1.00] contribute
-        use the same 'contribute' look for indicia and donate modal
-
+-----
 [x] Get Marc's permission to use Shrimpy
 
 [ ] Monies URL
@@ -59,6 +74,23 @@ VERSION 2 - Before Going Live
     "Click on a book below by CARTOONIST to give monies to!!"
     "Click on one of CARTOONIST's books to give monies to!!"
     http://131.zco.mx/monies
+
+    [ ] Redirect
+        http://131.zco.mx/monies should redirect to:
+        https://dev.zco.mx/Cartoonist_Name/monies
+        not:
+        https://dev.zco.mx/101/monies
+
+[ ] zco.mx Donation Link
+    [ ] Open zco.mx Donation Link in New Window
+        https://dev.zco.mx/contributions/modal
+
+        Can we use something like https://zco.mx/monies and stick that in the
+        modal?
+
+[ ] login page
+    https://dev.zco.mx/login
+    'Remember me' is out of whack
 
 [S] Setup Mailing List
 
@@ -90,6 +122,7 @@ VERSION 2 - Before Going Live
 [ ] 12354 - Test scripts
 
 [ ] optimize pages -- especially the front page
+    * look at Q's console
     * caching?
 
 [/] Upload Modal
@@ -114,7 +147,6 @@ VERSION 3
 [S] Reader notifications of new material
     rss? and mailing list?
 
-[ ] https://zco.mx/monies        ## for zco.mx donation page ?
 [ ] login -> books -> edit
     Use unline Editing for metadata
 [ ] Read Page -> Scroll
