@@ -488,6 +488,10 @@ def store(field, filename, resize=True, resizer=None, run_optimize=True):
     Args:
         field: gluon.dal.Field instance (field type 'upload')
         filename: name of file to store.
+        resize: If True, the image is resized to SIZES sizes
+        resizer: class, name of class to use for resizing. Default: ResizeImg
+            Class must define a filenames dict property and a run() method.
+        run_optimize: If True, all images including re-sizes are optimized.
 
     Return:
         string, the name of the file in storage.
