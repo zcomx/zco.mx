@@ -82,17 +82,15 @@ VERSION 2 - Before Going Live
         https://dev.zco.mx/101/monies
 
 [ ] zco.mx Donation Link
-    [ ] Open zco.mx Donation Link in New Window
-        https://dev.zco.mx/contributions/modal
+    Open zco.mx Donation Link in New Window
+    https://dev.zco.mx/contributions/modal
 
-        Can we use something like https://zco.mx/monies and stick that in the
-        modal?
+    Can we use something like https://zco.mx/monies and stick that in
+    the modal?
 
 [ ] login page
     https://dev.zco.mx/login
     'Remember me' is out of whack
-
-[S] Setup Mailing List
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
@@ -104,6 +102,8 @@ VERSION 2 - Before Going Live
     [ ] redirect - http://101.zco.mx/Name_of_Comic_01_of_04.torrent http://101.zco.mx/Name_of_Comic_001.torrent
     [ ] metadata
         $ zip test.zip -z <<< '2014|Cartoonist Name|Title of Book|64'   ## add metadata to zip comment field
+
+[S] Setup Mailing List
 
 [ ] Front Page/Book Page
     The same stats on the front page should be on the book page and
