@@ -9,7 +9,6 @@ def box():
     return dict()
 
 
-@auth.requires_login()
 def index():
     """Default controller."""
     session.next_url = URL(

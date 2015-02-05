@@ -12,7 +12,6 @@ def creator():
     raise HTTP(404, "Page not found")
 
 
-@auth.requires_login()
 def index():
     """Creators default controller.
 

@@ -17,8 +17,3 @@
         </div>
     </div>
 </div>
-{{if request.args(0) == 'login':}}
-    <div class="development_notice alert alert-warning" role="alert">
-        Please note this site is under development.
-    </div>
-{{pass}}

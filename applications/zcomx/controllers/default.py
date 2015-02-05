@@ -201,7 +201,6 @@ def data():
     return dict(form=crud())
 
 
-@auth.requires_login()
 def about():
     """About page"""
     return markmin('about')
@@ -213,13 +212,11 @@ def contribute():
     redirect(URL(c='contributions', f='paypal', extension=False))
 
 
-@auth.requires_login()
 def expenses():
     """Expenses page"""
     return markmin('expenses')
 
 
-@auth.requires_login()
 def faq():
     """FAQ page"""
     # Set up for 'donations' contributions to paypal handling.
@@ -260,7 +257,6 @@ def logos():
     return dict(expose=expose)
 
 
-@auth.requires_login()
 def overview():
     """Overview page"""
     return markmin('overview')
