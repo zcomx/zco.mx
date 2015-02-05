@@ -18,8 +18,12 @@ from applications.zcomx.modules.books import \
     page_url, \
     parse_url_name, \
     read_link, \
+    short_page_img_url, \
+    short_url as book_short_url, \
     url as book_url
 from applications.zcomx.modules.creators import \
+    formatted_name as creator_formatted_name, \
+    short_url as creator_short_url, \
     url as creator_url
 from applications.zcomx.modules.indicias import BookIndiciaPage
 from applications.zcomx.modules.links import CustomLinks
@@ -317,6 +321,8 @@ class Router(object):
                 self.redirect = creator_url(self.creator_record)
                 return
 
+        self.set_response_meta()
+
         if self.book_page_record:
             if request.vars.page and os.path.splitext(request.vars.page)[1]:
                 self.set_page_image_view()
@@ -535,3 +541,46 @@ class Router(object):
 
         self.view = 'books/slider.html' if reader == 'slider' else \
             'books/scroller.html'
+
+    def set_response_meta(self):
+        """Set the response.meta Open Graph values.
+        Facebook sharer.php uses these.
+        """
+        response = current.response
+
+        response.meta['og:title'] = 'zco.mx'
+        response.meta['og:type'] = ''
+        response.meta['og:url'] = URL(host=True)
+        response.meta['og:image'] = URL(
+            c='static',
+            f='images/zco.mx-logo-small.png',
+            host=True,
+        )
+        response.meta['og:site_name'] = 'zco.mx'
+        response.meta['og:description'] = (
+            'zco.mx is a curated not-for-profit comic-sharing website'
+            ' for self-publishing cartoonists and their readers.'
+        )
+        # response.meta['fb:admins'] = ''
+
+        if self.book_record:
+            response.meta['og:title'] = self.book_record.name
+            response.meta['og:type'] = 'book'
+            response.meta['og:url'] = book_short_url(self.book_record)
+            response.meta['og:image'] = short_page_img_url(
+                get_page(self.book_record, page_no='first')
+            )
+            response.meta['og:description'] = self.book_record.description
+        elif self.creator_record:
+            response.meta['og:title'] = creator_formatted_name(
+                self.creator_record)
+            response.meta['og:type'] = 'profile'
+            response.meta['og:url'] = creator_short_url(self.book_record)
+            response.meta['og:image'] = URL(
+                c='images',
+                f='download',
+                args=self.creator_record.image,
+                vars={'size': 'web'},
+                host=True
+            ) if self.creator_record.image else ''
+            response.meta['og:description'] = self.creator_record.bio or ''

@@ -526,11 +526,11 @@ class TestFunctions(ImageTestCase):
             cc_licence_data(book),
             {
                 'owner': 'Test CC Licence Data',
-                'owner_url': 'https://{cid}.zco.mx'.format(cid=creator.id),
+                'owner_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
                 'year': '2010',
                 'place': None,
                 'title': 'test__cc_licence_data',
-                'title_url': 'https://{cid}.zco.mx/test__cc_licence_data'.format(cid=creator.id),
+                'title_url': 'http://{cid}.zco.mx/test__cc_licence_data'.format(cid=creator.id),
             }
         )
 
@@ -539,11 +539,11 @@ class TestFunctions(ImageTestCase):
             cc_licence_data(book),
             {
                 'owner': 'Test CC Licence Data',
-                'owner_url': 'https://{cid}.zco.mx'.format(cid=creator.id),
+                'owner_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
                 'year': '2010',
                 'place': 'Canada',
                 'title': 'test__cc_licence_data',
-                'title_url': 'https://{cid}.zco.mx/test__cc_licence_data'.format(cid=creator.id),
+                'title_url': 'http://{cid}.zco.mx/test__cc_licence_data'.format(cid=creator.id),
             }
         )
 
@@ -1198,11 +1198,11 @@ class TestFunctions(ImageTestCase):
             (None, 'My Book', 1, 'book_page.image.000.aaa.jpg', None),
             (-1, 'My Book', 1, 'book_page.image.000.aaa.jpg', None),
             (98, 'My Book', 1, 'book_page.image.000.aaa.jpg',
-                'https://98.zco.mx/My_Book/001.jpg'),
+                'http://98.zco.mx/My_Book/001.jpg'),
             (101, 'My Book', 2, 'book_page.image.000.aaa.jpg',
-                'https://101.zco.mx/My_Book/002.jpg'),
+                'http://101.zco.mx/My_Book/002.jpg'),
             (101, 'My Book', 2, 'book_page.image.000.aaa.png',
-                'https://101.zco.mx/My_Book/002.png'),
+                'http://101.zco.mx/My_Book/002.png'),
         ]
         for t in tests:
             book.update_record(creator_id=t[0], name=t[1])
@@ -1221,8 +1221,8 @@ class TestFunctions(ImageTestCase):
             # (creator_id, book name, page_no, expect)
             (None, 'My Book', 1, None),
             (-1, 'My Book', 1, None),
-            (98, 'My Book', 1, 'https://98.zco.mx/My_Book/001'),
-            (101, 'My Book', 2, 'https://101.zco.mx/My_Book/002'),
+            (98, 'My Book', 1, 'http://98.zco.mx/My_Book/001'),
+            (101, 'My Book', 2, 'http://101.zco.mx/My_Book/002'),
         ]
         for t in tests:
             book.update_record(creator_id=t[0], name=t[1])
@@ -1238,8 +1238,8 @@ class TestFunctions(ImageTestCase):
             # (creator_id, book name, expect)
             (None, 'My Book', None),
             (-1, 'My Book', None),
-            (98, 'My Book', 'https://98.zco.mx/My_Book'),
-            (101, 'My Book', 'https://101.zco.mx/My_Book'),
+            (98, 'My Book', 'http://98.zco.mx/My_Book'),
+            (101, 'My Book', 'http://101.zco.mx/My_Book'),
         ]
         for t in tests:
             book.update_record(creator_id=t[0], name=t[1])

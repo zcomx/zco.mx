@@ -95,6 +95,8 @@
 <script>
 //<![CDATA[
     $(document).ready(function(){
+        $.fn.zco_utils.settings.reader_background_colour = "{{=book.background_colour or 'white'}}";
+
         $('#reader_section').css(
             {'background-color': "{{=book.background_colour or 'white'}}"}
         );

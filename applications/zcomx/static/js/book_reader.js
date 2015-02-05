@@ -191,12 +191,17 @@
             var buffer = 10;
             if (num < this.image_count()) {
                 reader_section.height(section_h - buffer);
+                reader_section.css({
+                    'background-color': $.fn.zco_utils.settings.reader_background_colour,
+                });
             }else {
                 /* Auto height on indicia page */
                 reader_section.height('auto');
                 reader_section.css({
                     'min-height': section_h -buffer,
                 });
+                reader_section.css({'background-color': 'white'})
+
             }
 
             /* Set heights of indicia page containers. */

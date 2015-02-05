@@ -45,6 +45,8 @@
             $('html,body').animate({scrollTop: tag.offset().top + buffer}, duration);
         },
 
+        settings: {},       /* global vars container */
+
         tooltip_lookup: function() {
             var key = $(this).data('tooltip_key');
             var title = $('body').data('zco:tooltips')[$(this).data('tooltip_key')];

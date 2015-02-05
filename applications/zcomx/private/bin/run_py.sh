@@ -63,18 +63,18 @@ py=$web2py_root/applications/zcomx/private/bin/python_web2py.sh
 
 # As a security precaution, validate that first argument is a script
 # in the bin subdirectory.
-
-[[ ! -e $1 ]] && {
-    __me "Script not found: $1";
+script=${args[0]}
+[[ ! -e "$script" ]] && {
+    __me "Script not found: $script";
     exit 1;
 }
 
-[[ $1 != applications/zcomx/private/bin/* ]] && {
-    __me "Script not found in private/bin directory: $1";
+[[ "$script" != applications/zcomx/private/bin/* ]] && {
+    __me "Script not found in private/bin directory: $script";
     exit 1;
 }
 
-$py "$@"
+$py "${args[@]}"
 
 __v && __md "Done ${0##*/}"
 exit 0
