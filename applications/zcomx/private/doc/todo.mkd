@@ -18,10 +18,20 @@ VERSION 2 - Before Going Live
             to:    '&nbsp; IS COPYRIGHT'
         [x] Remove italics from book name in licence
 
+    [ ] Set bg to white
+        https://dev.zco.mx/David_Blumenstein/Tristian_and_the_Gaza_Strip/020?reader=slider
+
     [ ] Social Media - Share Links
         twitter share link  - https://twitter.com/share?url=http%3A%2F%2F131.zco.mx%2FName_of_Book&text=Check+out+%27Name+of+Book%27+by+%40Cartoonist&hashtags=
         tumblr share link   - http://www.tumblr.com/share/photo?clickthru=https%3A%2F%2Fi.imgur.com%2Fs4Aps8r.png&source=https%3A%2F%2Fi.imgur.com%2Fs4Aps8r.png&caption=Check+out+Name+of+Book+by+%3Ca+class%3D%22tumblelog%22%3Ezcomx%3C%2Fa%3E
         facebook share link - http://www.facebook.com/sharer.php?s=100&p[url]=http%3A%2F%2Fi.imgur.com%2Fs4Aps8r.png
+
+        [ ] Tumblr has 'www' for username
+            https://www.tumblr.com/share/photo?source=https%3A%2F%2F128.zco.mx%2FTristian_and_the_Gaza_Strip%2F001.jpg&clickthru=https%3A%2F%2F128.zco.mx%2FTristian_and_the_Gaza_Strip&caption=Check+out+Tristian+and+the+Gaza+Strip+by+%3Ca+class%3D%22tumblelog%22%3Ewww%3C%2Fa%3E
+
+        [ ] facebook
+            [ ] has https, should be http
+                https://www.facebook.com/sharer/sharer.php?p[url]=http%3A%2F%2F128.zco.mx%2FTristian_and_the_Gaza_Strip%2F001.jpg
 
     [ ] Social Media - Follow Icons and Links
         twitter follow link  - https://twitter.com/intent/follow?screen_name=zcomx
