@@ -546,41 +546,44 @@ class Router(object):
         """Set the response.meta Open Graph values.
         Facebook sharer.php uses these.
         """
-        response = current.response
+        meta = {}       # k=property, v=content
 
-        response.meta['og:title'] = 'zco.mx'
-        response.meta['og:type'] = ''
-        response.meta['og:url'] = URL(host=True)
-        response.meta['og:image'] = URL(
+        meta['og:title'] = 'zco.mx'
+        meta['og:type'] = ''
+        meta['og:url'] = URL(host=True)
+        meta['og:image'] = URL(
             c='static',
             f='images/zco.mx-logo-small.png',
             host=True,
         )
-        response.meta['og:site_name'] = 'zco.mx'
-        response.meta['og:description'] = (
+        meta['og:site_name'] = 'zco.mx'
+        meta['og:description'] = (
             'zco.mx is a curated not-for-profit comic-sharing website'
             ' for self-publishing cartoonists and their readers.'
         )
-        # response.meta['fb:admins'] = ''
 
         if self.book_record:
-            response.meta['og:title'] = self.book_record.name
-            response.meta['og:type'] = 'book'
-            response.meta['og:url'] = book_short_url(self.book_record)
-            response.meta['og:image'] = short_page_img_url(
+            meta['og:title'] = self.book_record.name
+            meta['og:type'] = 'book'
+            meta['og:url'] = book_short_url(self.book_record)
+            meta['og:image'] = short_page_img_url(
                 get_page(self.book_record, page_no='first')
             )
-            response.meta['og:description'] = self.book_record.description
+            meta['og:description'] = self.book_record.description or ''
         elif self.creator_record:
-            response.meta['og:title'] = creator_formatted_name(
+            meta['og:title'] = creator_formatted_name(
                 self.creator_record)
-            response.meta['og:type'] = 'profile'
-            response.meta['og:url'] = creator_short_url(self.book_record)
-            response.meta['og:image'] = URL(
+            meta['og:type'] = 'profile'
+            meta['og:url'] = creator_short_url(self.book_record)
+            meta['og:image'] = URL(
                 c='images',
                 f='download',
                 args=self.creator_record.image,
                 vars={'size': 'web'},
                 host=True
             ) if self.creator_record.image else ''
-            response.meta['og:description'] = self.creator_record.bio or ''
+            meta['og:description'] = self.creator_record.bio or ''
+
+        response = current.response
+        for k, v in meta.items():
+            response.meta[k] = {'property': k, 'content': v}

@@ -102,7 +102,6 @@ class FacebookSocialMedia(SocialMedia):
             string: url representing a share link.
         """
         query = {
-            's': '100',
             'p[url]': short_page_url(get_page(self.book, page_no='first')),
         }
         return '{site}/sharer.php?{path}'.format(
