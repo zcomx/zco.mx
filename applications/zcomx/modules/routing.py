@@ -317,21 +317,11 @@ class Router(object):
                 self.redirect = creator_url(self.creator_record)
                 return
 
-        # If book page has image extension, redirect to the url pointing
-        # directly at the image.
-        if request.vars.page and self.book_page_record:
-            extension = os.path.splitext(request.vars.page)[1]
-            if extension:
-                self.redirect = URL(
-                    c='images',
-                    f='download',
-                    args=self.book_page_record.image,
-                    vars={'size': 'web'}
-                )
-                return
-
         if self.book_page_record:
-            self.set_reader_view()
+            if request.vars.page and os.path.splitext(request.vars.page)[1]:
+                self.set_page_image_view()
+            else:
+                self.set_reader_view()
         elif self.book_record:
             self.set_book_view()
         elif self.creator_record:
@@ -457,6 +447,17 @@ class Router(object):
         )
 
         self.view = 'creators/creator.html'
+
+    def set_page_image_view(self):
+        """Set the view for the book page image."""
+        book_page_record = self.get_book_page()
+
+        self.view_dict = dict(
+            image=book_page_record.image,
+            size='web',
+        )
+
+        self.view = 'books/page_image.html'
 
     def set_reader_view(self):
         """Set the view for the book reader."""

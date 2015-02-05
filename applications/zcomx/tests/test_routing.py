@@ -190,6 +190,10 @@ class TestRouter(LocalTestCase):
                 'links',
                 'page_count',
             ],
+            'page_image': [
+                'image',
+                'size',
+            ],
             'page_not_found': [
                 'message',
                 'urls',
@@ -713,6 +717,22 @@ class TestRouter(LocalTestCase):
         self.assertEqual(
             router.view,
             'creators/creator.html',
+        )
+        self.assertEqual(router.redirect, None)
+
+    def test__set_page_image_view(self):
+        router = Router(db, self._request, auth)
+        router.creator_record = self._creator
+        router.book_record = self._book
+        router.book_page_record = self._book_page
+        router.set_page_image_view()
+        self.assertEqual(
+            sorted(router.view_dict.keys()),
+            self._keys_for_view['page_image'],
+        )
+        self.assertEqual(
+            router.view,
+            'books/page_image.html',
         )
         self.assertEqual(router.redirect, None)
 
