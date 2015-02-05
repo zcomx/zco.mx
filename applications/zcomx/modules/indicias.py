@@ -153,7 +153,7 @@ class IndiciaPage(object):
                 ))
 
         icon_divs = []
-        for name, icon in self.follow_icons().items():
+        for icon in self.follow_icons().values():
             icon_divs.append(DIV(
                 icon,
                 _class='follow_icon',
@@ -1504,7 +1504,7 @@ class IndiciaUpdateInProgress(Exception):
 def update_creator_indicia(
         creator,
         background=False,
-        nice=False,
+        nice=True,
         resize=True,
         optimize=True):
     """Update a creator's indicia images.
@@ -1512,7 +1512,8 @@ def update_creator_indicia(
     Args:
         creator: Row instance representing a creator record.
         background: if True, the update process is backgrounded
-        nice: if True, nice update process
+        nice: if True, nice backgrounded update process. Only applies if
+            background=True.
         resize: if True, create various sizes of indicia images
         optimize: if True, optimize images
 
@@ -1550,6 +1551,7 @@ def update_creator_indicia(
     if nice:
         args.append('nice')
     args.append(run_py)
+    args.append('--')
     args.append(script)
     if resize:
         args.append('-r')

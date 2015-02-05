@@ -6,6 +6,7 @@
 Test suite for zcomx/modules/utils.py
 
 """
+import glob
 import grp
 import hashlib
 import inspect
@@ -37,7 +38,9 @@ from applications.zcomx.modules.images import \
     set_thumb_dimensions, \
     store
 from applications.zcomx.modules.test_runner import LocalTestCase
-from applications.zcomx.modules.shell_utils import imagemagick_version
+from applications.zcomx.modules.shell_utils import \
+    imagemagick_version, \
+    TempDirectoryMixin
 from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
@@ -45,6 +48,89 @@ from applications.zcomx.modules.utils import entity_to_row
 # pylint: disable=C0111,R0904
 # W0212 (protected-access): *Access to a protected member
 # pylint: disable=W0212
+
+
+class ResizerForTesting(TempDirectoryMixin):
+    """Class representing resizer for testing.
+
+    The file sizes are just copied from test data. <size>.jpg
+    """
+
+    def __init__(self, filename):
+        """Constructor
+
+        Args:
+            filename: string, name of original image file
+        """
+        self.filename = filename
+        self.filenames = {'ori': None, 'cbz': None, 'web': None}
+
+    def run(self, nice=False):
+        """Run the shell script and get the output.
+
+        Args:
+            nice: If True, run resize script with nice.
+        """
+        # Keep this simple and fast.
+        test_data_dir = os.path.join(request.folder, 'private/test/data/')
+        for k in self.filenames.keys():
+            if k == 'ori':
+                src = self.filename
+            else:
+                src = os.path.join(test_data_dir, '{k}.jpg'.format(k=k))
+            dst = os.path.join(
+                self.temp_directory(), '{k}-test.jpg'.format(k=k))
+            shutil.copy(src, dst)
+
+        for prefix in self.filenames.keys():
+            path = os.path.join(
+                self.temp_directory(),
+                '{pfx}-*'.format(pfx=prefix)
+            )
+            matches = glob.glob(path)
+            if matches:
+                self.filenames[prefix] = matches[0]
+
+
+class ResizerUseOri(TempDirectoryMixin):
+    """Class representing resizer for testing.
+
+    The file sizes are just duplicates of the original file.
+    """
+
+    def __init__(self, filename):
+        """Constructor
+
+        Args:
+            filename: string, name of original image file
+        """
+        self.filename = filename
+        self.filenames = {'ori': None, 'cbz': None, 'web': None}
+
+    def run(self, nice=False):
+        """Run the shell script and get the output.
+
+        Args:
+            nice: If True, run resize script with nice.
+        """
+        # Keep this simple and fast.
+        # Copy files from test data. <size>.jpg
+        test_data_dir = os.path.join(request.folder, 'private/test/data/')
+        for k in self.filenames.keys():
+            src = self.filename
+            dst = os.path.join(
+                self.temp_directory(), '{k}-test.jpg'.format(k=k))
+            shutil.copy(src, dst)
+
+        for prefix in self.filenames.keys():
+            path = os.path.join(
+                self.temp_directory(),
+                '{pfx}-*'.format(pfx=prefix)
+            )
+            matches = glob.glob(path)
+            if matches:
+                self.filenames[prefix] = matches[0]
+
 
 
 class ImageTestCase(LocalTestCase):
@@ -685,7 +771,6 @@ class TestUploadImage(ImageTestCase):
             nameonly=True,
         )
         for size in have:
-            print 'FIXME size: {var}'.format(var=size)
             self.assertTrue(os.path.exists(filename_for_size(
                 original_fullname, size)))
         for size in have_not:
@@ -928,10 +1013,15 @@ class TestFunctions(ImageTestCase):
 
         # Check that files exists for all sizes
         up_image = UploadImage(db.book_page.image, got)
+        dims = {}
         for size in ['original', 'cbz', 'web']:
             filename = up_image.fullname(size=size)
             self.assertTrue(os.path.exists(filename))
             self.assertEqual(owner(filename), ('http', 'http'))
+            dims[size] = up_image.dimensions(size=size)
+        for i in range(0, 2):
+            self.assertTrue(dims['original'][i] > dims['cbz'][i])
+            self.assertTrue(dims['cbz'][i] > dims['web'][i])
 
         # Cleanup: Remove all files
         up_image.delete_all()
@@ -947,6 +1037,46 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(original_filename, 'image_with_no_ext')
         up_image = UploadImage(db.book_page.image, got)
         up_image.delete_all()
+
+        # Test resize=False
+        working_image = self._prep_image('cbz_plus.jpg')
+        got = store(db.book_page.image, working_image, resize=False)
+        self.assertTrue(re_store.match(got))
+        up_image = UploadImage(db.book_page.image, got)
+        dims = {}
+        for size in ['original', 'cbz', 'web']:
+            filename = up_image.fullname(size=size)
+            self.assertTrue(os.path.exists(filename))
+            self.assertEqual(owner(filename), ('http', 'http'))
+            dims[size] = up_image.dimensions(size=size)
+        # All should be the same size
+        for i in range(0, 2):
+            self.assertEqual(dims['original'][i], dims['cbz'][i])
+            self.assertEqual(dims['original'][i], dims['web'][i])
+
+        # Test resizer param
+        working_image = self._prep_image('cbz_plus.jpg')
+        got = store(
+            db.book_page.image, working_image, resizer=ResizerForTesting)
+        self.assertTrue(re_store.match(got))
+
+        # Test run_optimize variations
+        kbs = {True: 0, False: 0}
+        for k in kbs.keys():
+            working_image = self._prep_image('unoptimized.png')
+            got = store(
+                db.book_page.image,
+                working_image,
+                resizer=ResizerUseOri,
+                run_optimize=k,
+            )
+            if k:
+                time.sleep(1)        # Wait for background process to complete.
+            up_image = UploadImage(db.book_page.image, got)
+            filename = up_image.fullname(size='web')
+            kbs[k] = os.stat(filename).st_size
+
+        self.assertTrue(kbs[True] < kbs[False])
 
 
 def setUpModule():
