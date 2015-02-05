@@ -12,6 +12,7 @@ from gluon import *
 from applications.zcomx.modules.books import \
     get_page, \
     short_page_img_url, \
+    short_page_url, \
     short_url
 from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.utils import entity_to_row
@@ -74,7 +75,7 @@ class FacebookSocialMedia(SocialMedia):
     """Class representing social media: facebook"""
 
     icon_filename = 'facebook_logo.svg'
-    site = 'https://www.facebook.com'
+    site = 'http://www.facebook.com'
 
     def __init__(self, book_entity, creator_entity=None):
         """Constructor
@@ -102,7 +103,7 @@ class FacebookSocialMedia(SocialMedia):
         """
         query = {
             's': '100',
-            'p[url]': short_page_img_url(get_page(self.book, page_no='first')),
+            'p[url]': short_page_url(get_page(self.book, page_no='first')),
         }
         return '{site}/sharer.php?{path}'.format(
             site=self.site, path=urllib.urlencode(query))

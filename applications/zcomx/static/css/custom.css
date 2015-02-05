@@ -1416,7 +1416,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     position: relative;
 }
 
-
 #reader_section .nav-dots {
     bottom: 9px;
     display: block;
@@ -1880,7 +1879,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-right: auto;
     margin-top: 1em;
     min-height: 5em;
-    width: 30em;
+}
+
+@media (min-width: 768px) {
+    .indicia_text_container {
+        width: 30em;
+    }
 }
 
 .indicia_text_container .call_to_action {
@@ -1936,6 +1940,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #reader_section .indicia_preview_section {
     background-color: #ffffff;
 }
+
+#reader_section .scroller .indicia_preview_section {
+    width: 90%;
+    margin-left: 5%;
+}
+
 
 /* icon sizes start */
 .size-08 { font-size:  8px; }

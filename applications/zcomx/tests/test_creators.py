@@ -419,8 +419,8 @@ class TestFunctions(LocalTestCase):
             # (creator_id, expect)
             (None, None),
             (-1, None),
-            (98, 'https://98.zco.mx'),
-            (101, 'https://101.zco.mx'),
+            (98, 'http://98.zco.mx'),
+            (101, 'http://101.zco.mx'),
         ]
         for t in tests:
             self.assertEqual(short_url(t[0]), t[1])

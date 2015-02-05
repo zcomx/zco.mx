@@ -130,10 +130,12 @@ class IndiciaPage(object):
         )
 
         # js is used to flesh out the contribute widget
+
         text_divs.append(
-            DIV(
-                _class='contribute_widget',
-            )
+            DIV(**{
+                '_class': 'contribute_widget',
+                '_data-link_type': 'button',
+            })
         )
 
         if self.creator:

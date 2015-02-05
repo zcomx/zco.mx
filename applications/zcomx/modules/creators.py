@@ -302,8 +302,10 @@ def short_url(creator_entity):
 
     request = current.request
 
+    # Until SSL certs are available for subdomains, don't use SSL.
     return '{scheme}://{cid}.zco.mx'.format(
-        scheme=request.env.wsgi_url_scheme or 'https',
+        # scheme=request.env.wsgi_url_scheme or 'https',
+        scheme='http',
         cid=creator_record.id,
     )
 

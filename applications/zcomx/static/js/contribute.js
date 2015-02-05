@@ -58,7 +58,8 @@
 
             _load: function(elem) {
                 var link_class = '';
-                if (settings.link_type === 'button') {
+                var link_type = $(elem).data('link_type') || settings.link_type;
+                if (link_type === 'button') {
                     link_class = 'btn btn-default contribute_widget_button';
                 }
                 var container = $(
