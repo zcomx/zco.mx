@@ -19,11 +19,9 @@ from applications.zcomx.modules.books import \
     parse_url_name, \
     read_link, \
     short_page_img_url, \
-    short_url as book_short_url, \
     url as book_url
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
-    short_url as creator_short_url, \
     url as creator_url
 from applications.zcomx.modules.indicias import BookIndiciaPage
 from applications.zcomx.modules.links import CustomLinks
@@ -562,19 +560,28 @@ class Router(object):
             ' for self-publishing cartoonists and their readers.'
         )
 
+        creator_name = creator_formatted_name(self.creator_record) \
+            if self.creator_record else None
+
         if self.book_record:
             meta['og:title'] = self.book_record.name
             meta['og:type'] = 'book'
-            meta['og:url'] = book_short_url(self.book_record)
+            meta['og:url'] = book_url(self.book_record, host=True)
             meta['og:image'] = short_page_img_url(
                 get_page(self.book_record, page_no='first')
             )
-            meta['og:description'] = self.book_record.description or ''
+            if self.book_record.description:
+                meta['og:description'] = self.book_record.description
+            else:
+                if creator_name:
+                    meta['og:description'] = \
+                        'By {c} available at zco.mx'.format(c=creator_name)
+                else:
+                    meta['og:description'] = 'Available at zco.mx'
         elif self.creator_record:
-            meta['og:title'] = creator_formatted_name(
-                self.creator_record)
+            meta['og:title'] = creator_name
             meta['og:type'] = 'profile'
-            meta['og:url'] = creator_short_url(self.book_record)
+            meta['og:url'] = creator_url(self.book_record, host=True)
             meta['og:image'] = URL(
                 c='images',
                 f='download',
@@ -582,7 +589,10 @@ class Router(object):
                 vars={'size': 'web'},
                 host=True
             ) if self.creator_record.image else ''
-            meta['og:description'] = self.creator_record.bio or ''
+            if self.creator_record.bio:
+                meta['og:description'] = self.creator_record.bio
+            else:
+                meta['og:description'] = 'Available at zco.mx'
 
         response = current.response
         for k, v in meta.items():
