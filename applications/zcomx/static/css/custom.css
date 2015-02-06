@@ -963,7 +963,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border-radius: 3px;
     border: 1px solid #666666;
     color: #333333;
-    font-size: 23px;
+    font-size: 21px;
     font-weight: bold;
     height: inherit;
     margin-right: 10px;
@@ -1906,10 +1906,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-top: 2em;
 }
 
-.indicia_text_container .contribute_widget #contribute_link {
-    font-size: 20px;
-}
-
 .indicia_text_container .follow_creator {
     margin: 0 0 0.2em;
     text-transform: uppercase;
@@ -1939,6 +1935,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-left: auto;
     margin-right: auto;
     max-width: 540px;
+    padding-bottom: 1em;
 }
 
 #indicia_section .indicia_text_container {
