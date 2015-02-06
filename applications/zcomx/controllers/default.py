@@ -53,9 +53,7 @@ def user():
     if request.args(0) == 'change_password' and request.extension == 'html':
         redirect(URL(c='login', f='account', extension=False))
 
-    hide_labels = True if request.args(0) not in ['register'] else False
-    if request.extension == 'html' or hide_labels:
-        auth.settings.formstyle = formstyle_bootstrap3_login
+    auth.settings.formstyle = formstyle_bootstrap3_login
 
     if request.args(0) == 'profile':
         auth.settings.profile_next = URL(
@@ -126,20 +124,7 @@ def user():
     if form in ['ACCESS DENIED', 'Insufficient privileges']:
         redirect(URL(c='default', f='index'))
 
-    for k in form.custom.widget.keys():
-        if hasattr(form.custom.widget[k], 'add_class'):
-            form.custom.widget[k].add_class('input-lg')
-    if form.custom.widget.password_two:
-        # Looks like a web2py bug, formstyle is not applied
-        form.custom.widget.password_two.add_class('form-control')
-    if form.custom.submit:
-        form.custom.submit.add_class('btn-block')
-        form.custom.submit.add_class('input-lg')
-
-    if hide_labels:
-        for label in form.elements('label'):
-            if label.attributes['_id'] != 'auth_user_remember_me__label':
-                label.add_class('labels_hidden')
+    if request.args(0) != 'register':
         if form.custom.label[userfield]:
             form.custom.label[userfield] = 'Email Address'
         for f in form.custom.widget.keys():
@@ -149,15 +134,6 @@ def user():
                     form.custom.widget[f].update(
                         _placeholder=form.custom.label[f]
                     )
-        if request.args(0) == 'login':
-            if form.custom.widget[userfield]:
-                form.custom.widget[userfield].add_class('align_center')
-            if form.custom.widget[passfield]:
-                form.custom.widget[passfield].add_class('align_center')
-
-    if request.extension == 'html' and not hide_labels:
-        for label in form.elements('label'):
-            label.add_class('align_left')
 
     return dict(form=form)
 

@@ -230,6 +230,7 @@ def formstyle_bootstrap3_login(form, fields):
         2. Use inline checkbox adapted from formstyle_bootstrap3_inline_factory
 
     """
+    import sys; print >> sys.stderr, 'FIXME current.request.args: {var}'.format(var=current.request.args)
     form.add_class('form-horizontal')
     parent = FIELDSET()
     for id, label, controls, help in fields:
@@ -240,12 +241,10 @@ def formstyle_bootstrap3_login(form, fields):
         # submit unflag by default
         _submit = False
         if isinstance(controls, INPUT):
-            controls.add_class('col-xs-12')
-
             if controls['_type'] == 'submit':
                 # flag submit button
                 _submit = True
-                controls['_class'] = 'btn btn-primary'
+                controls['_class'] = 'btn btn-primary btn-block'
             if controls['_type'] == 'button':
                 controls['_class'] = 'btn btn-default'
             elif controls['_type'] == 'file':
@@ -263,6 +262,14 @@ def formstyle_bootstrap3_login(form, fields):
                 )
                 label = ''
 
+        if current.request.args(0) == 'login' \
+                and isinstance(controls, INPUT) \
+                and controls['_type'] != 'checkbox':
+            controls.add_class('align_center')
+
+        if isinstance(controls, INPUT) and controls['_type'] != 'checkbox':
+            controls.add_class('input-lg')
+
         # For password fields, which are wrapped in a CAT object.
         if isinstance(controls, CAT) and isinstance(controls[0], INPUT):
             controls[0].add_class('col-xs-12')
@@ -274,7 +281,12 @@ def formstyle_bootstrap3_login(form, fields):
             controls.add_class('form-control')
 
         if isinstance(label, LABEL):
-            label['_class'] = 'col-xs-12 control-label'
+            label['_class'] = 'col-xs-12 control-label align_left'
+
+        if current.request.args(0) != 'register':
+            if isinstance(controls, INPUT) and controls['_type'] != 'checkbox':
+                if isinstance(label, LABEL):
+                    label.add_class('labels_hidden')
 
         if _submit:
             # submit button has unwrapped label and controls, different class
