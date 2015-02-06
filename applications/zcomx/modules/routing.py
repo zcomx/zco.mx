@@ -302,7 +302,7 @@ class Router(object):
         # Handle redirects
         # If the creator is provided as an id, redirect to url with the creator
         # full name.
-        if self.creator_record.id == self.request.vars.creator:
+        if str(self.creator_record.id) == self.request.vars.creator:
             request_vars = request.vars
             if 'creator' in request_vars:
                 del request_vars['creator']
@@ -316,7 +316,11 @@ class Router(object):
                 self.redirect = book_url(self.book_record)
                 return
             if self.creator_record:
-                self.redirect = creator_url(self.creator_record)
+                c_url = creator_url(self.creator_record)
+                if request.vars.monies:
+                    self.redirect = '/'.join([c_url, 'monies'])
+                else:
+                    self.redirect = c_url
                 return
 
         self.set_response_meta()
