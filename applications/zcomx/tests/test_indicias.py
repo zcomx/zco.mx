@@ -166,9 +166,10 @@ class TestBookIndiciaPage(ImageTestCase):
 
         indicia = BookIndiciaPage(self._book)
         xml = indicia.call_to_action_text()
+        v = int(time.mktime(request.now.timetuple()))
         self.assertEqual(
             xml.xml(),
-            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=https%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=https%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case%2F001.jpg&amp;clickthru=https%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="https://www.facebook.com/sharer.php?p%5Burl%5D=https%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case%2F001.jpg&amp;s=100" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id)
+            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case%2F001.jpg&amp;clickthru=http%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case%2F001&amp;v={v}" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
         )
 
     def test__follow_icons(self):
@@ -248,7 +249,7 @@ class TestBookIndiciaPage(ImageTestCase):
         this_year = datetime.date.today().year
         self.assertEqual(
             indicia.licence_text(),
-            '<a href="{b_url}">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(
+            '<a href="{b_url}">IMAGE TEST CASE</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(
                 b_url=book_short_url(self._book),
                 c_url=creator_short_url(self._creator),
                 y=this_year
@@ -263,7 +264,7 @@ class TestBookIndiciaPage(ImageTestCase):
         indicia = BookIndiciaPage(book)
         self.assertEqual(
             indicia.licence_text(),
-            '<a href="{b_url}">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.  THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0" target="_blank">CC BY 4.0 INT`L LICENSE</a>.'.format(
+            '<a href="{b_url}">IMAGE TEST CASE</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0" target="_blank">CC BY 4.0 INT`L LICENSE</a>.'.format(
                 b_url=book_short_url(self._book),
                 c_url=creator_short_url(self._creator),
                 y=this_year
@@ -389,7 +390,7 @@ class TestCreatorIndiciaPage(ImageTestCase):
         indicia = CreatorIndiciaPage(self._creator)
         self.assertEqual(
             indicia.licence_text(),
-            '<a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="{url}">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(url=creator_short_url(self._creator), y=this_year)
+            '<a href="/">NAME OF BOOK</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{url}">FIRST LAST</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(url=creator_short_url(self._creator), y=this_year)
         )
 
 
@@ -455,7 +456,7 @@ class TestIndiciaPage(LocalTestCase):
         this_year = datetime.date.today().year
         self.assertEqual(
             indicia.licence_text(),
-            '<a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) {y} BY <a href="/">CREATOR NAME</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+            '<a href="/">NAME OF BOOK</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="/">CREATOR NAME</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
         )
 
     def test__render(self):
