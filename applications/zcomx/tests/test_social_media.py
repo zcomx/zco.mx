@@ -6,6 +6,7 @@
 Test suite for zcomx/modules/social_media.py
 
 """
+import time
 import unittest
 from applications.zcomx.modules.social_media import \
     SocialMedia, \
@@ -109,7 +110,7 @@ class TestFacebookSocialMedia(BaseTestCase):
         tests = [
             # (facebook, expect)
             (None, None),
-            ('https://www.facebook.com/auser', 'https://www.facebook.com/auser'),
+            ('http://www.facebook.com/auser', 'http://www.facebook.com/auser'),
         ]
         for t in tests:
             self._creator.update_record(facebook=t[0])
@@ -127,10 +128,11 @@ class TestFacebookSocialMedia(BaseTestCase):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         media = FacebookSocialMedia(self._book, creator_entity=self._creator)
+        v = int(time.mktime(request.now.timetuple()))
         self.assertEqual(
             media.share_url(),
-            'https://www.facebook.com/sharer.php?p%5Burl%5D=https%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media%2F001.png&s=100'.format(
-                cid=self._creator.id)
+            'http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media%2F001&v={v}'.format(
+                cid=self._creator.id, v=v)
         )
 
 
@@ -184,7 +186,7 @@ class TestTumblrSocialMedia(BaseTestCase):
         db.commit()
         self.assertEqual(
             media.share_url(),
-            'https://www.tumblr.com/share/photo?source=https%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media%2F001.png&clickthru=https%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E'.format(cid=self._creator.id)
+            'https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media%2F001.png&clickthru=http%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E'.format(cid=self._creator.id)
 
         )
 
@@ -192,7 +194,7 @@ class TestTumblrSocialMedia(BaseTestCase):
         db.commit()
         self.assertEqual(
             media.share_url(),
-            'https://www.tumblr.com/share/photo?source=https%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media%2F001.png&clickthru=https%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3Ezco%3C%2Fa%3E'.format(cid=self._creator.id)
+            'https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media%2F001.png&clickthru=http%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3Ezco%3C%2Fa%3E'.format(cid=self._creator.id)
         )
 
 
@@ -230,14 +232,14 @@ class TestTwitterSocialMedia(BaseTestCase):
         db.commit()
         self.assertEqual(
             media.share_url(),
-            'https://twitter.com/share?url=https%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media&text=Check+out+%27Test+Social+Media%27+by+First+Last&hashtage='.format(cid=self._creator.id)
+            'https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media&text=Check+out+%27Test+Social+Media%27+by+First+Last&hashtage='.format(cid=self._creator.id)
         )
 
         self._creator.update_record(twitter='@zco')
         db.commit()
         self.assertEqual(
             media.share_url(),
-            'https://twitter.com/share?url=https%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media&text=Check+out+%27Test+Social+Media%27+by+%40zco&hashtage='.format(cid=self._creator.id)
+            'https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FTest_Social_Media&text=Check+out+%27Test+Social+Media%27+by+%40zco&hashtage='.format(cid=self._creator.id)
         )
 
 

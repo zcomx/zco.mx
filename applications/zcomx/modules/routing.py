@@ -581,7 +581,7 @@ class Router(object):
         elif self.creator_record:
             meta['og:title'] = creator_name
             meta['og:type'] = 'profile'
-            meta['og:url'] = creator_url(self.book_record, host=True)
+            meta['og:url'] = creator_url(self.creator_record, host=True)
             meta['og:image'] = URL(
                 c='images',
                 f='download',

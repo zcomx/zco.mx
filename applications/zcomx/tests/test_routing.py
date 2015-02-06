@@ -645,10 +645,8 @@ class TestRouter(LocalTestCase):
         # Book page image
         request_vars.page = '001.jpg'
         expect = Storage({
-            'view_dict_keys': [],
-            'view': None,
-            'redirect':
-                '/images/download/book_page.image.000.aaa.png?size=web',
+            'view_dict_keys': self._keys_for_view['page_image'],
+            'view': 'books/page_image.html'
         })
         do_test(request_vars, expect)
 
@@ -765,6 +763,62 @@ class TestRouter(LocalTestCase):
         )
         router.book_record.update_record(reader='slider')
         db.commit()
+
+    def test__set_response_meta(self):
+        router = Router(db, self._request, auth)
+        router.creator_record = self._creator
+        response.meta = Storage()
+
+        def test_it(expect):
+            meta = dict(response.meta)
+            self.assertEqual(sorted(meta.keys()), sorted(expect.keys()))
+            for k, v in expect.items():
+                self.assertEqual(
+                    meta[k],
+                    {'content': v, 'property': k}
+                )
+
+        test_it({})
+
+        # Router has no book, expect creator data.
+        expect = {
+            'og:description': 'Available at zco.mx',
+            'og:image': '',
+            'og:site_name': 'zco.mx',
+            'og:title': 'First Last',
+            'og:type': 'profile',
+            'og:url': 'http://127.0.0.1:8000/First_Last'
+        }
+        router.set_response_meta()
+        test_it(expect)
+
+        bio = 'Creator of creations at zco.mx'
+        router.creator_record.bio = bio
+        expect['og:description'] = bio
+        router.set_response_meta()
+        test_it(expect)
+
+        # Router has book, expect book data.
+        router.book_record = self._book
+
+        expect = {
+            'og:description': 'By First Last available at zco.mx',
+            'og:image': 'http://{cid}.zco.mx/My_Book/001.png'.format(
+                cid=self._creator.id),
+            'og:site_name': 'zco.mx',
+            'og:title': 'My Book',
+            'og:type': 'book',
+            'og:url': 'http://127.0.0.1:8000/First_Last/My_Book'
+        }
+
+        router.set_response_meta()
+        test_it(expect)
+
+        descr = 'One of many fine books at zco.mx'
+        router.book_record.description = descr
+        expect['og:description'] = descr
+        router.set_response_meta()
+        test_it(expect)
 
 
 class TestFunctions(LocalTestCase):
