@@ -377,6 +377,7 @@ class Grid(object):
         for o in orderbys:
             active = 'active' if o == orderby else ''
             orderby_vars = dict(self.request.vars)
+            orderby_vars.pop('contribute', None)    # Del contribute modal trig
             if 'page' in orderby_vars:
                 # Each tab should reset to page 1.
                 del orderby_vars['page']
@@ -410,6 +411,7 @@ class Grid(object):
         buttons = []
         for v in sorted(self.viewbys.keys()):
             viewby_vars = dict(self.request.vars)
+            viewby_vars.pop('contribute', None)     # Del contribute modal trig
             viewby_vars['view'] = v
             disabled = 'disabled' if v == self.viewby else 'active'
             buttons.append(A(

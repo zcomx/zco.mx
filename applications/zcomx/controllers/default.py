@@ -233,6 +233,11 @@ def logos():
     return dict(expose=expose)
 
 
+def monies():
+    """Controller for front page with contribute modal open."""
+    redirect(URL(c='search', f='index', vars={'contribute': 1}))
+
+
 def overview():
     """Overview page"""
     return markmin('overview')
