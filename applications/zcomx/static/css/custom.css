@@ -872,7 +872,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-bottom: 1em;
 }
 
+#contribute_modal_page #options_section {
+    min-width: 17em;
+    padding: 0;
+}
+
 #contribute_modal_page .modal_params_container label {
+    padding: 0;
     text-align: right;
 }
 

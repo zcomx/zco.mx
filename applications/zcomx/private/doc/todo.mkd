@@ -57,6 +57,7 @@ VERSION 2 - Before Going Live
         [x] fix up css so input and button are same height
     [x] add padding to bottom
 [x] Get Marc's permission to use Shrimpy
+[x] fix css on contribute modal
 
 [ ] Monies URL
     "Select a book below to give monies to!!"
@@ -82,6 +83,7 @@ VERSION 2 - Before Going Live
     https://dev.zco.mx/login
     'Remember me' is out of whack
 
+
 ---
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
@@ -93,6 +95,9 @@ VERSION 2 - Before Going Live
     [ ] redirect - http://101.zco.mx/Name_of_Comic_01_of_04.torrent http://101.zco.mx/Name_of_Comic_001.torrent
     [ ] metadata
         $ zip test.zip -z <<< '2014|Cartoonist Name|Title of Book|64'   ## add metadata to zip comment field
+
+[ ] Remove 'dev.' from domain name
+    Search for all instances of 'dev.zco.mx'
 
 [S] Setup Mailing List
 
@@ -130,9 +135,6 @@ VERSION 2 - Before Going Live
                                                  [CC BY]
         Except  where  otherwise noted, content  on this
         site is licenced under a CC BY 4.0 Int'l licence
-
-[ ] Remove 'dev.' from domain name
-    Search for all instances of 'dev.zco.mx'
 
 VERSION 3
 [S] Reader notifications of new material
