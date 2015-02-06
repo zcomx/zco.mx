@@ -8,6 +8,12 @@
     $(document).ready(function(){
         setTimeout(function() {
             $('.contribute_button').contribute_button();
+            $(document).on('mousedown', '.no_rclick_menu', function(e) {
+                if(e.which == 3) {
+                    // disable right click menu
+                    this.oncontextmenu = function() {return false;};
+                }
+            });
             $('.fixme').click(function(e) {
                 alert('This feature is not working yet.');
                 e.preventDefault();

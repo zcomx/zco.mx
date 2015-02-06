@@ -230,7 +230,6 @@ def formstyle_bootstrap3_login(form, fields):
         2. Use inline checkbox adapted from formstyle_bootstrap3_inline_factory
 
     """
-    import sys; print >> sys.stderr, 'FIXME current.request.args: {var}'.format(var=current.request.args)
     form.add_class('form-horizontal')
     parent = FIELDSET()
     for id, label, controls, help in fields:

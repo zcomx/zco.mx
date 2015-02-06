@@ -32,7 +32,7 @@
     };
 
     $.fn.contribute_button.defaults = {
-        cssClass: 'contribute_modal',
+        cssClass: 'contribute_modal no_rclick_menu',
     };
 
 }(window.jQuery));
@@ -57,11 +57,6 @@
             },
 
             _load: function(elem) {
-                var link_class = '';
-                var link_type = $(elem).data('link_type') || settings.link_type;
-                if (link_type === 'button') {
-                    link_class = 'btn btn-default contribute_widget_button';
-                }
                 var container = $(
                       '<div class="input_group_container">'
                     + '    <div class="input-group">'
@@ -70,13 +65,20 @@
                     + '    </div>'
                     + '</div>'
                     + '<div class="contribute_link_container">'
-                    + '    <a class="'+ link_class +'" href="' + settings.paypal_url + '" id="contribute_link">contribute</a>'
+                    + '    <a href="' + settings.paypal_url + '" id="contribute_link">contribute</a>'
                     + '</div>'
                     + '<div class="contribute_error"></div>'
                 );
                 container.appendTo(elem);
                 var input = $(elem).find('#contribute_amount');
                 var link = $(elem).find('#contribute_link');
+                var link_type = $(elem).data('link_type') || settings.link_type;
+                if (link_type === 'button') {
+                    link.addClass('btn')
+                        .addClass('btn-default')
+                        .addClass('contribute_widget_button');
+                }
+                link.addClass('no_rclick_menu');
                 var error = $(elem).find('.contribute_error').first();
                 input.focus(function(e) {
                     $(this).removeClass('indented');
