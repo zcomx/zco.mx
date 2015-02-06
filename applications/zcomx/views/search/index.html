@@ -16,3 +16,19 @@
 {{=grid_div}}
 
 </div>
+
+<a href="/contributions/modal" id="contribute_thingy" class="hidden"></a>
+
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        var contribute = '{{=request.vars.contribute or ""}}';
+        if (contribute) {
+            $('#contribute_thingy').contribute_button();
+            setTimeout( function() {
+                $('#contribute_thingy').trigger('click');
+            }, 2000);
+        }
+    });
+//]]>
+</script>

@@ -253,6 +253,17 @@ class TestGrid(LocalTestCase):
         self.assertEqual(anchor_3['href'], '/?o=creators')
         self.assertEqual(anchor_3.string, 'cartoonists')
 
+        # Test removal of request.vars.contribute
+        grid.request.vars.contribute = '1'
+        tabs = grid.tabs()
+        soup = BeautifulSoup(str(tabs))
+        anchor_1 = soup.ul.li.a
+        self.assertEqual(anchor_1['href'], '/?o=ongoing')
+        anchor_2 = soup.ul.li.nextSibling.a
+        self.assertEqual(anchor_2['href'], '/?o=contributions')
+        anchor_3 = soup.ul.li.nextSibling.nextSibling.a
+        self.assertEqual(anchor_3['href'], '/?o=creators')
+
     def test__tile_value(self):
         creator = self.add(db.creator, dict(path_name='test__tile_value'))
         name = '_My Book_'
@@ -306,6 +317,15 @@ class TestGrid(LocalTestCase):
         self.assertEqual(anchor_2['href'], '/?view=tile')
         span_2 = anchor_2.span
         self.assertEqual(span_2['class'], 'glyphicon glyphicon-th-large')
+
+        # Test removal of request.vars.contribute
+        grid.request.vars.contribute = '1'
+        buttons = grid.viewby_buttons()
+        soup = BeautifulSoup(str(buttons))
+        anchor_1 = soup.div.a
+        self.assertEqual(anchor_1['href'], '/?view=list')
+        anchor_2 = soup.div.a.nextSibling
+        self.assertEqual(anchor_2['href'], '/?view=tile')
 
     def test__visible_fields(self):
         grid = SubGrid()
