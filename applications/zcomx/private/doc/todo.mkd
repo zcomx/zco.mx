@@ -4,30 +4,26 @@ VERSION 2 - Before Going Live
 
 [ ] Indicia Page - html version
     see example -- http://p.zsw.ca/CO.png
-
     [x] Invisible layer needs to be shortened
-
     [x] Direct link to the html indicia page
         eg https://dev.zco.mx/David_C_Mahler/Food_Magik/025
-
-    [ ] Text Formatting
+    [x] Text Formatting
         [x] GIVING SOME MONIES!! &nbsp; OR BY TELLING OTHERS
         [x] Remove italics from book name in licence
-        [ ] &nbsp; IS COPYRIGHT (C) 2014 BY
+        [x] &nbsp; IS COPYRIGHT (C) 2014 BY
             Now there is an extra space
             change ' &nbsp; IS COPYRIGHT'
             to:    '&nbsp; IS COPYRIGHT'
-
             The goal is to have two space between 'Food Magik' and 'is'
-
-    [ ] Set bg to white on indicia page
+    [x] Set bg to white on indicia page
         eg https://dev.zco.mx/David_Blumenstein/Tristian_and_the_Gaza_Strip/020?reader=slider
 
         [ ] check scroll mode as well
+            I think we should use a 750x750 indicia image
 
-    [ ] 'Follow' cartoonist name link on the indicia page
-        [ ] change 'https' should be 'http'
-        [ ] anytime we use a subdomain, we need to use http, not https
+    [x] 'Follow' cartoonist name link on the indicia page
+        Change 'https' should be 'http' -- anytime we use a subdomain, we need
+        to use http, not https
 
     [ ] Social Media - Share Links
         twitter share link  - https://twitter.com/share?url=http%3A%2F%2F131.zco.mx%2FName_of_Book&text=Check+out+%27Name+of+Book%27+by+%40Cartoonist&hashtags=
@@ -41,17 +37,19 @@ VERSION 2 - Before Going Live
             keiler's
 
         [ ] facebook
-            [ ] has https, should be http
+            [x] has https, should be http
                 https://www.facebook.com/sharer/sharer.php?p[url]=http%3A%2F%2F128.zco.mx%2FTristian_and_the_Gaza_Strip%2F001.jpg
-            [ ] scrape data
+            [x] scrape data
                 when we had the login active, fb scrape some data.  I wonder if
                 fb will use alt tags on an image?
                 How does fb get dev.zco.mx
-            [ ] &s=100
+            [x] &s=100
                 It seems like '&s=100' isn't needed in the url
-            [ ] how to clear fb cache ?
+            [x] how to clear fb cache ?
+            [ ] description
+                I thought we were going to use a generic description
 
-    [ ] Social Media - Follow Icons and Links
+    [x] Social Media - Follow Icons and Links
         twitter follow link  - https://twitter.com/intent/follow?screen_name=zcomx
         tumblr follow link   - http://www.tumblr.com/follow/charlesforsman
         facebook follow link - https://www.facebook.com/keiler.roberts
@@ -64,6 +62,9 @@ VERSION 2 - Before Going Live
     [ ] $[1.00] (contribute)
         Use the same 'contribute' look for indicia and donate modal
         Add Button like we have on donation modal
+        [s] fix up css so input and button are same height
+
+    [s] add padding to bottom
 
 -----
 [x] Get Marc's permission to use Shrimpy
