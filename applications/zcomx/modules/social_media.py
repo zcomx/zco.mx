@@ -6,6 +6,7 @@
 Classes and functions related to social media.
 """
 import logging
+import time
 import urllib
 import urlparse
 from gluon import *
@@ -101,8 +102,10 @@ class FacebookSocialMedia(SocialMedia):
         Returns:
             string: url representing a share link.
         """
+        # 'v' is a cache buster.
         query = {
             'p[url]': short_page_url(get_page(self.book, page_no='first')),
+            'v': int(time.mktime(current.request.now.timetuple())),
         }
         return '{site}/sharer.php?{path}'.format(
             site=self.site, path=urllib.urlencode(query))
