@@ -200,7 +200,7 @@ div.centered table {
 #front_page #top_section {
     padding-bottom: 2em;
 }
-@media screen and (max-width: 767px){
+@media (max-width: 767px){
     #top_section {
         padding-bottom: inherit;
     }
@@ -372,7 +372,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
         margin-left: 0;
         width: 100%;
     }
-
 }
 
 #web2py_user_form .form-group {
@@ -571,17 +570,17 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 280px;
     vertical-align: top;
 }
-@media screen and (max-width: 767px) {
+@media (max-width: 767px) {
     .grid_section .tile_view .item_container {
         margin: 0 0.15em 4em;
     }
 }
-@media screen and (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 991px) {
     .grid_section .tile_view .item_container {
         margin: 0 2.7em 4em;
     }
 }
-@media screen and (min-width: 992px) and (max-width: 1200px) {
+@media (min-width: 992px) and (max-width: 1200px) {
     .grid_section .tile_view .item_container {
         margin: 0 1.2em 4em;
     }
@@ -657,20 +656,20 @@ a.modal-link-btn, a.modal-link-btn:hover {
     vertical-align: top;
 }
 
-@media screen and (min-width: 481px) and (max-width: 767px) {
+@media (min-width: 481px) and (max-width: 767px) {
     #search input {
         width: 22.5em;
     }
 }
 
-@media screen and (max-width: 480px){
+@media (max-width: 480px){
     #search input {
         margin-top: 0.4em;
         width: 100%;
     }
 }
 
-@media screen and (max-width: 767px){
+@media (max-width: 767px){
     #search input {
         margin-top: 0.2em;
     }
@@ -754,7 +753,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border-radius: 3px;
 }
 
-@media screen and (max-width: 767px){
+@media (max-width: 767px){
     #book_page #left_column {
         padding-top: 1em;
     }
@@ -826,7 +825,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 /*
-@media screen and (max-width: 767px){
+@media (max-width: 767px){
     .grid_section .item_container .image_container {
         margin-left: 0.8em !important;
         margin-top: 2em !important;
@@ -834,7 +833,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 */
 
-@media screen and (min-width: 768px){
+@media (min-width: 768px){
     #search input {
         float: right;
     }
@@ -849,14 +848,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
-@media screen and (min-width: 481px) and (max-width: 992px){
+@media (min-width: 481px) and (max-width: 992px){
     .modal-dialog {
         width: 90%;
         margin-left: 5%;
     }
 }
 
-@media screen and (min-width: 992px){
+@media (min-width: 992px){
     #front_page #intro {
         margin-top: -3em;
     }
@@ -886,7 +885,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin: 1em 0 0 1em;
 }
 
-@media screen and (min-width: 768px){
+@media (min-width: 768px){
     #contribute_modal_page .modal_params_container {
         margin: 1em;
     }
@@ -901,7 +900,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
-@media screen and (min-width: 992px){
+@media (min-width: 992px){
     .contribute_modal .modal-dialog {
         margin-left: 30%;
         width: 40%;
@@ -1127,7 +1126,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-weight: bold;
 }
 
-@media screen and (min-width: 768px){
+@media (min-width: 768px){
     #book_page #book_id_section {
         padding-top: 2em;
         position: relative;
@@ -1151,7 +1150,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
         outline: 2px solid #FF6600;
     }
 }
-@media screen and (max-width: 767px){
+@media (max-width: 767px){
     #book_page #book_cover_img {
         margin-bottom: 0.2em;
         max-width: 30em;
@@ -1162,12 +1161,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
-@media screen and (min-width: 992px){
+@media (min-width: 992px){
     #creator_id_section .creator_links_container {
        min-width: 20.8em;
     }
 }
-@media screen and (min-width: 1200px){
+@media (min-width: 1200px){
 
     #creator_id_section .creator_links_container {
         min-width: 25em;
@@ -1197,7 +1196,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding: 0;
 }
 
-@media screen and (min-width: 768px){
+@media (min-width: 768px){
     #reader_page_header #name_creator_inlay {
         margin-top: -1em;
     }
@@ -1234,7 +1233,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #reader_section .indicia_preview_section {
     width: 100%;
     height: 100%;
-    margin: 0;
+    margin: 0 auto;
+}
+
+#reader_section .indicia_preview_section {
+    background-color: #ffffff;
 }
 
 #reader_section img.book_page_img,
@@ -1373,7 +1376,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 2.5em;
 }
 
-@media screen and (min-width: 768px){
+@media (min-width: 768px){
     #reader_page_footer .page_nav_container {
         padding: 0;
         margin: 0;
@@ -1384,7 +1387,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
-@media screen and (min-width: 992px){
+@media (min-width: 992px){
     #reader_page_header {
         min-width: 60em;
     }
@@ -1634,7 +1637,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-right: 2px;
     margin-left: -0.1em;
 }
-@media screen and (max-width: 767px){
+@media (max-width: 767px){
     #add_link_container .link_name {
         min-width: 20em;
     }
@@ -1650,7 +1653,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     min-width: 28em;
 }
 
-@media screen and (max-width: 992px) {
+@media (max-width: 992px) {
     #add_link_container .link_url {
         min-width: 24em;
         max-width: 38em;
@@ -1683,7 +1686,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #links_container .row_container {
     margin-top: 2.6em;
 }
-@media screen and (max-width: 767px){
+@media (max-width: 767px){
     #links_container .row_container {
         margin-top: 1em;
     }
@@ -1699,7 +1702,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     min-width: 23em;
     width: 100%;
 }
-@media screen and (max-width: 767px){
+@media (max-width: 767px){
     #mug_shot {
         padding: inherit;
     }
@@ -1717,7 +1720,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding-bottom: 0.2em;
 }
 
-@media screen and (max-width: 992px){
+@media (max-width: 992px){
     #profile_page #creator_section .editableform .form-control {
         width: 335px;
     }
@@ -1732,7 +1735,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     min-width: 23em;
     width: 100%;
 }
-@media screen and (max-width: 767px){
+@media (max-width: 767px){
     #indicia_image {
         padding: inherit;
     }
@@ -1892,8 +1895,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 @media (min-width: 768px) {
-    .indicia_text_container {
-        width: 30em;
+    .indicia_preview_section {
+        min-width: 42em;
+    }
+}
+
+@media (min-width: 992px){
+    .indicia_preview_section {
+        min-width: 52em;
     }
 }
 
@@ -1948,16 +1957,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     text-align: center;
     font-size: 6pt;
 }
-
-#reader_section .indicia_preview_section {
-    background-color: #ffffff;
-}
-
-#reader_section .scroller .indicia_preview_section {
-    width: 90%;
-    margin-left: 5%;
-}
-
 
 /* icon sizes start */
 .size-08 { font-size:  8px; }
@@ -2351,7 +2350,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: none;
 }
 
-@media screen and (max-width: 992px) {
+@media (max-width: 992px) {
     #book_edit_section .book_name_input {
         min-width: 20em;
     }
@@ -2382,7 +2381,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding: 2px 0;
     min-width: 28em;
 }
-@media screen and (max-width: 992px){
+@media (max-width: 992px){
     #book_edit_section .field_container_description {
         min-width: 24em;
         max-width: 38em;
