@@ -492,9 +492,14 @@ class Router(object):
             content = ''
 
         if content:
+            try:
+                indicia_page_no = max([x.page_no for x in page_images]) + 1
+            except (TypeError, ValueError):
+                indicia_page_no = 999999            # Very high number
+
             page_images.append(Storage({
                 'image': 'indicia',
-                'page_no': max([x.page_no for x in page_images]),
+                'page_no': indicia_page_no,
                 'content': content,
             }))
 

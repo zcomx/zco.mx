@@ -130,6 +130,12 @@ class TestFunctions(LocalTestCase):
             self.titles['logos']
         ))
 
+    def test__monies(self):
+        self.assertTrue(web.test(
+            '{url}/monies'.format(url=self.url),
+            self.titles['index']
+        ))
+
     def test__overview(self):
         self.assertTrue(web.test(
             '{url}/overview'.format(url=self.url),

@@ -10,6 +10,7 @@
     BookReader.prototype = {
         constructor: BookReader,
         init: function (element, type, options) {
+            var self = this;
             this.$element = $(element);
             this.$type = type;
             this.options = $.extend(
@@ -18,9 +19,10 @@
                 options
             );
             this.init_listeners();
-            setTimeout(function() {
-                this.to_page(this.options.start_page_no);
-            }.bind(this), 1000);
+            this.img_loaded_ee = this.$element.imagesLoaded();
+            this.img_loaded_ee.always(function(instance) {
+                self.to_page(self.options.start_page_no);
+            });
         },
     };
 
@@ -228,9 +230,23 @@
     $.fn.zco_utils.inherit(ScrollerReader, BookReader);
     $.extend(ScrollerReader.prototype, {
         init_listeners: function() {
-            return;
+            var that = this;
+
+            $(window).resize(function(e) {
+                that.set_indicia();
+            });
         },
+
+        set_indicia: function() {
+            var reader_section = $('#reader_section');
+            var last_img_w = reader_section.find('.book_page_img').last().outerWidth();
+            var indicia_section = reader_section.find('.indicia_preview_section');
+            var css_min_width = parseInt(indicia_section.css('min-width'), 10) || reader_section.width();
+            indicia_section.width(Math.max(css_min_width, last_img_w));
+        },
+
         to_page: function(page_no) {
+            this.set_indicia();
             var anchor = 'page_no_' + ('000'+page_no).slice(-3);
             $.fn.zco_utils.scroll_to_element(anchor);
         }

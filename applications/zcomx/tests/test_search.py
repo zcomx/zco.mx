@@ -434,7 +434,7 @@ class TestMoniesBookTile(LocalTestCase):
         self.assertEqual(div['class'], 'col-sm-12 name')
 
         anchor = div.a
-        self.assertEqual(anchor['class'], 'contribute_button')
+        self.assertEqual(anchor['class'], 'contribute_button no_rclick_menu')
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={id}'.format(
@@ -476,7 +476,7 @@ class TestMoniesBookTile(LocalTestCase):
         div = soup.div
         self.assertEqual(div['class'], 'col-sm-12 image_container')
         anchor = div.a
-        self.assertEqual(anchor['class'], 'contribute_button')
+        self.assertEqual(anchor['class'], 'contribute_button no_rclick_menu')
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={id}'.format(
@@ -756,7 +756,7 @@ class TestBookTile(LocalTestCase):
         # <a class="contribute_button"
         #    href="/contributions/modal?book_id=98">contribute</a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], 'contribute_button')
+        self.assertEqual(anchor['class'], 'contribute_button no_rclick_menu')
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={i}'.format(i=self._row.book.id)
@@ -795,7 +795,8 @@ class TestBookTile(LocalTestCase):
             self.assertEqual(len(lis), 2)
             li = lis[0]
             anchor = li.a
-            self.assertEqual(anchor['class'], 'contribute_button')
+            self.assertEqual(
+                anchor['class'], 'contribute_button no_rclick_menu')
             self.assertEqual(
                 anchor['href'],
                 '/contributions/modal?book_id={id}'.format(
@@ -931,7 +932,7 @@ class TestCartoonistTile(LocalTestCase):
         # <a class="contribute_button"
         #    href="/contributions/modal?creator_id=98">contribute</a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], 'contribute_button')
+        self.assertEqual(anchor['class'], 'contribute_button no_rclick_menu')
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?creator_id={i}'.format(
@@ -972,7 +973,8 @@ class TestCartoonistTile(LocalTestCase):
             self.assertEqual(len(lis), 2)
             li = lis[0]
             anchor = li.a
-            self.assertEqual(anchor['class'], 'contribute_button')
+            self.assertEqual(
+                anchor['class'], 'contribute_button no_rclick_menu')
             self.assertEqual(
                 anchor['href'],
                 '/contributions/modal?creator_id={id}'.format(

@@ -599,8 +599,7 @@ class TestRouter(LocalTestCase):
         # Creator as integer (creator_id) should redirect.
         request_vars.creator = str(self._creator.id)
         expect = Storage({
-            'view_dict_keys': self._keys_for_view['creator'],
-            'view': 'creators/creator.html',
+            'redirect': '/First_Last',
         })
         do_test(request_vars, expect)
 

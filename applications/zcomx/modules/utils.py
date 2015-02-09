@@ -189,7 +189,7 @@ def markmin(controller, extra=None):
     contribute_link_func = lambda t: A(
         t,
         _href='/contributions/modal',
-        _class='contribute_button'
+        _class='contribute_button no_rclick_menu'
     )
 
     data = dict(

@@ -21,7 +21,7 @@
                     </li>
                     {{if can_receive_contributions(db, creator):}}
                     <li>
-                        {{=contribute_link(db, book.id, components=['contribute'], **dict(_class='contribute_button'))}}
+                        {{=contribute_link(db, book.id, components=['contribute'], **dict(_class='contribute_button no_rclick_menu'))}}
                     </li>
                     {{pass}}
                     <li>

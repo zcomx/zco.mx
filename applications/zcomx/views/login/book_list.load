@@ -12,7 +12,7 @@
             <td>
                 {{=A(
                     'Edit',
-                    _class='btn btn-default modal-edit-btn',
+                    _class='btn btn-default modal-edit-btn no_rclick_menu',
                     _href=URL(c='login', f='book_edit', args=book.id, extension=False),
                 )}}
             </td>
@@ -21,7 +21,7 @@
                     I('',
                     _class='icon zc-trash size-18'),
                     _href=URL(c='login', f='book_delete', args=book.id, extension=False),
-                    _class='btn btn-default btn-xs modal-delete-btn',
+                    _class='btn btn-default btn-xs modal-delete-btn no_rclick_menu',
                 )}}
             </td>
         </tr>
@@ -46,14 +46,14 @@
             <td>
                 {{=A(
                     'Upload',
-                    _class='btn btn-default modal-upload-btn',
+                    _class='btn btn-default modal-upload-btn no_rclick_menu',
                     _href=URL(c='login', f='book_pages', args=book.id, extension=False),
                 )}}
             </td>
             <td>
                 {{=A(
                     'Edit',
-                    _class='btn btn-default modal-edit-btn',
+                    _class='btn btn-default modal-edit-btn no_rclick_menu',
                     _href=URL(c='login', f='book_edit', args=book.id, extension=False),
                 )}}
             </td>
@@ -61,14 +61,14 @@
                 {{=A(
                     I('', _class='icon zc-trash size-18'),
                     _href=URL(c='login', f='book_delete', args=book.id, extension=False),
-                    _class='btn btn-default btn-xs modal-delete-btn',
+                    _class='btn btn-default btn-xs modal-delete-btn no_rclick_menu',
                 )}}
             </td>
             {{if request.vars.can_release is not None:}}
             <td>
                 {{=A(
                     'Release',
-                    _class='btn btn-default modal-release-btn',
+                    _class='btn btn-default modal-release-btn no_rclick_menu',
                     _href=URL(c='login', f='book_release', args=book.id, extension=False),
                 )}}
             </td>
@@ -92,7 +92,7 @@
             <td>
                 {{=A(
                     'Edit',
-                    _class='btn btn-default modal-edit-btn',
+                    _class='btn btn-default modal-edit-btn no_rclick_menu',
                     _href=URL(c='login', f='book_edit', args=book.id, extension=False),
                 )}}
             </td>
@@ -101,7 +101,7 @@
                     I('',
                     _class='icon zc-trash size-18'),
                     _href=URL(c='login', f='book_delete', args=book.id, extension=False),
-                    _class='btn btn-default btn-xs modal-delete-btn',
+                    _class='btn btn-default btn-xs modal-delete-btn no_rclick_menu',
                 )}}
             </td>
         </tr>

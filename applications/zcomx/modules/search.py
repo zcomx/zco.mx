@@ -846,7 +846,7 @@ class BookTile(Tile):
             db,
             row.book.id,
             components=['contribute'],
-            **dict(_class='contribute_button')
+            **dict(_class='contribute_button no_rclick_menu')
         )
 
     def download_link(self):
@@ -929,7 +929,7 @@ class CartoonistTile(Tile):
             db,
             row.creator,
             components=['contribute'],
-            **dict(_class='contribute_button')
+            **dict(_class='contribute_button no_rclick_menu')
         )
 
     def download_link(self):
@@ -1011,7 +1011,7 @@ class MoniesBookTile(BookTile):
                 db,
                 row.book.id,
                 components=[book_name],
-                **dict(_class='contribute_button')
+                **dict(_class='contribute_button no_rclick_menu')
             )
         else:
             inner = book_name
@@ -1031,7 +1031,7 @@ class MoniesBookTile(BookTile):
                 db,
                 row.book.id,
                 components=[img],
-                **dict(_class='contribute_button')
+                **dict(_class='contribute_button no_rclick_menu')
             ),
         else:
             inner = img
@@ -1066,7 +1066,7 @@ def book_contribute_button(row):
     return book_contribute_link(
         db,
         book_id,
-        **dict(_class='btn btn-default contribute_button')
+        **dict(_class='btn btn-default contribute_button no_rclick_menu')
     )
 
 
@@ -1099,7 +1099,7 @@ def creator_contribute_button(row):
     return creator_contribute_link(
         db,
         row.creator.id,
-        **dict(_class='btn btn-default contribute_button')
+        **dict(_class='btn btn-default contribute_button no_rclick_menu')
     )
 
 
