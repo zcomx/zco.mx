@@ -1,7 +1,6 @@
 ``
 VERSION 2 - Before Going Live
 [x] Indicia Page - png version
-
 [ ] Indicia Page - html version
     see example -- http://p.zsw.ca/CO.png
     [x] Invisible layer needs to be shortened
@@ -18,9 +17,10 @@ VERSION 2 - Before Going Live
     [x] Set bg to white on indicia page
         eg https://dev.zco.mx/David_Blumenstein/Tristian_and_the_Gaza_Strip/020?reader=slider
 
-        [ ] Width of indicia_img
-            indicia_img is too large in scroll mode
-            Get the width of the last image and downscale indicia_img to this
+    [ ] Width of indicia_img
+        * indicia_img is too large in scroll mode
+        * Get the width of the last image and downscale indicia_img in the
+            browswer to this size
 
     [x] 'Follow' cartoonist name link on the indicia page
         Change 'https' should be 'http' -- anytime we use a subdomain, we need
@@ -58,30 +58,30 @@ VERSION 2 - Before Going Live
     [x] add padding to bottom
 [x] Get Marc's permission to use Shrimpy
 [x] fix css on contribute modal
-
-[ ] Monies URL
+[x] Monies URL
     "Select a book below to give monies to!!"
     "Choose a book below by CARTOONIST to give monies to!!"
     "Click on a book below by CARTOONIST to give monies to!!"
     "Click on one of CARTOONIST's books to give monies to!!"
     http://131.zco.mx/monies
-
-    [ ] Redirect
+    [x] Redirect
         http://131.zco.mx/monies should redirect to:
         https://dev.zco.mx/Cartoonist_Name/monies
         not:
         https://dev.zco.mx/101/monies
-
-[ ] zco.mx Donation Link
-    Open zco.mx Donation Link in New Window
-    https://dev.zco.mx/contributions/modal
-
-    Can we use something like https://zco.mx/monies and stick that in
-    the modal?
-
-[ ] login page
+[x] login page
     https://dev.zco.mx/login
     'Remember me' is out of whack
+[x] https://dev.zco.mx/monies
+    Have https://dev.zco.mx/monies open in a modal on the front page
+
+[ ] zco.mx Modal Link
+    Prevent opening zco.mx modal links in 'New Window'
+    https://dev.zco.mx/contributions/modal
+
+[ ] Linking to Indicia Page
+    When in scroll mode, one cannot directly link to an indicia page
+    eg https://dev.zco.mx/David_Blumenstein/Tristian_and_the_Gaza_Strip/020?reader=scroller
 
 
 ---
@@ -100,6 +100,7 @@ VERSION 2 - Before Going Live
     Search for all instances of 'dev.zco.mx'
 
 [S] Setup Mailing List
+    One for 'announce' and the other for 'feedback' ?
 
 [ ] Front Page/Book Page
     The same stats on the front page should be on the book page and
@@ -107,8 +108,6 @@ VERSION 2 - Before Going Live
 
 [S] Obfuscate Email Addresses
     See how dokuwiki does it
-
-[S] wildcard ssl cert for zco.mx ?
 
 [ ] login -> account
     'profile updated' js popup
@@ -124,7 +123,7 @@ VERSION 2 - Before Going Live
 [/] Upload Modal
     Can we downscale the web images for the thumbnails and remove the
     actual thumbnails?
-    [ ] Testing
+    [ ] Currently Testing
 
 [S] Rethink Crowdfunding Idea
     see email with blumenstein
@@ -139,30 +138,32 @@ VERSION 2 - Before Going Live
 VERSION 3
 [S] Reader notifications of new material
     rss? and mailing list?
+[D] Knowledge Base
+    see google doc
+[ ] KB
+    [ ] git-ify and add to zco.mx server
+    [ ] update dns for kb.zco.mx
+    [ ] add link to footer
+        [logo] about | faq | kb | login | all.torrent
 [ ] login -> books -> edit
-    Use unline Editing for metadata
+    Use inline Editing for metadata
+[ ] Front Page - Add 'download' report
+    downloading all.torrent gives +1 to all books
+    downloading cartoonist.torrent gives +1 to all that cartoonist's books
 [ ] Read Page -> Scroll
     12459 - how to paginate long gn's -- modulo 30?
-[ ] login -> books
-    add iframe code for each book
-    <embed/>
-    <iframe/>
-    SB 2014-08-29 11:24  This needs more thought
-[D] Mature Content icon
-[ ] Check for duplicate file/book names
-[ ] Url checker
-[ ] login -> books page - paginate 'released' and 'ongoing' books
-[ ] Copyright material
-    DMCA / C&D disclaimer button would work
-[ ] Social media links other than on the indicia ??
-[ ] Tags (kids, by genre ??)
+[ ] extend left/right clickable areas while in slider mode
+[ ] Mature Content icon
 [ ] Creator page -> Links to Cartoonist Articles/interviews?
 [ ] Book page -> Links to Book Reviews ?
-[ ] Read Page
-    Navigate with mouse scroll as well ?
-    http://geekwagon.net/projects/xkcd1190/
-    h-scroll - http://danielschafferbrooklyncomics.com/books/uncategorized/all-you-need/
-    2-page slider ?
+[ ] Check for duplicate file/book names
+[ ] Url checker
+[ ] login -> books page
+    paginate 'released' and 'ongoing' books
+[ ] Copyright material
+    'Report' button for DMCA / C&D
+[ ] Tags (kids, by genre ??)
+[ ] Front Page -> 12560 - store attributes in session and reuse
 [ ] 12539 - Create aliases when users change their name
     jane smith -> id: 999 -> zco.mx/jane_smith
     ## name change
@@ -172,43 +173,26 @@ VERSION 3
     We should likely create a check to alert when this happens because
     1) the cartoonist could generate a ton of aliases
     2) the cartoonist could masquerade (fraud) as another cartoonist
-
-[ ] Front Page -> 12560 - store attributes in session and reuse
-
-[D] Knowledge Base
-    see google doc
-
-[ ] KB
-    [ ] git-ify and add to zco.mx server
-    [ ] update dns for kb.zco.mx
-    [ ] add link to footer
-        [logo] about | faq | kb | login | all.torrent
-
-IDEAS
-[ ] bug/feature tracker
+[ ] comic name? and page numbers (ie 05/22) in the Window Title?
+[ ] bug/feature/feedback tracker
     * public or developer only?
     * vote up/down
     * github's issue tracker?
     * does this need a separate page?  link in the footer?
 
-[s] Creative Commons Licence
-    http://wiki.creativecommons.org/Frequently_Asked_Questions#How_should_I_decide_which_license_to_choose.3F
-    https://creativecommons.org/licenses/by-nc/4.0/     ## Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
-    (c) All Rights Reserved
-    by-nc-nd
-    by-nd
-    by-nc
-    by
-    by-nc-sa
-    by-sa
+
+IDEAS
+[S] wildcard ssl cert for zco.mx ?
 
 [ ] Is re-releasing released books a problem?
     * use the upload modal with any read-only fields
     * update a version number on the indicia?
 
-[ ] Front Page - Add 'download' report
-    downloading all.torrent gives +1 to all books
-    downloading cartoonist.torrent gives +1 to all that cartoonist's books
+[ ] login -> books
+    add iframe code for each book
+    <embed/>
+    <iframe/>
+    SB 2014-08-29 11:24  This needs more thought
 
 [-] Guided view using Perfect Viewer ?
     The main dev, Lin Rookie (rookiestudio@gmail.com), suggests guided view is
@@ -228,5 +212,11 @@ IDEAS
     https://wiki.creativecommons.org/Frequently_Asked_Questions#What_does_it_mean_that_Creative_Commons_licenses_are_.22machine-readable.22.3F
     http://www.w3.org/TR/html-rdfa/
 [ ] RiP!: remix torrent ?
+[ ] Social media links other than on the indicia ??
+[ ] Read Page
+    Navigate with mouse scroll as well ?
+    http://geekwagon.net/projects/xkcd1190/
+    h-scroll - http://danielschafferbrooklyncomics.com/books/uncategorized/all-you-need/
+    2-page slider ?
 ``
 # vim:set ft=dm:
