@@ -8,7 +8,7 @@ Utilty classes and functions.
 import os
 import re
 from gluon import *
-from gluon.dal import Row
+from gluon.dal.objects import Row
 
 
 class NotFoundError(Exception):

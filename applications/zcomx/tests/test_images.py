@@ -796,16 +796,14 @@ class TestUploadImage(ImageTestCase):
 
         up_image = UploadImage(db.creator.image, self._creator.image)
 
-        self._exist(have=['original', 'cbz', 'web', 'tbn'])
+        self._exist(have=['original', 'cbz', 'web'])
         up_image.delete('web')
-        self._exist(have=['original', 'cbz', 'tbn'], have_not=['web'])
-        up_image.delete('tbn')
-        self._exist(have=['original', 'cbz'], have_not=['web', 'tbn'])
-        up_image.delete('tbn')     # Handle subsequent delete gracefully
+        self._exist(have=['original', 'cbz'], have_not=['web'])
+        up_image.delete('web')     # Handle subsequent delete gracefully
         up_image.delete('cbz')
-        self._exist(have=['original'], have_not=['cbz', 'web', 'tbn'])
+        self._exist(have=['original'], have_not=['cbz', 'web'])
         up_image.delete('original')
-        self._exist(have_not=['original', 'cbz', 'web', 'tbn'])
+        self._exist(have_not=['original', 'cbz', 'web'])
 
     def test__delete_all(self):
         if self._opts.quick:
@@ -815,11 +813,11 @@ class TestUploadImage(ImageTestCase):
 
         up_image = UploadImage(db.creator.image, self._creator.image)
 
-        self._exist(have=['original', 'cbz', 'web', 'tbn'])
+        self._exist(have=['original', 'cbz', 'web'])
         up_image.delete_all()
-        self._exist(have_not=['original', 'cbz', 'web', 'tbn'])
+        self._exist(have_not=['original', 'cbz', 'web'])
         up_image.delete_all()        # Handle subsequent delete gracefully
-        self._exist(have_not=['original', 'cbz', 'web', 'tbn'])
+        self._exist(have_not=['original', 'cbz', 'web'])
 
     def test__dimensions(self):
         if self._opts.quick:
@@ -842,10 +840,6 @@ class TestUploadImage(ImageTestCase):
         dims_3 = up_image.dimensions(size='web')
         self.assertTrue('web' in up_image._dimensions)
         self.assertEqual(dims_3, (750, 1125))
-
-        dims_4 = up_image.dimensions(size='tbn')
-        self.assertTrue('tbn' in up_image._dimensions)
-        self.assertEqual(dims_4, (112, 168))
 
     def test__fullname(self):
         if self._opts.quick:

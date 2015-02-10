@@ -12,7 +12,7 @@ import shutil
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
-from gluon.dal import Reference
+from gluon.dal.helpers.classes import Reference
 from gluon.storage import Storage
 from applications.zcomx.modules.test_runner import \
     LocalTestCase, \
