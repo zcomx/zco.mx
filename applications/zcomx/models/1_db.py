@@ -457,6 +457,18 @@ db.define_table('derivative',
     migrate=True,
 )
 
+db.define_table('job',
+    Field('start', 'datetime'),
+    Field('priority', 'integer'),
+    Field('command'),
+    Field(
+        'status',
+        default='a',
+        requires=IS_IN_SET(['a', 'd', 'p']),
+    ),
+    migrate=True,
+)
+
 db.define_table('link',
     Field('url',
         requires=IS_URL(error_message='Enter a valid URL'),
