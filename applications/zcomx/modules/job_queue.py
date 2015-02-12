@@ -29,7 +29,7 @@ PRIORITIES = [
     # Lowest
     'optimize_img',
     'release_book',
-    'optimize_image_for_release',
+    'optimize_img_for_release',
     # Highest
 ]
 
@@ -192,13 +192,12 @@ class JobQueuer(object):
     defined by the class program property, with the option of changing
     both the job parameters and the job command cli options.
     """
-
     program = ''
     default_job_options = {'start': datetime.datetime.now(), 'status': 'a'}
     default_cli_options = {}
     valid_cli_options = []
     queue_class = None
-    bin_path = os.path.join(current.request.folder, 'private/bin')
+    bin_path = 'applications/zcomx/private/bin'
 
     def __init__(
             self,
@@ -304,7 +303,9 @@ class Queue(object):
         self.pre_add_job()
         data = default_record(self.tbl, ignore_fields='common')
         data.update(job_data)
+        LOG.debug('job_data: %s', job_data)
         job_id = self.tbl.insert(**data)
+        self.db.commit()
         self.post_add_job()
         return entity_to_row(self.tbl, job_id)
 
@@ -417,7 +418,7 @@ class Queue(object):
             # script and run it with the web2py handler.
             args = [os.path.join(
                 os.getcwd(),
-                'applications/shared/private/bin/python_web2py.sh'
+                'applications/zcomx/private/bin/python_web2py.sh'
             )]
         else:
             # Otherwise assume the script is a python command.
@@ -532,8 +533,18 @@ class OptimizeImgQueuer(JobQueuer):
     }
     valid_cli_options = [
         '-f', '--force',
+        '-p', '--priority',
+        '-u', '--uploads-path',
+        '-v', '--vv',
     ]
     queue_class = QueueWithSignal
+
+
+class OptimizeImgForReleaseQueuer(OptimizeImgQueuer):
+    """Class representing a queuer for optimize_img for release jobs."""
+    default_job_options = dict(OptimizeImgQueuer.default_job_options)
+    default_job_options['priority'] = PRIORITIES.index(
+        'optimize_img_for_release')
 
 
 class ReleaseBookQueuer(JobQueuer):

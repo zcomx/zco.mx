@@ -1,5 +1,4 @@
 #!/bin/bash
-r1='JPEG|PNG'
 
 _mi() { local e=$?; [[ -t 1 ]] && local g=$LIGHTGREEN coff=$COLOUROFF; printf "$g===: %s$coff\n" "$@"; return "$e"; }
 _mw() { [[ -t 1 ]] && local r=$RED coff=$COLOUROFF; printf "$r===: %s$coff\n" "$@"; return 1; } >&2
@@ -14,6 +13,7 @@ EOF
 }
 
 _check_files() {
+    r1='JPEG|PNG'
     identify "$i" &>/dev/null || _me "$i is not an image or image is corrupt"
     identify -regard-warnings -format "%g" "$i" &>/dev/null || _me "$i is corrupt"
     ext=$(identify -format '%m' "$i"[0] 2>/dev/null)
@@ -26,17 +26,19 @@ _optimize() {
 
     tmp=tmp.$RANDOM
     if [[ ${i##*.} == png ]]; then
-        pngcrush -q "$i" "$tmp.png" || rm "$tmp.jpg" &>/dev/null
-        mv "$tmp.png" "$i" &>/dev/null
+        zopflipng "$i" "$tmp.png" >/dev/null || rm "$tmp.png" &>/dev/null
+        defluff < "$tmp.png" > "$i" 2>/dev/null
+        rm "$tmp.png" &>/dev/null
     elif [[ ${i##*.} == jpg ]]; then
-        jpegtran -copy none -optimize -progressive "$i" > "$tmp.jpg" || rm "$tmp.jpg" &>/dev/null
+        jpegoptim -q -s "$i" "$tmp.jpg" || rm "$tmp.jpg" &>/dev/null
         mv "$tmp.jpg" "$i" &>/dev/null
     else
         _me "File $i was not optimized"
     fi
+    return 0
 }
 
-for i in identify jpegtran pngcrush; do command -v "$i" &>/dev/null || _me "$i not installed"; done
+for i in defluff identify jpegoptim zopflipng; do command -v "$i" &>/dev/null || _me "$i not installed"; done
 (( $# == 0 )) && { _u; exit 1; }
 for i in "$@"; do _check_files; done
 for i in "$@"; do _optimize; done

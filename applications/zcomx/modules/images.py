@@ -17,9 +17,13 @@ from gluon import *
 from gluon.globals import Response
 from gluon.streamer import DEFAULT_CHUNK_SIZE
 from gluon.contenttype import contenttype
+from applications.zcomx.modules.job_queue import \
+    OptimizeImgQueuer, \
+    OptimizeImgForReleaseQueuer
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     set_owner
+from applications.zcomx.modules.utils import NotFoundError
 
 LOG = logging.getLogger('app')
 
@@ -437,6 +441,19 @@ def is_image(filename, image_types=None):
     return True
 
 
+def is_optimized(field, record_id):
+    """Determined if the image(s) related to the record field are optimized.
+
+    Args:
+        field: gluon.dal.Field instance, db.creator.image
+        record_id: integer, id of record
+    """
+    db = current.app.db
+    query = (db.optimize_img_log.record_field == str(field)) & \
+            (db.optimize_img_log.record_id == record_id)
+    return db(query).count() > 0
+
+
 def optimize(filename, nice=False):
     """Optimize an image file in place.
 
@@ -453,10 +470,62 @@ def optimize(filename, nice=False):
         args.append('nice')
     args.append(optimize_script)
     args.append(os.path.abspath(filename))
+    # FIXME \\
+    with open('/tmp/jimk.txt', 'a') as f_dump:
+        f_dump.write("args: " + str(args) + "\n")
+    # FIXME ////
 
-    # Background the process
-    subprocess.Popen(
+    p = subprocess.Popen(
         args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    p_stdout, p_stderr = p.communicate()
+    # Generally there should be no output. Log to help troubleshoot.
+    if p_stdout:
+        LOG.warn('optimize_img.sh run stdout: %s', p_stdout)
+    if p_stderr:
+        LOG.error('optimize_img.sh run stderr: %s', p_stderr)
+
+    # E1101 (no-member): *%%s %%r has no %%r member*
+    # pylint: disable=E1101
+    if p.returncode:
+        raise ImageOptimizeError('Optimize failed: {err}'.format(
+            err=p_stderr or p_stdout))
+
+
+def queue_optimize(
+        field,
+        record_id,
+        priority='optimize_img',
+        job_options=None,
+        cli_options=None):
+    """Queue job to optimize images associated with a record field.
+
+    Args:
+        field: gluon.dal.Field instance, db.creator.image
+        record_id: integer, id of record
+        priority: string, priority key, one of PROIRITIES
+        job_options: dict, job record attributes used for JobQueuer property
+        cli_options: dict, options for job command
+
+    Returns:
+        Row instance representing the queued job.
+    """
+    queuer_classes = {
+        'optimize_img': OptimizeImgQueuer,
+        'optimize_img_for_release': OptimizeImgForReleaseQueuer,
+    }
+    if priority not in queuer_classes:
+        raise NotFoundError('Invalid priority: {p}'.format(p=priority))
+
+    db = current.app.db
+    queuer = queuer_classes[priority](
+        db.job,
+        job_options=job_options,
+        cli_options=cli_options,
+        cli_args=[str(field), str(record_id)],
+    )
+
+    return queuer.queue()
 
 
 def set_thumb_dimensions(db, book_page_id, dimensions):
@@ -481,7 +550,7 @@ def set_thumb_dimensions(db, book_page_id, dimensions):
     db.commit()
 
 
-def store(field, filename, resize=True, resizer=None, run_optimize=True):
+def store(field, filename, resize=True, resizer=None):
     """Store an image file in an uploads directory.
     This will create all sizes of the image file.
 
@@ -491,7 +560,6 @@ def store(field, filename, resize=True, resizer=None, run_optimize=True):
         resize: If True, the image is resized to SIZES sizes
         resizer: class, name of class to use for resizing. Default: ResizeImg
             Class must define a filenames dict property and a run() method.
-        run_optimize: If True, all images including re-sizes are optimized.
 
     Return:
         string, the name of the file in storage.
@@ -528,8 +596,6 @@ def store(field, filename, resize=True, resizer=None, run_optimize=True):
         else:
             shutil.copy(name, sized_filename)
         set_owner(sized_filename)
-        if run_optimize:
-            optimize(sized_filename, nice=True)
 
     resize_img.cleanup()
     return stored_filename

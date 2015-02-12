@@ -20,6 +20,7 @@ from applications.zcomx.modules.books import \
     publication_year_range
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
+    optimize_creator_images, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
     UploadImage, \
@@ -1440,13 +1441,14 @@ def create_creator_indicia(creator, resize=False, optimize=False):
             db.creator[field],
             png,
             resize=resize,
-            run_optimize=optimize,
         )
         if stored_filename:
             data[field] = stored_filename
 
     creator.update_record(**data)
     db.commit()
+    if optimize:
+        optimize_creator_images(creator)
 
 
 def render_cc_licence(

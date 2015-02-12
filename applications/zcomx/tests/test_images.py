@@ -34,14 +34,21 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     filename_for_size, \
     is_image, \
+    is_optimized, \
     optimize, \
+    queue_optimize, \
     set_thumb_dimensions, \
     store
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.job_queue import PRIORITIES
+from applications.zcomx.modules.test_runner import \
+    LocalTestCase, \
+    TableTracker
 from applications.zcomx.modules.shell_utils import \
     imagemagick_version, \
     TempDirectoryMixin
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -115,7 +122,6 @@ class ResizerUseOri(TempDirectoryMixin):
         """
         # Keep this simple and fast.
         # Copy files from test data. <size>.jpg
-        test_data_dir = os.path.join(request.folder, 'private/test/data/')
         for k in self.filenames.keys():
             src = self.filename
             dst = os.path.join(
@@ -130,7 +136,6 @@ class ResizerUseOri(TempDirectoryMixin):
             matches = glob.glob(path)
             if matches:
                 self.filenames[prefix] = matches[0]
-
 
 
 class ImageTestCase(LocalTestCase):
@@ -956,14 +961,79 @@ class TestFunctions(ImageTestCase):
         this_filename = inspect.getfile(inspect.currentframe())
         self.assertFalse(is_image(this_filename))
 
+    def test__is_optimized(self):
+        creator = self.add(db.creator, dict(
+            path_name='Test Is Optimized'
+        ))
+
+        self.assertFalse(is_optimized(db.creator.image, creator.id))
+
+        self.add(db.optimize_img_log, dict(
+            record_field='creator.image',
+            record_id=creator.id,
+        ))
+
+        self.assertTrue(is_optimized(db.creator.image, creator.id))
+
     def test__optimize(self):
         for img in ['unoptimized.png', 'unoptimized.jpg']:
             working_image = self._prep_image(img)
             size_bef = os.stat(working_image).st_size
             optimize(working_image)
-            time.sleep(1)          # Wait for background process to complete.
             size_aft = os.stat(working_image).st_size
             self.assertTrue(size_aft < size_bef)
+
+    def test__queue_optimize(self):
+        creator = self.add(db.creator, dict(
+            path_name='Test Queue Optimized'
+        ))
+
+        job_options = {'status': 'd'}   # So tests don't actually run
+
+        tracker = TableTracker(db.job)
+        job = queue_optimize(
+            db.creator.image,
+            creator.id,
+            job_options=job_options
+        )
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        fmt = (
+            'applications/zcomx/private/bin/optimize_img.py'
+            ' creator.image {i}'
+        )
+        self.assertEqual(
+            job.command,
+            fmt.format(i=creator.id)
+        )
+        self.assertEqual(
+            job.priority,
+            PRIORITIES.index('optimize_img')
+        )
+
+        # Test priority
+        job = queue_optimize(
+            db.creator.image,
+            creator.id,
+            priority='optimize_img_for_release',
+            job_options=job_options
+        )
+        self._objects.append(job)
+        self.assertEqual(
+            job.priority,
+            PRIORITIES.index('optimize_img_for_release')
+        )
+
+        # Test invalid priority
+        self.assertRaises(
+            NotFoundError,
+            queue_optimize,
+            db.creator.image,
+            creator.id,
+            priority='_fake_priority_',
+            job_options=job_options
+        )
 
     def test__set_thumb_dimensions(self):
         book_page = self.add(db.book_page, dict(
@@ -1053,24 +1123,6 @@ class TestFunctions(ImageTestCase):
         got = store(
             db.book_page.image, working_image, resizer=ResizerForTesting)
         self.assertTrue(re_store.match(got))
-
-        # Test run_optimize variations
-        kbs = {True: 0, False: 0}
-        for k in kbs.keys():
-            working_image = self._prep_image('unoptimized.png')
-            got = store(
-                db.book_page.image,
-                working_image,
-                resizer=ResizerUseOri,
-                run_optimize=k,
-            )
-            if k:
-                time.sleep(1)        # Wait for background process to complete.
-            up_image = UploadImage(db.book_page.image, got)
-            filename = up_image.fullname(size='web')
-            kbs[k] = os.stat(filename).st_size
-
-        self.assertTrue(kbs[True] < kbs[False])
 
 
 def setUpModule():

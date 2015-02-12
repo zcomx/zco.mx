@@ -6,6 +6,7 @@
 Book classes and functions.
 """
 import datetime
+import logging
 import os
 import re
 import urlparse
@@ -20,13 +21,15 @@ from applications.zcomx.modules.creators import \
     url_name as creator_url_name
 from applications.zcomx.modules.images import \
     ImgTag, \
-    UploadImage
+    UploadImage, \
+    queue_optimize
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
 
 
 DEFAULT_BOOK_TYPE = 'one-shot'
+LOG = logging.getLogger('app')
 
 
 class BookEvent(object):
@@ -656,6 +659,48 @@ def numbers_for_book_type(db, book_type_id):
         return default
 
 
+def optimize_book_images(
+        book_entity,
+        priority='optimize_img',
+        job_options=None,
+        cli_options=None):
+    """Optimize all images related to a book.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+        priority: string, priority key, one of PROIRITIES
+        job_options: dict, job record attributes used for JobQueuer property
+        cli_options: dict, options for job command
+    """
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    jobs = []
+    query = (db.book_page.book_id == book.id)
+    page_ids = [x.id for x in db(query).select(db.book_page.id)]
+
+    for table in ['book', 'book_page']:
+        for field in db[table].fields:
+            if db[table][field].type == 'upload':
+                if table == 'book':
+                    record_ids = [book.id]
+                else:
+                    record_ids = list(page_ids)
+                for record_id in record_ids:
+                    jobs.append(
+                        queue_optimize(
+                            str(db[table][field]),
+                            record_id,
+                            priority=priority,
+                            job_options=job_options,
+                            cli_options=cli_options
+                        )
+                    )
+    return jobs
+
+
 def orientation(book_page_entity):
     """Return the orientation of the book page.
 
@@ -666,7 +711,8 @@ def orientation(book_page_entity):
     db = current.app.db
     book_page = entity_to_row(db.book_page, book_page_entity)
     if not book_page:
-        raise NotFoundError('book page not found')
+        raise NotFoundError('book page not found, {e}'.format(
+            e=book_page_entity))
     if not book_page.image:
         raise NotFoundError('Book page has no image, book_page.id {i}'.format(
             i=book_page.id))
