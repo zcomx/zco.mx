@@ -288,7 +288,7 @@ class TestBookIndiciaPage(ImageTestCase):
         # <div class="indicia_preview_section portrait">
         #   <div class="indicia_image_container"><img src="/zcomx/static/images/indicia_image.png" /></div>
         #   <div class="indicia_text_container">
-        #     <div class="call_to_action">IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=Image_Test_Case&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=Image_Test_Case%2F001.png&amp;clickthru=Image_Test_Case&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="https://www.facebook.com/sharer.php?p%5Burl%5D=Image_Test_Case%2F001.png&amp;s=100" target="_blank">FACEBOOK</a>.
+        #     <div class="call_to_action">IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=Image_Test_Case&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=Image_Test_Case%2F001.png&amp;clickthru=Image_Test_Case&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=Image_Test_Case%2F001.png&amp;s=100" target="_blank">FACEBOOK</a>.
         #     </div>
         #     <div class="contribute_widget"></div>
         #     <div class="follow_creator">FOLLOW<a href="None://9996.zco.mx">First Last</a></div>
@@ -340,7 +340,7 @@ class TestBookIndiciaPage(ImageTestCase):
         self.assertEqual(div_2di.img['src'], '/zcomx/static/images/tumblr_logo.svg')
         self.assertEqual(div_2dii.a['href'], 'https://twitter.com')
         self.assertEqual(div_2dii.img['src'], '/zcomx/static/images/twitter_logo.svg')
-        self.assertEqual(div_2diii.a['href'], 'https://www.facebook.com')
+        self.assertEqual(div_2diii.a['href'], 'http://www.facebook.com')
         self.assertEqual(div_2diii.img['src'], '/zcomx/static/images/facebook_logo.svg')
 
         landscape_filename = store(

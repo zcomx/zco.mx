@@ -10,7 +10,7 @@ import os
 import re
 import urlparse
 from gluon import *
-from gluon.dal import REGEX_STORE_PATTERN
+from gluon.dal.objects import REGEX_STORE_PATTERN
 from gluon.storage import Storage
 from gluon.validators import urlify
 from gluon.contrib.simplejson import dumps

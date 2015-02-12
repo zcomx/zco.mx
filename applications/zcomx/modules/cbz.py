@@ -7,7 +7,6 @@ CBZ classes and functions.
 """
 import math
 import os
-import shutil
 import subprocess
 import sys
 from gluon import *
@@ -121,7 +120,7 @@ class CBZCreator(object):
                 self.image_filename(page, fmt)
             )
 
-            shutil.copy(src_filename, dst_filename)
+            os.link(src_filename, dst_filename)
 
         # Copy indicia page image file to directory of images.
         png_page = BookIndiciaPagePng(self.book)
@@ -137,7 +136,7 @@ class CBZCreator(object):
                 extension='.png'
             )
         )
-        shutil.copy(src_filename, dst_filename)
+        os.link(src_filename, dst_filename)
         return self.zip()
 
     def working_directory(self):

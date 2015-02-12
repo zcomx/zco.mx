@@ -9,7 +9,7 @@ Classes extending functionality of gluon/tools.py.
 """
 from applications.zcomx.modules.environ import server_production_mode
 from gluon import *
-from gluon.dal import Field
+from gluon.dal.objects import Field
 from gluon.storage import Settings
 from gluon.tools import \
     Auth, \

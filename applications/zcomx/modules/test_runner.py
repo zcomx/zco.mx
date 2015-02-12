@@ -649,37 +649,39 @@ class TableTracker(object):
     easily controlled.
 
     Usage:
-        tracker = TableTracker(class=Job)
+        tracker = TableTracker(db.job)
         job = tested_function()
         self.assertFalse(tracker.had(job)
         self.assertTrue(tracker.has(job)
     """
-    def __init__(self, obj_class):
+    def __init__(self, table):
         """Constructor
 
         Args:
-            obj_class: DbObject class.
+            table: gluon.dal.base.Table instance
         """
-        self.obj_class = obj_class
-        self._ids = [x.id for x in self.obj_class().get_set()]
+        self.table = table
+        db = self.table._db
+        self._ids = [x.id for x in db(self.table).select()]
 
-    def had(self, obj):
-        """Return whether the record represented by obj existed when the
+    def had(self, row):
+        """Return whether the record represented by row existed when the
         instance was initialized.
 
         Args:
-            obj: DbObject instance.
+            row: gluon.dal.objects.Row instance.
         """
-        return True if obj.id in self._ids else False
+        return True if row.id in self._ids else False
 
-    def has(self, obj):
-        """Return whether the record represented by obj exists.
+    def has(self, row):
+        """Return whether the record represented by row exists.
 
         Args:
-            obj: DbObject instance.
+            row: gluon.dal.objects.Row instance.
         """
-        ids = [x.id for x in self.obj_class().get_set()]
-        return True if obj.id in ids else False
+        db = self.table._db
+        ids = [x.id for x in db(self.table).select()]
+        return True if row.id in ids else False
 
 
 def _mock_date(self, today_value=None):

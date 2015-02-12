@@ -15,7 +15,7 @@ import time
 import traceback
 from gluon import *
 from gluon.shell import env
-from gluon.dal import REGEX_UPLOAD_PATTERN
+from gluon.dal.objects import REGEX_UPLOAD_PATTERN
 from optparse import OptionParser
 from applications.zcomx.modules.images import \
     SIZES, \
