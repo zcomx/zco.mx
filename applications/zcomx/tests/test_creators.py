@@ -8,9 +8,10 @@ Test suite for zcomx/modules/creators.py
 """
 import datetime
 import os
+import shutil
+import time
 import unittest
 from BeautifulSoup import BeautifulSoup
-from PIL import Image
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
@@ -23,6 +24,7 @@ from applications.zcomx.modules.creators import \
     formatted_name, \
     image_as_json, \
     on_change_name, \
+    optimize_creator_images, \
     profile_onaccept, \
     short_url, \
     torrent_link, \
@@ -30,6 +32,9 @@ from applications.zcomx.modules.creators import \
     torrent_url, \
     url, \
     url_name
+from applications.zcomx.modules.images import \
+    UploadImage, \
+    store
 from applications.zcomx.modules.test_runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 
@@ -39,6 +44,58 @@ from applications.zcomx.modules.utils import entity_to_row
 
 
 class TestFunctions(LocalTestCase):
+    _image_dir = '/tmp/image_for_creators'
+    _image_original = os.path.join(_image_dir, 'original')
+    _test_data_dir = None
+
+    @classmethod
+    def _prep_image(cls, img, working_directory=None, to_name=None):
+        """Prepare an image for testing.
+        Copy an image from private/test/data to a working directory.
+
+        Args:
+            img: string, name of source image, eg file.jpg
+                must be in cls._test_data_dir
+            working_directory: string, path of working directory to copy to.
+                If None, uses cls._image_dir
+            to_name: string, optional, name of image to copy file to.
+                If None, img is used.
+        """
+        src_filename = os.path.join(
+            os.path.abspath(cls._test_data_dir),
+            img
+        )
+
+        if working_directory is None:
+            working_directory = os.path.abspath(cls._image_dir)
+
+        if to_name is None:
+            to_name = img
+
+        filename = os.path.join(working_directory, to_name)
+        shutil.copy(src_filename, filename)
+        return filename
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUp(cls):
+        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+
+        if not os.path.exists(cls._image_original):
+            os.makedirs(cls._image_original)
+
+        # Store images in tmp directory
+        img_fields = [
+            'image', 'indicia_image', 'indicia_portrait', 'indicia_landscape']
+
+        for img_field in img_fields:
+            db.creator[img_field].uploadfolder = cls._image_original
+
+    @classmethod
+    def tearDown(cls):
+        if os.path.exists(cls._image_dir):
+            shutil.rmtree(cls._image_dir)
 
     def test__add_creator(self):
         email = 'test__add_creator@example.com'
@@ -130,7 +187,7 @@ class TestFunctions(LocalTestCase):
         self.assertFalse(can_receive_contributions(db, creator))
 
         tests = [
-            #(paypal_email, expect)
+            # (paypal_email, expect)
             (None, False),
             ('', False),
             ('paypal@paypal.com', True),
@@ -239,7 +296,7 @@ class TestFunctions(LocalTestCase):
 
         # These names are scrubed
         tests = [
-            #(name, expect)
+            # (name, expect)
             ('Fred/ Smith', 'Fred Smith'),
             (r'Fred\ Smith', 'Fred Smith'),
             ('Fred? Smith', 'Fred Smith'),
@@ -310,8 +367,7 @@ class TestFunctions(LocalTestCase):
                 nameonly=True,
             )
             expect.filename = filename
-            im = Image.open(fullname)
-            expect.size = size = os.stat(fullname).st_size
+            expect.size = os.stat(fullname).st_size
             expect.down_url = '/images/download/{img}'.format(
                 img=creator.image)
             expect.thumb = '/images/download/{img}?size=web'.format(
@@ -329,7 +385,7 @@ class TestFunctions(LocalTestCase):
                 nameonly=True,
             )
             expect.filename = filename
-            expect.size = size = os.stat(fullname).st_size
+            expect.size = os.stat(fullname).st_size
             expect.down_url = '/images/download/{img}'.format(
                 img=creator.indicia_image)
             expect.thumb = '/images/download/{img}?size=web'.format(
@@ -380,6 +436,63 @@ class TestFunctions(LocalTestCase):
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, "Slèzé d'Ruñez")
         self.assertEqual(creator.urlify_name, 'sleze-drunez')
+
+    def test__optimize_creator_images(self):
+        img_fields = [
+            'image', 'indicia_image', 'indicia_portrait', 'indicia_landscape']
+
+        creator = self.add(db.creator, dict(
+            path_name='Test Optimze Creator Images'
+        ))
+
+        x = self._prep_image('unoptimized.png'),
+
+        for img_field in img_fields:
+            image = store(
+                db.creator[img_field],
+                self._prep_image('unoptimized.png'),
+            )
+            data = {img_field: image}
+            creator.update_record(**data)
+            db.commit()
+
+        def get_sizes():
+            sizes = {}
+            for img_field in img_fields:
+                up_image = UploadImage(
+                    db.creator[img_field], creator[img_field])
+                if img_field not in sizes:
+                    sizes[img_field] = {}
+                for size in ['original', 'cbz', 'web']:
+                    name = up_image.fullname(size=size)
+                    if os.path.exists(name):
+                        sizes[img_field][size] = os.stat(name).st_size
+            return sizes
+
+        before_sizes = get_sizes()
+
+        cli_options = {'--vv': True, '--uploads-path': self._image_dir}
+        jobs = optimize_creator_images(creator, cli_options=cli_options)
+        self.assertEqual(len(jobs), 4)
+
+        tries = 20
+        while tries > 0:
+            time.sleep(1)          # Wait for jobs to complete.
+            got = db(db.job.id.belongs([x.id for x in jobs])).select()
+            if len(got) == 0:
+                break
+            tries = tries - 1
+            if tries == 0:
+                self.fail('Jobs not done in expected time.')
+
+        after_sizes = get_sizes()
+
+        for img_field in img_fields:
+            for size in before_sizes[img_field].keys():
+                self.assertTrue(
+                    after_sizes[img_field][size] <
+                    before_sizes[img_field][size]
+                )
 
     def test__profile_onaccept(self):
         auth_user = self.add(db.auth_user, dict(
@@ -500,7 +613,8 @@ class TestFunctions(LocalTestCase):
             ('Prince', 'all-prince.torrent'),
             ('First Last', 'all-first_last.torrent'),
             ('first last', 'all-first_last.torrent'),
-            ("Hélè d'Eñça",
+            (
+                "Hélè d'Eñça",
                 "all-h\xc3\xa9l\xc3\xa8_d'e\xc3\xb1\xc3\xa7a.torrent"),
         ]
 
@@ -523,7 +637,8 @@ class TestFunctions(LocalTestCase):
             ('Prince', '/zcomx/FIXME/FIXME/all-prince.torrent'),
             ('First Last', '/zcomx/FIXME/FIXME/all-first_last.torrent'),
             ('first last', '/zcomx/FIXME/FIXME/all-first_last.torrent'),
-            ("Hélè d'Eñça",
+            (
+                "Hélè d'Eñça",
                 '/zcomx/FIXME/FIXME/all-h%C3%A9l%C3%A8_d%27e%C3%B1%C3%A7a.torrent'),
         ]
 

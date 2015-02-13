@@ -11,6 +11,7 @@ import copy
 import datetime
 import os
 import shutil
+import time
 import unittest
 from BeautifulSoup import BeautifulSoup
 from PIL import Image
@@ -40,6 +41,7 @@ from applications.zcomx.modules.books import \
     get_page, \
     is_releasable, \
     numbers_for_book_type, \
+    optimize_book_images, \
     orientation, \
     page_url, \
     parse_url_name, \
@@ -53,7 +55,9 @@ from applications.zcomx.modules.books import \
     update_rating, \
     url, \
     url_name
-from applications.zcomx.modules.images import store
+from applications.zcomx.modules.images import \
+    UploadImage, \
+    store
 from applications.zcomx.modules.test_runner import \
     LocalTestCase, \
     _mock_date as mock_date
@@ -204,6 +208,23 @@ class ImageTestCase(LocalTestCase):
     _objects = []
 
     @classmethod
+    def _create_image(cls, image_name):
+        image_filename = os.path.join(cls._image_dir, image_name)
+
+        # Create an image to test with.
+        im = Image.new('RGB', (1200, 1200))
+        with open(image_filename, 'wb') as f:
+            im.save(f)
+        return image_filename
+
+    @classmethod
+    def _store_image(cls, field, image_filename):
+        stored_filename = None
+        with open(image_filename, 'rb') as f:
+            stored_filename = field.store(f)
+        return stored_filename
+
+    @classmethod
     def _prep_image(cls, img, working_directory=None, to_name=None):
         """Prepare an image for testing.
         Copy an image from private/test/data to a working directory.
@@ -245,20 +266,6 @@ class ImageTestCase(LocalTestCase):
         if not os.path.exists(db.book_page.image.uploadfolder):
             os.makedirs(db.book_page.image.uploadfolder)
 
-        def create_image(image_name):
-            image_filename = os.path.join(cls._image_dir, image_name)
-
-            # Create an image to test with.
-            im = Image.new('RGB', (1200, 1200))
-            with open(image_filename, 'wb') as f:
-                im.save(f)
-
-            # Store the image in the uploads/original directory
-            stored_filename = None
-            with open(image_filename, 'rb') as f:
-                stored_filename = db.book_page.image.store(f)
-            return stored_filename
-
         cls._creator = cls.add(db.creator, dict(
             email='image_test_case@example.com',
         ))
@@ -271,14 +278,20 @@ class ImageTestCase(LocalTestCase):
         cls._book_page = cls.add(db.book_page, dict(
             book_id=cls._book.id,
             page_no=1,
-            image=create_image('file.jpg'),
+            image=cls._store_image(
+                db.book_page.image,
+                cls._create_image('file.jpg'),
+            ),
         ))
 
         # Create a second page to test with.
         cls.add(db.book_page, dict(
             book_id=cls._book.id,
             page_no=2,
-            image=create_image('file_2.jpg'),
+            image=cls._store_image(
+                db.book_page.image,
+                cls._create_image('file_2.jpg'),
+            ),
         ))
 
         for t in db(db.book_type).select():
@@ -530,7 +543,9 @@ class TestFunctions(ImageTestCase):
                 'year': '2010',
                 'place': None,
                 'title': 'test__cc_licence_data',
-                'title_url': 'http://{cid}.zco.mx/test__cc_licence_data'.format(cid=creator.id),
+                'title_url':
+                    'http://{cid}.zco.mx/test__cc_licence_data'.format(
+                        cid=creator.id),
             }
         )
 
@@ -543,7 +558,9 @@ class TestFunctions(ImageTestCase):
                 'year': '2010',
                 'place': 'Canada',
                 'title': 'test__cc_licence_data',
-                'title_url': 'http://{cid}.zco.mx/test__cc_licence_data'.format(cid=creator.id),
+                'title_url':
+                    'http://{cid}.zco.mx/test__cc_licence_data'.format(
+                        cid=creator.id),
             }
         )
 
@@ -959,6 +976,68 @@ class TestFunctions(ImageTestCase):
             numbers_for_book_type(db, -1),
             {'of_number': False, 'number': False}
         )
+
+    def test__optimize_book_images(self):
+        book = self.add(db.book, dict(
+            name='Test Optimze Book Images'
+        ))
+
+        stored_filename = store(
+            db.book_page.image,
+            self._prep_image('unoptimized.png'),
+        )
+
+        page_1 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            image=stored_filename,
+        ))
+
+        stored_filename = store(
+            db.book_page.image,
+            self._prep_image('unoptimized.png'),
+        )
+
+        page_2 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=2,
+            image=stored_filename,
+        ))
+
+        def get_sizes():
+            sizes = {}
+            for page in [page_1, page_2]:
+                up_image = UploadImage(db.book_page.image, page.image)
+                if page.id not in sizes:
+                    sizes[page.id] = {}
+                for size in ['original', 'cbz', 'web']:
+                    name = up_image.fullname(size=size)
+                    if os.path.exists(name):
+                        sizes[page.id][size] = os.stat(name).st_size
+            return sizes
+
+        before_sizes = get_sizes()
+
+        cli_options = {'--vv': True, '--uploads-path': self._image_dir}
+        jobs = optimize_book_images(book, cli_options=cli_options)
+        self.assertEqual(len(jobs), 2)
+
+        tries = 20
+        while tries > 0:
+            time.sleep(1)          # Wait for jobs to complete.
+            got = db(db.job.id.belongs([x.id for x in jobs])).select()
+            if len(got) == 0:
+                break
+            tries = tries - 1
+            if tries == 0:
+                self.fail('Jobs not done in expected time.')
+
+        after_sizes = get_sizes()
+
+        for page in [page_1, page_2]:
+            for size in before_sizes[page.id].keys():
+                self.assertTrue(
+                    after_sizes[page.id][size] < before_sizes[page.id][size])
 
     def test__orientation(self):
         if self._opts.quick:

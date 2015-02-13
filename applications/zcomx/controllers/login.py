@@ -13,9 +13,12 @@ from applications.zcomx.modules.books import \
     defaults as book_defaults, \
     is_releasable, \
     numbers_for_book_type, \
+    optimize_book_images, \
     publication_year_range, \
     read_link
-from applications.zcomx.modules.creators import image_as_json
+from applications.zcomx.modules.creators import \
+    image_as_json, \
+    optimize_creator_images
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
     UploadImage, \
@@ -388,6 +391,7 @@ def book_pages_handler():
                 'The upload was not successful.',
                 files=[x.filename for x in files]
             )
+        optimize_book_images(book_record)
         return result
     elif request.env.request_method == 'DELETE':
         book_page = entity_to_row(db.book_page, request.vars.book_page_id)
@@ -686,6 +690,7 @@ def creator_img_handler():
                 # resize/optimize by cron later.
                 creator_record.update_record(indicia_modified=request.now)
                 db.commit()
+            optimize_creator_images(creator)
 
         data = {img_field: stored_filename}
         creator_record.update_record(**data)

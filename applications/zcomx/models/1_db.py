@@ -488,6 +488,17 @@ db.define_table('link',
     migrate=True,
 )
 
+db.define_table('optimize_img_log',
+    Field(
+        'record_field',
+    ),
+    Field(
+        'record_id',
+        'integer',
+    ),
+    migrate=True,
+)
+
 db.define_table('page_comment',
     Field(
         'book_page_id',
