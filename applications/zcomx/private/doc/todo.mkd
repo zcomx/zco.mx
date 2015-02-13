@@ -57,6 +57,8 @@ VERSION 2 - Before Going Live
     SB 2015-02-09 19:09  It will does this with middle click
 
 VERSION 3
+[ ] Indicia - html
+    Link for 'Read Next' book
 [S] Reader notifications of new material
     rss? and mailing list?
 [D] Knowledge Base
