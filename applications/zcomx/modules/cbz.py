@@ -7,16 +7,120 @@ CBZ classes and functions.
 """
 import math
 import os
+import shutil
 import subprocess
 import sys
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.books import formatted_name
+from applications.zcomx.modules.creators import for_path
 from applications.zcomx.modules.files import TitleFileName
 from applications.zcomx.modules.images import filename_for_size
 from applications.zcomx.modules.indicias import BookIndiciaPagePng
-from applications.zcomx.modules.shell_utils import temp_directory
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.shell_utils import \
+    set_owner, \
+    temp_directory
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
+
+
+class CBZArchive(object):
+    """Class representing a handler for CBZ archive."""
+
+    def __init__(self, base_path, root='/'):
+        """Constructor
+
+        Args:
+            base_path: string, path pointing to location of archive.
+                The base_path must exist.
+            root: string, name of root directory under base path, default '/'
+
+        Notes:
+            Archive has the follow directory structure
+                base_path/root/[A-Z]/subdir/file.cbz
+            Eg
+                base_path: private/var/cbz
+                root: zco.mx
+
+                private/var/cbz/zco.mx/A/Abe Adams/My Book.cbz
+                private/var/cbz/zco.mx/A/Arnie Ack/A Book.cbz
+                private/var/cbz/zco.mx/B/Betty Baker/Something.cbz
+                ...
+                private/var/cbz/zco.mx/Z/Zack Zucc/Zebras.cbz
+
+            The base_path must exist. The root, [A-Z], and subdir directories
+            will be created if necessary.
+        """
+        self.base_path = base_path
+        self.root = root
+
+    def add_file(self, src, subdir, name=None):
+        """Add a file to the archive.
+
+        Args:
+            src: string, name of file to copy to archive, path/to/file.cbz
+            subdir: string, the name of the archive sub directory to store
+                under.
+            name: string, the name to store the file as. If None, basename of
+                src is used.
+
+        Returns:
+            string: path/to/file.cbz relative to base_path.
+        """
+        if not os.path.exists(src):
+            raise NotFoundError('File not found: {f}'.format(f=src))
+
+        if not os.path.exists(self.base_path):
+            raise NotFoundError('Base path not found: {f}'.format(
+                f=self.base_path))
+
+        subdir_path = self.get_subdir_path(subdir)
+        if not os.path.exists(subdir_path):
+            os.makedirs(subdir_path)
+            set_owner(subdir_path)
+
+        if name is None:
+            name = os.path.basename(src)
+
+        dst = os.path.join(subdir_path, name)
+        shutil.move(src, dst)
+        return dst
+
+    def get_subdir_path(self, subdir):
+        """Return the archive path for a subdir.
+
+        Args:
+            name: string, subdir name
+
+        Returns:
+            string, subdir path
+
+        Eg
+            base_path: 'private/var/cbz'
+            root: 'zco.mx'
+            subdir = 'Abe Adams'
+            returns: 'private/var/cbz/zco.mx/A/Abe Adams'
+        """
+        if not subdir:
+            return
+
+        letter = str(subdir)[0].upper()
+        return os.path.join(self.base_path, self.root, letter, str(subdir))
+
+    def remove_file(self, subdir, name):
+        """Remove file from the archive.
+
+        Args:
+            subdir: string, the name of the archive sub directory the file
+                is archived under.
+            name: string, the name of the file
+        """
+        filename = os.path.join(self.get_subdir_path(subdir), name)
+
+        if not os.path.exists(filename):
+            raise NotFoundError('File not found: {f}'.format(f=filename))
+        os.unlink(filename)
 
 
 class CBZCreateError(Exception):
@@ -170,3 +274,30 @@ class CBZCreator(object):
             print >> sys.stderr, '7z call failed: {e}'.format(e=p_stderr)
             raise CBZCreateError('Creation of cbz file failed.')
         return cbz_filename
+
+
+def archive(book_entity, base_path='applications/zcomx/private/var'):
+    """Create a cbz file for an book and archive it.
+
+    Args:
+        book_entity: Row instance or integer representing book
+        base_path: location of cbz archive
+
+    Return:
+        string, path to cbz file.
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+    creator_record = entity_to_row(db.creator, book_record.creator_id)
+    if not creator_record:
+        raise NotFoundError('Creator not found, id:{i}'.format(
+            i=book_record.creator_id))
+
+    cbz_creator = CBZCreator(book_record)
+    cbz_file = cbz_creator.run()
+
+    subdir = for_path(creator_record.path_name)
+    cbz_archive = CBZArchive(base_path, 'zco.mx')
+    return cbz_archive.add_file(cbz_file, subdir)

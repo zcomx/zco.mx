@@ -14,12 +14,15 @@ from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.books import DEFAULT_BOOK_TYPE
 from applications.zcomx.modules.cbz import \
+    CBZArchive, \
     CBZCreateError, \
-    CBZCreator
+    CBZCreator, \
+    archive
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
 from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.utils import NotFoundError
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -132,6 +135,81 @@ class ImageTestCase(LocalTestCase):
     def tearDown(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
+
+
+class TestCBZArchive(LocalTestCase):
+    _base_path = '/tmp/cbz_archive'
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUpClass(cls):
+        if not os.path.exists(cls._base_path):
+            os.makedirs(cls._base_path)
+
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists(cls._base_path):
+            shutil.rmtree(cls._base_path)
+
+    def test____init__(self):
+        cbz_archive = CBZArchive(self._base_path, 'zco.mx')
+        self.assertTrue(cbz_archive)
+
+    def test__add_file(self):
+        filename = os.path.join(self._base_path, 'test.cbz')
+
+        cbz_archive = CBZArchive(self._base_path, 'zco.mx')
+
+        tests = [
+            # (subdir, name, expect)
+            (
+                'Adam Ant',
+                'Title.cbz',
+                '/tmp/cbz_archive/zco.mx/A/Adam Ant/Title.cbz'
+            ),
+            (
+                'Betty Bin',
+                None,
+                '/tmp/cbz_archive/zco.mx/B/Betty Bin/test.cbz'
+            ),
+        ]
+
+        for t in tests:
+            with open(filename, 'w') as f:
+                f.write('Testing')
+            got = cbz_archive.add_file(filename, t[0], name=t[1])
+            self.assertEqual(got, t[2])
+            self.assertTrue(os.path.exists(got))
+            name = t[1] or 'test.cbz'
+            cbz_archive.remove_file(t[0], name=name)
+            self.assertFalse(os.path.exists(got))
+
+        self.assertRaises(
+            NotFoundError, cbz_archive.add_file, '/tmp/_fake_', 'First Last')
+
+        cbz_archive = CBZArchive('/tmp/_invalid_', 'zco.mx')
+        with open(filename, 'w') as f:
+            f.write('Testing')
+        self.assertRaises(
+            NotFoundError, cbz_archive.add_file, filename, 'First Last')
+
+    def test__get_subdir_path(self):
+        cbz_archive = CBZArchive(self._base_path, 'zco.mx')
+        tests = [
+            # (subdir, expect)
+            (None, None),
+            ('', None),
+            (123, '/tmp/cbz_archive/zco.mx/1/123'),
+            ('Abe Adams', '/tmp/cbz_archive/zco.mx/A/Abe Adams'),
+            ('Zach Zellers', '/tmp/cbz_archive/zco.mx/Z/Zach Zellers'),
+        ]
+
+        for t in tests:
+            self.assertEqual(cbz_archive.get_subdir_path(t[0]), t[1])
+
+    def test__remove_file(self):
+        pass                # See test__add_file
 
 
 class TestCBZCreateError(LocalTestCase):
@@ -423,6 +501,46 @@ class TestCBZCreator(ImageTestCase):
 
         args = ['7z', 't']
         args.append(zip_file)
+        p = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p_stdout, p_stderr = p.communicate()
+        # E1101 (no-member): *%%s %%r has no %%r member*
+        # pylint: disable=E1101
+        self.assertFalse(p.returncode)
+        self.assertTrue('Everything is Ok' in p_stdout)
+        self.assertEqual(p_stderr, '')
+
+
+class TestFunctions(ImageTestCase):
+    _base_path = '/tmp/cbz_archive'
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUpClass(cls):
+        if not os.path.exists(cls._base_path):
+            os.makedirs(cls._base_path)
+
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists(cls._base_path):
+            shutil.rmtree(cls._base_path)
+
+    def test__archive(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
+        cbz_filename = archive(self._book, base_path=self._base_path)
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            cbz_filename,
+            '/tmp/cbz_archive/zco.mx/J/Jim Karsten/Image Test Case (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
+        )
+        self.assertTrue(os.path.exists(cbz_filename))
+
+        args = ['7z', 't']
+        args.append(cbz_filename)
         p = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p_stdout, p_stderr = p.communicate()
