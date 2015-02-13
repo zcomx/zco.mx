@@ -300,4 +300,7 @@ def archive(book_entity, base_path='applications/zcomx/private/var'):
 
     subdir = for_path(creator_record.path_name)
     cbz_archive = CBZArchive(base_path, 'zco.mx')
-    return cbz_archive.add_file(cbz_file, subdir)
+    archive_file = cbz_archive.add_file(cbz_file, subdir)
+    book_record.update_record(cbz=archive_file)
+    db.commit()
+    return archive_file
