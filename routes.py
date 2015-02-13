@@ -42,6 +42,7 @@ CONTROLLERS = '|'.join([
     'images',
     'login',
     'search',
+    'torrents',
 ])
 
 DEFAULT_FUNCTIONS = '|'.join([

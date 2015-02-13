@@ -3,7 +3,7 @@
 
 import os
 import shutil
-from applications.zcomx.modules.images import Downloader
+from applications.zcomx.modules.downloaders import ImageDownloader
 from applications.zcomx.modules.images import ResizeImg
 
 
@@ -15,7 +15,7 @@ def download():
 
     request.args(0)
     """
-    return Downloader().download(request, db)
+    return ImageDownloader().download(request, db)
 
 
 def resize():

@@ -3,7 +3,7 @@
 
 """
 
-Test suite for zcomx/modules/utils.py
+Test suite for zcomx/modules/files.py
 
 """
 import unittest

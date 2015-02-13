@@ -9,14 +9,10 @@ import glob
 import imghdr
 import logging
 import os
-import re
 import shutil
 import subprocess
 from PIL import Image
 from gluon import *
-from gluon.globals import Response
-from gluon.streamer import DEFAULT_CHUNK_SIZE
-from gluon.contenttype import contenttype
 from applications.zcomx.modules.job_queue import \
     OptimizeImgQueuer, \
     OptimizeImgForReleaseQueuer
@@ -33,61 +29,6 @@ SIZES = [
     'web',
     'tbn',
 ]
-
-
-class Downloader(Response):
-    """Class representing an image downloader"""
-
-    def download(
-            self, request, db, chunk_size=DEFAULT_CHUNK_SIZE, attachment=True,
-            download_filename=None):
-        """
-        Adapted from Response.download.
-
-        request.vars.size: string, one of SIZES. If provided the image is
-                streamed from a subdirectory with that name.
-        """
-        # C0103: *Invalid name "%%s" (should match %%s)*
-        # pylint: disable=C0103
-
-        current.session.forget(current.response)
-
-        if not request.args:
-            raise HTTP(404)
-        name = request.args[-1]
-        # W1401 (anomalous-backslash-in-string): *Anomalous backslash in string
-        # pylint: disable=W1401
-        items = re.compile('(?P<table>.*?)\.(?P<field>.*?)\..*')\
-            .match(name)
-        if not items:
-            raise HTTP(404)
-        (t, f) = (items.group('table'), items.group('field'))
-        try:
-            field = db[t][f]
-        except AttributeError:
-            raise HTTP(404)
-        try:
-            (filename, stream) = field.retrieve(name, nameonly=True)
-        except IOError:
-            raise HTTP(404)
-
-        # Customization: start
-        if request.vars.size and request.vars.size in SIZES \
-                and request.vars.size != 'original':
-            resized = filename_for_size(stream, request.vars.size)
-            if os.path.exists(resized):
-                stream = resized
-        # Customization: end
-
-        headers = self.headers
-        headers['Content-Type'] = contenttype(name)
-        if download_filename is None:
-            download_filename = filename
-        if attachment:
-            fmt = 'attachment; filename="%s"'
-            headers['Content-Disposition'] = \
-                fmt % download_filename.replace('"', '\"')
-        return self.stream(stream, chunk_size=chunk_size, request=request)
 
 
 class ImageOptimizeError(Exception):
@@ -470,10 +411,6 @@ def optimize(filename, nice=False):
         args.append('nice')
     args.append(optimize_script)
     args.append(os.path.abspath(filename))
-    # FIXME \\
-    with open('/tmp/jimk.txt', 'a') as f_dump:
-        f_dump.write("args: " + str(args) + "\n")
-    # FIXME ////
 
     p = subprocess.Popen(
         args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

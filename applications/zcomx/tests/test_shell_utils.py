@@ -3,7 +3,7 @@
 
 """
 
-Test suite for zcomx/modules/unix_file.py
+Test suite for zcomx/modules/shell_utils.py
 
 """
 import inspect

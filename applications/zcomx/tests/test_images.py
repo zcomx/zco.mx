@@ -3,7 +3,7 @@
 
 """
 
-Test suite for zcomx/modules/utils.py
+Test suite for zcomx/modules/images.py
 
 """
 import glob
@@ -14,17 +14,14 @@ import os
 import pwd
 import re
 import shutil
-import time
 import unittest
 from BeautifulSoup import BeautifulSoup
 from PIL import Image
 from gluon import *
 from gluon.html import DIV, IMG
 from gluon.http import HTTP
-from gluon.storage import List
 from applications.zcomx.modules.images import \
     CreatorImgTag, \
-    Downloader, \
     ImageOptimizeError, \
     ImgTag, \
     ResizeImgError, \
@@ -280,68 +277,6 @@ class TestCreatorImgTag(ImageTestCase):
         self.assertEqual(
             img_tag.attributes,
             {'_class': 'img_class preview placeholder_torso', '_id': 'img_id'})
-
-
-class TestDownloader(ImageTestCase):
-
-    def test__download(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-        downloader = Downloader()
-        self.assertTrue(downloader)
-        env = globals()
-        request = env['request']
-
-        def set_lengths():
-            lengths = {}
-            for size in ['original', 'cbz', 'web', 'tbn']:
-                unused_name, fullname = db.creator.image.retrieve(
-                    self._creator.image, nameonly=True)
-                filename = filename_for_size(fullname, size)
-                if os.path.exists(filename):
-                    lengths[size] = os.stat(filename).st_size
-            return lengths
-
-        def test_http(expect_size):
-            request.args = List([self._creator.image])
-            try:
-                downloader.download(request, db)
-            except HTTP as http:
-                self.assertEqual(http.status, 200)
-                self.assertEqual(http.headers['Content-Type'], 'image/jpeg')
-                self.assertEqual(
-                    http.headers['Content-Disposition'],
-                    'attachment; filename="file.jpg"'
-                )
-                self.assertEqual(
-                    http.headers['Content-Length'],
-                    lengths[expect_size]
-                )
-
-        # tbn.jpg is tiny, only the thumbnail should be created.
-        filename = self._prep_image('tbn.jpg', to_name='file.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
-        lengths = set_lengths()
-        request.vars.size = 'tbn'
-        test_http('tbn')
-        request.vars.size = 'web'
-        test_http('original')
-        request.vars.size = 'cbz'
-        test_http('original')
-        request.vars.size = 'original'
-        test_http('original')
-
-        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
-        lengths = set_lengths()
-        request.vars.size = 'tbn'
-        test_http('tbn')
-        request.vars.size = 'web'
-        test_http('web')
-        request.vars.size = 'cbz'
-        test_http('cbz')
-        request.vars.size = 'original'
-        test_http('original')
 
 
 class TestImageOptimizeError(LocalTestCase):

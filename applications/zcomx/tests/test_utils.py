@@ -177,6 +177,7 @@ class TestFunctions(LocalTestCase):
                 'background_colour': 'white',
                 'book_type_id': None,
                 'border_colour': 'white',
+                'cbz': None,
                 'cc_licence_id': 0,
                 'cc_licence_place': None,
                 'contributions': 0,
@@ -193,6 +194,7 @@ class TestFunctions(LocalTestCase):
                 'reader': 'slider',
                 'release_date': None,
                 'status': True,
+                'torrent': None,
                 'urlify_name': None,
                 'views': 0
             }

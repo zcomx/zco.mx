@@ -3,7 +3,7 @@
 
 """
 
-Test suite for zcomx/controllers/default.py
+Test suite for zcomx/controllers/images.py
 
 """
 import unittest

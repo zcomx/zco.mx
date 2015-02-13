@@ -82,8 +82,10 @@
                             <dt>links</dt>
                             <dd>{{=creator_links}}</dd>
                         {{pass}}
+                        {{if creator.torrent:}}
                         <dt>torrent </dt>
-                        <dd><a href="#" class="fixme">ALL-FIXME.torrent</a></dd>
+                        <dd><a href="{{=URL(c='torrents', f='download', args=['creator', creator.id])}}">{{=os.path.basename(creator.torrent)}}</a></dd>
+                        {{pass}}
                         </dl>
                     </div>
                 </div>

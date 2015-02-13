@@ -3,7 +3,7 @@
 
 """
 
-Test suite for zcomx/modules/books.py
+Test suite for zcomx/modules/cbz.py
 
 """
 import os
@@ -14,7 +14,6 @@ from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.books import DEFAULT_BOOK_TYPE
 from applications.zcomx.modules.cbz import \
-    CBZArchive, \
     CBZCreateError, \
     CBZCreator, \
     archive
@@ -137,81 +136,6 @@ class ImageTestCase(LocalTestCase):
     def tearDown(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
-
-
-class TestCBZArchive(LocalTestCase):
-    _base_path = '/tmp/cbz_archive'
-
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
-    @classmethod
-    def setUpClass(cls):
-        if not os.path.exists(cls._base_path):
-            os.makedirs(cls._base_path)
-
-    @classmethod
-    def tearDownClass(cls):
-        if os.path.exists(cls._base_path):
-            shutil.rmtree(cls._base_path)
-
-    def test____init__(self):
-        cbz_archive = CBZArchive(self._base_path, 'zco.mx')
-        self.assertTrue(cbz_archive)
-
-    def test__add_file(self):
-        filename = os.path.join(self._base_path, 'test.cbz')
-
-        cbz_archive = CBZArchive(self._base_path, 'zco.mx')
-
-        tests = [
-            # (subdir, name, expect)
-            (
-                'Adam Ant',
-                'Title.cbz',
-                '/tmp/cbz_archive/zco.mx/A/Adam Ant/Title.cbz'
-            ),
-            (
-                'Betty Bin',
-                None,
-                '/tmp/cbz_archive/zco.mx/B/Betty Bin/test.cbz'
-            ),
-        ]
-
-        for t in tests:
-            with open(filename, 'w') as f:
-                f.write('Testing')
-            got = cbz_archive.add_file(filename, t[0], name=t[1])
-            self.assertEqual(got, t[2])
-            self.assertTrue(os.path.exists(got))
-            name = t[1] or 'test.cbz'
-            cbz_archive.remove_file(t[0], name=name)
-            self.assertFalse(os.path.exists(got))
-
-        self.assertRaises(
-            NotFoundError, cbz_archive.add_file, '/tmp/_fake_', 'First Last')
-
-        cbz_archive = CBZArchive('/tmp/_invalid_', 'zco.mx')
-        with open(filename, 'w') as f:
-            f.write('Testing')
-        self.assertRaises(
-            NotFoundError, cbz_archive.add_file, filename, 'First Last')
-
-    def test__get_subdir_path(self):
-        cbz_archive = CBZArchive(self._base_path, 'zco.mx')
-        tests = [
-            # (subdir, expect)
-            (None, None),
-            ('', None),
-            (123, '/tmp/cbz_archive/zco.mx/1/123'),
-            ('Abe Adams', '/tmp/cbz_archive/zco.mx/A/Abe Adams'),
-            ('Zach Zellers', '/tmp/cbz_archive/zco.mx/Z/Zach Zellers'),
-        ]
-
-        for t in tests:
-            self.assertEqual(cbz_archive.get_subdir_path(t[0]), t[1])
-
-    def test__remove_file(self):
-        pass                # See test__add_file
 
 
 class TestCBZCreateError(LocalTestCase):
@@ -413,6 +337,13 @@ class TestCBZCreator(ImageTestCase):
         creator._img_filename_fmt = '_cache_'
         self.assertEqual(creator.get_img_filename_fmt(), '_cache_')
 
+        # Test book with no pages.
+        book = self.add(db.book, dict(
+            name='TestGetMaxPageNo'
+        ))
+        creator = CBZCreator(book)
+        self.assertEqual(creator.get_img_filename_fmt(), '{p:03d}{e}')
+
     def test__get_max_page_no(self):
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
@@ -438,6 +369,13 @@ class TestCBZCreator(ImageTestCase):
         # Test cache
         creator._max_page_no = -1
         self.assertEqual(creator.get_max_page_no(), -1)
+
+        # Test book with no pages.
+        book = self.add(db.book, dict(
+            name='TestGetMaxPageNo'
+        ))
+        creator = CBZCreator(book)
+        self.assertRaises(NotFoundError, creator.get_max_page_no)
 
     def test__image_filename(self):
         # protected-access (W0212): *Access to a protected member %%s
@@ -486,14 +424,6 @@ class TestCBZCreator(ImageTestCase):
         files_comment = 'Files: {c}'.format(c=pages + 1)    # +1 for indicia
         self.assertTrue(files_comment in p_stdout)
 
-    def test__working_directory(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-        creator = CBZCreator(self._book)
-        work_dir = creator.working_directory()
-        self.assertTrue(os.path.exists(work_dir))
-        self.assertEqual(os.path.basename(work_dir), self._book.name)
-
     def test__zip(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
@@ -538,7 +468,7 @@ class TestFunctions(ImageTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             cbz_filename,
-            '/tmp/cbz_archive/zco.mx/J/Jim Karsten/Image Test Case (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
+            '/tmp/cbz_archive/cbz/zco.mx/J/Jim Karsten/Image Test Case (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
         )
 
         book = entity_to_row(db.book, self._book.id)
