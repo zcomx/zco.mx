@@ -211,6 +211,9 @@ db.define_table('book',
         comment='Jurisdiction from which the work is being offered under CC0.'
     ),
     Field(
+        'cbz'
+    ),
+    Field(
         'status',
         'boolean',
         default=True,

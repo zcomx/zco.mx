@@ -690,7 +690,7 @@ def creator_img_handler():
                 # resize/optimize by cron later.
                 creator_record.update_record(indicia_modified=request.now)
                 db.commit()
-            optimize_creator_images(creator)
+            optimize_creator_images(creator_record)
 
         data = {img_field: stored_filename}
         creator_record.update_record(**data)

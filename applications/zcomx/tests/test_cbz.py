@@ -22,7 +22,9 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     store
 from applications.zcomx.modules.test_runner import LocalTestCase
-from applications.zcomx.modules.utils import NotFoundError
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -531,14 +533,18 @@ class TestFunctions(ImageTestCase):
             raise unittest.SkipTest('Remove --quick option to run test.')
 
         cbz_filename = archive(self._book, base_path=self._base_path)
+
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         self.assertEqual(
             cbz_filename,
             '/tmp/cbz_archive/zco.mx/J/Jim Karsten/Image Test Case (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
         )
-        self.assertTrue(os.path.exists(cbz_filename))
 
+        book = entity_to_row(db.book, self._book.id)
+        self.assertEqual(book.cbz, cbz_filename)
+
+        self.assertTrue(os.path.exists(cbz_filename))
         args = ['7z', 't']
         args.append(cbz_filename)
         p = subprocess.Popen(
