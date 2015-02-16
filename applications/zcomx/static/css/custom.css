@@ -1047,6 +1047,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #creator_id_section .creator_img_container {
     display: inline-block;
+    max-width: 12em;
     padding-right: 1em;
 }
 
