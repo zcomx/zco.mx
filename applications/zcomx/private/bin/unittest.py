@@ -22,7 +22,7 @@ import traceback
 # F0401: *Unable to import %%r*
 # pylint: disable=F0401
 from unittest.main import TestProgram, USAGE_AS_MAIN
-from applications.zcomx.modules.test_runner import \
+from applications.zcomx.modules.tests.runner import \
         LocalTestCase, \
         LocalTextTestRunner, \
         count_diff

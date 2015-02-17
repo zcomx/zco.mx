@@ -40,7 +40,7 @@ from applications.zcomx.modules.images import \
     set_thumb_dimensions, \
     store
 from applications.zcomx.modules.job_queue import PRIORITIES
-from applications.zcomx.modules.test_runner import \
+from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     TableTracker
 from applications.zcomx.modules.shell_utils import \

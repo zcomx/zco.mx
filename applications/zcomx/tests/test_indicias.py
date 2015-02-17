@@ -38,7 +38,7 @@ from applications.zcomx.modules.indicias import \
     create_creator_indicia, \
     render_cc_licence, \
     update_creator_indicia
-from applications.zcomx.modules.test_runner import \
+from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
 from applications.zcomx.modules.shell_utils import UnixFile

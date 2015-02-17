@@ -14,7 +14,7 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.dal.helpers.classes import Reference
 from gluon.storage import Storage
-from applications.zcomx.modules.test_runner import \
+from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
 from applications.zcomx.modules.utils import \

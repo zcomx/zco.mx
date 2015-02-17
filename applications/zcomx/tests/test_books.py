@@ -58,7 +58,7 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
-from applications.zcomx.modules.test_runner import \
+from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
 from applications.zcomx.modules.utils import \

@@ -1,10 +1,9 @@
 #!/usr/bin/python
 
 """
-test_runner.py
+tests/runner.py
 
 Classes for local python test_suite scripts.
-
 """
 from BeautifulSoup import BeautifulSoup
 import StringIO

@@ -21,7 +21,7 @@ from applications.zcomx.modules.cbz import \
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row

@@ -16,7 +16,7 @@ from applications.zcomx.modules.stickon.tools import \
     ExposeImproved, \
     ModelDb, \
     SettingsLoader
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904

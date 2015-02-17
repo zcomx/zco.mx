@@ -8,7 +8,7 @@ Test suite for zcomx/controllers/default.py
 """
 import unittest
 import urllib2
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
 # C0111: Missing docstring

@@ -21,7 +21,7 @@ from applications.zcomx.modules.shell_utils import \
     get_owner, \
     set_owner, \
     temp_directory
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods

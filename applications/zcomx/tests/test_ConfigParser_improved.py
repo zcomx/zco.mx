@@ -14,7 +14,7 @@ import os
 import unittest
 from applications.zcomx.modules.ConfigParser_improved import \
         ConfigParserImproved
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # pylint: disable=C0111,R0904
 
