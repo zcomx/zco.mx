@@ -629,6 +629,20 @@ class TestIndiciaSh(ImageTestCase):
     def test____init__(self):
         indicia_sh = IndiciaSh(101, '', '')
         self.assertTrue(indicia_sh)
+        self.assertEqual(
+            indicia_sh.font,
+            os.path.abspath(
+                'applications/zcomx/static/fonts/sf_cartoonist/sfcartoonisthand-bold-webfont.ttf'
+            )
+        )
+        self.assertTrue(os.path.exists(indicia_sh.font))
+        self.assertEqual(
+            indicia_sh.action_font,
+            os.path.abspath(
+                'applications/zcomx/static/fonts/brushy_cre/Brushy-Cre.ttf'
+            )
+        )
+        self.assertTrue(os.path.exists(indicia_sh.action_font))
 
     def test__run(self):
         creator_id = 919

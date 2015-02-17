@@ -483,7 +483,7 @@ class IndiciaSh(TempDirectoryMixin):
         self.font = font if font is not None \
             else os.path.abspath(os.path.join(
                 self.font_path,
-                'sf_cartoonist/SF-Cartoonist-Hand-Bold.ttf'
+                'sf_cartoonist/sfcartoonisthand-bold-webfont.ttf'
             ))
         self.action_font = action_font if action_font is not None \
             else os.path.abspath(os.path.join(
