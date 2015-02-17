@@ -1,22 +1,47 @@
 ``
 VERSION 2 - Before Going Live
+[ ] Crowdfunding Idea
+    [ ] remove 'contributions' section from front page for now
+    [S] fix up FAQs
+
+[ ] Bugs
+    [ ] Indicia Page
+        https://dev.zco.mx/login/indicia
+        Bottom metadata is missing
+
+    [ ] Cartoonist Page
+        https://dev.zco.mx/Luke_Howard/
+        Change/hide 'No records found'
+
+    [ ] Last Comic Page (Indicia Page)
+        To upper metadata
+        eg https://dev.zco.mx/Luke_Howard/Best_Seller/017
+
+    [ ] Book Page
+        https://dev.zco.mx/login/books
+        Best Seller (2015)      ## remove year
+
+    [S] Metadata Input
+        Republication - serial (i)
+            Including wording for anthologies
+
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
     Example file names:
     "Name of Comic 001 (2014) (101.zco.mx).cbz"
     "Name of Comic 001 (2012) (digital-Empire).cbr"
     "Name of Comic 001 (2012) (digital) (Son of Ultron-Empire).cbr"
-    [ ] rewrite - https://zco.mx/ALL.torrent
-    [ ] redirect - http://101.zco.mx/Name_of_Comic_01_of_04.torrent http://101.zco.mx/Name_of_Comic_001.torrent
     [ ] metadata
         $ zip test.zip -z <<< '2014|Cartoonist Name|Title of Book|64'   ## add metadata to zip comment field
+    [ ] rewrite - https://zco.mx/zc.torrent         ## torrent for all cbz's
+    [ ] redirects for http://101.zco.mx/Name of Comic 01 (of 04) (2014).torrent
+                      http://101.zco.mx/Name of Comic 001 (2013).torrent
 
-[ ] Crowdfunding Idea
-    [ ] remove 'contributions' section from front page for now
-    [ ] fix up FAQs
-
+---
 [ ] Remove 'dev.' from domain name
     Search for all instances of 'dev.zco.mx'
+
+[ ] Add back the 'Release Button'
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
@@ -57,7 +82,10 @@ VERSION 2 - Before Going Live
 
     SB 2015-02-09 19:09  It will does this with middle click
 
+[ ] nice levels
+
 VERSION 3
+[ ] add html version of mailing list to login area
 [ ] Rethink Crowdfunding Idea
     see emails with blumenstein
 [ ] Indicia - html
