@@ -14,7 +14,7 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.dal.helpers.classes import Reference
 from gluon.storage import Storage
-from applications.zcomx.modules.test_runner import \
+from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
 from applications.zcomx.modules.utils import \
@@ -177,6 +177,7 @@ class TestFunctions(LocalTestCase):
                 'background_colour': 'white',
                 'book_type_id': None,
                 'border_colour': 'white',
+                'cbz': None,
                 'cc_licence_id': 0,
                 'cc_licence_place': None,
                 'contributions': 0,
@@ -193,6 +194,7 @@ class TestFunctions(LocalTestCase):
                 'reader': 'slider',
                 'release_date': None,
                 'status': True,
+                'torrent': None,
                 'urlify_name': None,
                 'views': 0
             }

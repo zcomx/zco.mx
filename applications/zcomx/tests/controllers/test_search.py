@@ -8,7 +8,7 @@ Test suite for zcomx/controllers/search.py
 """
 import unittest
 from applications.zcomx.modules.creators import formatted_name
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods

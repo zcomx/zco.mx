@@ -28,7 +28,7 @@ from applications.zcomx.modules.job_queue import \
     QueueLockedExtendedError, \
     QueueWithSignal, \
     ReleaseBookQueuer
-from applications.zcomx.modules.test_runner import \
+from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     TableTracker
 from applications.zcomx.modules.utils import \

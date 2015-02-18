@@ -24,7 +24,7 @@ from applications.zcomx.modules.book_upload import \
     UploadedUnsupported, \
     classify_uploaded_file, \
     create_book_page
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring

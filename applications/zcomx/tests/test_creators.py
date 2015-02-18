@@ -35,7 +35,7 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring

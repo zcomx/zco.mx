@@ -40,7 +40,7 @@ from applications.zcomx.modules.search import \
     link_book_id, \
     read_link, \
     torrent_link
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring

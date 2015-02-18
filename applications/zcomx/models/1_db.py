@@ -214,6 +214,9 @@ db.define_table('book',
         'cbz'
     ),
     Field(
+        'torrent'
+    ),
+    Field(
         'status',
         'boolean',
         default=True,
@@ -413,6 +416,9 @@ db.define_table('creator',
         uploadseparate=True,
     ),
     Field('indicia_modified', 'datetime'),
+    Field(
+        'torrent'
+    ),
     format='%(path_name)s',
     migrate=True,
 )

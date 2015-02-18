@@ -14,7 +14,7 @@ from applications.zcomx.modules.environ import \
         ServerEnvironmentError, \
         has_terminal, \
         server_production_mode
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 

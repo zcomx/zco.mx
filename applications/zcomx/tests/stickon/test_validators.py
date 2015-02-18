@@ -16,7 +16,7 @@ from applications.zcomx.modules.stickon.validators import \
     IS_TWITTER_HANDLE, \
     IS_URL_FOR_DOMAIN
 
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods

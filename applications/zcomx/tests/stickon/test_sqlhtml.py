@@ -15,7 +15,7 @@ from applications.zcomx.modules.stickon.sqlhtml import \
     LocalSQLFORM, \
     formstyle_bootstrap3_custom, \
     formstyle_bootstrap3_login
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
 # R0904: *Too many public methods (%%s/%%s)*

@@ -17,7 +17,7 @@ from gluon.storage import \
 from applications.zcomx.modules.books import url_name as book_url_name
 from applications.zcomx.modules.creators import url_name as creator_url_name
 from applications.zcomx.modules.routing import Router
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
