@@ -5,14 +5,6 @@ VERSION 2 - Before Going Live
     [S] fix up FAQs
 
 [ ] Bugs
-    [ ] Indicia Page
-        https://dev.zco.mx/login/indicia
-        Bottom metadata is missing
-
-    [ ] Cartoonist Page
-        https://dev.zco.mx/Luke_Howard/
-        Change/hide 'No records found'
-
     [ ] Last Comic Page (Indicia Page)
         To upper metadata
         eg https://dev.zco.mx/Luke_Howard/Best_Seller/017
@@ -20,6 +12,10 @@ VERSION 2 - Before Going Live
     [ ] Book Page
         https://dev.zco.mx/login/books
         Best Seller (2015)      ## remove year
+
+    [ ] Cartoonist Page
+        https://dev.zco.mx/Luke_Howard/
+        Change/hide 'No records found'
 
     [S] Metadata Input
         Republication - serial (i)
