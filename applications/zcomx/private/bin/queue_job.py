@@ -10,8 +10,6 @@ Queue a job.
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
 import logging
-import sys
-import traceback
 import time
 from optparse import OptionParser
 from applications.zcomx.modules.job_queue import QueueWithSignal
@@ -81,6 +79,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception:
-        traceback.print_exc(file=sys.stderr)
+    except Exception as err:
+        LOG.exception(err)
         exit(1)

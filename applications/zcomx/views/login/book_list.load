@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import formatted_name, read_link, url as book_url}}
+{{from applications.zcomx.modules.books import formatted_name, read_link, release_link, url as book_url}}
 {{if request.args(0) == 'released':}}
 <div id="released_container">
     <table class="table table-condensed table-hover">
@@ -53,7 +53,7 @@
             <td>
                 {{=A(
                     'Edit',
-                    _class='btn btn-default modal-edit-btn no_rclick_menu',
+                    _class='btn btn-default modal-edit-ongoing-btn no_rclick_menu',
                     _href=URL(c='login', f='book_edit', args=book.id, extension=False),
                 )}}
             </td>
@@ -64,15 +64,9 @@
                     _class='btn btn-default btn-xs modal-delete-btn no_rclick_menu',
                 )}}
             </td>
-            {{if request.vars.can_release is not None:}}
             <td>
-                {{=A(
-                    'Release',
-                    _class='btn btn-default modal-release-btn no_rclick_menu',
-                    _href=URL(c='login', f='book_release', args=book.id, extension=False),
-                )}}
+                {{=release_link(book.id, **dict(_class='btn btn-default modal-release-btn no_rclick_menu'))}}
             </td>
-            {{pass}}
         </tr>
         {{pass}}
         {{if not books:}}
@@ -92,7 +86,7 @@
             <td>
                 {{=A(
                     'Edit',
-                    _class='btn btn-default modal-edit-btn no_rclick_menu',
+                    _class='btn btn-default modal-edit-ongoing-btn no_rclick_menu',
                     _href=URL(c='login', f='book_edit', args=book.id, extension=False),
                 )}}
             </td>

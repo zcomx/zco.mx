@@ -27,8 +27,11 @@ from applications.zcomx.modules.utils import \
 DAEMON_NAME = 'zco_queued'
 PRIORITIES = [
     # Lowest
+    'delete_book',
     'optimize_img',
     'release_book',
+    'create_torrent',
+    'create_cbz',
     'optimize_img_for_release',
     # Highest
 ]
@@ -221,6 +224,8 @@ class JobQueuer(object):
         self.cli_options = cli_options or {}
         self.cli_args = cli_args or []
         self.delay_seconds = delay_seconds
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
         self.db = self.tbl._db
         if not self.queue_class:
             self.queue_class = Queue
@@ -289,6 +294,8 @@ class Queue(object):
             tbl: gluon.dal.Table of table jobs are stored in. Eg db.job
         """
         self.tbl = tbl
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
         self.db = self.tbl._db
 
     def add_job(self, job_data):
@@ -305,6 +312,8 @@ class Queue(object):
         data.update(job_data)
         LOG.debug('job_data: %s', job_data)
         job_id = self.tbl.insert(**data)
+        if 'command' in job_data:
+            LOG.debug('Queued command: %s', job_data['command'])
         self.db.commit()
         self.post_add_job()
         return entity_to_row(self.tbl, job_id)
@@ -317,26 +326,25 @@ class Queue(object):
             except QueueEmptyError:
                 break
 
-    def jobs(self, maximum_start=None, orderby=None, limitby=None):
+    def jobs(self, query=None, orderby=None, limitby=None):
         """Return the jobs in the queue.
 
         Args:
-            maximum_start: string, datetime value 'yyyy-mm-dd hh:mm:ss'. If
-                provided, the jobs returned are restricted to those where the
-                start value is less than or equal to this. Set this to the
-                current time and jobs scheduled in the future are not run.
+            query: gluon.dal.objects.Query instance used to filter jobs.
+                Eg Return only pending jobs:
+                    queue = Queue(db.job)
+                    query = (queue.tbl.status == 'p')
+                    print queue.jobs()
             orderby: list, tuple or string, cmp orderby attribute as per
                     gluon.sql.SQLSet._select()
                     Example: db.person.name
             limitby: integer or tuple. Tuple is format (start, stop). If
                     integer converted to tuple (0, integer)
-                    See database.py Collection.get() for more details.
         Returns:
             list, list of Job object instances.
         """
-        query = self.tbl.status == 'a'
-        if maximum_start:
-            query = query & (self.tbl.start <= maximum_start)
+        if query is None:
+            query = self.tbl
         if not limitby:
             limitby = None
         elif not hasattr(limitby, '__len__'):
@@ -454,6 +462,8 @@ class Queue(object):
             raise InvalidStatusError(
                 'Invalid status: {s}'.format(s=status))
         job_record.update_record(status=status)
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
         self.tbl._db.commit()
 
     def stats(self):
@@ -478,8 +488,10 @@ class Queue(object):
             Row instance representing a job record. None, if no job found.
         """
         start = time.strftime('%F %T', time.localtime())    # now
+        query = (self.tbl.status == 'a') & \
+                (self.tbl.start <= start)
         orderby = ~self.tbl.priority
-        top_jobs = self.jobs(maximum_start=start, orderby=orderby, limitby=1)
+        top_jobs = self.jobs(query=query, orderby=orderby, limitby=1)
         if len(top_jobs) == 0:
             msg = 'There are no jobs in the queue.'
             raise QueueEmptyError(msg)
@@ -524,6 +536,47 @@ class QueueWithSignal(Queue):
             LOG.error(err)
 
 
+class CreateCBZQueuer(JobQueuer):
+    """Class representing a queuer for create_cbz jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'create_cbz.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('create_cbz'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
+class CreateTorrentQueuer(JobQueuer):
+    """Class representing a queuer for create_torrent jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'create_torrent.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('create_torrent'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-a', '--all',
+        '-c', '--creator',
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
+class DeleteBookQueuer(JobQueuer):
+    """Class representing a queuer for delete_book jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'delete_book.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('delete_book'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
 class OptimizeImgQueuer(JobQueuer):
     """Class representing a queuer for optimize_img jobs."""
     program = os.path.join(JobQueuer.bin_path, 'optimize_img.py')
@@ -555,6 +608,8 @@ class ReleaseBookQueuer(JobQueuer):
         'status': 'a',
     }
     valid_cli_options = [
-        '-f', '--force',
+        '-m', '--max-requeues',
+        '-r', '--requeues',
+        '-v', '--vv',
     ]
     queue_class = QueueWithSignal

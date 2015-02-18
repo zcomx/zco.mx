@@ -26,6 +26,7 @@ from applications.zcomx.modules.search import \
     CartoonistTile, \
     CartoonistsGrid, \
     ContributionsGrid, \
+    CreatorMoniesGrid, \
     GRID_CLASSES, \
     Grid, \
     MoniesBookTile, \
@@ -386,6 +387,26 @@ class TestContributionsGrid(LocalTestCase):
             ]
         )
 
+
+class TestCreatorMoniesGrid(LocalTestCase):
+
+    def test____init__(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        grid = CreatorMoniesGrid()
+        self.assertTrue(grid)
+        self.assertEqual(grid._attributes['table'], 'book')
+        self.assertEqual(grid._attributes['field'], 'name')
+
+    def test__filters(self):
+        # creator not set
+        grid = CreatorMoniesGrid()
+        self.assertEqual(len(grid.filters()), 0)
+
+        # creator is set
+        creator = self.add(db.creator, dict(path_name='Test Filters'))
+        grid = CreatorMoniesGrid(creator_entity=creator)
+        self.assertEqual(len(grid.filters()), 1)
 
 class TestMoniesBookTile(LocalTestCase):
 

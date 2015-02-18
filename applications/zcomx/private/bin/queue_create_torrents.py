@@ -2,36 +2,31 @@
 # -*- coding: utf-8 -*-
 
 """
-resize_images.py
+queue_create_torrents.py
 
-Script to simulate resize_img.sh from python.
+Script to queue create_torrent jobs. The script should be cronned. It will
+queue jobs to create torrents for any creators as necessary, and to create
+the 'all' torrent if necessary.
 """
+# W0404: *Reimport %r (imported line %s)*
+# pylint: disable=W0404
 import logging
-import os
-import shutil
-from gluon import *
-from gluon.shell import env
 from optparse import OptionParser
-from applications.zcomx.modules.images import ResizeImg
+from applications.zcomx.modules.job_queue import CreateTorrentQueuer
 
 VERSION = 'Version 0.1'
-APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
-db = APP_ENV['db']
-
 LOG = logging.getLogger('cli')
 
 
 def man_page():
     """Print manual page-like help"""
     print """
-resize_img.py - Simulate resize_img.sh with python.
+The script should be cronned. It will queue jobs to create torrents for any
+creators as necessary, and to create the 'all' torrent if necessary.
 
 USAGE
-    resize_img.py [OPTIONS] FILE
+    queue_create_torrents.py [OPTIONS]
 
-    resize_images.py file.jpg
 
 OPTIONS
     -h, --help
@@ -40,39 +35,24 @@ OPTIONS
     --man
         Print man page-like help.
 
-    -t PATH, --tmp-dir=PATH
-        Set PATH as the working directory. Original files are copied there
-        before processing. If PATH doesn't exist, it is created.
-        Default /tmp/resize_img_py.
-
     -v, --verbose
         Print information messages to stdout.
 
     --vv,
         More verbose. Print debug messages to stdout.
-
-
-NOTES:
-
-    The original file is preserved.
     """
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] file'
+    usage = '%prog [options]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
         '--man',
         action='store_true', dest='man', default=False,
         help='Display manual page-like help and exit.',
-    )
-    parser.add_option(
-        '-t', '--tmp-dir',
-        dest='tmp_dir', default='/tmp/resize_img_py',
-        help='Working directory. Default /tmp/resize_img_py',
     )
     parser.add_option(
         '-v', '--verbose',
@@ -98,25 +78,27 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if len(args) < 1:
+    if len(args) > 0:
         parser.print_help()
         exit(1)
 
-    LOG.info('Started.')
-    # copy the file to a temp name.
-    if not os.path.exists(options.tmp_dir):
-        os.makedirs(options.tmp_dir)
+    query = (db.creator.rebuild_torrent == True)
+    ids = [x.id for x in db(query).select(db.creator.id)]
+    for creator_id in ids:
+        LOG.debug(
+            'Queuing job to create torrent for creator, id: %s', creator_id)
+        CreateTorrentQueuer(
+            db.job,
+            cli_options={'-c': True},
+            cli_args=[str(creator_id)],
+        ).queue()
 
-    for filename in args:
-        base = os.path.basename(filename)
-        dest_filename = os.path.join(options.tmp_dir, base)
-        shutil.copy(filename, dest_filename)
-
-        resize_img = ResizeImg(dest_filename)
-        resize_img.run(nice=True)
-        for size, name in resize_img.filenames.items():
-            LOG.info('{size}: {name}'.format(size=size, name=name))
-    LOG.info('Done.')
+    if len(ids) > 0:
+        LOG.debug('Queuing job to create "all" torrent for creator')
+        CreateTorrentQueuer(
+            db.job,
+            cli_options={'--all': True},
+        ).queue()
 
 
 if __name__ == '__main__':

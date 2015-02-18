@@ -225,6 +225,24 @@ def book_pages_years(book_entity):
     ))
 
 
+def book_tables():
+    """Return a list of tables referencing books.
+
+    Returns:
+        list of strings, list of table names.
+    """
+    return [
+        'book_page',
+        'book_to_link',
+        'book_view',
+        'contribution',
+        'derivative',
+        'publication_metadata',
+        'publication_serial',
+        'rating',
+    ]
+
+
 def book_types(db):
     """Return a XML instance representing book types suitable for
     an HTML radio button input.
@@ -656,23 +674,6 @@ def get_page(book_entity, page_no=1):
     return book_page
 
 
-def is_releasable(db, book_entity):
-    """Return whether the book can be released.
-
-    Args:
-        db: gluon.dal.DAL instance
-        book_entity: Row instance or integer, if integer, this is the id of the
-            book. The book record is read.
-    """
-    book = entity_to_row(db.book, book_entity)
-    if not book:
-        return False
-    if not book.name:
-        return False
-    page_count = db(db.book_page.book_id == book.id).count()
-    return True if page_count > 0 else False
-
-
 def magnet_uri(book_entity):
     """Create a magnet uri for a book.
 
@@ -743,21 +744,22 @@ def optimize_book_images(
 
     for table in ['book', 'book_page']:
         for field in db[table].fields:
-            if db[table][field].type == 'upload':
-                if table == 'book':
-                    record_ids = [book.id]
-                else:
-                    record_ids = list(page_ids)
-                for record_id in record_ids:
-                    jobs.append(
-                        queue_optimize(
-                            str(db[table][field]),
-                            record_id,
-                            priority=priority,
-                            job_options=job_options,
-                            cli_options=cli_options
-                        )
+            if db[table][field].type != 'upload':
+                continue
+            if table == 'book':
+                record_ids = [book.id]
+            else:
+                record_ids = list(page_ids)
+            for record_id in record_ids:
+                jobs.append(
+                    queue_optimize(
+                        str(db[table][field]),
+                        record_id,
+                        priority=priority,
+                        job_options=job_options,
+                        cli_options=cli_options
                     )
+                )
     return jobs
 
 
@@ -942,6 +944,195 @@ def read_link(db, book_entity, components=None, **attributes):
     return A(*components, **kwargs)
 
 
+def release_barriers(book_entity):
+    """Return a list of barriers preventing the release of a book.
+
+    Args:
+        book_entity: Row instance or integer representing a book record.
+
+    Returns:
+        list of dicts (barriers). A barrier dict has the following format.
+            {
+                'code': 'reason_code',
+                'reason': 'The reason the book cannot be released.',
+                'description': 'A longer description of the reason.',
+                'fixes': [
+                    'Step 1 to fix problem',
+                    'Step 2 to fix problem',
+                    ...
+                ]
+            }
+        The description is optional.
+    """
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    barriers = []
+
+    # Book has no name
+    if not book.name:
+        barriers.append({
+            'code': 'no_name',
+            'reason': 'The book has no name.',
+            'description': (
+                'Cbz and torrent files are named after the book name. '
+                'Without a name these files cannot be created.'
+            ),
+            'fixes': [
+                'Edit the book and set the name.',
+            ]
+        })
+
+    # Book has not pages
+    page_count = db(db.book_page.book_id == book.id).count()
+    if page_count == 0:
+        barriers.append({
+            'code': 'no_pages',
+            'reason': 'The book has no pages.',
+            'fixes': [
+                'Upload images to create pages for the book.',
+            ]
+        })
+
+    # Another book already exists with same name
+    query = (db.book.creator_id == book.creator_id) & \
+            (db.book.name == book.name) & \
+            (db.book.book_type_id != book.book_type_id) & \
+            (db.book.release_date != None) & \
+            (db.book.id != book.id)
+    if db(query).count() > 0:
+        barriers.append({
+            'code': 'dupe_name',
+            'reason': 'You already released a book with the same name.',
+            'description': (
+                'Cbz and torrent files are named after the book name. '
+                'The name of the book must be unique.'
+            ),
+            'fixes': [
+                'Modify the name of the book to make it unique.',
+                'If this is a duplicate, delete the book.',
+            ]
+        })
+
+    # Another book already exists with same name/number
+    query = (db.book.creator_id == book.creator_id) & \
+            (db.book.name == book.name) & \
+            (db.book.book_type_id == book.book_type_id) & \
+            (db.book.number == book.number) & \
+            (db.book.release_date != None) & \
+            (db.book.id != book.id)
+    if db(query).count() > 0:
+        barriers.append({
+            'code': 'dupe_number',
+            'reason':
+                'You already released a book with the same name and number.',
+            'description': (
+                'Cbz and torrent files are named after the book name. '
+                'The name/number of the book must be unique.'
+            ),
+            'fixes': [
+                (
+                    'Verify the number of the book is correct. '
+                    'Possibly it needs to be incremented.'
+                ),
+                'If this is a duplicate, delete the book.',
+            ]
+        })
+
+    # Licence is not set
+    if not book.cc_licence_id:
+        barriers.append({
+            'code': 'no_licence',
+            'reason': 'No licence has been selected for the book.',
+            'description': (
+                'Books released on zco.mx '
+                'are published on public file sharing networks. '
+                'A licence must be set indicating permission to do this.'
+            ),
+            'fixes': [
+                'Edit the book and set the licence.',
+            ]
+        })
+
+    # Licence is 'All Rights Reserved'
+    arr = db(db.cc_licence.code == 'All Rights Reserved').select().first()
+    if arr and arr.id and book.cc_licence_id == arr.id:
+        barriers.append({
+            'code': 'licence_arr',
+            'reason':
+                "The licence on the book is set to 'All Rights Reserved'.",
+            'description': (
+                'Books released on zco.mx '
+                'are published on public file sharing networks. '
+                'This is not permitted if the licence is '
+                '"All Rights Reserved".'
+            ),
+            'fixes': [
+                'Edit the book and change the licence.',
+            ]
+        })
+
+    # Publication metadata is not set
+    metadata = db(db.publication_metadata.book_id == book.id).select().first()
+    if not metadata:
+        barriers.append({
+            'code': 'no_metadata',
+            'reason':
+                "The publication metadata has not been set for the book.",
+            'description': (
+                'Books released on zco.mx include an indicia page. '
+                'The page has a paragraph outlining '
+                'the publication history of the book.'
+                'The publication metadata has to be set '
+                'to create this paragraph.'
+            ),
+            'fixes': [
+                'Edit the book and set the publication metadata.',
+            ]
+        })
+
+    return barriers
+
+
+def release_link(book_entity, components=None, **attributes):
+    """Return html code suitable for a 'Release' link or button.
+
+    Args:
+        book_entity: Row instance or integer representing a book record.
+        components: list, passed to A(*components),  default ['Release']
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return empty
+
+    if not components:
+        if book.releasing:
+            components = ['Release (in progress)']
+        else:
+            components = ['Release']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='login', f='book_release', args=book.id, extension=False)
+
+    if book.releasing:
+        if '_class' not in attributes:
+            kwargs['_class'] = 'disabled'
+        else:
+            kwargs['_class'] = ' '.join([kwargs['_class'], 'disabled'])
+
+    return A(*components, **kwargs)
+
+
 def short_page_img_url(book_page_entity):
     """Return a short url for the book page image.
 
@@ -1011,6 +1202,48 @@ def short_url(book_entity):
         return
 
     return urlparse.urljoin(url_for_creator, name)
+
+
+def unoptimized_images(book_entity):
+    """Return a list of unoptimized images related to a book.
+
+    Images are deemed unoptimized if there is no optimize_img_log record
+    indicating it has been optimized.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+
+    Returns:
+        list of tuples, [(field, record_id), ...]
+            field is a string 'table.field' as stored in optimize_img_log
+            eg ('book_page.image', 123)
+    """
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    query = (db.book_page.book_id == book.id)
+    page_ids = [x.id for x in db(query).select(db.book_page.id)]
+
+    unoptimals = []
+
+    for table in ['book', 'book_page']:
+        for field in db[table].fields:
+            if db[table][field].type != 'upload':
+                continue
+            table_field = '{t}.{f}'.format(t=table, f=field)
+            if table == 'book':
+                record_ids = [book.id]
+            else:
+                record_ids = list(page_ids)
+            for record_id in record_ids:
+                query = (db.optimize_img_log.record_field == table_field) & \
+                        (db.optimize_img_log.record_id == record_id)
+                rows = db(query).select()
+                if not rows:
+                    unoptimals.append((table_field, record_id))
+    return unoptimals
 
 
 def update_contributions_remaining(db, book_entity):

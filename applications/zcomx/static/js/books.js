@@ -217,6 +217,7 @@
         },
 
         update: function() {
+            console.log('update called');
             var that = this;
             var url = '/zcomx/login/book_crud.json';
 
@@ -299,7 +300,12 @@
         this.init(element, action, options);
     }
     $.fn.zco_utils.inherit(EditModalize, Modalize);
-    $.extend(EditModalize.prototype, {
+
+    var EditOngoingModalize = function (element, action, options) {
+        this.init(element, action, options);
+    }
+    $.fn.zco_utils.inherit(EditOngoingModalize, EditModalize);
+    $.extend(EditOngoingModalize.prototype, {
         buttons: function() {
             var that = this;
             var btns = [];
@@ -427,6 +433,9 @@
                     case 'edit':
                         obj = new EditModalize(this, action, options);
                         break;
+                    case 'edit_ongoing':
+                        obj = new EditOngoingModalize(this, action, options);
+                        break;
                     case 'release':
                         obj = new ReleaseModalize(this, action, options);
                         break;
@@ -475,6 +484,14 @@
         });
         $('.modal-delete-btn').modalize('delete', {'onhidden': display_book_lists});
         $('.modal-edit-btn').modalize('edit', {
+            'onhidden': display_book_lists,
+            'bootstrap_dialog_options':  {
+                'closable': true,
+                'closeByBackdrop': false,
+                'closeByKeyboard': false,
+            }
+        });
+        $('.modal-edit-ongoing-btn').modalize('edit_ongoing', {
             'onhidden': display_book_lists,
             'bootstrap_dialog_options':  {
                 'closable': true,

@@ -6,6 +6,7 @@
 Search classes and functions.
 """
 import collections
+import logging
 from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.tools import prettydate
@@ -24,7 +25,11 @@ from applications.zcomx.modules.creators import \
     url as creator_url
 from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
+
+LOG = logging.getLogger('app')
 
 
 class Grid(object):
@@ -75,6 +80,8 @@ class Grid(object):
                 valid parameters fo SQLFORM.grid
             queries: list of gluon.dal.Expression, additional expressions used
                 for filtering records in results.
+            default_viewby: string, one of 'list', 'tile'. The default view to
+                use.
         """
         self.form_grid_args = form_grid_args
         self.queries = queries
@@ -94,7 +101,7 @@ class Grid(object):
         """Set the grid. """
         db = self.db
         request = self.request
-        queries = self.queries or []
+        queries = list(self.queries) if self.queries else []
         queries.append((db.book.status == True))
         queries.extend(self.filters())
 
@@ -232,6 +239,8 @@ class Grid(object):
             kwargs.update(self.form_grid_args)
 
         self.form_grid = LocalSQLFORM.grid(query, **kwargs)
+        LOG.debug('self: %s', self)
+        LOG.debug('db._lastsql: %s', db._lastsql)
         self._paginate = kwargs['paginate']
         # Remove 'None' record count if applicable.
         for count, div in enumerate(self.form_grid[0]):
@@ -554,6 +563,52 @@ class ContributionsGrid(Grid):
         ]
 
 
+class CreatorMoniesGrid(Grid):
+    """Class representing a grid for search results: creator_monies"""
+
+    _attributes = dict(Grid._attributes)
+    _attributes.update({
+        'table': 'book',
+        'field': 'name',
+        'order_dir': 'ASC',
+    })
+
+    def __init__(
+            self,
+            form_grid_args=None,
+            queries=None,
+            default_viewby='tile',
+            creator_entity=None):
+        """Constructor"""
+
+        db = current.app.db
+        self.creator = None
+        if creator_entity is not None:
+            self.creator = entity_to_row(db.creator, creator_entity)
+            if not self.creator:
+                raise NotFoundError('Creator not found: {e}'.format(
+                    e=creator_entity))
+
+        Grid.__init__(
+            self,
+            form_grid_args=form_grid_args,
+            queries=queries,
+            default_viewby=default_viewby
+        )
+
+    def filters(self):
+        """Define query filters.
+
+        Returns:
+            list of gluon.dal.Expression instances
+        """
+        db = self.db
+        queries = []
+        if self.creator:
+            queries.append((db.book.creator_id == self.creator.id))
+        return queries
+
+
 class OngoingGrid(Grid):
     """Class representing a grid for search results: ongoing"""
 
@@ -721,7 +776,7 @@ class SearchGrid(Grid):
 
 GRID_CLASSES = collections.OrderedDict()
 GRID_CLASSES['ongoing'] = OngoingGrid
-# GRID_CLASSES['releases'] = ReleasesGrid
+GRID_CLASSES['releases'] = ReleasesGrid
 GRID_CLASSES['contributions'] = ContributionsGrid
 GRID_CLASSES['creators'] = CartoonistsGrid
 GRID_CLASSES['search'] = SearchGrid
@@ -1084,6 +1139,7 @@ def classified(request):
         Grid class or subclass
     """
     grid_class = OngoingGrid
+    LOG.debug('request.vars.o: %s', request.vars.o)
     if request.vars.o:
         if request.vars.o in GRID_CLASSES:
             grid_class = GRID_CLASSES[request.vars.o]

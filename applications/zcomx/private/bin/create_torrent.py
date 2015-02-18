@@ -4,7 +4,7 @@
 """
 create_torrent.py
 
-Script to create a cbz file for a book.
+Script to create a torrent file for a book, creator or all.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
@@ -13,9 +13,10 @@ from optparse import OptionParser
 from applications.zcomx.modules.torrents import \
     AllTorrentCreator, \
     BookTorrentCreator, \
-    CreatorTorrentCreator, \
-    TorrentCreateError
-from applications.zcomx.modules.utils import NotFoundError
+    CreatorTorrentCreator
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -29,18 +30,37 @@ def all_torrent():
 
 def book_torrent(book_id):
     """Create a torrent for a book."""
-    try:
-        result = BookTorrentCreator(book_id).archive()
-    except (NotFoundError, TorrentCreateError) as err:
-        LOG.error('Fail book id: %s, err: %s', book_id, err)
-        return
+    book = entity_to_row(db.book, book_id)
+    if not book:
+        raise NotFoundError('Book not found, id: {i}'.format(i=book_id))
+
+    result = BookTorrentCreator(book).archive()
     LOG.debug('Created: %s', result)
+
+    creator = entity_to_row(db.creator, book.creator_id)
+    if not creator:
+        raise NotFoundError('Creator not found, id: {i}'.format(
+            i=book.creator_id))
+
+    if not creator.rebuild_torrent:
+        creator.update_record(rebuild_torrent=True)
+        db.commit()
 
 
 def creator_torrent(creator_id):
     """Create a torrent for a creator."""
-    result = CreatorTorrentCreator(creator_id).archive()
+
+    creator = entity_to_row(db.creator, creator_id)
+    if not creator:
+        raise NotFoundError('Creator not found, id: {i}'.format(
+            i=creator_id))
+
+    result = CreatorTorrentCreator(creator).archive()
     LOG.debug('Created: %s', result)
+
+    if creator.rebuild_torrent:
+        creator.update_record(rebuild_torrent=False)
+        db.commit()
 
 
 def man_page():
@@ -140,4 +160,10 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # W0703: *Catch "Exception"*
+    # pylint: disable=W0703
+    try:
+        main()
+    except Exception as err:
+        LOG.exception(err)
+        exit(1)

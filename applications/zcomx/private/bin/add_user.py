@@ -6,11 +6,8 @@ add_user.py
 
 Script to create a user account from the cli.
 """
-import datetime
 import logging
 import os
-import sys
-import traceback
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
@@ -62,7 +59,7 @@ def get_user_info():
                     requires = [requires]
                 for validator in requires:
                     (info[k], errors) = validator(raw_value)
-                    if not errors is None:
+                    if errors is not None:
                         error_msg = errors
                         break
             if error_msg:
@@ -142,6 +139,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception:
-        traceback.print_exc(file=sys.stderr)
+    except Exception as err:
+        LOG.exception(err)
         exit(1)

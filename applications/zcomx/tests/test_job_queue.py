@@ -14,8 +14,11 @@ import time
 import unittest
 from applications.zcomx.modules.job_queue import \
     CLIOption, \
+    CreateCBZQueuer, \
+    CreateTorrentQueuer, \
     Daemon, \
     DaemonSignalError, \
+    DeleteBookQueuer, \
     InvalidCLIOptionError, \
     InvalidJobOptionError, \
     InvalidStatusError, \
@@ -111,6 +114,46 @@ class TestCLIOption(LocalTestCase):
             self.assertEqual(str(cli_option), t[2])
 
 
+class TestCreateCBZQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = CreateCBZQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'-v': True},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/create_cbz.py -v 123'
+        )
+
+
+class TestCreateTorrentQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = CreateTorrentQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'--all': True, '-v': True},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/create_torrent.py --all -v 123'
+        )
+
+
 class TestDaemon(LocalTestCase):
     name = 'igeejo_queued'
     pid_filename = '/tmp/test_suite/job_queue/pid'
@@ -187,6 +230,28 @@ class TestDaemon(LocalTestCase):
 
         daemon.write_pid(params)
         self.assertEqual(daemon.read_pid(), params)
+
+
+class TestDeleteBookQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = DeleteBookQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'--vv': True},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/delete_book.py --vv 123'
+        )
 
 
 class TestJobQueuer(LocalTestCase):
@@ -434,13 +499,14 @@ class TestQueue(LocalTestCase):
         TestQueue.clear_queue()
         self.assertEqual(len(queue.jobs()), 0)
 
-        # (number, start, priority, status)
         job_data = [
-            ('2010-01-01 10:00:00', 0, 'a'),
+            # (number, start, priority, status)
+            # Do not use status='a' or status='p' or jobs will be run.
+            ('2010-01-01 10:00:00', 0, 'z'),
             ('2010-01-01 10:00:00', 0, 'd'),
-            ('2010-01-01 10:00:01', -1, 'a'),
+            ('2010-01-01 10:00:01', -1, 'z'),
             ('2010-01-01 10:00:01', -1, 'd'),
-            ('2010-01-01 10:00:02', 1, 'a'),
+            ('2010-01-01 10:00:02', 1, 'z'),
             ('2010-01-01 10:00:02', 1, 'd'),
         ]
 
@@ -451,22 +517,34 @@ class TestQueue(LocalTestCase):
             job_ids.append(job_id)
 
         job_set = queue.jobs()
+        self.assertEqual(len(job_set), 6)
+        self.assertEqual(
+            [x.id for x in job_set],
+            job_ids,
+        )
+
+        # Test query
+        query = (db.job.status == 'z')
+        job_set = queue.jobs(query=query)
         self.assertEqual(len(job_set), 3)
         self.assertEqual(
             [x.id for x in job_set],
             [job_ids[0].id, job_ids[2].id, job_ids[4].id]
         )
 
-        job_set = queue.jobs(maximum_start='2010-01-01 10:00:01')
+        query = (db.job.status == 'd') & \
+                (db.job.start <= '2010-01-01 10:00:01')
+        job_set = queue.jobs(query=query)
         self.assertEqual(len(job_set), 2)
         self.assertEqual(
             [x.id for x in job_set],
-            [job_ids[0].id, job_ids[2].id]
+            [job_ids[1].id, job_ids[3].id]
         )
 
         # Test orderby
         # Orderby priority ASC
-        job_set = queue.jobs(orderby=db.job.priority)
+        query = (db.job.status == 'z')
+        job_set = queue.jobs(query=query, orderby=db.job.priority)
         self.assertEqual(len(job_set), 3)
         self.assertEqual(
             [x.id for x in job_set],
@@ -474,7 +552,8 @@ class TestQueue(LocalTestCase):
         )
 
         # Orderby priority DESC
-        job_set = queue.jobs(orderby=~db.job.priority)
+        query = (db.job.status == 'z')
+        job_set = queue.jobs(query=query, orderby=~db.job.priority)
         self.assertEqual(len(job_set), 3)
         self.assertEqual(
             [x.id for x in job_set],
@@ -483,7 +562,8 @@ class TestQueue(LocalTestCase):
 
         # Test limitby
         # Highest priority job
-        job_set = queue.jobs(orderby=~db.job.priority, limitby=1)
+        query = (db.job.status == 'z')
+        job_set = queue.jobs(query=query, orderby=~db.job.priority, limitby=1)
         self.assertEqual(len(job_set), 1)
         self.assertEqual([x.id for x in job_set], [job_ids[4].id])
 
@@ -715,7 +795,8 @@ class TestReleaseBookQueuer(LocalTestCase):
         queuer = ReleaseBookQueuer(
             db.job,
             job_options={'status': 'd'},
-            cli_options={'--force': '2013-12-31'},
+            cli_options={'--requeues': '4', '-m': '10'},
+            cli_args=[str(123)],
         )
         tracker = TableTracker(db.job)
         job = queuer.queue()
@@ -726,7 +807,7 @@ class TestReleaseBookQueuer(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/release_book.py --force 2013-12-31'
+            'applications/zcomx/private/bin/release_book.py --requeues 4 -m 10 123'
         )
 
 

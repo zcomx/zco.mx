@@ -103,4 +103,10 @@ def main():
     create_img(args[0], (width, height))
 
 if __name__ == '__main__':
-    main()
+    # W0703: *Catch "Exception"*
+    # pylint: disable=W0703
+    try:
+        main()
+    except Exception as err:
+        LOG.exception(err)
+        exit(1)

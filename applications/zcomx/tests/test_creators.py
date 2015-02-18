@@ -245,13 +245,13 @@ class TestFunctions(LocalTestCase):
 
         # Test components param
         components = ['aaa', 'bbb']
-        link = contribute_link(db, creator, components)
+        link = contribute_link(db, creator, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
-        link = contribute_link(db, creator, components)
+        link = contribute_link(db, creator, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         img = anchor.img
@@ -576,13 +576,13 @@ class TestFunctions(LocalTestCase):
 
         # Test components param
         components = ['aaa', 'bbb']
-        link = torrent_link(creator, components)
+        link = torrent_link(creator, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
-        link = torrent_link(creator, components)
+        link = torrent_link(creator, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         img = anchor.img

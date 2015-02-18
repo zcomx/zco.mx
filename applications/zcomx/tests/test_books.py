@@ -28,6 +28,7 @@ from applications.zcomx.modules.books import \
     book_page_for_json, \
     book_pages_as_json, \
     book_pages_years, \
+    book_tables, \
     book_types, \
     by_attributes, \
     calc_contributions_remaining, \
@@ -41,7 +42,6 @@ from applications.zcomx.modules.books import \
     download_link, \
     formatted_name, \
     get_page, \
-    is_releasable, \
     magnet_uri, \
     numbers_for_book_type, \
     optimize_book_images, \
@@ -51,9 +51,12 @@ from applications.zcomx.modules.books import \
     publication_year_range, \
     publication_years, \
     read_link, \
+    release_barriers, \
+    release_link, \
     short_page_img_url, \
     short_page_url, \
     short_url, \
+    unoptimized_images, \
     update_contributions_remaining, \
     update_rating, \
     url, \
@@ -396,6 +399,16 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(book_pages_years(book), [2010, 2011, 2014])
 
+    def test__book_tables(self):
+        bookish_fields = ['book_id']
+        expect = []
+        for table in db.tables:
+            for field in db[table].fields:
+                if field in bookish_fields:
+                    expect.append(table)
+                    continue
+        self.assertEqual(sorted(book_tables()), sorted(expect))
+
     def test__book_types(self):
         xml = book_types(db)
         expect = (
@@ -613,13 +626,13 @@ class TestFunctions(ImageTestCase):
 
         # Test components param
         components = ['aaa', 'bbb']
-        link = contribute_link(db, book, components)
+        link = contribute_link(db, book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
-        link = contribute_link(db, book, components)
+        link = contribute_link(db, book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         img = anchor.img
@@ -892,13 +905,13 @@ class TestFunctions(ImageTestCase):
 
         # Test components param
         components = ['aaa', 'bbb']
-        link = download_link(db, book, components)
+        link = download_link(db, book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
-        link = download_link(db, book, components)
+        link = download_link(db, book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         img = anchor.img
@@ -1006,30 +1019,6 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(indicia.book_id, book.id)
         self.assertEqual(indicia.page_no, last.page_no + 1)
         self.assertEqual(indicia.image, None)
-
-    def test__is_releasable(self):
-        book = self.add(db.book, dict(name='test__is_releasable'))
-        book_page = self.add(db.book_page, dict(
-            book_id=book.id,
-            page_no=1,
-        ))
-
-        # Has name and pages.
-        self.assertTrue(is_releasable(db, book))
-
-        # As id
-        self.assertTrue(is_releasable(db, book.id))
-
-        # No name
-        book.name = ''
-        self.assertFalse(is_releasable(db, book))
-        book.name = 'test__is_releasable'
-        self.assertTrue(is_releasable(db, book))
-
-        # No pages
-        db(db.book_page.id == book_page.id).update(book_id=-1)
-        db.commit()
-        self.assertFalse(is_releasable(db, book))
 
     def test__magnet_uri(self):
         book = self.add(db.book, dict(
@@ -1292,7 +1281,7 @@ class TestFunctions(ImageTestCase):
         empty = '<span></span>'
 
         creator = self.add(db.creator, dict(
-            email='test__read_linke@example.com',
+            email='test__read_link@example.com',
             path_name='First Last',
         ))
 
@@ -1348,13 +1337,13 @@ class TestFunctions(ImageTestCase):
 
         # Test components param
         components = ['aaa', 'bbb']
-        link = read_link(db, book, components)
+        link = read_link(db, book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
-        link = read_link(db, book, components)
+        link = read_link(db, book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         img = anchor.img
@@ -1374,6 +1363,198 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+
+    def test__release_barriers(self):
+        creator = self.add(db.creator, dict(
+            path_name='Ricky Release',
+        ))
+
+        cc0 = db(db.cc_licence.code == 'CC0').select().first()
+
+        book = self.add(db.book, dict(
+            name='test__release_barriers',
+            number=999,
+            creator_id=creator.id,
+            book_type_id=self._type_id_by_name['ongoing'],
+            cc_licence_id=cc0.id,
+        ))
+
+        book_page = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+        ))
+
+        metadata = self.add(db.publication_metadata, dict(
+            book_id=book.id,
+            republished=False,
+        ))
+
+        # Has all criteria
+        self.assertEqual(release_barriers(book), [])
+
+        # As id
+        self.assertEqual(release_barriers(book.id), [])
+
+        # No name
+        book.name = ''
+        got = release_barriers(book)
+        self.assertEqual(len(got), 1)
+        self.assertEqual(
+            [x['code'] for x in got],
+            ['no_name']
+        )
+
+        # No pages
+        book_page.update_record(book_id=-1)
+        db.commit()
+        got = release_barriers(book)
+        self.assertEqual(len(got), 2)
+        self.assertEqual(
+            [x['code'] for x in got],
+            ['no_name', 'no_pages']
+        )
+
+        # Dupe name
+        self.add(db.book, dict(
+            name=book.name,                                         # same
+            creator_id=book.creator_id,                             # same
+            book_type_id=self._type_id_by_name['mini-series'],      # not same
+            release_date=datetime.date.today()                      # not None
+        ))
+        got = release_barriers(book)
+        self.assertEqual(len(got), 3)
+        self.assertEqual(
+            [x['code'] for x in got],
+            ['no_name', 'no_pages', 'dupe_name']
+        )
+
+        # Dupe number
+        self.add(db.book, dict(
+            name=book.name,                                         # same
+            number=book.number,                                     # same
+            creator_id=book.creator_id,                             # same
+            book_type_id=self._type_id_by_name['ongoing'],          # same
+            release_date=datetime.date.today()                      # not None
+        ))
+        got = release_barriers(book)
+        self.assertEqual(len(got), 4)
+        self.assertEqual(
+            [x['code'] for x in got],
+            ['no_name', 'no_pages', 'dupe_name', 'dupe_number']
+        )
+
+        # No licence
+        book.update_record(cc_licence_id=None)
+        db.commit()
+        got = release_barriers(book)
+        self.assertEqual(len(got), 5)
+        self.assertEqual(
+            [x['code'] for x in got],
+            ['no_name', 'no_pages', 'dupe_name', 'dupe_number', 'no_licence']
+        )
+
+        # Licence == 'All Rights Reserved'
+        arr = db(db.cc_licence.code == 'All Rights Reserved').select().first()
+        book.update_record(cc_licence_id=arr.id)
+        db.commit()
+        got = release_barriers(book)
+        self.assertEqual(len(got), 5)
+        self.assertEqual(
+            [x['code'] for x in got],
+            ['no_name', 'no_pages', 'dupe_name', 'dupe_number', 'licence_arr']
+        )
+
+        # No metadata
+        metadata.update_record(book_id=-1)
+        db.commit()
+        got = release_barriers(book)
+        self.assertEqual(len(got), 6)
+        self.assertEqual(
+            [x['code'] for x in got],
+            [
+                'no_name',
+                'no_pages',
+                'dupe_name',
+                'dupe_number',
+                'licence_arr',
+                'no_metadata'
+            ]
+        )
+
+    def test__release_link(self):
+        empty = '<span></span>'
+
+        book = self.add(db.book, dict(
+            name='test__release_link',
+        ))
+
+        self.assertEqual(book.releasing, False)
+
+        # As integer, book_id
+        link = release_link(book.id)
+        # Eg <a href="/login/book_release/4790">Release</a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Release')
+        self.assertEqual(
+            anchor['href'],
+            '/login/book_release/{i}'.format(i=book.id)
+        )
+
+        # As Row, book
+        link = release_link(book)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Release')
+        self.assertEqual(
+            anchor['href'],
+            '/login/book_release/{i}'.format(i=book.id)
+        )
+
+        # Invalid id
+        link = release_link(-1)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = release_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = release_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = release_link(book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Release')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
+
+        # Test release queued
+        book.update_record(releasing=True)
+        db.commit()
+        link = release_link(book.id)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Release (in progress)')
+        self.assertEqual(
+            anchor['href'],
+            '/login/book_release/{i}'.format(i=book.id)
+        )
+        self.assertEqual(anchor['class'], 'disabled')
 
     def test__short_page_img_url(self):
         book = self.add(db.book, dict(
@@ -1509,6 +1690,54 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(creator_contributions(creator), 0)
         update_contributions_remaining(db, book)
         self.assertAlmostEqual(creator_contributions(creator), 99.01)
+
+    def test__unoptimized_images(self):
+        book = self.add(db.book, dict(
+            name='Test Unoptmized Images'
+        ))
+
+        # No pages, no images, no unoptimized
+        self.assertEqual(unoptimized_images(book), [])
+
+        # Has pages, no logs, all should be unoptmized.
+
+        page_1 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+        ))
+
+        page_2 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=2,
+        ))
+
+        self.assertEqual(
+            unoptimized_images(book),
+            [
+                ('book_page.image', page_1.id),
+                ('book_page.image', page_2.id),
+            ]
+        )
+
+        # Has some logs, some unoptimized
+        self.add(db.optimize_img_log, dict(
+            record_field='book_page.image',
+            record_id=page_1.id,
+        ))
+        self.assertEqual(
+            unoptimized_images(book),
+            [
+                ('book_page.image', page_2.id),
+            ]
+        )
+
+        # Has all logs, none unoptimized
+        self.add(db.optimize_img_log, dict(
+            record_field='book_page.image',
+            record_id=page_2.id,
+        ))
+
+        self.assertEqual(unoptimized_images(book), [])
 
     def test__update_rating(self):
         book = self.add(db.book, dict(name='test__update_rating'))
