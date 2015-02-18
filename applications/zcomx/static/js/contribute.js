@@ -32,7 +32,7 @@
     };
 
     $.fn.contribute_button.defaults = {
-        cssClass: 'contribute_modal no_rclick_menu',
+        cssClass: 'contribute_modal',
     };
 
 }(window.jQuery));
