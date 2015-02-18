@@ -23,6 +23,7 @@ from applications.zcomx.modules.images import \
     ImgTag, \
     UploadImage, \
     queue_optimize
+from applications.zcomx.modules.shell_utils import tthsum
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -529,6 +530,39 @@ def defaults(db, name, creator_entity):
     return data
 
 
+def download_link(db, book_entity, components=None, **attributes):
+    """Return html code suitable for a 'Download' link.
+
+    Args:
+        db: gluon.dal.DAL instance
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+        components: list, passed to A(*components),  default ['Download']
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return empty
+
+    if not components:
+        components = ['Download']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='downloads',
+            f='modal',
+            args=[book.id],
+            extension=False
+        )
+
+    return A(*components, **kwargs)
+
+
 def formatted_name(db, book_entity, include_publication_year=True):
     """Return the formatted name of the book
 
@@ -637,6 +671,32 @@ def is_releasable(db, book_entity):
         return False
     page_count = db(db.book_page.book_id == book.id).count()
     return True if page_count > 0 else False
+
+
+def magnet_uri(book_entity):
+    """Create a magnet uri for a book.
+
+    Args:
+        book_entity: Row instance or integer representing a book record.
+
+    Returns:
+        str, the magnet uri,
+        eg: 'magnet:?xt=urn:tree:tiger:UY...SD&xl=2604758&dn=My+Book+(2013).cbz
+    """
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book or not book.cbz:
+        return
+
+    tthsum_hash = tthsum(book.cbz)
+    filename = os.path.basename(book.cbz)
+    filesize = os.stat(book.cbz).st_size
+    fmt = 'magnet:?xt=urn:tree:tiger:{tthsum}&xl={size}&dn={name}'
+    return fmt.format(
+        name=filename,
+        size=filesize,
+        tthsum=tthsum_hash,
+    )
 
 
 def numbers_for_book_type(db, book_type_id):

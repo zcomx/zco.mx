@@ -16,11 +16,13 @@ import unittest
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     TemporaryDirectory, \
+    TthSumError, \
     UnixFile, \
     imagemagick_version, \
     get_owner, \
     set_owner, \
-    temp_directory
+    temp_directory, \
+    tthsum
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -122,7 +124,6 @@ class TestFunctions(LocalTestCase):
             'jimk': '6.9.0-0',
             'zc': '6.9.0-0',
         }
-        version = imagemagick_version()
         self.assertEqual(
             imagemagick_version(),
             by_host[socket.gethostname()]
@@ -181,6 +182,31 @@ class TestFunctions(LocalTestCase):
         stats = os.stat(tmp_path)
         self.assertEqual(stats.st_uid, pwd.getpwnam('http').pw_uid)
         self.assertEqual(stats.st_gid, pwd.getpwnam('http').pw_gid)
+
+    def test__tthsum(self):
+        tmp_dir = temp_directory()
+        tests = [
+            # ( string, expect tthsum )
+            ('aaa', 'C4YOYCDDBHQ2YWOMOU4OPOKM2I5I6QMJFQW4OQI'),
+            ('bbb', 'BZSKLI5NXFLOJUEKJXYHMCIAE72ROQED2TOL5MY'),
+            ('ccc', 'VCH27UY3P7QOOIDV2PGF44WTQO32N6S4MEP7QJY'),
+            ('"special" (chars)', 'DGYZJQS4VWRQBLFDXTUGI4ZQI5XGSX5ODYDDWUA'),
+        ]
+        for t in tests:
+            filename = os.path.join(tmp_dir, '{n}.txt'.format(n=t[0]))
+            with open(filename, 'w') as f:
+                f.write(t[0])
+            got = tthsum(filename)
+            self.assertEqual(got, t[1])
+
+        # Test no files
+        self.assertEqual(tthsum(None), None)
+
+        # Test non-existent file
+        self.assertRaises(TthSumError, tthsum, '/tmp/_fake_file.txt')
+
+        # Cleanup
+        shutil.rmtree(tmp_dir)
 
 
 def setUpModule():

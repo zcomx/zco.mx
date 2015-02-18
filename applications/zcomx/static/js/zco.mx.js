@@ -8,6 +8,7 @@
     $(document).ready(function(){
         setTimeout(function() {
             $('.contribute_button').contribute_button();
+            $('.download_button').download_button();
             $(document).on('mousedown', '.no_rclick_menu', function(e) {
                 if(e.which == 3) {
                     // disable right click menu

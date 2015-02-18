@@ -1467,6 +1467,27 @@ a.modal-link-btn, a.modal-link-btn:hover {
     float: right;
 }
 
+#download_modal_page {
+    font-size: 18px;
+    margin: 1em;
+}
+
+#download_modal_page .download_modal_book {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#download_modal_page dt,
+#download_modal_page dd {
+    display: inline-block;
+}
+
+#download_modal_page .breadcrumb {
+    background-color: inherit;
+    margin: 0 0 20px;
+    line-height: 2em;
+}
+
 #profile_page {
     margin-left: -1em;
     margin-right: -1em;

@@ -13,6 +13,7 @@ from gluon.validators import urlify
 from applications.zcomx.modules.books import \
     contribute_link as book_contribute_link, \
     cover_image, \
+    download_link as book_download_link, \
     formatted_name, \
     read_link as book_read_link, \
     url as book_url
@@ -63,11 +64,10 @@ class Grid(object):
     }
 
     def __init__(
-        self,
-        form_grid_args=None,
-        queries=None,
-        default_viewby='tile'
-    ):
+            self,
+            form_grid_args=None,
+            queries=None,
+            default_viewby='tile'):
         """Constructor
 
         Args:
@@ -371,9 +371,15 @@ class Grid(object):
     def tabs(self):
         """Return a div of clickable tabs used to select the orderby."""
         lis = []
-        orderbys = [x for x in GRID_CLASSES.keys() if (self.request.vars.o == 'search' and x == self.request.vars.o) or (self.request.vars.o != 'search' and x != 'search')]
+        orderbys = [
+            x for x in GRID_CLASSES.keys()
+            if (self.request.vars.o == 'search'
+                and x == self.request.vars.o)
+            or (self.request.vars.o != 'search' and x != 'search')
+        ]
 
-        orderby = self.request.vars.o if self.request.vars.o in orderbys else orderbys[0]
+        orderby = self.request.vars.o \
+            if self.request.vars.o in orderbys else orderbys[0]
         for o in orderbys:
             active = 'active' if o == orderby else ''
             orderby_vars = dict(self.request.vars)
@@ -454,11 +460,10 @@ class CartoonistsGrid(Grid):
     ]
 
     def __init__(
-        self,
-        form_grid_args=None,
-        queries=None,
-        default_viewby='list'
-    ):
+            self,
+            form_grid_args=None,
+            queries=None,
+            default_viewby='list'):
         """Constructor"""
         Grid.__init__(
             self,
@@ -510,11 +515,10 @@ class ContributionsGrid(Grid):
     }
 
     def __init__(
-        self,
-        form_grid_args=None,
-        queries=None,
-        default_viewby='tile'
-    ):
+            self,
+            form_grid_args=None,
+            queries=None,
+            default_viewby='tile'):
         """Constructor"""
         Grid.__init__(
             self,
@@ -564,11 +568,10 @@ class OngoingGrid(Grid):
     }
 
     def __init__(
-        self,
-        form_grid_args=None,
-        queries=None,
-        default_viewby='tile'
-    ):
+            self,
+            form_grid_args=None,
+            queries=None,
+            default_viewby='tile'):
         """Constructor"""
         Grid.__init__(
             self,
@@ -618,11 +621,10 @@ class ReleasesGrid(Grid):
     }
 
     def __init__(
-        self,
-        form_grid_args=None,
-        queries=None,
-        default_viewby='tile'
-    ):
+            self,
+            form_grid_args=None,
+            queries=None,
+            default_viewby='tile'):
         """Constructor"""
         Grid.__init__(
             self,
@@ -672,11 +674,10 @@ class SearchGrid(Grid):
     }
 
     def __init__(
-        self,
-        form_grid_args=None,
-        queries=None,
-        default_viewby='tile'
-    ):
+            self,
+            form_grid_args=None,
+            queries=None,
+            default_viewby='tile'):
         """Constructor"""
         Grid.__init__(
             self,
@@ -720,7 +721,7 @@ class SearchGrid(Grid):
 
 GRID_CLASSES = collections.OrderedDict()
 GRID_CLASSES['ongoing'] = OngoingGrid
-#GRID_CLASSES['releases'] = ReleasesGrid
+# GRID_CLASSES['releases'] = ReleasesGrid
 GRID_CLASSES['contributions'] = ContributionsGrid
 GRID_CLASSES['creators'] = CartoonistsGrid
 GRID_CLASSES['search'] = SearchGrid
@@ -851,10 +852,13 @@ class BookTile(Tile):
 
     def download_link(self):
         """Return the tile download link."""
-        return A(
-            'download',
-            _href='#',
-            _class='fixme',
+        db = self.db
+        row = self.row
+        return book_download_link(
+            db,
+            row.book.id,
+            components=['download'],
+            **dict(_class='download_button no_rclick_menu')
         )
 
     def image(self):
@@ -1059,7 +1063,7 @@ def book_contribute_button(row):
         return ''
 
     # Only display if creator has a paypal address.
-    if not 'creator' in row or not row.creator.paypal_email:
+    if 'creator' not in row or not row.creator.paypal_email:
         return ''
 
     db = current.app.db
@@ -1091,7 +1095,7 @@ def creator_contribute_button(row):
     # Only display if creator has a paypal address.
     if not row:
         return ''
-    if not 'creator' in row or not row.creator.id:
+    if 'creator' not in row or not row.creator.id:
         return ''
     db = current.app.db
     if not can_receive_contributions(db, row.creator):
@@ -1110,15 +1114,12 @@ def download_link(row):
     book_id = link_book_id(row)
     if not book_id:
         return ''
-    return A(
-        'Download',
-        _href=URL(
-            c='books',
-            f='download',
-            args=book_id,
-            extension=False
-        ),
-        _class='btn btn-default fixme',
+
+    db = current.app.db
+    return book_download_link(
+        db,
+        book_id,
+        **dict(_class='btn btn-default download_button no_rclick_menu')
     )
 
 

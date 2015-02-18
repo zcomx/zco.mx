@@ -38,6 +38,7 @@ CONTROLLERS = '|'.join([
     'contributions',
     'creators',
     'default',
+    'downloads',
     'errors',
     'images',
     'login',

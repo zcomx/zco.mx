@@ -1,0 +1,21 @@
+{{from applications.zcomx.modules.books import formatted_name, magnet_uri}}
+
+<div id="download_modal_page">
+
+<div class="download_modal_book">{{=formatted_name(db, book, include_publication_year=(book.release_date != None))}}</div>
+
+<dl>
+    <dt>cbz</dt>
+    <dd>
+        <ul class="breadcrumb pipe_delimiter">
+            <li>
+             <a href="{{=URL(c='torrents', f='download', args=['book', book.id])}}">torrent</a>
+            </li>
+            <li>
+                <a href="{{=magnet_uri(book)}}">dc</a>
+            </li>
+        </ul>
+    </dd>
+</dl>
+
+</div>

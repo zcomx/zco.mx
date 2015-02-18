@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import contribute_link, formatted_name as formatted_book_name, read_link}}
+{{from applications.zcomx.modules.books import contribute_link, download_link, formatted_name as formatted_book_name, read_link}}
 {{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name as formatted_creator_name, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
@@ -25,7 +25,7 @@
                     </li>
                     {{pass}}
                     <li>
-                        <a class="fixme" href="#">download</a>
+                        {{=download_link(db, book.id, components=['download'], **dict(_class='download_button no_rclick_menu'))}}
                     </li>
                 </ul>
             </div>

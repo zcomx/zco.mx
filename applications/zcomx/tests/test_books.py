@@ -13,6 +13,7 @@ import os
 import shutil
 import time
 import unittest
+import urlparse
 from BeautifulSoup import BeautifulSoup
 from PIL import Image
 from gluon import *
@@ -37,9 +38,11 @@ from applications.zcomx.modules.books import \
     cover_image, \
     default_contribute_amount, \
     defaults, \
+    download_link, \
     formatted_name, \
     get_page, \
     is_releasable, \
+    magnet_uri, \
     numbers_for_book_type, \
     optimize_book_images, \
     orientation, \
@@ -855,17 +858,90 @@ class TestFunctions(ImageTestCase):
         got = defaults(db, self._book.name, -1)
         self.assertEqual(got, {})
 
+    def test__download_link(self):
+        empty = '<span></span>'
+
+        book = self.add(db.book, dict(
+            name='test__download_link',
+        ))
+
+        # As integer, book_id
+        link = download_link(db, book.id)
+        # Eg  <a href="/downloads/modal/4547">Download</a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Download')
+        self.assertEqual(
+            anchor['href'],
+            '/downloads/modal/{i}'.format(i=book.id)
+        )
+
+        # As Row, book
+        link = download_link(db, book)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Download')
+        self.assertEqual(
+            anchor['href'],
+            '/downloads/modal/{i}'.format(i=book.id)
+        )
+
+        # Invalid id
+        link = download_link(db, -1)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = download_link(db, book, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = download_link(db, book, components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = download_link(db, book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Download')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
+
     def test__formatted_name(self):
         book = self.add(db.book, dict(name='My Book'))
 
         tests = [
             # (name, pub year, type, number, of_number, expect, expect pub yr),
-            ('My Book', 1999, 'one-shot', 1, 999,
-                'My Book', 'My Book (1999)'),
-            ('My Book', 1999, 'ongoing', 12, 999,
-                'My Book 012', 'My Book 012 (1999)'),
-            ('My Book', 1999, 'mini-series', 2, 9,
-                'My Book 02 (of 09)', 'My Book 02 (of 09) (1999)'),
+            ('My Book', 1999, 'one-shot', 1, 999, 'My Book', 'My Book (1999)'),
+            (
+                'My Book',
+                1999,
+                'ongoing',
+                12,
+                999,
+                'My Book 012',
+                'My Book 012 (1999)'
+            ),
+            (
+                'My Book',
+                1999,
+                'mini-series',
+                2,
+                9,
+                'My Book 02 (of 09)',
+                'My Book 02 (of 09) (1999)'
+            ),
         ]
         for t in tests:
             book.update_record(
@@ -954,6 +1030,40 @@ class TestFunctions(ImageTestCase):
         db(db.book_page.id == book_page.id).update(book_id=-1)
         db.commit()
         self.assertFalse(is_releasable(db, book))
+
+    def test__magnet_uri(self):
+        book = self.add(db.book, dict(
+            name='Test Magnet URI'
+        ))
+
+        # No book
+        self.assertEqual(magnet_uri(None), None)
+
+        # book.cbz not set
+        self.assertEqual(magnet_uri(book), None)
+
+        cbz_filename = '/tmp/test.cbz'
+        with open(cbz_filename, 'w') as f:
+            f.write('Fake cbz file used for testing.')
+
+        book.update_record(cbz=cbz_filename)
+        db.commit()
+
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+
+        got = magnet_uri(book)
+        # magnet:?xt=urn:tree:tiger:BOM3RWAED7BCOFOG5EX64QRBECPR4TRYRD7RFTA&xl=31&dn=test.cbz
+        parsed = urlparse.urlparse(got)
+        self.assertEqual(parsed.scheme, 'magnet')
+        self.assertEqual(
+            urlparse.parse_qs(parsed.query),
+            {
+                'dn': ['test.cbz'],
+                'xl': ['31'],
+                'xt': ['urn:tree:tiger:BOM3RWAED7BCOFOG5EX64QRBECPR4TRYRD7RFTA']
+            }
+        )
 
     def test__numbers_for_book_type(self):
         type_id_by_name = {}
@@ -1276,12 +1386,27 @@ class TestFunctions(ImageTestCase):
             # (creator_id, book name, page_no, image,  expect)
             (None, 'My Book', 1, 'book_page.image.000.aaa.jpg', None),
             (-1, 'My Book', 1, 'book_page.image.000.aaa.jpg', None),
-            (98, 'My Book', 1, 'book_page.image.000.aaa.jpg',
-                'http://98.zco.mx/My_Book/001.jpg'),
-            (101, 'My Book', 2, 'book_page.image.000.aaa.jpg',
-                'http://101.zco.mx/My_Book/002.jpg'),
-            (101, 'My Book', 2, 'book_page.image.000.aaa.png',
-                'http://101.zco.mx/My_Book/002.png'),
+            (
+                98,
+                'My Book',
+                1,
+                'book_page.image.000.aaa.jpg',
+                'http://98.zco.mx/My_Book/001.jpg'
+            ),
+            (
+                101,
+                'My Book',
+                2,
+                'book_page.image.000.aaa.jpg',
+                'http://101.zco.mx/My_Book/002.jpg'
+            ),
+            (
+                101,
+                'My Book',
+                2,
+                'book_page.image.000.aaa.png',
+                'http://101.zco.mx/My_Book/002.png'
+            ),
         ]
         for t in tests:
             book.update_record(creator_id=t[0], name=t[1])
@@ -1495,9 +1620,6 @@ class TestFunctions(ImageTestCase):
 
         book = self.add(db.book, dict(name=''))
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
         # Note: The publication year was removed from the url.
 
         tests = [
@@ -1505,10 +1627,22 @@ class TestFunctions(ImageTestCase):
             (None, None, 'one-shot', None, None, None),
             ('My Book', 1999, 'one-shot', 1, 999, '/First_Last/My_Book'),
             ('My Book', 1999, 'ongoing', 12, 999, '/First_Last/My_Book_012'),
-            ('My Book', 1999, 'mini-series', 2, 9,
-                '/First_Last/My_Book_02_%28of_09%29'),
-            ("Hélè d'Eñça", 1999, 'mini-series', 2, 9,
-                '/First_Last/H%C3%A9l%C3%A8_d%27E%C3%B1%C3%A7a_02_%28of_09%29'),
+            (
+                'My Book',
+                1999,
+                'mini-series',
+                2,
+                9,
+                '/First_Last/My_Book_02_%28of_09%29'
+            ),
+            (
+                "Hélè d'Eñça",
+                1999,
+                'mini-series',
+                2,
+                9,
+                '/First_Last/H%C3%A9l%C3%A8_d%27E%C3%B1%C3%A7a_02_%28of_09%29'
+            ),
         ]
 
         for t in tests:
@@ -1530,14 +1664,17 @@ class TestFunctions(ImageTestCase):
         tests = [
             # (name, pub year, type, number, of_number, expect),
             (None, None, 'one-shot', None, None, None),
-            ('My Book', 1999, 'one-shot', 1, 999,
-                'My_Book'),
-            ('My Book', 1999, 'ongoing', 12, 999,
-                'My_Book_012'),
-            ('My Book', 1999, 'mini-series', 2, 9,
-                'My_Book_02_(of_09)'),
-            ("Hélè d'Eñça", 1999, 'mini-series', 2, 9,
-                "H\xc3\xa9l\xc3\xa8_d'E\xc3\xb1\xc3\xa7a_02_(of_09)"),
+            ('My Book', 1999, 'one-shot', 1, 999, 'My_Book'),
+            ('My Book', 1999, 'ongoing', 12, 999, 'My_Book_012'),
+            ('My Book', 1999, 'mini-series', 2, 9, 'My_Book_02_(of_09)'),
+            (
+                "Hélè d'Eñça",
+                1999,
+                'mini-series',
+                2,
+                9,
+                "H\xc3\xa9l\xc3\xa8_d'E\xc3\xb1\xc3\xa7a_02_(of_09)"
+            ),
         ]
 
         for t in tests:

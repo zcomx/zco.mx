@@ -75,8 +75,12 @@ class UnixFile(object):
         return p.communicate()
 
 
-def imagemagick_version(host=None):
-    """Return the version of the installed ImageMagick suite."""
+def imagemagick_version():
+    """Return the version of the installed ImageMagick suite.
+
+    Returns:
+        string, version of ImageMagick. Eg '6.9.0-0'
+    """
     args = ['convert', '-version']
     p = subprocess.Popen(
         args,
@@ -133,3 +137,36 @@ def temp_directory():
             pwd.getpwnam('http').pw_gid,
         )
     return tempfile.mkdtemp(dir=tmp_path)
+
+
+class TthSumError(Exception):
+    """Exception class for tthsum errors."""
+    pass
+
+
+def tthsum(filename):
+    """Return tthsum hashes for a list of files.
+
+    Args:
+        filename: name of file to get tthsum for
+
+    Returns:
+        str: tthsum hash
+    """
+    if not filename:
+        return
+
+    args = ['tthsum']
+    args.append(filename)
+    p = subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p_stdout, p_stderr = p.communicate()
+    tthsum_hash = ''
+    if p_stdout:
+        tthsum_hash, filename = p_stdout.strip().split("\n")[0].split(None, 1)
+
+    if p_stderr:
+        msg = 'tthsum error: {msg}'.format(msg=p_stderr)
+        raise TthSumError(msg)
+
+    return tthsum_hash
