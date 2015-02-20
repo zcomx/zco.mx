@@ -18,6 +18,7 @@ from applications.zcomx.modules.job_queue import \
     OptimizeImgForReleaseQueuer
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
+    TemporaryDirectory, \
     set_owner
 from applications.zcomx.modules.utils import NotFoundError
 
@@ -412,21 +413,29 @@ def optimize(filename, nice=False):
     args.append(optimize_script)
     args.append(os.path.abspath(filename))
 
-    p = subprocess.Popen(
-        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # optimize_img.sh creates temporary files in the current directory.
+    # Use a temporary directory and cwd so processes are completed in
+    # a safe place.
+    with TemporaryDirectory() as tmp_dir:
+        p = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=tmp_dir,
+        )
 
-    p_stdout, p_stderr = p.communicate()
-    # Generally there should be no output. Log to help troubleshoot.
-    if p_stdout:
-        LOG.warn('optimize_img.sh run stdout: %s', p_stdout)
-    if p_stderr:
-        LOG.error('optimize_img.sh run stderr: %s', p_stderr)
+        p_stdout, p_stderr = p.communicate()
+        # Generally there should be no output. Log to help troubleshoot.
+        if p_stdout:
+            LOG.warn('optimize_img.sh run stdout: %s', p_stdout)
+        if p_stderr:
+            LOG.error('optimize_img.sh run stderr: %s', p_stderr)
 
-    # E1101 (no-member): *%%s %%r has no %%r member*
-    # pylint: disable=E1101
-    if p.returncode:
-        raise ImageOptimizeError('Optimize failed: {err}'.format(
-            err=p_stderr or p_stdout))
+        # E1101 (no-member): *%%s %%r has no %%r member*
+        # pylint: disable=E1101
+        if p.returncode:
+            raise ImageOptimizeError('Optimize failed: {err}'.format(
+                err=p_stderr or p_stdout))
 
 
 def queue_optimize(
