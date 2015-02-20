@@ -33,6 +33,8 @@ def run_optimize(field, record_id, options):
         options: dict, OptionParser options
     """
     if not options.force and is_optimized(str(field), record_id):
+        LOG.debug(
+            'Not necessary, already optimized: %s, id: %s', field, record_id)
         return
 
     record = entity_to_row(field.table, record_id)
@@ -41,6 +43,8 @@ def run_optimize(field, record_id, options):
             f=field, i=record_id))
     upload_image = UploadImage(field, record[field])
     up_folder = field.uploadfolder.rstrip('/').rstrip('original')
+
+    LOG.debug('Optimizing: %s, id: %s', field, record_id)
 
     for size in SIZES:
         fullname = upload_image.fullname(size=size)
@@ -81,7 +85,9 @@ def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    optimize_img.py [OPTIONS] book_id
+    optimize_img.py [OPTIONS]                       # optimize all images
+    optimize_img.py [OPTIONS] book_page.image       # optimize book_page images
+    optimize_img.py [OPTIONS] book_page.image 123   # optimize single book page
 
 OPTIONS
     -f, --force
@@ -114,7 +120,7 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] book_id'
+    usage = '%prog [options] [field [record_id]]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -195,7 +201,8 @@ def main():
         if field not in db[table]:
             raise NotFoundError('Invalid field: {f}'.format(f=fieldname))
         if record_id:
-            LOG.debug('Optimizing field: %s, id: %s', fieldname, record_id)
+            LOG.debug(
+                'Run optimization on field: %s, id: %s', fieldname, record_id)
             run_optimize(db[table][field], record_id, options)
         else:
             ids = [x.id for x in db(db[table]).select(db[table].id)]
