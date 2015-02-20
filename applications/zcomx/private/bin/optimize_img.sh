@@ -26,12 +26,13 @@ _optimize() {
 
     tmp=tmp.$RANDOM
     if [[ ${i##*.} == png ]]; then
-        zopflipng "$i" "$tmp.png" >/dev/null || rm "$tmp.png" &>/dev/null
-        defluff < "$tmp.png" > "$i" 2>/dev/null
+        zopflipng "$i" "$tmp.png" >/dev/null
+        [[ $tmp.png ]] && defluff < "$tmp.png" > "$i" 2>/dev/null
         rm "$tmp.png" &>/dev/null
     elif [[ ${i##*.} == jpg ]]; then
-        jpegoptim -q -s "$i" "$tmp.jpg" || rm "$tmp.jpg" &>/dev/null
-        mv "$tmp.jpg" "$i" &>/dev/null
+        jpegoptim -q -s "$i" "$tmp.jpg"
+        [[ $tmp.jpg ]] && mv "$tmp.jpg" "$i" &>/dev/null
+        rm "$tmp.jpg" &>/dev/null
     else
         _me "File $i was not optimized"
     fi
