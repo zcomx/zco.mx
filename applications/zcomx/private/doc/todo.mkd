@@ -81,6 +81,7 @@ VERSION 2 - Before Going Live
 [ ] nice levels
 
 VERSION 3
+[ ] resize.sh - convert tiff's to png's
 [ ] add html version of mailing list to login area
 [ ] Rethink Crowdfunding Idea
     see emails with blumenstein
