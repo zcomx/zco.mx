@@ -16,7 +16,6 @@ import logging
 import os
 import subprocess
 import sys
-import traceback
 # E0611: *No name %%r in module %%r*
 # pylint: disable=E0611
 # F0401: *Unable to import %%r*
@@ -26,6 +25,8 @@ from applications.zcomx.modules.tests.runner import \
         LocalTestCase, \
         LocalTextTestRunner, \
         count_diff
+
+LOG = logging.getLogger('cli')
 
 
 @count_diff
@@ -117,6 +118,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception:
-        traceback.print_exc(file=sys.stderr)
+    except Exception as err:
+        LOG.exception(err)
         exit(1)

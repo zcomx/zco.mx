@@ -9,8 +9,6 @@ Check job queue for old or invalid jobs.
 import datetime
 import logging
 import os
-import sys
-import traceback
 from gluon.shell import env
 from optparse import OptionParser
 
@@ -77,7 +75,7 @@ def main():
 
     if options.verbose or options.vv:
         level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [h.setLevel(level) for h in LOG.handlers \
+        unused_h = [h.setLevel(level) for h in LOG.handlers
                 if h.__class__ == logging.StreamHandler]
 
     LOG.info('Started.')
@@ -92,7 +90,6 @@ def main():
     threshold = datetime.datetime.now() - \
             datetime.timedelta(minutes=options.age)
     count = db(db.job.start < threshold).count()
-    LOG.debug('db._lastsql: %s', db._lastsql)
     if count > 0:
         LOG.error('Jobs older than {age} minutes found in queue.'.format(
             age=options.age))
@@ -105,6 +102,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception:
-        traceback.print_exc(file=sys.stderr)
+    except Exception as err:
+        LOG.exception(err)
         exit(1)

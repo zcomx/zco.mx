@@ -133,6 +133,10 @@ OVERVIEW
 USAGE
     rebuild_table.py [OPTIONS] table [table2 table3 ...]
 
+EXAMPLE
+    rebuild_table.py book
+    rebuild_table.py book book_page creator
+
 OPTIONS
 
     -h, --help
@@ -198,4 +202,10 @@ def main():
             exit(1)
 
 if __name__ == '__main__':
-    main()
+    # W0703: *Catch "Exception"*
+    # pylint: disable=W0703
+    try:
+        main()
+    except Exception as err:
+        LOG.exception(err)
+        exit(1)

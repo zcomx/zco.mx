@@ -1,17 +1,13 @@
 {{extend 'login/layout.html'}}
 <div>
-    {{if request.vars.can_release is not None:}}
     <div class="books_list_title">
     <h4>RELEASED</h4>
     </div>
     <div id="released_book_list" class="book_list"></div>
-    {{pass}}
 
-    {{if request.vars.can_release is not None:}}
     <div class="books_list_title">
     <h4>ONGOING</h4>
     </div>
-    {{pass}}
     <div id="ongoing_book_list" class="book_list"></div>
 
     {{if has_disabled:}}

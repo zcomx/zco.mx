@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Creator login controller functions"""
-import datetime
 import os
 import shutil
 import sys
@@ -11,11 +10,11 @@ from applications.zcomx.modules.book_upload import BookPageUploader
 from applications.zcomx.modules.books import \
     book_pages_as_json, \
     defaults as book_defaults, \
-    is_releasable, \
     numbers_for_book_type, \
     optimize_book_images, \
     publication_year_range, \
-    read_link
+    read_link, \
+    release_barriers
 from applications.zcomx.modules.creators import \
     image_as_json, \
     optimize_creator_images
@@ -30,6 +29,9 @@ from applications.zcomx.modules.indicias import \
     cc_licence_by_code, \
     clear_creator_indicia, \
     update_creator_indicia
+from applications.zcomx.modules.job_queue import \
+    DeleteBookQueuer, \
+    ReleaseBookQueuer
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.utils import \
@@ -136,31 +138,35 @@ def book_crud():
         return do_error('Unable to create book')
 
     if action == 'delete':
-        # FIXME delete torrent, remove book from creator and ALL torrent
-        # Delete all records associated with the book.
-        for t in ['book_page', 'book_view', 'contribution', 'rating']:
-            db(db[t].book_id == book_record.id).delete()
-
-        # Delete all links associated with the book.
-        query = db.book_to_link.book_id == book_record.id
-        for row in db(query).select(db.book_to_link.link_id):
-            db(db.link.id == row['link_id']).delete()
-        db(db.book_to_link.book_id == book_record.id).delete()
-
-        # Delete the book
-        db(db.book.id == book_record.id).delete()
+        # The process of deleting book can be slow, so queue a job to
+        # take care of it. Flag the book status=False so it is hidden.
+        db(db.book.id == book_record.id).update(status=False)
         db.commit()
+
+        job = DeleteBookQueuer(
+            db.job,
+            cli_args=[str(book_record.id)],
+        ).queue()
+        if not job:
+            return do_error(
+                'Delete failed. The book cannot be deleted at this time.')
+
         return {'status': 'ok'}
 
     if action == 'release':
-        if not is_releasable(db, book_record):
+        if release_barriers(book_record):
             return do_error('This book cannot be released.')
 
-        book_record.update_record(
-            release_date=datetime.datetime.today()
-        )
+        book_record.update_record(releasing=True)
         db.commit()
-        # FIXME create torrent, add book to creator and ALL torrent
+        job = ReleaseBookQueuer(
+            db.job,
+            cli_args=[str(book_record.id)],
+        ).queue()
+        if not job:
+            return do_error(
+                'Release failed. The book cannot be released at this time.')
+
         return {'status': 'ok'}
 
     if action == 'update':
@@ -478,15 +484,13 @@ def book_release():
 
     return dict(
         book=book_record,
-        releasable=is_releasable(db, book_record),
+        barriers=release_barriers(book_record),
     )
 
 
 @auth.requires_login()
 def books():
     """Books controller.
-
-    request.vars.can_release: mixed, if set, released books are displayed.
     """
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL

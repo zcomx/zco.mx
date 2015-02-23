@@ -217,6 +217,11 @@ db.define_table('book',
         'torrent'
     ),
     Field(
+        'releasing',
+        'boolean',
+        default=False,
+    ),
+    Field(
         'status',
         'boolean',
         default=True,
@@ -418,6 +423,11 @@ db.define_table('creator',
     Field('indicia_modified', 'datetime'),
     Field(
         'torrent'
+    ),
+    Field(
+        'rebuild_torrent',
+        'boolean',
+        default=False,
     ),
     format='%(path_name)s',
     migrate=True,

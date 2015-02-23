@@ -5,6 +5,7 @@
 
 Routing classes and functions.
 """
+import logging
 import os
 import urllib
 from gluon import *
@@ -25,10 +26,15 @@ from applications.zcomx.modules.creators import \
     url as creator_url
 from applications.zcomx.modules.indicias import BookIndiciaPage
 from applications.zcomx.modules.links import CustomLinks
-from applications.zcomx.modules.search import classified
+from applications.zcomx.modules.search import \
+    CreatorMoniesGrid, \
+    OngoingGrid, \
+    ReleasesGrid
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+
+LOG = logging.getLogger('app')
 
 
 class Router(object):
@@ -386,33 +392,17 @@ class Router(object):
 
     def set_creator_monies_view(self):
         """Set the view for the creator monies page."""
-        db = self.db
         request = self.request
         creator_record = self.get_creator()
 
         if not request.vars.order:
             request.vars.order = 'book.name'
 
-        creator_query = (db.creator.id == creator_record.id)
-        released_query = (db.book.release_date != None)
-        ongoing_query = (db.book.release_date == None)
-
-        released_grid = None
-        if request.vars.can_release:
-            queries = [creator_query, released_query]
-            grid = classified(request)(queries=queries, default_viewby='list')
-            released_grid = grid.render()
-
-        queries = [creator_query]
-        if request.vars.can_release:
-            queries.append(ongoing_query)
-        grid = classified(request)(queries=queries, default_viewby='tile')
-        ongoing_grid = grid.render()
-
+        grid = CreatorMoniesGrid(
+            default_viewby='tile', creator_entity=creator_record)
         self.view_dict = dict(
             creator=creator_record,
-            ongoing_grid=ongoing_grid,
-            released_grid=released_grid,
+            grid=grid.render(),
         )
 
         self.view = 'creators/monies.html'
@@ -426,20 +416,13 @@ class Router(object):
         if not request.vars.order:
             request.vars.order = 'book.name'
 
-        creator_query = (db.creator.id == creator_record.id)
-        released_query = (db.book.release_date != None)
-        ongoing_query = (db.book.release_date == None)
+        queries = [(db.creator.id == creator_record.id)]
+        LOG.debug('queries: %s', queries)
+        grid = ReleasesGrid(queries=queries, default_viewby='list')
+        released_grid = grid.render()
 
-        released_grid = None
-        if request.vars.can_release:
-            queries = [creator_query, released_query]
-            grid = classified(request)(queries=queries, default_viewby='list')
-            released_grid = grid.render()
-
-        queries = [creator_query]
-        if request.vars.can_release:
-            queries.append(ongoing_query)
-        grid = classified(request)(queries=queries, default_viewby='list')
+        LOG.debug('queries: %s', queries)
+        grid = OngoingGrid(queries=queries, default_viewby='list')
         ongoing_grid = grid.render()
 
         self.view_dict = dict(

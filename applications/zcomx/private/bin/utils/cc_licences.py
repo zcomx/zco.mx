@@ -9,8 +9,6 @@ duplicate records, but will update/replace existing records.
 """
 import logging
 import os
-import sys
-import traceback
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
@@ -207,6 +205,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception:
-        traceback.print_exc(file=sys.stderr)
+    except Exception as err:
+        LOG.exception(err)
         exit(1)

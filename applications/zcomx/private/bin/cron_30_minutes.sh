@@ -64,7 +64,9 @@ cd $web2py_root
 
 py=$web2py_root/applications/zcomx/private/bin/python_web2py.sh
 
-# Tally book ratings
+__v && __md "Start: queue_create_torrents"
+$py applications/zcomx/private/bin/queue_create_torrents.py
+
 __v && __md "Start: queue_check"
 $py applications/zcomx/private/bin/queue_check.py --age 30
 

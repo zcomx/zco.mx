@@ -5,6 +5,7 @@
 
 CBZ classes and functions.
 """
+import logging
 import math
 import os
 import subprocess
@@ -21,6 +22,8 @@ from applications.zcomx.modules.shell_utils import TempDirectoryMixin
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+
+LOG = logging.getLogger('app')
 
 
 class CBZCreateError(Exception):
@@ -39,7 +42,6 @@ class CBZCreator(TempDirectoryMixin):
         """
         db = current.app.db
         self.book = entity_to_row(db.book, book)
-        self._working_directory = None
         self._max_page_no = None
         self._img_filename_fmt = None
 

@@ -10,9 +10,7 @@ import logging
 import os
 import shutil
 import subprocess
-import sys
 import time
-import traceback
 from gluon import *
 from gluon.shell import env
 from gluon.dal.objects import REGEX_UPLOAD_PATTERN
@@ -346,6 +344,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception:
-        traceback.print_exc(file=sys.stderr)
+    except Exception as err:
+        LOG.exception(err)
         exit(1)

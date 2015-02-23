@@ -77,17 +77,27 @@ def main():
         parser.print_help()
         exit(1)
 
+    exit_status = 0
     for book_id in args:
         book = db(db.book.id == book_id).select().first()
         if not book:
             LOG.error('Book not found, id: %s', book_id)
+            exit_status = 1
             continue
         LOG.debug('Creating cbz for: %s', book.name)
         try:
             archive(book)
         except NotFoundError as err:
             LOG.error('%s, %s', err, book.name)
-
+            exit_status = 1
+    if exit_status:
+        exit(exit_status)
 
 if __name__ == '__main__':
-    main()
+    # W0703: *Catch "Exception"*
+    # pylint: disable=W0703
+    try:
+        main()
+    except Exception as err:
+        LOG.exception(err)
+        exit(1)

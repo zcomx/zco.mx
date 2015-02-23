@@ -23,9 +23,12 @@
             <li>The book pages are locked from further modifications</li>
         </ul>
     </div>
+    <div class="panel-footer">
+        Processing the release of a book can take several minutes.
+    </div>
 </div>
 
-{{if releasable:}}
+{{if not barriers:}}
     <div class="instruction">
         Edit the year of publication if necessary.
         <div id="editable_fields_container"></div>
@@ -38,13 +41,30 @@
 {{else:}}
     <div class="panel panel-danger">
         <div class="panel-heading">
-            The book <em>{{=formatted_name(db, book)}}</em> has no pages. It cannot be released at this time.
+            The book <em>{{=formatted_name(db, book)}}</em> cannot be released.
         </div>
         <div class="panel-body">
-            <ul>
-                <li>Edit the book and set the name and description if necessary.</li>
-                <li>Upload book pages.</li>
-            </ul>
+            {{if len(barriers) > 1:}}<ol>{{else:}}<ul>{{pass}}
+
+            {{for barrier in barriers:}}
+            <li>
+                {{=barrier['reason']}}
+                {{if 'description' in barrier:}}
+                <div class="release_barrier_description">
+                    {{=barrier['description']}}
+                </div>
+                {{pass}}
+                <ul>
+                    {{for fix in barrier['fixes']:}}
+                    <li>{{=fix}}</li>
+                    {{pass}}
+                </ul>
+            </li>
+            {{pass}}
+            {{if len(barriers) > 1:}}</ol>{{else:}}</ul>{{pass}}
+        </div>
+        <div class="panel-footer">
+            Once all problems have been resolved, try the release again.
         </div>
     </div>
 {{pass}}
@@ -69,7 +89,7 @@
         },
     };
 
-    var release_enabled = {{if releasable:}}true{{else:}}false{{pass}};
+    var release_enabled = {{if barriers:}}false{{else:}}true{{pass}};
 
     $(document).ready(function(){
         $('#editable_fields_container').inplace_crud(

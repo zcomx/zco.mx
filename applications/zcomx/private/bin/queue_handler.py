@@ -10,8 +10,6 @@ Check queue and run any jobs found.
 # pylint: disable=W0404
 import logging
 import subprocess
-import sys
-import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.job_queue import Queue
 
@@ -96,6 +94,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception:
-        traceback.print_exc(file=sys.stderr)
+    except Exception as err:
+        LOG.exception(err)
         exit(1)
