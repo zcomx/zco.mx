@@ -11,7 +11,9 @@ import os
 import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.indicias import PublicationMetadata
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import \
+    LocalTestCase, \
+    TableTracker
 
 
 # C0111: Missing docstring
@@ -53,11 +55,11 @@ class TestFunctions(LocalTestCase):
             '{"files":',
             '"thumbnailUrl"',
         ],
-        'book_pages_reorder_fail': [
+        'book_post_image_upload_fail': [
             '"success": false',
             '"error": "Reorder service unavailable"',
         ],
-        'book_pages_reorder': [
+        'book_post_image_upload': [
             '"success": true',
         ],
         'book_release': '<div id="book_release_section">',
@@ -399,32 +401,32 @@ class TestFunctions(LocalTestCase):
             )
         )
 
-    def test__book_pages_reorder(self):
+    def test__book_post_image_upload(self):
         # No book_id, return fail message
         self.assertTrue(
             web.test(
-                '{url}/book_pages_reorder'.format(url=self.url),
-                self.titles['book_pages_reorder_fail']
+                '{url}/book_post_image_upload'.format(url=self.url),
+                self.titles['book_post_image_upload_fail']
             )
         )
 
         # Invalid book_id, return fail message
         self.assertTrue(
             web.test(
-                '{url}/book_pages_reorder/{bid}'.format(
+                '{url}/book_post_image_upload/{bid}'.format(
                     bid=999999, url=self.url),
-                self.titles['book_pages_reorder_fail']
+                self.titles['book_post_image_upload_fail']
             )
         )
 
         # Valid book_id, no book pages returns success
         self.assertTrue(
             web.test(
-                '{url}/book_pages_reorder/{bid}'.format(
+                '{url}/book_post_image_upload/{bid}'.format(
                     bid=self._book.id,
                     url=self.url,
                 ),
-                self.titles['book_pages_reorder']
+                self.titles['book_post_image_upload']
             )
         )
 
@@ -432,15 +434,20 @@ class TestFunctions(LocalTestCase):
         query = (db.book_page.book_id == self._book.id)
         book_page_ids = [x.id for x in db(query).select(db.book_page.id)]
         bpids = ['book_page_ids[]={pid}'.format(pid=x) for x in book_page_ids]
+        job_ids = [x.id for x in db(db.job).select(db.job.id)]
         self.assertTrue(
             web.test(
-                '{url}/book_pages_reorder/{bid}?{bpid}'.format(
+                '{url}/book_post_image_upload/{bid}?{bpid}'.format(
                     bid=self._book.id,
                     bpid='&'.join(bpids),
                     url=self.url),
-                self.titles['book_pages_reorder']
+                self.titles['book_post_image_upload']
             )
         )
+
+        # Test that jobs for optimizing images created.
+        job_ids_after = [x.id for x in db(db.job).select(db.job.id)]
+        self.assertTrue(len(job_ids) - len(job_ids_after), len(bpids))
 
     def test__book_release(self):
         # No book_id, redirects to books page

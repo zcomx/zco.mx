@@ -397,7 +397,6 @@ def book_pages_handler():
                 'The upload was not successful.',
                 files=[x.filename for x in files]
             )
-        optimize_book_images(book_record)
         return result
     elif request.env.request_method == 'DELETE':
         book_page = entity_to_row(db.book_page, request.vars.book_page_id)
@@ -417,10 +416,13 @@ def book_pages_handler():
         # GET
         return book_pages_as_json(db, book_record.id)
 
-
 @auth.requires_login()
-def book_pages_reorder():
-    """Callback function for reordering book pages.
+def book_post_image_upload():
+    """Callback function for handling processing to run after images have been
+        uploaded.
+
+        * optimize book page images
+        * reorder book pages
 
     request.args(0): integer, id of book.
     request.vars.book_page_ids[], list of book page ids.
@@ -442,8 +444,12 @@ def book_pages_reorder():
     if not book_record or book_record.creator_id != creator_record.id:
         return do_error('Reorder service unavailable')
 
+    # Step 1:  Trigger optimization of book images
+    optimize_book_images(book_record)
+
+    # Step 2: Reorder book pages
     if 'book_page_ids[]' not in request.vars:
-        # Nothing to do
+        # Nothing more to do
         return dumps({'success': True})
 
     page_ids = []
