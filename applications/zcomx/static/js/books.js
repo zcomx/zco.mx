@@ -381,11 +381,11 @@
         },
 
         onhidden: function(dialog) {
-            this.reorder_pages(dialog);
+            this.post_image_upload(dialog);
             UploadModalize.superclass.onhidden.call(this, dialog);
         },
 
-        reorder_pages: function(dialog) {
+        post_image_upload: function(dialog) {
             var page_ids = [];
             var book_id = 0;
             dialog.getModalBody().find('tr.template-download').each(function(index, elem) {
@@ -395,7 +395,7 @@
                 page_ids.push($(elem).data('book_page_id'));
             });
 
-            var url = '/zcomx/login/book_pages_reorder'
+            var url = '/zcomx/login/book_post_image_upload'
             url = url + '/' + book_id;
 
             var that = $(this);

@@ -507,7 +507,7 @@ class CartoonistsGrid(Grid):
         db = self.db
         return [
             db.auth_user.name,
-            db.creator.contributions_remaining,
+            # db.creator.contributions_remaining,
         ]
 
 
@@ -657,7 +657,7 @@ class OngoingGrid(Grid):
             db.book.name,
             db.book_page.created_on,
             db.book.views,
-            db.book.contributions_remaining,
+            # db.book.contributions_remaining,
             db.auth_user.name,
         ]
 
@@ -711,7 +711,7 @@ class ReleasesGrid(Grid):
             db.book.publication_year,
             db.book.release_date,
             db.book.downloads,
-            db.book.contributions_remaining,
+            # db.book.contributions_remaining,
             db.auth_user.name,
         ]
 
@@ -777,7 +777,7 @@ class SearchGrid(Grid):
 GRID_CLASSES = collections.OrderedDict()
 GRID_CLASSES['ongoing'] = OngoingGrid
 GRID_CLASSES['releases'] = ReleasesGrid
-GRID_CLASSES['contributions'] = ContributionsGrid
+# GRID_CLASSES['contributions'] = ContributionsGrid
 GRID_CLASSES['creators'] = CartoonistsGrid
 GRID_CLASSES['search'] = SearchGrid
 
