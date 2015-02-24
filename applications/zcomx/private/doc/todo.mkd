@@ -5,6 +5,10 @@ VERSION 2 - Before Going Live
     [x] Hide 'cartoonists' -> 'remaining' column
     [x] Hide 'ongoing' -> 'remaining' column
     [x] Is there a 'remaining' column for 'release'?
+    [ ] https://dev.zco.mx/Luke_Howard/Junior/001
+        On first load, no image is displayed.  Maybe it's timing out because
+        there are so many images needed to load?
+
     [S] Fix up FAQs
         [ ] What do the sections on the front page mean?
             Remove 'contributions' paragraph
@@ -30,6 +34,7 @@ VERSION 2 - Before Going Live
     [S] Metadata Input
         Republication - serial (i)
             Including wording for anthologies
+            ...or stories from anthologies which were previously published (online or paper)
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
@@ -44,10 +49,17 @@ VERSION 2 - Before Going Live
                       http://101.zco.mx/Name of Comic 001 (2013).torrent
 
 ---
+[ ] Books -> Edit
+    Change:
+    http://andsocomics.storenvy.com/products/9989035-best-seller
+    to:
+    http://andsocomics.storenvy.com/produ...
+
 [ ] Remove 'dev.' from domain name
     Search for all instances of 'dev.zco.mx'
 
 [ ] Add back the 'Release Button'
+    Ensure images have at least a width of 1600px before releasing
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
