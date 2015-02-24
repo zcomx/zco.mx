@@ -235,7 +235,9 @@ class CreatorTorrentCreator(BaseTorrentCreator):
         tor_subdir = TorrentArchive.get_subdir_path(
             for_path(self.creator.path_name))
         # Add .torrent extension to file
-        return '.'.join([tor_subdir, 'torrent'])
+
+        return '{name} ({cid}.zco.mx).torrent'.format(
+            name=tor_subdir, cid=self.creator.id)
 
     def get_target(self):
         """Return the mktorrent target directory or file.
