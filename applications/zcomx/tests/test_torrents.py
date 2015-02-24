@@ -315,7 +315,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         tor_creator = CreatorTorrentCreator(creator)
         self.assertEqual(
             tor_creator.get_destination(),
-            'F/First Last.torrent'
+            'F/First Last ({cid}.zco.mx).torrent'.format(cid=creator.id)
         )
 
     def test__get_target(self):

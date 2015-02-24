@@ -36,7 +36,9 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     store
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -610,12 +612,12 @@ class TestFunctions(LocalTestCase):
         tests = [
             # (path_name, expect)
             (None, None),
-            ('Prince', 'all-prince.torrent'),
-            ('First Last', 'all-first_last.torrent'),
-            ('first last', 'all-first_last.torrent'),
+            ('Prince', 'prince.torrent'),
+            ('First Last', 'first_last.torrent'),
+            ('first last', 'first_last.torrent'),
             (
                 "Hélè d'Eñça",
-                "all-h\xc3\xa9l\xc3\xa8_d'e\xc3\xb1\xc3\xa7a.torrent"),
+                "h\xc3\xa9l\xc3\xa8_d'e\xc3\xb1\xc3\xa7a.torrent"),
         ]
 
         for t in tests:
@@ -624,28 +626,15 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(torrent_name(creator), t[1])
 
     def test__torrent_url(self):
-        creator = self.add(
-            db.creator,
-            dict(email='test__torrent_linke@example.com')
+        creator = self.add(db.creator, dict(
+            email='test__torrent_linke@example.com',
+        ))
+
+        self.assertEqual(
+            torrent_url(creator),
+            '/torrents/download/creator/{cid}'.format(cid=str(creator.id))
         )
-
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-        tests = [
-            # (path_name, expect)
-            (None, None),
-            ('Prince', '/zcomx/FIXME/FIXME/all-prince.torrent'),
-            ('First Last', '/zcomx/FIXME/FIXME/all-first_last.torrent'),
-            ('first last', '/zcomx/FIXME/FIXME/all-first_last.torrent'),
-            (
-                "Hélè d'Eñça",
-                '/zcomx/FIXME/FIXME/all-h%C3%A9l%C3%A8_d%27e%C3%B1%C3%A7a.torrent'),
-        ]
-
-        for t in tests:
-            creator.update_record(path_name=t[0])
-            db.commit()
-            self.assertEqual(torrent_url(creator), t[1])
+        self.assertRaises(NotFoundError, torrent_url, None)
 
     def test__url(self):
         creator = self.add(db.creator, dict(email='test__url@example.com'))

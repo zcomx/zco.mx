@@ -358,11 +358,17 @@ def torrent_link(creator_entity, components=None, **attributes):
     """
     empty = SPAN('')
 
-    name = torrent_name(creator_entity)
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        raise NotFoundError('Creator not found, id: {e}'.format(
+            e=creator_entity))
+
+    name = torrent_name(creator)
     if not name:
         return empty
 
-    link_url = torrent_url(creator_entity)
+    link_url = torrent_url(creator)
     if not link_url:
         return empty
 
@@ -385,12 +391,12 @@ def torrent_name(creator_entity):
         creator_entity: Row instance or integer, if integer, this is the id of
             the creator. The creator record is read.
     Returns:
-        string, eg 'all-first_last.torrent'
+        string, eg 'first_last.torrent'
     """
     name = url_name(creator_entity)
     if not name:
         return
-    return 'all-{n}.torrent'.format(n=name).lower()
+    return '{n}.torrent'.format(n=name).lower()
 
 
 def torrent_url(creator_entity, **url_kwargs):
@@ -401,17 +407,22 @@ def torrent_url(creator_entity, **url_kwargs):
             the creator. The creator record is read.
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
-        string, eg /path/to/all-first_last.torrent
+        string, url, eg http://zco.mx/torrents/download/creator/123
+            (routes_out should convert it to
+                http://zco.mx/Firstname Lastname (123.zco.mx).torrent)
     """
-    name = torrent_name(creator_entity)
-    if not name:
-        return
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        raise NotFoundError('Creator not found, id: {e}'.format(
+            e=creator_entity))
 
     kwargs = {}
     kwargs.update(url_kwargs)
     return URL(
-        c='FIXME',
-        f='{dir}/{file}'.format(dir='FIXME', file=name),
+        c='torrents',
+        f='download',
+        args=['creator', creator.id],
         **kwargs
     )
 

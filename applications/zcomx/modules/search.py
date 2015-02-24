@@ -139,6 +139,7 @@ class Grid(object):
             db.auth_user.name,
             db.creator.paypal_email,
             db.creator.contributions_remaining,
+            db.creator.torrent,
         ]
 
         visible = [str(x) for x in self.visible_fields()]
@@ -1209,7 +1210,6 @@ def torrent_link(row):
         return ''
     if 'creator' not in row or not row.creator.id:
         return ''
-    return creator_torrent_link(
-        row.creator.id,
-        _class='fixme',
-    )
+    if not row.creator.torrent:
+        return ''
+    return creator_torrent_link(row.creator.id)

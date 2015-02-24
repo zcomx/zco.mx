@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.creators import formatted_name}}
+{{from applications.zcomx.modules.creators import formatted_name, torrent_link}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
@@ -39,8 +39,8 @@
                     <dd>{{=links}}</dd>
                 {{pass}}
                 {{if creator.torrent:}}
-                <dt>torrent </dt>
-                <dd><a href="{{=URL(c='torrents', f='download', args=['creator', creator.id])}}">{{=os.path.basename(creator.torrent)}}</a></dd>
+                    <dt>torrent </dt>
+                    <dd>{{=torrent_link(creator)}}</dd>
                 {{pass}}
                 </dl>
             </div>
