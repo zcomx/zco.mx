@@ -9,6 +9,8 @@ import os
 import re
 from gluon import *
 from gluon.dal.objects import Row
+from gluon.html import XmlComponent
+from gluon.languages import lazyT
 
 
 class NotFoundError(Exception):
@@ -287,6 +289,27 @@ def reorder(sequential_field, record_ids=None, query=None, start=1):
             (sequential_field != count)       # Only update if value is changed
         db(update_query).update(**{sequential_field.name: count})
         db.commit()
+
+
+def replace_in_elements(element, find, replace):
+    """Replace all occurrences of string in XmlComponent element and its
+    children.
+
+    Similar to XmlComponent.elements(find=<find>, replace=<replace>) but finds
+    lazyT values.
+
+    Args:
+        element: XmlComponent instance.
+        find: substring to search for
+        replace: string to replace 'find' with.
+    """
+    if not hasattr(element, 'components'):
+        return
+    for i, c in enumerate(element.components):
+        if isinstance(c, XmlComponent):
+            replace_in_elements(c, find, replace)
+        elif isinstance(c, (lazyT, str)) and str(c) == find:
+            element.components[i] = replace
 
 
 def vars_to_records(request_vars, table, multiple=False):

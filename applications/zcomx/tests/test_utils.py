@@ -26,6 +26,7 @@ from applications.zcomx.modules.utils import \
     markmin_content, \
     move_record, \
     reorder, \
+    replace_in_elements, \
     vars_to_records
 
 # C0111: Missing docstring
@@ -377,6 +378,19 @@ class TestFunctions(LocalTestCase):
         reorder(db.test__reorder.order_no)
         self.assertEqual(self._ordered_values(), ['a', 'c', 'd'])
         self.assertEqual(self._ordered_values(field='order_no'), [1, 2, 3])
+
+    def test__replace_in_elements(self):
+        # Test string
+        div = DIV('aaa', DIV('bbb'))
+        self.assertEqual(str(div), '<div>aaa<div>bbb</div></div>')
+        replace_in_elements(div, 'bbb', 'ccc')
+        self.assertEqual(str(div), '<div>aaa<div>ccc</div></div>')
+
+        # Test lazyT
+        div = DIV('aaa', DIV(current.T('bbb')))
+        self.assertEqual(str(div), '<div>aaa<div>bbb</div></div>')
+        replace_in_elements(div, 'bbb', current.T('ccc'))
+        self.assertEqual(str(div), '<div>aaa<div>ccc</div></div>')
 
     def test__vars_to_records(self):
         tests = [

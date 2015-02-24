@@ -27,7 +27,8 @@ from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
 from applications.zcomx.modules.utils import \
     NotFoundError, \
-    entity_to_row
+    entity_to_row, \
+    replace_in_elements
 
 LOG = logging.getLogger('app')
 
@@ -55,6 +56,8 @@ class Grid(object):
         'download',
         'read',
     ]
+
+    _not_found_msg = None
 
     viewbys = {
         # name: items_per_page
@@ -357,11 +360,14 @@ class Grid(object):
                         XML(paginator)
                     ))
             else:
-                divs.append(DIV(
-                    'No records found.'
-                ))
+                divs.append(DIV(current.T('No records found')))
 
             grid_div = DIV(divs, _class='grid_section')
+
+        if self._not_found_msg is not None:
+            replace_in_elements(
+                grid_div, 'No records found', current.T(self._not_found_msg))
+
         return grid_div
 
     def rows(self):
@@ -469,6 +475,8 @@ class CartoonistsGrid(Grid):
         'torrent',
     ]
 
+    _not_found_msg = 'No cartoonists found'
+
     def __init__(
             self,
             form_grid_args=None,
@@ -524,6 +532,8 @@ class ContributionsGrid(Grid):
         'order_dir': 'ASC',
     }
 
+    _not_found_msg = 'No books found'
+
     def __init__(
             self,
             form_grid_args=None,
@@ -574,6 +584,8 @@ class CreatorMoniesGrid(Grid):
         'order_dir': 'ASC',
     })
 
+    _not_found_msg = 'No books found'
+
     def __init__(
             self,
             form_grid_args=None,
@@ -622,6 +634,8 @@ class OngoingGrid(Grid):
         'class': 'orderby_ongoing',
         'order_dir': 'DESC',
     }
+
+    _not_found_msg = 'No ongoing series'
 
     def __init__(
             self,
@@ -676,6 +690,8 @@ class ReleasesGrid(Grid):
         'order_dir': 'DESC',
     }
 
+    _not_found_msg = 'No books released'
+
     def __init__(
             self,
             form_grid_args=None,
@@ -728,6 +744,8 @@ class SearchGrid(Grid):
         'header_label': 'added',
         'order_dir': 'DESC',
     }
+
+    _not_found_msg = 'No matches found'
 
     def __init__(
             self,
