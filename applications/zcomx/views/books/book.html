@@ -1,5 +1,5 @@
 {{from applications.zcomx.modules.books import contribute_link, download_link, formatted_name as formatted_book_name, read_link}}
-{{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name as formatted_creator_name, url}}
+{{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name as formatted_creator_name, torrent_link, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
@@ -83,8 +83,8 @@
                             <dd>{{=creator_links}}</dd>
                         {{pass}}
                         {{if creator.torrent:}}
-                        <dt>torrent </dt>
-                        <dd><a href="{{=URL(c='torrents', f='download', args=['creator', creator.id])}}">{{=os.path.basename(creator.torrent)}}</a></dd>
+                            <dt>torrent </dt>
+                            <dd>{{=torrent_link(creator)}}</dd>
                         {{pass}}
                         </dl>
                     </div>
