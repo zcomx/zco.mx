@@ -58,18 +58,7 @@ information.
 
 [[contribution]]
 #### How do the contributions work?
-The idea behind contributions is to promote a fun way for readers to
-connect with and support self-publishing cartoonists. zco.mx is
-not-for-profit, and all contributions go ''directly'' to cartoonists. If
-a reader really enjoys the comic, they can consider "voting with their
-money."
-
-Every page that a cartoonist uploads increases the total amount that
-zco.mx hopes to raise for that book by $10, and every dollar that a
-reader contributes lowers the remaining amount of that goal. When the
-goal is met, the book is removed from the contribution list — hooray!
-The book will still be available to read and download, and many books
-will be ongoing and may reappear when a new page is added.
+zco.mx is not-for-profit and all contributions go directly to cartoonists.
 
 
 [[cbz]]

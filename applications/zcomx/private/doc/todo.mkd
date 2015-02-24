@@ -5,18 +5,30 @@ VERSION 2 - Before Going Live
     [x] Hide 'cartoonists' -> 'remaining' column
     [x] Hide 'ongoing' -> 'remaining' column
     [x] Is there a 'remaining' column for 'release'?
-    [ ] https://dev.zco.mx/Luke_Howard/Junior/001
-        On first load, no image is displayed.  Maybe it's timing out because
-        there are so many images needed to load?
+    [x] Fix up FAQs
+        [x] What do the sections on the front page mean?
+            Remove 'contributions' paragraph:
+                **contributions** - Readers can support cartoonists through
+                contributions. zco.mx hopes to raise a set amount to support specific
+                books, and these titles are listed by the minimum amount of money
+                remaining for each goal.
+        [x] How do the contributions work?
+            Replace:
+                The idea behind contributions is to promote a fun way for readers to
+                connect with and support self-publishing cartoonists. zco.mx is
+                not-for-profit, and all contributions go ''directly'' to cartoonists. If
+                a reader really enjoys the comic, they can consider "voting with their
+                money."
 
-    [S] Fix up FAQs
-        [ ] What do the sections on the front page mean?
-            Remove 'contributions' paragraph
-
-        [ ] How do the contributions work?
-            zco.mx is not-for-profit, and all contributions go directly to
-            cartoonists. If a reader really enjoys the comic, they can
-            consider "voting with their money."
+                Every page that a cartoonist uploads increases the total amount that
+                zco.mx hopes to raise for that book by $10, and every dollar that a
+                reader contributes lowers the remaining amount of that goal. When the
+                goal is met, the book is removed from the contribution list — hooray!
+                The book will still be available to read and download, and many books
+                will be ongoing and may reappear when a new page is added.
+            With:
+                zco.mx is not-for-profit and all contributions go directly to
+                cartoonists.
 
 [ ] Bugs
     [ ] Last Comic Page (Indicia Page)
@@ -31,10 +43,17 @@ VERSION 2 - Before Going Live
         https://dev.zco.mx/Luke_Howard/
         Change/hide 'No records found'
 
+    [ ] https://dev.zco.mx/Luke_Howard/Junior/001
+        On first load, no image is displayed.  Maybe it's timing out because
+        there are so many images needed to load?
+
     [S] Metadata Input
         Republication - serial (i)
             Including wording for anthologies
-            ...or stories from anthologies which were previously published (online or paper)
+            ...[or stories from anthologies which were] previously published (online or paper)
+        $ v applications/zcomx/static/js/metadata_crud.js
+            '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is  a collection of serialized stories previously published (online or paper)</p>',
+            '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is  a collection of serialized stories or stories from anthologies which were previously published (online or paper)</p>',
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
