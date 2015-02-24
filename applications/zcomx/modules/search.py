@@ -999,6 +999,22 @@ class CartoonistTile(Tile):
             _href=self.creator_href
         )
 
+    def footer(self):
+        """Return a div for the tile footer."""
+        # When crowdfunding feature is restored, this method isn't necessary,
+        # just use the base class method. See mod 12727.
+
+        orderby_field_value = DIV(
+            '',
+            _class='orderby_field_value'
+        )
+
+        return DIV(
+            self.footer_links(),
+            orderby_field_value,
+            _class='col-sm-12'
+        )
+
     def image(self):
         """Return a div for the tile image."""
         db = self.db
