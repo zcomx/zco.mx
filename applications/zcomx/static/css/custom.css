@@ -1973,6 +1973,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-right: auto;
     max-width: 540px;
     padding-bottom: 1em;
+    text-transform: uppercase;
 }
 
 #indicia_section .indicia_text_container {
