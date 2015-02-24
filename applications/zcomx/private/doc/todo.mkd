@@ -1,8 +1,11 @@
 ``
 VERSION 2 - Before Going Live
 [ ] Crowdfunding Idea
-    [ ] remove 'contributions' section from front page for now
-    [S] fix up FAQs
+    [ ] Hide 'contributions' section from front page for now
+    [ ] Hide 'cartoonists' -> 'remaining' column
+    [ ] Hide 'ongoing' -> 'remaining' column
+    [ ] Is there a 'remaining' column for 'release'?
+    [S] Fix up FAQs
 
 [ ] Bugs
     [ ] Last Comic Page (Indicia Page)
