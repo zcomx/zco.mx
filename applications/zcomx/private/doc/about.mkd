@@ -81,11 +81,11 @@ intention is to connect cartoonists and readers, not to benefit
 developers.
 
 Site administrators donate their time and the site accepts
-``donations``:contribute_link, which are used to offset hosting costs.
-Any surplus is put towards the site and its community. The site code is
-open source and made available on [[github https://github.com/zcomix]],
-so the community has an opportunity to contribute features and bug
-fixes.
+``donations``:contribute_link, which are used to offset [[hosting costs
+/expenses]]. Any surplus is put towards the site and its community. The
+site code is open source and made available on [[github
+https://github.com/zcomix]], so the community has an opportunity to
+contribute features and bug fixes.
 
 
 #### Copyright

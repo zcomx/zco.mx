@@ -1,11 +1,18 @@
 ``
 VERSION 2 - Before Going Live
-[ ] Crowdfunding Idea
-    [ ] Hide 'contributions' section from front page for now
-    [ ] Hide 'cartoonists' -> 'remaining' column
-    [ ] Hide 'ongoing' -> 'remaining' column
-    [ ] Is there a 'remaining' column for 'release'?
+[x] Crowdfunding Idea
+    [x] Hide 'contributions' section from front page for now
+    [x] Hide 'cartoonists' -> 'remaining' column
+    [x] Hide 'ongoing' -> 'remaining' column
+    [x] Is there a 'remaining' column for 'release'?
     [S] Fix up FAQs
+        [ ] What do the sections on the front page mean?
+            Remove 'contributions' paragraph
+
+        [ ] How do the contributions work?
+            zco.mx is not-for-profit, and all contributions go directly to
+            cartoonists. If a reader really enjoys the comic, they can
+            consider "voting with their money."
 
 [ ] Bugs
     [ ] Last Comic Page (Indicia Page)
@@ -32,7 +39,7 @@ VERSION 2 - Before Going Live
     "Name of Comic 001 (2012) (digital) (Son of Ultron-Empire).cbr"
     [ ] metadata
         $ zip test.zip -z <<< '2014|Cartoonist Name|Title of Book|64'   ## add metadata to zip comment field
-    [ ] rewrite - https://zco.mx/zc.torrent         ## torrent for all cbz's
+    [ ] rewrite - https://zco.mx/zco.mx.torrent         ## torrent for all cbz's
     [ ] redirects for http://101.zco.mx/Name of Comic 01 (of 04) (2014).torrent
                       http://101.zco.mx/Name of Comic 001 (2013).torrent
 
@@ -82,6 +89,12 @@ VERSION 2 - Before Going Live
     SB 2015-02-09 19:09  It will does this with middle click
 
 [ ] nice levels
+
+[ ] FAQs
+    [ ] About Page -> Cartoonist Documentation
+        Add links to kb.zco.mx on 'about' page
+    [ ] faqc -> What file types can be uploaded?
+        Link to kb entry for exporting to PNG
 
 VERSION 3
 [ ] resize.sh - convert tiff's to png's
