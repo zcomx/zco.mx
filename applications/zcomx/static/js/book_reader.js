@@ -18,21 +18,102 @@
                 $.fn.book_reader.defaults,
                 options
             );
+            this.$reader_section = $('#reader_section');
             this.init_listeners();
-            this.img_loaded_ee = this.$element.imagesLoaded();
-            this.img_loaded_ee.always(function(instance) {
-                self.to_page(self.options.start_page_no);
-            });
+            if (this.options.img_container_class) {
+                this.load_images();
+            }
         },
+
+        load_image: function($elem, i) {
+            var div_img = $elem.find('div#img-' + i);
+            if (div_img.length === 0) {
+                return;
+            }
+            if (div_img.find('img').length > 0) {
+                return;
+            }
+            var src = '/images/download/' + div_img.data("image") + '?size=web';
+            $('<img />').attr('src', src)
+                .addClass('book_page_img')
+                .appendTo(div_img);
+        },
+
+        load_images: function(img_class) {
+            var self = this;
+            var img_containers = this.$reader_section.find(self.options.img_container_class);
+            if (img_containers.length === 0) {
+                return
+            }
+
+            var ids = [];
+
+            img_containers.each( function(idx, elem) {
+                ids.push($(elem).attr('id').replace('img-', ''));
+            });
+
+            if (self.options.start_page_no > 1) {
+                // Reset so img loaded from start page and on.
+                ids = ids.concat(
+                    ids.splice(0, self.options.start_page_no - 1));
+            }
+
+            var prioritize = [];            //prioritize img on preset pages
+            prioritize.push(self.options.start_page_no - 1);    // start
+            prioritize.push(self.options.start_page_no);        // next
+            prioritize.push(self.options.start_page_no - 2);    // prev
+            prioritize.push(0);                                 // first
+            prioritize.push(img_containers.length - 1);         // last
+
+            ids = prioritize.concat(ids);
+
+            for (var i=0; i < ids.length; i++) {
+                self.queue_load_image(self.$reader_section, ids[i]);
+            }
+            this.$reader_section.dequeue('img');
+
+            var div_img = this.$reader_section.find(
+                'div#img-' + (self.options.start_page_no - 1)).first();
+
+            if (div_img.length) {
+                this.img_loaded_ee = div_img.imagesLoaded();
+                this.img_loaded_ee.always(function(instance) {
+                    self.to_page(self.options.start_page_no);
+                    $('.centered_loading_gif').removeClass('processing');
+                });
+            } else {
+                $('.centered_loading_gif').removeClass('processing');
+            }
+        },
+
+        queue_load_image: function($elem, i, pos) {
+            var self = this;
+
+            var queue_func = function() {
+                self.load_image($elem, i);
+                return $elem.dequeue('img');
+            };
+
+            if (pos === 'first') {
+                $elem.queue('img').unshift(queue_func);
+            } else {
+                $elem.queue('img', queue_func);
+            }
+        },
+
     };
 
     var SliderReader = function (element, action, options) {
-        this.init(element, action, options);
+        this.init(
+            element,
+            action,
+            $.extend({'img_container_class': '.slide'}, options)
+        );
     }
     $.fn.zco_utils.inherit(SliderReader, BookReader);
     $.extend(SliderReader.prototype, {
         image_count: function() {
-            return $('#reader_section .slide').length - 1;
+            return this.$reader_section.find('.slide').length - 1;
         },
 
         init_listeners: function() {
@@ -103,7 +184,7 @@
 
         next_slide: function(rotate) {
             var that = this;
-            $('#reader_section .slide:visible').each( function(id, elem) {
+            this.$reader_section.find('.slide:visible').each( function(id, elem) {
                 var num = $(this).attr('id').split('-')[1];
                 num++;
                 if (num > that.image_count()) {
@@ -119,7 +200,7 @@
 
         prev_slide: function(rotate) {
             var that = this;
-            $('#reader_section .slide:visible').each( function(id, elem) {
+            this.$reader_section.find('.slide:visible').each( function(id, elem) {
                 var num = $(this).attr('id').split('-')[1];
                 num--;
                 if (num < 0) {
@@ -133,17 +214,13 @@
             });
         },
 
-        set_overlays: function(reader_section, num) {
-            if (typeof(reader_section) === 'undefined') {
-                reader_section = $('#reader_section');
-            }
-
-            var img = reader_section.find('img:visible'),
+        set_overlays: function(num) {
+            var img = this.$reader_section.find('img:visible'),
                 left_section = $('#reader_section_left'),
                 right_section = $('#reader_section_right');
 
             if (typeof(num) === 'undefined') {
-                num = reader_section.find('.slide:visible').first().attr('id').split('-')[1];
+                num = this.$reader_section.find('.slide:visible').first().attr('id').split('-')[1];
             }
 
             var left_cursor = num == 0 ? 'auto' : 'w-resize';
@@ -157,11 +234,13 @@
             left_section.css({
                 height: img_h,
                 width: img_w/2.0,
+                border: '1px solid red',
             })
 
             right_section.css({
                 height: img_h,
                 width: img_w/2.0,
+                border: '1px solid blue',
             })
 
             $(left_section).jquery_ui_position(
@@ -184,38 +263,37 @@
         },
 
         show_slide: function(num) {
-            var reader_section = $('#reader_section');
-            reader_section.find('.slide').hide();
-            reader_section.height('100%');
+            this.$reader_section.find('.slide').hide();
+            this.$reader_section.height('100%');
 
             /* Resize the container div to fit viewport. */
             var section_h = $(window).height();
             var buffer = 10;
             if (num < this.image_count()) {
-                reader_section.height(section_h - buffer);
-                reader_section.css({
+                this.$reader_section.height(section_h - buffer);
+                this.$reader_section.css({
                     'background-color': $.fn.zco_utils.settings.reader_background_colour,
                 });
             }else {
                 /* Auto height on indicia page */
-                reader_section.height('auto');
-                reader_section.css({
+                this.$reader_section.height('auto');
+                this.$reader_section.css({
                     'min-height': section_h -buffer,
                 });
-                reader_section.css({'background-color': 'white'})
+                this.$reader_section.css({'background-color': 'white'})
 
             }
 
             /* Set heights of indicia page containers. */
             var indicia_text_container_h = 300;
             var indicia_img_h = (section_h - buffer - indicia_text_container_h);
-            reader_section.find('.indicia_text_container').height(indicia_text_container_h);
-            reader_section.find('.indicia_image_container').first().find('img').css('max-height', indicia_img_h);
+            this.$reader_section.find('.indicia_text_container').height(indicia_text_container_h);
+            this.$reader_section.find('.indicia_image_container').first().find('img').css('max-height', indicia_img_h);
 
-            reader_section.find('#img-' + num).css( "display", "inline-block")
+            this.$reader_section.find('#img-' + num).css( "display", "inline-block")
             $('#page_nav_page_no').val(num + 1);
 
-            this.set_overlays(reader_section, num);
+            this.set_overlays(num);
         },
 
         to_page: function(page_no) {
@@ -225,7 +303,11 @@
     });
 
     var ScrollerReader = function (element, action, options) {
-        this.init(element, action, options);
+        this.init(
+            element,
+            action,
+            $.extend({'img_container_class': '.scroller'}, options)
+        );
     }
     $.fn.zco_utils.inherit(ScrollerReader, BookReader);
     $.extend(ScrollerReader.prototype, {
@@ -238,10 +320,9 @@
         },
 
         set_indicia: function() {
-            var reader_section = $('#reader_section');
-            var last_img_w = reader_section.find('.book_page_img').last().outerWidth();
-            var indicia_section = reader_section.find('.indicia_preview_section');
-            var css_min_width = parseInt(indicia_section.css('min-width'), 10) || reader_section.width();
+            var last_img_w = this.$reader_section.find('.book_page_img').last().outerWidth();
+            var indicia_section = this.$reader_section.find('.indicia_preview_section');
+            var css_min_width = parseInt(indicia_section.css('min-width'), 10) || this.$reader_section.width();
             indicia_section.width(Math.max(css_min_width, last_img_w));
         },
 
@@ -278,6 +359,7 @@
 
     $.fn.book_reader.defaults = {
         start_page_no: 1,
+        img_container_class: null,
     };
 
 }(window.jQuery));

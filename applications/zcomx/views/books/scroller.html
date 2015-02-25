@@ -5,13 +5,15 @@
         {{if pages:}}
             {{for count, page in enumerate(pages):}}
             <div id="{{='page_no_{p:03d}'.format(p=page.page_no)}}">
+                {{if str(page.image) == 'indicia':}}
                 <div id="img-{{=count}}" class="scroller">
-                    {{if str(page.image) == 'indicia':}}
                     {{=page.content}}
-                    {{else:}}
-                    {{=ImgTag(page.image, size=size, attributes={'_alt': 'page {p:03d}'.format(p=page.page_no), '_class': 'book_page_img'})()}}
-                    {{pass}}
                 </div>
+                {{else:}}
+                <div id="img-{{=count}}" data-image="{{=page.image}}" class="scroller">
+                    <span class="vertical_align_helper"></span>
+                </div>
+                {{pass}}
             </div>
             {{pass}}
         {{else:}}
