@@ -31,15 +31,15 @@ VERSION 2 - Before Going Live
                 cartoonists.
 
 [ ] Bugs
-    [ ] Last Comic Page (Indicia Page)
+    [x] Last Comic Page (Indicia Page)
         To upper metadata
         eg https://dev.zco.mx/Luke_Howard/Best_Seller/017
 
-    [ ] Book Page
+    [x] Book Page
         https://dev.zco.mx/login/books
         Best Seller (2015)      ## remove year
 
-    [ ] Cartoonist Page
+    [x] Cartoonist Page
         https://dev.zco.mx/Luke_Howard/
         Change/hide 'No records found'
 
@@ -47,12 +47,17 @@ VERSION 2 - Before Going Live
         On first load, no image is displayed.  Maybe it's timing out because
         there are so many images needed to load?
 
-    [S] Metadata Input
-        Republication - serial (i)
-            Including wording for anthologies
-            ...[or stories from anthologies which were] previously published (online or paper)
+        Ideally we display the image the want as soon as we can and then
+        load remaining images in the background.
+
+    [ ] Metadata Input: Republication - serial (i)
+        Including wording for anthologies
+        ...[or stories from anthologies which were] previously published (online or paper)
+
         $ v applications/zcomx/static/js/metadata_crud.js
+            Change:
             '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is  a collection of serialized stories previously published (online or paper)</p>',
+            To:
             '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is  a collection of serialized stories or stories from anthologies which were previously published (online or paper)</p>',
 
 [ ] Add torrent and dc functionality
@@ -69,6 +74,7 @@ VERSION 2 - Before Going Live
 
 ---
 [ ] Books -> Edit
+    Truncate long urls
     Change:
     http://andsocomics.storenvy.com/products/9989035-best-seller
     to:
