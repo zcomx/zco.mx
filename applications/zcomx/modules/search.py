@@ -366,7 +366,11 @@ class Grid(object):
 
         if self._not_found_msg is not None:
             replace_in_elements(
-                grid_div, 'No records found', current.T(self._not_found_msg))
+                grid_div,
+                'No records found',
+                current.T(self._not_found_msg),
+                callback=lambda x: x.add_class('not_found_msg')
+            )
 
         return grid_div
 

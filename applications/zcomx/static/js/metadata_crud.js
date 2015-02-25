@@ -198,7 +198,7 @@
             'publication_metadata_republished':
                   '<p><b>First Publication</b> - this work has never been published before</p> <p><b>Republication</b> - this work has been previously published online or on paper</p>',
             'publication_metadata_published_type':
-                  '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is a collection of serialized stories previously published (online or paper)</p>',
+                  '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is a collection of serialized stories or stories from anthologies previously published (online or paper)</p>',
             'publication_metadata_is_anthology':
                   '<p>Was this work previously published as part of an anthology?</p>',
             'publication_metadata_publisher': function() {

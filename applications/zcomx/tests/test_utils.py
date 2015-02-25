@@ -392,6 +392,13 @@ class TestFunctions(LocalTestCase):
         replace_in_elements(div, 'bbb', current.T('ccc'))
         self.assertEqual(str(div), '<div>aaa<div>ccc</div></div>')
 
+        # Test callaback
+        div = DIV('aaa', DIV('bbb'))
+        self.assertEqual(str(div), '<div>aaa<div>bbb</div></div>')
+        callback = lambda x: x.add_class('wrapper')
+        replace_in_elements(div, 'bbb', 'ccc', callback=callback)
+        self.assertEqual(str(div), '<div>aaa<div class="wrapper">ccc</div></div>')
+
     def test__vars_to_records(self):
         tests = [
             # (vars, table, multiple, expect)
