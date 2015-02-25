@@ -291,7 +291,7 @@ def reorder(sequential_field, record_ids=None, query=None, start=1):
         db.commit()
 
 
-def replace_in_elements(element, find, replace):
+def replace_in_elements(element, find, replace, callback=None):
     """Replace all occurrences of string in XmlComponent element and its
     children.
 
@@ -302,14 +302,19 @@ def replace_in_elements(element, find, replace):
         element: XmlComponent instance.
         find: substring to search for
         replace: string to replace 'find' with.
+        callback: function or lambda, called on every element where the
+            replace was made. The element is passed as the first parameter,
+            ie. callback(element)
     """
     if not hasattr(element, 'components'):
         return
     for i, c in enumerate(element.components):
         if isinstance(c, XmlComponent):
-            replace_in_elements(c, find, replace)
+            replace_in_elements(c, find, replace, callback=callback)
         elif isinstance(c, (lazyT, str)) and str(c) == find:
             element.components[i] = replace
+            if callback is not None and callable(callback):
+                callback(element)
 
 
 def vars_to_records(request_vars, table, multiple=False):

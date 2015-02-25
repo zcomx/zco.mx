@@ -922,6 +922,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding-top: 1em;
 }
 
+#creator_page #report_section .not_found_msg {
+    color: #999999;
+    padding-top: 0.6em;
+}
+
 #creator_monies_page #call_to_action h1 {
     font-family: 'sf_cartoonist_handbold', sans-serif;
     font-size: 26px;
