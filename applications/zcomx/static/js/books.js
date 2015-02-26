@@ -264,7 +264,7 @@
             this.$book_id = dialog.getData('book_id');
             if (this.$book_id) {
                 var url = '/zcomx/login/book_edit/' + this.$book_id;
-                var modal = new EditModalize(null, 'edit', {
+                var modal = new EditOngoingModalize(null, 'edit', {
                     'book_id': this.$book_id,
                     'book_title': dialog.getData('title'),
                     'onhidden': this.options.onhidden,
@@ -434,7 +434,7 @@
                         obj = new EditModalize(this, action, options);
                         break;
                     case 'edit_ongoing':
-                        obj = new EditOngoingModalize(this, action, options);
+                        obj = new EditOngoingModalize(this, 'edit', options);
                         break;
                     case 'release':
                         obj = new ReleaseModalize(this, action, options);
