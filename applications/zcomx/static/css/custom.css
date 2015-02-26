@@ -173,6 +173,19 @@ div.centered table {
     box-shadow: none;
 }
 
+.centered_loading_gif.processing {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background: url("../images/loading.gif") center no-repeat;
+    background-size: contain;
+    margin-left: 1em;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    z-index: 100;
+}
+
 .placeholder_170x170 {
     border: 0.8em double #EEEEEE;
     height: 170px;

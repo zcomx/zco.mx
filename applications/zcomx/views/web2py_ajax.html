@@ -8,14 +8,14 @@
     //--></script>
 {{
 if DEBUG:
-    response.files.insert(0,URL('static','js/jquery.js'))
+    response.files.insert(1,URL('static','js/jquery.js'))
 else:
-    response.files.insert(0,URL('static','js/jquery.min.js'))
+    response.files.insert(1,URL('static','js/jquery.min.js'))
 pass
-response.files.insert(1,URL('static','css/calendar.css'))
-response.files.insert(2,URL('static','js/calendar.js'))
-response.files.insert(3,URL('static','js/web2py.js'))
-response.files.insert(4,URL('static','fonts/zco.mx/zco.mx.css'))
+response.files.insert(2,URL('static','css/calendar.css'))
+response.files.insert(3,URL('static','js/calendar.js'))
+response.files.insert(4,URL('static','js/web2py.js'))
+response.files.insert(5,URL('static','fonts/zco.mx/zco.mx.css'))
 response.files.append(URL('static','css/custom.css'))
 response.files.append(URL('static','js/numbers.js'))
 response.files.append(URL('static','js/contribute.js'))
