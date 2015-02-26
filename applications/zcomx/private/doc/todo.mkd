@@ -43,22 +43,24 @@ VERSION 2 - Before Going Live
         https://dev.zco.mx/Luke_Howard/
         Change/hide 'No records found'
 
-    [ ] https://dev.zco.mx/Luke_Howard/Junior/001
-        On first load, no image is displayed.  Maybe it's timing out because
-        there are so many images needed to load?
+        [x] Add named div
+        I think it could use padding-top 0.6em and color: #999 on the 'No books released'
 
-        Ideally we display the image the want as soon as we can and then
-        load remaining images in the background.
-
-    [ ] Metadata Input: Republication - serial (i)
+    [x] Metadata Input: Republication - serial (i)
         Including wording for anthologies
         ...[or stories from anthologies which were] previously published (online or paper)
-
         $ v applications/zcomx/static/js/metadata_crud.js
             Change:
             '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is  a collection of serialized stories previously published (online or paper)</p>',
             To:
             '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is  a collection of serialized stories or stories from anthologies which were previously published (online or paper)</p>',
+
+    [ ] https://dev.zco.mx/Luke_Howard/Junior/001
+        On first load, no image is displayed.  Maybe it's timing out
+        because there are so many images needed to load?
+
+        Ideally we display the image they want as soon as we can and
+        then load remaining images in the background.
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
@@ -79,12 +81,14 @@ VERSION 2 - Before Going Live
     http://andsocomics.storenvy.com/products/9989035-best-seller
     to:
     http://andsocomics.storenvy.com/produ...
+    but have mouse-over display full url
 
 [ ] Remove 'dev.' from domain name
     Search for all instances of 'dev.zco.mx'
 
 [ ] Add back the 'Release Button'
-    Ensure images have at least a width of 1600px before releasing
+    * Ensure images have at least a width of 1600px before releasing
+    * Ensure CC licence is used
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
@@ -123,15 +127,10 @@ VERSION 2 - Before Going Live
     Prevent opening zco.mx modal links in 'New Window'
     https://dev.zco.mx/contributions/modal
 
-    SB 2015-02-09 19:09  It will does this with middle click
+    SB 2015-02-09 19:09  It does this with middle click
 
 [ ] nice levels
 
-[ ] FAQs
-    [ ] About Page -> Cartoonist Documentation
-        Add links to kb.zco.mx on 'about' page
-    [ ] faqc -> What file types can be uploaded?
-        Link to kb entry for exporting to PNG
 
 VERSION 3
 [ ] resize.sh - convert tiff's to png's
@@ -149,6 +148,11 @@ VERSION 3
     [ ] update dns for kb.zco.mx
     [ ] add link to footer
         [logo] about | faq | kb | login | all.torrent
+    [ ] FAQs
+        [ ] About Page -> Cartoonist Documentation
+            Add links to kb.zco.mx on 'about' page
+        [ ] faqc -> What file types can be uploaded?
+            Link to kb entry for exporting to PNG
 [ ] login -> books -> edit
     Use inline Editing for metadata
 [ ] Front Page - Add 'download' report
