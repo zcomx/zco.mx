@@ -58,7 +58,7 @@ def run_optimize(field, record_id, options):
 
         if os.path.exists(os.path.abspath(filename)):
             LOG.debug('Optimizing filename: %s', filename)
-            optimize(filename, nice=True)
+            optimize(filename)
 
     db.optimize_img_log.insert(
         record_field=str(field),

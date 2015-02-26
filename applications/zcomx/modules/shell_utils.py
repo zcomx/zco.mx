@@ -5,6 +5,7 @@
 
 Classes and functions related to shell utilities
 """
+import functools
 import grp
 import os
 import pwd
@@ -75,22 +76,6 @@ class UnixFile(object):
         return p.communicate()
 
 
-def imagemagick_version():
-    """Return the version of the installed ImageMagick suite.
-
-    Returns:
-        string, version of ImageMagick. Eg '6.9.0-0'
-    """
-    args = ['convert', '-version']
-    p = subprocess.Popen(
-        args,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    p_stdout, unused_p_stderr = p.communicate()
-    return p_stdout.split("\n")[0].split()[2]
-
-
 def get_owner(filename):
     """Return the owner of the file.
 
@@ -107,6 +92,73 @@ def get_owner(filename):
     user = pwd.getpwuid(uid)[0]
     group = grp.getgrgid(gid)[0]
     return (user, group)
+
+
+def imagemagick_version():
+    """Return the version of the installed ImageMagick suite.
+
+    Returns:
+        string, version of ImageMagick. Eg '6.9.0-0'
+    """
+    args = ['convert', '-version']
+    p = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    p_stdout, unused_p_stderr = p.communicate()
+    return p_stdout.split("\n")[0].split()[2]
+
+
+def os_nice(value):
+    """Return a function for adding a nice value to a process.
+
+    Args:
+        value: boolean, integer, or string, boolean used to determine
+            the nice increment value.
+
+            value       nice command
+
+            None        nice -n 0
+            True        nice -n 10
+            False       nice -n 0
+            'default'   nice -n 10
+            'max'       nice -n 19
+            'min'       nice -n -20
+            'off'       nice -n 0
+            n           nice -n n
+
+    Returns:
+        function
+
+    Usage:
+        p = subprocess.Popen(
+            args,
+            preexec_fn=os_nice(19),
+        )
+    """
+    nices = {
+        'default': 10,
+        'max': 19,
+        'min': -20,
+        'off': 0
+    }
+
+    increment = nices['off']
+    if value is None or value is False:
+        increment = nices['off']
+    elif value is True:
+        increment = nices['default']
+    elif isinstance(value, str) and value in nices:
+        increment = nices[value]
+    elif isinstance(value, int):
+        increment = value
+
+    def _nice(increment):
+        """Apply nice function."""
+        os.nice(increment)
+
+    return functools.partial(_nice, increment)
 
 
 def set_owner(filename, user='http', group='http'):

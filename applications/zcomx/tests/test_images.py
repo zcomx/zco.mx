@@ -77,6 +77,7 @@ class ResizerForTesting(TempDirectoryMixin):
         """
         # Keep this simple and fast.
         test_data_dir = os.path.join(request.folder, 'private/test/data/')
+        os.nice(nice and 10 or 0)
         for k in self.filenames.keys():
             if k == 'ori':
                 src = self.filename
@@ -119,6 +120,7 @@ class ResizerUseOri(TempDirectoryMixin):
         """
         # Keep this simple and fast.
         # Copy files from test data. <size>.jpg
+        os.nice(nice and 10 or 0)
         for k in self.filenames.keys():
             src = self.filename
             dst = os.path.join(

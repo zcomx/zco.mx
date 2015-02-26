@@ -19,6 +19,7 @@ from applications.zcomx.modules.job_queue import \
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     TemporaryDirectory, \
+    os_nice, \
     set_owner
 from applications.zcomx.modules.utils import NotFoundError
 
@@ -133,11 +134,12 @@ class ResizeImg(TempDirectoryMixin):
         self.filename = filename
         self.filenames = {'ori': None, 'cbz': None, 'web': None, 'tbn': None}
 
-    def run(self, nice=False):
+    def run(self, nice='max'):
         """Run the shell script and get the output.
 
         Args:
-            nice: If True, run resize script with nice.
+            nice: If True, run resize script with nice. See os_nice for
+                acceptable values.
         """
         resize_script = os.path.abspath(
             os.path.join(
@@ -147,8 +149,6 @@ class ResizeImg(TempDirectoryMixin):
         real_filename = os.path.abspath(self.filename)
 
         args = []
-        if nice:
-            args.append('nice')
         args.append(resize_script)
         if self.filename:
             args.append(real_filename)
@@ -159,7 +159,8 @@ class ResizeImg(TempDirectoryMixin):
             args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd=self.temp_directory()
+            cwd=self.temp_directory(),
+            preexec_fn=os_nice(nice),
         )
         p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
@@ -202,11 +203,12 @@ class ResizeImgIndicia(ResizeImg):
         ResizeImg.__init__(self, filename)
         self.filenames = {'ori': None}
 
-    def run(self, nice=False):
+    def run(self, nice='max'):
         """Run the shell script and get the output.
 
         Args:
-            nice: If True, run resize script with nice.
+            nice: If True, run resize script with nice. See os_nice for
+                acceptable values.
         """
         #  $ convert infile -quiet -filter catrom -resize 1600x1600> \
         #     -colorspace sRGB +repage outfile
@@ -214,8 +216,6 @@ class ResizeImgIndicia(ResizeImg):
         real_filename = os.path.abspath(self.filename)
 
         args = []
-        if nice:
-            args.append('nice')
         args.append('convert')
         if self.filename:
             args.append(real_filename)
@@ -235,6 +235,7 @@ class ResizeImgIndicia(ResizeImg):
             args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            preexec_fn=os_nice(nice),
         )
         p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
@@ -396,20 +397,19 @@ def is_optimized(field, record_id):
     return db(query).count() > 0
 
 
-def optimize(filename, nice=False):
+def optimize(filename, nice='max'):
     """Optimize an image file in place.
 
     Args:
         filename: string, name of file.
-        nice: If True, run optimize script with nice.
+        nice: If True, run resize script with nice. See os_nice for
+            acceptable values.
     """
     optimize_script = os.path.abspath(
         os.path.join(
             current.request.folder, 'private', 'bin', 'optimize_img.sh')
     )
     args = []
-    if nice:
-        args.append('nice')
     args.append(optimize_script)
     args.append(os.path.abspath(filename))
 
@@ -422,6 +422,7 @@ def optimize(filename, nice=False):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             cwd=tmp_dir,
+            preexec_fn=os_nice(nice),
         )
 
         p_stdout, p_stderr = p.communicate()
@@ -513,7 +514,7 @@ def store(field, filename, resize=True, resizer=None):
     obj_class = resizer if resizer is not None else ResizeImg
     resize_img = obj_class(filename)
     if resize:
-        resize_img.run(nice=True)
+        resize_img.run()
     else:
         # Copy the files as is
         for size in resize_img.filenames.keys():

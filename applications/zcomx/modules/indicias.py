@@ -25,7 +25,9 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
-from applications.zcomx.modules.shell_utils import TempDirectoryMixin
+from applications.zcomx.modules.shell_utils import \
+    TempDirectoryMixin, \
+    os_nice
 from applications.zcomx.modules.social_media import SOCIAL_MEDIA_CLASSES
 from applications.zcomx.modules.utils import \
     NotFoundError, \
@@ -87,6 +89,9 @@ class IndiciaPage(object):
             dict representing 'follow' social media icons.
                 {'social media': A()}
         """
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+
         return {}
 
     def licence_text(self, template_field='template_web'):
@@ -368,7 +373,7 @@ class BookIndiciaPagePng(BookIndiciaPage, IndiciaPagePng):
             self.get_indicia_filename(),
             landscape=(orientation == 'landscape')
         )
-        indicia_sh.run(nice=True)
+        indicia_sh.run()
         # IndiciaSh creates file in a temp directory that is removed as soon
         # as the instance is destroyed.
         # Copy png file to this classes temp directory.
@@ -441,7 +446,7 @@ class CreatorIndiciaPagePng(CreatorIndiciaPage, IndiciaPagePng):
             self.get_indicia_filename(),
             landscape=(orientation == 'landscape')
         )
-        indicia_sh.run(nice=True)
+        indicia_sh.run()
         # IndiciaSh creates file in a temp directory that is removed as soon
         # as the instance is destroyed.
         # Copy png file to this classes temp directory.
@@ -492,11 +497,12 @@ class IndiciaSh(TempDirectoryMixin):
             ))
         self.png_filename = None
 
-    def run(self, nice=False):
+    def run(self, nice='max'):
         """Run the shell script and get the output.
 
         Args:
             nice: If True, run resize script with nice.
+                See shell_utils.os_nice for acceptable values.
         """
         script = os.path.abspath(
             os.path.join(
@@ -507,8 +513,6 @@ class IndiciaSh(TempDirectoryMixin):
         real_indicia_filename = os.path.abspath(self.indicia_filename)
 
         args = []
-        if nice:
-            args.append('nice')
         args.append(script)
         if self.landscape:
             args.append('-l')
@@ -529,7 +533,8 @@ class IndiciaSh(TempDirectoryMixin):
             args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd=self.temp_directory()
+            cwd=self.temp_directory(),
+            preexec_fn=os_nice(nice),
         )
         p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
@@ -1508,7 +1513,7 @@ class IndiciaUpdateInProgress(Exception):
 def update_creator_indicia(
         creator,
         background=False,
-        nice=True,
+        nice='max',
         resize=True,
         optimize=True):
     """Update a creator's indicia images.
@@ -1517,7 +1522,7 @@ def update_creator_indicia(
         creator: Row instance representing a creator record.
         background: if True, the update process is backgrounded
         nice: if True, nice backgrounded update process. Only applies if
-            background=True.
+            background=True. See os_nice for acceptable values.
         resize: if True, create various sizes of indicia images
         optimize: if True, optimize images
 
@@ -1552,8 +1557,6 @@ def update_creator_indicia(
     )
 
     args = []
-    if nice:
-        args.append('nice')
     args.append(run_py)
     args.append('--')
     args.append(script)
@@ -1568,5 +1571,6 @@ def update_creator_indicia(
     subprocess.Popen(
         args,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        stderr=subprocess.PIPE,
+        preexec_fn=os_nice(nice),
     )
