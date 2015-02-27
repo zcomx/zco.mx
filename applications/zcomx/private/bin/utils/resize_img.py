@@ -113,7 +113,7 @@ def main():
         shutil.copy(filename, dest_filename)
 
         resize_img = ResizeImg(dest_filename)
-        resize_img.run(nice=True)
+        resize_img.run()
         for size, name in resize_img.filenames.items():
             LOG.info('{size}: {name}'.format(size=size, name=name))
     LOG.info('Done.')

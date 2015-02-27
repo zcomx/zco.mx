@@ -1,5 +1,4 @@
 #!/bin/bash
-export MAGICK_THREAD_LIMIT=4
 
 d1='cbz 1600 2560 625 1600
     web  750 1200 625 1600'
@@ -105,6 +104,10 @@ _rename() {
     mv "$j" "$ori"  ## ensure ext is correct
     return 0
 }
+
+grep -q ^processor /proc/cpuinfo || _me "Could not determind number of CPUs"
+cpu=$(grep -c ^processor /proc/cpuinfo)
+export MAGICK_THREAD_LIMIT=$cpu
 
 for i in convert identify; do command -v "$i" &>/dev/null || _me "$i not installed"; done
 (( $# == 0 )) && { _u; exit 1; }

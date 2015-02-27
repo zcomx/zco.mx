@@ -18,8 +18,9 @@ from applications.zcomx.modules.shell_utils import \
     TemporaryDirectory, \
     TthSumError, \
     UnixFile, \
-    imagemagick_version, \
     get_owner, \
+    imagemagick_version, \
+    os_nice, \
     set_owner, \
     temp_directory, \
     tthsum
@@ -118,6 +119,9 @@ class TestFunctions(LocalTestCase):
                 shutil.rmtree(cls._tmp_dir)
             os.rename(cls._tmp_backup, cls._tmp_dir)
 
+    def test__get_owner(self):
+        pass        # test__set_owner tests this.
+
     def test__imagemagick_version(self):
         by_host = {
             'dtjimk': '6.7.0-8',
@@ -129,8 +133,24 @@ class TestFunctions(LocalTestCase):
             by_host[socket.gethostname()]
         )
 
-    def test__get_owner(self):
-        pass        # test__set_owner tests this.
+    def test__os_nice(self):
+        tests = [
+            # (value, expect increment)
+            (None, 0),
+            (True, 10),
+            (False, 0),
+            ('default', 10),
+            ('max', 19),
+            ('min', -20),
+            ('off', 0),
+            (6, 6),
+            (-6, -6),
+            ('_invalid_', 0),
+        ]
+
+        for t in tests:
+            got = os_nice(t[0])
+            self.assertEqual(got.args[0], t[1])
 
     def test__set_owner(self):
         if not os.path.exists(self._tmp_dir):

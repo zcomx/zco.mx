@@ -56,7 +56,7 @@ def resize():
             dest_filename = os.path.join(tmp_dir, base)
             shutil.copy(form.vars.filename, dest_filename)
             resize_img = ResizeImg(dest_filename)
-            resize_img.run(nice=True)
+            resize_img.run()
             session.flash = 'Done'
             redirect(URL('resize'))
     elif form.errors:

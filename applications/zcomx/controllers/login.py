@@ -798,7 +798,6 @@ def indicia_preview_urls():
             update_creator_indicia(
                 creator_record,
                 background=False,
-                nice=True,
                 resize=False,
                 optimize=False
             )
