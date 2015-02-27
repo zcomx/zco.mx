@@ -883,7 +883,7 @@ class TestFunctions(LocalTestCase):
             # Static files
             ('http://my.domain.com/favicon.ico', app_root + '/zcomx/static/images/favicon.ico'),
             ('http://jimk.zsw.ca/robots.txt', app_root + '/zcomx/static/robots.txt'),
-            ('http://my.domain.com/zcomx/static/images/loading.gif', app_root + '/zcomx/static/images/loading.gif'),
+            ('http://my.domain.com/zcomx/static/images/loading/16x16.gif', app_root + '/zcomx/static/images/loading/16x16.gif'),
             ('http://my.domain.com/zcomx/static/css/custom.css', app_root + '/zcomx/static/css/custom.css'),
             ('http://my.domain.com/zcomx/static/js/web2py.js', app_root + '/zcomx/static/js/web2py.js'),
 

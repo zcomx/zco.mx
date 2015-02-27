@@ -173,17 +173,35 @@ div.centered table {
     box-shadow: none;
 }
 
-.centered_loading_gif.processing {
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    background: url("../images/loading.gif") center no-repeat;
+.loading_gif {
+    display: none;
+    background: url("../images/loading/16x16.gif") center no-repeat;
     background-size: contain;
-    margin-left: 1em;
+    height: 16px;
+    width: 16px;
+    z-index: 100;
+}
+
+.loading_gif_centered {
     position: fixed;
     left: 50%;
     top: 50%;
-    z-index: 100;
+}
+
+.loading_32x32 {
+    background: url("../images/loading/32x32.gif") center no-repeat;
+    height: 32px;
+    width: 32px;
+}
+
+.loading_66x66 {
+    background: url("../images/loading/66x66.gif") center no-repeat;
+    height: 66px;
+    width: 66px;
+}
+
+.loading_gif.processing {
+    display: inline-block;
 }
 
 .placeholder_170x170 {
@@ -2520,11 +2538,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #indicia_section .processing {
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    background: url("../images/loading.gif") center no-repeat;
-    background-size: contain;
     margin-left: 1em;
 }
 

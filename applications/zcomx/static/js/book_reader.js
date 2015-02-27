@@ -79,10 +79,10 @@
                 this.img_loaded_ee = div_img.imagesLoaded();
                 this.img_loaded_ee.always(function(instance) {
                     self.to_page(self.options.start_page_no);
-                    $('.centered_loading_gif').removeClass('processing');
+                    $('.loading_gif').removeClass('processing');
                 });
             } else {
-                $('.centered_loading_gif').removeClass('processing');
+                $('.loading_gif').removeClass('processing');
             }
         },
 
