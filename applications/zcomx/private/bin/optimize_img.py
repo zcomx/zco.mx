@@ -68,6 +68,7 @@ def run_optimize(field, record_id, options):
         record_field=str(field),
         record_id=record_id
     )
+    db.commit()
 
 
 def queue(field, record_id, options):

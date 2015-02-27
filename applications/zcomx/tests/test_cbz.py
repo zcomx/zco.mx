@@ -235,6 +235,7 @@ class TestCBZCreator(ImageTestCase):
                 publication_year=t[1],
                 creator_id=t[2],
             )
+            db.commit()
             cbz_creator = CBZCreator(self._book)
             self.assertEqual(cbz_creator.cbz_filename(), t[3])
 
@@ -256,6 +257,7 @@ class TestCBZCreator(ImageTestCase):
                 publication_year=t[2],
                 creator_id=t[3],
             )
+            db.commit()
             cbz_creator = CBZCreator(self._book)
             self.assertEqual(cbz_creator.cbz_filename(), t[4])
 
@@ -298,6 +300,7 @@ class TestCBZCreator(ImageTestCase):
                 publication_year=t[3],
                 creator_id=t[4],
             )
+            db.commit()
             cbz_creator = CBZCreator(self._book)
             self.assertEqual(cbz_creator.cbz_filename(), t[5])
 

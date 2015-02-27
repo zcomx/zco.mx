@@ -883,6 +883,7 @@ class PublicationMetadata(object):
 
         if not existing:
             db.publication_metadata.insert(book_id=self.book.id)
+            db.commit()
 
         publication_metadata = db(query).select(
             orderby=[db.publication_metadata.id],
@@ -900,6 +901,7 @@ class PublicationMetadata(object):
         data = dict(default)
         data.update(self.metadata)
         publication_metadata.update_record(**data)
+        db.commit()
 
         # Update publication_serial records
         query = (db.publication_serial.book_id == self.book.id)
@@ -918,6 +920,7 @@ class PublicationMetadata(object):
         if len(self.serials) > len(existing):
             for serial in self.serials[len(existing):]:
                 db.publication_serial.insert(book_id=self.book.id)
+            db.commit()
 
         query = (db.publication_serial.book_id == self.book.id)
         existing = db(query).select(
@@ -940,7 +943,6 @@ class PublicationMetadata(object):
             data.update(record)
             data['sequence'] = c
             existing[c].update_record(**data)
-
         db.commit()
 
         # Update derivative record.
@@ -956,6 +958,7 @@ class PublicationMetadata(object):
 
             if not existing:
                 db.derivative.insert(book_id=self.book.id)
+                db.commit()
 
             derivative = db(query).select(orderby=[db.derivative.id]).first()
 

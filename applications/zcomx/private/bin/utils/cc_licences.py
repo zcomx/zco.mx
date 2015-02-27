@@ -182,6 +182,7 @@ def main():
             LOG.debug('Adding: %s', template.number)
             if not options.dry_run:
                 db.cc_licence.insert(number=template.number)
+                db.commit()
                 cc_licence = db(db.cc_licence.number == template.number).select().first()
         if not cc_licence:
             raise NotFoundError('cc_licence not found, number: {number}'.format(

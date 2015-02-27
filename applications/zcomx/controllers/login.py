@@ -116,6 +116,7 @@ def book_crud():
             data[request.vars.name] = book_name
 
         ret = db.book.validate_and_insert(**data)
+        db.commit()
 
         if ret.errors:
             if request.vars.name in ret.errors:
@@ -413,6 +414,7 @@ def book_pages_handler():
         up_image.delete_all()
         rm_optimize_img_logs(db.book_page.image, book_page.id)
         book_page.delete_record()
+        db.commit()
         return dumps({"files": [{filename: True}]})
     else:
         # GET
@@ -468,7 +470,7 @@ def book_post_image_upload():
         page_record = entity_to_row(db.book_page, page_id)
         if page_record and page_record.book_id == book_record.id:
             page_record.update_record(page_no=(count + 1))
-    db.commit()
+            db.commit()
     return dumps({'success': True})
 
 
@@ -968,9 +970,9 @@ def link_crud():
             url=url,
             name=request.vars.name,
         )
+        db.commit()
         if url != request.vars.url:
             new_value = url
-        db.commit()
         if ret.id:
             data = dict(
                 link_id=ret.id,

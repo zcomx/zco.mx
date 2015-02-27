@@ -67,12 +67,15 @@ def delete_records(book):
         if t == 'book_to_link':
             continue             # Handle links below
         db(db[t].book_id == book.id).delete()
+        db.commit()
 
     # Delete all links associated with the book.
     query = db.book_to_link.book_id == book.id
     for row in db(query).select(db.book_to_link.link_id):
         db(db.link.id == row['link_id']).delete()
+        db.commit()
     db(db.book_to_link.book_id == book.id).delete()
+    db.commit()
 
     # Delete the book
     db(db.book.id == book.id).delete()

@@ -179,6 +179,7 @@ class TestBookIndiciaPage(ImageTestCase):
             facebook='http://www.facebook.com/facepalm',
         )
         self._creator.update_record(**socials)
+        db.commit()
         indicia = BookIndiciaPage(self._book)
         icons = indicia.follow_icons()
         self.assertEqual(sorted(icons.keys()), sorted(socials.keys()))

@@ -164,6 +164,7 @@ def main():
             torrent=None,
             rebuild_torrent=False,
         )
+        db.commit()
 
     count = num_books_with_cbz()
     LOG.debug('Number of books with cbz file: %s', count)

@@ -367,6 +367,7 @@ class TestRouter(LocalTestCase):
         db.commit()
         self.assertEqual(router.get_reader(), 'scroller')
         self._book.update_record(reader='slider')
+        db.commit()
 
     def test__page_not_found(self):
 
