@@ -2,58 +2,46 @@
 # -*- coding: utf-8 -*-
 
 """
-reset_password.py
+db_io.py
 
-Script reset the password of a auth_user record.
+Script to run massive db io for testing.
 """
-import getpass
+# W0404: *Reimport %r (imported line %s)*
+# pylint: disable=W0404
+import time
 import logging
-import os
-from gluon import *
-from gluon.shell import env
-from gluon.validators import CRYPT
 from optparse import OptionParser
 
 VERSION = 'Version 0.1'
-APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
-db = APP_ENV['db']
-
 LOG = logging.getLogger('cli')
 
-# line-too-long (C0301): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
 
 
 def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    reset_password.py [OPTIONS] email [password]
-
-    If the password is not provided, the user is prompted for it.
+    db_io.py [OPTIONS] iterations
 
 OPTIONS
     -h, --help
         Print a brief help.
 
     --man
-        Print extended help.
+        Print man page-like help.
 
     -v, --verbose
         Print information messages to stdout.
 
     --vv,
         More verbose. Print debug messages to stdout.
-
     """
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] email [password]'
+    usage = '%prog [options] iterations'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -85,29 +73,22 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if not args or len(args) > 2:
-        print parser.print_help()
+    if len(args) != 1:
+        parser.print_help()
         exit(1)
 
-    email = args[0]
-    user = db(db.auth_user.email == email).select().first()
-    if not user:
-        raise LookupError('User not found, email: {e}'.format(e=email))
 
-    if len(args) == 1:
-        passwd = getpass.getpass()
-    else:
-        passwd = args[1]
-
-    alg = 'pbkdf2(1000,20,sha512)'
-    passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
-
-    user.update_record(**{
-        'password': passkey,
-        'registration_key': '',
-        'reset_password_key': ''
-    })
-    db.commit()
+    db.optimize_img_log.truncate()
+    for x in range(0, int(args[0])):
+        record_id = db.optimize_img_log.insert(
+            record_field='_test_',
+            record_id=1,
+        )
+        # db.commit()
+        query = (db.optimize_img_log.id == record_id)
+        db(query).delete()
+        # db.commit()
+        time.sleep(int(args[0]))
 
 
 if __name__ == '__main__':

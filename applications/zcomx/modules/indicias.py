@@ -24,6 +24,7 @@ from applications.zcomx.modules.creators import \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
     UploadImage, \
+    rm_optimize_img_logs, \
     store
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
@@ -882,6 +883,7 @@ class PublicationMetadata(object):
 
         if not existing:
             db.publication_metadata.insert(book_id=self.book.id)
+            db.commit()
 
         publication_metadata = db(query).select(
             orderby=[db.publication_metadata.id],
@@ -899,6 +901,7 @@ class PublicationMetadata(object):
         data = dict(default)
         data.update(self.metadata)
         publication_metadata.update_record(**data)
+        db.commit()
 
         # Update publication_serial records
         query = (db.publication_serial.book_id == self.book.id)
@@ -917,6 +920,7 @@ class PublicationMetadata(object):
         if len(self.serials) > len(existing):
             for serial in self.serials[len(existing):]:
                 db.publication_serial.insert(book_id=self.book.id)
+            db.commit()
 
         query = (db.publication_serial.book_id == self.book.id)
         existing = db(query).select(
@@ -939,7 +943,6 @@ class PublicationMetadata(object):
             data.update(record)
             data['sequence'] = c
             existing[c].update_record(**data)
-
         db.commit()
 
         # Update derivative record.
@@ -955,6 +958,7 @@ class PublicationMetadata(object):
 
             if not existing:
                 db.derivative.insert(book_id=self.book.id)
+                db.commit()
 
             derivative = db(query).select(orderby=[db.derivative.id]).first()
 
@@ -1423,8 +1427,11 @@ def clear_creator_indicia(creator, field=None):
             up_image = UploadImage(db.creator[field], creator[field])
             up_image.delete_all()
             data[field] = None
+
     creator.update_record(**data)
     db.commit()
+    for field in fields:
+        rm_optimize_img_logs(db.creator[field], creator.id)
 
 
 def create_creator_indicia(creator, resize=False, optimize=False):

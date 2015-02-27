@@ -41,6 +41,10 @@ def run_optimize(field, record_id, options):
     if not record:
         raise NotFoundError('Not found, field: {f}, id: {i}'.format(
             f=field, i=record_id))
+    if not record[field]:
+        raise NotFoundError('No image to optimize, field: {f}, id: {i}'.format(
+            f=field, i=record_id))
+
     upload_image = UploadImage(field, record[field])
     up_folder = field.uploadfolder.rstrip('/').rstrip('original')
 
@@ -64,6 +68,7 @@ def run_optimize(field, record_id, options):
         record_field=str(field),
         record_id=record_id
     )
+    db.commit()
 
 
 def queue(field, record_id, options):

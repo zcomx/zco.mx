@@ -551,6 +551,7 @@ class TestFunctions(ImageTestCase):
         creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
 
         book.update_record(creator_id=creator.id)
+        db.commit()
         self.assertEqual(
             cc_licence_data(book),
             {
@@ -566,6 +567,7 @@ class TestFunctions(ImageTestCase):
         )
 
         book.update_record(cc_licence_place='Canada')
+        db.commit()
         self.assertEqual(
             cc_licence_data(book),
             {

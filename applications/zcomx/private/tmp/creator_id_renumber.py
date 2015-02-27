@@ -124,6 +124,7 @@ def main():
     creators = []
     for creator in db(db.creator).select():
         db.creator_bak.insert(**creator.as_dict())
+        db.commit()
         if creator.path_name in IDS:
             new_id = IDS[creator.path_name]
         else:

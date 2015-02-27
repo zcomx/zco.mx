@@ -288,7 +288,7 @@ def optimize_creator_images(
     jobs = []
 
     for field in db.creator.fields:
-        if db.creator[field].type == 'upload':
+        if db.creator[field].type == 'upload' and creator[field]:
             jobs.append(
                 queue_optimize(
                     str(db.creator[field]),
