@@ -21,6 +21,7 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
     UploadImage, \
+    rm_optimize_img_logs, \
     store
 from applications.zcomx.modules.indicias import \
     CreatorIndiciaPage, \
@@ -410,11 +411,13 @@ def book_pages_handler():
         )
         up_image = UploadImage(db.book_page.image, book_page.image)
         up_image.delete_all()
+        rm_optimize_img_logs(db.book_page.image, book_page.id)
         book_page.delete_record()
         return dumps({"files": [{filename: True}]})
     else:
         # GET
         return book_pages_as_json(db, book_record.id)
+
 
 @auth.requires_login()
 def book_post_image_upload():
@@ -677,7 +680,8 @@ def creator_img_handler():
                 files=[up_file.filename]
             )
 
-        if creator_record[img_field] != stored_filename:
+        img_changed = creator_record[img_field] != stored_filename
+        if img_changed:
             if creator_record[img_field] is not None:
                 filename, _ = db.creator[img_field].retrieve(
                     creator_record[img_field],
@@ -690,6 +694,7 @@ def creator_img_handler():
                 data = {img_field: None}
                 creator_record.update_record(**data)
                 db.commit()
+                rm_optimize_img_logs(db.creator[img_field], creator_record.id)
             if img_field == 'indicia_image':
                 # Clear the indicia png fields. This will trigger a rebuild
                 # in indicia_preview_urls
@@ -700,11 +705,12 @@ def creator_img_handler():
                 # resize/optimize by cron later.
                 creator_record.update_record(indicia_modified=request.now)
                 db.commit()
-            optimize_creator_images(creator_record)
 
         data = {img_field: stored_filename}
         creator_record.update_record(**data)
         db.commit()
+        if img_changed:
+            optimize_creator_images(creator_record)
         return image_as_json(db, creator_record.id, field=img_field)
 
     elif request.env.request_method == 'DELETE':
@@ -729,6 +735,7 @@ def creator_img_handler():
             data['indicia_modified'] = request.now
         db(db.creator.id == creator_record.id).update(**data)
         db.commit()
+        rm_optimize_img_logs(db.creator[img_field], creator_record.id)
         return dumps({"files": [{filename: 'true'}]})
 
     # GET

@@ -24,6 +24,7 @@ from applications.zcomx.modules.creators import \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
     UploadImage, \
+    rm_optimize_img_logs, \
     store
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
@@ -1423,8 +1424,11 @@ def clear_creator_indicia(creator, field=None):
             up_image = UploadImage(db.creator[field], creator[field])
             up_image.delete_all()
             data[field] = None
+
     creator.update_record(**data)
     db.commit()
+    for field in fields:
+        rm_optimize_img_logs(db.creator[field], creator.id)
 
 
 def create_creator_indicia(creator, resize=False, optimize=False):

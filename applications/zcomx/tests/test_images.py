@@ -34,6 +34,7 @@ from applications.zcomx.modules.images import \
     is_optimized, \
     optimize, \
     queue_optimize, \
+    rm_optimize_img_logs, \
     set_thumb_dimensions, \
     store
 from applications.zcomx.modules.job_queue import PRIORITIES
@@ -971,6 +972,19 @@ class TestFunctions(ImageTestCase):
             priority='_fake_priority_',
             job_options=job_options
         )
+
+    def test__rm_optimize_img_logs(self):
+        self.add(db.optimize_img_log, dict(
+            record_field='_test_',
+            record_id=1,
+        ))
+
+        self.assertTrue(is_optimized('_test_', 1))
+        rm_optimize_img_logs('_test_', 1)
+        self.assertFalse(is_optimized('_test_', 1))
+
+        # Should run fine even if not records exist
+        rm_optimize_img_logs('_test_', 1)
 
     def test__set_thumb_dimensions(self):
         book_page = self.add(db.book_page, dict(

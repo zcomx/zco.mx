@@ -475,6 +475,20 @@ def queue_optimize(
     return queuer.queue()
 
 
+def rm_optimize_img_logs(field, record_id):
+    """Delete any optimize_img_log recordsrelated to the record field.
+
+    Args:
+        field: gluon.dal.Field instance, db.creator.image
+        record_id: integer, id of record
+    """
+    db = current.app.db
+    query = (db.optimize_img_log.record_field == str(field)) & \
+            (db.optimize_img_log.record_id == record_id)
+    db(query).delete()
+    db.commit()
+
+
 def set_thumb_dimensions(db, book_page_id, dimensions):
     """Set the db.book_page.thumb_* dimension values for a page.
 
