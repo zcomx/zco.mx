@@ -1,68 +1,12 @@
 ``
 VERSION 2 - Before Going Live
-[x] Crowdfunding Idea
-    [x] Hide 'contributions' section from front page for now
-    [x] Hide 'cartoonists' -> 'remaining' column
-    [x] Hide 'ongoing' -> 'remaining' column
-    [x] Is there a 'remaining' column for 'release'?
-    [x] Fix up FAQs
-        [x] What do the sections on the front page mean?
-            Remove 'contributions' paragraph:
-                **contributions** - Readers can support cartoonists through
-                contributions. zco.mx hopes to raise a set amount to support specific
-                books, and these titles are listed by the minimum amount of money
-                remaining for each goal.
-        [x] How do the contributions work?
-            Replace:
-                The idea behind contributions is to promote a fun way for readers to
-                connect with and support self-publishing cartoonists. zco.mx is
-                not-for-profit, and all contributions go ''directly'' to cartoonists. If
-                a reader really enjoys the comic, they can consider "voting with their
-                money."
-
-                Every page that a cartoonist uploads increases the total amount that
-                zco.mx hopes to raise for that book by $10, and every dollar that a
-                reader contributes lowers the remaining amount of that goal. When the
-                goal is met, the book is removed from the contribution list — hooray!
-                The book will still be available to read and download, and many books
-                will be ongoing and may reappear when a new page is added.
-            With:
-                zco.mx is not-for-profit and all contributions go directly to
-                cartoonists.
-
-[ ] Bugs
-    [x] Last Comic Page (Indicia Page)
-        To upper metadata
-        eg https://dev.zco.mx/Luke_Howard/Best_Seller/017
-
-    [x] Book Page
-        https://dev.zco.mx/login/books
-        Best Seller (2015)      ## remove year
-
-    [x] Cartoonist Page
-        https://dev.zco.mx/Luke_Howard/
-        Change/hide 'No records found'
-
-        [x] Add named div
-        I think it could use padding-top 0.6em and color: #999 on the 'No books released'
-
-    [x] Metadata Input: Republication - serial (i)
-        Including wording for anthologies
-        ...[or stories from anthologies which were] previously published (online or paper)
-        $ v applications/zcomx/static/js/metadata_crud.js
-            Change:
-            '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is  a collection of serialized stories previously published (online or paper)</p>',
-            To:
-            '<p><b>Whole</b> - this work was previously published in whole (online or paper)<p><b>Serial</b> - this work is  a collection of serialized stories or stories from anthologies which were previously published (online or paper)</p>',
-
-    [ ] https://dev.zco.mx/Luke_Howard/Junior/001
-        On first load, no image is displayed.  Maybe it's timing out
-        because there are so many images needed to load?
-
-        Ideally we display the image they want as soon as we can and
-        then load remaining images in the background.
-
-        [ ] Blurry js Wheel
+[ ] Books -> Edit
+    Truncate long urls
+    Change:
+    http://andsocomics.storenvy.com/products/9989035-best-seller
+    to:
+    http://andsocomics.storenvy.com/produ...
+    but have mouse-over display full url
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
@@ -77,15 +21,19 @@ VERSION 2 - Before Going Live
                       http://101.zco.mx/Name of Comic 001 (2013).torrent
 
 ---
-[ ] Books -> Edit
-    Truncate long urls
-    Change:
-    http://andsocomics.storenvy.com/products/9989035-best-seller
-    to:
-    http://andsocomics.storenvy.com/produ...
-    but have mouse-over display full url
+[S] Indicia Page
+    see indicia-ss.png
+    * The indicia page is the last page of a book.
+    * Below are two preview using the default indicia image.
+    * Click the Upload button to upload a custom indicia image.
+    * Click the Remove button to remove your indicia image.
+    * The minimum size for an indicia image is 1600px x 1600px
+    * A white or light colour background works best.
 
-[ ] Remove 'dev.' from domain name
+[ ] https://dev.zco.mx/Charles_Forsman
+    "| Known" is wrapping
+
+[ ] Ensure 'zco.mx' works for all urls
     Search for all instances of 'dev.zco.mx'
 
 [ ] Add back the 'Release Button'
@@ -133,6 +81,7 @@ VERSION 2 - Before Going Live
 
 [ ] nice levels
 
+[ ] email karen telling her the site is live
 
 VERSION 3
 [ ] resize.sh - convert tiff's to png's
