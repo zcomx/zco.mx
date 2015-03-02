@@ -1824,7 +1824,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     #indicia_image {
         max-width: 65em;
-        padding: 1em 1em 1em 0;
+        padding-bottom: 0;
+        padding-top: 1em;
     }
 
     #indicia_image .template-download,
@@ -1853,7 +1854,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     #indicia_image .has_photo_section .files > div {
         display: inline-block;
-        padding: 1em;
+        padding: 0;
         vertical-align: top;
     }
 
@@ -2496,31 +2497,25 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #indicia_section .previews_section #portrait {
-    border: 0.2em solid #DDDDDD;
-    height: auto;
     vertical-align: top;
-    width: 750px;
     padding: 1em;
     margin: 1em;
 }
 
 #indicia_section .previews_section #portrait img {
-    width: 100%;
-    height: auto;
+    border: 0.2em solid #dddddd;
+    height: 400px;
 }
 
 #indicia_section .previews_section #landscape {
-    border: 0.2em solid #DDDDDD;
-    height: 750px;
     vertical-align: top;
-    width: auto;
     padding: 1em;
     margin: 1em;
 }
 
 #indicia_section .previews_section #landscape img {
-    height: 100%;
-    width: auto;
+    border: 0.2em solid #dddddd;
+    width: 400px;
 }
 
 #indicia_section .previews_section #portrait .portrait_placeholder {

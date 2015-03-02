@@ -1,5 +1,12 @@
 ``
 VERSION 2 - Before Going Live
+[ ] Release Error
+[ ] "creator.table appears corrupted" Error
+
+[ ] Add back the 'Release Button'
+    * Ensure images have at least a width of 1600px before releasing
+    * Ensure CC licence is used
+
 [ ] Books -> Edit
     Truncate long urls
     Change:
@@ -7,6 +14,18 @@ VERSION 2 - Before Going Live
     to:
     http://andsocomics.storenvy.com/produ...
     but have mouse-over display full url
+
+[/] Indicia Page
+    see indicia-ss.png
+    * The indicia image is found on the indicia page which is the last page of a book.
+    * Below the default indicia image is used to create two example indicia pages.
+    * Click the Upload button to upload a custom indicia image.
+    * Click the Remove button to remove your custom indicia image.
+    * The minimum upload size for an indicia image is 1600px x 1600px.
+    * A white or light colour background works best.
+
+    [ ] Aspect ratio is off
+        /tmp/indicia.png PNG 1366x2326
 
 [ ] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
@@ -20,25 +39,11 @@ VERSION 2 - Before Going Live
     [ ] redirects for http://101.zco.mx/Name of Comic 01 (of 04) (2014).torrent
                       http://101.zco.mx/Name of Comic 001 (2013).torrent
 
----
-[S] Indicia Page
-    see indicia-ss.png
-    * The indicia page is the last page of a book.
-    * Below are two preview using the default indicia image.
-    * Click the Upload button to upload a custom indicia image.
-    * Click the Remove button to remove your indicia image.
-    * The minimum size for an indicia image is 1600px x 1600px
-    * A white or light colour background works best.
-
 [ ] https://dev.zco.mx/Charles_Forsman
     "| Known" is wrapping
 
 [ ] Ensure 'zco.mx' works for all urls
     Search for all instances of 'dev.zco.mx'
-
-[ ] Add back the 'Release Button'
-    * Ensure images have at least a width of 1600px before releasing
-    * Ensure CC licence is used
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
