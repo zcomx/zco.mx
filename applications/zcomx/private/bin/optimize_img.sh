@@ -22,6 +22,7 @@ _check_files() {
 
 _optimize() {
     [[ $ext == JPEG ]] && ext=jpg
+    i=${i,,}
     [[ ${ext,,} == ${i##*.} ]] || _me "File extension for $i should be $ext"
 
     tmp=tmp.$RANDOM
