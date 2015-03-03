@@ -1140,7 +1140,10 @@ class TestFunctions(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUp(cls):
-        cls._creator = cls.add(db.creator, dict(path_name='test__functions'))
+        cls._creator = cls.add(db.creator, dict(
+            path_name='test__functions',
+            torrent='applications/zcomx/private/var/tor/zco.mx/F/First Last (999.zco.mx).torrent',
+        ))
         name = '_My Functions Book_'
         book_type_id = db(db.book_type).select().first().id
         cls._book = cls.add(db.book, dict(
@@ -1171,12 +1174,11 @@ class TestFunctions(LocalTestCase):
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         data['string'] = anchor.string
-        data['href'] = anchor['href']
-        data['class'] = anchor['class']
-        try:
-            data['type'] = anchor['type']
-        except KeyError:
-            data['type'] = None
+        for attr in ['href', 'class', 'type']:
+            try:
+                data[attr] = anchor[attr]
+            except KeyError:
+                data[attr] = None
         return data
 
     def test_constants(self):
@@ -1265,11 +1267,15 @@ class TestFunctions(LocalTestCase):
     def test__torrent_link(self):
         self.assertEqual(torrent_link({}), '')
 
+        r = self._row()
+        link = torrent_link(self._row())
         data = self._parse_link(torrent_link(self._row()))
-        self.assertEqual(data['string'], 'all-test__functions.torrent')
-        self.assertTrue(
-            '/zcomx/FIXME/FIXME/all-test__functions.torrent' in data['href'])
-        self.assertTrue('fixme' in data['class'])
+        self.assertEqual(data['string'], 'test__functions.torrent')
+        self.assertEqual(
+            data['href'],
+            '/torrents/download/creator/{i}'.format(i=self._creator.id),
+        )
+        self.assertEqual(data['class'], None)
         self.assertEqual(data['type'], None)
 
 

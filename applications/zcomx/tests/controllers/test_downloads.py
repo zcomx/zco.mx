@@ -6,9 +6,8 @@
 Test suite for zcomx/controllers/downloads.py
 
 """
-import datetime
 import unittest
-import urllib
+import urllib2
 from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -25,13 +24,9 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'index': '<div id="front_page">',
-        'modal': [
-            '<div id="contribute_modal_page">',
-            'Your donations help cover the'
-        ],
         'modal_book': [
-            '<div id="contribute_modal_page">',
-            'Contributions go directly to the cartoonist',
+            '<div id="download_modal_page">',
+            'magnet:?xt=urn:tree:tiger',
         ],
     }
     url = '/zcomx/downloads'
@@ -43,12 +38,14 @@ class TestFunctions(LocalTestCase):
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
         # Get a book from a creator with a paypal_email.
-        cls._book = db(db.creator.paypal_email != '').select(
+        email = web.username
+        cls._creator = db(db.creator.email == email).select().first()
+        if not cls._creator:
+            raise SyntaxError('Unable to get creator.')
+
+        cls._book = db(db.book.creator_id == cls._creator.id).select(
             db.book.ALL,
-            left=[
-                db.creator.on(db.book.creator_id == db.creator.id),
-                db.book_page.on(db.book_page.book_id == db.book.id)
-            ],
+            orderby=db.book.id,
         ).first()
 
         if not cls._book:
@@ -61,9 +58,6 @@ class TestFunctions(LocalTestCase):
         else:
             cls._invalid_book_id = 1
 
-        cls._creator = db(db.creator.paypal_email != '').select().first()
-        if not cls._creator:
-            raise SyntaxError('Unable to get creator.')
 
     def test__index(self):
         self.assertTrue(
@@ -74,55 +68,19 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__modal(self):
-        self.assertTrue(
-            web.test(
-                '{url}/modal'.format(url=self.url),
-                self.titles['modal']
-            )
-        )
+        # No book id
+        with self.assertRaises(urllib2.HTTPError) as cm:
+            web.test('{url}/modal'.format(url=self.url), None)
+        self.assertEqual(cm.exception.code, 404)
+        self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
-        return
         # Test with book_id
+        self.assertTrue(self._book.cbz)
         expect = list(self.titles['modal_book'])
         expect.append(self._book.name)
         self.assertTrue(
             web.test(
-                '{url}/modal?book_id={bid}'.format(
-                    url=self.url,
-                    bid=self._book.id
-                ),
-                expect
-            )
-        )
-        # Test with creator_id
-        expect = list(self.titles['modal_book'])
-        expect.append(formatted_name(self._creator))
-        self.assertTrue(
-            web.test(
-                '{url}/modal?creator_id={cid}'.format(
-                    url=self.url,
-                    cid=self._creator.id
-                ),
-                expect
-            )
-        )
-        # Book is not found.
-        self.assertFalse(
-            web.test(
-                '{url}/modal?creator_id={cid}'.format(
-                    url=self.url,
-                    cid=self._creator.id
-                ),
-                self._book.name
-            )
-        )
-
-        # Test with book_id and creator_id
-        expect = list(self.titles['modal_book'])
-        expect.append(self._book.name)
-        self.assertTrue(
-            web.test(
-                '{url}/modal?book_id={bid}'.format(
+                '{url}/modal/{bid}'.format(
                     url=self.url,
                     bid=self._book.id
                 ),

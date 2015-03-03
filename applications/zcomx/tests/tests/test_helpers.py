@@ -24,8 +24,9 @@ class SubZcoTestCase(ZcoTestCase):
 class TestZcoTestCase(LocalTestCase):
 
     def test____init__(self):
-        print 'FIXME self.want: {var}'.format(var=self.want)
-        print 'FIXME self.test_data: {var}'.format(var=self.test_data)
+        # print 'FIXME self.want: {var}'.format(var=self.want)
+        # print 'FIXME self.test_data: {var}'.format(var=self.test_data)
+        pass
 
 
 def setUpModule():
