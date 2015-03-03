@@ -900,18 +900,19 @@ class TestFunctions(ImageTestCase):
         self.assertFalse(is_image(this_filename))
 
     def test__is_optimized(self):
-        creator = self.add(db.creator, dict(
-            path_name='Test Is Optimized'
+        image_name = 'creator.image.aaa.000.jpg'
+        self.add(db.creator, dict(
+            path_name='Test Is Optimized',
+            image=image_name,
         ))
 
-        self.assertFalse(is_optimized(db.creator.image, creator.id))
+        self.assertFalse(is_optimized(image_name))
 
         self.add(db.optimize_img_log, dict(
-            record_field='creator.image',
-            record_id=creator.id,
+            image=image_name
         ))
 
-        self.assertTrue(is_optimized(db.creator.image, creator.id))
+        self.assertTrue(is_optimized(image_name))
 
     def test__optimize(self):
         for img in ['unoptimized.png', 'unoptimized.jpg']:
@@ -923,27 +924,24 @@ class TestFunctions(ImageTestCase):
 
     def test__queue_optimize(self):
         creator = self.add(db.creator, dict(
-            path_name='Test Queue Optimized'
+            image='creator.image.aaa.000.jpg',
+            path_name='Test Queue Optimized',
         ))
 
         job_options = {'status': 'd'}   # So tests don't actually run
 
         tracker = TableTracker(db.job)
         job = queue_optimize(
-            db.creator.image,
-            creator.id,
+            creator.image,
             job_options=job_options
         )
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        fmt = (
-            'applications/zcomx/private/bin/optimize_img.py'
-            ' creator.image {i}'
-        )
+        fmt = 'applications/zcomx/private/bin/optimize_img.py {i}'
         self.assertEqual(
             job.command,
-            fmt.format(i=creator.id)
+            fmt.format(i=creator.image)
         )
         self.assertEqual(
             job.priority,
@@ -952,8 +950,7 @@ class TestFunctions(ImageTestCase):
 
         # Test priority
         job = queue_optimize(
-            db.creator.image,
-            creator.id,
+            creator.image,
             priority='optimize_img_for_release',
             job_options=job_options
         )
@@ -967,24 +964,23 @@ class TestFunctions(ImageTestCase):
         self.assertRaises(
             NotFoundError,
             queue_optimize,
-            db.creator.image,
-            creator.id,
+            creator.image,
             priority='_fake_priority_',
             job_options=job_options
         )
 
     def test__rm_optimize_img_logs(self):
+        image_name = 'creator.image.aaa.000.jpg'
         self.add(db.optimize_img_log, dict(
-            record_field='_test_',
-            record_id=1,
+            image=image_name
         ))
 
-        self.assertTrue(is_optimized('_test_', 1))
-        rm_optimize_img_logs('_test_', 1)
-        self.assertFalse(is_optimized('_test_', 1))
+        self.assertTrue(is_optimized(image_name))
+        rm_optimize_img_logs(image_name)
+        self.assertFalse(is_optimized(image_name))
 
         # Should run fine even if not records exist
-        rm_optimize_img_logs('_test_', 1)
+        rm_optimize_img_logs(image_name)
 
     def test__set_thumb_dimensions(self):
         book_page = self.add(db.book_page, dict(

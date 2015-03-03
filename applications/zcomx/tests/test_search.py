@@ -1016,7 +1016,6 @@ class TestCartoonistTile(LocalTestCase):
         self.assertEqual(anchor.string, 'download')
 
         div_2 = div.div
-        print 'FIXME div_2: {var}'.format(var=div_2)
         self.assertEqual(div_2['class'], 'orderby_field_value')
         self.assertEqual(
             div_2.string,

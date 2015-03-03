@@ -1079,6 +1079,9 @@ class TestFunctions(ImageTestCase):
         )
 
     def test__optimize_book_images(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
         book = self.add(db.book, dict(
             name='Test Optimze Book Images'
         ))
@@ -1706,37 +1709,37 @@ class TestFunctions(ImageTestCase):
         page_1 = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
+            image='book_page.image.aaa.111.jpg',
         ))
 
         page_2 = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=2,
+            image='book_page.image.bbb.222.png',
         ))
 
         self.assertEqual(
             unoptimized_images(book),
             [
-                ('book_page.image', page_1.id),
-                ('book_page.image', page_2.id),
+                'book_page.image.aaa.111.jpg',
+                'book_page.image.bbb.222.png',
             ]
         )
 
         # Has some logs, some unoptimized
         self.add(db.optimize_img_log, dict(
-            record_field='book_page.image',
-            record_id=page_1.id,
+            image='book_page.image.aaa.111.jpg',
         ))
         self.assertEqual(
             unoptimized_images(book),
             [
-                ('book_page.image', page_2.id),
+                'book_page.image.bbb.222.png',
             ]
         )
 
         # Has all logs, none unoptimized
         self.add(db.optimize_img_log, dict(
-            record_field='book_page.image',
-            record_id=page_2.id,
+            image='book_page.image.bbb.222.png',
         ))
 
         self.assertEqual(unoptimized_images(book), [])

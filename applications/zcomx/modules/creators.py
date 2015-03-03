@@ -291,8 +291,7 @@ def optimize_creator_images(
         if db.creator[field].type == 'upload' and creator[field]:
             jobs.append(
                 queue_optimize(
-                    str(db.creator[field]),
-                    creator.id,
+                    creator[field],
                     priority=priority,
                     job_options=job_options,
                     cli_options=cli_options

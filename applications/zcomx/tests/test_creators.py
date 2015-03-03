@@ -49,6 +49,7 @@ class TestFunctions(LocalTestCase):
     _image_dir = '/tmp/image_for_creators'
     _image_original = os.path.join(_image_dir, 'original')
     _test_data_dir = None
+    _uploadfolders = {}
 
     @classmethod
     def _prep_image(cls, img, working_directory=None, to_name=None):
@@ -81,7 +82,7 @@ class TestFunctions(LocalTestCase):
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     @classmethod
-    def setUp(cls):
+    def setUpClass(cls):
         cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
 
         if not os.path.exists(cls._image_original):
@@ -92,10 +93,11 @@ class TestFunctions(LocalTestCase):
             'image', 'indicia_image', 'indicia_portrait', 'indicia_landscape']
 
         for img_field in img_fields:
+            cls._uploadfolders[img_field] = db.creator[img_field].uploadfolder
             db.creator[img_field].uploadfolder = cls._image_original
 
     @classmethod
-    def tearDown(cls):
+    def tearDownClass(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
 
@@ -340,9 +342,24 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(formatted_name(creator.id), 'Test Name')
 
     def test__image_as_json(self):
-        query = (db.creator.image != None) & \
-                (db.creator.indicia_image != None)
-        creator = db(query).select(db.creator.ALL).first()
+        db.creator.image.uploadfolder = self._uploadfolders['image']
+        db.creator.indicia_image.uploadfolder = self._uploadfolders['indicia_image']
+
+        email = web.username
+        user = db(db.auth_user.email == email).select().first()
+        if not user:
+            raise SyntaxError('No user with email: {e}'.format(e=email))
+
+        query = (db.creator.auth_user_id == user.id)
+        creator = db(query).select().first()
+        if not creator:
+            raise SyntaxError('No creator with email: {e}'.format(e=email))
+
+        if not creator.image:
+            raise SyntaxError('Creator has no image, email: {e}'.format(e=email))
+        if not creator.indicia_image:
+            raise SyntaxError('Creator has no indicia image, email: {e}'.format(e=email))
+
         self.assertTrue(creator)
 
         def do_test(image, expect):
@@ -368,6 +385,7 @@ class TestFunctions(LocalTestCase):
                 creator.image,
                 nameonly=True,
             )
+
             expect.filename = filename
             expect.size = os.stat(fullname).st_size
             expect.down_url = '/images/download/{img}'.format(
@@ -395,6 +413,9 @@ class TestFunctions(LocalTestCase):
             expect.delete_url = '/login/creator_img_handler/indicia_image'
 
             do_test(loads(image_json), expect)
+
+        db.creator.image.uploadfolder = self._image_original
+        db.creator.indicia_image.uploadfolder = self._image_original
 
     def test__on_change_name(self):
         auth_user = self.add(db.auth_user, dict(
@@ -440,6 +461,9 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(creator.urlify_name, 'sleze-drunez')
 
     def test__optimize_creator_images(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
         img_fields = [
             'image', 'indicia_image', 'indicia_portrait', 'indicia_landscape']
 
@@ -550,31 +574,27 @@ class TestFunctions(LocalTestCase):
 
         # As integer, creator.id
         link = torrent_link(creator.id)
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-        # Eg  <a data-w2p_disable_with="default"
-        #    href="/zcomx/FIXME/FIXME/all-first_last.torrent">all-first_last.torrent</a>
+        # Eg <a href="/torrents/download/creator/123">first_last.torrent</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'all-first_last.torrent')
+        self.assertEqual(anchor.string, 'first_last.torrent')
         self.assertEqual(
             anchor['href'],
-            '/zcomx/FIXME/FIXME/all-first_last.torrent'
+            '/torrents/download/creator/{id}'.format(id=creator.id)
         )
 
         # As Row, creator
         link = torrent_link(creator)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'all-first_last.torrent')
+        self.assertEqual(anchor.string, 'first_last.torrent')
         self.assertEqual(
             anchor['href'],
-            '/zcomx/FIXME/FIXME/all-first_last.torrent'
+            '/torrents/download/creator/{id}'.format(id=creator.id)
         )
 
         # Invalid id
-        link = torrent_link(-1)
-        self.assertEqual(str(link), empty)
+        self.assertRaises(NotFoundError, torrent_link, -1)
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -599,7 +619,7 @@ class TestFunctions(LocalTestCase):
         link = torrent_link(creator, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'all-first_last.torrent')
+        self.assertEqual(anchor.string, 'first_last.torrent')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')

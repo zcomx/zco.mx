@@ -2,17 +2,24 @@
 # -*- coding: utf-8 -*-
 
 """
-db_io.py
+optimize_img_log_fix.py
 
-Script to run massive db io for testing.
+Script to initialize the image field in existing optimize_img_log records.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
-import time
 import logging
+import os
+import sys
+import traceback
+from gluon import *
+from gluon.shell import env
 from optparse import OptionParser
 
 VERSION = 'Version 0.1'
+APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
+# C0103: *Invalid name "%%s" (should match %%s)*
+# pylint: disable=C0103
+db = APP_ENV['db']
+
 LOG = logging.getLogger('cli')
 
 
@@ -20,7 +27,8 @@ def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    db_io.py [OPTIONS] iterations
+    optimize_img_log_fix.py
+
 
 OPTIONS
     -h, --help
@@ -34,13 +42,14 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
+
     """
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] iterations'
+    usage = '%prog [options]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -59,7 +68,7 @@ def main():
         help='More verbose.',
     )
 
-    (options, args) = parser.parse_args()
+    (options, unused_args) = parser.parse_args()
 
     if options.man:
         man_page()
@@ -72,20 +81,26 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if len(args) != 1:
-        parser.print_help()
-        exit(1)
-
-    db.optimize_img_log.truncate()
-    for _ in range(0, int(args[0])):
-        record_id = db.optimize_img_log.insert(
-            image='table.field.aaa.111.jpg'
+    LOG.info('Started.')
+    for optimize_img_log in db(db.optimize_img_log).select():
+        LOG.info(
+            'Updating: %s - %s',
+            optimize_img_log.record_field,
+            optimize_img_log.record_id,
         )
-        # db.commit()
-        query = (db.optimize_img_log.id == record_id)
-        db(query).delete()
-        # db.commit()
-        time.sleep(int(args[0]))
+        table, field = optimize_img_log.record_field.split('.')
+        record = db(db[table].id == optimize_img_log.record_id).select().first()
+        if not record:
+            LOG.info(
+                'Record not found: %s - %s',
+                optimize_img_log.record_field,
+                optimize_img_log.record_id,
+            )
+            continue
+        image_name = record[field]
+        optimize_img_log.update_record(image=record[field])
+        db.commit()
+    LOG.info('Done.')
 
 
 if __name__ == '__main__':
@@ -93,6 +108,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)

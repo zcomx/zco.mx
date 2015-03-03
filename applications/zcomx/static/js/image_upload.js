@@ -28,6 +28,7 @@
         },
 
         deleted_callback: function(e, data) {
+            $.fn.image_upload.stats.deleted += 1;
             return;
         },
 
@@ -74,6 +75,9 @@
                     destroyed: function(e, data) {
                         that.deleted_callback(e, data);
                     },
+                    processdone: function(e, data) {
+                        that.processdone_callback(e, data);
+                    },
                     stopped: function(e, data) {
                         that.stopped_callback(e, data);
                     },
@@ -104,6 +108,10 @@
 
         loaded_callback: function(e) {
             return;
+        },
+
+        processdone_callback: function(e, data) {
+            $.fn.image_upload.stats.uploaded += 1;
         },
 
         reload_img: function(elem) {
@@ -143,6 +151,7 @@
         },
 
         deleted_callback: function(e, data) {
+            ImageUpload.prototype.deleted_callback.apply(this);
             this.set_arrows();
         },
 
@@ -174,6 +183,7 @@
                         obj.set_arrows();
                     });
                 });
+                $.fn.image_upload.stats.reordered += 1;
                 obj.$element.removeClass('fileupload-processing');
             });
         },
@@ -303,6 +313,12 @@
             previewMaxWidth:  170,
             previewMaxHeight: 170,
         }
+    };
+
+    $.fn.image_upload.stats = {
+        deleted: 0,
+        reordered: 0,
+        uploaded: 0,
     };
 
 }(window.jQuery));

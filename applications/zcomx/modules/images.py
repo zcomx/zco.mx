@@ -384,16 +384,15 @@ def is_image(filename, image_types=None):
     return True
 
 
-def is_optimized(field, record_id):
-    """Determined if the image(s) related to the record field are optimized.
+def is_optimized(image):
+    """Determined if the image is optimized.
 
     Args:
-        field: gluon.dal.Field instance, db.creator.image
-        record_id: integer, id of record
+        image: string, name of image eg
+            book_page.image.801685b627e099e.300332e6a7067.jpg
     """
     db = current.app.db
-    query = (db.optimize_img_log.record_field == str(field)) & \
-            (db.optimize_img_log.record_id == record_id)
+    query = (db.optimize_img_log.image == image)
     return db(query).count() > 0
 
 
@@ -440,16 +439,15 @@ def optimize(filename, nice='max'):
 
 
 def queue_optimize(
-        field,
-        record_id,
+        image,
         priority='optimize_img',
         job_options=None,
         cli_options=None):
     """Queue job to optimize images associated with a record field.
 
     Args:
-        field: gluon.dal.Field instance, db.creator.image
-        record_id: integer, id of record
+        image: string, name of image eg
+            book_page.image.801685b627e099e.300332e6a7067.jpg
         priority: string, priority key, one of PROIRITIES
         job_options: dict, job record attributes used for JobQueuer property
         cli_options: dict, options for job command
@@ -469,22 +467,21 @@ def queue_optimize(
         db.job,
         job_options=job_options,
         cli_options=cli_options,
-        cli_args=[str(field), str(record_id)],
+        cli_args=[image],
     )
 
     return queuer.queue()
 
 
-def rm_optimize_img_logs(field, record_id):
-    """Delete any optimize_img_log recordsrelated to the record field.
+def rm_optimize_img_logs(image):
+    """Delete any optimize_img_log records for the image.
 
     Args:
-        field: gluon.dal.Field instance, db.creator.image
-        record_id: integer, id of record
+        image: string, name of image eg
+            book_page.image.801685b627e099e.300332e6a7067.jpg
     """
     db = current.app.db
-    query = (db.optimize_img_log.record_field == str(field)) & \
-            (db.optimize_img_log.record_id == record_id)
+    query = (db.optimize_img_log.image == image)
     db(query).delete()
     db.commit()
 

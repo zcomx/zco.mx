@@ -412,7 +412,7 @@ def book_pages_handler():
         )
         up_image = UploadImage(db.book_page.image, book_page.image)
         up_image.delete_all()
-        rm_optimize_img_logs(db.book_page.image, book_page.id)
+        rm_optimize_img_logs(book_page.image)
         book_page.delete_record()
         db.commit()
         return dumps({"files": [{filename: True}]})
@@ -690,13 +690,13 @@ def creator_img_handler():
                     nameonly=True,
                 )
                 # Delete an existing image before it is replaced
-                up_image = UploadImage(
-                    db.creator[img_field], creator_record[img_field])
+                image_name = creator_record[img_field]
+                up_image = UploadImage(db.creator[img_field], image_name)
                 up_image.delete_all()
+                rm_optimize_img_logs(image_name)
                 data = {img_field: None}
                 creator_record.update_record(**data)
                 db.commit()
-                rm_optimize_img_logs(db.creator[img_field], creator_record.id)
             if img_field == 'indicia_image':
                 # Clear the indicia png fields. This will trigger a rebuild
                 # in indicia_preview_urls
@@ -737,7 +737,7 @@ def creator_img_handler():
             data['indicia_modified'] = request.now
         db(db.creator.id == creator_record.id).update(**data)
         db.commit()
-        rm_optimize_img_logs(db.creator[img_field], creator_record.id)
+        rm_optimize_img_logs(creator_record[img_field])
         return dumps({"files": [{filename: 'true'}]})
 
     # GET

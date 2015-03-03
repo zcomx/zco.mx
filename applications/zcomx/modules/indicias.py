@@ -1422,16 +1422,18 @@ def clear_creator_indicia(creator, field=None):
         fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
 
     data = {}
+    image_names = []
     for field in fields:
         if creator[field]:
             up_image = UploadImage(db.creator[field], creator[field])
             up_image.delete_all()
             data[field] = None
+            image_names.append(creator[field])
 
     creator.update_record(**data)
     db.commit()
-    for field in fields:
-        rm_optimize_img_logs(db.creator[field], creator.id)
+    for image in image_names:
+        rm_optimize_img_logs(image)
 
 
 def create_creator_indicia(creator, resize=False, optimize=False):

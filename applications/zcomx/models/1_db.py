@@ -515,6 +515,9 @@ db.define_table('optimize_img_log',
         'record_id',
         'integer',
     ),
+    Field(
+        'image',
+    ),
     migrate=True,
 )
 

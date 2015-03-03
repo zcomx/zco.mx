@@ -2109,12 +2109,12 @@ class TestFunctions(ImageTestCase):
             indicia_landscape=None,
         )
         db.commit()
-        update_creator_indicia(creator, background=True)
+        update_creator_indicia(creator, background=True, resize=False, optimize=False)
         # The indicias won't be immediatly updated.
         creator_1 = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator_1.indicia_portrait, None)
         self.assertEqual(creator_1.indicia_landscape, None)
-        time.sleep(60)           # Wait for background process to finish
+        time.sleep(30)           # Wait for background process to finish
         creator_1 = entity_to_row(db.creator, creator.id)
         self.assertRegexpMatches(creator_1.indicia_portrait, res['portrait'])
         self.assertRegexpMatches(creator_1.indicia_landscape, res['landscape'])

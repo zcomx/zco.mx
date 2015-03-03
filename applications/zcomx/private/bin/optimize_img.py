@@ -15,40 +15,38 @@ from applications.zcomx.modules.images import \
     SIZES, \
     UploadImage, \
     is_optimized, \
-    optimize, \
-    queue_optimize
-from applications.zcomx.modules.utils import \
-    NotFoundError, \
-    entity_to_row
+    optimize
+from applications.zcomx.modules.utils import NotFoundError
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
 
 
-def run_optimize(field, record_id, options):
-    """Optimize a field record.
+def run_optimize(image, options):
+    """Optimize an image.
+
     Args:
-        field: gluon.dal.Field instance, eg db.creator.image
-        record_id: integer, id of record
+        image: string, name of image. eg
+            book_page.image.801685b627e099e.300332e6a7067.jpg
         options: dict, OptionParser options
     """
-    if not options.force and is_optimized(str(field), record_id):
+    if not options.force and is_optimized(image):
         LOG.debug(
-            'Not necessary, already optimized: %s, id: %s', field, record_id)
+            'Not necessary, already optimized: %s', image)
         return
 
-    record = entity_to_row(field.table, record_id)
-    if not record:
-        raise NotFoundError('Not found, field: {f}, id: {i}'.format(
-            f=field, i=record_id))
-    if not record[field]:
-        raise NotFoundError('No image to optimize, field: {f}, id: {i}'.format(
-            f=field, i=record_id))
+    try:
+        table, field, _ = image.split('.', 2)
+    except ValueError:
+        raise NotFoundError('Invalid image {i}'.format(i=image))
+    if table not in db.tables or field not in db[table]:
+        raise NotFoundError('Invalid image {i}'.format(i=image))
 
-    upload_image = UploadImage(field, record[field])
-    up_folder = field.uploadfolder.rstrip('/').rstrip('original')
+    upload_image = UploadImage(db[table][field], image)
 
-    LOG.debug('Optimizing: %s, id: %s', field, record_id)
+    up_folder = db[table][field].uploadfolder.rstrip('/').rstrip('original')
+
+    LOG.debug('Optimizing: %s', image)
 
     for size in SIZES:
         fullname = upload_image.fullname(size=size)
@@ -64,35 +62,21 @@ def run_optimize(field, record_id, options):
             LOG.debug('Optimizing filename: %s', filename)
             optimize(filename)
 
-    db.optimize_img_log.insert(
-        record_field=str(field),
-        record_id=record_id
-    )
+    db.optimize_img_log.insert(image=image)
     db.commit()
-
-
-def queue(field, record_id, options):
-    """Queue the optimize of a field record."""
-    cli_options = {}
-    if options.force:
-        cli_options['--force'] = True
-    if options.priority:
-        cli_options['--priority'] = options.priority
-    queue_optimize(
-        field,
-        record_id,
-        priority=options.priority,
-        cli_options=cli_options,
-    )
 
 
 def man_page():
     """Print manual page-like help"""
     print """
+
 USAGE
-    optimize_img.py [OPTIONS]                       # optimize all images
-    optimize_img.py [OPTIONS] book_page.image       # optimize book_page images
-    optimize_img.py [OPTIONS] book_page.image 123   # optimize single book page
+    optimize_img.py [OPTIONS] image
+    optimize_img.py [OPTIONS] image_1 image_2 image_3
+
+EXAMPLE
+    # optimize an image
+    optimize_img.py book_page.image.801685b627e099e.300332e6a7067.jpg
 
 OPTIONS
     -f, --force
@@ -125,7 +109,7 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] [field [record_id]]'
+    usage = '%prog [options] image [image_2 image_3 ...]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -172,49 +156,9 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if len(args) > 2:
-        print parser.print_help()
-        quit(1)
-
-    record_field = None
-    record_id = None
-
-    if len(args) == 1:
-        record_field = args[0]
-    elif len(args) == 2:
-        record_field = args[0]
-        record_id = args[1]
-
     LOG.debug('Starting')
-
-    fields = []
-    if record_field:
-        fields = [record_field]
-    else:
-        for table in db.tables:
-            for field in db[table].fields:
-                if db[table][field].type == 'upload':
-                    fields.append(str(db[table][field]))
-
-    for fieldname in fields:
-        try:
-            table, field = fieldname.split('.', 1)
-        except (AttributeError, ValueError):
-            raise NotFoundError('Invalid field: {f}'.format(f=fieldname))
-        if table not in db:
-            raise NotFoundError('Invalid table: {t}'.format(t=table))
-        if field not in db[table]:
-            raise NotFoundError('Invalid field: {f}'.format(f=fieldname))
-        if record_id:
-            LOG.debug(
-                'Run optimization on field: %s, id: %s', fieldname, record_id)
-            run_optimize(db[table][field], record_id, options)
-        else:
-            ids = [x.id for x in db(db[table]).select(db[table].id)]
-            for record_id in ids:
-                LOG.debug('Queuing field: %s, id: %s', fieldname, record_id)
-                queue(fieldname, record_id, options)
-
+    for image in args:
+        run_optimize(image, options)
     LOG.debug('Done')
 
 
