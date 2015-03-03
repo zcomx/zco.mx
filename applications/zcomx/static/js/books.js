@@ -386,6 +386,12 @@
         },
 
         post_image_upload: function(dialog) {
+            if (($.fn.image_upload.stats.deleted === 0) &&
+                ($.fn.image_upload.stats.reordered === 0) &&
+                ($.fn.image_upload.stats.uploaded === 0)) {
+                return;     // Nothing to do
+            }
+
             var page_ids = [];
             var book_id = 0;
             dialog.getModalBody().find('tr.template-download').each(function(index, elem) {
