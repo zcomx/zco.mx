@@ -22,6 +22,7 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.images import \
     ImgTag, \
     UploadImage, \
+    is_optimized, \
     queue_optimize
 from applications.zcomx.modules.shell_utils import tthsum
 from applications.zcomx.modules.utils import \
@@ -739,27 +740,33 @@ def optimize_book_images(
         raise NotFoundError('Book not found, {e}'.format(e=book_entity))
 
     jobs = []
-    query = (db.book_page.book_id == book.id)
-    page_ids = [x.id for x in db(query).select(db.book_page.id)]
 
-    for table in ['book', 'book_page']:
-        for field in db[table].fields:
-            if db[table][field].type != 'upload':
+    for field in db.book.fields:
+        if db.book[field].type != 'upload' or not book[field]:
+            continue
+        jobs.append(
+            queue_optimize(
+                book[field],
+                priority=priority,
+                job_options=job_options,
+                cli_options=cli_options
+            )
+        )
+
+    query = (db.book_page.book_id == book.id)
+    for book_page in db(query).select():
+        for field in db.book_page.fields:
+            if db.book_page[field].type != 'upload' or not book_page[field]:
                 continue
-            if table == 'book':
-                record_ids = [book.id]
-            else:
-                record_ids = list(page_ids)
-            for record_id in record_ids:
-                jobs.append(
-                    queue_optimize(
-                        str(db[table][field]),
-                        record_id,
-                        priority=priority,
-                        job_options=job_options,
-                        cli_options=cli_options
-                    )
+            jobs.append(
+                queue_optimize(
+                    book_page[field],
+                    priority=priority,
+                    job_options=job_options,
+                    cli_options=cli_options
                 )
+            )
+
     return jobs
 
 
@@ -1214,35 +1221,30 @@ def unoptimized_images(book_entity):
         book_entity: Row instance or integer representing a book.
 
     Returns:
-        list of tuples, [(field, record_id), ...]
-            field is a string 'table.field' as stored in optimize_img_log
-            eg ('book_page.image', 123)
+        list of strings, [image_name_1, image_name_2, ...]
+            eg image name: book_page.image.801685b627e099e.300332e6a7067.jpg
     """
     db = current.app.db
     book = entity_to_row(db.book, book_entity)
     if not book:
         raise NotFoundError('Book not found, {e}'.format(e=book_entity))
 
-    query = (db.book_page.book_id == book.id)
-    page_ids = [x.id for x in db(query).select(db.book_page.id)]
-
     unoptimals = []
 
-    for table in ['book', 'book_page']:
-        for field in db[table].fields:
-            if db[table][field].type != 'upload':
+    for field in db.book.fields:
+        if db.book[field].type != 'upload':
+            continue
+        if not is_optimized(book[field]):
+            unoptimals.append(book[field])
+
+    query = (db.book_page.book_id == book.id)
+    for book_page in db(query).select():
+        for field in db.book_page.fields:
+            if db.book_page[field].type != 'upload':
                 continue
-            table_field = '{t}.{f}'.format(t=table, f=field)
-            if table == 'book':
-                record_ids = [book.id]
-            else:
-                record_ids = list(page_ids)
-            for record_id in record_ids:
-                query = (db.optimize_img_log.record_field == table_field) & \
-                        (db.optimize_img_log.record_id == record_id)
-                rows = db(query).select()
-                if not rows:
-                    unoptimals.append((table_field, record_id))
+            if not is_optimized(book_page[field]):
+                unoptimals.append(book_page[field])
+
     return unoptimals
 
 
