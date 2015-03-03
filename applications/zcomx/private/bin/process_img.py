@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-optimize_img.py
+process_img.py
 
-Script to optimize an image.
+Script to process an image.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
@@ -20,6 +20,29 @@ from applications.zcomx.modules.utils import NotFoundError
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
+
+
+def run_delete(image, options):
+    """Delete an image.
+
+    Args:
+        image: string, name of image. eg
+            book_page.image.801685b627e099e.300332e6a7067.jpg
+        options: dict, OptionParser options
+    """
+    try:
+        table, field, _ = image.split('.', 2)
+    except ValueError:
+        raise NotFoundError('Invalid image {i}'.format(i=image))
+    if table not in db.tables or field not in db[table]:
+        raise NotFoundError('Invalid image {i}'.format(i=image))
+
+    upload_image = UploadImage(db[table][field], image)
+    upload_image.delete_all()
+
+    query = (db.optimize_img_log.image == image)
+    db(query).delete()
+    db.commit()
 
 
 def run_optimize(image, options):
@@ -71,14 +94,21 @@ def man_page():
     print """
 
 USAGE
-    optimize_img.py [OPTIONS] image
-    optimize_img.py [OPTIONS] image_1 image_2 image_3
+    process_img.py [OPTIONS] image
+    process_img.py [OPTIONS] image_1 image_2 image_3
+    process_img.py [OPTIONS] --delete image_1 image_2 image_3
 
 EXAMPLE
     # optimize an image
-    optimize_img.py book_page.image.801685b627e099e.300332e6a7067.jpg
+    process_img.py book_page.image.801685b627e099e.300332e6a7067.jpg
+
+    # delete an image
+    process_img.py --delete book_page.image.801685b627e099e.300332e6a7067.jpg
 
 OPTIONS
+    -d, --delete
+        With this option, the image is deleted.
+
     -f, --force
         By default, if the image(s) associated with the field(s) have already
         been optimized, (indicated by a optimize_img_log record), the optimize
@@ -112,6 +142,11 @@ def main():
     usage = '%prog [options] image [image_2 image_3 ...]'
     parser = OptionParser(usage=usage, version=VERSION)
 
+    parser.add_option(
+        '-d', '--delete',
+        action='store_true', dest='delete', default=False,
+        help='Delete the image(s).',
+    )
     parser.add_option(
         '-f', '--force',
         action='store_true', dest='force', default=False,
@@ -158,7 +193,10 @@ def main():
 
     LOG.debug('Starting')
     for image in args:
-        run_optimize(image, options)
+        if options.delete:
+            run_delete(image, options)
+        else:
+            run_optimize(image, options)
     LOG.debug('Done')
 
 

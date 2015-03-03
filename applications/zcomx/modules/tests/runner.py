@@ -160,6 +160,7 @@ class LocalTestCase(unittest.TestCase):
             login_user = env['local_settings'].login_user
             login_password = env['local_settings'].login_password
             login_employee_id = env['local_settings'].login_employee_id
+
         login_required = True if 'auth_user' in env['db'].tables else False
         web = LocalWebClient(
             app,
@@ -709,7 +710,7 @@ def _mock_datetime(self, now_value=None):
 
 # Decorator
 def count_diff(func):
-    """Decorator used to display the effect of a function on mysql record
+    """Decorator used to display the effect of a function on sql record
     counts.
 
     """
@@ -724,7 +725,7 @@ def count_diff(func):
             os.makedirs(tmp_dir)
         with open(os.path.join(tmp_dir, 'before.txt'), "w") as bef:
             subprocess.call(
-                ["/root/bin/mysql_record_count.sh"],
+                ["/root/bin/sql_record_count.sh -s applications/zcomx/databases/storage.sqlite"],
                 stdout=bef,
                 shell=True
             )
@@ -735,7 +736,7 @@ def count_diff(func):
             pass
         with open(os.path.join(tmp_dir, 'after.txt'), "w") as aft:
             subprocess.call(
-                ["/root/bin/mysql_record_count.sh"],
+                ["/root/bin/sql_record_count.sh -s applications/zcomx/databases/storage.sqlite"],
                 stdout=aft,
                 shell=True
             )

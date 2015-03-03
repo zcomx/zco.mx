@@ -473,19 +473,6 @@ def queue_optimize(
     return queuer.queue()
 
 
-def rm_optimize_img_logs(image):
-    """Delete any optimize_img_log records for the image.
-
-    Args:
-        image: string, name of image eg
-            book_page.image.801685b627e099e.300332e6a7067.jpg
-    """
-    db = current.app.db
-    query = (db.optimize_img_log.image == image)
-    db(query).delete()
-    db.commit()
-
-
 def set_thumb_dimensions(db, book_page_id, dimensions):
     """Set the db.book_page.thumb_* dimension values for a page.
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Creator login controller functions"""
+import logging
 import os
 import shutil
 import sys
@@ -20,8 +21,6 @@ from applications.zcomx.modules.creators import \
     optimize_creator_images
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
-    UploadImage, \
-    rm_optimize_img_logs, \
     store
 from applications.zcomx.modules.indicias import \
     CreatorIndiciaPage, \
@@ -32,6 +31,7 @@ from applications.zcomx.modules.indicias import \
     update_creator_indicia
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
+    DeleteImgQueuer, \
     ReleaseBookQueuer
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
@@ -39,6 +39,8 @@ from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
     reorder
+
+LOG = logging.getLogger('app')
 
 
 @auth.requires_login()
@@ -410,9 +412,15 @@ def book_pages_handler():
             book_page.image,
             nameonly=True,
         )
-        up_image = UploadImage(db.book_page.image, book_page.image)
-        up_image.delete_all()
-        rm_optimize_img_logs(book_page.image)
+
+        job = DeleteImgQueuer(
+            db.job,
+            cli_args=[book_page.image],
+        ).queue()
+        if not job:
+            # This isn't critical, just log a message.
+            LOG.error(
+                'Failed to create job to delete img: %s', book_page.image)
         book_page.delete_record()
         db.commit()
         return dumps({"files": [{filename: True}]})
@@ -685,15 +693,17 @@ def creator_img_handler():
         img_changed = creator_record[img_field] != stored_filename
         if img_changed:
             if creator_record[img_field] is not None:
-                filename, _ = db.creator[img_field].retrieve(
-                    creator_record[img_field],
-                    nameonly=True,
-                )
                 # Delete an existing image before it is replaced
-                image_name = creator_record[img_field]
-                up_image = UploadImage(db.creator[img_field], image_name)
-                up_image.delete_all()
-                rm_optimize_img_logs(image_name)
+                job = DeleteImgQueuer(
+                    db.job,
+                    cli_args=[creator_record[img_field]],
+                ).queue()
+                if not job:
+                    # This isn't critical, just log a message.
+                    LOG.error(
+                        'Failed to create job to delete img: %s',
+                        creator_record[img_field]
+                    )
                 data = {img_field: None}
                 creator_record.update_record(**data)
                 db.commit()
@@ -726,10 +736,18 @@ def creator_img_handler():
         )
         # Clear the images from the record
         data = {img_field: None}
-        # Delete existing images in uploads subdirectories
-        up_image = UploadImage(
-            db.creator[img_field], creator_record[img_field])
-        up_image.delete_all()
+
+        job = DeleteImgQueuer(
+            db.job,
+            cli_args=[creator_record[img_field]],
+        ).queue()
+        if not job:
+            # This isn't critical, just log a message.
+            LOG.error(
+                'Failed to create job to delete img: %s',
+                creator_record[img_field]
+            )
+
         if img_field == 'indicia_image':
             for f in ['indicia_portrait', 'indicia_landscape']:
                 if creator_record[f] is not None:
@@ -737,7 +755,6 @@ def creator_img_handler():
             data['indicia_modified'] = request.now
         db(db.creator.id == creator_record.id).update(**data)
         db.commit()
-        rm_optimize_img_logs(creator_record[img_field])
         return dumps({"files": [{filename: 'true'}]})
 
     # GET

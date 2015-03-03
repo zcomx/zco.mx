@@ -14,9 +14,7 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.dal.helpers.classes import Reference
 from gluon.storage import Storage
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase, \
-    _mock_date as mock_date
+from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     ItemDescription, \
     default_record, \
@@ -142,6 +140,8 @@ class TestFunctions(LocalTestCase):
             if os.path.exists(cls._tmp_dir):
                 shutil.rmtree(cls._tmp_dir)
             os.rename(cls._tmp_backup, cls._tmp_dir)
+        db.test__reorder.truncate()
+        db.commit()
 
     def _reset(self):
         record_ids = [
@@ -194,6 +194,7 @@ class TestFunctions(LocalTestCase):
                 'rating': 0,
                 'reader': 'slider',
                 'release_date': None,
+                'releasing': False,
                 'status': True,
                 'torrent': None,
                 'urlify_name': None,
@@ -397,7 +398,8 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(str(div), '<div>aaa<div>bbb</div></div>')
         callback = lambda x: x.add_class('wrapper')
         replace_in_elements(div, 'bbb', 'ccc', callback=callback)
-        self.assertEqual(str(div), '<div>aaa<div class="wrapper">ccc</div></div>')
+        self.assertEqual(
+            str(div), '<div>aaa<div class="wrapper">ccc</div></div>')
 
     def test__vars_to_records(self):
         tests = [

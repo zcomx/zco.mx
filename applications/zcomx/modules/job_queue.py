@@ -27,6 +27,7 @@ from applications.zcomx.modules.utils import \
 DAEMON_NAME = 'zco_queued'
 PRIORITIES = [
     # Lowest
+    'delete_img',
     'delete_book',
     'optimize_img',
     'release_book',
@@ -579,7 +580,7 @@ class DeleteBookQueuer(JobQueuer):
 
 class OptimizeImgQueuer(JobQueuer):
     """Class representing a queuer for optimize_img jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'optimize_img.py')
+    program = os.path.join(JobQueuer.bin_path, 'process_img.py')
     default_job_options = {
         'priority': PRIORITIES.index('optimize_img'),
         'status': 'a',
@@ -591,6 +592,16 @@ class OptimizeImgQueuer(JobQueuer):
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal
+
+
+class DeleteImgQueuer(OptimizeImgQueuer):
+    """Class representing a queuer for deleting an image jobs."""
+    default_job_options = dict(OptimizeImgQueuer.default_job_options)
+    default_job_options['priority'] = PRIORITIES.index('delete_img')
+    default_cli_options = {'--delete': True}
+    valid_cli_options = list(OptimizeImgQueuer.valid_cli_options)
+    valid_cli_options.append('-d')
+    valid_cli_options.append('--delete')
 
 
 class OptimizeImgForReleaseQueuer(OptimizeImgQueuer):

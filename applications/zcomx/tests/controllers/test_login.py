@@ -6,14 +6,13 @@
 Test suite for zcomx/controllers/login.py
 
 """
-import requests
 import os
+import requests
+import time
 import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.indicias import PublicationMetadata
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase, \
-    TableTracker
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
 # C0111: Missing docstring
@@ -104,7 +103,8 @@ class TestFunctions(LocalTestCase):
 
         # Get a book by creator with pages and links.
         count = db.book_page.book_id.count()
-        query = (db.creator.id == cls._creator.id)
+        query = (db.creator.id == cls._creator.id) & \
+                (db.book.release_date == None)
         book_page = db(query).select(
             db.book_page.ALL,
             count,
@@ -129,7 +129,7 @@ class TestFunctions(LocalTestCase):
             )
 
         query = (db.book.id == cls._book_page.book_id)
-        cls._book = db(query).select(db.book.ALL).first()
+        cls._book = db(query).select().first()
         if not cls._book:
             raise SyntaxError(
                 'No books for creator with email: {e}'.format(e=email)
@@ -155,6 +155,7 @@ class TestFunctions(LocalTestCase):
         cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
 
     def test__account(self):
+
         self.assertTrue(
             web.test(
                 '{url}/account'.format(url=self.url),
@@ -167,7 +168,7 @@ class TestFunctions(LocalTestCase):
         def get_book(book_id):
             """Return a book"""
             query = (db.book.id == book_id)
-            return db(query).select(db.book.ALL).first()
+            return db(query).select().first()
 
         book = self.add(db.book, dict(
             name='',
@@ -297,6 +298,7 @@ class TestFunctions(LocalTestCase):
         result = loads(web.text)
         self.assertEqual(result['status'], 'ok')
 
+        time.sleep(2)                  # Wait for job to complete.
         book = get_book(book_id)
         self.assertFalse(book)
 
@@ -393,13 +395,46 @@ class TestFunctions(LocalTestCase):
             )
         )
 
-        self.assertTrue(
-            web.test(
-                '{url}/book_pages_handler/{bid}'.format(
-                    bid=self._book.id, url=self.url),
-                self.titles['book_pages_handler']
-            )
+        def get_book_page_ids(book_id):
+            query = (db.book_page.book_id == book_id)
+            return [x.id for x in db(query).select(db.book_page.id)]
+
+        before_ids = get_book_page_ids(self._book.id)
+
+        # Test add file.
+        sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')
+        files = {'up_files[]': open(sample_file, 'rb')}
+        response = requests.post(
+            web.app + '/login/book_pages_handler/{i}'.format(i=self._book.id),
+            files=files,
+            cookies=web.cookies,
+            verify=False,
         )
+        self.assertEqual(response.status_code, 200)
+
+        after_ids = get_book_page_ids(self._book.id)
+        self.assertEqual(len(before_ids) + 1, len(after_ids))
+        new_id = list(set(after_ids).difference(set(before_ids)))[0]
+
+        # Test delete file
+        book_page = db(db.book_page.id == new_id).select().first()
+        self.assertTrue(book_page)
+        response = requests.delete(
+            web.app + '/login/book_pages_handler/{i}'.format(i=new_id),
+            files=files,
+            cookies=web.cookies,
+            verify=False,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # A job to delete the image should be created. It may take a bit
+        # to complete so check that the job exists, or it is completed.
+        query = (db.job.command.like(
+            '%process_img.py --delete {i}'.format(i=book_page.image)))
+        job_count = db(query).count()
+        query = (db.optimize_img_log.image == book_page.image)
+        log_count = db(query).count()
+        self.assertTrue(job_count == 1 or log_count == 0)
 
     def test__book_post_image_upload(self):
         # No book_id, return fail message
@@ -530,7 +565,7 @@ class TestFunctions(LocalTestCase):
         def get_creator():
             """Return a creator"""
             query = (db.creator.id == self._creator.id)
-            return db(query).select(db.creator.ALL).first()
+            return db(query).select().first()
 
         old_creator = get_creator()
         old_creator.update_record(image=None)
@@ -553,6 +588,15 @@ class TestFunctions(LocalTestCase):
         creator = get_creator()
         self.assertTrue(creator.image)
 
+        # A job to process the image should be created. It may take a bit
+        # to complete so check that the job exists, or it is completed.
+        query = (db.job.command.like(
+            '%process_img.py {i}'.format(i=creator.image)))
+        job_count = db(query).count()
+        query = (db.optimize_img_log.image == creator.image)
+        log_count = db(query).count()
+        self.assertTrue(job_count == 1 or log_count == 1)
+
         response_2 = requests.delete(
             web.app + '/login/creator_img_handler',
             cookies=web.cookies,
@@ -561,6 +605,13 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(response_2.status_code, 200)
         creator = get_creator()
         self.assertFalse(creator.image)
+
+        query = (db.job.command.like(
+            '%process_img.py --delete {i}'.format(i=creator.image)))
+        job_count = db(query).count()
+        query = (db.optimize_img_log.image == creator.image)
+        log_count = db(query).count()
+        self.assertTrue(job_count == 1 or log_count == 0)
 
         # Reset the image
         sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')

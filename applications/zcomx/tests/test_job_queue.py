@@ -19,6 +19,7 @@ from applications.zcomx.modules.job_queue import \
     Daemon, \
     DaemonSignalError, \
     DeleteBookQueuer, \
+    DeleteImgQueuer, \
     InvalidCLIOptionError, \
     InvalidJobOptionError, \
     InvalidStatusError, \
@@ -254,6 +255,27 @@ class TestDeleteBookQueuer(LocalTestCase):
         )
 
 
+class TestDeleteImgQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = DeleteImgQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'-f': True, '-p': 'my_priority'},
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/process_img.py --delete -f -p my_priority'
+        )
+
+
 class TestJobQueuer(LocalTestCase):
 
     def test____init__(self):
@@ -381,7 +403,7 @@ class TestOptimizeImgQueuer(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/optimize_img.py -f -p my_priority'
+            'applications/zcomx/private/bin/process_img.py -f -p my_priority'
         )
 
 
@@ -402,7 +424,7 @@ class TestOptimizeImgForReleaseQueuer(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/optimize_img.py --force 2013-12-31'
+            'applications/zcomx/private/bin/process_img.py --force 2013-12-31'
         )
 
 
