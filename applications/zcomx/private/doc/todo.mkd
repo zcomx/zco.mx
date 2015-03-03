@@ -1,19 +1,10 @@
 ``
 VERSION 2 - Before Going Live
-[ ] Release Error
-[ ] "creator.table appears corrupted" Error
+[ ] Release Error - permissions
 
 [ ] Add back the 'Release Button'
     * Ensure images have at least a width of 1600px before releasing
     * Ensure CC licence is used
-
-[ ] Books -> Edit
-    Truncate long urls
-    Change:
-    http://andsocomics.storenvy.com/products/9989035-best-seller
-    to:
-    http://andsocomics.storenvy.com/produ...
-    but have mouse-over display full url
 
 [/] Indicia Page
     see indicia-ss.png
@@ -38,6 +29,14 @@ VERSION 2 - Before Going Live
     [ ] rewrite - https://zco.mx/zco.mx.torrent         ## torrent for all cbz's
     [ ] redirects for http://101.zco.mx/Name of Comic 01 (of 04) (2014).torrent
                       http://101.zco.mx/Name of Comic 001 (2013).torrent
+
+[ ] Books -> Edit
+    Truncate long urls
+    Change:
+    http://andsocomics.storenvy.com/products/9989035-best-seller
+    to:
+    http://andsocomics.storenvy.com/produ...
+    but have mouse-over display full url
 
 [ ] https://dev.zco.mx/Charles_Forsman
     "| Known" is wrapping
@@ -85,7 +84,7 @@ VERSION 2 - Before Going Live
     SB 2015-02-09 19:09  It does this with middle click
 
 [ ] nice levels
-
+[ ] "creator.table appears corrupted" Error
 [ ] email karen telling her the site is live
 
 VERSION 3
