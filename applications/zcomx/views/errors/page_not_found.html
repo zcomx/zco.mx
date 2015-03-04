@@ -1,3 +1,4 @@
+{{import urllib}}
 {{extend 'layout_main.html'}}
 
 <div id="help_section">
@@ -18,27 +19,17 @@
 </ul>
 {{pass}}
 
-{{if urls.creator or urls.book or urls.page:}}
+{{if urls.suggestions:}}
 Suggestions:
 
 <ul>
-    {{if urls.creator:}}
-    <li>
-        <span class="table_cell">Creator page:</span>
-        <a href="{{=urls.creator}}">{{=urls.creator}}</a>
-    </li>
-    {{pass}}
-    {{if urls.book:}}
-    <li>
-        <span class="table_cell">Book page:</span>
-        <a href="{{=urls.book}}">{{=urls.book}}</a>
-    </li>
-    {{pass}}
-    {{if urls.page:}}
-    <li>
-        <span class="table_cell">Read:</span>
-        <a href="{{=urls.page}}">{{=urls.page}}</a>
-    </li>
+    {{for suggestion in urls.suggestions:}}
+        {{if suggestion['url']:}}
+        <li>
+            <span class="table_cell">{{=suggestion['label']}}</span>
+            <a href="{{=suggestion['url']}}">{{=urllib.unquote(suggestion['url'])}}</a>
+        </li>
+        {{pass}}
     {{pass}}
 </ul>
 

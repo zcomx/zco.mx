@@ -881,6 +881,13 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/default/user/login', "/zcomx/default/user ['login']"),
             ('http://my.domain.com/default/user/logout', "/zcomx/default/user ['logout']"),
 
+            # Test torrents
+            ('http://my.domain.com/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
+            ('http://my.domain.com/zcomx/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
+            ('http://my.domain.com/zco.mx.torrent', "/zcomx/torrents/route ?torrent=zco.mx.torrent"),
+            ('http://my.domain.com/First Last (101.zco.mx).torrent', "/zcomx/torrents/route ?torrent=First Last (101.zco.mx).torrent"),
+            ('http://my.domain.com/My Book 001 (101.zco.mx).cbz.torrent', "/zcomx/torrents/route ?torrent=My Book 001 (101.zco.mx).cbz.torrent"),
+
             # Static files
             ('http://my.domain.com/favicon.ico', app_root + '/zcomx/static/images/favicon.ico'),
             ('http://jimk.zsw.ca/robots.txt', app_root + '/zcomx/static/robots.txt'),

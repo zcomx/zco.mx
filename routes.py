@@ -85,6 +85,10 @@ routes_in = (
     ('/favicon.ico', '/zcomx/static/images/favicon.ico'),
     ('/robots.txt', '/zcomx/static/robots.txt'),
 
+    # reroute torrents, look for .torrent extension
+    ('/zcomx/(?P<tor>.*\.torrent)', '/zcomx/torrents/route/\g<tor>'),
+    ('/(?P<tor>.*\.torrent)', '/zcomx/torrents/route/\g<tor>'),
+
     # Assume everything else doesn't match a controller and is a creator/book/page
     ('/zcomx/{c}/{b}/{p}'.format(c=creator_re, b=book_re, p=page_re),
         '/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
@@ -122,6 +126,8 @@ routes_out = (
     ('/zcomx/default/user/login', '/login'),
     ('/zcomx/creators/index/$anything', '/$anything'),
     ('/creators/index/$anything', '/$anything'),
+    ('/zcomx/torrents/route/$anything', '/$anything'),
+    ('/torrents/route/$anything', '/$anything'),
     ('/zcomx/default/(?P<function>{funcs})'.format(funcs=DEFAULT_FUNCTIONS), '/\g<function>'),
     ('/zcomx/(?P<controller>{ctrs})/index'.format(ctrs=CONTROLLERS), '/\g<controller>'),
     ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/\g<controller>/$anything'),
