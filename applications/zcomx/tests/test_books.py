@@ -32,6 +32,7 @@ from applications.zcomx.modules.books import \
     book_types, \
     by_attributes, \
     calc_contributions_remaining, \
+    cbz_comment, \
     cc_licence_data, \
     contribute_link, \
     contributions_remaining_by_creator, \
@@ -41,6 +42,7 @@ from applications.zcomx.modules.books import \
     defaults, \
     download_link, \
     formatted_name, \
+    formatted_number, \
     get_page, \
     magnet_uri, \
     numbers_for_book_type, \
@@ -523,6 +525,32 @@ class TestFunctions(ImageTestCase):
         ))
         self.assertEqual(calc_contributions_remaining(db, book), 49.01)
 
+    def test__cbz_comment(self):
+
+        self.assertRaises(NotFoundError, cbz_comment, -1)
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            number=2,
+            of_number=4,
+            creator_id=-1,
+            publication_year=1999,
+            book_type_id=self._type_id_by_name['mini-series'],
+        ))
+
+        # Creator record not foudn
+        self.assertRaises(NotFoundError, cbz_comment, book)
+
+        auth_user = self.add(db.auth_user, dict(name='Test CBZ Comment'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        book.update_record(creator_id=creator.id)
+        db.commit()
+
+        self.assertEqual(
+            cbz_comment(book),
+            '1999|Test CBZ Comment|My Book|02 (of 04)|http://{cid}.zco.mx'.format(cid=creator.id),
+        )
+
     def test__cc_licence_data(self):
         str_to_date = lambda x: datetime.datetime.strptime(
             x, "%Y-%m-%d").date()
@@ -977,6 +1005,25 @@ class TestFunctions(ImageTestCase):
             )
             self.assertEqual(formatted_name(db, book), t[6])
             self.assertEqual(formatted_name(db, book.id), t[6])
+
+    def test__formatted_number(self):
+        book = self.add(db.book, dict(name='My Book'))
+
+        tests = [
+            # (type, number, of_number, expect),
+            ('one-shot', 1, 999, ''),
+            ('ongoing', 12, 999, '012'),
+            ('mini-series', 2, 9, '02 (of 09)'),
+        ]
+        for t in tests:
+            book.update_record(
+                book_type_id=self._type_id_by_name[t[0]],
+                number=t[1],
+                of_number=t[2],
+            )
+            db.commit()
+            self.assertEqual(formatted_number(book), t[3])
+            self.assertEqual(formatted_number(book.id), t[3])
 
     def test__get_page(self):
         book = self.add(db.book, dict(name='test__get_page'))
@@ -1706,13 +1753,13 @@ class TestFunctions(ImageTestCase):
 
         # Has pages, no logs, all should be unoptmized.
 
-        page_1 = self.add(db.book_page, dict(
+        self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
             image='book_page.image.aaa.111.jpg',
         ))
 
-        page_2 = self.add(db.book_page, dict(
+        self.add(db.book_page, dict(
             book_id=book.id,
             page_no=2,
             image='book_page.image.bbb.222.png',

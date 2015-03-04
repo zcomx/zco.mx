@@ -317,6 +317,36 @@ def calc_contributions_remaining(db, book_entity):
     return remaining
 
 
+def cbz_comment(book_entity):
+    """ Return a comment suitable for the cbz file.
+
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of the
+            book. The book record is read.
+
+    Returns:
+        string, eg '2014|Cartoonist Name|Title of Book|64'
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    creator_record = entity_to_row(db.creator, book_record.creator_id)
+    if not creator_record:
+        raise NotFoundError('Creator not found, {e}'.format(
+            e=book_record.creator_id))
+
+    fields = []
+    fields.append(str(book_record.publication_year))
+    fields.append(creator_formatted_name(creator_record))
+    fields.append(book_record.name)
+    fields.append(formatted_number(book_record))
+    fields.append(creator_short_url(creator_record))
+    return '|'.join(fields)
+
+
 def cc_licence_data(book_entity):
     """Return data required for the cc licence for the book.
 
@@ -595,25 +625,47 @@ def formatted_name(db, book_entity, include_publication_year=True):
     book = entity_to_row(db.book, book_entity)
     if not book:
         return ''
-    book_type = entity_to_row(db.book_type, book.book_type_id)
 
     fmt = '{name}'
     data = {
         'name': book.name,
     }
 
-    if book_type.name == 'ongoing':
-        fmt = '{name} {num:03d}'
-        data['num'] = book.number
-    elif book_type.name == 'mini-series':
-        fmt = '{name} {num:02d} (of {of:02d})'
-        data['num'] = book.number
-        data['of'] = book.of_number
+    number = formatted_number(book_entity)
+    if number:
+        fmt = '{name} {num}'
+        data['num'] = number
 
     if include_publication_year:
         fmt = ' '.join([fmt, '({year})'])
         data['year'] = book.publication_year
     return fmt.format(**data)
+
+
+def formatted_number(book_entity):
+    """Return the number of the book formatted.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+    """
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return ''
+    book_type = entity_to_row(db.book_type, book.book_type_id)
+    if not book_type:
+        return ''
+
+    if book_type.name == 'one-shot':
+        return ''
+    elif book_type.name == 'ongoing':
+        return '{num:03d}'.format(num=book.number)
+    elif book_type.name == 'mini-series':
+        return '{num:02d} (of {of:02d})'.format(
+            num=book.number,
+            of=book.of_number,
+        )
+    return ''
 
 
 def get_page(book_entity, page_no=1):

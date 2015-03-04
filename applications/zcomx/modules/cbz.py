@@ -10,10 +10,13 @@ import math
 import os
 import subprocess
 import sys
+import zipfile
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.archives import CBZArchive
-from applications.zcomx.modules.books import formatted_name
+from applications.zcomx.modules.books import \
+    cbz_comment, \
+    formatted_name
 from applications.zcomx.modules.creators import for_path
 from applications.zcomx.modules.files import TitleFileName
 from applications.zcomx.modules.images import filename_for_size
@@ -44,6 +47,7 @@ class CBZCreator(TempDirectoryMixin):
         self.book = entity_to_row(db.book, book)
         self._max_page_no = None
         self._img_filename_fmt = None
+        self._working_directory = None
 
     def cbz_filename(self):
         """Return the name for the cbz file."""
@@ -134,7 +138,7 @@ class CBZCreator(TempDirectoryMixin):
                         s=src_filename))
 
             dst_filename = os.path.join(
-                self.temp_directory(),
+                self.working_directory(),
                 self.image_filename(page, fmt)
             )
 
@@ -144,7 +148,7 @@ class CBZCreator(TempDirectoryMixin):
         png_page = BookIndiciaPagePng(self.book)
         src_filename = png_page.create()
         dst_filename = os.path.join(
-            self.temp_directory(),
+            self.working_directory(),
             self.image_filename(
                 Storage(dict(
                     image=src_filename,
@@ -155,19 +159,32 @@ class CBZCreator(TempDirectoryMixin):
             )
         )
         os.link(src_filename, dst_filename)
-        return self.zip()
+        cbz_filename = self.zip()
+        zipper = zipfile.ZipFile(cbz_filename, 'a')
+        zipper.comment = cbz_comment(self.book)
+        zipper.close()
+        return cbz_filename
+
+    def working_directory(self):
+        """Return working directory where files are compiled."""
+        if self._working_directory is None:
+            self._working_directory = os.path.join(
+                self.temp_directory(),
+                self.book.name
+            )
+            if not os.path.exists(self._working_directory):
+                os.makedirs(self._working_directory)
+        return self._working_directory
 
     def zip(self):
         """Zip book page images."""
         db = current.app.db
         # Ex 7z a -tzip -mx=9 "Name of Comic 001.cbz" "/path/to/Name_of_Comic/"
         args = ['7z', 'a', '-tzip', '-mx=9']
-        cbz_dir = os.path.join(db.book_page.image.uploadfolder, '..', 'cbz')
-        if not os.path.exists(cbz_dir):
-            os.makedirs(cbz_dir)
+        cbz_dir = self.temp_directory()
         cbz_filename = os.path.join(cbz_dir, self.cbz_filename())
         args.append(cbz_filename)
-        args.append(self.temp_directory())
+        args.append(self.working_directory())
         p = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         unused_stdout, p_stderr = p.communicate()
