@@ -1,6 +1,6 @@
 ``
 VERSION 2 - Before Going Live
-[ ] Release Error - permissions
+[x] Release Error - permissions
 
 [ ] Add back the 'Release Button'
     * Ensure images have at least a width of 1600px before releasing
