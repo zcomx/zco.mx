@@ -73,6 +73,7 @@ class BaseArchive(object):
             set_owner(dst_dirname)
 
         shutil.move(src, dst_filename)
+        set_owner(dst_filename)
         return dst_filename
 
     @classmethod
