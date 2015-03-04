@@ -14,6 +14,7 @@ import subprocess
 from PIL import Image
 from gluon import *
 from applications.zcomx.modules.job_queue import \
+    DeleteImgQueuer, \
     OptimizeImgQueuer, \
     OptimizeImgForReleaseQueuer
 from applications.zcomx.modules.shell_utils import \
@@ -394,6 +395,50 @@ def is_optimized(image):
     db = current.app.db
     query = (db.optimize_img_log.image == image)
     return db(query).count() > 0
+
+
+def on_add_image(image):
+    """Handle all processing required when an image is added.
+
+    Args:
+        image: string, name of image eg
+            book_page.image.801685b627e099e.300332e6a7067.jpg
+    """
+    if not image:
+        return
+    db = current.app.db
+    job = OptimizeImgQueuer(
+        db.job,
+        cli_args=[image],
+    ).queue()
+    if not job:
+        LOG.error(
+            'Failed to create job to optimize img: %s', image)
+
+    return job
+
+
+def on_delete_image(image):
+    """Handle all processing required when an image is deleted.
+
+    Args:
+        image: string, name of image eg
+            book_page.image.801685b627e099e.300332e6a7067.jpg
+    Returns:
+        Row instance representing a queued job to delete image
+    """
+    if not image:
+        return
+
+    db = current.app.db
+    job = DeleteImgQueuer(
+        db.job,
+        cli_args=[image],
+    ).queue()
+    if not job:
+        LOG.error(
+            'Failed to create job to delete img: %s', image)
+    return job
 
 
 def optimize(filename, nice='max'):

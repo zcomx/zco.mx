@@ -20,10 +20,11 @@ from applications.zcomx.modules.books import \
     publication_year_range
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
-    optimize_creator_images, \
     short_url as creator_short_url
-from applications.zcomx.modules.images import store
-from applications.zcomx.modules.job_queue import DeleteImgQueuer
+from applications.zcomx.modules.images import \
+    on_add_image, \
+    on_delete_image, \
+    store
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
@@ -1422,14 +1423,7 @@ def clear_creator_indicia(creator, field=None):
     data = {}
     for field in fields:
         if creator[field]:
-            job = DeleteImgQueuer(
-                db.job,
-                cli_args=[creator[field]],
-            ).queue()
-            if not job:
-                # This isn't critical, just log a message.
-                LOG.error(
-                    'Failed to create job to delete img: %s', creator[field])
+            on_delete_image(creator[field])
             data[field] = None
 
     creator.update_record(**data)
@@ -1458,11 +1452,11 @@ def create_creator_indicia(creator, resize=False, optimize=False):
         )
         if stored_filename:
             data[field] = stored_filename
+            if optimize:
+                on_add_image(data[field])
 
     creator.update_record(**data)
     db.commit()
-    if optimize:
-        optimize_creator_images(creator)
 
 
 def render_cc_licence(

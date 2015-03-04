@@ -23,7 +23,6 @@ from applications.zcomx.modules.creators import \
     formatted_name, \
     image_as_json, \
     on_change_name, \
-    optimize_creator_images, \
     profile_onaccept, \
     short_url, \
     torrent_link, \
@@ -462,66 +461,6 @@ class TestFunctions(LocalTestCase):
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, "Slèzé d'Ruñez")
         self.assertEqual(creator.urlify_name, 'sleze-drunez')
-
-    def test__optimize_creator_images(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
-        img_fields = [
-            'image', 'indicia_image', 'indicia_portrait', 'indicia_landscape']
-
-        creator = self.add(db.creator, dict(
-            path_name='Test Optimze Creator Images'
-        ))
-
-        x = self._prep_image('unoptimized.png'),
-
-        for img_field in img_fields:
-            image = store(
-                db.creator[img_field],
-                self._prep_image('unoptimized.png'),
-            )
-            data = {img_field: image}
-            creator.update_record(**data)
-            db.commit()
-
-        def get_sizes():
-            sizes = {}
-            for img_field in img_fields:
-                up_image = UploadImage(
-                    db.creator[img_field], creator[img_field])
-                if img_field not in sizes:
-                    sizes[img_field] = {}
-                for size in ['original', 'cbz', 'web']:
-                    name = up_image.fullname(size=size)
-                    if os.path.exists(name):
-                        sizes[img_field][size] = os.stat(name).st_size
-            return sizes
-
-        before_sizes = get_sizes()
-
-        cli_options = {'--vv': True, '--uploads-path': self._image_dir}
-        jobs = optimize_creator_images(creator, cli_options=cli_options)
-        self.assertEqual(len(jobs), 4)
-
-        tries = 20
-        while tries > 0:
-            time.sleep(1)          # Wait for jobs to complete.
-            got = db(db.job.id.belongs([x.id for x in jobs])).select()
-            if len(got) == 0:
-                break
-            tries = tries - 1
-            if tries == 0:
-                self.fail('Jobs not done in expected time.')
-
-        after_sizes = get_sizes()
-
-        for img_field in img_fields:
-            for size in before_sizes[img_field].keys():
-                self.assertTrue(
-                    after_sizes[img_field][size] <
-                    before_sizes[img_field][size]
-                )
 
     def test__profile_onaccept(self):
         auth_user = self.add(db.auth_user, dict(

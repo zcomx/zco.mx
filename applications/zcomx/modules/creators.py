@@ -279,39 +279,6 @@ def on_change_name(creator_entity):
         db.commit()
 
 
-def optimize_creator_images(
-        creator_entity,
-        priority='optimize_img',
-        job_options=None,
-        cli_options=None):
-    """Optimize all images related to a creator.
-
-    Args:
-        creator_entity: Row instance or integer representing a creator.
-        priority: string, priority key, one of PROIRITIES
-        job_options: dict, job record attributes used for JobQueuer property
-        cli_options: dict, options for job command
-    """
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
-
-    jobs = []
-
-    for field in db.creator.fields:
-        if db.creator[field].type == 'upload' and creator[field]:
-            jobs.append(
-                queue_optimize(
-                    creator[field],
-                    priority=priority,
-                    job_options=job_options,
-                    cli_options=cli_options
-                )
-            )
-    return jobs
-
-
 def profile_onaccept(form):
     """Set the creator.path_name field associated with the user.
 

@@ -17,21 +17,20 @@ from applications.zcomx.modules.books import \
     read_link, \
     release_barriers
 from applications.zcomx.modules.creators import \
-    image_as_json, \
-    optimize_creator_images
+    image_as_json
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
+    on_add_image, \
+    on_delete_image, \
     store
 from applications.zcomx.modules.indicias import \
     CreatorIndiciaPage, \
     IndiciaUpdateInProgress, \
     PublicationMetadata, \
     cc_licence_by_code, \
-    clear_creator_indicia, \
     update_creator_indicia
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
-    DeleteImgQueuer, \
     ReleaseBookQueuer, \
     UpdateIndiciaQueuer
 from applications.zcomx.modules.links import CustomLinks
@@ -413,15 +412,7 @@ def book_pages_handler():
             book_page.image,
             nameonly=True,
         )
-
-        job = DeleteImgQueuer(
-            db.job,
-            cli_args=[book_page.image],
-        ).queue()
-        if not job:
-            # This isn't critical, just log a message.
-            LOG.error(
-                'Failed to create job to delete img: %s', book_page.image)
+        on_delete_image(book_page.image)
         book_page.delete_record()
         db.commit()
         return dumps({"files": [{filename: True}]})
@@ -695,25 +686,21 @@ def creator_img_handler():
         if img_changed:
             if creator_record[img_field] is not None:
                 # Delete an existing image before it is replaced
-                job = DeleteImgQueuer(
-                    db.job,
-                    cli_args=[creator_record[img_field]],
-                ).queue()
-                if not job:
-                    # This isn't critical, just log a message.
-                    LOG.error(
-                        'Failed to create job to delete img: %s',
-                        creator_record[img_field]
-                    )
+                on_delete_image(creator_record[img_field])
                 data = {img_field: None}
                 creator_record.update_record(**data)
                 db.commit()
             if img_field == 'indicia_image':
                 # Clear the indicia png fields. This will trigger a rebuild
                 # in indicia_preview_urls
-                for f in ['indicia_portrait', 'indicia_landscape']:
-                    if creator_record[f] is not None:
-                        clear_creator_indicia(creator_record, field=f)
+                on_delete_image(creator_record['indicia_portrait'])
+                on_delete_image(creator_record['indicia_landscape'])
+                creator_record.update_record(
+                    indicia_portrait=None,
+                    indicia_landscape=None,
+                )
+                db.commit()
+
                 job = UpdateIndiciaQueuer(
                     db.job,
                     cli_args=[str(creator_record.id)],
@@ -729,7 +716,7 @@ def creator_img_handler():
         creator_record.update_record(**data)
         db.commit()
         if img_changed:
-            optimize_creator_images(creator_record)
+            on_add_image(creator_record[img_field])
         return image_as_json(db, creator_record.id, field=img_field)
 
     elif request.env.request_method == 'DELETE':
@@ -743,22 +730,12 @@ def creator_img_handler():
         )
         # Clear the images from the record
         data = {img_field: None}
-
-        job = DeleteImgQueuer(
-            db.job,
-            cli_args=[creator_record[img_field]],
-        ).queue()
-        if not job:
-            # This isn't critical, just log a message.
-            LOG.error(
-                'Failed to create job to delete img: %s',
-                creator_record[img_field]
-            )
-
+        on_delete_image(creator_record[img_field])
         if img_field == 'indicia_image':
-            for f in ['indicia_portrait', 'indicia_landscape']:
-                if creator_record[f] is not None:
-                    clear_creator_indicia(creator_record, field=f)
+            on_delete_image(creator_record['indicia_portrait'])
+            on_delete_image(creator_record['indicia_landscape'])
+            data['indicia_portrait'] = None
+            data['indicia_landscape'] = None
             job = UpdateIndiciaQueuer(
                 db.job,
                 cli_args=[str(creator_record.id)],
