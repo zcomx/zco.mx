@@ -8,7 +8,6 @@ Script to update a creator's indicia.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-import datetime
 import logging
 from optparse import OptionParser
 from applications.zcomx.modules.indicias import \
@@ -20,28 +19,6 @@ VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
 
 
-def modified(min_age, creator_id=None):
-    """Return a list of creator ids whose indicia images were modified.
-
-    Args:
-        min_age: minimum age of modification
-        creator_id: integer, only check this creator_id
-
-    Returns:
-        list of ids
-    """
-    ids = []
-    query = (db.creator.indicia_modified != None)
-    if creator_id is not None:
-        query = query & (db.creator.id == creator_id)
-    rows = db(query).select()
-    for r in rows:
-        age = (datetime.datetime.now() - r.indicia_modified).total_seconds()
-        if age >= min_age:
-            ids.append(r.id)
-    return ids
-
-
 def man_page():
     """Print manual page-like help"""
     print """
@@ -51,12 +28,9 @@ and stored in uploads subdirectories. These fields are updated.
     creator.indicia_landscape
 
 USAGE
-    update_creator_indicia.py [OPTIONS] id
+    update_creator_indicia.py [OPTIONS] id [id2 id3 ...]
 
     update_creator_indicia.py 101       # Create indicia for creator, id=101
-    update_creator_indicia.py --modified 3600
-                                # Create indicia for all creators
-                                # where indicia_modified over an hour ago
 
 OPTIONS
     -c, --clear
@@ -69,16 +43,11 @@ OPTIONS
     --man
         Print man page-like help.
 
-    -m AGE, --modified=AGE
-        Update all creators where the indicia image was modified. The
-        indicia_modified field has to be set and at least AGE seconds old.
-
     -o, --optimize
         Optimize images. This takes longer.
 
     -r, --resize
         Create resized versions of images. This takes longer.
-
 
     -v, --verbose
         Print information messages to stdout.
@@ -91,7 +60,7 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] creator_id'
+    usage = '%prog [options] creator_id [creator_id_2 creator_id_3 ...]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -103,11 +72,6 @@ def main():
         '--man',
         action='store_true', dest='man', default=False,
         help='Display manual page-like help and exit.',
-    )
-    parser.add_option(
-        '-m', '--modified', type='int',
-        dest='modified', default=None,
-        help='Optimize the images.',
     )
     parser.add_option(
         '-o', '--optimize',
@@ -143,26 +107,18 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if options.modified is None and len(args) < 1:
+    if len(args) < 1:
         parser.print_help()
         exit(1)
 
     ids = []
-    record_id = None
-    if args:
+    for arg in args:
         try:
-            record_id = int(args[0])
+            record_id = int(arg)
         except (TypeError, ValueError):
-            record_id = 0
-
-        if not record_id:
-            print 'No creator found, id: {i}'.format(i=args[0])
+            print 'Invalid creator id: {i}'.format(i=arg)
             quit(1)
-
-    if options.modified is not None:
-        ids = modified(options.modified, creator_id=record_id)
-    else:
-        ids = [record_id]
+        ids.append(record_id)
 
     for creator_id in ids:
         creator = entity_to_row(db.creator, creator_id)
@@ -180,8 +136,6 @@ def main():
                 resize=options.resize,
                 optimize=options.optimize
             )
-        creator.update_record(indicia_modified=None)
-        db.commit()
 
 
 if __name__ == '__main__':

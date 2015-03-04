@@ -12,6 +12,8 @@ from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.images import queue_optimize
+from applications.zcomx.modules.job_queue import \
+    UpdateIndiciaQueuer
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -50,11 +52,21 @@ def add_creator(form):
         creator_id = db.creator.insert(
             auth_user_id=auth_user.id,
             email=auth_user.email,
-            indicia_modified=current.request.now,     # Trigger update of
-                                                      # indicia_* fields
         )
         db.commit()
         on_change_name(creator_id)
+
+        # Create the default indicia for the creator
+        job = UpdateIndiciaQueuer(
+            db.job,
+            cli_args=[str(creator_id)],
+        ).queue()
+        if not job:
+            # This isn't critical, just log a message.
+            LOG.error(
+                'Failed to create job to update indicia: %s',
+                creator_id
+            )
 
 
 def book_for_contributions(db, creator_entity):

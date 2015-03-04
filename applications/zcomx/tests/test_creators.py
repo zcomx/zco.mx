@@ -6,7 +6,6 @@
 Test suite for zcomx/modules/creators.py
 
 """
-import datetime
 import os
 import shutil
 import time
@@ -136,13 +135,14 @@ class TestFunctions(LocalTestCase):
         self._objects.append(creator)
         self.assertEqual(creator.email, email)
         self.assertEqual(creator.auth_user_id, user.id)
-        self.assertAlmostEqual(
-            creator.indicia_modified,
-            datetime.datetime.now(),
-            delta=datetime.timedelta(minutes=1)
-        )
         self.assertEqual(creator.path_name, 'First Last')
         self.assertEqual(creator.urlify_name, 'first-last')
+        query = (db.job.command.like(
+            '%update_creator_indicia.py -o -r {i}'.format(i=creator.id)))
+        jobs = db(query).select()
+        self.assertEqual(len(jobs), 1)
+        jobs[0].delete_record()
+        db.commit()
 
         before = db(db.creator).count()
         add_creator(form)
@@ -343,7 +343,8 @@ class TestFunctions(LocalTestCase):
 
     def test__image_as_json(self):
         db.creator.image.uploadfolder = self._uploadfolders['image']
-        db.creator.indicia_image.uploadfolder = self._uploadfolders['indicia_image']
+        db.creator.indicia_image.uploadfolder = \
+            self._uploadfolders['indicia_image']
 
         email = web.username
         user = db(db.auth_user.email == email).select().first()
@@ -356,9 +357,11 @@ class TestFunctions(LocalTestCase):
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
         if not creator.image:
-            raise SyntaxError('Creator has no image, email: {e}'.format(e=email))
+            raise SyntaxError(
+                'Creator has no image, email: {e}'.format(e=email))
         if not creator.indicia_image:
-            raise SyntaxError('Creator has no indicia image, email: {e}'.format(e=email))
+            raise SyntaxError(
+                'Creator has no indicia image, email: {e}'.format(e=email))
 
         self.assertTrue(creator)
 
@@ -565,8 +568,6 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(short_url(t[0]), t[1])
 
     def test__torrent_link(self):
-        empty = '<span></span>'
-
         creator = self.add(db.creator, dict(
             email='test__torrent_linke@example.com',
             path_name='First Last'

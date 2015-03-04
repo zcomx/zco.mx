@@ -29,6 +29,7 @@ PRIORITIES = [
     # Lowest
     'delete_img',
     'delete_book',
+    'update_creator_indicia',
     'optimize_img',
     'release_book',
     'create_torrent',
@@ -621,6 +622,23 @@ class ReleaseBookQueuer(JobQueuer):
     valid_cli_options = [
         '-m', '--max-requeues',
         '-r', '--requeues',
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
+class UpdateIndiciaQueuer(JobQueuer):
+    """Class representing a queuer for update_creator_indicia jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'update_creator_indicia.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('update_creator_indicia'),
+        'status': 'a',
+    }
+    default_cli_options = {'-o': True, '-r': True}
+    valid_cli_options = [
+        '-c', '--clear',
+        '-o', '--optimize',
+        '-r', '--resize',
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal

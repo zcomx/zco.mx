@@ -32,7 +32,8 @@ from applications.zcomx.modules.indicias import \
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
     DeleteImgQueuer, \
-    ReleaseBookQueuer
+    ReleaseBookQueuer, \
+    UpdateIndiciaQueuer
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.utils import \
@@ -713,10 +714,16 @@ def creator_img_handler():
                 for f in ['indicia_portrait', 'indicia_landscape']:
                     if creator_record[f] is not None:
                         clear_creator_indicia(creator_record, field=f)
-                # Set that indicia was modified. This will trigger a
-                # resize/optimize by cron later.
-                creator_record.update_record(indicia_modified=request.now)
-                db.commit()
+                job = UpdateIndiciaQueuer(
+                    db.job,
+                    cli_args=[str(creator_record.id)],
+                ).queue()
+                if not job:
+                    # This isn't critical, just log a message.
+                    LOG.error(
+                        'Failed to create job to update indicia: %s',
+                        creator_record.id
+                    )
 
         data = {img_field: stored_filename}
         creator_record.update_record(**data)
@@ -752,7 +759,16 @@ def creator_img_handler():
             for f in ['indicia_portrait', 'indicia_landscape']:
                 if creator_record[f] is not None:
                     clear_creator_indicia(creator_record, field=f)
-            data['indicia_modified'] = request.now
+            job = UpdateIndiciaQueuer(
+                db.job,
+                cli_args=[str(creator_record.id)],
+            ).queue()
+            if not job:
+                # This isn't critical, just log a message.
+                LOG.error(
+                    'Failed to create job to update indicia: %s',
+                    creator_record.id
+                )
         db(db.creator.id == creator_record.id).update(**data)
         db.commit()
         return dumps({"files": [{filename: 'true'}]})

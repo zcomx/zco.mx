@@ -31,7 +31,8 @@ from applications.zcomx.modules.job_queue import \
     QueueLockedError, \
     QueueLockedExtendedError, \
     QueueWithSignal, \
-    ReleaseBookQueuer
+    ReleaseBookQueuer, \
+    UpdateIndiciaQueuer
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     TableTracker
@@ -831,6 +832,28 @@ class TestReleaseBookQueuer(LocalTestCase):
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/release_book.py --requeues 4 -m 10 123'
+        )
+
+
+class TestUpdateIndiciaQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = UpdateIndiciaQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/update_creator_indicia.py -o -r 123'
         )
 
 
