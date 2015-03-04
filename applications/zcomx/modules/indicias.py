@@ -1406,30 +1406,6 @@ def cc_licences(book_entity):
     )
 
 
-def clear_creator_indicia(creator, field=None):
-    """Clear indicia for creator.
-
-    Args:
-        creator: creator Row instance
-    Returns:
-        creator
-    """
-    db = current.app.db
-    if field is not None:
-        fields = [field]
-    else:
-        fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
-
-    data = {}
-    for field in fields:
-        if creator[field]:
-            on_delete_image(creator[field])
-            data[field] = None
-
-    creator.update_record(**data)
-    db.commit()
-
-
 def create_creator_indicia(creator, resize=False, optimize=False):
     """Create indicia for creator.
 
@@ -1442,7 +1418,11 @@ def create_creator_indicia(creator, resize=False, optimize=False):
     data = {}
     for orientation in ['portrait', 'landscape']:
         field = 'indicia_{o}'.format(o=orientation)
-        clear_creator_indicia(creator, field=field)
+        # Delete existing
+        if creator[field]:
+            on_delete_image(creator[field])
+            creator.update_record(field=None)
+            db.commit()
         png_page = CreatorIndiciaPagePng(creator)
         png = png_page.create(orientation=orientation)
         stored_filename = store(

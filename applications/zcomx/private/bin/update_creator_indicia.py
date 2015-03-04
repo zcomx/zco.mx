@@ -10,13 +10,34 @@ Script to update a creator's indicia.
 # pylint: disable=W0404
 import logging
 from optparse import OptionParser
+from applications.zcomx.modules.images import on_delete_image
 from applications.zcomx.modules.indicias import \
-    clear_creator_indicia, \
     create_creator_indicia
 from applications.zcomx.modules.utils import entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
+
+
+def clear_creator_indicia(creator):
+    """Clear indicia for creator.
+
+    Args:
+        creator: creator Row instance
+    Returns:
+        creator
+    """
+    db = current.app.db
+    fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
+
+    data = {}
+    for field in fields:
+        if creator[field]:
+            on_delete_image(creator[field])
+            data[field] = None
+
+    creator.update_record(**data)
+    db.commit()
 
 
 def man_page():

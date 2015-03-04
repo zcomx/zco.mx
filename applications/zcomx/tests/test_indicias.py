@@ -21,6 +21,7 @@ from applications.zcomx.modules.books import short_url as book_short_url
 from applications.zcomx.modules.creators import short_url as creator_short_url
 from applications.zcomx.modules.images import \
     UploadImage, \
+    on_delete_image, \
     store
 from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
@@ -34,7 +35,6 @@ from applications.zcomx.modules.indicias import \
     cc_licence_by_code, \
     cc_licence_places, \
     cc_licences, \
-    clear_creator_indicia, \
     create_creator_indicia, \
     render_cc_licence, \
     update_creator_indicia
@@ -1882,84 +1882,6 @@ class TestFunctions(ImageTestCase):
             cc_licence = db(query).select().first()
             self.assertEqual(cc_licence.code, d['text'])
 
-    def test__clear_creator_indicia(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-        fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
-
-        def exists(field, img_name):
-            _, f = db.creator[field].retrieve(img_name, nameonly=True)
-            return os.path.exists(f)
-
-        # Test cleared
-        self._creator.update_record(
-            indicia_image=None,
-            indicia_portrait=None,
-            indicia_landscap=None,
-        )
-        db.commit()
-
-        clear_creator_indicia(self._creator)
-
-        creator = entity_to_row(db.creator, self._creator.id)
-        for f in fields:
-            # Field is cleared
-            self.assertEqual(creator[f], None)
-
-        filename = self._prep_image('cbz_plus.png')
-        indicia_image = store(db.creator.indicia_image, filename)
-        self._creator.update_record(
-            indicia_image=indicia_image,
-        )
-        db.commit()
-        create_creator_indicia(self._creator)
-
-        creator_1 = entity_to_row(db.creator, self._creator.id)
-        # Prove images exist
-        for f in fields:
-            # Field is not clear
-            self.assertNotEqual(creator_1[f], None)
-            # Prove image exists
-            self.assertTrue(exists(f, creator_1[f]))
-
-        # Clear single field
-        clear_creator_indicia(self._creator, field='indicia_portrait')
-        creator_2 = entity_to_row(db.creator, self._creator.id)
-        for f in fields:
-            if f == 'indicia_portrait':
-                # Field is cleared
-                self.assertEqual(creator_2[f], None)
-                # Prove images no longer exist
-                # Use creator_1 since it will have the original image names
-                # saved.
-                self.assertFalse(exists(f, creator_1[f]))
-            else:
-                # Field is not clear
-                self.assertNotEqual(creator_1[f], None)
-                # Prove image exists
-                self.assertTrue(exists(f, creator_1[f]))
-
-        # Reset
-        create_creator_indicia(self._creator)
-        creator_1 = entity_to_row(db.creator, self._creator.id)
-        # Prove images exist
-        for f in fields:
-            # Field is not clear
-            self.assertNotEqual(creator_1[f], None)
-            # Prove image exists
-            self.assertTrue(exists(f, creator_1[f]))
-
-        # Clear all fields
-        clear_creator_indicia(self._creator)
-        creator_3 = entity_to_row(db.creator, self._creator.id)
-        for f in fields:
-            # Field is cleared
-            self.assertEqual(creator_3[f], None)
-            # Prove images no longer exist
-            # Use creator_1 since it will have the original image names
-            # saved.
-            self.assertFalse(exists(f, creator_1[f]))
-
     def test__create_creator_indicia(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
@@ -2000,7 +1922,17 @@ class TestFunctions(ImageTestCase):
             # Prove image exists
             self.assertTrue(exists(f, creator_1[f]))
 
-        clear_creator_indicia(self._creator)
+        # Cleanup
+        fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
+        for field in fields:
+            if creator_1[field]:
+                on_delete_image(creator_1[field])
+        creator_1.update_record(
+            indicia_image=None,
+            indicia_portrait=None,
+            indicia_landscape=None,
+        )
+        db.commit()
 
     def test__render_cc_licence(self):
 
