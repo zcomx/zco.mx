@@ -11,7 +11,6 @@ from gluon import *
 from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
 from applications.zcomx.modules.files import FileName
-from applications.zcomx.modules.images import queue_optimize
 from applications.zcomx.modules.job_queue import \
     UpdateIndiciaQueuer
 from applications.zcomx.modules.utils import \
@@ -385,9 +384,10 @@ def torrent_url(creator_entity, **url_kwargs):
             the creator. The creator record is read.
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
-        string, url, eg http://zco.mx/torrents/download/creator/123
-            (routes_out should convert it to
-                http://zco.mx/Firstname Lastname (123.zco.mx).torrent)
+        string, url, eg
+            http://zco.mx/torrents/route/First Last (123.zco.mx).torrent
+            routes_out should convert it to
+                http://zco.mx/First Last (123.zco.mx).torrent)
     """
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)
@@ -395,12 +395,15 @@ def torrent_url(creator_entity, **url_kwargs):
         raise NotFoundError('Creator not found, id: {e}'.format(
             e=creator_entity))
 
+    if not creator.torrent:
+        return
+
     kwargs = {}
     kwargs.update(url_kwargs)
     return URL(
         c='torrents',
-        f='download',
-        args=['creator', creator.id],
+        f='route',
+        args=os.path.basename(creator.torrent),
         **kwargs
     )
 

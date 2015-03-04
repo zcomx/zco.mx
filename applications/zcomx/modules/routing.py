@@ -7,7 +7,6 @@ Routing classes and functions.
 """
 import logging
 import os
-import urllib
 from gluon import *
 from gluon.html import A, SPAN
 from gluon.storage import Storage
@@ -246,12 +245,19 @@ class Router(object):
                     )
                 break
 
-        u = page_url(url_page_record, host=True)
-        urls.page = urllib.unquote(u) if url_page_record and u else None
-        u = book_url(url_book_record, host=True)
-        urls.book = urllib.unquote(u) if url_book_record and u else None
-        u = creator_url(url_creator_record, host=True)
-        urls.creator = urllib.unquote(u) if url_creator_record and u else None
+        urls.suggestions = []
+        urls.suggestions.append({
+            'label': 'Creator page:',
+            'url': creator_url(url_creator_record, host=True),
+        })
+        urls.suggestions.append({
+            'label': 'Book page:',
+            'url': book_url(url_book_record, host=True),
+        })
+        urls.suggestions.append({
+            'label': 'Read:',
+            'url': page_url(url_page_record, host=True),
+        })
         message = 'The requested page was not found on this server.'
 
         self.view_dict = dict(urls=urls, message=message)

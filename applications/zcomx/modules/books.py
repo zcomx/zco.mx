@@ -1211,6 +1211,38 @@ def short_url(book_entity):
     return urlparse.urljoin(url_for_creator, name)
 
 
+def torrent_url(book_entity, **url_kwargs):
+    """Return the url to the torrent file for the book.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+        url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
+    Returns:
+        string, url, eg
+            http://zco.mx/torrents/route/My Book 001 (123.zco.mx).torrent
+            routes_out should convert it to
+                http://zco.mx/My Book 001 (123.zco.mx).torrent)
+    """
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        raise NotFoundError('Creator not found, id: {e}'.format(
+            e=book_entity))
+
+    if not book.torrent:
+        return
+
+    kwargs = {}
+    kwargs.update(url_kwargs)
+    return URL(
+        c='torrents',
+        f='route',
+        args=os.path.basename(book.torrent),
+        **kwargs
+    )
+
+
 def unoptimized_images(book_entity):
     """Return a list of unoptimized images related to a book.
 
