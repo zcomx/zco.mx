@@ -2206,9 +2206,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
     vertical-align: middle;
     width: 24em;
 }
+
 #edit_links_container .field_label {
     margin-left: -0.3em;
     width: 12em;
+}
+
+#edit_links_container .field_container a {
+    white-space: nowrap;
 }
 
 .doc_section {

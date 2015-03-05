@@ -201,6 +201,7 @@ class TestFunctions(LocalTestCase):
             self.titles['page_not_found']
         ))
 
+
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
