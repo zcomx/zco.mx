@@ -9,13 +9,27 @@
     <dd>
         <ul class="breadcrumb pipe_delimiter">
             <li>
-             <a href="{{=torrent_url(book)}}">torrent</a>
+             <a href="{{=torrent_url(book)}}" class="log_download_link">torrent</a>
             </li>
             <li>
-                <a href="{{=magnet_uri(book)}}">dc</a>
+                <a href="{{=magnet_uri(book)}}" class="log_download_link">dc</a>
             </li>
         </ul>
     </dd>
 </dl>
 
 </div>
+
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('.log_download_link').log_download_link(
+            {{=book.id}},
+            {
+                formkey: '{{=form.formkey}}',
+                formname: '{{=form.formname}}'
+            }
+        );
+    });
+//]]>
+</script>

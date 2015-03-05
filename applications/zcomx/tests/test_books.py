@@ -22,6 +22,7 @@ from gluon.storage import Storage
 from applications.zcomx.modules.books import \
     BookEvent, \
     ContributionEvent, \
+    DownloadEvent, \
     RatingEvent, \
     ViewEvent, \
     DEFAULT_BOOK_TYPE, \
@@ -145,6 +146,31 @@ class TestContributionEvent(EventTestCase):
         self.assertAlmostEqual(book.contributions_remaining, 0.00)
 
 
+class TestDownloadEvent(EventTestCase):
+    def test____init__(self):
+        event = DownloadEvent(self._book, self._user.id)
+        self.assertTrue(event)
+
+    def test__log(self):
+        update_rating(db, self._book)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertEqual(book.downloads, 0)
+
+        event = DownloadEvent(self._book, self._user.id)
+        event_id = event.log()
+
+        download = entity_to_row(db.download, event_id)
+        self.assertEqual(download.id, event_id)
+        self.assertAlmostEqual(
+            download.time_stamp,
+            datetime.datetime.now(),
+            delta=datetime.timedelta(minutes=1)
+        )
+        self._objects.append(download)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertEqual(book.downloads, 1)
+
+
 class TestRatingEvent(EventTestCase):
     def test____init__(self):
         event = RatingEvent(self._book, self._user.id)
@@ -153,7 +179,7 @@ class TestRatingEvent(EventTestCase):
     def test__log(self):
         update_rating(db, self._book)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.rating, 0)
+        self.assertEqual(book.rating, 0)
 
         event = RatingEvent(self._book, self._user.id)
 
@@ -161,7 +187,7 @@ class TestRatingEvent(EventTestCase):
         event_id = event.log()
         self.assertFalse(event_id)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.rating, 0)
+        self.assertEqual(book.rating, 0)
 
         event_id = event.log(5)
         rating = entity_to_row(db.rating, event_id)
@@ -174,7 +200,7 @@ class TestRatingEvent(EventTestCase):
         self.assertEqual(rating.amount, 5)
         self._objects.append(rating)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.rating, 5)
+        self.assertEqual(book.rating, 5)
 
 
 class TestViewEvent(EventTestCase):
@@ -185,7 +211,7 @@ class TestViewEvent(EventTestCase):
     def test__log(self):
         update_rating(db, self._book)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.views, 0)
+        self.assertEqual(book.views, 0)
 
         event = ViewEvent(self._book, self._user.id)
         event_id = event.log()
@@ -199,7 +225,7 @@ class TestViewEvent(EventTestCase):
         )
         self._objects.append(view)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.views, 1)
+        self.assertEqual(book.views, 1)
 
 
 class ImageTestCase(LocalTestCase):
@@ -917,6 +943,8 @@ class TestFunctions(ImageTestCase):
 
         book = self.add(db.book, dict(
             name='test__download_link',
+            cbz='_test_cbz_',
+            torrent='_test_torrent_',
         ))
 
         # As integer, book_id
@@ -943,6 +971,22 @@ class TestFunctions(ImageTestCase):
         # Invalid id
         link = download_link(db, -1)
         self.assertEqual(str(link), empty)
+
+        # No cbz
+        book.update_record(cbz=None, torrent='_test_torrent_')
+        db.commit()
+        link = download_link(db, book)
+        self.assertEqual(str(link), empty)
+
+        # No torrent
+        book.update_record(cbz='_test_cbz_', torrent=None)
+        db.commit()
+        link = download_link(db, book)
+        self.assertEqual(str(link), empty)
+
+        # reset
+        book.update_record(cbz='_test_cbz_', torrent='_test_torrent_')
+        db.commit()
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -1855,6 +1899,7 @@ class TestFunctions(ImageTestCase):
             book_record.update_record(
                 contributions=0,
                 contributions_remaining=0,
+                downloads=0,
                 views=0,
                 rating=0,
             )
@@ -1870,6 +1915,7 @@ class TestFunctions(ImageTestCase):
             r = db(query).select(
                 db.book.contributions,
                 db.book.contributions_remaining,
+                db.book.downloads,
                 db.book.views,
                 db.book.rating,
             ).first()
@@ -1885,6 +1931,7 @@ class TestFunctions(ImageTestCase):
         expect = Storage(dict(
             contributions=0,
             contributions_remaining=100.00,
+            downloads=0,
             views=0,
             rating=0,
         ))
@@ -1895,6 +1942,9 @@ class TestFunctions(ImageTestCase):
             (db.contribution, 0, 11.11),
             (db.contribution, 100, 22.22),
             (db.contribution, 500, 44.44),
+            (db.download, 0, None),
+            (db.download, 100, None),
+            (db.download, 500, None),
             (db.rating, 0, 1.1),
             (db.rating, 100, 2.2),
             (db.rating, 500, 4.4),
@@ -1914,6 +1964,7 @@ class TestFunctions(ImageTestCase):
         zero(expect)
         expect.contributions = 77.77
         expect.contributions_remaining = 22.23   # 100.00 - (11.11+22.22+44.44)
+        expect.downloads = 3
         expect.rating = 2.56666666                # Avg of 1.1, 2.2, and 4.4
         expect.views = 3
         do_test(book, None, expect)
@@ -1924,6 +1975,13 @@ class TestFunctions(ImageTestCase):
         zero(expect)
         expect.contributions = 77.77
         expect.contributions_remaining = 22.23   # 100.00 - (11.11+22.22+44.44)
+        do_test(book, rating, expect)
+
+        # Test rating='download'
+        rating = 'download'
+        reset(book)
+        zero(expect)
+        expect.downloads = 3
         do_test(book, rating, expect)
 
         # Test rating='rating'

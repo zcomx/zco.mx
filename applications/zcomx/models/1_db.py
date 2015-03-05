@@ -276,6 +276,19 @@ db.define_table('book_type',
     migrate=True,
 )
 
+db.define_table('book_view',
+    Field(
+        'auth_user_id',
+        'integer',
+    ),
+    Field(
+        'book_id',
+        'integer',
+    ),
+    Field('time_stamp', 'datetime'),
+    migrate=True,
+)
+
 db.define_table('cc_licence',
     Field('number', 'integer'),
     Field('code'),
@@ -472,6 +485,19 @@ db.define_table('derivative',
         default=request.now.year,
         label='To',
     ),
+    migrate=True,
+)
+
+db.define_table('download',
+    Field(
+        'auth_user_id',
+        'integer',
+    ),
+    Field(
+        'book_id',
+        'integer',
+    ),
+    Field('time_stamp', 'datetime'),
     migrate=True,
 )
 
@@ -701,19 +727,6 @@ db.define_table('rating',
     migrate=True,
 )
 
-db.define_table('book_view',
-    Field(
-        'auth_user_id',
-        'integer',
-    ),
-    Field(
-        'book_id',
-        'integer',
-    ),
-    Field('time_stamp', 'datetime'),
-    migrate=True,
-)
-
 db.book.book_type_id.requires = IS_IN_DB(
     db,
     db.book_type.id,
@@ -729,6 +742,20 @@ db.book.creator_id.requires = IS_IN_DB(
 )
 
 db.book_page.book_id.requires = IS_IN_DB(
+    db,
+    db.book.id,
+    '%(name)s',
+    zero=None
+)
+
+db.book_view.auth_user_id.requires = IS_IN_DB(
+    db,
+    db.auth_user.id,
+    '%(last_name)s, %(first_name)s',
+    zero=None
+)
+
+db.book_view.book_id.requires = IS_IN_DB(
     db,
     db.book.id,
     '%(name)s',
@@ -756,6 +783,20 @@ db.creator.auth_user_id.requires = IS_IN_DB(
     zero=None
 )
 
+db.download.auth_user_id.requires = IS_IN_DB(
+    db,
+    db.auth_user.id,
+    '%(last_name)s, %(first_name)s',
+    zero=None
+)
+
+db.download.book_id.requires = IS_IN_DB(
+    db,
+    db.book.id,
+    '%(name)s',
+    zero=None
+)
+
 db.page_comment.book_page_id.requires = IS_IN_DB(
     db,
     db.book_page.id,
@@ -776,16 +817,3 @@ db.rating.book_id.requires = IS_IN_DB(
     zero=None
 )
 
-db.book_view.auth_user_id.requires = IS_IN_DB(
-    db,
-    db.auth_user.id,
-    '%(last_name)s, %(first_name)s',
-    zero=None
-)
-
-db.book_view.book_id.requires = IS_IN_DB(
-    db,
-    db.book.id,
-    '%(name)s',
-    zero=None
-)

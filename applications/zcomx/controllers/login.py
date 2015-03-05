@@ -42,6 +42,9 @@ from applications.zcomx.modules.utils import \
 
 LOG = logging.getLogger('app')
 
+MODAL_ERROR = lambda msg: redirect(
+    URL(c='default', f='modal_error', vars={'message': msg}))
+
 
 @auth.requires_login()
 def account():
@@ -233,14 +236,13 @@ def book_delete():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('modal_error', vars={'message': 'Permission denied'}))
+        MODAL_ERROR('Permission denied')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
-        redirect(
-            URL('modal_error', vars={'message': 'Invalid data provided'}))
+        MODAL_ERROR('Invalid data provided')
 
     return dict(book=book_record)
 
@@ -255,7 +257,7 @@ def book_edit():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('modal_error', vars={'message': 'Permission denied'}))
+        MODAL_ERROR('Permission denied')
 
     book_record = None
     if request.args(0):
@@ -321,19 +323,17 @@ def book_pages():
 
     request.args(0): integer, id of book.
     """
-    # Verify user is legit
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('modal_error', vars={'message': 'Permission denied'}))
+        MODAL_ERROR('Permission denied')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
-        redirect(
-            URL('modal_error', vars={'message': 'Invalid data provided'}))
+        MODAL_ERROR('Invalid data provided')
 
     read_button = read_link(
         db,
@@ -484,14 +484,13 @@ def book_release():
         db.creator.ALL
     ).first()
     if not creator_record:
-        redirect(URL('modal_error', vars={'message': 'Permission denied'}))
+        MODAL_ERROR('Permission denied')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
     if not book_record or book_record.creator_id != creator_record.id:
-        redirect(
-            URL('modal_error', vars={'message': 'Invalid data provided'}))
+        MODAL_ERROR('Invalid data provided')
 
     return dict(
         book=book_record,
@@ -1311,15 +1310,6 @@ def metadata_text():
         return do_error('Invalid data provided')
     meta.load()
     return {'status': 'ok', 'text': str(meta)}
-
-
-@auth.requires_login()
-def modal_error():
-    """Controller for displaying error messages within modal.
-
-    request.vars.message: string, error message
-    """
-    return dict(message=request.vars.message)
 
 
 @auth.requires_login()

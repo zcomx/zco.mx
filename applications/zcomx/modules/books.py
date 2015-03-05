@@ -76,6 +76,24 @@ class ContributionEvent(BookEvent):
         return event_id
 
 
+class DownloadEvent(BookEvent):
+    """Class representing a book download event."""
+
+    def __init__(self, book_entity, user_id):
+        BookEvent.__init__(self, book_entity, user_id)
+
+    def log(self, value=None):
+        db = current.app.db
+        event_id = db.download.insert(
+            auth_user_id=self.user_id or 0,
+            book_id=self.book.id,
+            time_stamp=datetime.datetime.now()
+        )
+        db.commit()
+        update_rating(db, self.book, rating='download')
+        return event_id
+
+
 class RatingEvent(BookEvent):
     """Class representing a book rating event."""
 
@@ -607,6 +625,8 @@ def download_link(db, book_entity, components=None, **attributes):
 
     book = entity_to_row(db.book, book_entity)
     if not book:
+        return empty
+    if not book.cbz or not book.torrent:
         return empty
 
     if not components:
@@ -1415,6 +1435,9 @@ def update_rating(db, book_entity, rating=None):
         'contribution': [
             # (book field, data field, function, format)
             (db.book.contributions, db.contribution.amount, 'sum'),
+        ],
+        'download': [
+            (db.book.downloads, db.download.id, 'count'),
         ],
         'rating': [
             (db.book.rating, db.rating.amount, 'avg'),

@@ -54,6 +54,7 @@ DEFAULT_FUNCTIONS = '|'.join([
     'faqc',
     'files',
     'logos',
+    'modal_error',
     'monies',
     'overview',
     'todo',

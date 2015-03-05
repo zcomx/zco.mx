@@ -233,6 +233,14 @@ def logos():
     return dict(expose=expose)
 
 
+def modal_error():
+    """Controller for displaying error messages within modal.
+
+    request.vars.message: string, error message
+    """
+    return dict(message=request.vars.message)
+
+
 def monies():
     """Controller for front page with contribute modal open."""
     redirect(URL(c='search', f='index', vars={'contribute': 1}))

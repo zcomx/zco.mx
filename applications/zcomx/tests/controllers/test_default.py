@@ -32,6 +32,7 @@ class TestFunctions(LocalTestCase):
         'files': '<div id="files_page">',
         'index': '<div id="front_page">',
         'logos': '<h1>Logos</h1>',
+        'modal_error': 'An error occurred. Please try again.',
         'overview': '<h1>Overview</h1>',
         'page_not_found': '<h3>Page not found</h3>',
         'todo': '<h1>TODO</h1>',
@@ -129,6 +130,14 @@ class TestFunctions(LocalTestCase):
             '{url}/logos'.format(url=self.url),
             self.titles['logos']
         ))
+
+    def test__modal_error(self):
+        self.assertTrue(
+            web.test(
+                '{url}/modal_error'.format(url=self.url),
+                self.titles['modal_error']
+            )
+        )
 
     def test__monies(self):
         self.assertTrue(web.test(

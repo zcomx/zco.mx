@@ -80,7 +80,6 @@ class TestFunctions(LocalTestCase):
             'order_no_handler/book_to_link',
         ],
         'metadata_poc': '<h2>Metadata POC</h2>',
-        'modal_error': 'An error occurred. Please try again.',
         'order_no_handler': '<div id="creator_page">',
         'profile': '<div id="creator_section">',
     }
@@ -435,6 +434,8 @@ class TestFunctions(LocalTestCase):
         query = (db.optimize_img_log.image == book_page.image)
         log_count = db(query).count()
         self.assertTrue(job_count == 1 or log_count == 0)
+
+        self._objects.append(book_page)
 
     def test__book_post_image_upload(self):
         # No book_id, return fail message
@@ -887,7 +888,10 @@ class TestFunctions(LocalTestCase):
         def get_records(table, book_id):
             """Return a book"""
             query = (table.book_id == book_id)
-            return db(query).select(table.ALL)
+            rows = db(query).select(table.ALL)
+            for r in rows:
+                self._objects.append(r)
+            return rows
 
         self.assertEqual(len(get_records(db.publication_metadata, book.id)), 0)
         self.assertEqual(len(get_records(db.publication_serial, book.id)), 0)
@@ -1022,14 +1026,6 @@ class TestFunctions(LocalTestCase):
         result = loads(web.text)
         self.assertEqual(result['status'], 'error')
         self.assertEqual(result['msg'], 'Invalid data provided')
-
-    def test__modal_error(self):
-        self.assertTrue(
-            web.test(
-                '{url}/modal_error'.format(url=self.url),
-                self.titles['modal_error']
-            )
-        )
 
     def test__profile(self):
         self.assertTrue(
