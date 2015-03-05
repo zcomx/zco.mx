@@ -10,6 +10,7 @@ import os
 import shutil
 import subprocess
 import unittest
+import zipfile
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.books import DEFAULT_BOOK_TYPE
@@ -112,7 +113,7 @@ class ImageTestCase(LocalTestCase):
         query = (db.book_type.name == DEFAULT_BOOK_TYPE)
         book_type_id = db(query).select().first().id
         cls._book = cls.add(db.book, dict(
-            name='Image Test Case',
+            name='My CBZ Test',
             creator_id=cls._creator.id,
             book_type_id=book_type_id
         ))
@@ -427,6 +428,21 @@ class TestCBZCreator(ImageTestCase):
         files_comment = 'Files: {c}'.format(c=pages + 1)    # +1 for indicia
         self.assertTrue(files_comment in p_stdout)
 
+        zipper = zipfile.ZipFile(zip_file)
+        self.assertEqual(
+            zipper.comment,
+            '2015|Jim Karsten|My CBZ Test||http://{cid}.zco.mx'.format(
+                cid=self._creator.id)
+        )
+
+    def test__working_directory(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+        creator = CBZCreator(self._book)
+        work_dir = creator.working_directory()
+        self.assertTrue(os.path.exists(work_dir))
+        self.assertEqual(os.path.basename(work_dir), self._book.name)
+
     def test__zip(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
@@ -471,7 +487,7 @@ class TestFunctions(ImageTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             cbz_filename,
-            '/tmp/cbz_archive/cbz/zco.mx/J/Jim Karsten/Image Test Case (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
+            '/tmp/cbz_archive/cbz/zco.mx/J/Jim Karsten/My CBZ Test (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
         )
 
         book = entity_to_row(db.book, self._book.id)
