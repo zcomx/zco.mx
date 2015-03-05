@@ -16,21 +16,21 @@ _check_files() {
     r1='JPEG|PNG'
     identify "$i" &>/dev/null || _me "$i is not an image or image is corrupt"
     identify -regard-warnings -format "%g" "$i" &>/dev/null || _me "$i is corrupt"
-    ext=$(identify -format '%m' "$i"[0] 2>/dev/null)
-    [[ $ext =~ $r1 ]] || _me "$i is not a PNG or JPEG image"
+    ff=$(identify -format '%m' "$i"[0] 2>/dev/null)     ## determine file format
+    [[ $ff =~ $r1 ]] || _me "$i is not a PNG or JPEG image"
 }
 
 _optimize() {
-    [[ $ext == JPEG ]] && ext=jpg
-    i=${i,,}
-    [[ ${ext,,} == ${i##*.} ]] || _me "File extension for $i should be $ext"
+    [[ $ff == JPEG ]] && ff=JPG
+    ext=${i##*.}
+    [[ $ff == ${ext^^} ]] || _me "File extension of $i should be $ff"
 
     tmp=tmp.$RANDOM
-    if [[ ${i##*.} == png ]]; then
+    if [[ $ff == PNG ]]; then
         zopflipng "$i" "$tmp.png" >/dev/null || { break && _me "zopflipng failed on file: $i"; }
         [[ $tmp.png ]] && defluff < "$tmp.png" > "$i" 2>/dev/null
         rm "$tmp.png" &>/dev/null
-    elif [[ ${i##*.} == jpg ]]; then
+    elif [[ $ff == JPG ]]; then
         jpegoptim -q -s "$i" "$tmp.jpg" || { break && _me "jpegoptim failed on file: $i"; }
         [[ $tmp.jpg ]] && mv "$tmp.jpg" "$i" &>/dev/null
         rm "$tmp.jpg" &>/dev/null
