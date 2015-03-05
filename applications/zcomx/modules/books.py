@@ -15,13 +15,13 @@ from gluon.dal.objects import REGEX_STORE_PATTERN
 from gluon.storage import Storage
 from gluon.validators import urlify
 from gluon.contrib.simplejson import dumps
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url, \
     url_name as creator_url_name
 from applications.zcomx.modules.images import \
     ImgTag, \
-    UploadImage, \
     is_optimized, \
     queue_optimize
 from applications.zcomx.modules.shell_utils import tthsum
@@ -115,6 +115,85 @@ class ViewEvent(BookEvent):
         return event_id
 
 
+def book_page_for_json(db, book_page_id):
+    r"""Return the book_page formated as json suitable for jquery-file-upload.
+
+    Args:
+        db: gluon.dal.DAL instance
+        book_page_id: integer, the id of the book_page record
+
+    Returns:
+        dict, containing book_page data suitable for jquery-file-upload
+            {
+                "name": "picture1.jpg",
+                "size": 902604,
+                "url": "http:\/\/dom.org\/files\/picture1.jpg",
+                "thumbnailUrl": "http:\/\/dom.org\/files\/thumbnail\/pic1.jpg",
+                "deleteUrl": "http:\/\/dom.org\/files\/picture1.jpg",
+                "deleteType": "DELETE"
+            },
+    """
+    try:
+        page = BookPage(book_page_id)
+    except NotFoundError:
+        return
+
+    filename = page.upload_image().original_name()
+    size = page.upload_image().size()
+
+    down_url = URL(
+        c='images',
+        f='download',
+        args=page.book_page.image,
+    )
+
+    thumb = URL(
+        c='images',
+        f='download',
+        args=page.book_page.image,
+        vars={'size': 'web'},
+    )
+
+    delete_url = URL(
+        c='login',
+        f='book_pages_handler',
+        args=page.book_page.book_id,
+        vars={'book_page_id': page.book_page.id},
+    )
+
+    return dict(
+        book_id=page.book_page.book_id,
+        book_page_id=page.book_page.id,
+        name=filename,
+        size=size,
+        url=down_url,
+        thumbnailUrl=thumb,
+        deleteUrl=delete_url,
+        deleteType='DELETE',
+    )
+
+
+def book_pages(book_entity):
+    """Return a list of BookPage instances representing the pages in the book.
+
+    Args:
+
+    Returns:
+        list of BookPage instances
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    pages = []
+    query = (db.book_page.book_id == book_record.id)
+    rows = db(query).select(orderby=[db.book_page.page_no, db.book_page.id])
+    for page_entity in rows:
+        pages.append(BookPage(page_entity))
+    return pages
+
+
 def book_pages_as_json(db, book_id, book_page_ids=None):
     """Return the book pages formated as json suitable for jquery-file-upload.
 
@@ -143,71 +222,6 @@ def book_pages_as_json(db, book_id, book_page_ids=None):
     for record in records:
         pages.append(book_page_for_json(db, record.id))
     return dumps(dict(files=pages))
-
-
-def book_page_for_json(db, book_page_id):
-    r"""Return the book_page formated as json suitable for jquery-file-upload.
-
-    Args:
-        db: gluon.dal.DAL instance
-        book_page_id: integer, the id of the book_page record
-
-    Returns:
-        dict, containing book_page data suitable for jquery-file-upload
-            {
-                "name": "picture1.jpg",
-                "size": 902604,
-                "url": "http:\/\/dom.org\/files\/picture1.jpg",
-                "thumbnailUrl": "http:\/\/dom.org\/files\/thumbnail\/pic1.jpg",
-                "deleteUrl": "http:\/\/dom.org\/files\/picture1.jpg",
-                "deleteType": "DELETE"
-            },
-    """
-    query = (db.book_page.id == book_page_id)
-    book_page = db(query).select(db.book_page.ALL).first()
-    if not book_page:
-        return
-
-    filename, original_fullname = db.book_page.image.retrieve(
-        book_page.image,
-        nameonly=True,
-    )
-
-    try:
-        size = os.stat(original_fullname).st_size
-    except (KeyError, OSError):
-        size = 0
-
-    down_url = URL(
-        c='images',
-        f='download',
-        args=book_page.image,
-    )
-
-    thumb = URL(
-        c='images',
-        f='download',
-        args=book_page.image,
-        vars={'size': 'web'},
-    )
-
-    delete_url = URL(
-        c='login',
-        f='book_pages_handler',
-        args=book_page.book_id,
-        vars={'book_page_id': book_page.id},
-    )
-
-    return dict(
-        book_id=book_page.book_id,
-        book_page_id=book_page.id,
-        name=filename,
-        size=size,
-        url=down_url,
-        thumbnailUrl=thumb,
-        deleteUrl=delete_url,
-        deleteType='DELETE',
-    )
 
 
 def book_pages_years(book_entity):
@@ -829,23 +843,12 @@ def orientation(book_page_entity):
         book_page_entity: Row instance or integer, if integer, this is the id
             of the book_page. The book_page record is read.
     """
-    db = current.app.db
-    book_page = entity_to_row(db.book_page, book_page_entity)
-    if not book_page:
-        raise NotFoundError('book page not found, {e}'.format(
-            e=book_page_entity))
-    if not book_page.image:
+    page = BookPage(book_page_entity)
+    if not page.book_page.image:
         raise NotFoundError('Book page has no image, book_page.id {i}'.format(
-            i=book_page.id))
+            i=page.book_page.id))
 
-    up_image = UploadImage(db.book_page.image, book_page.image)
-    width, height = up_image.dimensions()
-    if width == height:
-        return 'square'
-    elif width > height:
-        return 'landscape'
-    else:
-        return 'portrait'
+    return page.upload_image().orientation()
 
 
 def page_url(book_page_entity, reader=None, **url_kwargs):
@@ -1030,6 +1033,8 @@ def release_barriers(book_entity):
 
     barriers = []
 
+    pages = book_pages(book_entity)
+
     # Book has no name
     if not book.name:
         barriers.append({
@@ -1044,9 +1049,8 @@ def release_barriers(book_entity):
             ]
         })
 
-    # Book has not pages
-    page_count = db(db.book_page.book_id == book.id).count()
-    if page_count == 0:
+    # Book has no pages
+    if len(pages) == 0:
         barriers.append({
             'code': 'no_pages',
             'reason': 'The book has no pages.',
@@ -1151,6 +1155,39 @@ def release_barriers(book_entity):
                 'Edit the book and set the publication metadata.',
             ]
         })
+
+    # Images are wide enough.
+    if pages:
+        small_images = []
+        min_width = BookPage.min_cbz_width
+        for page in pages:
+            dims = page.upload_image().dimensions(size='cbz')
+            if not dims:
+                dims = page.upload_image().dimensions(size='original')
+            width, unused_h = dims
+            if width < min_width:
+                original_name = page.upload_image().original_name()
+                small_images.append(
+                    '{n} (width: {w} px)'.format(n=original_name, w=width)
+                )
+        if small_images:
+            fixes = [
+                'Replace the following images with larger copies.',
+            ]
+            fixes.extend(small_images)
+            barriers.append({
+                'code': 'images_too_narrow',
+                'reason':
+                'Some images are not large enough. Min width: {w} px'.format(
+                    w=min_width),
+                'description': (
+                    'Released books are packaged for CBZ viewers.'
+                    'In order for book page images to display '
+                    'at a reasonable resolution, images must be '
+                    'a minimum pixels wide.'
+                ),
+                'fixes': fixes
+            })
 
     return barriers
 
