@@ -6,6 +6,7 @@
 Test suite for zcomx/controllers/torrents.py
 
 """
+import os
 import unittest
 import urllib2
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -23,6 +24,7 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'download': '<h2>Not authorized</h2>',
+        'page_not_found': '<h3>Page not found</h3>',
         'torrent': '30:http://bt.zco.mx:6969/announce',
     }
     url = '/zcomx/torrents'
@@ -102,6 +104,102 @@ class TestFunctions(LocalTestCase):
         # Test: Invalid, creator torrent with invalid id
         test_invalid('{url}/download/creator/-1'.format(url=self.url))
 
+    def test__route(self):
+        # Format #1 all
+        expect = []
+        expect.append(self.titles['torrent'])
+        expect.append(self._creator.path_name)
+        expect.append(self._book.name)
+        self.assertTrue(web.test(
+            '{url}/route/zco.mx.torrent'.format(url=self.url),
+            expect
+        ))
+
+        # Format #1 creator
+        expect = []
+        expect.append(self.titles['torrent'])
+        expect.append(self._creator.path_name)
+        expect.append(self._book.name)
+        self.assertTrue(web.test(
+            '{url}/route/{tor}'.format(
+                url=self.url,
+                tor=os.path.basename(self._creator.torrent),
+            ),
+            expect
+        ))
+
+        # Format #1 book
+        expect = []
+        expect.append(self.titles['torrent'])
+        expect.append(self._book.name)
+        self.assertTrue(web.test(
+            '{url}/route/{tor}'.format(
+                url=self.url,
+                tor=os.path.basename(self._book.torrent),
+            ),
+            expect
+        ))
+
+        # Format #2 id
+        expect = []
+        expect.append(self.titles['torrent'])
+        expect.append(self._book.name)
+        self.assertTrue(web.test(
+            '{url}/route/{cid:03d}/{tor}'.format(
+                url=self.url,
+                cid=self._creator.id,
+                tor=os.path.basename(self._book.torrent),
+            ),
+            expect
+        ))
+
+        # Format #2 name
+        expect = []
+        expect.append(self.titles['torrent'])
+        expect.append(self._book.name)
+        self.assertTrue(web.test(
+            '{url}/route/{name}/{tor}'.format(
+                url=self.url,
+                name=self._creator.path_name.replace(' ', '_'),
+                tor=os.path.basename(self._book.torrent),
+            ),
+            expect
+        ))
+
+        # page not found: no args
+        self.assertTrue(web.test(
+            '{url}/route'.format(url=self.url),
+            self.titles['page_not_found']
+        ))
+
+        # page not found: invalid creator integer
+        self.assertTrue(web.test(
+            '{url}/route/{cid:03d}/{tor}'.format(
+                url=self.url,
+                cid=-1,
+                tor=os.path.basename(self._book.torrent),
+            ),
+            self.titles['page_not_found']
+        ))
+
+        # page not found: invalid creator name
+        self.assertTrue(web.test(
+            '{url}/route/{name}/{tor}'.format(
+                url=self.url,
+                name='_invalid_name_',
+                tor=os.path.basename(self._book.torrent),
+            ),
+            self.titles['page_not_found']
+        ))
+
+        # page not found: invalid torrent
+        self.assertTrue(web.test(
+            '{url}/route/{tor}'.format(
+                url=self.url,
+                tor='_invalid_.torrent',
+            ),
+            self.titles['page_not_found']
+        ))
 
 def setUpModule():
     """Set up web2py environment."""

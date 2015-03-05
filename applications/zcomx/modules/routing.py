@@ -314,7 +314,8 @@ class Router(object):
         # Handle redirects
         # If the creator is provided as an id, redirect to url with the creator
         # full name.
-        if str(self.creator_record.id) == self.request.vars.creator:
+        if '{i:03d}'.format(i=self.creator_record.id) == \
+                self.request.vars.creator:
             request_vars = request.vars
             if 'creator' in request_vars:
                 del request_vars['creator']
