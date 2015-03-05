@@ -2,9 +2,10 @@
 VERSION 2 - Before Going Live
 [x] Release Error - permissions
 
-[ ] Add back the 'Release Button'
+[/] Add back the 'Release Button'
     * Ensure images have at least a width of 1600px before releasing
     * Ensure CC licence is used
+    [S] test
 
 [x] Indicia Page
     see indicia-ss.png
@@ -43,6 +44,8 @@ VERSION 2 - Before Going Live
 
 [ ] Ensure 'zco.mx' works for all urls
     Search for all instances of 'dev.zco.mx'
+
+---
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
