@@ -1200,7 +1200,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 @media (min-width: 992px){
     #creator_id_section .creator_links_container {
-       min-width: 20.8em;
+       min-width: 28em;
     }
 }
 @media (min-width: 1200px){
