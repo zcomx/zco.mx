@@ -58,6 +58,7 @@ from applications.zcomx.modules.books import \
     short_page_img_url, \
     short_page_url, \
     short_url, \
+    torrent_url, \
     unoptimized_images, \
     update_contributions_remaining, \
     update_rating, \
@@ -546,9 +547,10 @@ class TestFunctions(ImageTestCase):
         book.update_record(creator_id=creator.id)
         db.commit()
 
+        fmt = '1999|Test CBZ Comment|My Book|02 (of 04)|http://{cid}.zco.mx'
         self.assertEqual(
             cbz_comment(book),
-            '1999|Test CBZ Comment|My Book|02 (of 04)|http://{cid}.zco.mx'.format(cid=creator.id),
+            fmt.format(cid=creator.id),
         )
 
     def test__cc_licence_data(self):
@@ -1742,6 +1744,24 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(creator_contributions(creator), 0)
         update_contributions_remaining(db, book)
         self.assertAlmostEqual(creator_contributions(creator), 99.01)
+
+    def test__torrent_url(self):
+        self.assertRaises(NotFoundError, torrent_url, -1)
+
+        book = self.add(db.book, dict(
+            name='Test Torrent Url'
+        ))
+
+        # No torrent
+        self.assertEqual(torrent_url(book), None)
+
+        book.update_record(torrent='app/zco/pri/var/tor/abc.torrent')
+        db.commit()
+        self.assertEqual(torrent_url(book), '/abc.torrent')
+        self.assertEqual(
+            torrent_url(book, host=True),
+            'http://127.0.0.1:8000/abc.torrent'
+        )
 
     def test__unoptimized_images(self):
         book = self.add(db.book, dict(
