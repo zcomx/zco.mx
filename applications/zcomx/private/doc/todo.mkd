@@ -6,7 +6,7 @@ VERSION 2 - Before Going Live
     * Ensure images have at least a width of 1600px before releasing
     * Ensure CC licence is used
 
-[/] Indicia Page
+[ ] Indicia Page
     see indicia-ss.png
     * The indicia image is found on the indicia page which is the last page of a book.
     * Below the default indicia image is used to create two example indicia pages.
@@ -18,16 +18,16 @@ VERSION 2 - Before Going Live
     [ ] Aspect ratio is off
         /tmp/indicia.png PNG 1366x2326
 
-[ ] Add torrent and dc functionality
+[x] Add torrent and dc functionality
     JK devmod IDs: 12410, 12281, 12263, 12219
     Example file names:
     "Name of Comic 001 (2014) (101.zco.mx).cbz"
     "Name of Comic 001 (2012) (digital-Empire).cbr"
     "Name of Comic 001 (2012) (digital) (Son of Ultron-Empire).cbr"
-    [ ] metadata
+    [x] metadata
         $ zip test.zip -z <<< '2014|Cartoonist Name|Title of Book|64'   ## add metadata to zip comment field
-    [ ] rewrite - https://zco.mx/zco.mx.torrent         ## torrent for all cbz's
-    [ ] redirects for http://101.zco.mx/Name of Comic 01 (of 04) (2014).torrent
+    [x] rewrite - https://zco.mx/zco.mx.torrent         ## torrent for all cbz's
+    [x] redirects for http://101.zco.mx/Name of Comic 01 (of 04) (2014).torrent
                       http://101.zco.mx/Name of Comic 001 (2013).torrent
 
 [ ] Books -> Edit
