@@ -280,6 +280,9 @@ class UploadImage(object):
         self.image_name = image_name
         self._images = {}               # {'size': Image instance}
         self._dimensions = {}           # {'size': (w, h)}
+        self._sizes = {}                # {'size': x kb}
+        self._full_name = None          # eg applications/zcomx/uploads/...
+        self._original_name = None
 
     def delete(self, size):
         """Delete a version of the image
@@ -313,17 +316,40 @@ class UploadImage(object):
 
     def fullname(self, size='original'):
         """Return the fullname of the image."""
-        unused_file_name, fullname = self.field.retrieve(
-            self.image_name,
-            nameonly=True,
-        )
-        return filename_for_size(fullname, size)
+        self.retrieve()
+        return filename_for_size(self._full_name, size)
+
+    def orientation(self):
+        """Return the orientation of the image.
+
+        Returns:
+            string, one of 'portrait', 'landscape', 'square'
+        """
+        width, height = self.dimensions()
+        if width == height:
+            return 'square'
+        elif width > height:
+            return 'landscape'
+        else:
+            return 'portrait'
+
+    def original_name(self):
+        """Return the original name of the image.
+
+        Returns:
+            string: name of file.
+        """
+        self.retrieve()
+        return self._original_name
 
     def pil_image(self, size='original'):
         """Return a PIL Image instance representing the image.
 
         Args:
             size: string, name of size, must one of SIZES
+
+        Returns:
+            PIL Image instance.
         """
         if not self._images or size not in self._images:
             filename = self.fullname(size=size)
@@ -332,6 +358,37 @@ class UploadImage(object):
             else:
                 self._images[size] = None
         return self._images[size]
+
+    def retrieve(self):
+        """Retrieve the names of the image.
+
+        Returns:
+            tuple: (original filename, full name)
+        """
+        if not self._full_name or not self._original_name:
+            self._original_name, self._full_name = self.field.retrieve(
+                self.image_name,
+                nameonly=True,
+            )
+        return (self._original_name, self._full_name)
+
+    def size(self, size='original'):
+        """Return the size (bytes) of the image.
+
+        Args:
+            size: string, name of size, must one of SIZES
+
+        Returns:
+            integer, size of image in bytes
+        """
+        if not self._sizes or size not in self._sizes:
+            full_name = self.fullname(size=size)
+            try:
+                size_bytes = os.stat(full_name).st_size
+            except (KeyError, OSError):
+                size_bytes = 0
+            self._sizes[size] = size_bytes
+        return self._sizes[size]
 
 
 def filename_for_size(original_filename, size):

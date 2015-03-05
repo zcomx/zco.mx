@@ -34,7 +34,6 @@ from applications.zcomx.modules.images import \
     is_optimized, \
     optimize, \
     queue_optimize, \
-    rm_optimize_img_logs, \
     set_thumb_dimensions, \
     store
 from applications.zcomx.modules.job_queue import PRIORITIES
@@ -818,6 +817,28 @@ class TestUploadImage(ImageTestCase):
             ),
         )
 
+    def test__orientation(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
+        book_page = self.add(db.book_page, dict())
+
+        for t in ['portrait', 'landscape', 'square']:
+            img = '{n}.png'.format(n=t)
+            filename = self._prep_image(img)
+            self._set_image(db.book_page.image, book_page, filename)
+            up_image = UploadImage(db.book_page.image, book_page.image)
+            self.assertEqual(up_image.orientation(), t)
+
+    def test__original_name(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+        filename = self._prep_image('cbz_plus.jpg', to_name='abc.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
+
+        up_image = UploadImage(db.creator.image, self._creator.image)
+        self.assertEqual(up_image.original_name(), 'abc.jpg')
+
     def test__pil_image(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
@@ -839,6 +860,51 @@ class TestUploadImage(ImageTestCase):
         im_3 = up_image.pil_image(size='web')
         self.assertTrue('web' in up_image._images)
         self.assertTrue(hasattr(im_3, 'size'))
+
+    def test__retrieve(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
+        uuid_key = self._creator.image.split('.')[2][:2]
+
+        up_image = UploadImage(db.creator.image, self._creator.image)
+        fmt = 'applications/zcomx/uploads/original/creator.image/{u}/{i}'
+        self.assertEqual(
+            up_image.retrieve(),
+            (
+                'file.jpg',
+                fmt.format(u=uuid_key, i=self._creator.image)
+            )
+        )
+
+        # Test cache
+        up_image._original_name = '_original_'
+        up_image._full_name = '_full_'
+        self.assertEqual(up_image.retrieve(), ('_original_', '_full_'))
+
+    def test__size(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
+        self._set_image(db.creator.image, self._creator, filename)
+
+        up_image = UploadImage(db.creator.image, self._creator.image)
+        self.assertEqual(up_image._sizes, {})
+
+        size = up_image.size()
+        self.assertTrue('original' in up_image._sizes)
+        self.assertEqual(size, up_image._sizes['original'])
+        self.assertEqual(size, 77015)
+
+        # Should get from cache.
+        up_image._sizes['original'] = 9999
+        size_2 = up_image.size()
+        self.assertEqual(size_2, 9999)
+
+        size_3 = up_image.size(size='web')
+        self.assertTrue('web' in up_image._sizes)
+        self.assertEqual(size_3, 3474)
 
 
 class TestFunctions(ImageTestCase):
@@ -938,7 +1004,7 @@ class TestFunctions(ImageTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        fmt = 'applications/zcomx/private/bin/optimize_img.py {i}'
+        fmt = 'applications/zcomx/private/bin/process_img.py {i}'
         self.assertEqual(
             job.command,
             fmt.format(i=creator.image)
@@ -968,19 +1034,6 @@ class TestFunctions(ImageTestCase):
             priority='_fake_priority_',
             job_options=job_options
         )
-
-    def test__rm_optimize_img_logs(self):
-        image_name = 'creator.image.aaa.000.jpg'
-        self.add(db.optimize_img_log, dict(
-            image=image_name
-        ))
-
-        self.assertTrue(is_optimized(image_name))
-        rm_optimize_img_logs(image_name)
-        self.assertFalse(is_optimized(image_name))
-
-        # Should run fine even if not records exist
-        rm_optimize_img_logs(image_name)
 
     def test__set_thumb_dimensions(self):
         book_page = self.add(db.book_page, dict(

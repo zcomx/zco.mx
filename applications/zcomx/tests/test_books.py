@@ -26,6 +26,7 @@ from applications.zcomx.modules.books import \
     ViewEvent, \
     DEFAULT_BOOK_TYPE, \
     book_page_for_json, \
+    book_pages, \
     book_pages_as_json, \
     book_pages_years, \
     book_tables, \
@@ -217,11 +218,13 @@ class ImageTestCase(LocalTestCase):
     _objects = []
 
     @classmethod
-    def _create_image(cls, image_name):
+    def _create_image(cls, image_name, dimensions=None):
         image_filename = os.path.join(cls._image_dir, image_name)
+        if not dimensions:
+            dimensions = (1200, 1200)
 
         # Create an image to test with.
-        im = Image.new('RGB', (1200, 1200))
+        im = Image.new('RGB', dimensions)
         with open(image_filename, 'wb') as f:
             im.save(f)
         return image_filename
@@ -317,32 +320,6 @@ class ImageTestCase(LocalTestCase):
 
 class TestFunctions(ImageTestCase):
 
-    def test__book_pages_as_json(self):
-        as_json = book_pages_as_json(db, self._book.id)
-        data = loads(as_json)
-        self.assertTrue('files' in data)
-        self.assertEqual(len(data['files']), 2)
-        self.assertEqual(sorted(data['files'][0].keys()), [
-            'book_id',
-            'book_page_id',
-            'deleteType',
-            'deleteUrl',
-            'name',
-            'size',
-            'thumbnailUrl',
-            'url',
-        ])
-        self.assertEqual(data['files'][0]['name'], 'file.jpg')
-        self.assertEqual(data['files'][1]['name'], 'file_2.jpg')
-
-        # Test book_page_ids param.
-        as_json = book_pages_as_json(
-            db, self._book.id, book_page_ids=[self._book_page.id])
-        data = loads(as_json)
-        self.assertTrue('files' in data)
-        self.assertEqual(len(data['files']), 1)
-        self.assertEqual(data['files'][0]['name'], 'file.jpg')
-
     def test__book_page_for_json(self):
 
         filename, unused_original_fullname = db.book_page.image.retrieve(
@@ -372,6 +349,38 @@ class TestFunctions(ImageTestCase):
                 'deleteType': 'DELETE',
             }
         )
+
+    def test__book_pages(self):
+        pages = book_pages(self._book)
+        self.assertEqual(len(pages), 2)
+        self.assertEqual(pages[0].book_page.page_no, 1)
+        self.assertEqual(pages[1].book_page.page_no, 2)
+
+    def test__book_pages_as_json(self):
+        as_json = book_pages_as_json(db, self._book.id)
+        data = loads(as_json)
+        self.assertTrue('files' in data)
+        self.assertEqual(len(data['files']), 2)
+        self.assertEqual(sorted(data['files'][0].keys()), [
+            'book_id',
+            'book_page_id',
+            'deleteType',
+            'deleteUrl',
+            'name',
+            'size',
+            'thumbnailUrl',
+            'url',
+        ])
+        self.assertEqual(data['files'][0]['name'], 'file.jpg')
+        self.assertEqual(data['files'][1]['name'], 'file_2.jpg')
+
+        # Test book_page_ids param.
+        as_json = book_pages_as_json(
+            db, self._book.id, book_page_ids=[self._book_page.id])
+        data = loads(as_json)
+        self.assertTrue('files' in data)
+        self.assertEqual(len(data['files']), 1)
+        self.assertEqual(data['files'][0]['name'], 'file.jpg')
 
     def test__book_pages_years(self):
         book = self.add(db.book, dict(name='test__book_pages_years'))
@@ -1436,6 +1445,10 @@ class TestFunctions(ImageTestCase):
         book_page = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
+            image=self._store_image(
+                db.book_page.image,
+                self._create_image('file.jpg', (1600, 1600)),
+            ),
         ))
 
         metadata = self.add(db.publication_metadata, dict(
@@ -1532,6 +1545,29 @@ class TestFunctions(ImageTestCase):
                 'dupe_number',
                 'licence_arr',
                 'no_metadata'
+            ]
+        )
+
+        # Image too small
+        book_page.update_record(
+            book_id=book.id,
+            image=self._store_image(
+                db.book_page.image,
+                self._create_image('file.jpg', (598, 1600)),
+            )
+        )
+        db.commit()
+        got = release_barriers(book)
+        self.assertEqual(len(got), 6)
+        self.assertEqual(
+            [x['code'] for x in got],
+            [
+                'no_name',
+                'dupe_name',
+                'dupe_number',
+                'licence_arr',
+                'no_metadata',
+                'images_too_narrow',
             ]
         )
 
