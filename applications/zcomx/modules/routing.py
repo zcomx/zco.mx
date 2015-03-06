@@ -564,9 +564,12 @@ class Router(object):
             meta['og:title'] = self.book_record.name
             meta['og:type'] = 'book'
             meta['og:url'] = book_url(self.book_record, host=True)
-            meta['og:image'] = short_page_img_url(
-                get_page(self.book_record, page_no='first')
-            )
+            try:
+                meta['og:image'] = short_page_img_url(
+                    get_page(self.book_record, page_no='first')
+                )
+            except NotFoundError:
+                pass            # Use default
             if self.book_record.description:
                 meta['og:description'] = self.book_record.description
             else:
