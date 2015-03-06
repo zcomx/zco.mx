@@ -314,6 +314,11 @@
                 cssClass: 'btn-default pull-left btn_upload',
                 action : function(dialog){
                     dialog.close();
+                    // check if close preempted. Use bootstraps modal isShown
+                    var bs_modal = dialog.getModal().data('bs.modal');
+                    if (bs_modal && bs_modal.isShown) {
+                        return;
+                    }
                     var url = '/zcomx/login/book_pages/' + that.$book_id;
                     var modal = new UploadModalize(null, 'upload', {
                         'book_id': that.$book_id,
