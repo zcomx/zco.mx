@@ -272,6 +272,14 @@ class TestBookIndiciaPage(ImageTestCase):
             )
         )
 
+        # template_field='template_img'
+        self.assertEqual(
+            indicia.licence_text(template_field='template_img'),
+            ' "IMAGE TEST CASE" IS COPYRIGHT (C) {y} BY FIRST LAST.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT http://creativecommons.org/licenses/by/4.0.'.format(
+                y=this_year
+            )
+        )
+
     def test__render(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
@@ -458,6 +466,11 @@ class TestIndiciaPage(LocalTestCase):
         self.assertEqual(
             indicia.licence_text(),
             '<a href="/">NAME OF BOOK</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="/">CREATOR NAME</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+        )
+        # template_field='template_img'
+        self.assertEqual(
+            indicia.licence_text(template_field='template_img'),
+            ' "NAME OF BOOK" IS COPYRIGHT (C) 2015 BY CREATOR NAME.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
         )
 
     def test__render(self):

@@ -79,7 +79,6 @@ class TestFunctions(LocalTestCase):
             'Add</span>',
             'order_no_handler/book_to_link',
         ],
-        'metadata_poc': '<h2>Metadata POC</h2>',
         'order_no_handler': '<div id="creator_page">',
         'profile': '<div id="creator_section">',
     }
@@ -973,14 +972,6 @@ class TestFunctions(LocalTestCase):
         result = loads(web.text)
         self.assertEqual(result['status'], 'error')
         self.assertEqual(result['msg'], 'Invalid data provided')
-
-    def test__metadata_poc(self):
-        self.assertTrue(
-            web.test(
-                '{url}/metadata_poc'.format(url=self.url),
-                self.titles['metadata_poc']
-            )
-        )
 
     def test__metadata_text(self):
 

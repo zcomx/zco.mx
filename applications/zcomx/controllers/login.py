@@ -635,7 +635,7 @@ def creator_img_handler():
     minimum_widths = {
         # 'field': width in px
         'image': 263,
-        'indicia_image': 600,
+        'indicia_image': 1600,
     }
 
     if request.env.request_method == 'POST':
@@ -1267,14 +1267,6 @@ def metadata_crud():
         meta.update()
         return {'status': 'ok'}
     return do_error('Invalid data provided')
-
-
-@auth.requires_login()
-def metadata_poc():
-    """Temporary controller for metadata POC. FIXME delete"""
-    query = db.book.name == 'Test Do Not Delete'
-    book = db(query).select().first()
-    return dict(book=book)
 
 
 @auth.requires_login()
