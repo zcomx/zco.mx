@@ -425,23 +425,21 @@ class Router(object):
 
         queries = [(db.creator.id == creator_record.id)]
         LOG.debug('queries: %s', queries)
-        grid = ReleasesGrid(queries=queries, default_viewby='list')
-        released_grid = grid.render()
+        released_grid = ReleasesGrid(queries=queries, default_viewby='list')
 
         LOG.debug('queries: %s', queries)
-        grid = OngoingGrid(queries=queries, default_viewby='list')
-        ongoing_grid = grid.render()
+        ongoing_grid = OngoingGrid(queries=queries, default_viewby='list')
 
         self.view_dict = dict(
             creator=creator_record,
-            grid=grid,
+            grid=released_grid,
             links=CustomLinks(
                 db.creator, creator_record.id
             ).represent(
                 pre_links=self.preset_links()
             ),
-            ongoing_grid=ongoing_grid,
-            released_grid=released_grid,
+            ongoing_grid=ongoing_grid.render(),
+            released_grid=released_grid.render()
         )
 
         self.view = 'creators/creator.html'

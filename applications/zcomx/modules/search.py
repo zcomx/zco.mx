@@ -436,7 +436,13 @@ class Grid(object):
         """Return a div of buttons viewby options."""
         buttons = []
         for v in sorted(self.viewbys.keys()):
+            args = list(self.request.args)
             viewby_vars = dict(self.request.vars)
+            # Properly route the creator if applicable.
+            # ?creator=First_Last => /First_Last
+            creator = viewby_vars.pop('creator', None)
+            if creator:
+                args.append(creator)
             viewby_vars.pop('contribute', None)     # Del contribute modal trig
             viewby_vars['view'] = v
             disabled = 'disabled' if v == self.viewby else 'active'
@@ -446,7 +452,7 @@ class Grid(object):
                         icon=self.viewbys[v]['icon']
                     ),
                 ),
-                _href=URL(r=self.request, vars=viewby_vars),
+                _href=URL(r=self.request, args=args, vars=viewby_vars),
                 _class='btn btn-default btn-lg {d}'.format(d=disabled),
             ))
         return DIV(buttons, _class='btn-group')
