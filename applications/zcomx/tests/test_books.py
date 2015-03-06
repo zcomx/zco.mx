@@ -1245,6 +1245,12 @@ class TestFunctions(ImageTestCase):
                 self.assertTrue(
                     after_sizes[page.id][size] < before_sizes[page.id][size])
 
+        # Cleanup
+        for page in [page_1, page_2]:
+            query = db.optimize_img_log.image == page.image
+            db(query).delete()
+        db.commit()
+
     def test__orientation(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')

@@ -32,6 +32,8 @@ from applications.zcomx.modules.images import \
     filename_for_size, \
     is_image, \
     is_optimized, \
+    on_add_image, \
+    on_delete_image, \
     optimize, \
     queue_optimize, \
     set_thumb_dimensions, \
@@ -979,6 +981,12 @@ class TestFunctions(ImageTestCase):
         ))
 
         self.assertTrue(is_optimized(image_name))
+
+    def test__on_add_image(self):
+        pass        # FIXME this is due for overhaul.
+
+    def test__on_delete_image(self):
+        pass        # FIXME this is due for overhaul.
 
     def test__optimize(self):
         for img in ['unoptimized.png', 'unoptimized.jpg']:

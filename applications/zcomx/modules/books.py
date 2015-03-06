@@ -270,6 +270,7 @@ def book_tables():
         'book_view',
         'contribution',
         'derivative',
+        'download',
         'publication_metadata',
         'publication_serial',
         'rating',

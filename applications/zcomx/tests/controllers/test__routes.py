@@ -32,10 +32,13 @@ class TestFunctions(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUp(cls):
-        # Prevent 'Change session ID' warnings.
+        # Prevent 'Changed session ID' warnings.
         web.sessions = {}
 
     def test_routes(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
+
         tests = [
             # (url, verify ssl cert, expect title)
             ('http://zco.mx', False, 'index'),

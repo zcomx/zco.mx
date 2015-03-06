@@ -36,8 +36,7 @@ from applications.zcomx.modules.indicias import \
     cc_licence_places, \
     cc_licences, \
     create_creator_indicia, \
-    render_cc_licence, \
-    update_creator_indicia
+    render_cc_licence
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
@@ -1999,70 +1998,6 @@ class TestFunctions(ImageTestCase):
             )
 
         self.assertRaises(NotFoundError, render_cc_licence, {}, -1)
-
-    def test__update_creator_indicia(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
-        res = {
-            'portrait':  r'^creator\.indicia_portrait\.[a-z0-9.]+\.png$',
-            'landscape': r'^creator\.indicia_landscape\.[a-z0-9.]+\.png$',
-        }
-
-        creator = self.add(
-            db.creator,
-            dict(path_name='Update Creator Indicia')
-        )
-        self.assertEqual(creator.indicia_portrait, None)
-        self.assertEqual(creator.indicia_landscape, None)
-
-        update_creator_indicia(creator)
-
-        creator_1 = entity_to_row(db.creator, creator.id)
-        # creator.indicia_portrait.ae60e66e0ada0b82.696e64696369612e706e67.png
-        self.assertRegexpMatches(creator_1.indicia_portrait, res['portrait'])
-        self.assertRegexpMatches(creator_1.indicia_landscape, res['landscape'])
-
-        # Save image dimensions and size for comparison
-        up_image = UploadImage(
-            db.creator.indicia_portrait, creator_1.indicia_portrait)
-        filename = up_image.fullname(size='web')
-        dims_resized_true = up_image.dimensions(size='web')
-        kb_optimized_true = os.stat(filename).st_size
-
-        # Test resize=False optimize=False
-        creator.update_record(
-            indicia_portrait=None,
-            indicia_landscape=None,
-        )
-        db.commit()
-        update_creator_indicia(creator, resize=False, optimize=False)
-        creator_1 = entity_to_row(db.creator, creator.id)
-        up_image = UploadImage(
-            db.creator.indicia_portrait, creator_1.indicia_portrait)
-        filename = up_image.fullname(size='web')
-        dims_resized_false = up_image.dimensions(size='web')
-        kb_optimized_false = os.stat(filename).st_size
-
-        self.assertTrue(dims_resized_true[0] < dims_resized_false[0])
-        self.assertTrue(dims_resized_true[1] < dims_resized_false[1])
-        self.assertTrue(kb_optimized_true < kb_optimized_false)
-
-        # Test background
-        creator.update_record(
-            indicia_portrait=None,
-            indicia_landscape=None,
-        )
-        db.commit()
-        update_creator_indicia(creator, background=True, resize=False, optimize=False)
-        # The indicias won't be immediatly updated.
-        creator_1 = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator_1.indicia_portrait, None)
-        self.assertEqual(creator_1.indicia_landscape, None)
-        time.sleep(30)           # Wait for background process to finish
-        creator_1 = entity_to_row(db.creator, creator.id)
-        self.assertRegexpMatches(creator_1.indicia_portrait, res['portrait'])
-        self.assertRegexpMatches(creator_1.indicia_landscape, res['landscape'])
 
 
 def setUpModule():

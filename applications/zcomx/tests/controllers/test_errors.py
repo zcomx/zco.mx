@@ -28,7 +28,7 @@ class TestFunctions(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUp(cls):
-        # Prevent 'Change session ID' warnings.
+        # Prevent 'Changed session ID' warnings.
         web.sessions = {}
 
     def test__handler(self):

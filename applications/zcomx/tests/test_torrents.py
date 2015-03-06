@@ -299,10 +299,8 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         tor_creator = CreatorTorrentCreator(creator)
         tor_creator.set_cbz_base_path(self._tmp_dir)
         tor_file = tor_creator.archive(base_path=self._tmp_dir)
-        self.assertEqual(
-            tor_file,
-            '/tmp/test_torrent/tor/zco.mx/F/First Last.torrent'
-        )
+        fmt = '/tmp/test_torrent/tor/zco.mx/F/First Last ({i}.zco.mx).torrent'
+        self.assertEqual(tor_file, fmt.format(i=creator.id))
 
         creator_record = db(db.creator.id == creator.id).select().first()
         self.assertEqual(creator_record.torrent, tor_file)

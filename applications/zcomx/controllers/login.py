@@ -25,10 +25,9 @@ from applications.zcomx.modules.images import \
     store
 from applications.zcomx.modules.indicias import \
     CreatorIndiciaPage, \
-    IndiciaUpdateInProgress, \
     PublicationMetadata, \
     cc_licence_by_code, \
-    update_creator_indicia
+    create_creator_indicia
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
     ReleaseBookQueuer, \
@@ -811,16 +810,8 @@ def indicia_preview_urls():
     # If indicias are blank, create them.
     if not creator_record.indicia_portrait \
             or not creator_record.indicia_landscape:
-        try:
-            # Run quickly in foreground
-            update_creator_indicia(
-                creator_record,
-                background=False,
-                resize=False,
-                optimize=False
-            )
-        except IndiciaUpdateInProgress as err:
-            print >> sys.stderr, 'IndiciaUpdateInProgress: ', err
+        # This runs in the forground so keep it fast.
+        create_creator_indicia(creator_record, resize=False, optimize=False)
 
     urls = {
         'portrait': None,

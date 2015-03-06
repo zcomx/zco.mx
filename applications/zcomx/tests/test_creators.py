@@ -509,29 +509,24 @@ class TestFunctions(LocalTestCase):
     def test__torrent_link(self):
         creator = self.add(db.creator, dict(
             email='test__torrent_linke@example.com',
-            path_name='First Last'
+            path_name='First Last',
+            torrent='app/zco/pri/var/tor/F/First_Last.torrent',
         ))
 
         # As integer, creator.id
         link = torrent_link(creator.id)
-        # Eg <a href="/torrents/download/creator/123">first_last.torrent</a>
+        # Eg <a href="/First_Last.torrent">first_last.torrent</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'first_last.torrent')
-        self.assertEqual(
-            anchor['href'],
-            '/torrents/download/creator/{id}'.format(id=creator.id)
-        )
+        self.assertEqual(anchor['href'], '/First_Last.torrent')
 
         # As Row, creator
         link = torrent_link(creator)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'first_last.torrent')
-        self.assertEqual(
-            anchor['href'],
-            '/torrents/download/creator/{id}'.format(id=creator.id)
-        )
+        self.assertEqual(anchor['href'], '/First_Last.torrent')
 
         # Invalid id
         self.assertRaises(NotFoundError, torrent_link, -1)
@@ -590,10 +585,14 @@ class TestFunctions(LocalTestCase):
             email='test__torrent_linke@example.com',
         ))
 
-        self.assertEqual(
-            torrent_url(creator),
-            '/torrents/download/creator/{cid}'.format(cid=str(creator.id))
-        )
+        # Torrent not set
+        self.assertEqual(torrent_url(creator), None)
+
+        creator.update_record(
+            torrent='app/zco/pri/var/tor/F/First_Last.torrent')
+        db.commit()
+        self.assertEqual(torrent_url(creator), '/First_Last.torrent')
+
         self.assertRaises(NotFoundError, torrent_url, None)
 
     def test__url(self):

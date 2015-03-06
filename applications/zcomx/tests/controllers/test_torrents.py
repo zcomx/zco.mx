@@ -30,6 +30,11 @@ class TestFunctions(LocalTestCase):
     url = '/zcomx/torrents'
 
     @classmethod
+    def setUp(cls):
+        # Prevent 'Changed session ID' warnings.
+        web.sessions = {}
+
+    @classmethod
     def setUpClass(cls):
         # C0103: *Invalid name "%%s" (should match %%s)*
         # pylint: disable=C0103
@@ -165,6 +170,8 @@ class TestFunctions(LocalTestCase):
             ),
             expect
         ))
+
+        web.sessions = {}    # Prevent 'Changed session ID' warnings.
 
         # page not found: no args
         self.assertTrue(web.test(
