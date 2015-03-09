@@ -63,7 +63,6 @@ class TestFunctions(LocalTestCase):
 
         # Test that environment is prepared properly.
         self.assertTrue('SERVER_PRODUCTION_MODE' in os.environ)
-        self.assertTrue('MYSQL_TCP_PORT' in os.environ)
 
         request = Request(globals())
         if 'SERVER_PRODUCTION_MODE' in os.environ:
