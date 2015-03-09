@@ -45,6 +45,14 @@ VERSION 2 - Before Going Live
 [ ] Ensure 'zco.mx' works for all urls
     Search for all instances of 'dev.zco.mx'
 
+[S] http://kb.zco.mx/howto-upload
+[S] Indicia Page
+    Compare preview images to mix3-indicia-text.png
+[S] Update faq
+    utorrent - http://www.oldapps.com/utorrent.php?old_utorrent=38
+    png compression - zopflipng
+[S] Figure out backup of images
+
 ---
 
 [S] Setup Mailing List
