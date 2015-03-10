@@ -60,6 +60,7 @@ from applications.zcomx.modules.books import \
     short_page_img_url, \
     short_page_url, \
     short_url, \
+    torrent_file_name, \
     torrent_url, \
     unoptimized_images, \
     update_contributions_remaining, \
@@ -1245,6 +1246,12 @@ class TestFunctions(ImageTestCase):
                 self.assertTrue(
                     after_sizes[page.id][size] < before_sizes[page.id][size])
 
+        # Cleanup
+        for page in [page_1, page_2]:
+            query = db.optimize_img_log.image == page.image
+            db(query).delete()
+        db.commit()
+
     def test__orientation(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
@@ -1825,23 +1832,64 @@ class TestFunctions(ImageTestCase):
         update_contributions_remaining(db, book)
         self.assertAlmostEqual(creator_contributions(creator), 99.01)
 
+    def test__torrent_file_name(self):
+        self.assertRaises(NotFoundError, torrent_file_name, -1)
+
+        creator = self.add(db.creator, dict(
+            email='test__torrent_file_name@example.com',
+            path_name='First Last',
+        ))
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            number=2,
+            creator_id=creator.id,
+            publication_year=1999,
+            book_type_id=self._type_id_by_name['ongoing'],
+        ))
+
+        self.assertEqual(
+            torrent_file_name(book),
+            'My Book 002 (1999) ({i}.zco.mx).cbz.torrent'.format(i=creator.id)
+        )
+
+        book.update_record(
+            number=2,
+            of_number=4,
+            book_type_id=self._type_id_by_name['mini-series'],
+        )
+        db.commit()
+        self.assertEqual(
+            torrent_file_name(book),
+            'My Book 02 (of 04) (1999) ({i}.zco.mx).cbz.torrent'.format(
+                i=creator.id)
+        )
+
     def test__torrent_url(self):
         self.assertRaises(NotFoundError, torrent_url, -1)
 
-        book = self.add(db.book, dict(
-            name='Test Torrent Url'
+        creator = self.add(db.creator, dict(
+            email='test__torrent_url@example.com',
+            path_name='First Last',
         ))
 
-        # No torrent
-        self.assertEqual(torrent_url(book), None)
+        book = self.add(db.book, dict(
+            name='My Book',
+            number=2,
+            creator_id=creator.id,
+            book_type_id=self._type_id_by_name['ongoing'],
+        ))
 
-        book.update_record(torrent='app/zco/pri/var/tor/abc.torrent')
-        db.commit()
-        self.assertEqual(torrent_url(book), '/abc.torrent')
-        self.assertEqual(
-            torrent_url(book, host=True),
-            'http://127.0.0.1:8000/abc.torrent'
+        self.assertEqual(torrent_url(book), '/First_Last/My_Book_002.torrent')
+
+        book.update_record(
+            number=2,
+            of_number=4,
+            book_type_id=self._type_id_by_name['mini-series'],
         )
+        db.commit()
+        self.assertEqual(
+            torrent_url(book), '/First_Last/My_Book_02_(of_04).torrent')
 
     def test__unoptimized_images(self):
         book = self.add(db.book, dict(

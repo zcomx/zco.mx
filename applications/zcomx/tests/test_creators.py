@@ -25,8 +25,8 @@ from applications.zcomx.modules.creators import \
     on_change_name, \
     profile_onaccept, \
     short_url, \
+    torrent_file_name, \
     torrent_link, \
-    torrent_name, \
     torrent_url, \
     url, \
     url_name
@@ -506,21 +506,44 @@ class TestFunctions(LocalTestCase):
         for t in tests:
             self.assertEqual(short_url(t[0]), t[1])
 
+    def test__torrent_file_name(self):
+        creator = self.add(db.creator, dict(
+            email='test__torrent_file_name@example.com',
+            path_name='First Last',
+        ))
+
+        self.assertEqual(
+            torrent_file_name(creator),
+            'First Last ({i}.zco.mx).torrent'.format(i=creator.id)
+        )
+
+        # Test scrubbed character.
+        creator.update_record(
+            path_name='First <Middle> Last',
+        )
+        db.commit()
+
+        self.assertEqual(
+            torrent_file_name(creator),
+            'First Middle Last ({i}.zco.mx).torrent'.format(i=creator.id)
+        )
+
     def test__torrent_link(self):
         creator = self.add(db.creator, dict(
-            email='test__torrent_linke@example.com',
-            path_name='First Last'
+            email='test__torrent_link@example.com',
+            path_name='First Last',
+            torrent='app/zco/pri/var/tor/F/First_Last.torrent',
         ))
 
         # As integer, creator.id
         link = torrent_link(creator.id)
-        # Eg <a href="/torrents/download/creator/123">first_last.torrent</a>
+        # Eg <a href="/First_Last_(123.zco.mx).torrent">first_last.torrent</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'first_last.torrent')
         self.assertEqual(
             anchor['href'],
-            '/torrents/download/creator/{id}'.format(id=creator.id)
+            '/First_Last_({i}.zco.mx).torrent'.format(i=creator.id)
         )
 
         # As Row, creator
@@ -530,7 +553,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(anchor.string, 'first_last.torrent')
         self.assertEqual(
             anchor['href'],
-            '/torrents/download/creator/{id}'.format(id=creator.id)
+            '/First_Last_({i}.zco.mx).torrent'.format(i=creator.id)
         )
 
         # Invalid id
@@ -564,37 +587,29 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
 
-    def test__torrent_name(self):
-        creator = self.add(
-            db.creator,
-            dict(email='test__torrent_linke@example.com')
-        )
-        tests = [
-            # (path_name, expect)
-            (None, None),
-            ('Prince', 'prince.torrent'),
-            ('First Last', 'first_last.torrent'),
-            ('first last', 'first_last.torrent'),
-            (
-                "Hélè d'Eñça",
-                "h\xc3\xa9l\xc3\xa8_d'e\xc3\xb1\xc3\xa7a.torrent"),
-        ]
-
-        for t in tests:
-            creator.update_record(path_name=t[0])
-            db.commit()
-            self.assertEqual(torrent_name(creator), t[1])
-
     def test__torrent_url(self):
+        self.assertRaises(NotFoundError, torrent_url, None)
+
         creator = self.add(db.creator, dict(
-            email='test__torrent_linke@example.com',
+            email='test__torrent_url@example.com',
+            path_name='First Last',
         ))
 
         self.assertEqual(
             torrent_url(creator),
-            '/torrents/download/creator/{cid}'.format(cid=str(creator.id))
+            '/First_Last_({i}.zco.mx).torrent'.format(i=creator.id)
         )
-        self.assertRaises(NotFoundError, torrent_url, None)
+
+        # Test scrubbed character.
+        creator.update_record(
+            path_name='First <Middle> Last',
+        )
+        db.commit()
+
+        self.assertEqual(
+            torrent_url(creator),
+            '/First_<Middle>_Last_({i}.zco.mx).torrent'.format(i=creator.id)
+        )
 
     def test__url(self):
         creator = self.add(db.creator, dict(email='test__url@example.com'))

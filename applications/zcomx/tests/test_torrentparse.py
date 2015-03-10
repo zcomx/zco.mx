@@ -12,7 +12,7 @@ from gluon import *
 from applications.zcomx.modules.torrentparse import \
     ParsingError, \
     TorrentParser
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
 

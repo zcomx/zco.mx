@@ -6,6 +6,7 @@
 Test suite for zcomx/modules/routing.py
 
 """
+import urllib
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
@@ -89,16 +90,16 @@ class TestRouter(LocalTestCase):
 
         cls._first_creator_links = Storage({
             'creator': 'http://127.0.0.1:8000/{c}'.format(
-                c=first_creator_name
+                c=urllib.quote(first_creator_name)
             ),
             'book': 'http://127.0.0.1:8000/{c}/{b}'.format(
-                c=first_creator_name,
-                b=first_creator_book_name
+                c=urllib.quote(first_creator_name),
+                b=urllib.quote(first_creator_book_name)
             ),
             'page': 'http://127.0.0.1:8000/{c}/{b}/{p}'.format(
-                c=first_creator_name,
-                b=first_creator_book_name,
-                p=first_creator_page_name
+                c=urllib.quote(first_creator_name),
+                b=urllib.quote(first_creator_book_name),
+                p=urllib.quote(first_creator_page_name)
             ),
         })
 
@@ -179,8 +180,7 @@ class TestRouter(LocalTestCase):
             ],
             'creator_monies': [
                 'creator',
-                'ongoing_grid',
-                'released_grid',
+                'grid',
             ],
             'book': [
                 'book',
@@ -388,19 +388,43 @@ class TestRouter(LocalTestCase):
         ))
         expect = Storage({
             'view_dict': {
-                'creator': 'http://127.0.0.1:8000/First_Last',
-                'book': 'http://127.0.0.1:8000/First_Last/My_Book',
-                'page': 'http://127.0.0.1:8000/First_Last/My_Book/001',
+                'suggestions': [
+                    {
+                        'label': 'Creator page:',
+                        'url': 'http://127.0.0.1:8000/First_Last',
+                    },
+                    {
+                        'label': 'Book page:',
+                        'url': 'http://127.0.0.1:8000/First_Last/My_Book',
+                    },
+                    {
+                        'label': 'Read:',
+                        'url': 'http://127.0.0.1:8000/First_Last/My_Book/001',
+                    },
+                ],
                 'invalid': 'http://www.domain.com/path/to/page',
             },
             'view': 'errors/page_not_found.html',
         })
+        crea_url = 'http://127.0.0.1:8000/John_Hancock'
+        book_url = 'http://127.0.0.1:8000/John_Hancock/My_Second_Book'
+        page_url = 'http://127.0.0.1:8000/John_Hancock/My_Second_Book/001'
         expect_2 = Storage({
             'view_dict': {
-                'creator': 'http://127.0.0.1:8000/John_Hancock',
-                'book': 'http://127.0.0.1:8000/John_Hancock/My_Second_Book',
-                'page':
-                'http://127.0.0.1:8000/John_Hancock/My_Second_Book/001',
+                'suggestions': [
+                    {
+                        'label': 'Creator page:',
+                        'url': crea_url,
+                    },
+                    {
+                        'label': 'Book page:',
+                        'url': book_url,
+                    },
+                    {
+                        'label': 'Read:',
+                        'url': page_url,
+                    },
+                ],
                 'invalid': 'http://www.domain.com/path/to/page',
             },
             'view': 'errors/page_not_found.html',
@@ -410,13 +434,13 @@ class TestRouter(LocalTestCase):
 
         # Second page should be found if indicated.
         request_vars.page = self._page_2_name
-        expect.view_dict['page'] = \
+        expect.view_dict['suggestions'][2]['url'] = \
             'http://127.0.0.1:8000/First_Last/My_Book/002'
         do_test(request_vars, expect)
 
         # If page not indicated, first page of book should be found.
         del request_vars.page
-        expect.view_dict['page'] = \
+        expect.view_dict['suggestions'][2]['url'] = \
             'http://127.0.0.1:8000/First_Last/My_Book/001'
 
         # If page doesn't exist, first page of book should be found.
@@ -459,9 +483,20 @@ class TestRouter(LocalTestCase):
         # found.
         expect_first = Storage({
             'view_dict': {
-                'creator': self._first_creator_links.creator,
-                'book': self._first_creator_links.book,
-                'page': self._first_creator_links.page,
+                'suggestions': [
+                    {
+                        'label': 'Creator page:',
+                        'url': self._first_creator_links.creator,
+                    },
+                    {
+                        'label': 'Book page:',
+                        'url': self._first_creator_links.book,
+                    },
+                    {
+                        'label': 'Read:',
+                        'url': self._first_creator_links.page,
+                    },
+                ],
                 'invalid': 'http://www.domain.com/path/to/page',
             },
             'view': 'errors/page_not_found.html',
@@ -553,6 +588,11 @@ class TestRouter(LocalTestCase):
     def test__route(self):
         router = Router(db, self._request, auth)
 
+        def book_views(book_id):
+            return db(db.book_view.book_id == book_id).select()
+
+        self.assertEqual(len(book_views(self._book.id)), 0)
+
         def do_test(request_vars, expect):
             """Run test."""
             self._request.vars = request_vars
@@ -577,27 +617,51 @@ class TestRouter(LocalTestCase):
 
         first_expect = Storage({
             'view_dict': {
-                'creator': self._first_creator_links.creator,
-                'book': self._first_creator_links.book,
-                'page': self._first_creator_links.page,
+                'suggestions': [
+                    {
+                        'label': 'Creator page:',
+                        'url': self._first_creator_links.creator,
+                    },
+                    {
+                        'label': 'Book page:',
+                        'url': self._first_creator_links.book,
+                    },
+                    {
+                        'label': 'Read:',
+                        'url': self._first_creator_links.page,
+                    },
+                ],
                 'invalid': 'http://www.domain.com/path/to/page',
             },
             'view': 'errors/page_not_found.html',
         })
         do_test(request_vars, first_expect)
+        self.assertEqual(len(book_views(self._book.id)), 0)
 
         router.route()
         self.assertEqual(
             router.view_dict['urls'],
             {
-                'creator': self._first_creator_links.creator,
-                'book': self._first_creator_links.book,
-                'page': self._first_creator_links.page,
+                'suggestions': [
+                    {
+                        'label': 'Creator page:',
+                        'url': self._first_creator_links.creator,
+                    },
+                    {
+                        'label': 'Book page:',
+                        'url': self._first_creator_links.book,
+                    },
+                    {
+                        'label': 'Read:',
+                        'url': self._first_creator_links.page,
+                    },
+                ],
                 'invalid': 'http://www.domain.com/path/to/page',
-            }
+            },
         )
 
         # Creator as integer (creator_id) should redirect.
+        self.assertEqual(len(book_views(self._book.id)), 0)
         request_vars.creator = str(self._creator.id)
         expect = Storage({
             'redirect': '/First_Last',
@@ -605,6 +669,7 @@ class TestRouter(LocalTestCase):
         do_test(request_vars, expect)
 
         # Creator as name
+        self.assertEqual(len(book_views(self._book.id)), 0)
         request_vars.creator = 'First_Last'
         expect = Storage({
             'view_dict_keys': self._keys_for_view['creator'],
@@ -613,6 +678,7 @@ class TestRouter(LocalTestCase):
         do_test(request_vars, expect)
 
         # Book as name
+        self.assertEqual(len(book_views(self._book.id)), 0)
         request_vars.creator = 'First_Last'
         request_vars.book = 'My_Book'
         expect = Storage({
@@ -629,7 +695,13 @@ class TestRouter(LocalTestCase):
             'view_dict_keys': self._keys_for_view['reader'],
             'view': 'books/slider.html',
         })
+
+        self.assertEqual(len(book_views(self._book.id)), 0)
         do_test(request_vars, expect)
+        views = book_views(self._book.id)
+        self.assertEqual(len(views), 1)
+        for obj in views:
+            self._objects.append(obj)
 
         # Book page: scroller
         self._book.update_record(reader='scroller')
@@ -639,6 +711,11 @@ class TestRouter(LocalTestCase):
             'view': 'books/scroller.html',
         })
         do_test(request_vars, expect)
+        views = book_views(self._book.id)
+        self.assertEqual(len(views), 2)
+        for obj in views:
+            self._objects.append(obj)
+
         self._book.update_record(reader='slider')
         db.commit()
 
@@ -735,10 +812,14 @@ class TestRouter(LocalTestCase):
         self.assertEqual(router.redirect, None)
 
     def test__set_reader_view(self):
+        def book_views(book_id):
+            return db(db.book_view.book_id == book_id).select()
+
         router = Router(db, self._request, auth)
         router.creator_record = self._creator
         router.book_record = self._book
         router.book_page_record = self._book_page
+        self.assertEqual(len(book_views(self._book.id)), 0)
         router.set_reader_view()
         self.assertEqual(
             sorted(router.view_dict.keys()),
@@ -749,9 +830,16 @@ class TestRouter(LocalTestCase):
             'books/slider.html',
         )
         self.assertEqual(router.redirect, None)
+        views = book_views(self._book.id)
+        self.assertEqual(len(views), 1)
+        for obj in views:
+            self._objects.append(obj)
 
         router.book_record.update_record(reader='scroller')
         db.commit()
+        db(db.book_view.book_id == self._book.id).delete()
+        db.commit()
+        self.assertEqual(len(book_views(self._book.id)), 0)
         router.set_reader_view()
         self.assertEqual(
             sorted(router.view_dict.keys()),
@@ -761,6 +849,10 @@ class TestRouter(LocalTestCase):
             router.view,
             'books/scroller.html',
         )
+        views = book_views(self._book.id)
+        self.assertEqual(len(views), 1)
+        for obj in views:
+            self._objects.append(obj)
         router.book_record.update_record(reader='slider')
         db.commit()
 
@@ -885,8 +977,9 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
             ('http://my.domain.com/zcomx/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
             ('http://my.domain.com/zco.mx.torrent', "/zcomx/torrents/route ?torrent=zco.mx.torrent"),
-            ('http://my.domain.com/First Last (101.zco.mx).torrent', "/zcomx/torrents/route ?torrent=First Last (101.zco.mx).torrent"),
-            ('http://my.domain.com/My Book 001 (101.zco.mx).cbz.torrent', "/zcomx/torrents/route ?torrent=My Book 001 (101.zco.mx).cbz.torrent"),
+            ('http://my.domain.com/First_Last_(101.zco.mx).torrent', "/zcomx/torrents/route ?torrent=First_Last_(101.zco.mx).torrent"),
+            ('http://my.domain.com/123/My Book 001.torrent', "/zcomx/torrents/route ?creator=123&torrent=My Book 001.torrent"),
+            ('http://my.domain.com/First_Last/My Book 001.torrent', "/zcomx/torrents/route ?creator=First_Last&torrent=My Book 001.torrent"),
 
             # Static files
             ('http://my.domain.com/favicon.ico', app_root + '/zcomx/static/images/favicon.ico'),
@@ -992,6 +1085,12 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/creators/index/First_Last', '/First_Last'),
             ('http://my.domain.com/zcomx/creators/index/First_Last', '/First_Last'),
             ("http://my.domain.com/zcomx/creators/index/First_O'Last", "/First_O'Last"),
+
+            # Test torrents
+            ('http://my.domain.com/zcomx/abc.torrent/index', "/abc.torrent"),
+            ('http://my.domain.com/zcomx/zco.mx.torrent/index', "/zco.mx.torrent"),
+            ('http://my.domain.com/zcomx/First_Last_(101.zco.mx).torrent/index', "/First_Last_(101.zco.mx).torrent"),
+            ('http://my.domain.com/zcomx/First_Last/My Book 001.torrent', "/First_Last/My Book 001.torrent"),
         ]
         for t in out_tests:
             self.assertEqual(filter_url(t[0], out=True), t[1])

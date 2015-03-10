@@ -228,6 +228,9 @@ class TestGrid(LocalTestCase):
         #     <a href="/?o=ongoing">ongoing</a>
         #   </li>
         #   <li class="nav-tab ">
+        #     <a href="/?o=releases">releases</a>
+        #   </li>
+        #   <li class="nav-tab ">
         #     <a href="/?o=contributions">contributions</a>
         #   </li>
         #   <li class="nav-tab ">
@@ -245,8 +248,13 @@ class TestGrid(LocalTestCase):
 
         li_2 = li_1.nextSibling
         anchor_2 = li_2.a
-        self.assertEqual(anchor_2['href'], '/?o=contributions')
-        self.assertEqual(anchor_2.string, 'contributions')
+        self.assertEqual(anchor_2['href'], '/?o=releases')
+        self.assertEqual(anchor_2.string, 'releases')
+
+        # li_2 = li_1.nextSibling
+        # anchor_2 = li_2.a
+        # self.assertEqual(anchor_2['href'], '/?o=contributions')
+        # self.assertEqual(anchor_2.string, 'contributions')
 
         li_3 = li_2.nextSibling
         self.assertEqual(li_3['class'], 'nav-tab ')
@@ -261,7 +269,9 @@ class TestGrid(LocalTestCase):
         anchor_1 = soup.ul.li.a
         self.assertEqual(anchor_1['href'], '/?o=ongoing')
         anchor_2 = soup.ul.li.nextSibling.a
-        self.assertEqual(anchor_2['href'], '/?o=contributions')
+        self.assertEqual(anchor_2['href'], '/?o=releases')
+        # anchor_2 = soup.ul.li.nextSibling.a
+        # self.assertEqual(anchor_2['href'], '/?o=contributions')
         anchor_3 = soup.ul.li.nextSibling.nextSibling.a
         self.assertEqual(anchor_3['href'], '/?o=creators')
 
@@ -357,7 +367,8 @@ class TestCartoonistsGrid(LocalTestCase):
         grid = CartoonistsGrid()
         self.assertEqual(
             grid.visible_fields(),
-            [db.auth_user.name, db.creator.contributions_remaining]
+            # [db.auth_user.name, db.creator.contributions_remaining]
+            [db.auth_user.name]
         )
 
 
@@ -408,13 +419,13 @@ class TestCreatorMoniesGrid(LocalTestCase):
         grid = CreatorMoniesGrid(creator_entity=creator)
         self.assertEqual(len(grid.filters()), 1)
 
+
 class TestMoniesBookTile(LocalTestCase):
 
     _grid = None
     _row = None
     _value = None
     _creator = None
-
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
@@ -448,7 +459,9 @@ class TestMoniesBookTile(LocalTestCase):
         footer = tile.footer()
         soup = BeautifulSoup(str(footer))
         # <div class="col-sm-12 name">
-        #    <a class="contribute_button" href="/contributions/modal?book_id=64">Test Do Not Delete 01 (of 01)</a>
+        #    <a class="contribute_button"
+        #      href="/contributions/modal?book_id=64">
+        #         Test Do Not Delete 01 (of 01)</a>
         # </div>
 
         div = soup.div
@@ -471,8 +484,8 @@ class TestMoniesBookTile(LocalTestCase):
         # <div class="col-sm-12 name">Test Do Not Delete 01 (of 01)</div>
         div = soup.div
         self.assertEqual(div['class'], 'col-sm-12 name')
-        book_name = formatted_name(db, self._row.book.id,
-                include_publication_year=False)
+        book_name = formatted_name(
+            db, self._row.book.id, include_publication_year=False)
         self.assertEqual(div.string, book_name)
 
         # Restore
@@ -489,8 +502,10 @@ class TestMoniesBookTile(LocalTestCase):
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div))
         # <div class="col-sm-12 image_container">
-        #   <a class="contribute_button" href="/contributions/modal?book_id=64">
-        #       <img alt="" src="/images/download/book_page.image.ab7ec55b2ce97d6f.626c75655f30302e706e67.png?size=web" />
+        #   <a class="contribute_button"
+        #           href="/contributions/modal?book_id=64">
+        #       <img alt=""
+        #       src="/images/download/book_page.image.aaa.000.png?size=web" />
         #   </a>
         # </div>
 
@@ -517,7 +532,8 @@ class TestMoniesBookTile(LocalTestCase):
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div))
         #  <div class="col-sm-12 image_container">
-        #    <img alt="" src="/images/download/book_page.image.ab7ec55b2ce97d6f.626c75655f30302e706e67.png?size=web" />
+        #    <img alt=""
+        #       src="/images/download/book_page.image.aaa.000.png?size=web" />
         # </div>
 
         div = soup.div
@@ -579,7 +595,7 @@ class TestOngoingGrid(LocalTestCase):
                 db.book.name,
                 db.book_page.created_on,
                 db.book.views,
-                db.book.contributions_remaining,
+                # db.book.contributions_remaining,
                 db.auth_user.name,
             ]
         )
@@ -608,7 +624,7 @@ class TestReleasesGrid(LocalTestCase):
                 db.book.publication_year,
                 db.book.release_date,
                 db.book.downloads,
-                db.book.contributions_remaining,
+                # db.book.contributions_remaining,
                 db.auth_user.name,
             ]
         )
@@ -706,7 +722,6 @@ class TestTile(LocalTestCase):
         self.assertEqual(ul['class'], 'breadcrumb pipe_delimiter')
         self.assertEqual(ul.string, None)
 
-
     def test__image(self):
         tile = Tile(db, self._value, self._row)
         self.assertEqual(tile.image(), None)
@@ -756,12 +771,11 @@ class TestBookTile(LocalTestCase):
     _value = None
     _creator = None
 
-
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     @classmethod
     def setUpClass(cls):
-        cls._grid = OngoingGrid()
+        cls._grid = ReleasesGrid()
         cls._row = cls._grid.rows()[0]
         cls._value = cls._grid.tile_value(cls._row)
         cls._creator = entity_to_row(db.creator, cls._row.creator.id)
@@ -784,14 +798,38 @@ class TestBookTile(LocalTestCase):
         )
 
     def test__download_link(self):
+        save_book_id = self._row.book.id
+        book = db(db.book.id == self._row.book.id).select().first()
+
+        # Test book with cbz
+        if not book.cbz:
+            book_with_cbz_id = db(db.book.cbz != None).select().first()
+            self._row.book.id = book_with_cbz_id.id
+
         tile = BookTile(db, self._value, self._row)
         link = tile.download_link()
         soup = BeautifulSoup(str(link))
-        #  <a class="fixme" href="#">download</a>
+        # <a class="download_button no_rclick_menu"
+        #       href="/downloads/modal/93">download</a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], 'fixme')
-        self.assertEqual(anchor['href'], '#')
+        self.assertEqual(anchor['class'], 'download_button no_rclick_menu')
+        self.assertEqual(anchor['href'], '/downloads/modal/{i}'.format(
+            i=self._row.book.id))
         self.assertEqual(anchor.string, 'download')
+
+        # Test without cbz
+        self._row.book.id = save_book_id
+        if book.cbz:
+            book_no_cbz_id = db(db.book.cbz == None).select().first()
+            self._row.book.id = book_no_cbz_id.id
+
+        tile = BookTile(db, self._value, self._row)
+        link = tile.download_link()
+        soup = BeautifulSoup(str(link))
+        self.assertEqual(str(soup), '<span></span>')
+
+        # Reset
+        self._row.book.id = save_book_id
 
     def test_footer(self):
         tile = BookTile(db, self._value, self._row)
@@ -799,10 +837,11 @@ class TestBookTile(LocalTestCase):
         soup = BeautifulSoup(str(footer))
         # <div class="col-sm-12">
         #   <ul class="breadcrumb pipe_delimiter">
-        #     <li><a class="contribute_button" href="/contributions/modal?book_id=64">contribute</a></li>
-        #     <li><a class="fixme" href="#">download</a></li>
+        #     <li><a class="download_button no_rclick_menu"
+        #       href="/downloads/modal/2208">download</a>
+        #     </li>
         #   </ul>
-        #   <div class="orderby_field_value">1 week ago</div>
+        #   <div class="orderby_field_value">2015-03-04</div>
         # </div>
 
         div = soup.div
@@ -830,15 +869,16 @@ class TestBookTile(LocalTestCase):
             dl_li = lis[0]
 
         anchor = dl_li.a
-        self.assertEqual(anchor['class'], 'fixme')
-        self.assertEqual(anchor['href'], '#')
+        self.assertEqual(anchor['class'], 'download_button no_rclick_menu')
+        self.assertEqual(anchor['href'], '/downloads/modal/{i}'.format(
+            i=self._row.book.id))
         self.assertEqual(anchor.string, 'download')
 
         div_2 = div.div
         self.assertEqual(div_2['class'], 'orderby_field_value')
         self.assertEqual(
             div_2.string,
-            str(prettydate(self._row.book_page.created_on))
+            str(self._row.book.release_date)
         )
 
     def test__image(self):
@@ -846,8 +886,11 @@ class TestBookTile(LocalTestCase):
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div))
         # <div class="col-sm-12 image_container">
-        #   <a class="book_page_image" href="/Jim_Karsten/Test_Do_Not_Delete_001/001" title="">
-        #   <img alt="" src="/images/download/book_page.image.bdc42e733bffa99c.3030312e6a7067.jpg?size=web" /></a>
+        #   <a class="book_page_image"
+        #       href="/Jim_Karsten/Test_Do_Not_Delete_001/001" title="">
+        #   <img alt=""
+        #       src="/images/download/book_page.image.aaa.00.jpg?size=web" />
+        #   </a>
         # </div>
 
         div = soup.div
@@ -920,8 +963,8 @@ class TestBookTile(LocalTestCase):
             c=url_name(self._row.creator.id),
             b=urllib.quote(book_url_name(self._row.book.id))
         ))
-        book_name = formatted_name(db, self._row.book.id,
-                include_publication_year=False)
+        book_name = formatted_name(
+            db, self._row.book.id, include_publication_year=True)
         self.assertEqual(anchor['title'], book_name)
         self.assertEqual(anchor.string, book_name)
 
@@ -978,7 +1021,8 @@ class TestCartoonistTile(LocalTestCase):
         soup = BeautifulSoup(str(footer))
         # <div class="col-sm-12">
         #   <ul class="breadcrumb pipe_delimiter">
-        #     <li><a class="contribute_button" href="/contributions/modal?creator_id=101">contribute</a></li>
+        #     <li><a class="contribute_button"
+        #       href="/contributions/modal?creator_id=101">contribute</a></li>
         #     <li><a href="/Jim_Karsten">download</a></li>
         #   </ul>
         #   <div class="orderby_field_value">1 week ago</div>
@@ -1020,7 +1064,8 @@ class TestCartoonistTile(LocalTestCase):
         self.assertEqual(
             div_2.string,
             None
-            # db.creator.contributions_remaining.represent(self._row.creator.contributions_remaining, self._row)
+            # db.creator.contributions_remaining.represent(
+            #    self._row.creator.contributions_remaining, self._row)
         )
 
     def test__image(self):
@@ -1030,7 +1075,8 @@ class TestCartoonistTile(LocalTestCase):
         if self._creator.image:
             # <div class="col-sm-12 image_container">
             #   <a href="/Charles_Forsman" title="">
-            #     <img alt="Charles Forsman" src="/images/download/creator.image.966676d4ae36a2bf.636875636b5f666f72736d616e2d677261792e6a7067.jpg?size=tbn" />
+            #     <img alt="Charles Forsman"
+            #      src="/images/download/creator.image.aaa.000.jpg?size=tbn" />
             #   </a>
             # </div
             div = soup.div
@@ -1141,8 +1187,7 @@ class TestFunctions(LocalTestCase):
     @classmethod
     def setUp(cls):
         cls._creator = cls.add(db.creator, dict(
-            path_name='test__functions',
-            torrent='applications/zcomx/private/var/tor/zco.mx/F/First Last (999.zco.mx).torrent',
+            path_name='First Last',
         ))
         name = '_My Functions Book_'
         book_type_id = db(db.book_type).select().first().id
@@ -1150,6 +1195,8 @@ class TestFunctions(LocalTestCase):
             name=name,
             creator_id=cls._creator.id,
             book_type_id=book_type_id,
+            cbz='_fake_cbz_',
+            torrent='_fake_torrent_',
         ))
 
         cls.add(db.book_page, dict(
@@ -1173,18 +1220,19 @@ class TestFunctions(LocalTestCase):
         data = {}
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        data['string'] = anchor.string
-        for attr in ['href', 'class', 'type']:
-            try:
-                data[attr] = anchor[attr]
-            except KeyError:
-                data[attr] = None
+        if anchor:
+            data['string'] = anchor.string
+            for attr in ['href', 'class', 'type']:
+                try:
+                    data[attr] = anchor[attr]
+                except KeyError:
+                    data[attr] = None
         return data
 
     def test_constants(self):
         self.assertEqual(
             GRID_CLASSES.keys(),
-            ['ongoing', 'contributions', 'creators', 'search']
+            ['ongoing', 'releases', 'creators', 'search']
         )
 
     def test__book_contribute_button(self):
@@ -1212,12 +1260,12 @@ class TestFunctions(LocalTestCase):
         request = env['request']
 
         tests = [
-            #(request.vars.o, expect)
+            # (request.vars.o, expect)
             (None, OngoingGrid),
             ('_fake_', OngoingGrid),
             ('ongoing', OngoingGrid),
-            # ('releases', ReleasesGrid),
-            ('contributions', ContributionsGrid),
+            ('releases', ReleasesGrid),
+            # ('contributions', ContributionsGrid),
             ('creators', CartoonistsGrid),
         ]
         for t in tests:
@@ -1241,11 +1289,15 @@ class TestFunctions(LocalTestCase):
 
     def test__download_link(self):
         self.assertEqual(download_link({}), '')
-
-        data = self._parse_link(download_link(self._row()))
+        row = self._row()
+        data = self._parse_link(download_link(row))
         self.assertEqual(data['string'], 'Download')
-        self.assertTrue('/books/download/' in data['href'])
-        self.assertTrue('fixme' in data['class'])
+        self.assertEqual(data['href'], '/downloads/modal/{i}'.format(
+            i=row.book.id))
+        self.assertEqual(
+            data['class'],
+            'btn btn-default download_button no_rclick_menu'
+        )
 
     def test__link_book_id(self):
         self.assertEqual(link_book_id({}), 0)
@@ -1261,19 +1313,17 @@ class TestFunctions(LocalTestCase):
         data = self._parse_link(read_link(self._row()))
         self.assertEqual(data['string'], 'Read')
         self.assertTrue(
-            '/test__functions/_My_Functions_Book__001/001' in data['href'])
+            '/First_Last/_My_Functions_Book__001/001' in data['href'])
         self.assertTrue('btn' in data['class'])
 
     def test__torrent_link(self):
         self.assertEqual(torrent_link({}), '')
 
-        r = self._row()
-        link = torrent_link(self._row())
         data = self._parse_link(torrent_link(self._row()))
-        self.assertEqual(data['string'], 'test__functions.torrent')
+        self.assertEqual(data['string'], 'first_last.torrent')
         self.assertEqual(
             data['href'],
-            '/torrents/download/creator/{i}'.format(i=self._creator.id),
+            '/First_Last_({i}.zco.mx).torrent'.format(i=self._creator.id)
         )
         self.assertEqual(data['class'], None)
         self.assertEqual(data['type'], None)

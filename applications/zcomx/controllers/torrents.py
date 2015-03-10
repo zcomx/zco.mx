@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """Torrent controller functions"""
+import cgi
 import logging
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
+    by_attributes, \
+    parse_url_name, \
     torrent_url as book_torrent_url
 from applications.zcomx.modules.creators import \
     torrent_url as creator_torrent_url, \
@@ -28,25 +31,38 @@ def route():
     """Parse and route torrent urls.
 
     Format #1:
-        request.args(0): string name of torrent file.
+        request.vars.torrent: string name of torrent file.
         Examples:
 
-            All:     /zco.mx.torrent
-            Creator: /First Last (101.zco.mx).torrent
-            Book:    /My Book 01 (of 01) (2015) (123.zco.mx).cbz.torrent
+            All:     ?torrent=zco.mx.torrent
+            Creator: ?torrent=First_Last_(101.zco.mx).torrent
 
     Format #2
-        request.args(0): integer (creator id) or string (creator name)
-        request.args(1): string name of torrent file.
+        request.vars.creator: integer (creator id) or string (creator name)
+        request.vars.torrent: string name of torrent file (book).
 
         Examples:
-            Book:    123/My Book 01 (of 01) (2015) (123.zco.mx).torrent
-            Book:    First_Last/My Book 01 (of 01) (2015) (123.zco.mx).torrent
+            Book:    ?creator=123&torrent=My_Book_01_(of 01).torrent
+            Book:    ?creator=First_Last&torrent=My_Book_01_(of 01).torrent
 
-        Note: the '.cbz' is not included.
-        If request.args(0) is an integer (creator id) the page is redirected to
-            the string (creator name) page.
+        If request.vars.creator is an integer (creator id) the page is
+            redirected to the string (creator name) page.
     """
+    # Note: there is a bug in web2py Ver 2.9.11-stable where request.vars
+    # is not set by routes.
+    # Ticket: http://code.google.com/p/web2py/issues/detail?id=1990
+    # If necessary, parse request.env.query_string for the values.
+    def parse_get_vars():
+        """Adapted from gluon/globals.py class Request"""
+        query_string = request.env.get('query_string', '')
+        dget = cgi.parse_qs(query_string, keep_blank_values=1)
+        get_vars = Storage(dget)
+        for (key, value) in get_vars.iteritems():
+            if isinstance(value, list) and len(value) == 1:
+                get_vars[key] = value[0]
+        return get_vars
+
+    request.vars.update(parse_get_vars())
 
     def page_not_found():
         """Handle page not found."""
@@ -84,55 +100,51 @@ def route():
         message = 'The requested torrent was not found on this server.'
         return dict(urls=urls, message=message)
 
-    if not request.args:
+    if not request.vars:
+        return page_not_found()
+
+    if not request.vars.torrent:
         return page_not_found()
 
     torrent_type = None
     torrent_name = None
 
-    if len(request.args) == 2:
+    if request.vars.creator:
         creator_record = None
 
-        # Test for request.args(0) as creator.id
+        # Test for request.vars.creator as creator.id
         try:
-            int(request.args(0))
+            int(request.vars.creator)
         except (TypeError, ValueError):
             pass
         else:
             creator_record = entity_to_row(
                 db.creator,
-                request.args(0)
+                request.vars.creator
             )
 
         # Test for request.vars.creator as creator.path_name
         if not creator_record:
-            name = request.args(0).replace('_', ' ')
+            name = request.vars.creator.replace('_', ' ')
             query = (db.creator.path_name == name)
             creator_record = db(query).select().first()
 
         if not creator_record:
             return page_not_found()
 
-        if '{i:03d}'.format(i=creator_record.id) == request.args(0):
+        if '{i:03d}'.format(i=creator_record.id) == request.vars.creator:
             # Redirect to name version
             c_url = creator_url(creator_record)
-            redirect('/'.join([c_url, request.args(1)]))
+            redirect('/'.join([c_url, request.vars.torrent]))
 
         torrent_type = 'book'
-        torrent_name = request.args(1)
-        if torrent_name.endswith('.torrent') \
-                and not torrent_name.endswith('.cbz.torrent'):
-            torrent_name = ''.join(
-                [torrent_name.rstrip('.torrent'), '.cbz.torrent'])
+        torrent_name = request.vars.torrent
     else:
-        if request.args(0) == 'zco.mx.torrent':
+        if request.vars.torrent == 'zco.mx.torrent':
             torrent_type = 'all'
-        elif request.args(0).endswith('.cbz.torrent'):
-            torrent_type = 'book'
-            torrent_name = request.args(0)
         else:
             torrent_type = 'creator'
-            torrent_name = request.args(0)
+            torrent_name = request.vars.torrent
 
     if torrent_type == 'all':
         redirect(URL(download, args='all'))
@@ -147,8 +159,12 @@ def route():
             return page_not_found()
 
     if torrent_type == 'book':
-        query = (db.book.torrent.like('%/{t}'.format(t=torrent_name)))
-        book = db(query).select().first()
+        book_name = torrent_name.rstrip('.torrent')
+        attrs = parse_url_name(book_name)
+        attrs['creator_id'] = creator_record.id
+        book = by_attributes(attrs)
+        if not book or not book.torrent:
+            return page_not_found()
         if book:
             redirect(URL(download, args=['book', book.id]))
         else:

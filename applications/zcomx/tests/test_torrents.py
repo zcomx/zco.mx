@@ -223,8 +223,9 @@ class TestBookTorrentCreator(TorrentTestCase):
             path_name='First Last',
         ))
         book = self.add(db.book, dict(
-            name='Test Book Torrent Creator',
+            name='My Book',
             creator_id=creator.id,
+            publication_year=1999,
         ))
         tor_creator = BookTorrentCreator(book)
         # book.cbz is not defined, should fail
@@ -236,7 +237,11 @@ class TestBookTorrentCreator(TorrentTestCase):
         tor_file = tor_creator.archive(base_path=self._tmp_dir)
         self.assertEqual(
             tor_file,
-            '/tmp/test_torrent/tor/zco.mx/F/First Last/file.cbz.torrent'
+            os.path.join(
+                '/tmp/test_torrent/tor/zco.mx',
+                'F/First Last/My Book (1999) ({i}.zco.mx).cbz.torrent'.format(
+                    i=creator.id)
+            )
         )
 
         book_record = db(db.book.id == book.id).select().first()
@@ -248,15 +253,16 @@ class TestBookTorrentCreator(TorrentTestCase):
         ))
 
         book = self.add(db.book, dict(
-            name='Test Book Torrent Creator',
+            name='My Book',
+            publication_year=1999,
             creator_id=creator.id,
-            cbz='/path/to/file.cbz',
         ))
 
         tor_creator = BookTorrentCreator(book)
         self.assertEqual(
             tor_creator.get_destination(),
-            'F/First Last/file.cbz.torrent'
+            'F/First Last/My Book (1999) ({i}.zco.mx).cbz.torrent'.format(
+                i=creator.id)
         )
 
         # Test invalid creator
@@ -299,10 +305,8 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         tor_creator = CreatorTorrentCreator(creator)
         tor_creator.set_cbz_base_path(self._tmp_dir)
         tor_file = tor_creator.archive(base_path=self._tmp_dir)
-        self.assertEqual(
-            tor_file,
-            '/tmp/test_torrent/tor/zco.mx/F/First Last.torrent'
-        )
+        fmt = '/tmp/test_torrent/tor/zco.mx/F/First Last ({i}.zco.mx).torrent'
+        self.assertEqual(tor_file, fmt.format(i=creator.id))
 
         creator_record = db(db.creator.id == creator.id).select().first()
         self.assertEqual(creator_record.torrent, tor_file)
@@ -330,6 +334,9 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         )
 
     def test__set_cbz_base_path(self):
+        # W0212 (protected-access): *Access to a protected member
+        # pylint: disable=W0212
+
         creator = self.add(db.creator, dict(
             path_name='First Last',
         ))
@@ -338,6 +345,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         self.assertEqual(tor_creator._cbz_base_path, None)
         tor_creator.set_cbz_base_path(self._tmp_dir)
         self.assertEqual(tor_creator._cbz_base_path, self._tmp_dir)
+
 
 class TestTorrentCreateError(LocalTestCase):
     def test_parent_init(self):

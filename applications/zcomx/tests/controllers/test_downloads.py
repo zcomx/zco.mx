@@ -7,8 +7,6 @@ Test suite for zcomx/controllers/downloads.py
 
 """
 import unittest
-import urllib2
-from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -28,6 +26,7 @@ class TestFunctions(LocalTestCase):
             '<div id="download_modal_page">',
             'magnet:?xt=urn:tree:tiger',
         ],
+        'modal_invalid': 'Invalid data provided',
     }
     url = '/zcomx/downloads'
 
@@ -58,7 +57,6 @@ class TestFunctions(LocalTestCase):
         else:
             cls._invalid_book_id = 1
 
-
     def test__index(self):
         self.assertTrue(
             web.test(
@@ -69,10 +67,14 @@ class TestFunctions(LocalTestCase):
 
     def test__modal(self):
         # No book id
-        with self.assertRaises(urllib2.HTTPError) as cm:
-            web.test('{url}/modal'.format(url=self.url), None)
-        self.assertEqual(cm.exception.code, 404)
-        self.assertEqual(cm.exception.msg, 'NOT FOUND')
+        self.assertTrue(
+            web.test(
+                '{url}/modal'.format(
+                    url=self.url,
+                ),
+                self.titles['modal_invalid']
+            )
+        )
 
         # Test with book_id
         self.assertTrue(self._book.cbz)

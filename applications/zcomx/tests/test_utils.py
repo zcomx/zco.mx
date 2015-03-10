@@ -108,14 +108,7 @@ class TestFunctions(LocalTestCase):
         )
 
         db.test__reorder.truncate()
-
-        for f in cls._fields:
-            record_id = db.test__reorder.insert(
-                name=f,
-                order_no=0,
-            )
-            db.commit()
-            cls._by_name[f] = record_id
+        cls._reset()
 
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
@@ -143,11 +136,25 @@ class TestFunctions(LocalTestCase):
         db.test__reorder.truncate()
         db.commit()
 
-    def _reset(self):
+    @classmethod
+    def _reset(cls):
+        names = [
+            x.name for x
+            in db(db.test__reorder).select(db.test__reorder.name)
+        ]
+        for f in cls._fields:
+            if f not in names:
+                record_id = db.test__reorder.insert(
+                    name=f,
+                    order_no=0,
+                )
+                db.commit()
+                cls._by_name[f] = record_id
+
         record_ids = [
-            self._by_name['a'],
-            self._by_name['b'],
-            self._by_name['c'],
+            cls._by_name['a'],
+            cls._by_name['b'],
+            cls._by_name['c'],
         ]
         reorder(db.test__reorder.order_no, record_ids=record_ids)
 
@@ -168,7 +175,7 @@ class TestFunctions(LocalTestCase):
             self.assertAlmostEqual(
                 record[date_field],
                 datetime.datetime.now(),
-                delta=datetime.timedelta(minutes=1)
+                delta=datetime.timedelta(minutes=10)
             )
             del record[date_field]
 

@@ -30,6 +30,7 @@ class TestFunctions(LocalTestCase):
     _creator_to_link = None
     _user = None
     _test_data_dir = None
+    _max_optimize_img_log_id = None
 
     titles = {
         'account': ['account_profile_container', 'change_password_container'],
@@ -150,7 +151,20 @@ class TestFunctions(LocalTestCase):
                 'No book_to_link with email: {e}'.format(e=email)
             )
 
+        id_max = db.optimize_img_log.id.max()
+        cls._max_optimize_img_log_id = db(db.optimize_img_log).select(id_max)[0][id_max]
         cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+
+    @classmethod
+    def tearDownClass(cls):
+        for job in db(db.job).select():
+            job.delete_record()
+        db.commit()
+
+        if cls._max_optimize_img_log_id:
+            query = (db.optimize_img_log.id > cls._max_optimize_img_log_id)
+            db(query).delete()
+            db.commit()
 
     def test__account(self):
 
@@ -641,6 +655,8 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__indicia_preview_urls(self):
+        if self._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def get_creator():
             """Return creator"""

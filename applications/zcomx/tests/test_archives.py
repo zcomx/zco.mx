@@ -15,7 +15,7 @@ from applications.zcomx.modules.archives import \
     CBZArchive, \
     TorrentArchive, \
     ZcoMxArchive
-from applications.zcomx.modules.test_runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import NotFoundError
 
 # C0111: Missing docstring
@@ -114,7 +114,7 @@ class TestCBZArchive(LocalTestCase):
     def test____init__(self):
         archive = CBZArchive()
         self.assertTrue(archive)
-        self.assertEqual(archive.base_path, 'private/var')
+        self.assertEqual(archive.base_path, 'applications/zcomx/private/var')
         self.assertEqual(archive.category, 'cbz')
         self.assertEqual(archive.name, 'zco.mx')
 
@@ -124,7 +124,7 @@ class TestTorrentArchive(LocalTestCase):
     def test____init__(self):
         archive = TorrentArchive()
         self.assertTrue(archive)
-        self.assertEqual(archive.base_path, 'private/var')
+        self.assertEqual(archive.base_path, 'applications/zcomx/private/var')
         self.assertEqual(archive.category, 'tor')
         self.assertEqual(archive.name, 'zco.mx')
 
@@ -134,7 +134,7 @@ class TestZcoMxArchive(LocalTestCase):
     def test____init__(self):
         archive = ZcoMxArchive()
         self.assertTrue(archive)
-        self.assertEqual(archive.base_path, 'private/var')
+        self.assertEqual(archive.base_path, 'applications/zcomx/private/var')
         self.assertEqual(archive.category, 'archive')
         self.assertEqual(archive.name, 'zco.mx')
 

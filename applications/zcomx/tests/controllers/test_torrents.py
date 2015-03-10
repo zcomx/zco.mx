@@ -9,7 +9,9 @@ Test suite for zcomx/controllers/torrents.py
 import os
 import unittest
 import urllib2
+from applications.zcomx.modules.books import url_name
 from applications.zcomx.modules.tests.runner import LocalTestCase
+
 
 
 # C0111: Missing docstring
@@ -28,6 +30,11 @@ class TestFunctions(LocalTestCase):
         'torrent': '30:http://bt.zco.mx:6969/announce',
     }
     url = '/zcomx/torrents'
+
+    @classmethod
+    def setUp(cls):
+        # Prevent 'Changed session ID' warnings.
+        web.sessions = {}
 
     @classmethod
     def setUpClass(cls):
@@ -105,66 +112,57 @@ class TestFunctions(LocalTestCase):
         test_invalid('{url}/download/creator/-1'.format(url=self.url))
 
     def test__route(self):
-        # Format #1 all
+        # Test 'all' torrent
         expect = []
         expect.append(self.titles['torrent'])
         expect.append(self._creator.path_name)
         expect.append(self._book.name)
         self.assertTrue(web.test(
-            '{url}/route/zco.mx.torrent'.format(url=self.url),
+            '{url}/route?torrent=zco.mx.torrent'.format(url=self.url),
             expect
         ))
 
-        # Format #1 creator
+        # Test creator torrent
         expect = []
         expect.append(self.titles['torrent'])
         expect.append(self._creator.path_name)
         expect.append(self._book.name)
         self.assertTrue(web.test(
-            '{url}/route/{tor}'.format(
+            '{url}/route?torrent={tor}'.format(
                 url=self.url,
                 tor=os.path.basename(self._creator.torrent),
             ),
             expect
         ))
 
-        # Format #1 book
+        # Test book torrent, creator as id
         expect = []
         expect.append(self.titles['torrent'])
         expect.append(self._book.name)
-        self.assertTrue(web.test(
-            '{url}/route/{tor}'.format(
-                url=self.url,
-                tor=os.path.basename(self._book.torrent),
-            ),
-            expect
-        ))
 
-        # Format #2 id
-        expect = []
-        expect.append(self.titles['torrent'])
-        expect.append(self._book.name)
         self.assertTrue(web.test(
-            '{url}/route/{cid:03d}/{tor}'.format(
+            '{url}/route?creator={cid:03d}&torrent={tor}'.format(
                 url=self.url,
                 cid=self._creator.id,
-                tor=os.path.basename(self._book.torrent),
+                tor='{n}.torrent'.format(n=url_name(self._book))
             ),
             expect
         ))
 
-        # Format #2 name
+        # Test book torrent, creator as name
         expect = []
         expect.append(self.titles['torrent'])
         expect.append(self._book.name)
         self.assertTrue(web.test(
-            '{url}/route/{name}/{tor}'.format(
+            '{url}/route?creator={name}&torrent={tor}'.format(
                 url=self.url,
                 name=self._creator.path_name.replace(' ', '_'),
-                tor=os.path.basename(self._book.torrent),
+                tor='{n}.torrent'.format(n=url_name(self._book))
             ),
             expect
         ))
+
+        web.sessions = {}    # Prevent 'Changed session ID' warnings.
 
         # page not found: no args
         self.assertTrue(web.test(
