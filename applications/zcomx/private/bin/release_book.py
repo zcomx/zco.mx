@@ -10,8 +10,11 @@ import datetime
 import logging
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
-    optimize_book_images, \
-    unoptimized_images
+    optimize_images as optimize_book_images, \
+    unoptimized_images as unoptimized_book_images
+from applications.zcomx.modules.creators import \
+    optimize_images as optimize_creator_images, \
+    unoptimized_images as unoptimized_creator_images
 from applications.zcomx.modules.job_queue import \
     CreateCBZQueuer, \
     CreateTorrentQueuer, \
@@ -113,8 +116,15 @@ def main():
     if not book:
         raise NotFoundError('Book not found, id: %s', book_id)
 
-    if unoptimized_images(book):
+    creator = db(db.creator.id == book.creator_id).select().first()
+    if not creator:
+        raise NotFoundError('Creator not found, id: %s', book.creator_id)
+
+    if unoptimized_book_images(book):
         optimize_book_images(book, priority='optimize_img_for_release')
+        requeue = True
+    elif unoptimized_creator_images(creator):
+        optimize_creator_images(creator, priority='optimize_img_for_release')
         requeue = True
     elif not book.cbz:
         CreateCBZQueuer(

@@ -809,7 +809,7 @@ def numbers_for_book_type(db, book_type_id):
         return default
 
 
-def optimize_book_images(
+def optimize_images(
         book_entity,
         priority='optimize_img',
         job_options=None,
@@ -1404,6 +1404,8 @@ def unoptimized_images(book_entity):
     for field in db.book.fields:
         if db.book[field].type != 'upload':
             continue
+        if not book[field]:
+            continue
         if not is_optimized(book[field]):
             unoptimals.append(book[field])
 
@@ -1411,6 +1413,8 @@ def unoptimized_images(book_entity):
     for book_page in db(query).select():
         for field in db.book_page.fields:
             if db.book_page[field].type != 'upload':
+                continue
+            if not book_page[field]:
                 continue
             if not is_optimized(book_page[field]):
                 unoptimals.append(book_page[field])

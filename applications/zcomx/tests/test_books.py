@@ -48,7 +48,7 @@ from applications.zcomx.modules.books import \
     get_page, \
     magnet_uri, \
     numbers_for_book_type, \
-    optimize_book_images, \
+    optimize_images, \
     orientation, \
     page_url, \
     parse_url_name, \
@@ -1181,12 +1181,12 @@ class TestFunctions(ImageTestCase):
             {'of_number': False, 'number': False}
         )
 
-    def test__optimize_book_images(self):
+    def test__optimize_images(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
 
         book = self.add(db.book, dict(
-            name='Test Optimze Book Images'
+            name='Test Optimize Images'
         ))
 
         stored_filename = store(
@@ -1226,7 +1226,7 @@ class TestFunctions(ImageTestCase):
         before_sizes = get_sizes()
 
         cli_options = {'--vv': True, '--uploads-path': self._image_dir}
-        jobs = optimize_book_images(book, cli_options=cli_options)
+        jobs = optimize_images(book, cli_options=cli_options)
         self.assertEqual(len(jobs), 2)
 
         tries = 20

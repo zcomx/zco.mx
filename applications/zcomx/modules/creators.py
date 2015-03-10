@@ -11,6 +11,9 @@ from gluon import *
 from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
 from applications.zcomx.modules.files import FileName
+from applications.zcomx.modules.images import \
+    is_optimized, \
+    queue_optimize
 from applications.zcomx.modules.job_queue import \
     UpdateIndiciaQueuer
 from applications.zcomx.modules.utils import \
@@ -278,6 +281,42 @@ def on_change_name(creator_entity):
         db.commit()
 
 
+def optimize_images(
+        creator_entity,
+        priority='optimize_img',
+        job_options=None,
+        cli_options=None):
+    """Optimize all images related to a creator.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator.
+        priority: string, priority key, one of PROIRITIES
+        job_options: dict, job record attributes used for JobQueuer property
+        cli_options: dict, options for job command
+    """
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        raise NotFoundError('Book not found, {e}'.format(e=creator_entity))
+
+    jobs = []
+
+    for field in db.creator.fields:
+        if db.creator[field].type != 'upload' or not creator[field]:
+            continue
+        jobs.append(
+            queue_optimize(
+                creator[field],
+                priority=priority,
+                job_options=job_options,
+                cli_options=cli_options
+            )
+        )
+
+    return jobs
+
+
+
 def profile_onaccept(form):
     """Set the creator.path_name field associated with the user.
 
@@ -414,6 +453,37 @@ def torrent_url(creator_entity, **url_kwargs):
         f='index',
         **kwargs
     )
+
+
+def unoptimized_images(creator_entity):
+    """Return a list of unoptimized images related to a creator.
+
+    Images are deemed unoptimized if there is no optimize_img_log record
+    indicating it has been optimized.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator.
+
+    Returns:
+        list of strings, [image_name_1, image_name_2, ...]
+            eg image name: creator.image.801685b627e099e.300332e6a7067.jpg
+    """
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
+
+    unoptimals = []
+
+    for field in db.creator.fields:
+        if db.creator[field].type != 'upload':
+            continue
+        if not creator[field]:
+            continue
+        if not is_optimized(creator[field]):
+            unoptimals.append(creator[field])
+
+    return unoptimals
 
 
 def url(creator_entity, **url_kwargs):

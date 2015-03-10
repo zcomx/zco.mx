@@ -12,7 +12,7 @@ from applications.zcomx.modules.books import \
     book_pages_as_json, \
     defaults as book_defaults, \
     numbers_for_book_type, \
-    optimize_book_images, \
+    optimize_images, \
     publication_year_range, \
     read_link, \
     release_barriers
@@ -449,7 +449,7 @@ def book_post_image_upload():
         return do_error('Reorder service unavailable')
 
     # Step 1:  Trigger optimization of book images
-    optimize_book_images(book_record)
+    optimize_images(book_record)
 
     # Step 2: Reorder book pages
     if 'book_page_ids[]' not in request.vars:
