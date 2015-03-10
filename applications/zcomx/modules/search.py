@@ -1254,6 +1254,4 @@ def torrent_link(row):
         return ''
     if 'creator' not in row or not row.creator.id:
         return ''
-    if not row.creator.torrent:
-        return ''
     return creator_torrent_link(row.creator.id)

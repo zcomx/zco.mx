@@ -138,8 +138,10 @@ class TestFunctions(LocalTestCase):
 
     @classmethod
     def _reset(cls):
-        names = [x.name for x
-            in db(db.test__reorder).select(db.test__reorder.name)]
+        names = [
+            x.name for x
+            in db(db.test__reorder).select(db.test__reorder.name)
+        ]
         for f in cls._fields:
             if f not in names:
                 record_id = db.test__reorder.insert(
@@ -173,7 +175,7 @@ class TestFunctions(LocalTestCase):
             self.assertAlmostEqual(
                 record[date_field],
                 datetime.datetime.now(),
-                delta=datetime.timedelta(minutes=3)
+                delta=datetime.timedelta(minutes=10)
             )
             del record[date_field]
 

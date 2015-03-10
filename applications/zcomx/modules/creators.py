@@ -322,6 +322,28 @@ def short_url(creator_entity):
     )
 
 
+def torrent_file_name(creator_entity):
+    """Return the name of the torrent file for the creator.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator.
+
+    Returns:
+        string, the file name.
+    """
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        raise NotFoundError('Creator not found, id: {e}'.format(
+            e=creator_entity))
+
+    fmt = '{name} ({url}).torrent'
+    return fmt.format(
+        name=for_path(creator.path_name),
+        url='{cid}.zco.mx'.format(cid=creator.id),
+    )
+
+
 def torrent_link(creator_entity, components=None, **attributes):
     """Return a link suitable for the torrent file of all of creator's books.
 
@@ -341,15 +363,15 @@ def torrent_link(creator_entity, components=None, **attributes):
         raise NotFoundError('Creator not found, id: {e}'.format(
             e=creator_entity))
 
-    name = torrent_name(creator)
-    if not name:
-        return empty
-
     link_url = torrent_url(creator)
     if not link_url:
         return empty
 
     if not components:
+        u_name = url_name(creator_entity)
+        if not u_name:
+            return
+        name = '{n}.torrent'.format(n=u_name).lower()
         components = [name]
 
     kwargs = {}
@@ -361,21 +383,6 @@ def torrent_link(creator_entity, components=None, **attributes):
     return A(*components, **kwargs)
 
 
-def torrent_name(creator_entity):
-    """Return the name of the torrent file of all of creator's books.
-
-    Args:
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
-    Returns:
-        string, eg 'first_last.torrent'
-    """
-    name = url_name(creator_entity)
-    if not name:
-        return
-    return '{n}.torrent'.format(n=name).lower()
-
-
 def torrent_url(creator_entity, **url_kwargs):
     """Return the url to the torrent file for all of creator's books.
 
@@ -385,9 +392,9 @@ def torrent_url(creator_entity, **url_kwargs):
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url, eg
-            http://zco.mx/torrents/route/First Last (123.zco.mx).torrent
+            http://zco.mx/torrents/route/First_Last_(123.zco.mx).torrent
             routes_out should convert it to
-                http://zco.mx/First Last (123.zco.mx).torrent)
+                http://zco.mx/First_Last_(123.zco.mx).torrent)
     """
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)
@@ -395,15 +402,16 @@ def torrent_url(creator_entity, **url_kwargs):
         raise NotFoundError('Creator not found, id: {e}'.format(
             e=creator_entity))
 
-    if not creator.torrent:
-        return
+    controller = '{name} ({i}.zco.mx).torrent'.format(
+        name=url_name(creator_entity),
+        i=creator.id,
+    ).replace(' ', '_')
 
     kwargs = {}
     kwargs.update(url_kwargs)
     return URL(
-        c='torrents',
-        f='route',
-        args=os.path.basename(creator.torrent),
+        c=controller,
+        f='index',
         **kwargs
     )
 

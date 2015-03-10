@@ -66,8 +66,6 @@ book_re = '(?P<book>.*)'            # Allow everything
 page_re = '(?P<page>[\w.]+)'        # Allow period for extension
 
 routes_in = (
-    # ('/$anything', '/zcomx/creators/delete_me?key=$anything'),
-    # ('/$anything', '/zcomx/creators/delete_me/xxx?bbb=9888&ccc=888'),
     # do not reroute static files
     ('/$app/static/$anything', '/$app/static/$anything'),
     ('/', '/zcomx/search/index'),
@@ -87,8 +85,10 @@ routes_in = (
     ('/robots.txt', '/zcomx/static/robots.txt'),
 
     # reroute torrents, look for .torrent extension
-    ('/zcomx/(?P<tor>.*\.torrent)', '/zcomx/torrents/route/\g<tor>'),
-    ('/(?P<tor>.*\.torrent)', '/zcomx/torrents/route/\g<tor>'),
+    ('/zcomx/{c}/(?P<tor>.*\.torrent)'.format(c=creator_re), '/zcomx/torrents/route?creator=\g<creator>&torrent=\g<tor>'),
+    ('/zcomx/(?P<tor>.*\.torrent)', '/zcomx/torrents/route?torrent=\g<tor>'),
+    ('/{c}/(?P<tor>.*\.torrent)'.format(c=creator_re), '/zcomx/torrents/route?creator=\g<creator>&torrent=\g<tor>'),
+    ('/(?P<tor>.*\.torrent)', '/zcomx/torrents/route?torrent=\g<tor>'),
 
     # Assume everything else doesn't match a controller and is a creator/book/page
     ('/zcomx/{c}/{b}/{p}'.format(c=creator_re, b=book_re, p=page_re),
@@ -127,8 +127,8 @@ routes_out = (
     ('/zcomx/default/user/login', '/login'),
     ('/zcomx/creators/index/$anything', '/$anything'),
     ('/creators/index/$anything', '/$anything'),
-    ('/zcomx/torrents/route/$anything', '/$anything'),
-    ('/torrents/route/$anything', '/$anything'),
+    ('/zcomx/(?P<tor>.*\.torrent)/index', '/\g<tor>'),
+    ('/zcomx/$anything/(?P<tor>.*\.torrent)', '/$anything/\g<tor>'),
     ('/zcomx/default/(?P<function>{funcs})'.format(funcs=DEFAULT_FUNCTIONS), '/\g<function>'),
     ('/zcomx/(?P<controller>{ctrs})/index'.format(ctrs=CONTROLLERS), '/\g<controller>'),
     ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/\g<controller>/$anything'),

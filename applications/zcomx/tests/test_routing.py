@@ -974,11 +974,12 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/default/user/logout', "/zcomx/default/user ['logout']"),
 
             # Test torrents
-            ('http://my.domain.com/abc.torrent', "/zcomx/torrents/route ['abc.torrent']"),
-            ('http://my.domain.com/zcomx/abc.torrent', "/zcomx/torrents/route ['abc.torrent']"),
-            ('http://my.domain.com/zco.mx.torrent', "/zcomx/torrents/route ['zco.mx.torrent']"),
-            ('http://my.domain.com/First Last (101.zco.mx).torrent', "/zcomx/torrents/route ['First Last (101.zco.mx).torrent']"),
-            ('http://my.domain.com/My Book 001 (101.zco.mx).cbz.torrent', "/zcomx/torrents/route ['My Book 001 (101.zco.mx).cbz.torrent']"),
+            ('http://my.domain.com/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
+            ('http://my.domain.com/zcomx/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
+            ('http://my.domain.com/zco.mx.torrent', "/zcomx/torrents/route ?torrent=zco.mx.torrent"),
+            ('http://my.domain.com/First_Last_(101.zco.mx).torrent', "/zcomx/torrents/route ?torrent=First_Last_(101.zco.mx).torrent"),
+            ('http://my.domain.com/123/My Book 001.torrent', "/zcomx/torrents/route ?creator=123&torrent=My Book 001.torrent"),
+            ('http://my.domain.com/First_Last/My Book 001.torrent', "/zcomx/torrents/route ?creator=First_Last&torrent=My Book 001.torrent"),
 
             # Static files
             ('http://my.domain.com/favicon.ico', app_root + '/zcomx/static/images/favicon.ico'),
@@ -1080,16 +1081,16 @@ class TestFunctions(LocalTestCase):
             # Test https
             ('https://my.domain.com/zcomx/books/index', '/books'),
 
-            # Test torrents
-            ('http://my.domain.com/zcomx/torrents/route/abc.torrent', '/abc.torrent'),
-            ('http://my.domain.com/zcomx/torrents/route/zco.mx.torrent', '/zco.mx.torrent'),
-            ('http://my.domain.com/zcomx/torrents/route/First%20Last%20%28101.zco.mx%29.torrent', '/First%20Last%20%28101.zco.mx%29.torrent'),
-            ('http://my.domain.com/zcomx/torrents/route/My%20Book%20001%20%28101.zco.mx%29.cbz.torrent', '/My%20Book%20001%20%28101.zco.mx%29.cbz.torrent'),
-
             # Creators
             ('http://my.domain.com/creators/index/First_Last', '/First_Last'),
             ('http://my.domain.com/zcomx/creators/index/First_Last', '/First_Last'),
             ("http://my.domain.com/zcomx/creators/index/First_O'Last", "/First_O'Last"),
+
+            # Test torrents
+            ('http://my.domain.com/zcomx/abc.torrent/index', "/abc.torrent"),
+            ('http://my.domain.com/zcomx/zco.mx.torrent/index', "/zco.mx.torrent"),
+            ('http://my.domain.com/zcomx/First_Last_(101.zco.mx).torrent/index', "/First_Last_(101.zco.mx).torrent"),
+            ('http://my.domain.com/zcomx/First_Last/My Book 001.torrent', "/First_Last/My Book 001.torrent"),
         ]
         for t in out_tests:
             self.assertEqual(filter_url(t[0], out=True), t[1])

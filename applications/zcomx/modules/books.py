@@ -20,6 +20,7 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url, \
     url_name as creator_url_name
+from applications.zcomx.modules.files import TitleFileName
 from applications.zcomx.modules.images import \
     ImgTag, \
     is_optimized, \
@@ -1321,6 +1322,29 @@ def short_url(book_entity):
     return urlparse.urljoin(url_for_creator, name)
 
 
+def torrent_file_name(book_entity):
+    """Return the name of the torrent file for the book.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+
+    Returns:
+        string, the file name.
+    """
+    db = current.app.db
+
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Creator not found, id: {e}'.format(
+            e=book_entity))
+
+    fmt = '{name} ({cid}.zco.mx).cbz.torrent'
+    return fmt.format(
+        name=TitleFileName(formatted_name(db, book_record)).scrubbed(),
+        cid=book_record.creator_id,
+    )
+
+
 def torrent_url(book_entity, **url_kwargs):
     """Return the url to the torrent file for the book.
 
@@ -1335,20 +1359,24 @@ def torrent_url(book_entity, **url_kwargs):
                 http://zco.mx/My Book 001 (123.zco.mx).torrent)
     """
     db = current.app.db
-    book = entity_to_row(db.book, book_entity)
-    if not book:
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
         raise NotFoundError('Creator not found, id: {e}'.format(
             e=book_entity))
 
-    if not book.torrent:
+    creator_name = creator_url_name(book_record.creator_id)
+    if not creator_name:
+        return
+
+    name = url_name(book_record)
+    if not name:
         return
 
     kwargs = {}
     kwargs.update(url_kwargs)
     return URL(
-        c='torrents',
-        f='route',
-        args=os.path.basename(book.torrent),
+        c=creator_name,
+        f='{name}.torrent'.format(name=name),
         **kwargs
     )
 
@@ -1504,7 +1532,7 @@ def url(book_entity, **url_kwargs):
     if not creator_name:
         return
 
-    name = url_name(book_entity)
+    name = url_name(book_record)
     if not name:
         return
 
@@ -1520,7 +1548,7 @@ def url_name(book_entity):
         book_entity: Row instance or integer, if integer, this is the id of
             the book. The book record is read.
     Returns:
-        string, eg My_Book_(2014)
+        string, eg My_Book
     """
     if not book_entity:
         return

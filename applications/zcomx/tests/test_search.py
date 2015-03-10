@@ -870,7 +870,7 @@ class TestBookTile(LocalTestCase):
 
         anchor = dl_li.a
         self.assertEqual(anchor['class'], 'download_button no_rclick_menu')
-        self.assertEqual(anchor['href'], '/downloads/modal/2208'.format(
+        self.assertEqual(anchor['href'], '/downloads/modal/{i}'.format(
             i=self._row.book.id))
         self.assertEqual(anchor.string, 'download')
 
@@ -1187,11 +1187,7 @@ class TestFunctions(LocalTestCase):
     @classmethod
     def setUp(cls):
         cls._creator = cls.add(db.creator, dict(
-            path_name='test__functions',
-            torrent=(
-                'applications/zcomx/private/var/tor/zco.mx'
-                '/F/First Last (999.zco.mx).torrent'
-            ),
+            path_name='First Last',
         ))
         name = '_My Functions Book_'
         book_type_id = db(db.book_type).select().first().id
@@ -1317,16 +1313,18 @@ class TestFunctions(LocalTestCase):
         data = self._parse_link(read_link(self._row()))
         self.assertEqual(data['string'], 'Read')
         self.assertTrue(
-            '/test__functions/_My_Functions_Book__001/001' in data['href'])
+            '/First_Last/_My_Functions_Book__001/001' in data['href'])
         self.assertTrue('btn' in data['class'])
 
     def test__torrent_link(self):
         self.assertEqual(torrent_link({}), '')
 
         data = self._parse_link(torrent_link(self._row()))
-        self.assertEqual(data['string'], 'test__functions.torrent')
-        self.assertEqual(data['href'],
-            '/First%20Last%20%28999.zco.mx%29.torrent')
+        self.assertEqual(data['string'], 'first_last.torrent')
+        self.assertEqual(
+            data['href'],
+            '/First_Last_({i}.zco.mx).torrent'.format(i=self._creator.id)
+        )
         self.assertEqual(data['class'], None)
         self.assertEqual(data['type'], None)
 

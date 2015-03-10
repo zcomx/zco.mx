@@ -12,7 +12,11 @@ from gluon import *
 from applications.zcomx.modules.archives import \
     CBZArchive, \
     TorrentArchive
-from applications.zcomx.modules.creators import for_path
+from applications.zcomx.modules.books import \
+    torrent_file_name as book_torrent_file_name
+from applications.zcomx.modules.creators import \
+    for_path, \
+    torrent_file_name as creator_torrent_file_name
 from applications.zcomx.modules.shell_utils import TempDirectoryMixin
 from applications.zcomx.modules.utils import \
     NotFoundError, \
@@ -183,8 +187,7 @@ class BookTorrentCreator(BaseTorrentCreator):
 
         tor_subdir = TorrentArchive.get_subdir_path(
             for_path(creator_record.path_name))
-        # Add .torrent extension to file
-        tor_file = '.'.join([os.path.basename(self.book.cbz), 'torrent'])
+        tor_file = book_torrent_file_name(self.book)
         return os.path.join(tor_subdir, tor_file)
 
     def get_target(self):
@@ -234,10 +237,11 @@ class CreatorTorrentCreator(BaseTorrentCreator):
         """
         tor_subdir = TorrentArchive.get_subdir_path(
             for_path(self.creator.path_name))
-        # Add .torrent extension to file
 
-        return '{name} ({cid}.zco.mx).torrent'.format(
-            name=tor_subdir, cid=self.creator.id)
+        return os.path.join(
+            os.path.dirname(tor_subdir),         # Get the 'letter' subdir
+            creator_torrent_file_name(self.creator)
+        )
 
     def get_target(self):
         """Return the mktorrent target directory or file.
