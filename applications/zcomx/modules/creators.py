@@ -59,16 +59,7 @@ def add_creator(form):
         on_change_name(creator_id)
 
         # Create the default indicia for the creator
-        job = UpdateIndiciaQueuer(
-            db.job,
-            cli_args=[str(creator_id)],
-        ).queue()
-        if not job:
-            # This isn't critical, just log a message.
-            LOG.error(
-                'Failed to create job to update indicia: %s',
-                creator_id
-            )
+        queue_update_indicia(creator_id)
 
 
 def book_for_contributions(db, creator_entity):
@@ -316,7 +307,6 @@ def optimize_images(
     return jobs
 
 
-
 def profile_onaccept(form):
     """Set the creator.path_name field associated with the user.
 
@@ -333,6 +323,36 @@ def profile_onaccept(form):
     creator = db(db.creator.auth_user_id == form.vars.id).select(
         db.creator.ALL).first()
     on_change_name(creator)
+
+
+def queue_update_indicia(creator_entity):
+    """Queue a job to update the indicia images for a creator.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator.
+
+    Returns:
+        Row instance representing the job created.
+    """
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        raise NotFoundError('Creator not found, id: {e}'.format(
+            e=creator_entity))
+
+    job = UpdateIndiciaQueuer(
+        db.job,
+        cli_args=[str(creator.id)],
+    ).queue()
+
+    if not job:
+        # This isn't critical, just log a message.
+        LOG.error(
+            'Failed to create job to update indicia: %s',
+            creator.id
+        )
+
+    return job
 
 
 def short_url(creator_entity):

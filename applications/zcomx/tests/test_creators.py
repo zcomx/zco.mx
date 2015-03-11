@@ -25,6 +25,7 @@ from applications.zcomx.modules.creators import \
     on_change_name, \
     optimize_images, \
     profile_onaccept, \
+    queue_update_indicia, \
     short_url, \
     torrent_file_name, \
     torrent_link, \
@@ -561,6 +562,20 @@ class TestFunctions(LocalTestCase):
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.path_name, 'Test Profile Onaccept')
         self.assertEqual(creator.urlify_name, 'test-profile-onaccept')
+
+    def test__queue_update_indicia(self):
+        self.assertRaises(NotFoundError, queue_update_indicia, -1)
+
+        creator = self.add(db.creator, dict(
+            email='test__queue_update_indicia@example.com',
+            path_name='First Last',
+        ))
+
+        job = queue_update_indicia(creator)
+        self.assertTrue(job)
+        expect = 'update_creator_indicia.py -o -r {i}'.format(i=creator.id)
+        self.assertTrue(expect in job.command)
+        self._objects.append(job)
 
     def test__short_url(self):
         tests = [

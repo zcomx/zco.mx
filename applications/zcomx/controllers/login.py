@@ -17,7 +17,8 @@ from applications.zcomx.modules.books import \
     read_link, \
     release_barriers
 from applications.zcomx.modules.creators import \
-    image_as_json
+    image_as_json, \
+    queue_update_indicia
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
     on_add_image, \
@@ -812,6 +813,7 @@ def indicia_preview_urls():
             or not creator_record.indicia_landscape:
         # This runs in the forground so keep it fast.
         create_creator_indicia(creator_record, resize=False, optimize=False)
+        queue_update_indicia(creator_record)
 
     urls = {
         'portrait': None,
