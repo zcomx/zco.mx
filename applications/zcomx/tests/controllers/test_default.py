@@ -35,6 +35,7 @@ class TestFunctions(LocalTestCase):
         'modal_error': 'An error occurred. Please try again.',
         'overview': '<h1>Overview</h1>',
         'page_not_found': '<h3>Page not found</h3>',
+        'terms': '<h1>Terms and Conditions</h1>',
         'todo': '<h1>TODO</h1>',
         'top': '<h2>Top</h2>',
         'user': [
@@ -151,6 +152,12 @@ class TestFunctions(LocalTestCase):
             self.titles['overview']
         ))
 
+    def test__terms(self):
+        self.assertTrue(web.test(
+            '{url}/terms'.format(url=self.url),
+            self.titles['terms']
+        ))
+
     def test__todo(self):
         self.assertTrue(web.test(
             '{url}/todo'.format(url=self.url),
@@ -172,7 +179,7 @@ class TestFunctions(LocalTestCase):
     def test_routes(self):
         """Test various urls and make sure they behave."""
         tests = [
-            #(url, expect)
+            # (url, expect)
             ('/', 'index'),
             ('/zcomx', 'index'),
             ('/zcomx/default', 'index'),
