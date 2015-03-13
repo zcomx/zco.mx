@@ -1,66 +1,40 @@
 ``
 VERSION 2 - Before Going Live
-[x] Release Error - permissions
+[ ] Reader Pages
+    eg https://zco.mx/Chris_Gooch/Gasoline_Eyedrops/001?reader=slider#
+    Has the download link but book hasn't been released
+
+[ ] Front Page
+    If no download link, then remove '|' separator
+
+[ ] Front Page - Add 'download' report
+    downloading all.torrent gives +1 to all books
+    downloading cartoonist.torrent gives +1 to all that cartoonist's books
+
+[ ] Use CamelCase for CartoonistName ?
+[ ] I. P. Funny <-- how do we handle this?
 
 [/] Add back the 'Release Button'
     * Ensure images have at least a width of 1600px before releasing
     * Ensure CC licence is used
     [S] test
 
-[x] Indicia Page
-    see indicia-ss.png
-    * The indicia image is found on the indicia page which is the last page of a book.
-    * Below the default indicia image is used to create two example indicia pages.
-    * Click the Upload button to upload a custom indicia image.
-    * Click the Remove button to remove your custom indicia image.
-    * The minimum upload size for an indicia image is 1600px x 1600px.
-    * A white or light colour background works best.
-
-    [x] Aspect ratio is off
-        /tmp/indicia.png PNG 1366x2326
-
-[x] Add torrent and dc functionality
-    JK devmod IDs: 12410, 12281, 12263, 12219
-    Example file names:
-    "Name of Comic 001 (2014) (101.zco.mx).cbz"
-    "Name of Comic 001 (2012) (digital-Empire).cbr"
-    "Name of Comic 001 (2012) (digital) (Son of Ultron-Empire).cbr"
-    [x] metadata
-        $ zip test.zip -z <<< '2014|Cartoonist Name|Title of Book|64'   ## add metadata to zip comment field
-    [x] rewrite - https://zco.mx/zco.mx.torrent         ## torrent for all cbz's
-    [x] redirects for http://101.zco.mx/Name of Comic 01 (of 04) (2014).torrent
-                      http://101.zco.mx/Name of Comic 001 (2013).torrent
-
-[x] Books -> Edit
-    Truncate long urls
-    Change:
-    http://andsocomics.storenvy.com/products/9989035-best-seller
-    to:
-    http://andsocomics.storenvy.com/produ...
-    but have mouse-over display full url
-
-[x] https://zco.mx/Charles_Forsman
-    "| Known" is wrapping
-
-[x] Ensure 'zco.mx' works for all urls
-    Search for all instances of 'dev.zco.mx'
-
 [S] http://kb.zco.mx/howto-upload
 [S] Indicia Page
-    Compare preview images to mix3-indicia-text.png
+    Compare default preview image to mix3-indicia-text.png
 [S] Update faq
     utorrent - http://www.oldapps.com/utorrent.php?old_utorrent=38
     png compression - zopflipng
     to archive older work for the sake of posterity
 [S] Figure out backup of images
-[S] Create twitter user 'zcomx-bot' ?
+[S] Create twitter and tumblr user 'zcomx-bot'
 
 ---
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
 
-[ ] Front Page/Book Page
+[S] Front Page/Book Page
     The same stats on the front page should be on the book page and
     vice versa
 
@@ -68,15 +42,11 @@ VERSION 2 - Before Going Live
     See how dokuwiki does it
 
 [ ] login -> account
-    'profile updated' js popup
-    'password changed' js popup
+    'profile updated'   - remove js popup (flash message)
+    'password changed'  - remove js popup (flash message)
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
 [ ] 12426 - Add robots.txt to prevent bots from accessing zco.mx
 [ ] 12354 - Test scripts
-
-[ ] optimize pages -- especially the front page
-    * look at Q's console
-    * caching?
 
 [/] Upload Modal
     Can we downscale the web images for the thumbnails and remove the
@@ -87,31 +57,33 @@ VERSION 2 - Before Going Live
 
 [ ] Add CC licence to zco.mx footer
                                                  [CC BY]
+        Every comics on zco.mx has its own licence.  All
+        other context  on this site is licenced  under a
+                                CC BY 4.0 Int'l licence.
+
+                                                 [CC BY]
         Except  where  otherwise noted, content  on this
         site is licenced under a CC BY 4.0 Int'l licence
 
-[ ] zco.mx Modal Link
-    Prevent opening zco.mx modal links in 'New Window'
-    https://zco.mx/contributions/modal
-
-    SB 2015-02-09 19:09  It does this with middle click
-
+[ ] optimize pages -- especially the front page
+    * look at Q's console
+    * caching?
 [ ] nice levels
 [ ] "creator.table appears corrupted" Error
-[ ] email karen telling her the site is live
+[S] email karen telling her the site is live
 
 VERSION 3
-[ ] resize.sh - convert tiff's to png's
-[ ] add html version of mailing list to login area
-[ ] Rethink Crowdfunding Idea
-    see emails with blumenstein
+[ ] Announce cbz releases using zcomx-bot accounts
+    - twitter, tumblr and on dc
+[S] Setup hypermail for real-only mailing lists in login area ?
+[S] Follow Links - by cartoonist and by book
+    Reader notifications of new material
+    rss? and mailing list?
 [ ] Indicia - html
     Link for 'Read Next' book
-[S] Reader notifications of new material
-    rss? and mailing list?
-[D] Knowledge Base
-    see google doc
+[ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] KB
+    http://kb.zco.mx/
     [ ] git-ify and add to zco.mx server
     [ ] update dns for kb.zco.mx
     [ ] add link to footer
@@ -121,23 +93,28 @@ VERSION 3
             Add links to kb.zco.mx on 'about' page
         [ ] faqc -> What file types can be uploaded?
             Link to kb entry for exporting to PNG
-[ ] login -> books -> edit
-    Use inline Editing for metadata
-[ ] Front Page - Add 'download' report
-    downloading all.torrent gives +1 to all books
-    downloading cartoonist.torrent gives +1 to all that cartoonist's books
-[ ] Read Page -> Scroll
-    12459 - how to paginate long gn's -- modulo 30?
 [ ] extend left/right clickable areas while in slider mode
-[ ] Mature Content icon
-[ ] Creator page -> Links to Cartoonist Articles/interviews?
-[ ] Book page -> Links to Book Reviews ?
+[ ] Mature Content icon or All Ages Filter ?
 [ ] Check for duplicate file/book names
 [ ] Url checker
+[ ] Redesign Cartoonist Page
+    * handle portrait and landscape photos better
+[ ] zco.mx Modal Link
+    Prevent opening zco.mx modal links in 'New Window'
+    https://zco.mx/contributions/modal
+
+    SB 2015-02-09 19:09  It does this with middle click
+
+
+VERSION 4
+[ ] login -> books -> edit
+    Use inline Editing for metadata
+[ ] Read Page -> Scroll
+    12459 - how to paginate long gn's -- modulo 30?
 [ ] login -> books page
     paginate 'released' and 'ongoing' books
-[ ] Copyright material
-    'Report' button for DMCA / C&D
+[ ] Creator page -> Links to Cartoonist Articles/interviews?
+[ ] Book page -> Links to Book Reviews ?
 [ ] Tags (kids, by genre ??)
 [ ] Front Page -> 12560 - store attributes in session and reuse
 [ ] 12539 - Create aliases when users change their name
@@ -149,17 +126,20 @@ VERSION 3
     We should likely create a check to alert when this happens because
     1) the cartoonist could generate a ton of aliases
     2) the cartoonist could masquerade (fraud) as another cartoonist
-[ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] bug/feature/feedback tracker
     * public or developer only?
     * vote up/down
     * github's issue tracker?
     * does this need a separate page?  link in the footer?
-[ ] Redesign Cartoonist Page
-    * handle portrait and landscape photos better
+[ ] Copyright material
+    'Report' button for DMCA / C&D
 
 
 IDEAS
+[ ] Rethink Crowdfunding Idea
+    see emails with blumenstein
+    discuss on brainstorming ml
+[ ] resize.sh - convert tiff's to png's
 [S] wildcard ssl cert for zco.mx ?
 
 [ ] Is re-releasing released books a problem?
