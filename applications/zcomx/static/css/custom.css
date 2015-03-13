@@ -368,11 +368,13 @@ div.centered table {
     padding: 4px 6px;
 }
 
-#profile_page .faq_options_container {
+#profile_page .faq_options_container,
+#profile_page .terms_options_container {
     margin: 1em 0;
 }
 
-#profile_page .faq_options_container ul.nav-tabs {
+#profile_page .faq_options_container ul.nav-tabs,
+#profile_page .terms_options_container ul.nav-tabs {
     margin-left: 0;
 }
 

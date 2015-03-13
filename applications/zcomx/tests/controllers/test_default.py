@@ -22,6 +22,8 @@ class TestFunctions(LocalTestCase):
         '404': 'Page not found',
         'about': '<h1>About</h1>',
         'contribute': '<form id="paypal_form"',
+        'copyright_claim':
+            '<h3>Notice and Procedure for Making Claims of Copyright',
         'data': '<h2>Not authorized</h2>',
         'expenses': '<h1>Expenses</h1>',
         'faq': '<h1>FAQ</h1>',
@@ -31,6 +33,7 @@ class TestFunctions(LocalTestCase):
         ],
         'files': '<div id="files_page">',
         'index': '<div id="front_page">',
+        'login': '<h2>Cartoonist Login</h2>',
         'logos': '<h1>Logos</h1>',
         'modal_error': 'An error occurred. Please try again.',
         'overview': '<h1>Overview</h1>',
@@ -70,6 +73,12 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test(
             '{url}/contribute'.format(url=self.url),
             self.titles['contribute']
+        ))
+
+    def test__copyright_claim(self):
+        self.assertTrue(web.test(
+            '{url}/copyright_claim'.format(url=self.url),
+            self.titles['copyright_claim']
         ))
 
     def test__data(self):
@@ -184,8 +193,9 @@ class TestFunctions(LocalTestCase):
             ('/zcomx', 'index'),
             ('/zcomx/default', 'index'),
             ('/zcomx/default/index', 'index'),
-            ('/admin', 'page_not_found'),
-            ('/zcomx/admin', 'page_not_found'),
+            ('/admin', 'index'),
+            ('/zcomx/admin', 'index'),
+            ('/zcomx/admin/index', 'index'),
             ('/appadmin', 'page_not_found'),
             ('/zcomx/appadmin', 'page_not_found'),
         ]

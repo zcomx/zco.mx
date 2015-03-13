@@ -188,6 +188,11 @@ def contribute():
     redirect(URL(c='contributions', f='paypal', extension=False))
 
 
+def copyright_claim():
+    """Copyright claim page"""
+    return markmin('copyright_claim')
+
+
 def expenses():
     """Expenses page"""
     return markmin('expenses')
@@ -249,7 +254,26 @@ def overview():
 
 def terms():
     """Terms page"""
-    return markmin('terms')
+    is_creator = auth and auth.user_id
+    layout = 'login/layout.html' if is_creator else 'layout_main.html'
+
+    summary_sections = []
+    if is_creator:
+        summary_sections = [
+            'terms_of_use_summary',
+        ]
+
+    sections = [
+        'terms_of_use',
+        'content_guidelines',
+        'privacy_policy',
+    ]
+
+    return dict(
+        layout=layout,
+        sections=sections,
+        summary_sections=summary_sections,
+    )
 
 
 @auth.requires_login()

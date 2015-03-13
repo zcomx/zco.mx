@@ -1,6 +1,40 @@
-{{extend 'layout_main.html'}}
-{{=LOAD(c='default', f='top', args='faq', extension='load', ajax=False, content='')}}
-<div id="terms_page" class="doc_section row">
+{{from applications.zcomx.modules.utils import markmin}}
+{{extend layout}}
+{{if layout == 'layout_main.html':}}
+    {{=LOAD(c='default', f='top', args='terms', extension='load', ajax=False, content='')}}
+    {{row_class='row'}}
+{{else:}}
+    {{row_class=''}}
+{{pass}}
+<div id="terms_page" class="doc_section {{=row_class}}">
 <h1>Terms and Conditions</h1>
-{{=MARKMIN(text, id_prefix='', extra=markmin_extra)}}
+
+{{if summary_sections:}}
+    <h5><a href="#summary">Key Points</a></h5>
+{{pass}}
+
+{{for section in sections:}}
+    <h5><a href="#{{=section}}">{{=section.replace('_', ' ').title()}}</a></h5>
+{{pass}}
+
+{{if summary_sections:}}
+    <span id="summary" class="anchor"></span>
+    {{for section in summary_sections:}}
+        {{doc = markmin(section)}}
+        {{=MARKMIN(doc['text'], id_prefix='', extra=doc['markmin_extra'])}}
+    {{pass}}
+{{pass}}
+
+{{for section in sections:}}
+    <span id="{{=section}}" class="anchor"></span>
+    {{doc = markmin(section)}}
+    {{=MARKMIN(doc['text'], id_prefix='', extra=doc['markmin_extra'])}}
+{{pass}}
+</div>
+
+<hr>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://zco.mx" property="cc:attributionName" rel="cc:attributionURL">http://zco.mx</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+<div>
+Much of the content of the <i>Terms and Conditions</i> was adapted from the
+Creative Commons <a href="https://creativecommons.org/policies">policy pages</a>.
 </div>
