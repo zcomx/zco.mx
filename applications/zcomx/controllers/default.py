@@ -251,6 +251,11 @@ def overview():
     return markmin('overview')
 
 
+def terms():
+    """Terms page"""
+    return markmin('terms')
+
+
 @auth.requires_login()
 def todo():
     """Todo page"""

@@ -57,6 +57,7 @@ DEFAULT_FUNCTIONS = '|'.join([
     'modal_error',
     'monies',
     'overview',
+    'terms',
     'todo',
 ])
 
