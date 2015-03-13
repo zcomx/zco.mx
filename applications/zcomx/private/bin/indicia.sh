@@ -66,7 +66,7 @@ _textbox() {
     [[ $l ]] && w=800 x=80
     h=$(identify -format "%@" <(convert -size ${w}x -gravity $pos -font "$font" -pointsize $pt caption:"$text" miff:-))
     h=${h#*x} h=${h%%+*}
-    h=$(($h+40))
+    h=$(($h+100))                   ## Move text up 100px for padding
     (($h < 400)) && y=$((960-$h))
     (($h > 400)) && y=560 && b=$(($h-400+$b))
 
