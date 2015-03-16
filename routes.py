@@ -34,6 +34,7 @@ routes_app = ()
 BASE = ''  # optonal prefix for incoming URLs
 
 CONTROLLERS = '|'.join([
+    'admin',
     'books',
     'contributions',
     'creators',
