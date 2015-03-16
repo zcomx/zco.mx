@@ -358,12 +358,20 @@ class TestFunctions(LocalTestCase):
         if not creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
-        if not creator.image:
-            raise SyntaxError(
-                'Creator has no image, email: {e}'.format(e=email))
-        if not creator.indicia_image:
-            raise SyntaxError(
-                'Creator has no indicia image, email: {e}'.format(e=email))
+        for field in ['image', 'indicia_image']:
+            if creator[field]:
+                filename, fullname = db.creator[field].retrieve(
+                    creator[field],
+                    nameonly=True,
+                )
+            if not creator[field] or not os.path.exists(fullname):
+                stored_filename = store(
+                    db.creator[field],
+                    self._prep_image('file.jpg'),
+                )
+                data = {field: stored_filename}
+                creator.update_record(**data)
+                db.commit()
 
         self.assertTrue(creator)
 
