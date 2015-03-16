@@ -2587,3 +2587,23 @@ a.modal-link-btn, a.modal-link-btn:hover {
     text-align: center;
 }
 
+
+#admin_impersonate_form input[type=submit] {
+    background-color: #666666;
+    border-color: #555555;
+    font-weight: bold;
+    margin-top: 1em;
+}
+
+#admin_impersonate_form .align_left {
+    text-align: left;
+}
+
+@media (max-width: 480px) {
+    #admin_impersonate_form .admin_impersonate_form_container {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+

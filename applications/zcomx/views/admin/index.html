@@ -1,2 +1,21 @@
-{{extend 'layout.html'}}
-FIXME
+{{extend 'layout_main.html'}}
+
+<div id="admin_page">
+
+{{=LOAD(c='default', f='top', extension='load', ajax=False, content='')}}
+
+
+<div id="admin_impersonate_form">
+    <div class="row">
+        <div class="col-xs-6 col-xs-offset-3 col-md-4 col-md-offset-4 admin_impersonate_form_container">
+            {{=form}}
+        </div>
+    </div>
+</div>
+{{if impersonating:}}
+<p>
+To quit impersonating, logout.
+</p>
+{{pass}}
+
+</div>
