@@ -372,9 +372,10 @@ db.define_table('creator',
             _href=url,
             _target="_blank",
             ) if url else '',
-        requires=IS_EMPTY_OR(IS_URL_FOR_DOMAIN(
-            'tumblr.com',
-            error_message='Enter a valid tumblr url, eg.\nhttp://username.tumblr.com'
+        requires=IS_EMPTY_OR(
+            IS_MATCH(
+                '^http://[A-Za-z0-9]+[A-Za-z0-9\-]*.tumblr.com$',
+                error_message='Enter a valid tumblr url, eg.\nhttp://username.tumblr.com'
             )
         ),
     ),
