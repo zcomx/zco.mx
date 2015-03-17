@@ -98,13 +98,17 @@ while :; do
     sed -i "/^last:/d" $PID_FILE
     echo "last: $(date '+%Y-%m-%d %H:%M:%S')" >> $PID_FILE
     # Keep trying until the queue handler does something or we run out of tries
-    if (( $tries > 0 && $checked == 0)); then
-        sleep 1
-    else
+    exit_loop=false
+    [[ ! $checked ]] && exit_loop=true                      # indeterminate response, exit
+    [[ $checked && $checked != "0" ]] && exit_loop=true     # did something, exit
+    (( $tries == 0 )) && exit_loop=true                     # run out of tries, exit
+    if $exit_loop; then
         tries=0
         __v && __md "Sleeping $sleep_seconds"
         sleep $sleep_seconds &
         wait $!             # Wait for sleep to finish, quit wait on interrupt
+    else
+        sleep 1
     fi
 done
 exit 0

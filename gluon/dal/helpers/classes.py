@@ -158,6 +158,8 @@ class RecordUpdater(object):
         table = db[tablename]
         newfields = fields or dict(colset)
         for fieldname in newfields.keys():
+            if not fieldname in table.fields:
+                LOGGER.error("Invalid field for update_record: %s.%s", tablename, fieldname)
             if not fieldname in table.fields or table[fieldname].type=='id':
                 del newfields[fieldname]
         table._db(table._id==id,ignore_common_filters=True).update(**newfields)
@@ -265,7 +267,7 @@ class DatabaseStoredFile:
             return True
 
         DatabaseStoredFile.try_create_web2py_filesystem(db)
-        
+
         query = "SELECT path FROM web2py_filesystem WHERE path='%s'" % filename
         try:
             if db.executesql(query):
