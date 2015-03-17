@@ -1421,7 +1421,7 @@ def create_creator_indicia(creator, resize=False, optimize=False):
         # Delete existing
         if creator[field]:
             on_delete_image(creator[field])
-            creator.update_record(field=None)
+            creator.update_record(**{field: None})
             db.commit()
         png_page = CreatorIndiciaPagePng(creator)
         png = png_page.create(orientation=orientation)
