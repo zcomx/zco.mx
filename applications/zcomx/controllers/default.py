@@ -205,12 +205,8 @@ def faq():
     return markmin('faq', extra=extra)
 
 
-@auth.requires_login()
 def faqc():
     """Creator FAQ page"""
-    if not auth or not auth.user_id:
-        redirect(URL('faq'))
-
     extra = dict(
         tabs=faq_tabs(active='faqc'),
     )
