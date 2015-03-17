@@ -37,6 +37,8 @@ def run_delete(image, options):
     if table not in db.tables or field not in db[table]:
         raise NotFoundError('Invalid image {i}'.format(i=image))
 
+    LOG.debug('Deleting: %s', image)
+
     upload_image = UploadImage(db[table][field], image)
     upload_image.delete_all()
 
