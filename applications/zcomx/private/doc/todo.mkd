@@ -5,8 +5,7 @@ VERSION 2 - Before Going Live
     SB 2015-03-13 17:20  added more padding/whitespace to bottom of
     indica page
 [x] Admin Login
-
-[ ] Indicia Bug
+[x] Indicia Bug
 
 [ ] Terms and Conditions - Reader
 [ ] Terms and Conditions - Cartoonist
