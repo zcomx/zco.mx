@@ -14,8 +14,11 @@ EXPENSES
     Dec 2014    Server Hosting          $ 40
     Dec 2014    Contract Work - copy    $280
     Dec 2014    Contract Work - kb      $222
-  TOTAL Expense                                 $1052
+    Jan 2015    Server Hosting          $ 40
+    Feb 2015    Server Hosting          $ 40
+    Mar 2015    Server Hosting          $ 40
+  TOTAL Expense                                 $1172
 
 
-NET TOTAL                                      -$1052
+NET TOTAL                                      -$1172
 ``
