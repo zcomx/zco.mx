@@ -7,6 +7,7 @@ from applications.zcomx.modules.stickon.sqlhtml import \
     formstyle_bootstrap3_login
 
 
+@auth.requires_membership('admin')
 @requires_admin_ip()
 def index():
     """Default controller."""
