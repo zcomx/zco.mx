@@ -6,6 +6,10 @@ VERSION 2 - Before Going Live
     indica page
 [x] Admin Login
 [x] Indicia Bug
+[x] Create twitter user 'zcomx_bot'
+[x] Update faq
+    utorrent - http://www.oldapps.com/utorrent.php?old_utorrent=38
+    png compression - zopflipng
 
 [ ] Terms and Conditions - Reader
 [ ] Terms and Conditions - Cartoonist
@@ -55,13 +59,8 @@ VERSION 2 - Before Going Live
     * Ensure CC licence is used
     [S] test
 
-[S] Create twitter user 'zcomx-bot'
 [S] http://kb.zco.mx/howto-upload
 [S] http://kb.zco.mx/howto-ps
-[S] Update faq
-    utorrent - http://www.oldapps.com/utorrent.php?old_utorrent=38
-    png compression - zopflipng
-    to archive older work for the sake of posterity
 [S] Figure out backup of images
     add exclude for cbz and web images to syncbackup script
 
@@ -105,10 +104,12 @@ VERSION 2 - Before Going Live
     * caching?
 [ ] nice levels
 [ ] "creator.table appears corrupted" Error
+[S] Copy Edit
+    "to archive older work for the sake of posterity"
 [S] email karen telling her the site is live
 
 VERSION 3
-[ ] Announce cbz releases using zcomx-bot accounts
+[ ] Announce cbz releases using zcomx_bot accounts
     - twitter, tumblr and on dc
 [S] Setup hypermail for real-only mailing lists in login area ?
 [S] Follow Links - by cartoonist and by book

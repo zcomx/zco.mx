@@ -135,14 +135,14 @@ Linux   | [[Linuxdc++ https://launchpad.net/linuxdcpp]]
 
 [[bittorrent]]
 #### What is the BitTorrent network?
-[[BitTorrent http://en.wikipedia.org/wiki/Bittorrent ]] is a
+[[BitTorrent http://en.wikipedia.org/wiki/Bittorrent]] is a
 peer-to-peer (P2P) file sharing network.
 
 
 [[btclient]]
 #### Where do I get a BitTorrent client?
 ---------
-Windows | [[uTorrent http://www.utorrent.com]]
+Windows | [[uTorrent http://www.oldapps.com/utorrent.php?old_utorrent=38]]
 Mac     | [[Deluge http://deluge-torrent.org]]
 Linux   | [[Deluge http://deluge-torrent.org]]
 ---------
