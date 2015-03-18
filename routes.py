@@ -50,6 +50,7 @@ CONTROLLERS = '|'.join([
 DEFAULT_FUNCTIONS = '|'.join([
     'about',
     'contribute',
+    'copyright_claim',
     'expenses',
     'faq',
     'faqc',
