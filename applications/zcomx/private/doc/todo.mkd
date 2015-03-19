@@ -1,12 +1,17 @@
 ``
 VERSION 2 - Before Going Live
+[ ] Hankiewicz Bugs
+    [ ] web images -- error
+    [ ] torrent isn't seeded
+    [ ] Book Page: year on release
+
 [ ] Discuss Terms
 
-[ ] Reader Pages
+[x] Reader Pages
     eg https://zco.mx/Chris_Gooch/Gasoline_Eyedrops/001?reader=slider#
     Has the download link but book hasn't been released
 
-[ ] Front Page
+[x] Front Page
     If no download link, then remove '|' separator
 
 [ ] Front Page - Add 'download' report
