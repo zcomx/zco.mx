@@ -6,9 +6,10 @@
 Test suite for zcomx/modules/access.py
 """
 import unittest
-import urllib2
 from gluon.http import HTTP
-from applications.zcomx.modules.access import requires_admin_ip
+from applications.zcomx.modules.access import \
+    requires_admin_ip, \
+    requires_agreed_to_terms
 from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
@@ -35,13 +36,13 @@ class TestFunctions(LocalTestCase):
 
         # Valid ip, not logged in
         request.client = admin_ip
-        auth.user= None
+        auth.user = None
         self.assertEqual(func(), 'Success')
         self.assertEqual(login_func(), 'Not logged in')
 
         # Valid ip, logged in
         request.client = admin_ip
-        auth.user= 'myuser'          # Anything truthy will work
+        auth.user = 'myuser'          # Anything truthy will work
         self.assertEqual(func(), 'Success')
         self.assertEqual(login_func(), 'Success')
 
@@ -60,6 +61,39 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(str(err), '303 SEE OTHER')
         else:
             self.fail('HTTP exception not raised.')
+
+    def test__requires_agreed_to_terms(self):
+        env = globals()
+        auth = env['auth']
+
+        auth_user = self.add(db.auth_user, dict(
+            email='tests__requires_agreed_to_terms@example.com',
+        ))
+
+        creator = self.add(db.creator, dict(
+            auth_user_id=auth_user.id,
+            path_name='tests__requires_agreed_to_terms',
+            agreed_to_terms=False,
+        ))
+
+        auth.user = auth_user
+
+        @requires_agreed_to_terms()
+        def func():
+            return 'Success'
+
+        # agreed_to_terms=False, should not permit access
+        try:
+            func()
+        except HTTP as err:
+            self.assertEqual(str(err), '303 SEE OTHER')
+        else:
+            self.fail('HTTP exception not raised.')
+
+        # agreed_to_terms=False, should permit access
+        creator.update_record(agreed_to_terms=True)
+        db.commit()
+        self.assertEqual(func(), 'Success')
 
 
 def setUpModule():

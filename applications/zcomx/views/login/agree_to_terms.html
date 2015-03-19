@@ -1,0 +1,37 @@
+{{from applications.zcomx.modules.utils import markmin}}
+{{extend 'login/layout.html'}}
+
+<div id="agree_to_terms_page">
+
+<p>
+By using zco.mx services, you are agreeing to the following terms. Please read them carefully.
+</p>
+
+<div class="terms_container">
+    {{doc = markmin('terms_of_use_summary')}}
+    {{=MARKMIN(doc['text'], id_prefix='', extra=doc['markmin_extra'])}}
+    {{doc = markmin('terms_of_use')}}
+    {{=MARKMIN(doc['text'], id_prefix='', extra=doc['markmin_extra'])}}
+</div>
+
+<div class="row">
+    <div class="col-sm-6 col-lg-4">
+        <div class="form_container">
+            {{=form.custom.begin}}
+            <div class="agree_to_terms_checkbox">
+                <div>
+                {{=form.custom.widget.agree_to_terms}}
+                <span class="checkbox_label">
+                    I agree to the zco.mx <em>Terms of Use</em>
+                <span>
+                </div>
+                {{if form.errors.agree_to_terms:}}
+                <div class="error">{{=form.errors.agree_to_terms}}</div>
+                {{pass}}
+            </div>
+            {{=form.custom.submit}}
+            {{=form.custom.end}}
+        </div>
+    </div>
+</div>
+

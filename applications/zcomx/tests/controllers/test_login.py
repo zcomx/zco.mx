@@ -34,6 +34,7 @@ class TestFunctions(LocalTestCase):
 
     titles = {
         'account': ['account_profile_container', 'change_password_container'],
+        'agree_to_terms': '<div id="agree_to_terms_page">',
         'book_delete': '<div id="book_delete_section">',
         'book_delete_invalid': 'Invalid data provided',
         'book_edit_no_id': '<div id="book_edit_section">',
@@ -152,7 +153,8 @@ class TestFunctions(LocalTestCase):
             )
 
         id_max = db.optimize_img_log.id.max()
-        cls._max_optimize_img_log_id = db(db.optimize_img_log).select(id_max)[0][id_max]
+        cls._max_optimize_img_log_id = \
+            db(db.optimize_img_log).select(id_max)[0][id_max]
         cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
 
     @classmethod
@@ -172,6 +174,14 @@ class TestFunctions(LocalTestCase):
             web.test(
                 '{url}/account'.format(url=self.url),
                 self.titles['account']
+            )
+        )
+
+    def test__agree_to_terms(self):
+        self.assertTrue(
+            web.test(
+                '{url}/agree_to_terms'.format(url=self.url),
+                self.titles['agree_to_terms']
             )
         )
 

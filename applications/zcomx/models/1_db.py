@@ -442,6 +442,11 @@ db.define_table('creator',
         'boolean',
         default=False,
     ),
+    Field(
+        'agreed_to_terms',
+        'boolean',
+        default=None,
+    ),
     format='%(path_name)s',
     migrate=True,
 )
