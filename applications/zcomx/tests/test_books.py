@@ -494,8 +494,8 @@ class TestFunctions(ImageTestCase):
             'book_type_id': None,
         }
 
-        self.assertEqual(by_attributes({}), None)
-        self.assertEqual(by_attributes(default_attrs), None)
+        self.assertEqual(by_attributes([{}]), None)
+        self.assertEqual(by_attributes([default_attrs]), None)
 
         def do_test(attrs, expect):
             got = by_attributes(attrs)
@@ -504,29 +504,35 @@ class TestFunctions(ImageTestCase):
             else:
                 self.assertEqual(got, None)
 
-        for key, data in books.items():
-            do_test(data, key)
+        for key, attrs in books.items():
+            do_test([attrs], key)
 
         # Vary each field on it's own. Should return none.
         attrs = copy.copy(books['c'])
         attrs['name'] = '_Fake Name_'
-        do_test(attrs, None)
+        do_test([attrs], None)
 
         attrs = copy.copy(books['c'])
         attrs['publication_year'] = 1901
-        do_test(attrs, None)
+        do_test([attrs], None)
 
         attrs = copy.copy(books['c'])
         attrs['number'] = 99
-        do_test(attrs, None)
+        do_test([attrs], None)
 
         attrs = copy.copy(books['c'])
         attrs['of_number'] = 999
-        do_test(attrs, None)
+        do_test([attrs], None)
 
         attrs = copy.copy(books['c'])
         attrs['book_type_id'] = self._type_id_by_name['ongoing']
-        do_test(attrs, None)
+        do_test([attrs], None)
+
+        # Test multiple match, should return first.
+        attributes = []
+        for key, attrs in sorted(books.items()):
+            attributes.append(attrs)
+        do_test(attributes, 'a')
 
     def test__calc_contributions_remaining(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
@@ -1326,53 +1332,108 @@ class TestFunctions(ImageTestCase):
         tests = [
             # (url_name, expect),
             (None, None),
-            ('My_Book', {
+            ('My_Book', [{
                 'name': 'My Book',
                 'book_type_id': self._type_id_by_name['one-shot'],
                 'number': None,
                 'of_number': None,
-            }),
-            ('My_Book_012', {
-                'name': 'My Book',
-                'book_type_id': self._type_id_by_name['ongoing'],
-                'number': 12,
-                'of_number': None,
-            }),
-            ('My_Book_02_(of_09)', {
-                'name': 'My Book',
-                'book_type_id': self._type_id_by_name['mini-series'],
-                'number': 2,
-                'of_number': 9,
-            }),
+            }]),
+            ('My_Book_012', [
+                {
+                    'name': 'My Book',
+                    'book_type_id': self._type_id_by_name['ongoing'],
+                    'number': 12,
+                    'of_number': None,
+                },
+                {
+                    'name': 'My Book 012',
+                    'book_type_id': self._type_id_by_name['one-shot'],
+                    'number': None,
+                    'of_number': None,
+                },
+            ]),
+            ('My_Book_02_(of_09)', [
+                {
+                    'name': 'My Book',
+                    'book_type_id': self._type_id_by_name['mini-series'],
+                    'number': 2,
+                    'of_number': 9,
+                },
+                {
+                    'name': 'My Book 02 (of 09)',
+                    'book_type_id': self._type_id_by_name['one-shot'],
+                    'number': None,
+                    'of_number': None,
+                }
+            ]),
             # Tricky stuff
-            ("Hélè d'Eñça_02_(of_09)", {
-                'name': "Hélè d'Eñça",
-                'book_type_id': self._type_id_by_name['mini-series'],
-                'number': 2,
-                'of_number': 9,
-            }),
-            ('Bond_007_012', {
-                'name': 'Bond 007',
-                'book_type_id': self._type_id_by_name['ongoing'],
-                'number': 12,
-                'of_number': None,
-            }),
-            ('Agent_05_of_99_02_(of_09)', {
-                'name': 'Agent 05 of 99',
-                'book_type_id': self._type_id_by_name['mini-series'],
-                'number': 2,
-                'of_number': 9,
-            }),
-            ('My_Book', {
-                'name': 'My Book',
-                'book_type_id': self._type_id_by_name['one-shot'],
-                'number': None,
-                'of_number': None,
-            }),
+            ("Hélè d'Eñça_02_(of_09)", [
+                {
+                    'name': "Hélè d'Eñça",
+                    'book_type_id': self._type_id_by_name['mini-series'],
+                    'number': 2,
+                    'of_number': 9,
+                },
+                {
+                    'name': "Hélè d'Eñça 02 (of 09)",
+                    'book_type_id': self._type_id_by_name['one-shot'],
+                    'number': None,
+                    'of_number': None,
+                },
+            ]),
+            ('Bond_007_012', [
+                {
+                    'name': 'Bond 007',
+                    'book_type_id': self._type_id_by_name['ongoing'],
+                    'number': 12,
+                    'of_number': None,
+                },
+                {
+                    'name': 'Bond 007 012',
+                    'book_type_id': self._type_id_by_name['one-shot'],
+                    'number': None,
+                    'of_number': None,
+                },
+            ]),
+            ('Agent_05_of_99_02_(of_09)', [
+                {
+                    'name': 'Agent 05 of 99',
+                    'book_type_id': self._type_id_by_name['mini-series'],
+                    'number': 2,
+                    'of_number': 9,
+                },
+                {
+                    'name': 'Agent 05 of 99 02 (of 09)',
+                    'book_type_id': self._type_id_by_name['one-shot'],
+                    'number': None,
+                    'of_number': None,
+                },
+            ]),
+            ('My_Book', [
+                {
+                    'name': 'My Book',
+                    'book_type_id': self._type_id_by_name['one-shot'],
+                    'number': None,
+                    'of_number': None,
+                },
+            ]),
         ]
 
         for t in tests:
+            got = parse_url_name(t[0])
             self.assertEqual(parse_url_name(t[0]), t[1])
+
+        # Test default param
+        default = {'creator_id': 123, '_fake_': 999, 'name': 'Default Title'}
+        got = parse_url_name('My_Book', default=default)
+        self.assertEqual(got, [{
+            'name': 'My Book',
+            'book_type_id': self._type_id_by_name['one-shot'],
+            'number': None,
+            'of_number': None,
+            'creator_id': 123,
+            '_fake_': 999,
+        }])
 
     def test__publication_year_range(self):
         start, end = publication_year_range()

@@ -160,8 +160,8 @@ def route():
 
     if torrent_type == 'book':
         book_name = torrent_name.rstrip('.torrent')
-        attrs = parse_url_name(book_name)
-        attrs['creator_id'] = creator_record.id
+        attrs = parse_url_name(
+            book_name, default=dict(creator_id=creator_record.id))
         book = by_attributes(attrs)
         if not book or not book.torrent:
             return page_not_found()
