@@ -7,6 +7,7 @@ import sys
 from PIL import Image
 from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
+from applications.zcomx.modules.access import requires_agreed_to_terms
 from applications.zcomx.modules.book_upload import BookPageUploader
 from applications.zcomx.modules.books import \
     book_pages_as_json, \
@@ -56,6 +57,46 @@ def account():
         redirect(URL(c='default', f='index'))
 
     return dict(creator=creator_record)
+
+
+@auth.requires_login()
+def agree_to_terms():
+    """Creator agree to terms modal view.
+    """
+    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
+        db.creator.ALL
+    ).first()
+    if not creator_record:
+        redirect(URL(c='default', f='index'))
+
+    fields = [
+        Field(
+            'agree_to_terms',
+            'boolean',
+            requires=IS_NOT_EMPTY(
+                error_message='You must agree to the terms to continue'),
+
+        ),
+    ]
+
+    form = SQLFORM.factory(
+        *fields,
+        formstyle='table2cols',
+        submit_button='Continue'
+    )
+
+    if form.process(
+            keepvalues=True,
+            message_onsuccess='',
+            message_onfailure='',
+            hideerror=True).accepted:
+        creator_record.update_record(agreed_to_terms=form.vars.agree_to_terms)
+        db.commit()
+        if creator_record.agreed_to_terms:
+            redirect(URL('books'))
+        else:
+            redirect(URL(c='default', f='index'))
+    return dict(creator=creator_record, form=form)
 
 
 @auth.requires_login()
@@ -499,6 +540,7 @@ def book_release():
 
 
 @auth.requires_login()
+@requires_agreed_to_terms()
 def books():
     """Books controller.
     """
