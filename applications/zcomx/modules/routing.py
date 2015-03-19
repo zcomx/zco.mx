@@ -69,8 +69,10 @@ class Router(object):
             if request.vars.book:
                 creator_record = self.get_creator()
                 if creator_record:
-                    attrs = parse_url_name(request.vars.book)
-                    attrs['creator_id'] = creator_record.id
+                    attrs = parse_url_name(
+                        request.vars.book,
+                        default=dict(creator_id=creator_record.id)
+                    )
                     self.book_record = by_attributes(attrs)
         return self.book_record
 

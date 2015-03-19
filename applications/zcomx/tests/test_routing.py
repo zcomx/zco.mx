@@ -1024,9 +1024,7 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/zcomx/First_Last/My_Book/001', '/zcomx/creators/index ?creator=First_Last&book=My_Book&page=001'),
             ('http://my.domain.com/zcomx/First_Last/My_Book/001.jpg', '/zcomx/creators/index ?creator=First_Last&book=My_Book&page=001.jpg'),
 
-            # Admin/appadmin should be routed like any other url
-            ('http://my.domain.com/admin', "/zcomx/creators/index ?creator=admin"),
-            ('http://my.domain.com/zcomx/admin', "/zcomx/creators/index ?creator=admin"),
+            # Appadmin should be routed like any other url
             ('http://my.domain.com/appadmin', "/zcomx/creators/index ?creator=appadmin"),
             ('http://my.domain.com/zcomx/appadmin', "/zcomx/creators/index ?creator=appadmin"),
 

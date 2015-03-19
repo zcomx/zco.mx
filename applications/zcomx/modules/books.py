@@ -300,26 +300,32 @@ def book_types(db):
     )
 
 
-def by_attributes(attributes):
+def by_attributes(attributes_list):
     """Return a Row instances representing a book matching the attributes.
 
     Args:
-        attributes: dict of book attributes.
+        attributes_list: list of dicts, dict of book attributes.
 
     Returns:
         Row instance representing a book.
+
+    The book returned is the one that first matches a dict in the attributes
+    list.
     """
-    if not attributes:
+    if not attributes_list:
         return
-    db = current.app.db
-    queries = []
-    for key, value in attributes.items():
-        if value is not None:
-            queries.append((db.book[key] == value))
-    query = reduce(lambda x, y: x & y, queries) if queries else None
-    if not query:
-        return
-    return db(query).select().first()
+    for attributes in attributes_list:
+        db = current.app.db
+        queries = []
+        for key, value in attributes.items():
+            if value is not None:
+                queries.append((db.book[key] == value))
+        query = reduce(lambda x, y: x & y, queries) if queries else None
+        if not query:
+            return
+        book = db(query).select().first()
+        if book:
+            return book
 
 
 def calc_contributions_remaining(db, book_entity):
@@ -916,31 +922,37 @@ def page_url(book_page_entity, reader=None, **url_kwargs):
     )
 
 
-def parse_url_name(name):
+def parse_url_name(name, default=None):
     """Parse a book url name and return book attributes.
 
     Args:
         name: string, name of book used in url (ie what is returned by
                 def url_name()
+        default: dict of default values for attrubutes in returned dicts
 
     Returns
-        dict of book attributes.
-            eg {
+        list of dict of book attributes.
+            eg [{
                     name: Name
                     book_type_id: 1,
                     number: 1,
                     of_number: 4,
-                }
+                }]
     """
     if not name:
         return
 
-    book = dict(
+    books = []
+
+    start = dict(
         name=None,
         number=None,
         of_number=None,
         book_type_id=None,
     )
+
+    if default:
+        start.update(default)
 
     db = current.app.db
 
@@ -958,20 +970,22 @@ def parse_url_name(name):
 
     # Test in order most-complex to least.
     for book_type in ['mini-series', 'ongoing', 'one-shot']:
+        book = dict(start)
         m = type_res[book_type].match(name)
-        if m:
-            book.update(m.groupdict())
-            book['book_type_id'] = type_id_by_name[book_type]
-            break
-    if book['name']:
-        book['name'] = book['name'].replace('_', ' ')
-    for field in ['number', 'of_number']:
-        if book[field]:
-            try:
-                book[field] = int(book[field])
-            except (TypeError, ValueError):
-                book[field] = None
-    return book
+        if not m:
+            continue
+        book.update(m.groupdict())
+        book['book_type_id'] = type_id_by_name[book_type]
+        if book['name']:
+            book['name'] = book['name'].replace('_', ' ')
+        for field in ['number', 'of_number']:
+            if book[field]:
+                try:
+                    book[field] = int(book[field])
+                except (TypeError, ValueError):
+                    book[field] = None
+        books.append(book)
+    return books
 
 
 def publication_year_range():
