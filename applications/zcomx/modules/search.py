@@ -864,7 +864,10 @@ class Tile(object):
 
         if can_receive_contributions(db, row.creator):
             append_li(self.contribute_link())
-        append_li(self.download_link())
+
+        dl_link = self.download_link()
+        if dl_link and str(dl_link) != str(SPAN('')):
+            append_li(self.download_link())
 
         return UL(
             breadcrumb_lis,
