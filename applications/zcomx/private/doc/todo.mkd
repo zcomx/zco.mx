@@ -11,7 +11,6 @@ VERSION 2 - Before Going Live
     utorrent - http://www.oldapps.com/utorrent.php?old_utorrent=38
     png compression - zopflipng
 
-[ ] Terms and Conditions - Reader
 [ ] Terms and Conditions - Cartoonist
     [ ] Update faqc page
         To follow "What terms or licence does zco.mx have over the work I post?"
@@ -53,6 +52,11 @@ VERSION 2 - Before Going Live
     Twitter and tumber does this
 
 [ ] I. P. Funny <-- how do we handle this?
+
+[ ] Terms Page
+    Change https://github.com/zcomx/zcomix.com to
+    https://github.com/zcomx/zcomx or
+    https://github.com/zcomx/website ?
 
 [/] Add back the 'Release Button'
     * Ensure images have at least a width of 1600px before releasing
@@ -145,6 +149,7 @@ VERSION 3
 
 
 VERSION 4
+[ ] Terms and Conditions - Pop-up Model for Reader
 [ ] login -> books -> edit
     Use inline Editing for metadata
 [ ] Read Page -> Scroll
@@ -171,6 +176,7 @@ VERSION 4
     * does this need a separate page?  link in the footer?
 [ ] Copyright material
     'Report' button for DMCA / C&D
+    https://zco.mx/copyright_claim
 
 
 IDEAS

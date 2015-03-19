@@ -260,13 +260,13 @@ def terms():
     summary_sections = []
     if is_creator:
         summary_sections = [
-            'terms_of_use_summary',
+            'terms-key_points',
         ]
 
     sections = [
-        'terms_of_use',
-        'content_guidelines',
-        'privacy_policy',
+        'terms-terms_of_use',
+        'terms-content_guidelines',
+        'terms-privacy_policy',
     ]
 
     return dict(
