@@ -1,41 +1,6 @@
 ``
 VERSION 2 - Before Going Live
-[x] Indicia Page
-    Compare default preview image to mix3-indicia-text.png
-    SB 2015-03-13 17:20  added more padding/whitespace to bottom of
-    indica page
-[x] Admin Login
-[x] Indicia Bug
-[x] Create twitter user 'zcomx_bot'
-[x] Update faq
-    utorrent - http://www.oldapps.com/utorrent.php?old_utorrent=38
-    png compression - zopflipng
-
-[ ] Terms and Conditions - Cartoonist
-    [ ] Update faqc page
-        To follow "What terms or licence does zco.mx have over the work I post?"
-
-        Will all work be licenced under Creative Commons (CC)?
-        Not necessarily. When a cartoonist uploads their work, a Terms and
-        Conditions pop-up window will appear, allowing them to grant zco.mx
-        permission to display their images.
-
-        For web images, cartoonists can select "All Rights Reserved," while
-        granting zco.mx permission to display their work. If a cartoonist wants
-        to release a cbz file (used for reading comics on tablets) of their work
-        on the file sharing networks, and they want to retain virtually all of
-        their rights over the work, they can use the most restrictive CC
-        licence: BY-NC-ND. This licence allows readers to share the work under
-        the condition that they credit the cartoonist and do not profit from or
-        change the work.
-
-        There are six CC licencing options available to cartoonists. More
-        information about the different licences can be found here[a] and on the
-        Creative Commons FAQ[b] page.
-
-
-        [a]Link to : http://kb.zco.mx/cc
-        [b]Link to:  http://kb.zco.mx/faqcc
+[ ] Discuss Terms
 
 [ ] Reader Pages
     eg https://zco.mx/Chris_Gooch/Gasoline_Eyedrops/001?reader=slider#
@@ -51,12 +16,7 @@ VERSION 2 - Before Going Live
 [ ] Use CamelCase for CartoonistName ?
     Twitter and tumber does this
 
-[ ] I. P. Funny <-- how do we handle this?
-
-[ ] Terms Page
-    Change https://github.com/zcomx/zcomix.com to
-    https://github.com/zcomx/zcomx or
-    https://github.com/zcomx/website ?
+[ ] I. P. Funny <-- how do we handle a cartoonist name like this?
 
 [/] Add back the 'Release Button'
     * Ensure images have at least a width of 1600px before releasing
@@ -87,25 +47,23 @@ VERSION 2 - Before Going Live
 [ ] 12426 - Add robots.txt to prevent bots from accessing zco.mx
 [ ] 12354 - Test scripts
 
-[/] Upload Modal
-    Can we downscale the web images for the thumbnails and remove the
-    actual thumbnails?
-    [ ] Currently Testing
-
 [ ] Add CC licence to zco.mx footer
-        http://www.ycombinator.com/legal/
-                                                 [CC BY]
-        Every comics on zco.mx has its own licence.  All
-        other context  on this site is licenced  under a
-                                CC BY 4.0 Int'l licence.
+    http://www.ycombinator.com/legal/
+                                             [CC BY]
+    Every comics on zco.mx has its own licence.  All
+    other context  on this site is licenced  under a
+                            CC BY 4.0 Int'l licence.
 
-                                                 [CC BY]
-        Except  where  otherwise noted, content  on this
-        site is licenced under a CC BY 4.0 Int'l licence
+                                             [CC BY]
+    Except  where  otherwise noted, content  on this
+    site is licenced under a CC BY 4.0 Int'l licence
 
 [ ] optimize pages -- especially the front page
     * look at Q's console
     * caching?
+    [/] Upload Modal
+        Can we downscale the web images for the thumbnails and remove the
+        actual thumbnails?
 [ ] nice levels
 [ ] "creator.table appears corrupted" Error
 [S] Copy Edit
@@ -144,12 +102,14 @@ VERSION 3
     https://zco.mx/contributions/modal
 
     SB 2015-02-09 19:09  It does this with middle click
-[ ] Twitter Cards
-    https://dev.twitter.com/cards/overview
+[ ] Terms and Conditions - Pop-up Model for Reader
+[ ] Terms Page
+    Change https://github.com/zcomx/zcomix.com to
+    https://github.com/zcomx/zcomx or
+    https://github.com/zcomx/website ?
 
 
 VERSION 4
-[ ] Terms and Conditions - Pop-up Model for Reader
 [ ] login -> books -> edit
     Use inline Editing for metadata
 [ ] Read Page -> Scroll
@@ -177,6 +137,8 @@ VERSION 4
 [ ] Copyright material
     'Report' button for DMCA / C&D
     https://zco.mx/copyright_claim
+[ ] Twitter Cards
+    https://dev.twitter.com/cards/overview
 
 
 IDEAS

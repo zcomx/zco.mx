@@ -2,8 +2,8 @@
 
 If you believe your work has been copied and posted on zco.mx in a way that constitutes copyright infringement, please email zco.mx with the information as specified below.
 
-+Contact Information
---name:
++**Contact Information**
+--name
 --business name (if different from name)
 --mailing address
 --business address (if different than mailing address)
@@ -11,7 +11,7 @@ If you believe your work has been copied and posted on zco.mx in a way that cons
 --cell telephone number
 --email address
 
-+Description of Infringed Property
++**Description of Infringed Property**
 --title of work as displayed on zco.mx
 --author of work as displayed on zco.mx
 --url of page displaying infringed property (Eg http://zco.mx/Author_Name/Book_Title)
@@ -19,9 +19,9 @@ If you believe your work has been copied and posted on zco.mx in a way that cons
 --author of your original work
 --copyright of your original work
 
-+Additional Information
++**Additional Information**
 --Please provide any additional information that may pertain to your claim.
 
 
-Email: copyright@zco.mx
+Email: show.me@zco.mx
 

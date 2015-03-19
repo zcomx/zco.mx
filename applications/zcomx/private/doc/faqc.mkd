@@ -1,6 +1,7 @@
 ##### [[What type of content will be on the site? #content]]
 ##### [[What file types can be uploaded? #filetypes]]
 ##### [[What terms or licence does zco.mx have over the work I post? #terms]]
+##### [[Will all work be licenced under Creative Commons (CC)? #licence]]
 ##### [[Am I able to remove any of the work I posted on zco.mx? #remove]]
 ##### [[Should I post my older work or only new comics? Are you looking for short comics or longer works? #content2]]
 ##### [[As a cartoonist, why would I want to use zco.mx? #use]]
@@ -44,9 +45,31 @@ work. zco.mx claims no ownership or control over the cartoonist or their
 work.
 
 
+[[licence]]
+#### Will all work be licenced under Creative Commons (CC)?
+Not necessarily. When a cartoonist uploads their work, a Terms and
+Conditions pop-up window will appear, allowing them to grant zco.mx
+permission to display their images.
+
+For web images, cartoonists can select "All Rights Reserved," while
+granting zco.mx permission to display their work. If a cartoonist wants
+to release a cbz file (used for reading comics on tablets) of their work
+on the file sharing networks, and they want to retain virtually all of
+their rights over the work, they can use the most restrictive CC
+licence: BY-NC-ND. This licence allows readers to share the work under
+the condition that they credit the cartoonist and do not profit from or
+change the work.
+
+There are six CC licencing options available to cartoonists. More
+information about the different licences can be found [[here
+http://kb.zco.mx/cc]] and on the Creative Commons [[FAQ
+http://kb.zco.mx/faqcc]] page.
+
+
 [[remove]]
 #### Am I able to remove any of the work I posted on zco.mx?
 A cartoonist can add or remove their work from the site as they see fit.
+
 
 [[content2]]
 #### Should I post my older work or only new comics? Are you looking for short comics or longer works?
