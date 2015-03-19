@@ -1,9 +1,13 @@
 ``
 VERSION 2 - Before Going Live
 [ ] Hankiewicz Bugs
-    [ ] web images -- error
+    [x] web images -- error
     [ ] torrent isn't seeded
+        applications/zcomx/private/var/tor/zco.mx
     [ ] Book Page: year on release
+    [ ] Re-release torrent because of indicia image
+
+[ ] Double Check Wording on Release Page
 
 [ ] Discuss Terms
 
