@@ -74,9 +74,9 @@ When you use the Services, our servers (which may be hosted by a third party
 service provider) may collect information indirectly and automatically
 (through, for example, the use of your “IP address”) about your activities
 while visiting the Website and information about the browser you are using. In
-addition, whenever you use your zco.mx Creator Account to log into a website,
+addition, whenever you use your zco.mx Creator Account to log into the website,
 our servers (which, again, may be hosted by a third party service provider)
-keep a log of the websites you visit and when you visit them.
+keep a log of the zco.mx pages you visit and when you visit them.
 
 ##### No Linking
 
