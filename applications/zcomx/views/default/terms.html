@@ -14,7 +14,7 @@
 {{pass}}
 
 {{for section in sections:}}
-    <h5><a href="#{{=section}}">{{=section.replace('_', ' ').title()}}</a></h5>
+    <h5><a href="#{{=section}}">{{=section.replace('terms-', '').replace('_', ' ').title()}}</a></h5>
 {{pass}}
 
 {{if summary_sections:}}
