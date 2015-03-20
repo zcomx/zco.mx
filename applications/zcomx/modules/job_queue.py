@@ -25,18 +25,20 @@ from applications.zcomx.modules.utils import \
 
 
 DAEMON_NAME = 'zco_queued'
-PRIORITIES = [
-    # Lowest
-    'delete_img',
-    'delete_book',
-    'update_creator_indicia',
-    'optimize_img',
-    'release_book',
-    'create_torrent',
-    'create_cbz',
-    'optimize_img_for_release',
+PRIORITIES = sorted([
     # Highest
-]
+    'optimize_img_for_release',
+    'create_cbz',
+    'create_torrent',
+    'release_book',
+    'optimize_img',
+    'update_creator_indicia',
+    'delete_book',
+    'delete_img',
+    'log_downloads',
+    # Lowest
+], reverse=True)
+
 
 LOG = logging.getLogger('app')
 
@@ -574,6 +576,21 @@ class DeleteBookQueuer(JobQueuer):
         'status': 'a',
     }
     valid_cli_options = [
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
+class LogDownloadsQueuer(JobQueuer):
+    """Class representing a queuer for 'log downloads' jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'log_downloads.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('log_downloads'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-l', '--limit',
+        '-r', '--requeue',
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal

@@ -51,8 +51,17 @@ class BookEvent(object):
         self.book = entity_to_row(db.book, book_entity)
         self.user_id = user_id
 
-    def log(self, value=None):
+    def _log(self, value=None):
         """Create a record representing a log of the event."""
+        raise NotImplementedError
+
+    def log(self, value=None):
+        """Log event."""
+        self._log(value=value)
+        self._post_log()
+
+    def _post_log(self):
+        """Post log functionality."""
         raise NotImplementedError
 
 
@@ -62,7 +71,7 @@ class ContributionEvent(BookEvent):
     def __init__(self, book_entity, user_id):
         BookEvent.__init__(self, book_entity, user_id)
 
-    def log(self, value=None):
+    def _log(self, value=None):
         if value is None:
             return
         db = current.app.db
@@ -73,8 +82,12 @@ class ContributionEvent(BookEvent):
             amount=value
         )
         db.commit()
-        update_rating(db, self.book, rating='contribution')
         return event_id
+
+    def _post_log(self):
+        """Post log functionality."""
+        db = current.app.db
+        update_rating(db, self.book, rating='contribution')
 
 
 class DownloadEvent(BookEvent):
@@ -83,16 +96,29 @@ class DownloadEvent(BookEvent):
     def __init__(self, book_entity, user_id):
         BookEvent.__init__(self, book_entity, user_id)
 
-    def log(self, value=None):
+    def _log(self, value=None):
+        if value is None:
+            return
+        # value is a download_click_entity
         db = current.app.db
+        download_click = entity_to_row(db.download_click, value)
+        if not download_click:
+            LOG.error('download_click not found: %s', value)
+            return
+
         event_id = db.download.insert(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
-            time_stamp=datetime.datetime.now()
+            time_stamp=datetime.datetime.now(),
+            download_click_id=download_click.id,
         )
         db.commit()
-        update_rating(db, self.book, rating='download')
         return event_id
+
+    def _post_log(self):
+        """Post log functionality."""
+        # download event ratings are updated en masse.
+        pass
 
 
 class RatingEvent(BookEvent):
@@ -101,7 +127,7 @@ class RatingEvent(BookEvent):
     def __init__(self, book_entity, user_id):
         BookEvent.__init__(self, book_entity, user_id)
 
-    def log(self, value=None):
+    def _log(self, value=None):
         if value is None:
             return
         db = current.app.db
@@ -112,8 +138,12 @@ class RatingEvent(BookEvent):
             amount=value
         )
         db.commit()
-        update_rating(db, self.book, rating='rating')
         return event_id
+
+    def _post_log(self):
+        """Post log functionality."""
+        db = current.app.db
+        update_rating(db, self.book, rating='rating')
 
 
 class ViewEvent(BookEvent):
@@ -122,7 +152,7 @@ class ViewEvent(BookEvent):
     def __init__(self, book_entity, user_id):
         BookEvent.__init__(self, book_entity, user_id)
 
-    def log(self, value=None):
+    def _log(self, value=None):
         db = current.app.db
         event_id = db.book_view.insert(
             auth_user_id=self.user_id or 0,
@@ -130,8 +160,12 @@ class ViewEvent(BookEvent):
             time_stamp=datetime.datetime.now()
         )
         db.commit()
-        update_rating(db, self.book, rating='view')
         return event_id
+
+    def _post_log(self):
+        """Post log functionality."""
+        db = current.app.db
+        update_rating(db, self.book, rating='view')
 
 
 def book_page_for_json(db, book_page_id):
@@ -769,6 +803,49 @@ def get_page(book_entity, page_no=1):
     return book_page
 
 
+def magnet_link(book_entity, components=None, **attributes):
+    """Return a link suitable for the magnet for a book.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+        components: list, passed to A(*components),  default [torrent_name()]
+        attributes: dict of attributes for A()
+    Returns:
+        A instance
+    """
+    empty = SPAN('')
+
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        raise NotFoundError('Book not found, id: {e}'.format(
+            e=book_entity))
+
+    link_url = magnet_uri(book)
+    if not link_url:
+        return empty
+
+    if not components:
+        u_name = url_name(book_entity)
+        if not u_name:
+            return
+        name = '{n}.magnet'.format(n=u_name).lower()
+        components = [name]
+
+    kwargs = {
+        '_data-record_table': 'book',
+        '_data-record_id': str(book.id),
+        '_class': 'log_download_link',
+    }
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = link_url
+
+    return A(*components, **kwargs)
+
+
 def magnet_uri(book_entity):
     """Create a magnet uri for a book.
 
@@ -1357,6 +1434,49 @@ def torrent_file_name(book_entity):
         name=TitleFileName(formatted_name(db, book_record)).scrubbed(),
         cid=book_record.creator_id,
     )
+
+
+def torrent_link(book_entity, components=None, **attributes):
+    """Return a link suitable for the torrent file of a book.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+        components: list, passed to A(*components),  default [torrent_name()]
+        attributes: dict of attributes for A()
+    Returns:
+        A instance
+    """
+    empty = SPAN('')
+
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        raise NotFoundError('Book not found, id: {e}'.format(
+            e=book_entity))
+
+    link_url = torrent_url(book)
+    if not link_url:
+        return empty
+
+    if not components:
+        u_name = url_name(book_entity)
+        if not u_name:
+            return
+        name = '{n}.torrent'.format(n=u_name).lower()
+        components = [name]
+
+    kwargs = {
+        '_data-record_table': 'book',
+        '_data-record_id': str(book.id),
+        '_class': 'log_download_link',
+    }
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = link_url
+
+    return A(*components, **kwargs)
 
 
 def torrent_url(book_entity, **url_kwargs):

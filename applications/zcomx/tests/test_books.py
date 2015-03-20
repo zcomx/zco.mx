@@ -46,6 +46,7 @@ from applications.zcomx.modules.books import \
     formatted_name, \
     formatted_number, \
     get_page, \
+    magnet_link, \
     magnet_uri, \
     numbers_for_book_type, \
     optimize_images, \
@@ -61,6 +62,7 @@ from applications.zcomx.modules.books import \
     short_page_url, \
     short_url, \
     torrent_file_name, \
+    torrent_link, \
     torrent_url, \
     unoptimized_images, \
     update_contributions_remaining, \
@@ -106,9 +108,35 @@ class TestBookEvent(EventTestCase):
         event = BookEvent(self._book, self._user.id)
         self.assertTrue(event)
 
-    def test__log(self):
+    def test_log(self):
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
         event = BookEvent(self._book, self._user.id)
-        self.assertRaises(NotImplementedError, event.log, None)
+        self.assertRaises(NotImplementedError, event._log, None)
+
+    def test__log(self):
+
+        class SubBookEvent(BookEvent):
+
+            def __init__(self, book_entity, user_id):
+                BookEvent.__init__(self, book_entity, user_id)
+                self.actions = []
+
+            def _log(self, value=None):
+                self.actions.append(value)
+
+            def _post_log(self):
+                self.actions.append('post_log')
+
+        event = SubBookEvent(self._book, self._user.id)
+        event.log(value='log_me')
+        self.assertEqual(event.actions, ['log_me', 'post_log'])
+
+    def test_post_log(self):
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event = BookEvent(self._book, self._user.id)
+        self.assertRaises(NotImplementedError, event._post_log)
 
 
 class TestContributionEvent(EventTestCase):
@@ -116,23 +144,18 @@ class TestContributionEvent(EventTestCase):
         event = ContributionEvent(self._book, self._user.id)
         self.assertTrue(event)
 
-    def test__log(self):
+    def test_log(self):
         self._set_pages(db, self._book.id, 10)
         update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.contributions, 0)
-        self.assertAlmostEqual(book.contributions_remaining, 100.00)
-
         event = ContributionEvent(self._book, self._user.id)
 
         # no value
-        event_id = event.log()
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event_id = event._log()
         self.assertFalse(event_id)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.contributions, 0)
-        self.assertAlmostEqual(book.contributions_remaining, 100.00)
 
-        event_id = event.log(123.45)
+        event_id = event._log(123.45)
         contribution = entity_to_row(db.contribution, event_id)
         self.assertEqual(contribution.id, event_id)
         self.assertAlmostEqual(
@@ -142,6 +165,23 @@ class TestContributionEvent(EventTestCase):
         )
         self.assertEqual(contribution.amount, 123.45)
         self._objects.append(contribution)
+
+    def test_post_log(self):
+        self._set_pages(db, self._book.id, 10)
+        update_rating(db, self._book)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertAlmostEqual(book.contributions, 0.00)
+        self.assertAlmostEqual(book.contributions_remaining, 100.00)
+
+        event = ContributionEvent(self._book, self._user.id)
+
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event_id = event._log(123.45)
+        contribution = entity_to_row(db.contribution, event_id)
+        self._objects.append(contribution)
+
+        event._post_log()
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
         self.assertAlmostEqual(book.contributions, 123.45)
         self.assertAlmostEqual(book.contributions_remaining, 0.00)
@@ -152,24 +192,36 @@ class TestDownloadEvent(EventTestCase):
         event = DownloadEvent(self._book, self._user.id)
         self.assertTrue(event)
 
-    def test__log(self):
+    def test_log(self):
         update_rating(db, self._book)
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertEqual(book.downloads, 0)
+
+        download_click = self.add(db.download_click, dict(
+            record_table='book',
+            record_id=book.id,
+        ))
 
         event = DownloadEvent(self._book, self._user.id)
-        event_id = event.log()
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event_id = event._log(value=download_click)
 
         download = entity_to_row(db.download, event_id)
         self.assertEqual(download.id, event_id)
+        self.assertEqual(download.download_click_id, download_click.id)
         self.assertAlmostEqual(
             download.time_stamp,
             datetime.datetime.now(),
             delta=datetime.timedelta(minutes=1)
         )
         self._objects.append(download)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertEqual(book.downloads, 1)
+
+    def test_post_log(self):
+        # This does nothing, test that.
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event = DownloadEvent(self._book, self._user.id)
+        event._post_log()
 
 
 class TestRatingEvent(EventTestCase):
@@ -177,20 +229,17 @@ class TestRatingEvent(EventTestCase):
         event = RatingEvent(self._book, self._user.id)
         self.assertTrue(event)
 
-    def test__log(self):
+    def test_log(self):
         update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertEqual(book.rating, 0)
-
         event = RatingEvent(self._book, self._user.id)
 
         # no value
-        event_id = event.log()
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event_id = event._log()
         self.assertFalse(event_id)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertEqual(book.rating, 0)
 
-        event_id = event.log(5)
+        event_id = event._log(5)
         rating = entity_to_row(db.rating, event_id)
         self.assertEqual(rating.id, event_id)
         self.assertAlmostEqual(
@@ -200,6 +249,21 @@ class TestRatingEvent(EventTestCase):
         )
         self.assertEqual(rating.amount, 5)
         self._objects.append(rating)
+
+    def test_post_log(self):
+        update_rating(db, self._book)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertEqual(book.rating, 0)
+
+        event = RatingEvent(self._book, self._user.id)
+
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event_id = event._log(5)
+        rating = entity_to_row(db.rating, event_id)
+        self._objects.append(rating)
+
+        event._post_log()
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
         self.assertEqual(book.rating, 5)
 
@@ -209,13 +273,12 @@ class TestViewEvent(EventTestCase):
         event = ViewEvent(self._book, self._user.id)
         self.assertTrue(event)
 
-    def test__log(self):
+    def test_log(self):
         update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertEqual(book.views, 0)
-
         event = ViewEvent(self._book, self._user.id)
-        event_id = event.log()
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event_id = event._log()
 
         view = entity_to_row(db.book_view, event_id)
         self.assertEqual(view.id, event_id)
@@ -225,6 +288,21 @@ class TestViewEvent(EventTestCase):
             delta=datetime.timedelta(minutes=1)
         )
         self._objects.append(view)
+
+    def test_post_log(self):
+        update_rating(db, self._book)
+        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        self.assertEqual(book.views, 0)
+
+        event = ViewEvent(self._book, self._user.id)
+
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event_id = event._log()
+        view = entity_to_row(db.book_view, event_id)
+        self._objects.append(view)
+
+        event._post_log()
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
         self.assertEqual(book.views, 1)
 
@@ -1131,6 +1209,94 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(indicia.page_no, last.page_no + 1)
         self.assertEqual(indicia.image, None)
 
+    def test__magnet_link(self):
+        book = self.add(db.book, dict(
+            name='My Book',
+            number=2,
+            book_type_id=self._type_id_by_name['ongoing'],
+        ))
+
+        # book.cbz not set
+        self.assertEqual(str(magnet_link(book)), str(SPAN('')))
+
+        cbz_filename = '/tmp/test.cbz'
+        with open(cbz_filename, 'w') as f:
+            f.write('Fake cbz file used for testing.')
+
+        book.update_record(cbz=cbz_filename)
+        db.commit()
+
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+
+        def test_href(href):
+            parsed = urlparse.urlparse(href)
+            self.assertEqual(parsed.scheme, 'magnet')
+            self.assertEqual(
+                urlparse.parse_qs(parsed.query),
+                {
+                    'dn': ['test.cbz'],
+                    'xl': ['31'],
+                    'xt':
+                    ['urn:tree:tiger:BOM3RWAED7BCOFOG5EX64QRBECPR4TRYRD7RFTA']
+                }
+            )
+
+        # As integer, book.id
+        link = magnet_link(book.id)
+        soup = BeautifulSoup(str(link))
+        # Eg <a class="log_download_link"
+        #   data-record_id="8999" data-record_table="book"
+        #   href="magnet:?xt=urn:tree:tiger:BOM3RWAED7BCOFOG5EX64QRBECPR4TRYRD7RFTA&amp;xl=31&amp;dn=test.cbz">
+        #   test_book_002.torrent</a>
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'my_book_002.magnet')
+        test_href(anchor['href'])
+        self.assertEqual(anchor['class'], 'log_download_link')
+        self.assertEqual(anchor['data-record_table'], 'book')
+        self.assertEqual(anchor['data-record_id'], str(book.id))
+
+        # As Row, book
+        link = magnet_link(book)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'my_book_002.magnet')
+        test_href(anchor['href'])
+        self.assertEqual(anchor['class'], 'log_download_link')
+        self.assertEqual(anchor['data-record_table'], 'book')
+        self.assertEqual(anchor['data-record_id'], str(book.id))
+
+        # Invalid id
+        self.assertRaises(NotFoundError, magnet_link, -1)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = magnet_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = magnet_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = magnet_link(book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'my_book_002.magnet')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
+
     def test__magnet_uri(self):
         book = self.add(db.book, dict(
             name='Test Magnet URI'
@@ -1925,6 +2091,79 @@ class TestFunctions(ImageTestCase):
             'My Book 02 (of 04) (1999) ({i}.zco.mx).cbz.torrent'.format(
                 i=creator.id)
         )
+
+    def test__torrent_link(self):
+        creator = self.add(db.creator, dict(
+            email='test__torrent_link@example.com',
+            path_name='First Last',
+        ))
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            number=2,
+            creator_id=creator.id,
+            book_type_id=self._type_id_by_name['ongoing'],
+        ))
+
+        # As integer, book.id
+        link = torrent_link(book.id)
+        # Eg <a class="log_download_link"
+        #   data-record_id="8979" data-record_table="book"
+        #   href="/First_Last/My_Book_002.torrent">my_book_002.torrent</a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'my_book_002.torrent')
+        self.assertEqual(
+            anchor['href'],
+            '/First_Last/My_Book_002.torrent'.format(i=book.id)
+        )
+        self.assertEqual(anchor['class'], 'log_download_link')
+        self.assertEqual(anchor['data-record_table'], 'book')
+        self.assertEqual(anchor['data-record_id'], str(book.id))
+
+        # As Row, book
+        link = torrent_link(book)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'my_book_002.torrent')
+        self.assertEqual(
+            anchor['href'],
+            '/First_Last/My_Book_002.torrent'.format(i=book.id)
+        )
+        self.assertEqual(anchor['class'], 'log_download_link')
+        self.assertEqual(anchor['data-record_table'], 'book')
+        self.assertEqual(anchor['data-record_id'], str(book.id))
+
+        # Invalid id
+        self.assertRaises(NotFoundError, torrent_link, -1)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = torrent_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = torrent_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = torrent_link(book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'my_book_002.torrent')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
 
     def test__torrent_url(self):
         self.assertRaises(NotFoundError, torrent_url, -1)

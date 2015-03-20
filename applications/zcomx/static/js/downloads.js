@@ -39,23 +39,18 @@
 (function( $ ) {
     "use strict";
 
-    $.fn.log_download_link = function (book_id, options) {
-        var settings = $.extend(
-            true,
-            {},
-            $.fn.log_download_link.defaults,
-            options
-        );
+    $.fn.log_download_link = function () {
 
         var methods = {
             _load: function(elem) {
                 var self = this;
                 $(elem).click(function (e) {
+                    console.log('click registed');
                     $.ajax({
-                        url: '/downloads/modal/' + book_id,
+                        url: '/downloads/download_click_handler',
                         type: 'POST',
-                        dataType: 'html',
-                        data: $.param( {_formkey: settings.formkey, _formname: settings.formname} ),
+                        dataType: 'json',
+                        data: $.param( $(elem).data() ),
                         success: function (data, textStatus, jqXHR) {
                             // this isn't critical
                         },
@@ -71,9 +66,5 @@
             var $this = $(this);
             methods._load.apply(this, [elem]);
         });
-    };
-
-    $.fn.log_download_link.defaults = {
-        cssClass: 'download_modal',
     };
 }(window.jQuery));
