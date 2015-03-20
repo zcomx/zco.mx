@@ -4,12 +4,17 @@ VERSION 2 - Before Going Live
     [x] web images -- error
     [ ] torrent isn't seeded
         applications/zcomx/private/var/tor/zco.mx
-    [ ] Book Page: year on release
+    [x] Book Page: year on release
     [ ] Re-release torrent because of indicia image
 
-[ ] Double Check Wording on Release Page
+[ ] Changes to the 'Terms' Page
+    * 5. Content Supplied by You
+    * Content Guidelines
+    * Data Usage Policy: Non Personal Browsing and Site Usage Information
+        "...keep a log of the websites you visit and when you visit them."
+    [S] Test
 
-[ ] Discuss Terms
+[S] On release do we tell them to upload an indicia image ?
 
 [x] Reader Pages
     eg https://zco.mx/Chris_Gooch/Gasoline_Eyedrops/001?reader=slider#
@@ -18,7 +23,7 @@ VERSION 2 - Before Going Live
 [x] Front Page
     If no download link, then remove '|' separator
 
-[ ] Front Page - Add 'download' report
+[ ] Front Page - releases section
     downloading all.torrent gives +1 to all books
     downloading cartoonist.torrent gives +1 to all that cartoonist's books
 
