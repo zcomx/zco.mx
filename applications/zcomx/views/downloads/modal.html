@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import formatted_name, magnet_uri, torrent_url}}
+{{from applications.zcomx.modules.books import formatted_name, magnet_link, torrent_link}}
 
 <div id="download_modal_page">
 
@@ -9,10 +9,10 @@
     <dd>
         <ul class="breadcrumb pipe_delimiter">
             <li>
-             <a href="{{=torrent_url(book)}}" class="log_download_link">torrent</a>
+                {{=torrent_link(book, ['torrent'])}}
             </li>
             <li>
-                <a href="{{=magnet_uri(book)}}" class="log_download_link">dc</a>
+                {{=magnet_link(book, ['dc'])}}
             </li>
         </ul>
     </dd>
@@ -23,13 +23,7 @@
 <script>
 //<![CDATA[
     $(document).ready(function(){
-        $('.log_download_link').log_download_link(
-            {{=book.id}},
-            {
-                formkey: '{{=form.formkey}}',
-                formname: '{{=form.formname}}'
-            }
-        );
+        $('.log_download_link').log_download_link();
     });
 //]]>
 </script>

@@ -3,10 +3,71 @@
 Controllers related to downloads.
 """
 import logging
-from applications.zcomx.modules.books import DownloadEvent
+from gluon.contrib.simplejson import dumps
+from applications.zcomx.modules.events import is_loggable
+from applications.zcomx.modules.job_queue import \
+    LogDownloadsQueuer
 from applications.zcomx.modules.utils import entity_to_row
 
 LOG = logging.getLogger('app')
+
+LOG_DOWNLOADS_LIMIT = 1000
+
+
+def download_click_handler():
+    """Ajax callback for logging a download click.
+
+    request.vars.record_table: string, name of table to record download for
+    request.vars.record_id: integer, id of record.
+    request.vars.no_queue: boolean, if set, don't queue a logs_download job
+    """
+    def do_error(msg):
+        """Error handler."""
+        return dumps({'status': 'error', 'msg': msg})
+
+    if not request.vars.record_table \
+            or request.vars.record_table not in ['all', 'book', 'creator']:
+        return do_error('Invalid data provided')
+
+    record_id = 0
+    if request.vars.record_table in ['book', 'creator']:
+        try:
+            record_id = int(request.vars.record_id)
+        except (TypeError, ValueError):
+            return do_error('Invalid data provided')
+
+    click_id = db.download_click.insert(
+        ip_address=request.client,
+        time_stamp=request.now,
+        auth_user_id=auth.user_id or 0,
+        record_table=request.vars.record_table,
+        record_id=record_id,
+    )
+    db.commit()
+    click_record = db(db.download_click.id == click_id).select().first()
+    if is_loggable(click_record):
+        click_record.update_record(
+            loggable=True,
+            completed=False,
+        )
+        db.commit()
+
+        if not request.vars.no_queue:
+            job = LogDownloadsQueuer(
+                db.job,
+                cli_options={'-r': True, '-l': str(LOG_DOWNLOADS_LIMIT)},
+            ).queue()
+            LOG.debug('Log downloads job id: %s', job.id)
+    else:
+        click_record.update_record(
+            loggable=False,
+            completed=True,
+        )
+        db.commit()
+    return {
+        'id': click_record.id,
+        'status': 'ok',
+    }
 
 
 def index():
@@ -30,27 +91,4 @@ def modal():
     if not book_record.cbz:
         do_error('This book is not available for download.')
 
-    # Use a web2py form to log download events. The form is not actually
-    # displayed on the page. It is submitted with ajax in downloads.js.
-    # The formkey checking will permit only a single download per view of the
-    # page.
-    fields = [
-        Field(
-            'book_id',
-            type='string',
-            default=book_record.id,
-        ),
-    ]
-
-    form = SQLFORM.factory(
-        *fields,
-        formstyle='table2cols',
-        submit_button='Submit'
-    )
-
-    formname = 'download_modal_check'
-    if form.process(
-            keepvalues=True, message_onsuccess='', formname=formname).accepted:
-        DownloadEvent(book_record, auth.user_id).log()
-
-    return dict(book=book_record, form=form)
+    return dict(book=book_record)

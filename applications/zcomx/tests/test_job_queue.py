@@ -24,6 +24,7 @@ from applications.zcomx.modules.job_queue import \
     InvalidJobOptionError, \
     InvalidStatusError, \
     JobQueuer, \
+    LogDownloadsQueuer, \
     OptimizeImgQueuer, \
     OptimizeImgForReleaseQueuer, \
     Queue, \
@@ -385,6 +386,27 @@ class TestJobQueuer(LocalTestCase):
         self.assertTrue(new_job.id in job_ids)
         job = db(db.job.id == new_job.id).select().first()
         self._objects.append(job)
+
+
+class TestLogDownloadsQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = LogDownloadsQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'-r': True, '-l': '10'},
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/log_downloads.py -l 10 -r'
+        )
 
 
 class TestOptimizeImgQueuer(LocalTestCase):

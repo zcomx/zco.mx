@@ -496,6 +496,10 @@ db.define_table('derivative',
 
 db.define_table('download',
     Field(
+        'download_click_id',
+        'integer',
+    ),
+    Field(
         'auth_user_id',
         'integer',
     ),
@@ -504,6 +508,25 @@ db.define_table('download',
         'integer',
     ),
     Field('time_stamp', 'datetime'),
+    migrate=True,
+)
+
+db.define_table('download_click',
+    Field('ip_address'),
+    Field('time_stamp', 'datetime'),
+    Field('auth_user_id', 'integer'),
+    Field('record_table'),
+    Field('record_id', 'integer'),
+    Field(
+        'loggable',
+        'boolean',
+        default=False,
+    ),
+    Field(
+        'completed',
+        'boolean',
+        default=False,
+    ),
     migrate=True,
 )
 

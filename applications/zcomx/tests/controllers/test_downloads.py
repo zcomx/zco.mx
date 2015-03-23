@@ -7,6 +7,7 @@ Test suite for zcomx/controllers/downloads.py
 
 """
 import unittest
+from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -56,6 +57,85 @@ class TestFunctions(LocalTestCase):
             cls._invalid_book_id = rows[0][max_book_id] + 1
         else:
             cls._invalid_book_id = 1
+
+    def test__download_click_handler(self):
+        # Prevent 'Changed session ID' warnings.
+        web.sessions = {}
+
+        book = self.add(db.book, dict(
+            name='test__download_click_handler',
+            creator_id=self._creator.id,
+        ))
+
+        url_fmt = '{url}/download_click_handler.json?no_queue=1'.format(
+            url=self.url)
+
+        url = url_fmt + '&record_table={t}&record_id={i}'.format(
+            t='book',
+            i=str(book.id),
+        )
+        web.post(url)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+        click_id = int(result['id'])
+        self.assertTrue(click_id > 0)
+        download_click = db(db.download_click.id == click_id).select().first()
+        self.assertTrue(download_click)
+        self._objects.append(download_click)
+        self.assertEqual(download_click.record_table, 'book')
+        self.assertEqual(download_click.record_id, book.id)
+        self.assertEqual(download_click.loggable, True)
+        self.assertEqual(download_click.completed, False)
+
+        # Second post shouldn't be loggable.
+        web.sessions = {}
+        web.post(url)
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+        click_id = int(result['id'])
+        self.assertTrue(click_id > 0)
+        download_click = db(db.download_click.id == click_id).select().first()
+        self.assertTrue(download_click)
+        self._objects.append(download_click)
+        self.assertEqual(download_click.record_table, 'book')
+        self.assertEqual(download_click.record_id, book.id)
+        self.assertEqual(download_click.loggable, False)
+        self.assertEqual(download_click.completed, True)
+
+        def test_invalid(url):
+            web.sessions = {}
+            web.post(url)
+            result = loads(web.text)
+            self.assertEqual(
+                result,
+                {'status': 'error', 'msg': 'Invalid data provided'}
+            )
+
+        # Missing record_table
+        url = url_fmt + '&record_id={i}'.format(
+            i=str(book.id),
+        )
+        test_invalid(url)
+
+        # Invalid record_table
+        url = url_fmt + '&record_table={t}&record_id={i}'.format(
+            t='_fake_',
+            i=str(book.id),
+        )
+        test_invalid(url)
+
+        # Missing record_id
+        url = url_fmt + '&record_table={t}'.format(
+            t='book',
+        )
+        test_invalid(url)
+
+        # Invalid record_id
+        url = url_fmt + '&record_table={t}&record_id={i}'.format(
+            t='book',
+            i='_invalid_id_',
+        )
+        test_invalid(url)
 
     def test__index(self):
         self.assertTrue(

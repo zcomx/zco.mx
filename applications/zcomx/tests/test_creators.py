@@ -627,7 +627,9 @@ class TestFunctions(LocalTestCase):
 
         # As integer, creator.id
         link = torrent_link(creator.id)
-        # Eg <a href="/First_Last_(123.zco.mx).torrent">first_last.torrent</a>
+        # Eg <a class="log_download_link"
+        #   data-record_id="8979" data-record_table="book"
+        #   href="/First_Last_(101.zco.mx).torrent">first_last.torrent</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'first_last.torrent')
@@ -635,6 +637,9 @@ class TestFunctions(LocalTestCase):
             anchor['href'],
             '/First_Last_({i}.zco.mx).torrent'.format(i=creator.id)
         )
+        self.assertEqual(anchor['class'], 'log_download_link')
+        self.assertEqual(anchor['data-record_table'], 'creator')
+        self.assertEqual(anchor['data-record_id'], str(creator.id))
 
         # As Row, creator
         link = torrent_link(creator)
@@ -645,6 +650,9 @@ class TestFunctions(LocalTestCase):
             anchor['href'],
             '/First_Last_({i}.zco.mx).torrent'.format(i=creator.id)
         )
+        self.assertEqual(anchor['class'], 'log_download_link')
+        self.assertEqual(anchor['data-record_table'], 'creator')
+        self.assertEqual(anchor['data-record_id'], str(creator.id))
 
         # Invalid id
         self.assertRaises(NotFoundError, torrent_link, -1)
