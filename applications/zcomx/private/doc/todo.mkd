@@ -1,46 +1,46 @@
 ``
 VERSION 2 - Before Going Live
-[ ] Hankiewicz Bugs
+[x] http://kb.zco.mx/howto-upload
+[x] http://kb.zco.mx/howto-ps
+[x] Hankiewicz Bugs
     [x] web images -- error
-    [ ] torrent isn't seeded
-        applications/zcomx/private/var/tor/zco.mx
     [x] Book Page: year on release
-    [ ] Re-release torrent because of indicia image
-
-[ ] Changes to the 'Terms' Page
+[x] Changes to the 'Terms' Page
     * 5. Content Supplied by You
     * Content Guidelines
     * Data Usage Policy: Non Personal Browsing and Site Usage Information
         "...keep a log of the websites you visit and when you visit them."
-    [S] Test
-
-[S] On release do we tell them to upload an indicia image ?
-
+    [x] Test
 [x] Reader Pages
     eg https://zco.mx/Chris_Gooch/Gasoline_Eyedrops/001?reader=slider#
     Has the download link but book hasn't been released
-
 [x] Front Page
     If no download link, then remove '|' separator
 
-[ ] Front Page - releases section
-    downloading all.torrent gives +1 to all books
-    downloading cartoonist.torrent gives +1 to all that cartoonist's books
-
-[ ] Use CamelCase for CartoonistName ?
-    Twitter and tumber does this
-
-[ ] I. P. Funny <-- how do we handle a cartoonist name like this?
+[S] Release Keith's Books
+    [S] On release, do we tell them about the indicia image ?
+    [S] torrent isn't seeded
+        applications/zcomx/private/var/tor/zco.mx
 
 [/] Add back the 'Release Button'
     * Ensure images have at least a width of 1600px before releasing
     * Ensure CC licence is used
     [S] test
 
-[S] http://kb.zco.mx/howto-upload
-[S] http://kb.zco.mx/howto-ps
+[ ] Front Page - releases section
+    downloading all.torrent gives +1 to all books
+    downloading cartoonist.torrent gives +1 to all that cartoonist's books
+
+[ ] Use CamelCase for CartoonistName and BookTitle in urls
+    Twitter and tumber does this
+
+[ ] Remove All Puncturation from Cartoonist Name and Book Title
+    I. P. Funny == https://zco.mx/IPFunny
+
 [S] Figure out backup of images
-    add exclude for cbz and web images to syncbackup script
+    Add exclude for cbz and web images to syncbackup script
+
+[D] http://kb.zco.mx/howto-backup
 
 ---
 
