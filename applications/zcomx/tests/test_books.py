@@ -2418,6 +2418,8 @@ class TestFunctions(ImageTestCase):
                 9,
                 "H\xc3\xa9l\xc3\xa8DE\xc3\xb1\xc3\xa7a-02of09"
             ),
+            ("My Book's Trials", 'one-shot', 1, 1, 'MyBooksTrials'),
+            ('    My    Book   ', 'one-shot', 1, 1, 'MyBook'),
         ]
 
         for t in tests:

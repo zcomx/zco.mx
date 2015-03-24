@@ -9,7 +9,6 @@ import datetime
 import logging
 import os
 import re
-import string
 import urlparse
 from gluon import *
 from gluon.dal.objects import REGEX_STORE_PATTERN
@@ -21,12 +20,18 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url, \
     url_name as creator_url_name
-from applications.zcomx.modules.files import TitleFileName
+from applications.zcomx.modules.files import \
+    TitleFileName, \
+    for_title_file
 from applications.zcomx.modules.images import \
     ImgTag, \
     is_optimized, \
     queue_optimize
 from applications.zcomx.modules.shell_utils import tthsum
+from applications.zcomx.modules.strings import \
+    camelcase, \
+    replace_punctuation, \
+    squeeze_whitespace
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -1698,17 +1703,16 @@ def url_name(book_entity):
     if not book_record or not book_record.name:
         return
 
-    def as_camelcase(text):
+    def as_camelcase(name):
         """Convert text to camelcase."""
+        # Remove apostrophes
+        # Otherwise "Fred's Book" becomes 'FredSBook' not 'FredsBook'
+        name = replace_punctuation(name, repl='', punctuation="""'""")
         # Replace punctuation with space
-        # Uppercase first letter of each word.
-        # Join with no spaces.
-        # Scrub for file use.
-        replace_punctuation = string.maketrans(
-            string.punctuation, ' ' * len(string.punctuation))
-        text = text.translate(replace_punctuation)
-        words = [x[0].upper() + x[1:] for x in text.split() if x]
-        return TitleFileName(''.join(words)).scrubbed()
+        name = replace_punctuation(name)
+        name = squeeze_whitespace(name)
+        name = camelcase(name)
+        return for_title_file(name)
 
     # Strategy.
     # Goal: CamelCase with punctuation removed, separate number with hyphen

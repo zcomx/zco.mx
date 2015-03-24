@@ -86,3 +86,28 @@ class TitleFileName(FileName):
         """
         # Replace colon wrapped in optional space with space hyphen space
         return re.sub(r'\s*:\s*', ':', self.raw).replace(':', ' - ')
+
+
+def for_file(text):
+    """Convenience function to convert text so it is suitable for a file name.
+
+    Args:
+        text: string, text to convert
+
+    Returns:
+        string
+    """
+    return FileName(text).scrubbed()
+
+
+def for_title_file(text):
+    """Convenience function to convert text so it is suitable for a title file
+    name.
+
+    Args:
+        text: string, text to convert
+
+    Returns:
+        string
+    """
+    return TitleFileName(text).scrubbed()

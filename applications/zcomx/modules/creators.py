@@ -7,16 +7,19 @@ Creator classes and functions.
 """
 import logging
 import os
-import string
 from gluon import *
 from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
-from applications.zcomx.modules.files import FileName
+from applications.zcomx.modules.files import for_file
 from applications.zcomx.modules.images import \
     is_optimized, \
     queue_optimize
 from applications.zcomx.modules.job_queue import \
     UpdateIndiciaQueuer
+from applications.zcomx.modules.strings import \
+    camelcase, \
+    replace_punctuation, \
+    squeeze_whitespace
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -152,18 +155,14 @@ def for_path(name):
     Returns:
         string, scrubbed name
     """
-
-    # Strategy.
-    # Goal: CamelCase with punctuation removed.
+    # Remove apostrophes
+    # Otherwise "Fred's Smith" becomes 'FredSSmith' not 'FredsSmith'
+    name = replace_punctuation(name, repl='', punctuation="""'""")
     # Replace punctuation with space
-    # Uppercase first letter of each word.
-    # Join with no spaces.
-    # Scrub for file use.
-    replace_punctuation = string.maketrans(
-        string.punctuation, ' ' * len(string.punctuation))
-    text = name.translate(replace_punctuation)
-    words = [x[0].upper() + x[1:] for x in text.split() if x]
-    return FileName(''.join(words)).scrubbed()
+    name = replace_punctuation(name)
+    name = squeeze_whitespace(name)
+    name = camelcase(name)
+    return for_file(name)
 
 
 def formatted_name(creator_entity):

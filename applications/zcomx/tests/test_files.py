@@ -9,7 +9,9 @@ Test suite for zcomx/modules/files.py
 import unittest
 from applications.zcomx.modules.files import \
     FileName, \
-    TitleFileName
+    TitleFileName, \
+    for_file, \
+    for_title_file
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -28,7 +30,7 @@ class TestFileName(LocalTestCase):
 
     def test__pre_scrub(self):
         tests = [
-            #(raw filename, expect)
+            # (raw filename, expect)
             'abc.txt',
             '0123456789.txt',
             'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt',
@@ -52,13 +54,17 @@ class TestFileName(LocalTestCase):
 
     def test__scrubbed(self):
         tests = [
-            #(raw filename, expect)
+            # (raw filename, expect)
             ('abc.txt', 'abc.txt'),
             ('0123456789.txt', '0123456789.txt'),        # digits are valid
-            ('ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt',
-                'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt'),
-            ('abcdefghijklmnopqrstuvwxyz.txt',
-                'abcdefghijklmnopqrstuvwxyz.txt'),
+            (
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt',
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt'
+            ),
+            (
+                'abcdefghijklmnopqrstuvwxyz.txt',
+                'abcdefghijklmnopqrstuvwxyz.txt'
+            ),
             ("[]_²´àáäèéñô.txt", "[]_²´àáäèéñô.txt"),
             ("! #&'()+,-. .txt", "! #&'()+,-. .txt"),
             ('a/b.txt', 'ab.txt'),            # / is invalid
@@ -85,13 +91,17 @@ class TestTitleFileName(LocalTestCase):
 
     def test__pre_scrub(self):
         tests = [
-            #(raw filename, expect)
+            # (raw filename, expect)
             ('abc.txt', 'abc.txt'),
             ('0123456789.txt', '0123456789.txt'),        # digits are valid
-            ('ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt',
-                'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt'),
-            ('abcdefghijklmnopqrstuvwxyz.txt',
-                'abcdefghijklmnopqrstuvwxyz.txt'),
+            (
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt',
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt'
+            ),
+            (
+                'abcdefghijklmnopqrstuvwxyz.txt',
+                'abcdefghijklmnopqrstuvwxyz.txt'
+            ),
             ("[]_²´àáäèéñô.txt", "[]_²´àáäèéñô.txt"),
             ("! #&'()+,-. .txt", "! #&'()+,-. .txt"),
             ('a/\\?%*|"<>b.txt', 'a/\\?%*|"<>b.txt'),            # / is invalid
@@ -107,13 +117,17 @@ class TestTitleFileName(LocalTestCase):
 
     def test_parent_scrubbed(self):
         tests = [
-            #(raw filename, expect)
+            # (raw filename, expect)
             ('abc.txt', 'abc.txt'),
             ('0123456789.txt', '0123456789.txt'),        # digits are valid
-            ('ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt',
-                'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt'),
-            ('abcdefghijklmnopqrstuvwxyz.txt',
-                'abcdefghijklmnopqrstuvwxyz.txt'),
+            (
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt',
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ.txt'
+            ),
+            (
+                'abcdefghijklmnopqrstuvwxyz.txt',
+                'abcdefghijklmnopqrstuvwxyz.txt'
+            ),
             ("[]_²´àáäèéñô.txt", "[]_²´àáäèéñô.txt"),
             ("! #&'()+,-. .txt", "! #&'()+,-. .txt"),
             ('a/b.txt', 'ab.txt'),            # / is invalid
@@ -134,6 +148,15 @@ class TestTitleFileName(LocalTestCase):
 
         for t in tests:
             self.assertEqual(TitleFileName(t[0]).scrubbed(), t[1])
+
+
+class TestFunctions(LocalTestCase):
+
+    def test__for_file(self):
+        self.assertEqual(for_file('a/?>b.txt'), 'ab.txt')
+
+    def test__for_title_file(self):
+        self.assertEqual(for_title_file('a?: b>.t/xt'), 'a - b.txt')
 
 
 def setUpModule():
