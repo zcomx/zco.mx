@@ -1290,22 +1290,16 @@ def release_barriers(book_entity):
                     '{n} (width: {w} px)'.format(n=original_name, w=width)
                 )
         if small_images:
-            fixes = [
-                'Replace the following images with larger copies.',
-            ]
-            fixes.extend(small_images)
             barriers.append({
                 'code': 'images_too_narrow',
-                'reason':
-                'Some images are not large enough. Min width: {w} px'.format(
-                    w=min_width),
+                'reason': 'Some images are not large enough.',
                 'description': (
-                    'Released books are packaged for CBZ viewers.'
-                    'In order for book page images to display '
-                    'at a reasonable resolution, images must be '
-                    'a minimum pixels wide.'
-                ),
-                'fixes': fixes
+                    'Released books are packaged for CBZ viewers. '
+                    'In order for images to display clearly '
+                    'a minimum resolution of {w}px is required. '
+                    'The following images need to be replaced:'
+                ).format(w=min_width),
+                'fixes': small_images
             })
 
     return barriers
