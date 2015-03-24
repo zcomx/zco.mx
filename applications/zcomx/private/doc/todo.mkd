@@ -16,6 +16,9 @@ VERSION 2 - Before Going Live
     Has the download link but book hasn't been released
 [x] Front Page
     If no download link, then remove '|' separator
+[x] Front Page - releases section
+    downloading all.torrent gives +1 to all books
+    downloading cartoonist.torrent gives +1 to all that cartoonist's books
 
 [S] Release Keith's Books
     [S] On release, do we tell them about the indicia image ?
@@ -26,10 +29,6 @@ VERSION 2 - Before Going Live
     * Ensure images have at least a width of 1600px before releasing
     * Ensure CC licence is used
     [S] test
-
-[ ] Front Page - releases section
-    downloading all.torrent gives +1 to all books
-    downloading cartoonist.torrent gives +1 to all that cartoonist's books
 
 [ ] Use CamelCase for CartoonistName and BookTitle in urls
     Twitter and tumber does this
