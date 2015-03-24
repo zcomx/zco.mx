@@ -279,41 +279,47 @@ class TestFunctions(LocalTestCase):
 
     def test__for_path(self):
 
-        # These names should remain unchanged.
-        tests = [
-            'Fred Smith',
-            "Sean O'Reilly",
-            'Sverre Årnes',
-            'Bjørn Eidsvåg',
-            'Frode Øverli',
-            'Dražen Kovačević',
-            'Yıldıray Çınar',
-            'Alain Saint-Ogan',
-            'José Muñoz',
-            'Ralf König',
-            'Ted Benoît',
-            'Gilbert G. Groud',
-            'Samuel (Mark) Clemens',
-            'Alfa _Rant_ Tamil',
-            'Too     Close',
-        ]
-        for t in tests:
-            self.assertEqual(for_path(t), t)
-
-        # These names are scrubed
         tests = [
             # (name, expect)
-            ('Fred/ Smith', 'Fred Smith'),
-            (r'Fred\ Smith', 'Fred Smith'),
-            ('Fred? Smith', 'Fred Smith'),
-            ('Fred% Smith', 'Fred Smith'),
-            ('Fred* Smith', 'Fred Smith'),
-            ('Fred: Smith', 'Fred Smith'),
-            ('Fred| Smith', 'Fred Smith'),
-            ('Fred" Smith', 'Fred Smith'),
-            ('Fred< Smith', 'Fred Smith'),
-            ('Fred> Smith', 'Fred Smith'),
-            ('Kevin "Kev" Walker', 'Kevin Kev Walker'),
+            ('Fred Smith', 'FredSmith'),
+            ("Sean O'Reilly", 'SeanOReilly'),
+            ('John Adams-Smith', 'JohnAdamsSmith'),
+            ('Willem deBoer', 'WillemDeBoer'),
+            ("Joanne d'Arc", 'JoanneDArc'),
+            ("Jean-Luc de'Breu", 'JeanLucDeBreu'),
+            ('Herbert von Locke', 'HerbertVonLocke'),
+            ('Sander van Dorn', 'SanderVanDorn'),
+            ('Edwin van der Sad', 'EdwinVanDerSad'),
+            ('J.P. Parise', 'JPParise'),
+            ('J. P. Parise', 'JPParise'),
+
+            # Unicode should be preserved in these.
+            ('Sverre Årnes', 'SverreÅrnes'),
+            ('Bjørn Eidsvåg', 'BjørnEidsvåg'),
+            ('Frode Øverli', 'FrodeØverli'),
+            ('Dražen Kovačević', 'DraženKovačević'),
+            ('Yıldıray Çınar', 'YıldırayÇınar'),
+            ('Alain Saint-Ogan', 'AlainSaintOgan'),
+            ('José Muñoz', 'JoséMuñoz'),
+            ('Ralf König', 'RalfKönig'),
+            ('Ted Benoît', 'TedBenoît'),
+            ('Gilbert G. Groud', 'GilbertGGroud'),
+            ('Samuel (Mark) Clemens','SamuelMarkClemens'),
+            ('Alfa _Rant_ Tamil', 'AlfaRantTamil'),
+            ('Too     Close', 'TooClose'),
+
+            # These names are scrubed
+            ('Fred/ Smith', 'FredSmith'),
+            (r'Fred\ Smith', 'FredSmith'),
+            ('Fred? Smith', 'FredSmith'),
+            ('Fred% Smith', 'FredSmith'),
+            ('Fred* Smith', 'FredSmith'),
+            ('Fred: Smith', 'FredSmith'),
+            ('Fred| Smith', 'FredSmith'),
+            ('Fred" Smith', 'FredSmith'),
+            ('Fred< Smith', 'FredSmith'),
+            ('Fred> Smith', 'FredSmith'),
+            ('Kevin "Kev" Walker', 'KevinKevWalker'),
         ]
 
         for t in tests:
@@ -450,7 +456,7 @@ class TestFunctions(LocalTestCase):
         db.commit()
         on_change_name(creator)
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, 'Test On Change Name')
+        self.assertEqual(creator.path_name, 'TestOnChangeName')
         self.assertEqual(creator.urlify_name, 'test-on-change-name')
 
         # Test with creator.id
@@ -462,16 +468,30 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(creator.urlify_name, None)
         on_change_name(creator.id)
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, 'Test On Change Name')
+        self.assertEqual(creator.path_name, 'TestOnChangeName')
         self.assertEqual(creator.urlify_name, 'test-on-change-name')
 
-        # Modify creator name/handle unicode.
-        auth_user.update_record(name="Slèzé d'Ruñez")
-        db.commit()
-        on_change_name(creator.id)
-        creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, "Slèzé d'Ruñez")
-        self.assertEqual(creator.urlify_name, 'sleze-drunez')
+        # Test variations
+        tests = [
+            # (name, path_name, urlify_name)
+            ('John Adams-Smith', 'JohnAdamsSmith', 'john-adams-smith'),
+            ("Joanne d'Arc", 'JoanneDArc', 'joanne-darc'),
+            ("Jean-Luc de'Breu", 'JeanLucDeBreu', 'jean-luc-de-breu'),
+            ('Don Al François de Sade', 'DonAlFrancoisDeSade', 'don-al-francois-de-sade'),
+            ('Herbert von Locke', 'HerbertVonLocke', 'herbert-von-locke'),
+            ('Sander van Dorn', 'SanderVanDorn', 'sander-van-dorn'),
+            ('Edwin van der Sad', 'EdwinVanDerSad', 'edwin-van-der-sad'),
+            ("Slèzé d'Ruñez", 'SlezeDRunz', 'sleze-drunez'),
+        ]
+
+        for t in tests:
+            print 'FIXME t: {var}'.format(var=t)
+            auth_user.update_record(name=t[0])
+            db.commit()
+            on_change_name(creator.id)
+            creator = entity_to_row(db.creator, creator.id)
+            self.assertEqual(creator.path_name, t[1])
+            self.assertEqual(creator.urlify_name, t[2])
 
     def test__optimize_images(self):
         if self._opts.quick:
@@ -706,7 +726,7 @@ class TestFunctions(LocalTestCase):
 
         self.assertEqual(
             torrent_url(creator),
-            '/First_<Middle>_Last_({i}.zco.mx).torrent'.format(i=creator.id)
+            '/First_Middle_Last_({i}.zco.mx).torrent'.format(i=creator.id)
         )
 
     def test__unoptimized_images(self):
@@ -772,9 +792,9 @@ class TestFunctions(LocalTestCase):
             # (path_name, expect)
             (None, None),
             ('Prince', '/Prince'),
-            ('First Last', '/First_Last'),
-            ('first last', '/first_last'),
-            ("Hélè d'Eñça", '/H%C3%A9l%C3%A8_d%27E%C3%B1%C3%A7a'),
+            ('First Last', '/FirstLast'),
+            ('first last', '/firstlast'),
+            ("Hélè d'Eñça", '/H%C3%A9l%C3%A8d%27E%C3%B1%C3%A7a'),
         ]
 
         for t in tests:
@@ -791,9 +811,9 @@ class TestFunctions(LocalTestCase):
             # (path_name, expect)
             (None, None),
             ('Prince', 'Prince'),
-            ('First Last', 'First_Last'),
-            ('first last', 'first_last'),
-            ("Hélè d'Eñça", "H\xc3\xa9l\xc3\xa8_d'E\xc3\xb1\xc3\xa7a"),
+            ('First Last', 'FirstLast'),
+            ('first last', 'firstlast'),
+            ("Hélè d'Eñça", "H\xc3\xa9l\xc3\xa8d'E\xc3\xb1\xc3\xa7a"),
         ]
 
         for t in tests:

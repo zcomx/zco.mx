@@ -9,6 +9,7 @@ import datetime
 import logging
 import os
 import re
+import string
 import urlparse
 from gluon import *
 from gluon.dal.objects import REGEX_STORE_PATTERN
@@ -1696,5 +1697,28 @@ def url_name(book_entity):
     book_record = entity_to_row(db.book, book_entity)
     if not book_record or not book_record.name:
         return
-    return formatted_name(
-        db, book_record, include_publication_year=False).replace(' ', '_')
+
+    def as_camelcase(text):
+        """Convert text to camelcase."""
+        # Replace punctuation with space
+        # Uppercase first letter of each word.
+        # Join with no spaces.
+        # Scrub for file use.
+        replace_punctuation = string.maketrans(
+            string.punctuation, ' ' * len(string.punctuation))
+        text = text.translate(replace_punctuation)
+        words = [x[0].upper() + x[1:] for x in text.split() if x]
+        return TitleFileName(''.join(words)).scrubbed()
+
+    # Strategy.
+    # Goal: CamelCase with punctuation removed, separate number with hyphen
+    fmt = '{name}'
+    data = {
+        'name': as_camelcase(str(book_record.name))
+    }
+
+    number = formatted_number(book_record)
+    if number:
+        fmt = '{name}-{num}'
+        data['num'] = as_camelcase(number).lower()
+    return fmt.format(**data)

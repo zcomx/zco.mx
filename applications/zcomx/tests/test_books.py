@@ -2405,31 +2405,30 @@ class TestFunctions(ImageTestCase):
 
         # Note: The publication year was removed from the url.
         tests = [
-            # (name, pub year, type, number, of_number, expect),
-            (None, None, 'one-shot', None, None, None),
-            ('My Book', 1999, 'one-shot', 1, 999, 'My_Book'),
-            ('My Book', 1999, 'ongoing', 12, 999, 'My_Book_012'),
-            ('My Book', 1999, 'mini-series', 2, 9, 'My_Book_02_(of_09)'),
+            # (name, type, number, of_number, expect),
+            (None, 'one-shot', None, None, None),
+            ('My Book', 'one-shot', 1, 999, 'MyBook'),
+            ('My Book', 'ongoing', 12, 999, 'MyBook-012'),
+            ('My Book', 'mini-series', 2, 9, 'MyBook-02of09'),
+            ('Tepid: Fall 2003', 'mini-series', 1, 4, 'TepidFall2003-01of04'),
             (
                 "Hélè d'Eñça",
-                1999,
                 'mini-series',
                 2,
                 9,
-                "H\xc3\xa9l\xc3\xa8_d'E\xc3\xb1\xc3\xa7a_02_(of_09)"
+                "H\xc3\xa9l\xc3\xa8DE\xc3\xb1\xc3\xa7a-02of09"
             ),
         ]
 
         for t in tests:
             book.update_record(
                 name=t[0],
-                publication_year=t[1],
-                book_type_id=self._type_id_by_name[t[2]],
-                number=t[3],
-                of_number=t[4],
+                book_type_id=self._type_id_by_name[t[1]],
+                number=t[2],
+                of_number=t[3],
             )
             db.commit()
-            self.assertEqual(url_name(book), t[5])
+            self.assertEqual(url_name(book), t[4])
 
 
 def set_pages(obj, db, book_id, num_of_pages):

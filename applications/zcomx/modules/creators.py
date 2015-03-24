@@ -7,6 +7,7 @@ Creator classes and functions.
 """
 import logging
 import os
+import string
 from gluon import *
 from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
@@ -151,7 +152,18 @@ def for_path(name):
     Returns:
         string, scrubbed name
     """
-    return FileName(name).scrubbed()
+
+    # Strategy.
+    # Goal: CamelCase with punctuation removed.
+    # Replace punctuation with space
+    # Uppercase first letter of each word.
+    # Join with no spaces.
+    # Scrub for file use.
+    replace_punctuation = string.maketrans(
+        string.punctuation, ' ' * len(string.punctuation))
+    text = name.translate(replace_punctuation)
+    words = [x[0].upper() + x[1:] for x in text.split() if x]
+    return FileName(''.join(words)).scrubbed()
 
 
 def formatted_name(creator_entity):
@@ -260,8 +272,10 @@ def on_change_name(creator_entity):
     update_data = {}
 
     name = formatted_name(creator)
-    if creator.path_name != name:
-        update_data['path_name'] = name
+
+    path_name = for_path(name)
+    if creator.path_name != path_name:
+        update_data['path_name'] = path_name
 
     urlify_name = urlify(name)
     if creator.urlify_name != urlify_name:
@@ -308,7 +322,7 @@ def optimize_images(
 
 
 def profile_onaccept(form):
-    """Set the creator.path_name field associated with the user.
+    """Additional processing when profile is accepted.
 
     Args:
         form: form with form.vars values. form.vars.id is expected to be the
@@ -398,7 +412,7 @@ def torrent_file_name(creator_entity):
 
     fmt = '{name} ({url}).torrent'
     return fmt.format(
-        name=for_path(creator.path_name),
+        name=creator.path_name,
         url='{cid}.zco.mx'.format(cid=creator.id),
     )
 
@@ -427,10 +441,7 @@ def torrent_link(creator_entity, components=None, **attributes):
         return empty
 
     if not components:
-        u_name = url_name(creator_entity)
-        if not u_name:
-            return
-        name = '{n}.torrent'.format(n=u_name).lower()
+        name = '{n}.torrent'.format(n=creator.path_name)
         components = [name]
 
     kwargs = {
@@ -466,7 +477,7 @@ def torrent_url(creator_entity, **url_kwargs):
             e=creator_entity))
 
     controller = '{name} ({i}.zco.mx).torrent'.format(
-        name=url_name(creator_entity),
+        name=creator.path_name,
         i=creator.id,
     ).replace(' ', '_')
 
@@ -550,4 +561,4 @@ def url_name(creator_entity):
 
     return creator_record.path_name.decode(
         'utf-8'
-    ).encode('utf-8').replace(' ', '_')
+    ).encode('utf-8').replace(' ', '')

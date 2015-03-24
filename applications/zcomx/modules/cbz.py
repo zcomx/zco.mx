@@ -17,7 +17,6 @@ from applications.zcomx.modules.archives import CBZArchive
 from applications.zcomx.modules.books import \
     cbz_comment, \
     formatted_name
-from applications.zcomx.modules.creators import for_path
 from applications.zcomx.modules.files import TitleFileName
 from applications.zcomx.modules.images import filename_for_size
 from applications.zcomx.modules.indicias import BookIndiciaPagePng
@@ -220,7 +219,7 @@ def archive(book_entity, base_path='applications/zcomx/private/var'):
     cbz_file = cbz_creator.run()
 
     cbz_archive = CBZArchive(base_path=base_path)
-    subdir = cbz_archive.get_subdir_path(for_path(creator_record.path_name))
+    subdir = cbz_archive.get_subdir_path(creator_record.path_name)
     dst = os.path.join(subdir, os.path.basename(cbz_file))
     archive_file = cbz_archive.add_file(cbz_file, dst)
 

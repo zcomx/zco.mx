@@ -61,7 +61,12 @@ class FileName(str):
 
 
 class TitleFileName(FileName):
-    """Class representing a title filename. """
+    """Class representing a title filename.
+
+    Differences from FileName:
+    * Colons are replaced with a spaced hyphen.
+        Eg Bubbles: A Comic Odyssey => Bubbles - A Comic Odyssey
+    """
     # R0904 (too-many-public-methods): *Too many public methods (%%s/%%s)*
     # pylint: disable=R0904
 
