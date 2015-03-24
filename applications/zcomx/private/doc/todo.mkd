@@ -1,47 +1,18 @@
 ``
 VERSION 2 - Before Going Live
-[x] http://kb.zco.mx/howto-upload
-[x] http://kb.zco.mx/howto-ps
-[x] Hankiewicz Bugs
-    [x] web images -- error
-    [x] Book Page: year on release
-[x] Changes to the 'Terms' Page
-    * 5. Content Supplied by You
-    * Content Guidelines
-    * Data Usage Policy: Non Personal Browsing and Site Usage Information
-        "...keep a log of the websites you visit and when you visit them."
-    [x] Test
-[x] Reader Pages
-    eg https://zco.mx/Chris_Gooch/Gasoline_Eyedrops/001?reader=slider#
-    Has the download link but book hasn't been released
-[x] Front Page
-    If no download link, then remove '|' separator
-[x] Front Page - releases section
-    downloading all.torrent gives +1 to all books
-    downloading cartoonist.torrent gives +1 to all that cartoonist's books
+[x] Add back the 'Release Button'
+    * Ensure images have at least a width of 1600px before releasing
+    * Ensure CC licence is used
 
-[S] Release Keith's Books
+[S] Test Release with Keith's Books
     [S] On release, do we tell them about the indicia image ?
     [S] torrent isn't seeded
         applications/zcomx/private/var/tor/zco.mx
-
-[/] Add back the 'Release Button'
-    * Ensure images have at least a width of 1600px before releasing
-    * Ensure CC licence is used
-    [S] test
-
-[ ] Use CamelCase for CartoonistName and BookTitle in urls
-    Twitter and tumber does this
-
-[ ] Remove All Puncturation from Cartoonist Name and Book Title
-    I. P. Funny == https://zco.mx/IPFunny
 
 [S] Figure out backup of images
     Add exclude for cbz and web images to syncbackup script
 
 [D] http://kb.zco.mx/howto-backup
-
----
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
@@ -49,13 +20,39 @@ VERSION 2 - Before Going Live
 [S] Front Page/Book Page
     The same stats on the front page should be on the book page and
     vice versa
+    * missing from Front page, 'pages'
 
 [S] Obfuscate Email Addresses
     See how dokuwiki does it
 
-[ ] login -> account
-    'profile updated'   - remove js popup (flash message)
-    'password changed'  - remove js popup (flash message)
+[ ] Book Page
+    If no download link, then remove '|' separator
+    eg https://zco.mx/KeithPakiz/TheFlyingSausage-001
+
+[ ] Release Modal
+    The wording on the release modal needs a bit of work.  Here is a revision:
+
+    -----
+    Releasing a book means a CBZ file will be created and shared with
+    others via two file sharing networks; bittorrent and direct connect.
+
+    Ensure all images have been uploaded and are in the correct order.
+    Processing the release of a book can take several minutes.
+
+    Releasing a book has the following effect:
+        * A CBZ file is created
+        * The file is added to the Direct Connect network
+        * A torrent is created for the file and is seeded
+        * The file is added to the torrent containing all books from the cartoonist
+        * The file is added to the torrent containing all books from zco.mx
+        * The file pages are locked from further modifications
+
+    The book Chemical Ache (2015) cannot be released.
+        Released books are packaged for CBZ viewers.  In order forimages to display clearly a minimum resolution of 1600px is required.
+        The following images need to be replaced:
+    -----
+
+
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
 [ ] 12426 - Add robots.txt to prevent bots from accessing zco.mx
 [ ] 12354 - Test scripts
@@ -71,7 +68,7 @@ VERSION 2 - Before Going Live
     Except  where  otherwise noted, content  on this
     site is licenced under a CC BY 4.0 Int'l licence
 
-[ ] optimize pages -- especially the front page
+[ ] Optimize Pages -- especially the front page
     * look at Q's console
     * caching?
     [/] Upload Modal
@@ -81,7 +78,8 @@ VERSION 2 - Before Going Live
 [ ] "creator.table appears corrupted" Error
 [S] Copy Edit
     "to archive older work for the sake of posterity"
-[S] email karen telling her the site is live
+[S] Make sure everyone has inputted their paypal address
+[S] Email karen telling her the site is live
 
 VERSION 3
 [ ] Announce cbz releases using zcomx_bot accounts
@@ -155,6 +153,7 @@ VERSION 4
 
 
 IDEAS
+[S] Setup wikipedia page for David
 [ ] Rethink Crowdfunding Idea
     see emails with blumenstein
     discuss on brainstorming ml

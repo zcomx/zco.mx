@@ -72,9 +72,10 @@ an antiquated proprietary file format that is no longer recommended.
 
 [[behind]]
 #### Who is behind zco.mx?
-Jim Karsten and Steve Blatchford write the code, but zco.mx is very much
-a group effort. Many people have contributed to the project thus far;
-too many to list everyone.  Here are a few who need mentioning:
+Jim Karsten and Steve Blatchford write the code, but zco.mx is very much a
+group effort. Curation of European cartoonist is by [[David Schilter of kuš!
+komiksi http://www.komikss.lv]].  Many people have contributed to the project
+thus far; too many to list everyone.  Here are a few who need mentioning:
 [[dfkt http://dfkt.tk/]],
 [[Chuck Forsman http://charlesforsman.com]],
 [[Kevin Huizenga https://plus.google.com/107420980080038159626/about]],
