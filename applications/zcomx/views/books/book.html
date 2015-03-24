@@ -24,9 +24,12 @@
                         {{=contribute_link(db, book.id, components=['contribute'], **dict(_class='contribute_button no_rclick_menu'))}}
                     </li>
                     {{pass}}
+                    {{dl_link = download_link(db, book.id, components=['download'], **dict(_class='download_button no_rclick_menu'))}}
+                    {{if dl_link and str(dl_link) != str(SPAN('')):}}
                     <li>
-                        {{=download_link(db, book.id, components=['download'], **dict(_class='download_button no_rclick_menu'))}}
+                        {{=dl_link}}
                     </li>
+                    {{pass}}
                 </ul>
             </div>
         </div>
