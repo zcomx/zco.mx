@@ -3,6 +3,7 @@ VERSION 2 - Before Going Live
 [x] Add back the 'Release Button'
     * Ensure images have at least a width of 1600px before releasing
     * Ensure CC licence is used
+[x] 12426 - Add robots.txt to prevent bots from accessing zco.mx
 
 [S] Test Release with Keith's Books
     [S] On release, do we tell them about the indicia image ?
@@ -37,6 +38,7 @@ VERSION 2 - Before Going Live
     others via two file sharing networks; bittorrent and direct connect.
 
     Ensure all images have been uploaded and are in the correct order.
+    If wanting to use a custom indicia image, make sure it has been uploaded before releasing the book.
     Processing the release of a book can take several minutes.
 
     Releasing a book has the following effect:
@@ -51,11 +53,6 @@ VERSION 2 - Before Going Live
         Released books are packaged for CBZ viewers.  In order forimages to display clearly a minimum resolution of 1600px is required.
         The following images need to be replaced:
     -----
-
-
-[ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
-[ ] 12426 - Add robots.txt to prevent bots from accessing zco.mx
-[ ] 12354 - Test scripts
 
 [ ] Add CC licence to zco.mx footer
     http://www.ycombinator.com/legal/
@@ -75,6 +72,8 @@ VERSION 2 - Before Going Live
         Can we downscale the web images for the thumbnails and remove the
         actual thumbnails?
 [ ] nice levels
+[ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
+[ ] 12354 - Test scripts
 [ ] "creator.table appears corrupted" Error
 [S] Copy Edit
     "to archive older work for the sake of posterity"
