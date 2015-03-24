@@ -319,6 +319,8 @@ class TestFunctions(LocalTestCase):
             ('Fred" Smith', 'FredSmith'),
             ('Fred< Smith', 'FredSmith'),
             ('Fred> Smith', 'FredSmith'),
+            (' Fred Smith ', 'FredSmith'),
+            ("Fred's Smith", "FredsSmith"),
             ('Kevin "Kev" Walker', 'KevinKevWalker'),
         ]
 
