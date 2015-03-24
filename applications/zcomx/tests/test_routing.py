@@ -111,7 +111,7 @@ class TestRouter(LocalTestCase):
         cls._creator = cls.add(db.creator, dict(
             auth_user_id=cls._auth_user.id,
             email='test__creator@test.com',
-            path_name='First Last',
+            path_name='FirstLast',
         ))
 
         cls._creator_2 = cls.add(db.creator, dict(
@@ -222,17 +222,25 @@ class TestRouter(LocalTestCase):
         self.assertEqual(got, None)
         self.assertTrue(router.book_record is None)
 
-        router.request.vars.creator = 'First Last'
+        router.request.vars.creator = 'FirstLast'
         router.request.vars.book = '_Fake Book_'
         got = router.get_book()
         self.assertEqual(got, None)
         self.assertTrue(router.book_record is None)
 
-        router.request.vars.book = 'My Book'
-        got = router.get_book()
-        self.assertEqual(got.name, 'My Book')
-        self.assertEqual(got.creator_id, self._creator.id)
-        self.assertTrue(router.book_record is not None)
+        # Test case variations
+        tests = [
+            'MyBook',
+            'mybook',
+            'mYbOoK',
+        ]
+        for t in tests:
+            router.request.vars.book = t
+            router.book_record = None       # clear cache
+            got = router.get_book()
+            self.assertEqual(got.name, 'My Book')
+            self.assertEqual(got.creator_id, self._creator.id)
+            self.assertTrue(router.book_record is not None)
 
         # Subsequent calls get value from cache
         router.request.vars.book = '_Fake Book_'
@@ -260,17 +268,25 @@ class TestRouter(LocalTestCase):
         self.assertEqual(got, None)
         self.assertTrue(router.creator_record is None)
 
-        router.request.vars.creator = 'First_Last'
-        got = router.get_creator()
-        self.assertEqual(got.email, 'test__creator@test.com')
-        self.assertEqual(got.path_name, 'First Last')
-        self.assertTrue(router.creator_record is not None)
+        # Test case variations
+        tests = [
+            'FirstLast',
+            'firstlast',
+            'fIrStLaSt',
+        ]
+        for t in tests:
+            router.request.vars.creator = t
+            router.creator_record = None        # clear cache
+            got = router.get_creator()
+            self.assertEqual(got.email, 'test__creator@test.com')
+            self.assertEqual(got.path_name, 'FirstLast')
+            self.assertTrue(router.creator_record is not None)
 
         # Subsequent calls get value from cache
         router.request.vars.creator = 'Fake_Creator'
         got = router.get_creator()
         self.assertEqual(got.email, 'test__creator@test.com')
-        self.assertEqual(got.path_name, 'First Last')
+        self.assertEqual(got.path_name, 'FirstLast')
         self.assertTrue(router.creator_record is not None)
 
         # Test by integer.
@@ -278,7 +294,7 @@ class TestRouter(LocalTestCase):
         router.request.vars.creator = str(self._creator.id)
         got = router.get_creator()
         self.assertEqual(got.email, 'test__creator@test.com')
-        self.assertEqual(got.path_name, 'First Last')
+        self.assertEqual(got.path_name, 'FirstLast')
         self.assertTrue(router.creator_record is not None)
 
     def test__get_book_page(self):
@@ -290,7 +306,7 @@ class TestRouter(LocalTestCase):
         self.assertEqual(got, None)
         self.assertTrue(router.book_page_record is None)
 
-        router.request.vars.creator = 'First Last'
+        router.request.vars.creator = 'FirstLast'
         router.request.vars.book = 'My Book'
         router.request.vars.page = '999.jpg'
         got = router.get_book_page()

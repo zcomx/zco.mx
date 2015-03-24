@@ -12,14 +12,13 @@ from gluon.html import A, SPAN
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
     ViewEvent, \
-    by_attributes, \
     cover_image, \
     get_page, \
     page_url, \
-    parse_url_name, \
     read_link, \
     short_page_img_url, \
-    url as book_url
+    url as book_url, \
+    url_name as book_url_name
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     url as creator_url
@@ -64,16 +63,18 @@ class Router(object):
         Returns:
             gluon.dal.Row representing book record
         """
+        db = self.db
         request = self.request
         if not self.book_record:
             if request.vars.book:
                 creator_record = self.get_creator()
                 if creator_record:
-                    attrs = parse_url_name(
-                        request.vars.book,
-                        default=dict(creator_id=creator_record.id)
-                    )
-                    self.book_record = by_attributes(attrs)
+                    query = (db.book.creator_id == creator_record.id)
+                    for book in db(query).select():
+                        if book_url_name(book).lower() == \
+                                request.vars.book.lower():
+                            self.book_record = book
+                            break
         return self.book_record
 
     def get_creator(self):
@@ -100,7 +101,7 @@ class Router(object):
                 # Test for request.vars.creator as creator.path_name
                 if not self.creator_record:
                     name = request.vars.creator.replace('_', ' ')
-                    query = (db.creator.path_name == name)
+                    query = (db.creator.path_name.lower() == name.lower())
                     self.creator_record = db(query).select().first()
 
         return self.creator_record
