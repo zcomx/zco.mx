@@ -4,8 +4,6 @@ import cgi
 import logging
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
-    by_attributes, \
-    parse_url_name, \
     torrent_url as book_torrent_url
 from applications.zcomx.modules.creators import \
     torrent_url as creator_torrent_url, \
@@ -76,8 +74,7 @@ def route():
         urls.suggestions = [
             {
                 'label': 'All torrent:',
-                'url': URL(
-                    c='torrents', f='route', args='zco.mx.torrent', host=True),
+                'url': URL(c='zco.mx.torrent', f='index', host=True),
             },
         ]
 
@@ -123,10 +120,10 @@ def route():
                 request.vars.creator
             )
 
-        # Test for request.vars.creator as creator.path_name
+        # Test for request.vars.creator as creator.name_for_url
         if not creator_record:
             name = request.vars.creator.replace('_', ' ')
-            query = (db.creator.path_name == name)
+            query = (db.creator.name_for_url == name)
             creator_record = db(query).select().first()
 
         if not creator_record:
@@ -160,9 +157,9 @@ def route():
 
     if torrent_type == 'book':
         book_name = torrent_name.rstrip('.torrent')
-        attrs = parse_url_name(
-            book_name, default=dict(creator_id=creator_record.id))
-        book = by_attributes(attrs)
+        query = (db.book.creator_id == creator_record.id) & \
+            (db.book.name_for_url == book_name)
+        book = db(query).select().first()
         if not book or not book.torrent:
             return page_not_found()
         if book:

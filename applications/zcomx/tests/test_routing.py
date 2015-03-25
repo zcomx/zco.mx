@@ -15,8 +15,8 @@ from gluon.rewrite import filter_url
 from gluon.storage import \
     List, \
     Storage
-from applications.zcomx.modules.books import url_name as book_url_name
-from applications.zcomx.modules.creators import url_name as creator_url_name
+from applications.zcomx.modules.books import book_name
+from applications.zcomx.modules.creators import creator_name
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
@@ -73,7 +73,7 @@ class TestRouter(LocalTestCase):
                 db.creator.on(db.book.creator_id == db.creator.id),
                 db.auth_user.on(db.creator.auth_user_id == db.auth_user.id),
             ],
-            orderby=[db.creator.path_name, db.book_page.page_no],
+            orderby=[db.creator.name_for_url, db.book_page.page_no],
             limitby=(0, 1),
         ).first()
         first_creator = entity_to_row(db.creator, first['creator'].id)
@@ -83,8 +83,8 @@ class TestRouter(LocalTestCase):
             first['book_page'].id
         )
 
-        first_creator_name = creator_url_name(first_creator)
-        first_creator_book_name = book_url_name(first_creator_book)
+        first_creator_name = creator_name(first_creator, use='url')
+        first_creator_book_name = book_name(first_creator_book, use='url')
         first_creator_page_name = '{p:03d}'.format(
             p=first_creator_book_page.page_no)
 
@@ -111,13 +111,13 @@ class TestRouter(LocalTestCase):
         cls._creator = cls.add(db.creator, dict(
             auth_user_id=cls._auth_user.id,
             email='test__creator@test.com',
-            path_name='FirstLast',
+            name_for_url='FirstLast',
         ))
 
         cls._creator_2 = cls.add(db.creator, dict(
             auth_user_id=cls._auth_user.id,
             email='test__creator_2@test.com',
-            path_name='John Hancock',
+            name_for_url='JohnHancock',
         ))
 
         cls._book = cls.add(db.book, dict(
@@ -128,6 +128,7 @@ class TestRouter(LocalTestCase):
             of_number=999,
             creator_id=cls._creator.id,
             reader='slider',
+            name_for_url='MyBook',
         ))
 
         cls._book_2 = cls.add(db.book, dict(
@@ -138,6 +139,7 @@ class TestRouter(LocalTestCase):
             of_number=999,
             creator_id=cls._creator_2.id,
             reader='slider',
+            name_for_url='MySecondBook',
         ))
 
         cls._book_page = cls.add(db.book_page, dict(
@@ -161,10 +163,10 @@ class TestRouter(LocalTestCase):
             page_no=2,
         ))
 
-        cls._creator_name = creator_url_name(cls._creator)
-        cls._creator_2_name = creator_url_name(cls._creator_2)
-        cls._book_name = book_url_name(cls._book)
-        cls._book_2_name = book_url_name(cls._book_2)
+        cls._creator_name = creator_name(cls._creator, use='url')
+        cls._creator_2_name = creator_name(cls._creator_2, use='url')
+        cls._book_name = book_name(cls._book, use='url')
+        cls._book_2_name = book_name(cls._book_2, use='url')
         cls._page_name = '{p:03d}'.format(p=cls._book_page.page_no)
         cls._page_2_name = '{p:03d}'.format(p=cls._book_page_2.page_no)
         cls._book_2_page_name = '{p:03d}'.format(p=cls._book_2_page.page_no)
@@ -279,14 +281,14 @@ class TestRouter(LocalTestCase):
             router.creator_record = None        # clear cache
             got = router.get_creator()
             self.assertEqual(got.email, 'test__creator@test.com')
-            self.assertEqual(got.path_name, 'FirstLast')
+            self.assertEqual(got.name_for_url, 'FirstLast')
             self.assertTrue(router.creator_record is not None)
 
         # Subsequent calls get value from cache
         router.request.vars.creator = 'Fake_Creator'
         got = router.get_creator()
         self.assertEqual(got.email, 'test__creator@test.com')
-        self.assertEqual(got.path_name, 'FirstLast')
+        self.assertEqual(got.name_for_url, 'FirstLast')
         self.assertTrue(router.creator_record is not None)
 
         # Test by integer.
@@ -294,7 +296,7 @@ class TestRouter(LocalTestCase):
         router.request.vars.creator = str(self._creator.id)
         got = router.get_creator()
         self.assertEqual(got.email, 'test__creator@test.com')
-        self.assertEqual(got.path_name, 'FirstLast')
+        self.assertEqual(got.name_for_url, 'FirstLast')
         self.assertTrue(router.creator_record is not None)
 
     def test__get_book_page(self):
@@ -307,7 +309,7 @@ class TestRouter(LocalTestCase):
         self.assertTrue(router.book_page_record is None)
 
         router.request.vars.creator = 'FirstLast'
-        router.request.vars.book = 'My Book'
+        router.request.vars.book = 'MyBook'
         router.request.vars.page = '999.jpg'
         got = router.get_book_page()
         self.assertEqual(got, None)
@@ -407,24 +409,24 @@ class TestRouter(LocalTestCase):
                 'suggestions': [
                     {
                         'label': 'Creator page:',
-                        'url': 'http://127.0.0.1:8000/First_Last',
+                        'url': 'http://127.0.0.1:8000/FirstLast',
                     },
                     {
                         'label': 'Book page:',
-                        'url': 'http://127.0.0.1:8000/First_Last/My_Book',
+                        'url': 'http://127.0.0.1:8000/FirstLast/MyBook',
                     },
                     {
                         'label': 'Read:',
-                        'url': 'http://127.0.0.1:8000/First_Last/My_Book/001',
+                        'url': 'http://127.0.0.1:8000/FirstLast/MyBook/001',
                     },
                 ],
                 'invalid': 'http://www.domain.com/path/to/page',
             },
             'view': 'errors/page_not_found.html',
         })
-        crea_url = 'http://127.0.0.1:8000/John_Hancock'
-        book_url = 'http://127.0.0.1:8000/John_Hancock/My_Second_Book'
-        page_url = 'http://127.0.0.1:8000/John_Hancock/My_Second_Book/001'
+        crea_url = 'http://127.0.0.1:8000/JohnHancock'
+        book_url = 'http://127.0.0.1:8000/JohnHancock/MySecondBook'
+        page_url = 'http://127.0.0.1:8000/JohnHancock/MySecondBook/001'
         expect_2 = Storage({
             'view_dict': {
                 'suggestions': [
@@ -451,13 +453,13 @@ class TestRouter(LocalTestCase):
         # Second page should be found if indicated.
         request_vars.page = self._page_2_name
         expect.view_dict['suggestions'][2]['url'] = \
-            'http://127.0.0.1:8000/First_Last/My_Book/002'
+            'http://127.0.0.1:8000/FirstLast/MyBook/002'
         do_test(request_vars, expect)
 
         # If page not indicated, first page of book should be found.
         del request_vars.page
         expect.view_dict['suggestions'][2]['url'] = \
-            'http://127.0.0.1:8000/First_Last/My_Book/001'
+            'http://127.0.0.1:8000/FirstLast/MyBook/001'
 
         # If page doesn't exist, first page of book should be found.
         request_vars.page = '999'
@@ -557,7 +559,7 @@ class TestRouter(LocalTestCase):
         self.assertEqual(router.preset_links(), [])
 
         # Set creator but still no presets
-        router.request.vars.creator = 'First_Last'
+        router.request.vars.creator = 'FirstLast'
         self.assertEqual(router.preset_links(), [])
 
         def test_presets(links, expect):
@@ -680,13 +682,13 @@ class TestRouter(LocalTestCase):
         self.assertEqual(len(book_views(self._book.id)), 0)
         request_vars.creator = str(self._creator.id)
         expect = Storage({
-            'redirect': '/First_Last',
+            'redirect': '/FirstLast',
         })
         do_test(request_vars, expect)
 
         # Creator as name
         self.assertEqual(len(book_views(self._book.id)), 0)
-        request_vars.creator = 'First_Last'
+        request_vars.creator = 'FirstLast'
         expect = Storage({
             'view_dict_keys': self._keys_for_view['creator'],
             'view': 'creators/creator.html',
@@ -695,8 +697,8 @@ class TestRouter(LocalTestCase):
 
         # Book as name
         self.assertEqual(len(book_views(self._book.id)), 0)
-        request_vars.creator = 'First_Last'
-        request_vars.book = 'My_Book'
+        request_vars.creator = 'FirstLast'
+        request_vars.book = 'MyBook'
         expect = Storage({
             'view_dict_keys': self._keys_for_view['book'],
             'view': 'books/book.html',
@@ -704,8 +706,8 @@ class TestRouter(LocalTestCase):
         do_test(request_vars, expect)
 
         # Book page: slider
-        request_vars.creator = 'First_Last'
-        request_vars.book = 'My_Book'
+        request_vars.creator = 'FirstLast'
+        request_vars.book = 'MyBook'
         request_vars.page = '001'
         expect = Storage({
             'view_dict_keys': self._keys_for_view['reader'],
@@ -755,13 +757,13 @@ class TestRouter(LocalTestCase):
         do_test(request_vars, expect_not_found)
 
         # Nonexistent book
-        request_vars.creator = 'First_Last'
+        request_vars.creator = 'FirstLast'
         request_vars.book = 'Some_Invalid_Book'
         do_test(request_vars, expect_not_found)
 
         # Nonexistent book page
-        request_vars.creator = 'First_Last'
-        request_vars.book = 'My_Book'
+        request_vars.creator = 'FirstLast'
+        request_vars.book = 'MyBook'
         request_vars.page = '999.jpg'
         do_test(request_vars, expect_not_found)
 
@@ -895,7 +897,7 @@ class TestRouter(LocalTestCase):
             'og:site_name': 'zco.mx',
             'og:title': 'First Last',
             'og:type': 'profile',
-            'og:url': 'http://127.0.0.1:8000/First_Last'
+            'og:url': 'http://127.0.0.1:8000/FirstLast'
         }
         router.set_response_meta()
         test_it(expect)
@@ -911,12 +913,12 @@ class TestRouter(LocalTestCase):
 
         expect = {
             'og:description': 'By First Last available at zco.mx',
-            'og:image': 'http://{cid}.zco.mx/My_Book/001.png'.format(
+            'og:image': 'http://{cid}.zco.mx/MyBook/001.png'.format(
                 cid=self._creator.id),
             'og:site_name': 'zco.mx',
             'og:title': 'My Book',
             'og:type': 'book',
-            'og:url': 'http://127.0.0.1:8000/First_Last/My_Book'
+            'og:url': 'http://127.0.0.1:8000/FirstLast/MyBook'
         }
 
         router.set_response_meta()
@@ -993,9 +995,9 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
             ('http://my.domain.com/zcomx/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
             ('http://my.domain.com/zco.mx.torrent', "/zcomx/torrents/route ?torrent=zco.mx.torrent"),
-            ('http://my.domain.com/First_Last_(101.zco.mx).torrent', "/zcomx/torrents/route ?torrent=First_Last_(101.zco.mx).torrent"),
+            ('http://my.domain.com/FirstLast(101.zco.mx).torrent', "/zcomx/torrents/route ?torrent=FirstLast(101.zco.mx).torrent"),
             ('http://my.domain.com/123/My Book 001.torrent', "/zcomx/torrents/route ?creator=123&torrent=My Book 001.torrent"),
-            ('http://my.domain.com/First_Last/My Book 001.torrent', "/zcomx/torrents/route ?creator=First_Last&torrent=My Book 001.torrent"),
+            ('http://my.domain.com/FirstLast/My Book 001.torrent', "/zcomx/torrents/route ?creator=FirstLast&torrent=My Book 001.torrent"),
 
             # Static files
             ('http://my.domain.com/favicon.ico', app_root + '/zcomx/static/images/favicon.ico'),
@@ -1021,24 +1023,24 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/zcomx/aaa/bbb/ccc', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
 
             # Creators
-            ('http://my.domain.com/First_Last', "/zcomx/creators/index ?creator=First_Last"),
+            ('http://my.domain.com/FirstLast', "/zcomx/creators/index ?creator=FirstLast"),
             ('http://my.domain.com/First_M_Last', "/zcomx/creators/index ?creator=First_M_Last"),
             ("http://my.domain.com/First_O'Last", "/zcomx/creators/index ?creator=First_O'Last"),
 
             # Books
-            ('http://my.domain.com/First_Last/My_Book', '/zcomx/creators/index ?creator=First_Last&book=My_Book'),
-            ('http://my.domain.com/First_Last/My_Book_(2014)', '/zcomx/creators/index ?creator=First_Last&book=My_Book_(2014)'),
-            ('http://my.domain.com/First_Last/My_Book_001_(2014)', '/zcomx/creators/index ?creator=First_Last&book=My_Book_001_(2014)'),
-            ('http://my.domain.com/First_Last/My_Book_01_of_04_(2014)', '/zcomx/creators/index ?creator=First_Last&book=My_Book_01_of_04_(2014)'),
+            ('http://my.domain.com/FirstLast/MyBook', '/zcomx/creators/index ?creator=FirstLast&book=MyBook'),
+            ('http://my.domain.com/FirstLast/MyBook_(2014)', '/zcomx/creators/index ?creator=FirstLast&book=MyBook_(2014)'),
+            ('http://my.domain.com/FirstLast/MyBook_001_(2014)', '/zcomx/creators/index ?creator=FirstLast&book=MyBook_001_(2014)'),
+            ('http://my.domain.com/FirstLast/MyBook_01_of_04_(2014)', '/zcomx/creators/index ?creator=FirstLast&book=MyBook_01_of_04_(2014)'),
 
             # Monies
-            ('http://my.domain.com/First_Last/monies', '/zcomx/creators/index ?creator=First_Last&monies=1'),
+            ('http://my.domain.com/FirstLast/monies', '/zcomx/creators/index ?creator=FirstLast&monies=1'),
             # if anything after 'monies', assume 'monies' is a book title
-            ('http://my.domain.com/zcomx/First_Last/monies/001', '/zcomx/creators/index ?creator=First_Last&book=monies&page=001'),
+            ('http://my.domain.com/zcomx/FirstLast/monies/001', '/zcomx/creators/index ?creator=FirstLast&book=monies&page=001'),
 
             # Pages
-            ('http://my.domain.com/zcomx/First_Last/My_Book/001', '/zcomx/creators/index ?creator=First_Last&book=My_Book&page=001'),
-            ('http://my.domain.com/zcomx/First_Last/My_Book/001.jpg', '/zcomx/creators/index ?creator=First_Last&book=My_Book&page=001.jpg'),
+            ('http://my.domain.com/zcomx/FirstLast/MyBook/001', '/zcomx/creators/index ?creator=FirstLast&book=MyBook&page=001'),
+            ('http://my.domain.com/zcomx/FirstLast/MyBook/001.jpg', '/zcomx/creators/index ?creator=FirstLast&book=MyBook&page=001.jpg'),
 
             # Appadmin should be routed like any other url
             ('http://my.domain.com/appadmin', "/zcomx/creators/index ?creator=appadmin"),
@@ -1096,15 +1098,15 @@ class TestFunctions(LocalTestCase):
             ('https://my.domain.com/zcomx/books/index', '/books'),
 
             # Creators
-            ('http://my.domain.com/creators/index/First_Last', '/First_Last'),
-            ('http://my.domain.com/zcomx/creators/index/First_Last', '/First_Last'),
+            ('http://my.domain.com/creators/index/FirstLast', '/FirstLast'),
+            ('http://my.domain.com/zcomx/creators/index/FirstLast', '/FirstLast'),
             ("http://my.domain.com/zcomx/creators/index/First_O'Last", "/First_O'Last"),
 
             # Test torrents
             ('http://my.domain.com/zcomx/abc.torrent/index', "/abc.torrent"),
             ('http://my.domain.com/zcomx/zco.mx.torrent/index', "/zco.mx.torrent"),
-            ('http://my.domain.com/zcomx/First_Last_(101.zco.mx).torrent/index', "/First_Last_(101.zco.mx).torrent"),
-            ('http://my.domain.com/zcomx/First_Last/My Book 001.torrent', "/First_Last/My Book 001.torrent"),
+            ('http://my.domain.com/zcomx/FirstLast(101.zco.mx).torrent/index', "/FirstLast(101.zco.mx).torrent"),
+            ('http://my.domain.com/zcomx/FirstLast/My Book 001.torrent', "/FirstLast/My Book 001.torrent"),
         ]
         for t in out_tests:
             self.assertEqual(filter_url(t[0], out=True), t[1])

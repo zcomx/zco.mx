@@ -15,9 +15,9 @@ from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.archives import CBZArchive
 from applications.zcomx.modules.books import \
-    cbz_comment, \
-    formatted_name
-from applications.zcomx.modules.files import TitleFileName
+    book_name, \
+    cbz_comment
+from applications.zcomx.modules.creators import creator_name
 from applications.zcomx.modules.images import filename_for_size
 from applications.zcomx.modules.indicias import BookIndiciaPagePng
 from applications.zcomx.modules.shell_utils import TempDirectoryMixin
@@ -50,10 +50,10 @@ class CBZCreator(TempDirectoryMixin):
 
     def cbz_filename(self):
         """Return the name for the cbz file."""
-        db = current.app.db
-        fmt = '{name} ({cid}.zco.mx).cbz'
+        fmt = '{name} ({year}) ({cid}.zco.mx).cbz'
         return fmt.format(
-            name=TitleFileName(formatted_name(db, self.book)).scrubbed(),
+            name=book_name(self.book, use='file'),
+            year=str(self.book.publication_year),
             cid=self.book.creator_id,
         )
 
@@ -177,7 +177,6 @@ class CBZCreator(TempDirectoryMixin):
 
     def zip(self):
         """Zip book page images."""
-        db = current.app.db
         # Ex 7z a -tzip -mx=9 "Name of Comic 001.cbz" "/path/to/Name_of_Comic/"
         args = ['7z', 'a', '-tzip', '-mx=9']
         cbz_dir = self.temp_directory()
@@ -219,7 +218,8 @@ def archive(book_entity, base_path='applications/zcomx/private/var'):
     cbz_file = cbz_creator.run()
 
     cbz_archive = CBZArchive(base_path=base_path)
-    subdir = cbz_archive.get_subdir_path(creator_record.path_name)
+    subdir = cbz_archive.get_subdir_path(
+        creator_name(creator_record, use='file'))
     dst = os.path.join(subdir, os.path.basename(cbz_file))
     archive_file = cbz_archive.add_file(cbz_file, dst)
 

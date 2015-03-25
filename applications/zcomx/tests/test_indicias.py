@@ -20,7 +20,6 @@ from gluon.validators import IS_INT_IN_RANGE
 from applications.zcomx.modules.books import short_url as book_short_url
 from applications.zcomx.modules.creators import short_url as creator_short_url
 from applications.zcomx.modules.images import \
-    UploadImage, \
     on_delete_image, \
     store
 from applications.zcomx.modules.indicias import \
@@ -134,7 +133,7 @@ class ImageTestCase(LocalTestCase):
         cls._book = cls.add(db.book, dict(
             name='Image Test Case',
             creator_id=cls._creator.id,
-            book_type_id=cls._type_id_by_name['one-shot'],
+            name_for_url='ImageTestCase',
         ))
 
         cls._book_page = cls.add(db.book_page, dict(
@@ -168,7 +167,7 @@ class TestBookIndiciaPage(ImageTestCase):
         v = int(time.mktime(request.now.timetuple()))
         self.assertEqual(
             xml.xml(),
-            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case%2F001.jpg&amp;clickthru=http%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImage_Test_Case%2F001&amp;v={v}" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
+            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase%2F001.jpg&amp;clickthru=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase%2F001&amp;v={v}" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
         )
 
     def test__follow_icons(self):

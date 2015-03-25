@@ -7,7 +7,6 @@ Test suite for zcomx/modules/books.py
 
 """
 import ast
-import copy
 import datetime
 import os
 import shutil
@@ -26,13 +25,13 @@ from applications.zcomx.modules.books import \
     RatingEvent, \
     ViewEvent, \
     DEFAULT_BOOK_TYPE, \
+    book_name, \
     book_page_for_json, \
     book_pages, \
     book_pages_as_json, \
     book_pages_years, \
     book_tables, \
     book_types, \
-    by_attributes, \
     calc_contributions_remaining, \
     cbz_comment, \
     cc_licence_data, \
@@ -48,11 +47,11 @@ from applications.zcomx.modules.books import \
     get_page, \
     magnet_link, \
     magnet_uri, \
-    numbers_for_book_type, \
+    name_fields, \
+    names, \
     optimize_images, \
     orientation, \
     page_url, \
-    parse_url_name, \
     publication_year_range, \
     publication_years, \
     read_link, \
@@ -67,8 +66,7 @@ from applications.zcomx.modules.books import \
     unoptimized_images, \
     update_contributions_remaining, \
     update_rating, \
-    url, \
-    url_name
+    url
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
@@ -425,6 +423,26 @@ class ImageTestCase(LocalTestCase):
 
 class TestFunctions(ImageTestCase):
 
+    def test__book_name(self):
+        book = self.add(db.book, dict(
+            name='My Book',
+            book_type_id=self._type_id_by_name['mini-series'],
+            number=2,
+            of_number=19,
+            name_for_search='my-search-kw',
+            name_for_url='MyUrlName',
+        ))
+
+        tests = [
+            # (use, expect)
+            ('file', 'My Book 02 (of 19)'),
+            ('search', 'my-search-kw'),
+            ('url', 'MyUrlName'),
+        ]
+
+        for t in tests:
+            self.assertEqual(book_name(book, use=t[0]), t[1])
+
     def test__book_page_for_json(self):
 
         filename, unused_original_fullname = db.book_page.image.retrieve(
@@ -535,83 +553,6 @@ class TestFunctions(ImageTestCase):
         )
         self.assertEqual(xml.xml(), expect)
 
-    def test__by_attributes(self):
-        ids_by_name = {}
-        books = {
-            'a': {
-                'name': 'My Book',
-                'publication_year': 1999,
-                'number': 1,
-                'of_number': 1,
-                'book_type_id': self._type_id_by_name['one-shot'],
-            },
-            'b': {
-                'name': 'Some Title',
-                'publication_year': 2000,
-                'number': 2,
-                'of_number': 1,
-                'book_type_id': self._type_id_by_name['ongoing'],
-            },
-            'c': {
-                'name': 'Another Book',
-                'publication_year': 2001,
-                'number': 2,
-                'of_number': 9,
-                'book_type_id': self._type_id_by_name['mini-series'],
-            },
-        }
-        for key, data in books.items():
-            book = self.add(db.book, dict(**data))
-            ids_by_name[key] = book.id
-
-        default_attrs = {
-            'name': None,
-            'publication_year': None,
-            'number': None,
-            'of_number': None,
-            'book_type_id': None,
-        }
-
-        self.assertEqual(by_attributes([{}]), None)
-        self.assertEqual(by_attributes([default_attrs]), None)
-
-        def do_test(attrs, expect):
-            got = by_attributes(attrs)
-            if expect is not None:
-                self.assertEqual(got.id, ids_by_name[expect])
-            else:
-                self.assertEqual(got, None)
-
-        for key, attrs in books.items():
-            do_test([attrs], key)
-
-        # Vary each field on it's own. Should return none.
-        attrs = copy.copy(books['c'])
-        attrs['name'] = '_Fake Name_'
-        do_test([attrs], None)
-
-        attrs = copy.copy(books['c'])
-        attrs['publication_year'] = 1901
-        do_test([attrs], None)
-
-        attrs = copy.copy(books['c'])
-        attrs['number'] = 99
-        do_test([attrs], None)
-
-        attrs = copy.copy(books['c'])
-        attrs['of_number'] = 999
-        do_test([attrs], None)
-
-        attrs = copy.copy(books['c'])
-        attrs['book_type_id'] = self._type_id_by_name['ongoing']
-        do_test([attrs], None)
-
-        # Test multiple match, should return first.
-        attributes = []
-        for key, attrs in sorted(books.items()):
-            attributes.append(attrs)
-        do_test(attributes, 'a')
-
     def test__calc_contributions_remaining(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
@@ -659,7 +600,7 @@ class TestFunctions(ImageTestCase):
             book_type_id=self._type_id_by_name['mini-series'],
         ))
 
-        # Creator record not foudn
+        # Creator record not found
         self.assertRaises(NotFoundError, cbz_comment, book)
 
         auth_user = self.add(db.auth_user, dict(name='Test CBZ Comment'))
@@ -686,6 +627,7 @@ class TestFunctions(ImageTestCase):
             name='test__cc_licence_data',
             creator_id=-1,
             book_type_id=self._type_id_by_name['one-shot'],
+            name_for_url='TestCcLicenceData',
         ))
 
         self.add(db.book_page, dict(
@@ -711,7 +653,7 @@ class TestFunctions(ImageTestCase):
                 'place': None,
                 'title': 'test__cc_licence_data',
                 'title_url':
-                    'http://{cid}.zco.mx/test__cc_licence_data'.format(
+                    'http://{cid}.zco.mx/TestCcLicenceData'.format(
                         cid=creator.id),
             }
         )
@@ -727,7 +669,7 @@ class TestFunctions(ImageTestCase):
                 'place': 'Canada',
                 'title': 'test__cc_licence_data',
                 'title_url':
-                    'http://{cid}.zco.mx/test__cc_licence_data'.format(
+                    'http://{cid}.zco.mx/TestCcLicenceData'.format(
                         cid=creator.id),
             }
         )
@@ -954,9 +896,13 @@ class TestFunctions(ImageTestCase):
         # Test book unique name
         got = defaults(db, '_test__defaults_', self._creator)
         expect = {
-            'creator_id': self._creator.id,
+            'name': '_test__defaults_',
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
-            'urlify_name': 'test-defaults',
+            'number': 1,
+            'of_number': 1,
+            'creator_id': self._creator.id,
+            'name_for_search': 'test-defaults',
+            'name_for_url': 'TestDefaults',
         }
         self.assertEqual(got, expect)
 
@@ -970,11 +916,13 @@ class TestFunctions(ImageTestCase):
 
         got = defaults(db, self._book.name, self._creator)
         expect = {
-            'creator_id': self._creator.id,
+            'name': self._book.name,
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
             'number': 2,
             'of_number': 1,
-            'urlify_name': 'image-test-case',
+            'creator_id': self._creator.id,
+            'name_for_search': 'image-test-case',
+            'name_for_url': 'ImageTestCase',
         }
         self.assertEqual(got, expect)
 
@@ -985,32 +933,15 @@ class TestFunctions(ImageTestCase):
         db.commit()
         got = defaults(db, self._book.name, self._creator)
         expect = {
-            'creator_id': self._creator.id,
+            'name': self._book.name,
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
             'number': 3,
             'of_number': 9,
-            'urlify_name': 'image-test-case',
+            'creator_id': self._creator.id,
+            'name_for_search': 'image-test-case',
+            'name_for_url': 'ImageTestCase',
         }
         self.assertEqual(got, expect)
-
-        # Test: various book_types
-        for book_type in ['one-shot', 'ongoing', 'mini-series']:
-            self._book.update_record(
-                book_type_id=types_by_name[book_type].id,
-                number=1,
-                of_number=1
-            )
-            db.commit()
-
-            got = defaults(db, self._book.name, self._creator)
-            expect = {
-                'creator_id': self._creator.id,
-                'book_type_id': types_by_name[book_type].id,
-                'number': 2,
-                'of_number': 1,
-                'urlify_name': 'image-test-case',
-            }
-            self.assertEqual(got, expect)
 
         # Test invalid creator
         self._book.update_record(
@@ -1214,6 +1145,7 @@ class TestFunctions(ImageTestCase):
             name='My Book',
             number=2,
             book_type_id=self._type_id_by_name['ongoing'],
+            name_for_url='mybook-002',
         ))
 
         # book.cbz not set
@@ -1248,9 +1180,9 @@ class TestFunctions(ImageTestCase):
         # Eg <a class="log_download_link"
         #   data-record_id="8999" data-record_table="book"
         #   href="magnet:?xt=urn:tree:tiger:BOM3RWAED7BCOFOG5EX64QRBECPR4TRYRD7RFTA&amp;xl=31&amp;dn=test.cbz">
-        #   test_book_002.torrent</a>
+        #   testbook002.torrent</a>
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'my_book_002.magnet')
+        self.assertEqual(anchor.string, 'mybook-002.magnet')
         test_href(anchor['href'])
         self.assertEqual(anchor['class'], 'log_download_link')
         self.assertEqual(anchor['data-record_table'], 'book')
@@ -1260,7 +1192,7 @@ class TestFunctions(ImageTestCase):
         link = magnet_link(book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'my_book_002.magnet')
+        self.assertEqual(anchor.string, 'mybook-002.magnet')
         test_href(anchor['href'])
         self.assertEqual(anchor['class'], 'log_download_link')
         self.assertEqual(anchor['data-record_table'], 'book')
@@ -1292,7 +1224,7 @@ class TestFunctions(ImageTestCase):
         link = magnet_link(book, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'my_book_002.magnet')
+        self.assertEqual(anchor.string, 'mybook-002.magnet')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
@@ -1331,26 +1263,52 @@ class TestFunctions(ImageTestCase):
             }
         )
 
-    def test__numbers_for_book_type(self):
-        type_id_by_name = {}
-        for t in db(db.book_type).select():
-            type_id_by_name[t.name] = t.id
-
-        tests = [
-            # (name, expect)
-            ('ongoing', {'of_number': False, 'number': True}),
-            ('mini-series', {'of_number': True, 'number': True}),
-            ('one-shot', {'of_number': False, 'number': False}),
-        ]
-
-        for t in tests:
-            self.assertEqual(
-                numbers_for_book_type(db, type_id_by_name[t[0]]),
-                t[1]
-            )
+    def test__name_fields(self):
         self.assertEqual(
-            numbers_for_book_type(db, -1),
-            {'of_number': False, 'number': False}
+            name_fields(),
+            [
+                'name',
+                'book_type_id',
+                'number',
+                'of_number',
+            ]
+        )
+
+    def test__names(self):
+        book = {
+            'name': 'My Book',
+            'number': 2,
+            'of_number': 9,
+            'book_type_id': self._type_id_by_name['mini-series'],
+        }
+
+        # No fields
+        self.assertEqual(
+            names(book),
+            {
+                'name_for_file': 'My Book 02 (of 09)',
+                'name_for_search': 'my-book-02-of-09',
+                'name_for_url': 'MyBook-02of09',
+            }
+        )
+
+        # db.book fields
+        self.assertEqual(
+            names(book, fields=db.book.fields),
+            {
+                'name_for_search': 'my-book-02-of-09',
+                'name_for_url': 'MyBook-02of09',
+            }
+        )
+
+        # custom fields
+        fields = ['_fake_1', 'name_for_url', '_fake_2', 'name_for_file']
+        self.assertEqual(
+            names(book, fields=fields),
+            {
+                'name_for_file': 'My Book 02 (of 09)',
+                'name_for_url': 'MyBook-02of09',
+            }
         )
 
     def test__optimize_images(self):
@@ -1450,16 +1408,13 @@ class TestFunctions(ImageTestCase):
     def test__page_url(self):
         creator = self.add(db.creator, dict(
             email='test__page_url@example.com',
-            path_name='First Last',
+            name_for_url='FirstLast',
         ))
 
         book = self.add(db.book, dict(
             name='My Book',
-            publication_year=1999,
-            book_type_id=self._type_id_by_name['one-shot'],
-            number=1,
-            of_number=999,
             creator_id=creator.id,
+            name_for_url='MyBook-01of999',
         ))
 
         book_page = self.add(db.book_page, dict(
@@ -1472,134 +1427,26 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(
             page_url(book_page),
-            '/First_Last/My_Book/001'
+            '/FirstLast/MyBook-01of999/001'
         )
 
         # By id
         self.assertEqual(
             page_url(book_page.id),
-            '/First_Last/My_Book/001'
+            '/FirstLast/MyBook-01of999/001'
         )
 
         self.assertEqual(
             page_url(book_page, reader='slider'),
-            '/First_Last/My_Book/001?reader=slider'
+            '/FirstLast/MyBook-01of999/001?reader=slider'
         )
 
         book_page.update_record(page_no=99)
         db.commit()
         self.assertEqual(
             page_url(book_page),
-            '/First_Last/My_Book/099'
+            '/FirstLast/MyBook-01of999/099'
         )
-
-    def test__parse_url_name(self):
-
-        tests = [
-            # (url_name, expect),
-            (None, None),
-            ('My_Book', [{
-                'name': 'My Book',
-                'book_type_id': self._type_id_by_name['one-shot'],
-                'number': None,
-                'of_number': None,
-            }]),
-            ('My_Book_012', [
-                {
-                    'name': 'My Book',
-                    'book_type_id': self._type_id_by_name['ongoing'],
-                    'number': 12,
-                    'of_number': None,
-                },
-                {
-                    'name': 'My Book 012',
-                    'book_type_id': self._type_id_by_name['one-shot'],
-                    'number': None,
-                    'of_number': None,
-                },
-            ]),
-            ('My_Book_02_(of_09)', [
-                {
-                    'name': 'My Book',
-                    'book_type_id': self._type_id_by_name['mini-series'],
-                    'number': 2,
-                    'of_number': 9,
-                },
-                {
-                    'name': 'My Book 02 (of 09)',
-                    'book_type_id': self._type_id_by_name['one-shot'],
-                    'number': None,
-                    'of_number': None,
-                }
-            ]),
-            # Tricky stuff
-            ("Hélè d'Eñça_02_(of_09)", [
-                {
-                    'name': "Hélè d'Eñça",
-                    'book_type_id': self._type_id_by_name['mini-series'],
-                    'number': 2,
-                    'of_number': 9,
-                },
-                {
-                    'name': "Hélè d'Eñça 02 (of 09)",
-                    'book_type_id': self._type_id_by_name['one-shot'],
-                    'number': None,
-                    'of_number': None,
-                },
-            ]),
-            ('Bond_007_012', [
-                {
-                    'name': 'Bond 007',
-                    'book_type_id': self._type_id_by_name['ongoing'],
-                    'number': 12,
-                    'of_number': None,
-                },
-                {
-                    'name': 'Bond 007 012',
-                    'book_type_id': self._type_id_by_name['one-shot'],
-                    'number': None,
-                    'of_number': None,
-                },
-            ]),
-            ('Agent_05_of_99_02_(of_09)', [
-                {
-                    'name': 'Agent 05 of 99',
-                    'book_type_id': self._type_id_by_name['mini-series'],
-                    'number': 2,
-                    'of_number': 9,
-                },
-                {
-                    'name': 'Agent 05 of 99 02 (of 09)',
-                    'book_type_id': self._type_id_by_name['one-shot'],
-                    'number': None,
-                    'of_number': None,
-                },
-            ]),
-            ('My_Book', [
-                {
-                    'name': 'My Book',
-                    'book_type_id': self._type_id_by_name['one-shot'],
-                    'number': None,
-                    'of_number': None,
-                },
-            ]),
-        ]
-
-        for t in tests:
-            got = parse_url_name(t[0])
-            self.assertEqual(parse_url_name(t[0]), t[1])
-
-        # Test default param
-        default = {'creator_id': 123, '_fake_': 999, 'name': 'Default Title'}
-        got = parse_url_name('My_Book', default=default)
-        self.assertEqual(got, [{
-            'name': 'My Book',
-            'book_type_id': self._type_id_by_name['one-shot'],
-            'number': None,
-            'of_number': None,
-            'creator_id': 123,
-            '_fake_': 999,
-        }])
 
     def test__publication_year_range(self):
         start, end = publication_year_range()
@@ -1623,7 +1470,7 @@ class TestFunctions(ImageTestCase):
 
         creator = self.add(db.creator, dict(
             email='test__read_link@example.com',
-            path_name='First Last',
+            name_for_url='FirstLast',
         ))
 
         book = self.add(db.book, dict(
@@ -1632,6 +1479,7 @@ class TestFunctions(ImageTestCase):
             creator_id=creator.id,
             reader='slider',
             book_type_id=self._type_id_by_name['one-shot'],
+            name_for_url='TestReadLink',
         ))
 
         self.add(db.book_page, dict(
@@ -1648,7 +1496,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(
             anchor['href'],
-            '/First_Last/test__read_link/001'
+            '/FirstLast/TestReadLink/001'
         )
 
         # As Row, book
@@ -1658,7 +1506,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(
             anchor['href'],
-            '/First_Last/test__read_link/001'
+            '/FirstLast/TestReadLink/001'
         )
 
         # Invalid id
@@ -1673,7 +1521,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(
             anchor['href'],
-            '/First_Last/test__read_link/001'
+            '/FirstLast/TestReadLink/001'
         )
 
         # Test components param
@@ -1707,7 +1555,7 @@ class TestFunctions(ImageTestCase):
 
     def test__release_barriers(self):
         creator = self.add(db.creator, dict(
-            path_name='Ricky Release',
+            email='test__release_barriers@gmail.com',
         ))
 
         cc0 = db(db.cc_licence.code == 'CC0').select().first()
@@ -1925,77 +1773,71 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['class'], 'disabled')
 
     def test__short_page_img_url(self):
-        book = self.add(db.book, dict(
-            book_type_id=self._type_id_by_name['one-shot'],
-        ))
+        book = self.add(db.book, dict())
         book_page = self.add(db.book_page, dict(
             book_id=book.id,
         ))
         tests = [
-            # (creator_id, book name, page_no, image,  expect)
-            (None, 'My Book', 1, 'book_page.image.000.aaa.jpg', None),
-            (-1, 'My Book', 1, 'book_page.image.000.aaa.jpg', None),
+            # (creator_id, book name_for_url, page_no, image,  expect)
+            (None, 'MyBook', 1, 'book_page.image.000.aaa.jpg', None),
+            (-1, 'MyBook', 1, 'book_page.image.000.aaa.jpg', None),
             (
                 98,
-                'My Book',
+                'MyBook',
                 1,
                 'book_page.image.000.aaa.jpg',
-                'http://98.zco.mx/My_Book/001.jpg'
+                'http://98.zco.mx/MyBook/001.jpg'
             ),
             (
                 101,
-                'My Book',
+                'MyBook',
                 2,
                 'book_page.image.000.aaa.jpg',
-                'http://101.zco.mx/My_Book/002.jpg'
+                'http://101.zco.mx/MyBook/002.jpg'
             ),
             (
                 101,
-                'My Book',
+                'MyBook',
                 2,
                 'book_page.image.000.aaa.png',
-                'http://101.zco.mx/My_Book/002.png'
+                'http://101.zco.mx/MyBook/002.png'
             ),
         ]
         for t in tests:
-            book.update_record(creator_id=t[0], name=t[1])
+            book.update_record(creator_id=t[0], name_for_url=t[1])
             book_page.update_record(page_no=t[2], image=t[3])
             db.commit()
             self.assertEqual(short_page_img_url(book_page), t[4])
 
     def test__short_page_url(self):
-        book = self.add(db.book, dict(
-            book_type_id=self._type_id_by_name['one-shot'],
-        ))
+        book = self.add(db.book, dict())
         book_page = self.add(db.book_page, dict(
             book_id=book.id,
         ))
         tests = [
-            # (creator_id, book name, page_no, expect)
-            (None, 'My Book', 1, None),
-            (-1, 'My Book', 1, None),
-            (98, 'My Book', 1, 'http://98.zco.mx/My_Book/001'),
-            (101, 'My Book', 2, 'http://101.zco.mx/My_Book/002'),
+            # (creator_id, book name_for_url, page_no, expect)
+            (None, None, 1, None),
+            (-1, 'MyBook', 1, None),
+            (98, 'MyBook', 1, 'http://98.zco.mx/MyBook/001'),
+            (101, 'MyBook', 2, 'http://101.zco.mx/MyBook/002'),
         ]
         for t in tests:
-            book.update_record(creator_id=t[0], name=t[1])
+            book.update_record(creator_id=t[0], name_for_url=t[1])
             book_page.update_record(page_no=t[2])
             db.commit()
             self.assertEqual(short_page_url(book_page), t[3])
 
     def test__short_url(self):
-        book = self.add(db.book, dict(
-            book_type_id=self._type_id_by_name['one-shot'],
-        ))
+        book = self.add(db.book, dict())
         tests = [
-            # (creator_id, book name, expect)
-            (None, 'My Book', None),
-            (-1, 'My Book', None),
-            (98, 'My Book', 'http://98.zco.mx/My_Book'),
-            (101, 'My Book', 'http://101.zco.mx/My_Book'),
+            # (creator_id, book name_for_url, expect)
+            (None, None, None),
+            (-1, 'MyBook', None),
+            (98, 'MyBook', 'http://98.zco.mx/MyBook'),
+            (101, 'MyBook-01of99', 'http://101.zco.mx/MyBook-01of99'),
         ]
         for t in tests:
-            book.update_record(creator_id=t[0], name=t[1])
+            book.update_record(creator_id=t[0], name_for_url=t[1])
             db.commit()
             self.assertEqual(short_url(book), t[2])
 
@@ -2064,7 +1906,6 @@ class TestFunctions(ImageTestCase):
 
         creator = self.add(db.creator, dict(
             email='test__torrent_file_name@example.com',
-            path_name='First Last',
         ))
 
         book = self.add(db.book, dict(
@@ -2095,14 +1936,13 @@ class TestFunctions(ImageTestCase):
     def test__torrent_link(self):
         creator = self.add(db.creator, dict(
             email='test__torrent_link@example.com',
-            path_name='First Last',
+            name_for_url='FirstLast',
         ))
 
         book = self.add(db.book, dict(
             name='My Book',
-            number=2,
             creator_id=creator.id,
-            book_type_id=self._type_id_by_name['ongoing'],
+            name_for_url='MyBook-02of98'
         ))
 
         # As integer, book.id
@@ -2112,10 +1952,10 @@ class TestFunctions(ImageTestCase):
         #   href="/First_Last/My_Book_002.torrent">my_book_002.torrent</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'my_book_002.torrent')
+        self.assertEqual(anchor.string, 'mybook-02of98.torrent')
         self.assertEqual(
             anchor['href'],
-            '/First_Last/My_Book_002.torrent'.format(i=book.id)
+            '/FirstLast/MyBook-02of98.torrent'.format(i=book.id)
         )
         self.assertEqual(anchor['class'], 'log_download_link')
         self.assertEqual(anchor['data-record_table'], 'book')
@@ -2125,10 +1965,10 @@ class TestFunctions(ImageTestCase):
         link = torrent_link(book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'my_book_002.torrent')
+        self.assertEqual(anchor.string, 'mybook-02of98.torrent')
         self.assertEqual(
             anchor['href'],
-            '/First_Last/My_Book_002.torrent'.format(i=book.id)
+            '/FirstLast/MyBook-02of98.torrent'.format(i=book.id)
         )
         self.assertEqual(anchor['class'], 'log_download_link')
         self.assertEqual(anchor['data-record_table'], 'book')
@@ -2160,7 +2000,7 @@ class TestFunctions(ImageTestCase):
         link = torrent_link(book, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'my_book_002.torrent')
+        self.assertEqual(anchor.string, 'mybook-02of98.torrent')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
@@ -2170,26 +2010,23 @@ class TestFunctions(ImageTestCase):
 
         creator = self.add(db.creator, dict(
             email='test__torrent_url@example.com',
-            path_name='First Last',
+            name_for_url='FirstLast',
         ))
 
         book = self.add(db.book, dict(
             name='My Book',
-            number=2,
             creator_id=creator.id,
-            book_type_id=self._type_id_by_name['ongoing'],
+            name_for_url='MyBook-002',
         ))
 
-        self.assertEqual(torrent_url(book), '/First_Last/My_Book_002.torrent')
+        self.assertEqual(torrent_url(book), '/FirstLast/MyBook-002.torrent')
 
         book.update_record(
-            number=2,
-            of_number=4,
-            book_type_id=self._type_id_by_name['mini-series'],
+            name_for_url='MyBook-03of09',
         )
         db.commit()
         self.assertEqual(
-            torrent_url(book), '/First_Last/My_Book_02_(of_04).torrent')
+            torrent_url(book), '/FirstLast/MyBook-03of09.torrent')
 
     def test__unoptimized_images(self):
         book = self.add(db.book, dict(
@@ -2358,79 +2195,36 @@ class TestFunctions(ImageTestCase):
     def test__url(self):
         creator = self.add(db.creator, dict(
             email='test__url@example.com',
-            path_name='First Last',
+            name_for_url='FirstLast',
         ))
 
         book = self.add(db.book, dict(name=''))
 
-        # Note: The publication year was removed from the url.
-
         tests = [
-            # (name, pub year, type, number, of_number, expect),
-            (None, None, 'one-shot', None, None, None),
-            ('My Book', 1999, 'one-shot', 1, 999, '/First_Last/My_Book'),
-            ('My Book', 1999, 'ongoing', 12, 999, '/First_Last/My_Book_012'),
+            # (name, name_for_url, expect),
+            (None, None, None),
+            ('My Book', 'MyBook', '/FirstLast/MyBook'),
+            ('My Book', 'MyBook-012', '/FirstLast/MyBook-012'),
             (
                 'My Book',
-                1999,
-                'mini-series',
-                2,
-                9,
-                '/First_Last/My_Book_02_%28of_09%29'
+                'MyBook-02of09',
+                '/FirstLast/MyBook-02of09'
             ),
             (
                 "Hélè d'Eñça",
-                1999,
-                'mini-series',
-                2,
-                9,
-                '/First_Last/H%C3%A9l%C3%A8_d%27E%C3%B1%C3%A7a_02_%28of_09%29'
+                "HélèDEñça-02of09",
+                '/FirstLast/H%C3%A9l%C3%A8DE%C3%B1%C3%A7a-02of09'
             ),
         ]
 
         for t in tests:
             book.update_record(
                 name=t[0],
-                publication_year=t[1],
-                book_type_id=self._type_id_by_name[t[2]],
-                number=t[3],
-                of_number=t[4],
+                name_for_url=t[1],
                 creator_id=creator.id,
             )
             db.commit()
-            self.assertEqual(url(book), t[5])
-
-    def test__url_name(self):
-        book = self.add(db.book, dict(name=''))
-
-        # Note: The publication year was removed from the url.
-        tests = [
-            # (name, type, number, of_number, expect),
-            (None, 'one-shot', None, None, None),
-            ('My Book', 'one-shot', 1, 999, 'MyBook'),
-            ('My Book', 'ongoing', 12, 999, 'MyBook-012'),
-            ('My Book', 'mini-series', 2, 9, 'MyBook-02of09'),
-            ('Tepid: Fall 2003', 'mini-series', 1, 4, 'TepidFall2003-01of04'),
-            (
-                "Hélè d'Eñça",
-                'mini-series',
-                2,
-                9,
-                "H\xc3\xa9l\xc3\xa8DE\xc3\xb1\xc3\xa7a-02of09"
-            ),
-            ("My Book's Trials", 'one-shot', 1, 1, 'MyBooksTrials'),
-            ('    My    Book   ', 'one-shot', 1, 1, 'MyBook'),
-        ]
-
-        for t in tests:
-            book.update_record(
-                name=t[0],
-                book_type_id=self._type_id_by_name[t[1]],
-                number=t[2],
-                of_number=t[3],
-            )
-            db.commit()
-            self.assertEqual(url_name(book), t[4])
+            self.assertEqual(url(book), t[2])
 
 
 def set_pages(obj, db, book_id, num_of_pages):

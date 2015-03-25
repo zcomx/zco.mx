@@ -198,7 +198,10 @@ db.define_table('book',
         comment='Default reader format.'
     ),
     Field(
-        'urlify_name'
+        'name_for_search'
+    ),
+    Field(
+        'name_for_url'
     ),
     Field(
         'cc_licence_id',
@@ -376,7 +379,7 @@ db.define_table('creator',
             ) if url else '',
         requires=IS_EMPTY_OR(
             IS_MATCH(
-                '^http://[A-Za-z0-9]+[A-Za-z0-9\-]*.tumblr.com$',
+                r'^http://[A-Za-z0-9]+[A-Za-z0-9\-]*.tumblr.com$',
                 error_message='Enter a valid tumblr url, eg.\nhttp://username.tumblr.com'
             )
         ),
@@ -406,10 +409,10 @@ db.define_table('creator',
         uploadseparate=True,
     ),
     Field(
-        'path_name',
+        'name_for_search'
     ),
     Field(
-        'urlify_name'
+        'name_for_url'
     ),
     Field(
         'contributions_remaining',
@@ -449,7 +452,6 @@ db.define_table('creator',
         'boolean',
         default=None,
     ),
-    format='%(path_name)s',
     migrate=True,
 )
 

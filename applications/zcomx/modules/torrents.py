@@ -15,6 +15,7 @@ from applications.zcomx.modules.archives import \
 from applications.zcomx.modules.books import \
     torrent_file_name as book_torrent_file_name
 from applications.zcomx.modules.creators import \
+    creator_name, \
     torrent_file_name as creator_torrent_file_name
 from applications.zcomx.modules.shell_utils import TempDirectoryMixin
 from applications.zcomx.modules.utils import \
@@ -184,7 +185,8 @@ class BookTorrentCreator(BaseTorrentCreator):
             raise NotFoundError('Creator not found, id:{i}'.format(
                 i=self.book.creator_id))
 
-        tor_subdir = TorrentArchive.get_subdir_path(creator_record.path_name)
+        tor_subdir = TorrentArchive.get_subdir_path(
+            creator_name(creator_record, use='file'))
         tor_file = book_torrent_file_name(self.book)
         return os.path.join(tor_subdir, tor_file)
 
@@ -233,7 +235,8 @@ class CreatorTorrentCreator(BaseTorrentCreator):
         Returns:
             string: destination file name
         """
-        tor_subdir = TorrentArchive.get_subdir_path(self.creator.path_name)
+        tor_subdir = TorrentArchive.get_subdir_path(
+            creator_name(self.creator, use='file'))
 
         return os.path.join(
             os.path.dirname(tor_subdir),         # Get the 'letter' subdir
@@ -256,7 +259,7 @@ class CreatorTorrentCreator(BaseTorrentCreator):
             base_path,
             cbz_archive.category,
             cbz_archive.name,
-            cbz_archive.get_subdir_path(self.creator.path_name)
+            cbz_archive.get_subdir_path(creator_name(self.creator, use='file'))
         )
 
     def set_cbz_base_path(self, path):

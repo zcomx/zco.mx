@@ -19,6 +19,7 @@ from applications.zcomx.modules.creators import \
     book_for_contributions, \
     can_receive_contributions, \
     contribute_link, \
+    creator_name, \
     for_path, \
     formatted_name, \
     image_as_json, \
@@ -31,8 +32,7 @@ from applications.zcomx.modules.creators import \
     torrent_link, \
     torrent_url, \
     unoptimized_images, \
-    url, \
-    url_name
+    url
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
@@ -137,8 +137,8 @@ class TestFunctions(LocalTestCase):
         self._objects.append(creator)
         self.assertEqual(creator.email, email)
         self.assertEqual(creator.auth_user_id, user.id)
-        self.assertEqual(creator.path_name, 'First Last')
-        self.assertEqual(creator.urlify_name, 'first-last')
+        self.assertEqual(creator.name_for_search, 'first-last')
+        self.assertEqual(creator.name_for_url, 'FirstLast')
         query = (db.job.command.like(
             '%update_creator_indicia.py -o -r {i}'.format(i=creator.id)))
         jobs = db(query).select()
@@ -153,7 +153,7 @@ class TestFunctions(LocalTestCase):
 
     def test__book_for_contributions(self):
         creator = self.add(db.creator, dict(
-            path_name='test__book_for_contributions',
+            email='test__book_for_contributions@email.com',
         ))
 
         # Has no books
@@ -186,7 +186,6 @@ class TestFunctions(LocalTestCase):
 
     def test__can_receive_contributions(self):
         creator = self.add(db.creator, dict(
-            path_name='test__can_receive_contributions',
             paypal_email='',
         ))
 
@@ -219,7 +218,7 @@ class TestFunctions(LocalTestCase):
         empty = '<span></span>'
 
         creator = self.add(db.creator, dict(
-            path_name='test__contribute_link',
+            email='test__contribute_link@email.com',
         ))
 
         # As integer, creator_id
@@ -277,6 +276,27 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
 
+    def test__creator_name(self):
+        auth_user = self.add(db.auth_user, dict(
+            name='First Last'
+        ))
+
+        creator = self.add(db.creator, dict(
+            auth_user_id=auth_user.id,
+            name_for_search='first-last',
+            name_for_url='FirstMiddleLast',
+        ))
+
+        tests = [
+            # (use, expect)
+            ('file', 'FirstLast'),
+            ('search', 'first-last'),
+            ('url', 'FirstMiddleLast'),
+        ]
+
+        for t in tests:
+            self.assertEqual(creator_name(creator, use=t[0]), t[1])
+
     def test__for_path(self):
 
         tests = [
@@ -304,7 +324,7 @@ class TestFunctions(LocalTestCase):
             ('Ralf König', 'RalfKönig'),
             ('Ted Benoît', 'TedBenoît'),
             ('Gilbert G. Groud', 'GilbertGGroud'),
-            ('Samuel (Mark) Clemens','SamuelMarkClemens'),
+            ('Samuel (Mark) Clemens', 'SamuelMarkClemens'),
             ('Alfa _Rant_ Tamil', 'AlfaRantTamil'),
             ('Too     Close', 'TooClose'),
 
@@ -447,60 +467,39 @@ class TestFunctions(LocalTestCase):
             email='test_on_change_name@example.com'
         ))
 
-        self.assertEqual(creator.path_name, None)
+        self.assertEqual(creator.name_for_search, None)
+        self.assertEqual(creator.name_for_url, None)
         on_change_name(creator)
         # creator.auth_user_id not set
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, None)
-        self.assertEqual(creator.urlify_name, None)
+        self.assertEqual(creator.name_for_search, None)
+        self.assertEqual(creator.name_for_url, None)
 
         creator.update_record(auth_user_id=auth_user.id)
         db.commit()
         on_change_name(creator)
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, 'TestOnChangeName')
-        self.assertEqual(creator.urlify_name, 'test-on-change-name')
+        self.assertEqual(creator.name_for_search, 'test-on-change-name')
+        self.assertEqual(creator.name_for_url, 'TestOnChangeName')
 
         # Test with creator.id
         # Reset
-        creator.update_record(path_name=None, urlify_name=None)
+        creator.update_record(name_for_search=None, name_for_url=None)
         db.commit()
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, None)
-        self.assertEqual(creator.urlify_name, None)
+        self.assertEqual(creator.name_for_search, None)
+        self.assertEqual(creator.name_for_url, None)
         on_change_name(creator.id)
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, 'TestOnChangeName')
-        self.assertEqual(creator.urlify_name, 'test-on-change-name')
-
-        # Test variations
-        tests = [
-            # (name, path_name, urlify_name)
-            ('John Adams-Smith', 'JohnAdamsSmith', 'john-adams-smith'),
-            ("Joanne d'Arc", 'JoanneDArc', 'joanne-darc'),
-            ("Jean-Luc de'Breu", 'JeanLucDeBreu', 'jean-luc-de-breu'),
-            ('Don Al François de Sade', 'DonAlFrancoisDeSade', 'don-al-francois-de-sade'),
-            ('Herbert von Locke', 'HerbertVonLocke', 'herbert-von-locke'),
-            ('Sander van Dorn', 'SanderVanDorn', 'sander-van-dorn'),
-            ('Edwin van der Sad', 'EdwinVanDerSad', 'edwin-van-der-sad'),
-            ("Slèzé d'Ruñez", 'SlezeDRunz', 'sleze-drunez'),
-        ]
-
-        for t in tests:
-            print 'FIXME t: {var}'.format(var=t)
-            auth_user.update_record(name=t[0])
-            db.commit()
-            on_change_name(creator.id)
-            creator = entity_to_row(db.creator, creator.id)
-            self.assertEqual(creator.path_name, t[1])
-            self.assertEqual(creator.urlify_name, t[2])
+        self.assertEqual(creator.name_for_search, 'test-on-change-name')
+        self.assertEqual(creator.name_for_url, 'TestOnChangeName')
 
     def test__optimize_images(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
 
         creator = self.add(db.creator, dict(
-            path_name='Test Optimize Creator Images'
+            email='test__optimize_images@email.com'
         ))
 
         img_fields = [
@@ -569,36 +568,35 @@ class TestFunctions(LocalTestCase):
             email='test_profile_onaccept@example.com',
         ))
 
-        self.assertEqual(creator.path_name, None)
-        self.assertEqual(creator.urlify_name, None)
+        self.assertEqual(creator.name_for_search, None)
+        self.assertEqual(creator.name_for_url, None)
 
         # form has no email
         form = Storage({'vars': Storage()})
         profile_onaccept(form)
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, None)
-        self.assertEqual(creator.urlify_name, None)
+        self.assertEqual(creator.name_for_search, None)
+        self.assertEqual(creator.name_for_url, None)
 
         # creator.auth_user_id not set
         form.vars.id = auth_user.id
         profile_onaccept(form)
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, None)
-        self.assertEqual(creator.urlify_name, None)
+        self.assertEqual(creator.name_for_search, None)
+        self.assertEqual(creator.name_for_url, None)
 
         creator.update_record(auth_user_id=auth_user.id)
         db.commit()
         profile_onaccept(form)
         creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.path_name, 'Test Profile Onaccept')
-        self.assertEqual(creator.urlify_name, 'test-profile-onaccept')
+        self.assertEqual(creator.name_for_search, 'test-profile-onaccept')
+        self.assertEqual(creator.name_for_url, 'TestProfileOnaccept')
 
     def test__queue_update_indicia(self):
         self.assertRaises(NotFoundError, queue_update_indicia, -1)
 
         creator = self.add(db.creator, dict(
             email='test__queue_update_indicia@example.com',
-            path_name='First Last',
         ))
 
         job = queue_update_indicia(creator)
@@ -619,32 +617,30 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(short_url(t[0]), t[1])
 
     def test__torrent_file_name(self):
-        creator = self.add(db.creator, dict(
-            email='test__torrent_file_name@example.com',
-            path_name='First Last',
-        ))
-
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
         self.assertEqual(
             torrent_file_name(creator),
-            'First Last ({i}.zco.mx).torrent'.format(i=creator.id)
+            'FirstLast ({i}.zco.mx).torrent'.format(i=creator.id)
         )
 
         # Test scrubbed character.
-        creator.update_record(
-            path_name='First <Middle> Last',
+        auth_user.update_record(
+            name='First <Middle> Last',
         )
         db.commit()
 
         self.assertEqual(
             torrent_file_name(creator),
-            'First Middle Last ({i}.zco.mx).torrent'.format(i=creator.id)
+            'FirstMiddleLast ({i}.zco.mx).torrent'.format(i=creator.id)
         )
 
     def test__torrent_link(self):
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
         creator = self.add(db.creator, dict(
-            email='test__torrent_link@example.com',
-            path_name='First Last',
-            torrent='app/zco/pri/var/tor/F/First_Last.torrent',
+            auth_user_id=auth_user.id,
+            torrent='app/zco/pri/var/tor/F/FirstLast.torrent',
+            name_for_url='FirstLast',
         ))
 
         # As integer, creator.id
@@ -654,10 +650,10 @@ class TestFunctions(LocalTestCase):
         #   href="/First_Last_(101.zco.mx).torrent">first_last.torrent</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'first_last.torrent')
+        self.assertEqual(anchor.string, 'FirstLast.torrent')
         self.assertEqual(
             anchor['href'],
-            '/First_Last_({i}.zco.mx).torrent'.format(i=creator.id)
+            '/FirstLast_({i}.zco.mx).torrent'.format(i=creator.id)
         )
         self.assertEqual(anchor['class'], 'log_download_link')
         self.assertEqual(anchor['data-record_table'], 'creator')
@@ -667,10 +663,10 @@ class TestFunctions(LocalTestCase):
         link = torrent_link(creator)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'first_last.torrent')
+        self.assertEqual(anchor.string, 'FirstLast.torrent')
         self.assertEqual(
             anchor['href'],
-            '/First_Last_({i}.zco.mx).torrent'.format(i=creator.id)
+            '/FirstLast_({i}.zco.mx).torrent'.format(i=creator.id)
         )
         self.assertEqual(anchor['class'], 'log_download_link')
         self.assertEqual(anchor['data-record_table'], 'creator')
@@ -702,7 +698,7 @@ class TestFunctions(LocalTestCase):
         link = torrent_link(creator, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'first_last.torrent')
+        self.assertEqual(anchor.string, 'FirstLast.torrent')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
@@ -710,30 +706,25 @@ class TestFunctions(LocalTestCase):
     def test__torrent_url(self):
         self.assertRaises(NotFoundError, torrent_url, None)
 
-        creator = self.add(db.creator, dict(
-            email='test__torrent_url@example.com',
-            path_name='First Last',
-        ))
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
 
         self.assertEqual(
             torrent_url(creator),
-            '/First_Last_({i}.zco.mx).torrent'.format(i=creator.id)
+            '/FirstLast_({i}.zco.mx).torrent'.format(i=creator.id)
         )
 
         # Test scrubbed character.
-        creator.update_record(
-            path_name='First <Middle> Last',
-        )
+        auth_user.update_record(name='First <Middle> Last')
         db.commit()
 
         self.assertEqual(
             torrent_url(creator),
-            '/First_Middle_Last_({i}.zco.mx).torrent'.format(i=creator.id)
+            '/FirstMiddleLast_({i}.zco.mx).torrent'.format(i=creator.id)
         )
 
     def test__unoptimized_images(self):
         creator = self.add(db.creator, dict(
-            path_name='Test Unoptmized Images',
             image=None,
             indicia_image=None,
             indicia_portrait=None,
@@ -791,38 +782,18 @@ class TestFunctions(LocalTestCase):
         creator = self.add(db.creator, dict(email='test__url@example.com'))
 
         tests = [
-            # (path_name, expect)
+            # (name_for_url, expect)
             (None, None),
             ('Prince', '/Prince'),
-            ('First Last', '/FirstLast'),
-            ('first last', '/firstlast'),
-            ("Hélè d'Eñça", '/H%C3%A9l%C3%A8d%27E%C3%B1%C3%A7a'),
+            ('FirstLast', '/FirstLast'),
+            ('firstlast', '/firstlast'),
+            ("HélèDEñça", '/H%C3%A9l%C3%A8DE%C3%B1%C3%A7a'),
         ]
 
         for t in tests:
-            creator.update_record(path_name=t[0])
+            creator.update_record(name_for_url=t[0])
             db.commit()
             self.assertEqual(url(creator), t[1])
-
-    def test__url_name(self):
-        creator = self.add(db.creator, dict(
-            email='test__url_name@example.com'
-        ))
-
-        tests = [
-            # (path_name, expect)
-            (None, None),
-            ('Prince', 'Prince'),
-            ('First Last', 'FirstLast'),
-            ('first last', 'firstlast'),
-            ("Hélè d'Eñça", "H\xc3\xa9l\xc3\xa8d'E\xc3\xb1\xc3\xa7a"),
-        ]
-
-        for t in tests:
-
-            creator.update_record(path_name=t[0])
-            db.commit()
-            self.assertEqual(url_name(creator), t[1])
 
 
 def setUpModule():

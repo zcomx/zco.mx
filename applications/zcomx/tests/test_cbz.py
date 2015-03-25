@@ -168,146 +168,19 @@ class TestCBZCreator(ImageTestCase):
     def test__cbz_filename(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
-        types_by_name = {}
-        for row in db(db.book_type).select(db.book_type.ALL):
-            types_by_name[row.name] = row
 
-        # One-shot
-        book_type_id = types_by_name['one-shot'].id
-        tests = [
-            # (name, year, creator_id, expect)
-            ('My Book', 1999, 1, 'My Book (1999) (1.zco.mx).cbz'),
-            ('My Book', 1999, 123, 'My Book (1999) (123.zco.mx).cbz'),
-            (
-                r'A !@#$%^&*?/\[]{};:" B',
-                1999,
-                123,
-                r'A !@#$^&[]{}; -  B (1999) (123.zco.mx).cbz'
-            ),
-            ('A B', 1999, 123, 'A B (1999) (123.zco.mx).cbz'),
-            ('A  B', 1999, 123, 'A  B (1999) (123.zco.mx).cbz'),
-            ('A   B', 1999, 123, 'A   B (1999) (123.zco.mx).cbz'),
-            ('A...B', 1999, 123, 'A...B (1999) (123.zco.mx).cbz'),
-            ('A---B', 1999, 123, 'A---B (1999) (123.zco.mx).cbz'),
-            ('A___B', 1999, 123, 'A___B (1999) (123.zco.mx).cbz'),
-            ('A:B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
-            ('A: B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
-            ('A : B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
-            ('A :B', 1999, 123, 'A - B (1999) (123.zco.mx).cbz'),
-            ("A'B", 1999, 123, "A'B (1999) (123.zco.mx).cbz"),
-            (
-                'Berserk Alert!',
-                2014,
-                6,
-                'Berserk Alert! (2014) (6.zco.mx).cbz'
-            ),
-            (
-                'SUPER-ENIGMATIX',
-                2014,
-                11,
-                'SUPER-ENIGMATIX (2014) (11.zco.mx).cbz'
-            ),
-            (
-                'Tarzan Comic #v2#7',
-                2014,
-                123,
-                'Tarzan Comic #v2#7 (2014) (123.zco.mx).cbz'
-            ),
-            (
-                'Hämähäkkimies #11/1986',
-                1986,
-                123,
-                'Hämähäkkimies #111986 (1986) (123.zco.mx).cbz'
-            ),
-            (
-                'Warcraft: Legends',
-                2008,
-                123,
-                'Warcraft - Legends (2008) (123.zco.mx).cbz'
-            ),
-        ]
-
-        for t in tests:
-            self._book.update_record(
-                name=t[0],
-                book_type_id=book_type_id,
-                number=1,
-                of_number=1,
-                publication_year=t[1],
-                creator_id=t[2],
-            )
-            db.commit()
-            cbz_creator = CBZCreator(self._book)
-            self.assertEqual(cbz_creator.cbz_filename(), t[3])
-
-        # Ongoing
-        book_type_id = types_by_name['ongoing'].id
-        tests = [
-            # (name, number, year, creator_id, expect)
-            ('My Book', 1, 1999, 1, 'My Book 001 (1999) (1.zco.mx).cbz'),
-            ('My Book', 2, 1999, 1, 'My Book 002 (1999) (1.zco.mx).cbz'),
-            ('My Book', 999, 1999, 1, 'My Book 999 (1999) (1.zco.mx).cbz'),
-        ]
-
-        for t in tests:
-            self._book.update_record(
-                name=t[0],
-                book_type_id=book_type_id,
-                number=t[1],
-                of_number=1,
-                publication_year=t[2],
-                creator_id=t[3],
-            )
-            db.commit()
-            cbz_creator = CBZCreator(self._book)
-            self.assertEqual(cbz_creator.cbz_filename(), t[4])
-
-        # Mini-series
-        book_type_id = types_by_name['mini-series'].id
-        tests = [
-            # (name, number, of_number, year, creator_id, expect)
-            (
-                'My Book',
-                1,
-                4,
-                1999,
-                1,
-                'My Book 01 (of 04) (1999) (1.zco.mx).cbz'
-            ),
-            (
-                'My Book',
-                2,
-                9,
-                1999,
-                1,
-                'My Book 02 (of 09) (1999) (1.zco.mx).cbz'
-            ),
-            (
-                'My Book',
-                99,
-                99,
-                1999,
-                1,
-                'My Book 99 (of 99) (1999) (1.zco.mx).cbz'
-            ),
-        ]
-
-        for t in tests:
-            self._book.update_record(
-                name=t[0],
-                book_type_id=book_type_id,
-                number=t[1],
-                of_number=t[2],
-                publication_year=t[3],
-                creator_id=t[4],
-            )
-            db.commit()
-            cbz_creator = CBZCreator(self._book)
-            self.assertEqual(cbz_creator.cbz_filename(), t[5])
-
-        # Reset the book creator
-        self._book.update_record(creator_id=self._creator.id)
+        self._book.update_record(
+            name='My Book',
+            publication_year=1998,
+            creator_id=123,
+        )
         db.commit()
+
+        cbz_creator = CBZCreator(self._book)
+        self.assertEqual(
+            cbz_creator.cbz_filename(),
+            'My Book (1998) (123.zco.mx).cbz'
+        )
 
     def test__get_img_filename_fmt(self):
         # protected-access (W0212): *Access to a protected member %%s
@@ -487,7 +360,7 @@ class TestFunctions(ImageTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             cbz_filename,
-            '/tmp/cbz_archive/cbz/zco.mx/J/Jim Karsten/My CBZ Test (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
+            '/tmp/cbz_archive/cbz/zco.mx/J/JimKarsten/My CBZ Test (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
         )
 
         book = entity_to_row(db.book, self._book.id)

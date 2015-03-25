@@ -11,6 +11,7 @@ import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.archives import TorrentArchive
+from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -158,7 +159,7 @@ def main():
     LOG.debug('Starting')
 
     for creator in creators_needing_purge():
-        LOG.debug('Purging torrent for creator: %s', creator.path_name)
+        LOG.debug('Purging torrent for creator: %s', formatted_name(creator))
         delete_torrent(creator)
         creator.update_record(
             torrent=None,

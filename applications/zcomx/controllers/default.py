@@ -103,9 +103,9 @@ def user():
         allowed_override = []
         if auth.user_id:
             query = (db.creator.auth_user_id == auth.user_id)
-            row = db(query).select(db.creator.path_name).first()
-            if row and 'path_name' in row and row['path_name']:
-                allowed_override.append(row['path_name'])
+            row = db(query).select(db.creator.name_for_url).first()
+            if row and 'name_for_url' in row and row['name_for_url']:
+                allowed_override.append(row['name_for_url'])
         db.auth_user.name.requires = [
             IS_NOT_EMPTY(
                 error_message='This is a required field.',
@@ -113,7 +113,7 @@ def user():
             IS_ALLOWED_CHARS(not_allowed=FileName.invalid_chars),
             IS_NOT_IN_DB_SCRUBBED(
                 db,
-                db.creator.path_name,
+                db.creator.name_for_url,
                 error_message=error_msg,
                 allowed_override=allowed_override,
                 scrub_callback=for_path,

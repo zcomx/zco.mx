@@ -9,13 +9,15 @@ import logging
 import os
 from gluon import *
 from gluon.contrib.simplejson import dumps
-from gluon.validators import urlify
 from applications.zcomx.modules.files import for_file
 from applications.zcomx.modules.images import \
     is_optimized, \
     queue_optimize
 from applications.zcomx.modules.job_queue import \
     UpdateIndiciaQueuer
+from applications.zcomx.modules.names import \
+    CreatorName, \
+    names
 from applications.zcomx.modules.strings import \
     camelcase, \
     replace_punctuation, \
@@ -147,6 +149,29 @@ def contribute_link(db, creator_entity, components=None, **attributes):
     return A(*components, **kwargs)
 
 
+def creator_name(creator_entity, use='file'):
+    """Return the name of the creator for the specific use.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator.
+        use: one of 'file', 'search', 'url'
+
+    Returns:
+        string, name of file
+    """
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
+    if use == 'file':
+        return CreatorName(formatted_name(creator)).for_file()
+    elif use == 'search':
+        return creator.name_for_search
+    elif use == 'url':
+        return creator.name_for_url
+    return
+
+
 def for_path(name):
     """Scrub name so it is suitable for use in a file path or url.
 
@@ -268,17 +293,8 @@ def on_change_name(creator_entity):
     if not creator or not creator.auth_user_id:
         return
 
-    update_data = {}
-
-    name = formatted_name(creator)
-
-    path_name = for_path(name)
-    if creator.path_name != path_name:
-        update_data['path_name'] = path_name
-
-    urlify_name = urlify(name)
-    if creator.urlify_name != urlify_name:
-        update_data['urlify_name'] = urlify_name
+    update_data = names(
+        CreatorName(formatted_name(creator)), fields=db.creator.fields)
 
     if update_data:
         db(db.creator.id == creator.id).update(**update_data)
@@ -411,7 +427,7 @@ def torrent_file_name(creator_entity):
 
     fmt = '{name} ({url}).torrent'
     return fmt.format(
-        name=creator.path_name,
+        name=creator_name(creator, use='file'),
         url='{cid}.zco.mx'.format(cid=creator.id),
     )
 
@@ -440,7 +456,7 @@ def torrent_link(creator_entity, components=None, **attributes):
         return empty
 
     if not components:
-        name = '{n}.torrent'.format(n=creator.path_name)
+        name = '{n}.torrent'.format(n=creator_name(creator, use='url'))
         components = [name]
 
     kwargs = {
@@ -476,7 +492,7 @@ def torrent_url(creator_entity, **url_kwargs):
             e=creator_entity))
 
     controller = '{name} ({i}.zco.mx).torrent'.format(
-        name=creator.path_name,
+        name=creator_name(creator, use='file'),
         i=creator.id,
     ).replace(' ', '_')
 
@@ -531,33 +547,10 @@ def url(creator_entity, **url_kwargs):
         string, url, eg http://zco.mx/creators/index/Firstname_Lastname
             (routes_out should convert it to http://zco.mx/Firstname_Lastname)
     """
-    name = url_name(creator_entity)
+    name = creator_name(creator_entity, use='url')
     if not name:
         return
 
     kwargs = {}
     kwargs.update(url_kwargs)
     return URL(c='creators', f='index', args=[name], **kwargs)
-
-
-def url_name(creator_entity):
-    """Return the name used for the creator in the url.
-
-    Args:
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
-    Returns:
-        string, eg Firstname_Lastname
-    """
-    if not creator_entity:
-        return
-
-    db = current.app.db
-
-    creator_record = entity_to_row(db.creator, creator_entity)
-    if not creator_record or not creator_record.path_name:
-        return
-
-    return creator_record.path_name.decode(
-        'utf-8'
-    ).encode('utf-8').replace(' ', '')

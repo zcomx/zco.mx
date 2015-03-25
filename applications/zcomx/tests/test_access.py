@@ -72,7 +72,6 @@ class TestFunctions(LocalTestCase):
 
         creator = self.add(db.creator, dict(
             auth_user_id=auth_user.id,
-            path_name='tests__requires_agreed_to_terms',
             agreed_to_terms=False,
         ))
 

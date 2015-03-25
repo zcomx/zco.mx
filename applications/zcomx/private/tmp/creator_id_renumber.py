@@ -39,7 +39,7 @@ class Creator(object):
         """Constructor
 
         Args:
-            name: string, creator path_name,
+            name: string, creator name_for_url,
             old_id: integer, original id
             new_id: integer, new id
         """
@@ -125,12 +125,12 @@ def main():
     for creator in db(db.creator).select():
         db.creator_bak.insert(**creator.as_dict())
         db.commit()
-        if creator.path_name in IDS:
-            new_id = IDS[creator.path_name]
+        if creator.name_for_url in IDS:
+            new_id = IDS[creator.name_for_url]
         else:
             new_id = next_id
             next_id += 1
-        creators.append(Creator(creator.path_name, int(creator.id), new_id))
+        creators.append(Creator(creator.name_for_url, int(creator.id), new_id))
 
     count = db(db.creator).count()
     count_bak = db(db.creator_bak).count()

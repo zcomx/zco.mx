@@ -9,10 +9,9 @@ Test suite for zcomx/controllers/torrents.py
 import os
 import unittest
 import urllib2
-from applications.zcomx.modules.books import url_name
+from applications.zcomx.modules.books import book_name
+from applications.zcomx.modules.creators import creator_name
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -61,7 +60,7 @@ class TestFunctions(LocalTestCase):
         # Test 'all' torrent.
         expect = []
         expect.append(self.titles['torrent'])
-        expect.append(self._creator.path_name)
+        expect.append(creator_name(self._creator, use='file'))
         expect.append(self._book.name)
         self.assertTrue(web.test(
             '{url}/download/all'.format(url=self.url),
@@ -83,7 +82,7 @@ class TestFunctions(LocalTestCase):
         # Test creator torrent.
         expect = []
         expect.append(self.titles['torrent'])
-        expect.append(self._creator.path_name)
+        expect.append(creator_name(self._creator, use='file'))
         self.assertTrue(web.test(
             '{url}/download/creator/{cid}'.format(
                 url=self.url,
@@ -115,7 +114,7 @@ class TestFunctions(LocalTestCase):
         # Test 'all' torrent
         expect = []
         expect.append(self.titles['torrent'])
-        expect.append(self._creator.path_name)
+        expect.append(creator_name(self._creator, use='file'))
         expect.append(self._book.name)
         self.assertTrue(web.test(
             '{url}/route?torrent=zco.mx.torrent'.format(url=self.url),
@@ -125,7 +124,7 @@ class TestFunctions(LocalTestCase):
         # Test creator torrent
         expect = []
         expect.append(self.titles['torrent'])
-        expect.append(self._creator.path_name)
+        expect.append(creator_name(self._creator, use='file'))
         expect.append(self._book.name)
         self.assertTrue(web.test(
             '{url}/route?torrent={tor}'.format(
@@ -144,7 +143,7 @@ class TestFunctions(LocalTestCase):
             '{url}/route?creator={cid:03d}&torrent={tor}'.format(
                 url=self.url,
                 cid=self._creator.id,
-                tor='{n}.torrent'.format(n=url_name(self._book))
+                tor='{n}.torrent'.format(n=book_name(self._book, use='url'))
             ),
             expect
         ))
@@ -156,8 +155,8 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test(
             '{url}/route?creator={name}&torrent={tor}'.format(
                 url=self.url,
-                name=self._creator.path_name.replace(' ', '_'),
-                tor='{n}.torrent'.format(n=url_name(self._book))
+                name=self._creator.name_for_url,
+                tor='{n}.torrent'.format(n=book_name(self._book, use='url'))
             ),
             expect
         ))

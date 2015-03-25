@@ -8,30 +8,28 @@ Book classes and functions.
 import datetime
 import logging
 import os
-import re
 import urlparse
 from gluon import *
 from gluon.dal.objects import REGEX_STORE_PATTERN
 from gluon.storage import Storage
-from gluon.validators import urlify
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.book_types import \
+    from_id as book_type_from_id
 from applications.zcomx.modules.creators import \
+    creator_name, \
     formatted_name as creator_formatted_name, \
-    short_url as creator_short_url, \
-    url_name as creator_url_name
-from applications.zcomx.modules.files import \
-    TitleFileName, \
-    for_title_file
+    short_url as creator_short_url
 from applications.zcomx.modules.images import \
     ImgTag, \
     is_optimized, \
     queue_optimize
+from applications.zcomx.modules.names import \
+    BookName, \
+    BookNumber, \
+    BookTitle, \
+    names as name_values
 from applications.zcomx.modules.shell_utils import tthsum
-from applications.zcomx.modules.strings import \
-    camelcase, \
-    replace_punctuation, \
-    squeeze_whitespace
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -172,6 +170,29 @@ class ViewEvent(BookEvent):
         """Post log functionality."""
         db = current.app.db
         update_rating(db, self.book, rating='view')
+
+
+def book_name(book_entity, use='file'):
+    """Return the name of the book suitable for specified use.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+        use: one of 'file', 'search', 'url'
+
+    Returns:
+        string, name of file
+    """
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+    if use == 'file':
+        return names(book.as_dict())['name_for_file']
+    elif use == 'search':
+        return book.name_for_search
+    elif use == 'url':
+        return book.name_for_url
+    return
 
 
 def book_page_for_json(db, book_page_id):
@@ -338,34 +359,6 @@ def book_types(db):
             ]
         )
     )
-
-
-def by_attributes(attributes_list):
-    """Return a Row instances representing a book matching the attributes.
-
-    Args:
-        attributes_list: list of dicts, dict of book attributes.
-
-    Returns:
-        Row instance representing a book.
-
-    The book returned is the one that first matches a dict in the attributes
-    list.
-    """
-    if not attributes_list:
-        return
-    for attributes in attributes_list:
-        db = current.app.db
-        queries = []
-        for key, value in attributes.items():
-            if value is not None:
-                queries.append((db.book[key] == value))
-        query = reduce(lambda x, y: x & y, queries) if queries else None
-        if not query:
-            return
-        book = db(query).select().first()
-        if book:
-            return book
 
 
 def calc_contributions_remaining(db, book_entity):
@@ -636,6 +629,8 @@ def defaults(db, name, creator_entity):
         dict: representing book fields and values.
     """
     data = {}
+    data['name'] = name
+
     creator = entity_to_row(db.creator, creator_entity)
     if not creator:
         return {}
@@ -655,7 +650,9 @@ def defaults(db, name, creator_entity):
             db.book_type.ALL).first()
         if book_type_record:
             data['book_type_id'] = book_type_record.id
-    data['urlify_name'] = urlify(name, maxlen=99999)
+        data['number'] = 1
+        data['of_number'] = 1
+    data.update(names(data, fields=db.book.fields))
     return data
 
 
@@ -734,20 +731,8 @@ def formatted_number(book_entity):
     book = entity_to_row(db.book, book_entity)
     if not book:
         return ''
-    book_type = entity_to_row(db.book_type, book.book_type_id)
-    if not book_type:
-        return ''
-
-    if book_type.name == 'one-shot':
-        return ''
-    elif book_type.name == 'ongoing':
-        return '{num:03d}'.format(num=book.number)
-    elif book_type.name == 'mini-series':
-        return '{num:02d} (of {of:02d})'.format(
-            num=book.number,
-            of=book.of_number,
-        )
-    return ''
+    book_type = book_type_from_id(book.book_type_id)
+    return book_type.formatted_number(book.number, book.of_number)
 
 
 def get_page(book_entity, page_no=1):
@@ -833,10 +818,9 @@ def magnet_link(book_entity, components=None, **attributes):
         return empty
 
     if not components:
-        u_name = url_name(book_entity)
-        if not u_name:
-            return
-        name = '{n}.magnet'.format(n=u_name).lower()
+        name = '{n}.magnet'.format(
+            n=book_name(book_entity, use='url').lower()
+        )
         components = [name]
 
     kwargs = {
@@ -878,24 +862,45 @@ def magnet_uri(book_entity):
     )
 
 
-def numbers_for_book_type(db, book_type_id):
-    """Return a dict for the number settings for a book_type_id.
+def name_fields():
+    """Return a list of book fields associated with book names.
+
+    When these fields change, book names need to be updated.
+
+    Returns:
+        list of strings, field names
+    """
+    return [
+        'name',
+        'book_type_id',
+        'number',
+        'of_number',
+    ]
+
+
+def names(book, fields=None):
+    """Return a dict of name variations suitable for the book db record.
 
     Args:
-        db: gluon.dal.DAL instance
-        book_type_id: integer, id of book_type record
+        book: dict representing book with mininum keys
+            'name', 'book_type_id', 'number', 'of_number'
+        fields: list, passed to names(..., fields=fields)
+
+    Returns:
+        dict. See names.py names.
+
+    Usage:
+        names(book_record.as_dict(), db.book.fields)
     """
-    default = {'number': False, 'of_number': False}
-    query = (db.book_type.id == book_type_id)
-    book_type = db(query).select(db.book_type.ALL).first()
-    if not book_type:
-        return default
-    elif book_type.name == 'ongoing':
-        return {'number': True, 'of_number': False}
-    elif book_type.name == 'mini-series':
-        return {'number': True, 'of_number': True}
-    else:
-        return default
+    book_type = book_type_from_id(book['book_type_id'])
+    number = book_type.formatted_number(book['number'], book['of_number'])
+    return name_values(
+        BookTitle(
+            BookName(book['name']),
+            BookNumber(number)
+        ),
+        fields=fields
+    )
 
 
 def optimize_images(
@@ -984,12 +989,12 @@ def page_url(book_page_entity, reader=None, **url_kwargs):
     if not book_record:
         return
 
-    creator_name = creator_url_name(book_record.creator_id)
-    if not creator_name:
+    name_of_creator = creator_name(book_record.creator_id, use='url')
+    if not name_of_creator:
         return
 
-    book_name = url_name(book_record)
-    if not book_name:
+    books_name = book_name(book_record, use='url')
+    if not books_name:
         return
 
     page_name = '{p:03d}'.format(p=page_record.page_no)
@@ -999,76 +1004,10 @@ def page_url(book_page_entity, reader=None, **url_kwargs):
     return URL(
         c='creators',
         f='index',
-        args=[creator_name, book_name, page_name],
+        args=[name_of_creator, books_name, page_name],
         vars={'reader': reader} if reader else None,
         **kwargs
     )
-
-
-def parse_url_name(name, default=None):
-    """Parse a book url name and return book attributes.
-
-    Args:
-        name: string, name of book used in url (ie what is returned by
-                def url_name()
-        default: dict of default values for attrubutes in returned dicts
-
-    Returns
-        list of dict of book attributes.
-            eg [{
-                    name: Name
-                    book_type_id: 1,
-                    number: 1,
-                    of_number: 4,
-                }]
-    """
-    if not name:
-        return
-
-    books = []
-
-    start = dict(
-        name=None,
-        number=None,
-        of_number=None,
-        book_type_id=None,
-    )
-
-    if default:
-        start.update(default)
-
-    db = current.app.db
-
-    type_id_by_name = {}
-    for t in db(db.book_type).select():
-        type_id_by_name[t.name] = t.id
-
-    # line-too-long (C0301): *Line too long (%%s/%%s)*
-    # pylint: disable=C0301
-    type_res = {
-        'mini-series': re.compile(r'(?P<name>.*)_(?P<number>[0-9]+)_\(of_(?P<of_number>[0-9]+)\)$'),
-        'one-shot': re.compile(r'(?P<name>.*?)$'),
-        'ongoing': re.compile(r'(?P<name>.*)_(?P<number>[0-9]+)$'),
-    }
-
-    # Test in order most-complex to least.
-    for book_type in ['mini-series', 'ongoing', 'one-shot']:
-        book = dict(start)
-        m = type_res[book_type].match(name)
-        if not m:
-            continue
-        book.update(m.groupdict())
-        book['book_type_id'] = type_id_by_name[book_type]
-        if book['name']:
-            book['name'] = book['name'].replace('_', ' ')
-        for field in ['number', 'of_number']:
-            if book[field]:
-                try:
-                    book[field] = int(book[field])
-                except (TypeError, ValueError):
-                    book[field] = None
-        books.append(book)
-    return books
 
 
 def publication_year_range():
@@ -1399,10 +1338,10 @@ def short_url(book_entity):
     """
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
-    if not book_record or not book_record.name:
+    if not book_record:
         return
 
-    name = url_name(book_entity)
+    name = book_name(book_entity, use='url')
     if not name:
         return
 
@@ -1429,9 +1368,10 @@ def torrent_file_name(book_entity):
         raise NotFoundError('Creator not found, id: {e}'.format(
             e=book_entity))
 
-    fmt = '{name} ({cid}.zco.mx).cbz.torrent'
+    fmt = '{name} ({year}) ({cid}.zco.mx).cbz.torrent'
     return fmt.format(
-        name=TitleFileName(formatted_name(db, book_record)).scrubbed(),
+        name=book_name(book_record, use='file'),
+        year=str(book_record.publication_year),
         cid=book_record.creator_id,
     )
 
@@ -1460,10 +1400,9 @@ def torrent_link(book_entity, components=None, **attributes):
         return empty
 
     if not components:
-        u_name = url_name(book_entity)
-        if not u_name:
-            return
-        name = '{n}.torrent'.format(n=u_name).lower()
+        name = '{n}.torrent'.format(
+            n=book_name(book_entity, use='url').lower()
+        )
         components = [name]
 
     kwargs = {
@@ -1498,18 +1437,18 @@ def torrent_url(book_entity, **url_kwargs):
         raise NotFoundError('Creator not found, id: {e}'.format(
             e=book_entity))
 
-    creator_name = creator_url_name(book_record.creator_id)
-    if not creator_name:
+    name_of_creator = creator_name(book_record.creator_id, use='url')
+    if not name_of_creator:
         return
 
-    name = url_name(book_record)
+    name = book_name(book_record, use='url')
     if not name:
         return
 
     kwargs = {}
     kwargs.update(url_kwargs)
     return URL(
-        c=creator_name,
+        c=name_of_creator,
         f='{name}.torrent'.format(name=name),
         **kwargs
     )
@@ -1666,57 +1605,14 @@ def url(book_entity, **url_kwargs):
     if not book_record or not book_record.name:
         return
 
-    creator_name = creator_url_name(book_record.creator_id)
-    if not creator_name:
+    name_of_creator = creator_name(book_record.creator_id, use='url')
+    if not name_of_creator:
         return
 
-    name = url_name(book_record)
+    name = book_name(book_record, use='url')
     if not name:
         return
 
     kwargs = {}
     kwargs.update(url_kwargs)
-    return URL(c='creators', f='index', args=[creator_name, name], **kwargs)
-
-
-def url_name(book_entity):
-    """Return the name used for the book in the url.
-
-    Args:
-        book_entity: Row instance or integer, if integer, this is the id of
-            the book. The book record is read.
-    Returns:
-        string, eg My_Book
-    """
-    if not book_entity:
-        return
-
-    db = current.app.db
-
-    book_record = entity_to_row(db.book, book_entity)
-    if not book_record or not book_record.name:
-        return
-
-    def as_camelcase(name):
-        """Convert text to camelcase."""
-        # Remove apostrophes
-        # Otherwise "Fred's Book" becomes 'FredSBook' not 'FredsBook'
-        name = replace_punctuation(name, repl='', punctuation="""'""")
-        # Replace punctuation with space
-        name = replace_punctuation(name)
-        name = squeeze_whitespace(name)
-        name = camelcase(name)
-        return for_title_file(name)
-
-    # Strategy.
-    # Goal: CamelCase with punctuation removed, separate number with hyphen
-    fmt = '{name}'
-    data = {
-        'name': as_camelcase(str(book_record.name))
-    }
-
-    number = formatted_number(book_record)
-    if number:
-        fmt = '{name}-{num}'
-        data['num'] = as_camelcase(number).lower()
-    return fmt.format(**data)
+    return URL(c='creators', f='index', args=[name_of_creator, name], **kwargs)

@@ -65,11 +65,11 @@ class TestFunctions(LocalTestCase):
             self.titles['creator']
         ))
 
-        # Test: creator as path_name
+        # Test: creator as name
         self.assertTrue(web.test(
             '{url}/index?creator={name}'.format(
                 url=self.url,
-                name=self._creator.path_name
+                name=self._creator.name_for_url
             ),
             self.titles['creator']
         ))

@@ -17,8 +17,7 @@ from applications.zcomx.modules.books import \
     page_url, \
     read_link, \
     short_page_img_url, \
-    url as book_url, \
-    url_name as book_url_name
+    url as book_url
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     url as creator_url
@@ -69,12 +68,10 @@ class Router(object):
             if request.vars.book:
                 creator_record = self.get_creator()
                 if creator_record:
-                    query = (db.book.creator_id == creator_record.id)
-                    for book in db(query).select():
-                        if book_url_name(book).lower() == \
-                                request.vars.book.lower():
-                            self.book_record = book
-                            break
+                    match = request.vars.book.lower()
+                    query = (db.book.creator_id == creator_record.id) & \
+                        (db.book.name_for_url.lower() == match)
+                    self.book_record = db(query).select().first()
         return self.book_record
 
     def get_creator(self):
@@ -98,10 +95,10 @@ class Router(object):
                         request.vars.creator
                     )
 
-                # Test for request.vars.creator as creator.path_name
+                # Test for request.vars.creator as creator.name_for_url
                 if not self.creator_record:
                     name = request.vars.creator.replace('_', ' ')
-                    query = (db.creator.path_name.lower() == name.lower())
+                    query = (db.creator.name_for_url.lower() == name.lower())
                     self.creator_record = db(query).select().first()
 
         return self.creator_record
@@ -230,7 +227,7 @@ class Router(object):
                     db.book.on(db.book_page.book_id == db.book.id),
                     db.creator.on(db.book.creator_id == db.creator.id),
                 ],
-                orderby=[db.creator.path_name, db.book_page.page_no],
+                orderby=[db.creator.name_for_url, db.book_page.page_no],
                 limitby=(0, 1),
             )
             if rows:

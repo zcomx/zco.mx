@@ -9,6 +9,7 @@ Classes extending functionality of gluon/validators.py.
 """
 import logging
 import urlparse
+from gluon.sqlhtml import safe_float, safe_int
 from gluon.validators import \
     IS_MATCH, \
     IS_NOT_IN_DB, \
@@ -196,7 +197,7 @@ class IS_TWITTER_HANDLE(IS_MATCH):
         # * from 1 to 15 alphanumeric characters.
         if error_message is None:
             error_message = 'Enter a valid twitter handle, eg @username'
-        IS_MATCH.__init__(self, '^@[\w]{1,15}$', error_message)
+        IS_MATCH.__init__(self, r'^@[\w]{1,15}$', error_message)
 
 
 class IS_URL_FOR_DOMAIN(IS_URL):
@@ -243,3 +244,34 @@ class IS_URL_FOR_DOMAIN(IS_URL):
                 not o.hostname.endswith('.{d}'.format(d=self.domain)):
             return (result, self.error_message)
         return (result, None)
+
+
+def as_per_type(table, data):
+    """Return data with all values set as per the field type.
+    Useful for converting request.vars values.
+
+    Notes: If data is invalid for a specific field, it is left as is.
+
+
+    Args:
+        table: gluon.dal.Table instance
+        data: dict of data representing a record from table
+
+    Returns:
+        dict: dict of data representing a record from table
+    """
+    for field, value in data.items():
+        if field not in table.fields:
+            continue
+        if value is None:
+            continue
+        if table[field].type == 'integer':
+            data[field] = safe_int(data[field])
+        elif table[field].type == 'boolean':
+            if value in ['T', 'True', True]:
+                data[field] = True
+            elif value in ['F', 'False', False]:
+                data[field] = False
+        elif table[field].type == 'double':
+            data[field] = safe_float(data[field])
+    return data

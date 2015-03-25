@@ -13,14 +13,14 @@ from gluon import *
 from gluon.storage import Storage
 from gluon.tools import prettydate
 from applications.zcomx.modules.books import \
+    book_name, \
     get_page, \
     formatted_name, \
-    page_url, \
-    url_name as book_url_name
+    page_url
 from applications.zcomx.modules.creators import \
     can_receive_contributions, \
-    formatted_name as formatted_creator_name, \
-    url_name
+    creator_name, \
+    formatted_name as formatted_creator_name
 from applications.zcomx.modules.search import \
     BookTile, \
     CartoonistTile, \
@@ -276,7 +276,7 @@ class TestGrid(LocalTestCase):
         self.assertEqual(anchor_3['href'], '/?o=creators')
 
     def test__tile_value(self):
-        creator = self.add(db.creator, dict(path_name='test__tile_value'))
+        creator = self.add(db.creator, dict(email='test__tile_value@email.com'))
         name = '_My Book_'
         book_type_id = db(db.book_type).select().first().id
         book = self.add(db.book, dict(
@@ -415,7 +415,7 @@ class TestCreatorMoniesGrid(LocalTestCase):
         self.assertEqual(len(grid.filters()), 0)
 
         # creator is set
-        creator = self.add(db.creator, dict(path_name='Test Filters'))
+        creator = self.add(db.creator, dict(email='test__filters@email.com'))
         grid = CreatorMoniesGrid(creator_entity=creator)
         self.assertEqual(len(grid.filters()), 1)
 
@@ -484,9 +484,11 @@ class TestMoniesBookTile(LocalTestCase):
         # <div class="col-sm-12 name">Test Do Not Delete 01 (of 01)</div>
         div = soup.div
         self.assertEqual(div['class'], 'col-sm-12 name')
-        book_name = formatted_name(
-            db, self._row.book.id, include_publication_year=False)
-        self.assertEqual(div.string, book_name)
+        self.assertEqual(
+            div.string,
+            formatted_name(
+                db, self._row.book.id, include_publication_year=False)
+        )
 
         # Restore
         self._row.creator.paypal_email = save_paypal
@@ -943,7 +945,7 @@ class TestBookTile(LocalTestCase):
         self.assertEqual(
             anchor['href'],
             '/{name}'.format(
-                name=url_name(self._row.creator.id))
+                name=creator_name(self._row.creator.id, use='url'))
         )
         self.assertEqual(anchor['title'], self._row.auth_user.name)
         self.assertEqual(anchor.string, self._row.auth_user.name)
@@ -960,13 +962,13 @@ class TestBookTile(LocalTestCase):
         self.assertEqual(div['class'], 'col-sm-12 name')
         anchor = div.a
         self.assertEqual(anchor['href'], '/{c}/{b}'.format(
-            c=url_name(self._row.creator.id),
-            b=urllib.quote(book_url_name(self._row.book.id))
+            c=creator_name(self._row.creator.id, use='url'),
+            b=urllib.quote(book_name(self._row.book.id, use='url'))
         ))
-        book_name = formatted_name(
+        book_formatted = formatted_name(
             db, self._row.book.id, include_publication_year=True)
-        self.assertEqual(anchor['title'], book_name)
-        self.assertEqual(anchor.string, book_name)
+        self.assertEqual(anchor['title'], book_formatted)
+        self.assertEqual(anchor.string, book_formatted)
 
 
 class TestCartoonistTile(LocalTestCase):
@@ -1012,7 +1014,7 @@ class TestCartoonistTile(LocalTestCase):
         self.assertEqual(
             anchor['href'],
             '/{name}'.format(
-                name=url_name(self._row.creator.id))
+                name=creator_name(self._row.creator.id, use='url'))
         )
 
     def test__footer(self):
@@ -1055,7 +1057,7 @@ class TestCartoonistTile(LocalTestCase):
         self.assertEqual(
             anchor['href'],
             '/{name}'.format(
-                name=url_name(self._row.creator.id))
+                name=creator_name(self._row.creator.id, use='url'))
         )
         self.assertEqual(anchor.string, 'download')
 
@@ -1085,7 +1087,7 @@ class TestCartoonistTile(LocalTestCase):
             self.assertEqual(
                 anchor['href'],
                 '/{name}'.format(
-                    name=url_name(self._row.creator.id))
+                    name=creator_name(self._row.creator.id, use='url'))
             )
             self.assertEqual(anchor['title'], '')
             img = anchor.img
@@ -1106,7 +1108,7 @@ class TestCartoonistTile(LocalTestCase):
             self.assertEqual(
                 anchor['href'],
                 '/{name}'.format(
-                    name=url_name(self._row.creator.id))
+                    name=creator_name(self._row.creator.id, use='url'))
             )
             self.assertEqual(anchor['title'], '')
             div_2 = div.div
@@ -1172,13 +1174,14 @@ class TestCartoonistTile(LocalTestCase):
         self.assertEqual(
             anchor['href'],
             '/{name}'.format(
-                name=url_name(self._row.creator.id))
+                name=creator_name(self._row.creator.id, use='url'))
         )
         self.assertEqual(anchor['title'], self._row.auth_user.name)
         self.assertEqual(anchor.string, self._row.auth_user.name)
 
 
 class TestFunctions(LocalTestCase):
+    _auth_user = None
     _book = None
     _creator = None
 
@@ -1186,8 +1189,12 @@ class TestFunctions(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUp(cls):
+        cls._auth_user = cls.add(db.auth_user, dict(
+            name='First Last',
+        ))
         cls._creator = cls.add(db.creator, dict(
-            path_name='First Last',
+            auth_user_id=cls._auth_user.id,
+            name_for_url='FirstLast',
         ))
         name = '_My Functions Book_'
         book_type_id = db(db.book_type).select().first().id
@@ -1197,6 +1204,7 @@ class TestFunctions(LocalTestCase):
             book_type_id=book_type_id,
             cbz='_fake_cbz_',
             torrent='_fake_torrent_',
+            name_for_url='MyFunctionsBook',
         ))
 
         cls.add(db.book_page, dict(
@@ -1313,19 +1321,19 @@ class TestFunctions(LocalTestCase):
         data = self._parse_link(read_link(self._row()))
         self.assertEqual(data['string'], 'Read')
         self.assertTrue(
-            '/First_Last/_My_Functions_Book__001/001' in data['href'])
+            '/FirstLast/MyFunctionsBook/001' in data['href'])
         self.assertTrue('btn' in data['class'])
 
     def test__torrent_link(self):
         self.assertEqual(torrent_link({}), '')
 
         data = self._parse_link(torrent_link(self._row()))
-        self.assertEqual(data['string'], 'first_last.torrent')
+        self.assertEqual(data['string'], 'FirstLast.torrent')
         self.assertEqual(
             data['href'],
-            '/First_Last_({i}.zco.mx).torrent'.format(i=self._creator.id)
+            '/FirstLast_({i}.zco.mx).torrent'.format(i=self._creator.id)
         )
-        self.assertEqual(data['class'], None)
+        self.assertEqual(data['class'], 'log_download_link')
         self.assertEqual(data['type'], None)
 
 

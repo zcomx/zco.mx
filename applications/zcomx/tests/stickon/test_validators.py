@@ -9,12 +9,14 @@ Test suite for zcomx/modules/stickon/validators.py
 import string
 import unittest
 from gluon import *
+from gluon.storage import Storage
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_ANYCASE, \
     IS_NOT_IN_DB_SCRUBBED, \
     IS_TWITTER_HANDLE, \
-    IS_URL_FOR_DOMAIN
+    IS_URL_FOR_DOMAIN, \
+    as_per_type
 
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -254,6 +256,64 @@ class TestIS_URL_FOR_DOMAIN(LocalTestCase):
             result, error = IS_URL_FOR_DOMAIN(t[0])(t[1])
             self.assertEqual(result, t[2])
             self.assertEqual(error, t[3])
+
+
+class TestFunctions(LocalTestCase):
+    def test__as_per_type(self):
+        table = Storage()
+        table.fields = []
+        values = {
+            'integer': {
+                'integer_none': None,
+                'integer_valid': '123',
+                'integer_invalid': '_invalid_',
+            },
+            'boolean': {
+                'boolean_none': None,
+                'boolean_True': True,
+                'boolean_T': 'T',
+                'boolean_str_True': 'True',
+                'boolean_False': False,
+                'boolean_F': 'F',
+                'boolean_str_False': 'False',
+            },
+            'double': {
+                'double_none': None,
+                'double_valid': '1.23',
+                'double_invalid': '_invalid_',
+            }
+        }
+
+        data = {}
+
+        for field_type, fields in values.items():
+            for k, v in fields.items():
+                table.fields.append(k)
+                table[k] = Storage()
+                table[k].type = field_type
+                data[k] = v
+
+        data['_fake_field_'] = '_fake_value_'
+
+        self.assertEqual(
+            as_per_type(table, data),
+            {
+                'integer_none': None,
+                'integer_valid': 123,
+                'integer_invalid': 0,
+                'boolean_none': None,
+                'boolean_True': True,
+                'boolean_T': True,
+                'boolean_str_True': True,
+                'boolean_False': False,
+                'boolean_F': False,
+                'boolean_str_False': False,
+                'double_none': None,
+                'double_valid': 1.23,
+                'double_invalid': 0.0,
+                '_fake_field_': '_fake_value_',
+            }
+        )
 
 
 def setUpModule():
