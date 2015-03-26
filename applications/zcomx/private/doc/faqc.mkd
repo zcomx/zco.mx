@@ -35,7 +35,9 @@ landscape. For the web, we downsample to resolutions of 750px and
 
 If the image is black and white or uses few colours, we recommend
 exporting to an 8-colour PNG or 16-colour PNG. This will drastically
-reduce the filesize and keep the image crisp.
+reduce the filesize and keep the image crisp.  See [[this wiki page
+http://kb.zco.mx/howto-ps#exporting_to_png_for_the_web]] for more
+information.
 
 
 [[terms]]
@@ -78,9 +80,13 @@ working on are welcome.
 
 As for length, we recommend uploading works of at least eight pages and
 approaching content as if it were being published in print. Shorter
-works could be collected and posted as an anthology.  It is much more
+works could be collected and posted as a anthology.  It is much more
 enjoyable to read a longer anthology by a cartoonist than it is to open
 and close many small cbz files.
+
+For anthologies, be sure the word 'End' is visible on the last page of
+each story and/or add an illustration between the stories to help
+separate them.
 
 
 [[use]]

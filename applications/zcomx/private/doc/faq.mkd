@@ -44,11 +44,6 @@ recently uploaded image listed first.
 **releases** - This is a list of titles that have been released as cbz
 files. The newest releases are listed first.
 
-**contributions** - Readers can support cartoonists through
-contributions. zco.mx hopes to raise a set amount to support specific
-books, and these titles are listed by the minimum amount of money
-remaining for each goal.
-
 **cartoonist** - This is an alphabetical list, by first name, of every
 cartoonist on the site.
 

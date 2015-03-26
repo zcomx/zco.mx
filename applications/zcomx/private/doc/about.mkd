@@ -67,10 +67,11 @@ catches on.
 zco.mx is easy to use and provides howtos for common tasks to ease the
 learning curve for cartoonists wanting to publish digitally for the
 first time. This includes instructions on the following:
-    - Scanning and Photoshop
-    - Information on PNG vs. JPEG vs. GIF
+    - [[Information regarding images http://kb.zco.mx/imginfo]]
+    - [[Scanning http://kb.zco.mx/howto-scan]] and [[Photoshop http://kb.zco.mx/howto-ps]]
+    - [[Backing up files http://kb.zco.mx/howto-backup]]
     - Setting up a Paypal Micropayments account
-    - Copyright licencing
+    - [[Copyright http://kb.zco.mx/cc]] [[licencing http://kb.zco.mx/faqcc]]
 
 
 #### Site Costs
