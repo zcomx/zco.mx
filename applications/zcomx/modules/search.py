@@ -137,6 +137,7 @@ class Grid(object):
             db.book.views,
             db.book.downloads,
             db.book.contributions_remaining,
+            db.book.name_for_url,
             db.book.created_on,
             db.creator.id,
             db.auth_user.name,
@@ -782,8 +783,8 @@ class SearchGrid(Grid):
         if request.vars.kw:
             kw = urlify(request.vars.kw)
             queries.append(
-                (db.book.urlify_name.contains(kw)) |
-                (db.creator.urlify_name.contains(kw))
+                (db.book.name_for_search.contains(kw)) |
+                (db.creator.name_for_search.contains(kw))
             )
         return queries
 

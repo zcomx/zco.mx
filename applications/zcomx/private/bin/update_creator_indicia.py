@@ -147,7 +147,7 @@ def main():
             print 'No creator found, id: {i}'.format(i=record_id)
             quit(1)
 
-        LOG.debug('Updating creator.path_name: %s', creator.path_name)
+        LOG.debug('Updating creator: %s', creator.name_for_url)
 
         if options.clear:
             clear_creator_indicia(creator)

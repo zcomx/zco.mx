@@ -6,13 +6,15 @@ import shutil
 import sys
 from PIL import Image
 from gluon.contrib.simplejson import dumps
-from gluon.validators import urlify
 from applications.zcomx.modules.access import requires_agreed_to_terms
+from applications.zcomx.modules.book_types import \
+    from_id as type_from_id
 from applications.zcomx.modules.book_upload import BookPageUploader
 from applications.zcomx.modules.books import \
+    name_fields, \
     book_pages_as_json, \
     defaults as book_defaults, \
-    numbers_for_book_type, \
+    names, \
     optimize_images, \
     publication_year_range, \
     read_link, \
@@ -36,6 +38,7 @@ from applications.zcomx.modules.job_queue import \
     UpdateIndiciaQueuer
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
+from applications.zcomx.modules.stickon.validators import as_per_type
 from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
@@ -231,8 +234,11 @@ def book_crud():
         if not data:
             return do_error('Invalid data provided')
 
-        if 'name' in data:
-            data['urlify_name'] = urlify(data['name'], maxlen=99999)
+        if request.vars.name in name_fields():
+            data.update(names(
+                dict(book_record.as_dict(), **as_per_type(db.book, data)),
+                fields=db.book.fields
+            ))
 
         query = (db.book.id == book_record.id)
         ret = db(query).validate_and_update(**data)
@@ -252,8 +258,10 @@ def book_crud():
                         for k, v in ret.errors.items()
                     ])
                 }
-        numbers = numbers_for_book_type(db, request.vars.value) \
+
+        numbers = type_from_id(request.vars.value).number_field_statuses() \
             if request.vars.name == 'book_type_id' else None
+
         show_cc_licence_place = False
         cc0_licence_id = cc_licence_by_code('CC0', want='id', default=0)
         if request.vars.name == 'cc_licence_id' \
@@ -305,7 +313,8 @@ def book_edit():
         book_record = entity_to_row(db.book, request.args(0))
 
     book_type_id = book_record.book_type_id if book_record else 0
-    numbers = numbers_for_book_type(db, book_type_id)
+
+    numbers = type_from_id(book_type_id).number_field_statuses()
 
     show_cc_licence_place = False
     meta = None

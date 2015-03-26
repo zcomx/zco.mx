@@ -970,7 +970,6 @@ class TestFunctions(ImageTestCase):
     def test__is_optimized(self):
         image_name = 'creator.image.aaa.000.jpg'
         self.add(db.creator, dict(
-            path_name='Test Is Optimized',
             image=image_name,
         ))
 
@@ -999,7 +998,6 @@ class TestFunctions(ImageTestCase):
     def test__queue_optimize(self):
         creator = self.add(db.creator, dict(
             image='creator.image.aaa.000.jpg',
-            path_name='Test Queue Optimized',
         ))
 
         job_options = {'status': 'd'}   # So tests don't actually run

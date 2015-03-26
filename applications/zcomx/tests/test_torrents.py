@@ -72,7 +72,7 @@ class TorrentTestCase(LocalTestCase):
                     f.write('Testing')
 
         cls._test_creator_path = os.path.join(
-            cls._tmp_dir, 'cbz', 'zco.mx', 'F', 'First Last', 'subdir')
+            cls._tmp_dir, 'cbz', 'zco.mx', 'F', 'FirstLast', 'subdir')
         if not os.path.exists(cls._test_creator_path):
             os.makedirs(cls._test_creator_path)
             for filename in ['a.cbz', 'b.cbz', 'c.cbz']:
@@ -95,11 +95,11 @@ class TestBaseTorrentCreator(TorrentTestCase):
     def test__archive(self):
         tor_creator = SubBaseTorrentCreator()
         tor_creator.set_target(self._test_file)
-        tor_creator.set_destination('F/First Last/file.torrent')
+        tor_creator.set_destination('F/FirstLast/file.torrent')
         tor_file = tor_creator.archive(base_path=self._tmp_dir)
         self.assertEqual(
             tor_file,
-            '/tmp/test_torrent/tor/zco.mx/F/First Last/file.torrent'
+            '/tmp/test_torrent/tor/zco.mx/F/FirstLast/file.torrent'
         )
         self.assertTrue(os.path.exists(tor_file))
 
@@ -219,9 +219,8 @@ class TestBookTorrentCreator(TorrentTestCase):
         self.assertTrue(tor_creator)
 
     def test__archive(self):
-        creator = self.add(db.creator, dict(
-            path_name='First Last',
-        ))
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
         book = self.add(db.book, dict(
             name='My Book',
             creator_id=creator.id,
@@ -239,7 +238,7 @@ class TestBookTorrentCreator(TorrentTestCase):
             tor_file,
             os.path.join(
                 '/tmp/test_torrent/tor/zco.mx',
-                'F/First Last/My Book (1999) ({i}.zco.mx).cbz.torrent'.format(
+                'F/FirstLast/My Book (1999) ({i}.zco.mx).cbz.torrent'.format(
                     i=creator.id)
             )
         )
@@ -248,9 +247,8 @@ class TestBookTorrentCreator(TorrentTestCase):
         self.assertEqual(book_record.torrent, tor_file)
 
     def test__get_destination(self):
-        creator = self.add(db.creator, dict(
-            path_name='First Last',
-        ))
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
 
         book = self.add(db.book, dict(
             name='My Book',
@@ -261,7 +259,7 @@ class TestBookTorrentCreator(TorrentTestCase):
         tor_creator = BookTorrentCreator(book)
         self.assertEqual(
             tor_creator.get_destination(),
-            'F/First Last/My Book (1999) ({i}.zco.mx).cbz.torrent'.format(
+            'F/FirstLast/My Book (1999) ({i}.zco.mx).cbz.torrent'.format(
                 i=creator.id)
         )
 
@@ -289,15 +287,15 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         self.assertRaises(NotFoundError, CreatorTorrentCreator)
 
         creator = self.add(db.creator, dict(
-            path_name='Test Creator Torrent Creator'
+            email='test____init__@gmail.com'
         ))
         tor_creator = CreatorTorrentCreator(creator)
         self.assertTrue(tor_creator)
 
     def test__archive(self):
-        creator = self.add(db.creator, dict(
-            path_name='First Last',
-        ))
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+
         tor_creator = CreatorTorrentCreator(creator)
         # The target cbz directory won't exist
         self.assertRaises(NotFoundError, tor_creator.archive)
@@ -305,41 +303,38 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         tor_creator = CreatorTorrentCreator(creator)
         tor_creator.set_cbz_base_path(self._tmp_dir)
         tor_file = tor_creator.archive(base_path=self._tmp_dir)
-        fmt = '/tmp/test_torrent/tor/zco.mx/F/First Last ({i}.zco.mx).torrent'
+        fmt = '/tmp/test_torrent/tor/zco.mx/F/FirstLast ({i}.zco.mx).torrent'
         self.assertEqual(tor_file, fmt.format(i=creator.id))
 
         creator_record = db(db.creator.id == creator.id).select().first()
         self.assertEqual(creator_record.torrent, tor_file)
 
     def test__get_destination(self):
-        creator = self.add(db.creator, dict(
-            path_name='First Last',
-        ))
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
         self.assertEqual(
             tor_creator.get_destination(),
-            'F/First Last ({cid}.zco.mx).torrent'.format(cid=creator.id)
+            'F/FirstLast ({cid}.zco.mx).torrent'.format(cid=creator.id)
         )
 
     def test__get_target(self):
-        creator = self.add(db.creator, dict(
-            path_name='First Last',
-        ))
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
         self.assertEqual(
             tor_creator.get_target(),
-            'applications/zcomx/private/var/cbz/zco.mx/F/First Last'
+            'applications/zcomx/private/var/cbz/zco.mx/F/FirstLast'
         )
 
     def test__set_cbz_base_path(self):
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
 
-        creator = self.add(db.creator, dict(
-            path_name='First Last',
-        ))
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
         self.assertEqual(tor_creator._cbz_base_path, None)

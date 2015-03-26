@@ -195,6 +195,8 @@ class TestFunctions(LocalTestCase):
                 'downloads': 0,
                 'id': None,
                 'name': None,
+                'name_for_search': None,
+                'name_for_url': None,
                 'number': 1,
                 'of_number': 1,
                 'publication_year': 2015,
@@ -204,14 +206,13 @@ class TestFunctions(LocalTestCase):
                 'releasing': False,
                 'status': True,
                 'torrent': None,
-                'urlify_name': None,
                 'views': 0
             }
         )
 
         all_fields = default_record(db.book)
 
-        ignore_fields = ['book_type_id', 'number', 'rating', 'urlify_name']
+        ignore_fields = ['book_type_id', 'number', 'rating']
         ignored = default_record(db.book, ignore_fields=ignore_fields)
         self.assertEqual(
             sorted(set(all_fields.keys()).difference(set(ignored.keys()))),
