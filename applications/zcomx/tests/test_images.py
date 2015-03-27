@@ -407,7 +407,6 @@ class TestResizeImg(ImageTestCase):
             {
                 'cbz': None,
                 'ori': None,
-                'tbn': None,
                 'web': None,
             }
         )

@@ -70,6 +70,7 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
+from applications.zcomx.modules.indicias import cc_licence_by_code
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
@@ -591,6 +592,8 @@ class TestFunctions(ImageTestCase):
 
         self.assertRaises(NotFoundError, cbz_comment, -1)
 
+        cc_licence_id = cc_licence_by_code('CC BY-ND', want='id', default=0)
+
         book = self.add(db.book, dict(
             name='My Book',
             number=2,
@@ -598,6 +601,7 @@ class TestFunctions(ImageTestCase):
             creator_id=-1,
             publication_year=1999,
             book_type_id=self._type_id_by_name['mini-series'],
+            cc_licence_id=cc_licence_id,
         ))
 
         # Creator record not found
@@ -608,7 +612,10 @@ class TestFunctions(ImageTestCase):
         book.update_record(creator_id=creator.id)
         db.commit()
 
-        fmt = '1999|Test CBZ Comment|My Book|02 (of 04)|http://{cid}.zco.mx'
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+
+        fmt = '1999|Test CBZ Comment|My Book|02 (of 04)|CC BY-ND|http://{cid}.zco.mx'
         self.assertEqual(
             cbz_comment(book),
             fmt.format(cid=creator.id),

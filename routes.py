@@ -64,9 +64,9 @@ DEFAULT_FUNCTIONS = '|'.join([
 ])
 
 
-creator_re = '(?P<creator>.*)'      # Allow everything
-book_re = '(?P<book>.*)'            # Allow everything
-page_re = '(?P<page>[\w.]+)'        # Allow period for extension
+creator_re = r'(?P<creator>[^/]+)'      # Allow everything but slash
+book_re = r'(?P<book>[^/]+)'            # Allow everything but slash
+page_re = r'(?P<page>[\w.]+)'        # Allow period for extension
 
 routes_in = (
     # do not reroute static files
@@ -94,24 +94,24 @@ routes_in = (
     ('/(?P<tor>.*\.torrent)', '/zcomx/torrents/route?torrent=\g<tor>'),
 
     # Assume everything else doesn't match a controller and is a creator/book/page
-    ('/zcomx/{c}/{b}/{p}'.format(c=creator_re, b=book_re, p=page_re),
+    ('/zcomx/{c}/{b}/{p}/?'.format(c=creator_re, b=book_re, p=page_re),
         '/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
     # Handle monies specifically
-    ('/zcomx/{c}/monies'.format(c=creator_re),
+    ('/zcomx/{c}/monies/?'.format(c=creator_re),
         '/zcomx/creators/index?creator=\g<creator>&monies=1'),
-    ('/zcomx/{c}/{b}'.format(c=creator_re, b=book_re),
+    ('/zcomx/{c}/{b}/?'.format(c=creator_re, b=book_re),
         '/zcomx/creators/index?creator=\g<creator>&book=\g<book>'),
-    ('/zcomx/{c}'.format(c=creator_re),
+    ('/zcomx/{c}/?'.format(c=creator_re),
         '/zcomx/creators/index?creator=\g<creator>'),
 
-    ('/{c}/{b}/{p}'.format(c=creator_re, b=book_re, p=page_re),
+    ('/{c}/{b}/{p}/?'.format(c=creator_re, b=book_re, p=page_re),
         '/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
     # Handle monies specifically
-    ('/{c}/monies'.format(c=creator_re),
+    ('/{c}/monies/?'.format(c=creator_re),
         '/zcomx/creators/index?creator=\g<creator>&monies=1'),
-    ('/{c}/{b}'.format(c=creator_re, b=book_re),
+    ('/{c}/{b}/?'.format(c=creator_re, b=book_re),
         '/zcomx/creators/index?creator=\g<creator>&book=\g<book>'),
-    ('/{c}'.format(c=creator_re),
+    ('/{c}/?'.format(c=creator_re),
         '/zcomx/creators/index?creator=\g<creator>'),
 )
 
