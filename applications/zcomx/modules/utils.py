@@ -11,6 +11,7 @@ from gluon import *
 from gluon.dal.objects import Row
 from gluon.html import XmlComponent
 from gluon.languages import lazyT
+from applications.zcomx.modules.zco import Zco
 
 
 class NotFoundError(Exception):
@@ -178,7 +179,7 @@ def faq_tabs(active='faq'):
 def markmin(controller, extra=None):
     """Return data for a controller displaying a markmin doc."""
 
-    current.session.next_url = URL(
+    Zco().next_url = URL(
         c=current.request.controller,
         f=current.request.function,
         args=current.request.args,

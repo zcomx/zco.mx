@@ -6,6 +6,7 @@
 <!--[if IE 8]><html class="ie ie8 ie-lte9 ie-lte8 no-js" lang="{{=T.accepted_language or 'en'}}"> <![endif]-->
 <!--[if IE 9]><html class="ie9 ie-lte9 no-js" lang="{{=T.accepted_language or 'en'}}"> <![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'en'}}"> <!--<![endif]-->
+{{from applications.zcomx.modules.zco import Zco}}
 <head>
 <title>{{if DEBUG:}}{{=request.env.http_host}} {{pass}}{{=response.title or request.application}}</title>
   <!--[if !HTML5]>
@@ -123,7 +124,7 @@
                         </li>
                     {{pass}}
                     <li>
-                        <a href="{{=URL(c='zco.mx.torrent', f='index')}}" class="log_download_link" data-record_table="all">all.torrent</a>
+                        <a href="{{=URL(**Zco().all_torrent_url)}}" class="log_download_link" data-record_table="all">all.torrent</a>
                     </li>
                     </ul>
                 </div>
@@ -151,8 +152,8 @@
             <br>
             env: {{=request.env.query_string}}
             <br>
-            next_url: {{=session.next_url}}
-        </div>
+            session: {{=BEAUTIFY(session)}}
+         </div>
     </div>
     {{pass}}
 

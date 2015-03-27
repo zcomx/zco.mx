@@ -22,6 +22,7 @@ from applications.zcomx.modules.stickon.validators import \
 from applications.zcomx.modules.utils import \
     faq_tabs, \
     markmin
+from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
 
@@ -184,7 +185,7 @@ def about():
 
 def contribute():
     """Contribute to zcomx admin controller"""
-    session.paypal_in_progress = None
+    Zco().paypal_in_progress = None
     redirect(URL(c='contributions', f='paypal', extension=False))
 
 

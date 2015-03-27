@@ -12,6 +12,7 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
 
@@ -62,21 +63,12 @@ def paypal():
     if neither request.vars.book_id nor request.vars.creator_id are provided
         a contribution to zco.mx is presumed.
     request.vars.book_id takes precendence over request.vars.creator_id.
-
-    session.paypal_in_progress:
-        Used to prevent endless loop on browser Back.
-        When the paypal controller is run it redirects automatically to
-        paypal.com. If the user uses the browser Back button, it will redirect
-        from paypal.com back to this controller, which then automatically
-        redirects to paypal.com. The paypal_in_progress session variable is
-        set to prevent this looping. When the controller is first run,
-        session.paypal_in_progress is set to True. When the controller is
-        re-run on browser Back, the value is checked. If True, don't display
-        the page, redirect to next_url.
     """
-    next_url = session.next_url or URL(c='search', f='index')
-    if session.paypal_in_progress:
-        session.paypal_in_progress = None
+    LOG.debug('FIXME paypal() next_url: %s', Zco().next_url)
+    LOG.debug('FIXME paypal() paypal_in_progress: %s', Zco().paypal_in_progress)
+    next_url = Zco().next_url or URL(c='search', f='index')
+    if Zco().paypal_in_progress:
+        Zco().paypal_in_progress = None
         redirect(next_url)
 
     def book_data(book_id_str):
@@ -159,7 +151,7 @@ def paypal():
     return_url = URL(
         c='contributions', f='paypal_notify', scheme='https', host=True)
 
-    session.paypal_in_progress = True
+    Zco().paypal_in_progress = True
 
     return dict(
         amount=data.amount,
@@ -179,15 +171,13 @@ def paypal_notify():
         try:
             book_id = int(request.vars.item_number)
         except (TypeError, ValueError):
-            LOG.error('Invalid book item_number: {i}'.format(
-                i=request.vars.item_number))
+            LOG.error('Invalid book item_number: %s', request.vars.item_number)
             valid = False
 
         try:
             amount = float(request.vars.payment_gross)
         except (TypeError, ValueError):
-            LOG.error('Invalid gross payment: {i}'.format(
-                i=request.vars.payment_gross))
+            LOG.error('Invalid gross payment: %s', request.vars.payment_gross)
             valid = False
         if valid:
             ContributionEvent(book_id, 0).log(amount)
@@ -225,7 +215,7 @@ def widget():
         contributions. Do this before calling.
         If any errors occur, nothing is displayed.
     """
-    session.paypal_in_progress = None
+    Zco().paypal_in_progress = None
     book_record = None
     creator_record = None
     if request.vars.book_id:

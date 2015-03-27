@@ -10,6 +10,7 @@ from applications.zcomx.modules.creators import \
     url as creator_url
 from applications.zcomx.modules.downloaders import TorrentDownloader
 from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
 
@@ -74,7 +75,7 @@ def route():
         urls.suggestions = [
             {
                 'label': 'All torrent:',
-                'url': URL(c='zco.mx.torrent', f='index', host=True),
+                'url': URL(host=True, **(Zco().all_torrent_url)),
             },
         ]
 

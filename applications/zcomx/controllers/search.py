@@ -2,6 +2,7 @@
 """ Search controller."""
 
 from applications.zcomx.modules.search import classified
+from applications.zcomx.modules.zco import Zco
 
 
 def box():
@@ -11,7 +12,7 @@ def box():
 
 def index():
     """Default controller."""
-    session.next_url = URL(
+    Zco().next_url = URL(
         c=request.controller,
         f=request.function,
         args=request.args,

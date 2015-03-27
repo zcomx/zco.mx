@@ -4,6 +4,7 @@
 import cgi
 from gluon.storage import Storage
 from applications.zcomx.modules.routing import Router
+from applications.zcomx.modules.zco import Zco
 
 
 def creator():
@@ -50,7 +51,7 @@ def index():
         response.view = router.view
     if router.view_dict:
         # Set next_url. Used in contributions.py def paypal()
-        session.next_url = request.env.web2py_original_uri
+        Zco().next_url = request.env.web2py_original_uri
         return router.view_dict
 
     # If we get here, we don't have a valid creator
