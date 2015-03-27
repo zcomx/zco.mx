@@ -411,11 +411,17 @@ def cbz_comment(book_entity):
         raise NotFoundError('Creator not found, {e}'.format(
             e=book_record.creator_id))
 
+    cc_licence = entity_to_row(db.cc_licence, book_record.cc_licence_id)
+    if not cc_licence:
+        raise NotFoundError('Cc licence not found, {e}'.format(
+            e=book_record.cc_licence_id))
+
     fields = []
     fields.append(str(book_record.publication_year))
     fields.append(creator_formatted_name(creator_record))
     fields.append(book_record.name)
     fields.append(formatted_number(book_record))
+    fields.append(cc_licence.code)
     fields.append(creator_short_url(creator_record))
     return '|'.join(fields)
 
