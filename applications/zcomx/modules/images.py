@@ -133,7 +133,7 @@ class ResizeImg(TempDirectoryMixin):
             filename: string, name of original image file
         """
         self.filename = filename
-        self.filenames = {'ori': None, 'cbz': None, 'web': None, 'tbn': None}
+        self.filenames = {'ori': None, 'cbz': None, 'web': None}
 
     def run(self, nice='max'):
         """Run the shell script and get the output.
@@ -176,7 +176,7 @@ class ResizeImg(TempDirectoryMixin):
             raise ResizeImgError('Resize failed: {err}'.format(
                 err=p_stderr or p_stdout))
 
-        for prefix in ['ori', 'cbz', 'web', 'tbn']:
+        for prefix in ['ori', 'cbz', 'web']:
             path = os.path.join(
                 self.temp_directory(),
                 '{pfx}-*'.format(pfx=prefix)
@@ -193,6 +193,9 @@ class ResizeImgIndicia(ResizeImg):
     Features:
     * minimal resizing: 'ori' only
     * quick: uses convert command directly, resizes img to max 1600px
+
+    This is used for creator.indicia_image
+    Not used for creator.indicia_landscape and creator.indicia_portrait.
     """
 
     def __init__(self, filename):
