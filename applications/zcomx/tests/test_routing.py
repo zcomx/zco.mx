@@ -1014,13 +1014,21 @@ class TestFunctions(LocalTestCase):
 
             # Creator variations
             ('http://my.domain.com/aaa', "/zcomx/creators/index ?creator=aaa"),
+            ('http://my.domain.com/aaa/', "/zcomx/creators/index ?creator=aaa"),
             ('http://my.domain.com/aaa/bbb', "/zcomx/creators/index ?creator=aaa&book=bbb"),
+            ('http://my.domain.com/aaa/bbb/', "/zcomx/creators/index ?creator=aaa&book=bbb"),
             ('http://my.domain.com/aaa/monies', "/zcomx/creators/index ?creator=aaa&monies=1"),
+            ('http://my.domain.com/aaa/monies/', "/zcomx/creators/index ?creator=aaa&monies=1"),
             ('http://my.domain.com/aaa/bbb/ccc', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
+            ('http://my.domain.com/aaa/bbb/ccc/', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
             ('http://my.domain.com/zcomx/aaa', "/zcomx/creators/index ?creator=aaa"),
+            ('http://my.domain.com/zcomx/aaa/', "/zcomx/creators/index ?creator=aaa"),
             ('http://my.domain.com/zcomx/aaa/bbb', "/zcomx/creators/index ?creator=aaa&book=bbb"),
+            ('http://my.domain.com/zcomx/aaa/bbb/', "/zcomx/creators/index ?creator=aaa&book=bbb"),
             ('http://my.domain.com/zcomx/aaa/monies', "/zcomx/creators/index ?creator=aaa&monies=1"),
+            ('http://my.domain.com/zcomx/aaa/monies/', "/zcomx/creators/index ?creator=aaa&monies=1"),
             ('http://my.domain.com/zcomx/aaa/bbb/ccc', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
+            ('http://my.domain.com/zcomx/aaa/bbb/ccc/', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
 
             # Creators
             ('http://my.domain.com/FirstLast', "/zcomx/creators/index ?creator=FirstLast"),
