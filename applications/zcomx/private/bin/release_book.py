@@ -8,6 +8,7 @@ Script to release a book.
 """
 import datetime
 import logging
+import os
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
     optimize_images as optimize_book_images, \
@@ -26,11 +27,146 @@ VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
 
 
+class Releaser(object):
+    """Class representing a Releaser"""
+
+    def __init__(self, book_id):
+        """Constructor
+
+        Args:
+            book_id: string, first arg
+        """
+        self.book_id = book_id
+        self.book = db(db.book.id == book_id).select().first()
+        if not self.book:
+            raise NotFoundError('Book not found, id: %s', book_id)
+
+        query = (db.creator.id == self.book.creator_id)
+        self.creator = db(query).select().first()
+        if not self.creator:
+            raise NotFoundError(
+                'Creator not found, id: %s', self.book.creator_id)
+        self.needs_requeue = False
+
+    def requeue(self, requeues, max_requeues):
+        """Requeue release job."""
+        if requeues < max_requeues:
+            ReleaseBookQueuer(
+                db.job,
+                cli_options=self.requeue_cli_options(requeues, max_requeues),
+                cli_args=[str(self.book.id)],
+            ).queue()
+
+    def requeue_cli_options(self, requeues, max_requeues):
+        """Return dict of cli options on requeue."""
+        return {
+            '-r': requeues + 1,
+            '-m': max_requeues,
+        }
+
+    def run(self):
+        """Run the release."""
+        raise NotImplementedError()
+
+
+class ReleaseBook(Releaser):
+    """Class representing a ReleaseBook"""
+
+    def __init__(self, book_id):
+        """Constructor
+
+        Args:
+            book_id: string, first arg
+        """
+        super(ReleaseBook, self).__init__(book_id)
+
+    def run(self):
+        """Run the release."""
+
+        if unoptimized_book_images(self.book):
+            optimize_book_images(
+                self.book, priority='optimize_img_for_release')
+            self.needs_requeue = True
+            return
+
+        if unoptimized_creator_images(self.creator):
+            optimize_creator_images(
+                self.creator, priority='optimize_img_for_release')
+            self.needs_requeue = True
+            return
+
+        if not self.book.cbz:
+            CreateCBZQueuer(
+                db.job,
+                cli_args=[str(self.book.id)],
+            ).queue()
+            self.needs_requeue = True
+            return
+
+        if not self.book.torrent:
+            # Create book torrent
+            CreateTorrentQueuer(
+                db.job,
+                cli_args=[str(self.book.id)],
+            ).queue()
+            self.needs_requeue = True
+            return
+
+        # Everythings good. Release the book.
+        self.book.update_record(
+            release_date=datetime.datetime.today(),
+            releasing=False,
+        )
+        db.commit()
+
+
+class UnreleaseBook(Releaser):
+    """Class representing a releaser that reverses the release."""
+
+    def __init__(self, book_id):
+        """Constructor
+
+        Args:
+            book_id: string, first arg
+        """
+        super(UnreleaseBook, self).__init__(book_id)
+
+    def requeue_cli_options(self, requeues, max_requeues):
+        """Return dict of cli options on requeue."""
+        options = super(UnreleaseBook, self).requeue_cli_options(
+            requeues, max_requeues)
+        options.update({'--reverse': True})
+        return options
+
+    def run(self):
+        """Run the release."""
+
+        if self.book.cbz:
+            LOG.debug('Removing cbz file: %s', self.book.cbz)
+            if os.path.exists(self.book.cbz):
+                os.unlink(self.book.cbz)
+
+        if self.book.torrent:
+            LOG.debug('Removing torrent file: %s', self.book.torrent)
+            if os.path.exists(self.book.torrent):
+                os.unlink(self.book.torrent)
+
+        # Everythings good. Unrelease the book.
+        self.book.update_record(
+            cbz=None,
+            torrent=None,
+            release_date=None,
+            releasing=False,
+        )
+        db.commit()
+
+
 def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    release_book.py [OPTIONS] book_id
+    release_book.py [OPTIONS] book_id               # Release book
+    release_book.py [OPTIONS] --reverse book_id     # Reverse the release
 
 OPTIONS
     -h, --help
@@ -47,6 +183,9 @@ OPTIONS
         The script has been requeued NUM times. This value is incremented
         everytime the script is queued. Use in conjunction with --max-requeues
         to prevent endless requeueing.
+
+    --reverse
+        Reverse the release of a book.
 
     -v, --verbose
         Print information messages to stdout.
@@ -80,6 +219,11 @@ def main():
         help='The number of times this script has been requeued.',
     )
     parser.add_option(
+        '--reverse',
+        action='store_true', dest='reverse', default=False,
+        help='Reverse the release.',
+    )
+    parser.add_option(
         '-v', '--verbose',
         action='store_true', dest='verbose', default=False,
         help='Print messages to stdout.',
@@ -109,53 +253,12 @@ def main():
 
     LOG.debug('Starting')
 
-    requeue = False
-
     book_id = args[0]
-    book = db(db.book.id == book_id).select().first()
-    if not book:
-        raise NotFoundError('Book not found, id: %s', book_id)
-
-    creator = db(db.creator.id == book.creator_id).select().first()
-    if not creator:
-        raise NotFoundError('Creator not found, id: %s', book.creator_id)
-
-    if unoptimized_book_images(book):
-        optimize_book_images(book, priority='optimize_img_for_release')
-        requeue = True
-    elif unoptimized_creator_images(creator):
-        optimize_creator_images(creator, priority='optimize_img_for_release')
-        requeue = True
-    elif not book.cbz:
-        CreateCBZQueuer(
-            db.job,
-            cli_args=[str(book.id)],
-        ).queue()
-        requeue = True
-    elif not book.torrent:
-        # Create book torrent
-        CreateTorrentQueuer(
-            db.job,
-            cli_args=[str(book.id)],
-        ).queue()
-        requeue = True
-    else:
-        # Everythings good. Release the book.
-        book.update_record(
-            release_date=datetime.datetime.today(),
-            releasing=False,
-        )
-        db.commit()
-
-    if requeue and options.requeues < options.max_requeues:
-        ReleaseBookQueuer(
-            db.job,
-            cli_options={
-                '-r': options.requeues + 1,
-                '-m': options.max_requeues,
-            },
-            cli_args=[str(book.id)],
-        ).queue()
+    release_class = UnreleaseBook if options.reverse else ReleaseBook
+    releaser = release_class(book_id)
+    releaser.run()
+    if releaser.needs_requeue:
+        releaser.requeue(options.requeues, options.max_requeues)
 
     LOG.debug('Done')
 
