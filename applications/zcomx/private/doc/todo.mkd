@@ -16,6 +16,8 @@ VERSION 2 - Before Going Live
     https://zco.mx/LilliLoge/MyDayOff   ## works
 [x] Thumbnail images are still created in the uploads/tbn directory.
 
+[S] No error emails from cronjobs on zco.mx
+
 [S] Test Release with Jordan's Books
     [S] On release, do we tell them about the indicia image ?
     [S] torrent isn't seeded
