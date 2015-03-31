@@ -15,17 +15,17 @@ VERSION 2 - Before Going Live
     https://zco.mx/LilliLoge/MyDayOff/  ## Page not found
     https://zco.mx/LilliLoge/MyDayOff   ## works
 [x] Thumbnail images are still created in the uploads/tbn directory.
-
-[S] No error emails from cronjobs on zco.mx
+[x] Cartoonist and zcomx.torrent are missing
+    * the cartoonist torrent for Jordan Crane and Roger Langridge's are missing as well as the zcomx.torrent
+    * here is the grep I used, find /srv/http/zco.mx/web2py/ | grep '\.torrent'
+[x] Not receiving error emails from cronjobs on zco.mx
 
 [S] Test Release with Jordan's Books
-    [S] On release, do we tell them about the indicia image ?
-    [S] torrent isn't seeded
-        applications/zcomx/private/var/tor/zco.mx
-
-        [ ] Cartoonist and zcomx.torrent are missing
-            * the cartoonist torrent for Jordan Crane and Roger Langridge's are missing as well as the zcomx.torrent
-            * here is the grep I used, find /srv/http/zco.mx/web2py/ | grep '\.torrent'
+    applications/zcomx/private/var/tor/zco.mx
+    http://pydoc.net/Python/pyrocore/0.4.2/pyrocore.torrent.rtorrent/
+    [S] Load 'all', cartoonist and book torrents
+    [S] Seed 'all', cartoonist and book torrents
+    [S] Reload 'all', cartoonist and book torrents
 
 [S] Email More Cartoonists
 
@@ -115,6 +115,7 @@ VERSION 3
         via rss? and mailing list?
 [ ] Indicia - html version
     Add link for 'Read Next' book
+    Add book links to html indicia page
 [ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] Extend left/right clickable areas while in slider mode
 [ ] All Ages Modal via cookie ?
