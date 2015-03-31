@@ -40,6 +40,8 @@ VERSION 2 - Before Going Live
     In the queue, the highest priority should be cbz images, then web
     and ori images should be the lowest of any job.
 
+[ ] Skip Terms & Conditions if 'admin'
+
 [ ] Do not post book until the cartoonist clicks 'Close'
 
 [ ] Login -> Release Model
