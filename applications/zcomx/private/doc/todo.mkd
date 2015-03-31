@@ -3,8 +3,12 @@ VERSION 2 - Before Going Live
 [x] Figure out backup of images
     Add exclude for cbz and web images to syncbackup script
 [x] http://kb.zco.mx/howto-backup
-
-[S] Update FAQ
+[x] FAQ - What do the sections on the front page mean?
+    Remove 'contributions'
+[x] About Page -> Cartoonist Documentation
+    Add links to kb.zco.mx on 'about' page
+[x] faqc -> What file types can be uploaded?
+    Add link to kb entry for exporting to PNG
 
 [S] Test Release with Keith's Books
     [S] On release, do we tell them about the indicia image ?
@@ -53,6 +57,9 @@ VERSION 2 - Before Going Live
         [/] Upload Modal
             Can we downscale the web images for the thumbnails and remove the
             actual thumbnails?
+
+[S] Add questions to faqc
+    Waiting on Sara
 [S] Make sure everyone has added their paypal address
 [ ] Nice Levels
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
