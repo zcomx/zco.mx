@@ -67,7 +67,7 @@ __v && __md "Start: tally_book_ratings.py"
 $py applications/zcomx/private/bin/tally_book_ratings.py
 
 __v && __md "Start: purge_torrents"
-$py applications/zcomx/private/bin/purge_torrents
+$py applications/zcomx/private/bin/purge_torrents.py
 
 __v && __md "Done ${0##*/}"
 exit 0
