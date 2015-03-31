@@ -12,7 +12,9 @@ the 'all' torrent if necessary.
 # pylint: disable=W0404
 import logging
 from optparse import OptionParser
-from applications.zcomx.modules.job_queue import CreateTorrentQueuer
+from applications.zcomx.modules.job_queue import \
+    CreateAllTorrentQueuer, \
+    CreateCreatorTorrentQueuer
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -87,17 +89,15 @@ def main():
     for creator_id in ids:
         LOG.debug(
             'Queuing job to create torrent for creator, id: %s', creator_id)
-        CreateTorrentQueuer(
+        CreateCreatorTorrentQueuer(
             db.job,
-            cli_options={'-c': True},
             cli_args=[str(creator_id)],
         ).queue()
 
     if len(ids) > 0:
         LOG.debug('Queuing job to create "all" torrent for creator')
-        CreateTorrentQueuer(
+        CreateAllTorrentQueuer(
             db.job,
-            cli_options={'--all': True},
         ).queue()
 
 
