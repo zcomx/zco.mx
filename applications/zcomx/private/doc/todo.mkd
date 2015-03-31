@@ -9,23 +9,52 @@ VERSION 2 - Before Going Live
     Add links to kb.zco.mx on 'about' page
 [x] faqc -> What file types can be uploaded?
     Add link to kb entry for exporting to PNG
+[x] Add the CC licence to the cbz meta data
+    CC BY, CC BY-SA, etc
+[x] Trailing Slash on Book Name
+    https://zco.mx/LilliLoge/MyDayOff/  ## Page not found
+    https://zco.mx/LilliLoge/MyDayOff   ## works
+[x] Thumbnail images are still created in the uploads/tbn directory.
 
-[S] Test Release with Keith's Books
+[S] Test Release with Jordan's Books
     [S] On release, do we tell them about the indicia image ?
     [S] torrent isn't seeded
         applications/zcomx/private/var/tor/zco.mx
+
+        [ ] Cartoonist and zcomx.torrent are missing
+            * the cartoonist torrent for Jordan Crane and Roger Langridge's are missing as well as the zcomx.torrent
+            * here is the grep I used, find /srv/http/zco.mx/web2py/ | grep '\.torrent'
 
 [S] Email More Cartoonists
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
 
-[ ] Add the CC licence to the cbz meta data
-    CC BY, CC BY-SA, etc
+[ ] Optimize Images
+    Add all unoptimized images to the queue
 
-[ ] Trailing Slash on Book Name
-    https://zco.mx/LilliLoge/MyDayOff/  ## Page not found
-    https://zco.mx/LilliLoge/MyDayOff   ## works
+[ ] Separate Optimization of ori, cbz and web images
+    Process the optimization of the ori, cbz and web images separately.
+    In the queue, the highest priority should be cbz images, then web
+    and ori images should be the lowest of any job.
+
+[ ] Do not post book until the cartoonist clicks 'Close'
+
+[ ] Login -> Release Model
+    Now that we require the metadata to be used, I think this can be
+    removed:
+        "Edit the year of publication if necessary.  Published [2014]"
+    It should be the 'To Year' in the metadata.
+
+[ ] Login -> Book Edit -> Copyright Licence
+    The licences should go in this order:
+        CC0
+        CC BY
+        CC BY-SA
+        CC BY-ND
+        CC BY-NC
+        CC BY-NC-SA
+        CC BY-NC-ND
 
 [ ] Front Page/Book Page
     SB 2015-03-25 20:56  we should talk about this
@@ -40,19 +69,21 @@ VERSION 2 - Before Going Live
 
 [ ] Add CC licence to zco.mx footer
     http://www.ycombinator.com/legal/
-                                             [CC BY]
-    Every comics on zco.mx has its own licence.  All
-    other context  on this site is licenced  under a
-                            CC BY 4.0 Int'l licence.
+                                              [CC BY]
+       Every comic on zco.mx has its own licence. All
+       other content on this site is licenced under a
+                             CC BY 4.0 Int'l licence.
 
-                                             [CC BY]
-    Except  where  otherwise noted, content  on this
-    site is licenced under a CC BY 4.0 Int'l licence
+                                              [CC BY]
+    Except  where  otherwise  noted, content  on this
+    site is licenced under a CC BY 4.0 Int'l licence.
 
 [ ] Optimize Pages -- especially the front page
     [ ] look at Q's console
     [ ] caching?
         http://stackoverflow.com/questions/4490140/memcached-vs-varnish-for-speeding-up-3-tier-web-architecture
+        haproxy vs nginx vs stunnel vs pound
+            https://www.digitalocean.com/community/tutorials/how-to-configure-varnish-cache-4-0-with-ssl-termination-on-ubuntu-14-04
         https://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
         [/] Upload Modal
             Can we downscale the web images for the thumbnails and remove the
@@ -60,7 +91,8 @@ VERSION 2 - Before Going Live
 
 [S] Add questions to faqc
     Waiting on Sara
-[S] Make sure everyone has added their paypal address
+[S] Integrity Check Data
+    * Make sure everyone has added their paypal address
 [ ] Nice Levels
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
 [ ] 12354 - Test scripts
