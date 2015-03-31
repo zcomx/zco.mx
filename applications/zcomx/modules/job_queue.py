@@ -29,12 +29,14 @@ PRIORITIES = sorted([
     # Highest
     'optimize_img_for_release',
     'create_cbz',
-    'create_torrent',
+    'create_book_torrent',
     'release_book',
     'optimize_img',
     'update_creator_indicia',
     'delete_book',
     'delete_img',
+    'create_creator_torrent',
+    'create_all_torrent',
     'log_downloads',
     # Lowest
 ], reverse=True)
@@ -554,10 +556,10 @@ class CreateCBZQueuer(JobQueuer):
 
 
 class CreateTorrentQueuer(JobQueuer):
-    """Class representing a queuer for create_torrent jobs."""
+    """Class representing a queuer for create torrent jobs."""
     program = os.path.join(JobQueuer.bin_path, 'create_torrent.py')
     default_job_options = {
-        'priority': PRIORITIES.index('create_torrent'),
+        'priority': PRIORITIES.index('create_book_torrent'),
         'status': 'a',
     }
     valid_cli_options = [
@@ -566,6 +568,36 @@ class CreateTorrentQueuer(JobQueuer):
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal
+
+
+class CreateAllTorrentQueuer(CreateTorrentQueuer):
+    """Class representing a queuer for create_all_torrent jobs."""
+    default_job_options = dict(CreateTorrentQueuer.default_job_options)
+    default_job_options['priority'] = PRIORITIES.index('create_all_torrent')
+    default_cli_options = {'--all': True}
+    valid_cli_options = [
+        '-a', '--all',
+        '-v', '--vv',
+    ]
+
+
+class CreateBookTorrentQueuer(CreateTorrentQueuer):
+    """Class representing a queuer for create_book_torrent jobs."""
+    valid_cli_options = [
+        '-v', '--vv',
+    ]
+
+
+class CreateCreatorTorrentQueuer(CreateTorrentQueuer):
+    """Class representing a queuer for create_creator_torrent jobs."""
+    default_job_options = dict(CreateTorrentQueuer.default_job_options)
+    default_job_options['priority'] = \
+        PRIORITIES.index('create_creator_torrent')
+    default_cli_options = {'--creator': True}
+    valid_cli_options = [
+        '-c', '--creator',
+        '-v', '--vv',
+    ]
 
 
 class DeleteBookQueuer(JobQueuer):

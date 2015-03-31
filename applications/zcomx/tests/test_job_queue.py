@@ -14,7 +14,10 @@ import time
 import unittest
 from applications.zcomx.modules.job_queue import \
     CLIOption, \
+    CreateAllTorrentQueuer, \
+    CreateBookTorrentQueuer, \
     CreateCBZQueuer, \
+    CreateCreatorTorrentQueuer, \
     CreateTorrentQueuer, \
     Daemon, \
     DaemonSignalError, \
@@ -117,6 +120,54 @@ class TestCLIOption(LocalTestCase):
             self.assertEqual(str(cli_option), t[2])
 
 
+class TestCreateAllTorrentQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = CreateAllTorrentQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'-v': True},
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/create_torrent.py --all -v'
+        )
+
+        queuer.cli_options.update({'--creator': True})
+        self.assertRaises(InvalidCLIOptionError, queuer.queue)
+
+
+class TestCreateBookTorrentQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = CreateBookTorrentQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'-v': True},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/create_torrent.py -v 123'
+        )
+
+        queuer.cli_options = {'--creator': True}
+        self.assertRaises(InvalidCLIOptionError, queuer.queue)
+
+        queuer.cli_options = {'--all': True}
+        self.assertRaises(InvalidCLIOptionError, queuer.queue)
+
+
 class TestCreateCBZQueuer(LocalTestCase):
 
     def test_queue(self):
@@ -135,6 +186,29 @@ class TestCreateCBZQueuer(LocalTestCase):
             job.command,
             'applications/zcomx/private/bin/create_cbz.py -v 123'
         )
+
+
+class TestCreateCreatorTorrentQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = CreateCreatorTorrentQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'-v': True},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/create_torrent.py --creator -v 123'
+        )
+
+        queuer.cli_options.update({'--all': True})
+        self.assertRaises(InvalidCLIOptionError, queuer.queue)
 
 
 class TestCreateTorrentQueuer(LocalTestCase):
