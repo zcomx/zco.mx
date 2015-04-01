@@ -11,7 +11,6 @@ import os
 import urlparse
 from gluon import *
 from gluon.dal.objects import REGEX_STORE_PATTERN
-from gluon.storage import Storage
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import \
@@ -21,9 +20,7 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
-    ImgTag, \
-    is_optimized, \
-    queue_optimize
+    ImgTag
 from applications.zcomx.modules.names import \
     BookName, \
     BookNumber, \
@@ -773,6 +770,44 @@ def get_page(book_entity, page_no=1):
     return book_page
 
 
+def images(book_entity):
+    """Return a list of image names associated with the book.
+
+    This includes images associated with the book and any of the book
+    pages.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+
+    Returns:
+        list of strings, list of image names. Eg of an image name:
+            book_page.image.801685b627e099e.300332e6a7067.jpg
+    """
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    image_names = []
+
+    for field in db.book.fields:
+        if db.book[field].type != 'upload':
+            continue
+        if not book[field]:
+            continue
+        image_names.append(book[field])
+
+    for page in book_pages(book):
+        for field in db.book_page.fields:
+            if db.book_page[field].type != 'upload':
+                continue
+            if not page.book_page[field]:
+                continue
+            image_names.append(page.book_page[field])
+
+    return image_names
+
+
 def magnet_link(book_entity, components=None, **attributes):
     """Return a link suitable for the magnet for a book.
 
@@ -880,55 +915,6 @@ def names(book, fields=None):
         ),
         fields=fields
     )
-
-
-def optimize_images(
-        book_entity,
-        priority='optimize_img',
-        job_options=None,
-        cli_options=None):
-    """Optimize all images related to a book.
-
-    Args:
-        book_entity: Row instance or integer representing a book.
-        priority: string, priority key, one of PROIRITIES
-        job_options: dict, job record attributes used for JobQueuer property
-        cli_options: dict, options for job command
-    """
-    db = current.app.db
-    book = entity_to_row(db.book, book_entity)
-    if not book:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
-
-    jobs = []
-
-    for field in db.book.fields:
-        if db.book[field].type != 'upload' or not book[field]:
-            continue
-        jobs.append(
-            queue_optimize(
-                book[field],
-                priority=priority,
-                job_options=job_options,
-                cli_options=cli_options
-            )
-        )
-
-    query = (db.book_page.book_id == book.id)
-    for book_page in db(query).select():
-        for field in db.book_page.fields:
-            if db.book_page[field].type != 'upload' or not book_page[field]:
-                continue
-            jobs.append(
-                queue_optimize(
-                    book_page[field],
-                    priority=priority,
-                    job_options=job_options,
-                    cli_options=cli_options
-                )
-            )
-
-    return jobs
 
 
 def orientation(book_page_entity):
@@ -1078,7 +1064,7 @@ def release_barriers(book_entity):
             'code': 'no_name',
             'reason': 'The book has no name.',
             'description': (
-                'Cbz and torrent files are named after the book name. '
+                'CBZ and torrent files are named after the book name. '
                 'Without a name these files cannot be created.'
             ),
             'fixes': [
@@ -1107,7 +1093,7 @@ def release_barriers(book_entity):
             'code': 'dupe_name',
             'reason': 'You already released a book with the same name.',
             'description': (
-                'Cbz and torrent files are named after the book name. '
+                'CBZ and torrent files are named after the book name. '
                 'The name of the book must be unique.'
             ),
             'fixes': [
@@ -1129,7 +1115,7 @@ def release_barriers(book_entity):
             'reason':
                 'You already released a book with the same name and number.',
             'description': (
-                'Cbz and torrent files are named after the book name. '
+                'CBZ and torrent files are named after the book name. '
                 'The name/number of the book must be unique.'
             ),
             'fixes': [
@@ -1431,47 +1417,6 @@ def torrent_url(book_entity, **url_kwargs):
         f='{name}.torrent'.format(name=name),
         **kwargs
     )
-
-
-def unoptimized_images(book_entity):
-    """Return a list of unoptimized images related to a book.
-
-    Images are deemed unoptimized if there is no optimize_img_log record
-    indicating it has been optimized.
-
-    Args:
-        book_entity: Row instance or integer representing a book.
-
-    Returns:
-        list of strings, [image_name_1, image_name_2, ...]
-            eg image name: book_page.image.801685b627e099e.300332e6a7067.jpg
-    """
-    db = current.app.db
-    book = entity_to_row(db.book, book_entity)
-    if not book:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
-
-    unoptimals = []
-
-    for field in db.book.fields:
-        if db.book[field].type != 'upload':
-            continue
-        if not book[field]:
-            continue
-        if not is_optimized(book[field]):
-            unoptimals.append(book[field])
-
-    query = (db.book_page.book_id == book.id)
-    for book_page in db(query).select():
-        for field in db.book_page.fields:
-            if db.book_page[field].type != 'upload':
-                continue
-            if not book_page[field]:
-                continue
-            if not is_optimized(book_page[field]):
-                unoptimals.append(book_page[field])
-
-    return unoptimals
 
 
 def update_contributions_remaining(db, book_entity):

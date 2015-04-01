@@ -11,11 +11,11 @@ import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
-    optimize_images as optimize_book_images, \
-    unoptimized_images as unoptimized_book_images
+    images as book_images
 from applications.zcomx.modules.creators import \
-    optimize_images as optimize_creator_images, \
-    unoptimized_images as unoptimized_creator_images
+    images as creator_images
+from applications.zcomx.modules.images_optimize import \
+    CBZImagesForRelease
 from applications.zcomx.modules.job_queue import \
     CreateCBZQueuer, \
     CreateTorrentQueuer, \
@@ -51,11 +51,12 @@ class Releaser(object):
     def requeue(self, requeues, max_requeues):
         """Requeue release job."""
         if requeues < max_requeues:
-            ReleaseBookQueuer(
+            queuer = ReleaseBookQueuer(
                 db.job,
                 cli_options=self.requeue_cli_options(requeues, max_requeues),
                 cli_args=[str(self.book.id)],
-            ).queue()
+            )
+            queuer.queue()
 
     def requeue_cli_options(self, requeues, max_requeues):
         """Return dict of cli options on requeue."""
@@ -83,15 +84,16 @@ class ReleaseBook(Releaser):
     def run(self):
         """Run the release."""
 
-        if unoptimized_book_images(self.book):
-            optimize_book_images(
-                self.book, priority='optimize_img_for_release')
+        book_image_set = CBZImagesForRelease.from_names(book_images(self.book))
+        if book_image_set.has_unoptimized():
+            book_image_set.optimize()
             self.needs_requeue = True
             return
 
-        if unoptimized_creator_images(self.creator):
-            optimize_creator_images(
-                self.creator, priority='optimize_img_for_release')
+        creator_image_set = CBZImagesForRelease.from_names(
+            creator_images(self.creator))
+        if creator_image_set.has_unoptimized():
+            creator_image_set.optimize()
             self.needs_requeue = True
             return
 
@@ -252,7 +254,6 @@ def main():
         exit(1)
 
     LOG.debug('Starting')
-
     book_id = args[0]
     release_class = UnreleaseBook if options.reverse else ReleaseBook
     releaser = release_class(book_id)

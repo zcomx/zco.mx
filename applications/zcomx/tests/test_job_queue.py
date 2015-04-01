@@ -28,8 +28,12 @@ from applications.zcomx.modules.job_queue import \
     InvalidStatusError, \
     JobQueuer, \
     LogDownloadsQueuer, \
+    OptimizeCBZImgForReleaseQueuer, \
+    OptimizeCBZImgQueuer, \
     OptimizeImgQueuer, \
-    OptimizeImgForReleaseQueuer, \
+    OptimizeOriginalImgQueuer, \
+    OptimizeWebImgQueuer, \
+    PRIORITIES, \
     Queue, \
     QueueEmptyError, \
     QueueLockedError, \
@@ -337,7 +341,7 @@ class TestDeleteImgQueuer(LocalTestCase):
         queuer = DeleteImgQueuer(
             db.job,
             job_options={'status': 'd'},
-            cli_options={'-f': True, '-p': 'my_priority'},
+            cli_options={'-f': True},
         )
         tracker = TableTracker(db.job)
         job = queuer.queue()
@@ -348,7 +352,7 @@ class TestDeleteImgQueuer(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/process_img.py --delete -f -p my_priority'
+            'applications/zcomx/private/bin/process_img.py --delete -f'
         )
 
 
@@ -483,13 +487,61 @@ class TestLogDownloadsQueuer(LocalTestCase):
         )
 
 
+class TestOptimizeCBZImgQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = OptimizeCBZImgQueuer(
+            db.job,
+            job_options={'status': 'd'},
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.priority,
+            PRIORITIES.index('optimize_cbz_img')
+        )
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/process_img.py --size cbz'
+        )
+
+
+class TestOptimizeCBZImgForReleaseQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = OptimizeCBZImgForReleaseQueuer(
+            db.job,
+            job_options={'status': 'd'},
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.priority,
+            PRIORITIES.index('optimize_cbz_img_for_release')
+        )
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/process_img.py --size cbz'
+        )
+
+
 class TestOptimizeImgQueuer(LocalTestCase):
 
     def test_queue(self):
         queuer = OptimizeImgQueuer(
             db.job,
             job_options={'status': 'd'},
-            cli_options={'-f': True, '-p': 'my_priority'},
+            cli_options={'-f': True},
         )
         tracker = TableTracker(db.job)
         job = queuer.queue()
@@ -500,17 +552,16 @@ class TestOptimizeImgQueuer(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/process_img.py -f -p my_priority'
+            'applications/zcomx/private/bin/process_img.py -f'
         )
 
 
-class TestOptimizeImgForReleaseQueuer(LocalTestCase):
+class TestOptimizeOriginalImgQueuer(LocalTestCase):
 
     def test_queue(self):
-        queuer = OptimizeImgForReleaseQueuer(
+        queuer = OptimizeOriginalImgQueuer(
             db.job,
             job_options={'status': 'd'},
-            cli_options={'--force': '2013-12-31'},
         )
         tracker = TableTracker(db.job)
         job = queuer.queue()
@@ -520,8 +571,36 @@ class TestOptimizeImgForReleaseQueuer(LocalTestCase):
         # C0301: *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         self.assertEqual(
+            job.priority,
+            PRIORITIES.index('optimize_original_img')
+        )
+        self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/process_img.py --force 2013-12-31'
+            'applications/zcomx/private/bin/process_img.py --size original'
+        )
+
+
+class TestOptimizeWebImgQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = OptimizeWebImgQueuer(
+            db.job,
+            job_options={'status': 'd'},
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.priority,
+            PRIORITIES.index('optimize_web_img')
+        )
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/process_img.py --size web'
         )
 
 

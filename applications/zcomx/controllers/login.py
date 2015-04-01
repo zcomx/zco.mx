@@ -14,8 +14,8 @@ from applications.zcomx.modules.books import \
     name_fields, \
     book_pages_as_json, \
     defaults as book_defaults, \
+    images, \
     names, \
-    optimize_images, \
     publication_year_range, \
     read_link, \
     release_barriers
@@ -24,9 +24,9 @@ from applications.zcomx.modules.creators import \
     queue_update_indicia
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
-    on_add_image, \
     on_delete_image, \
     store
+from applications.zcomx.modules.images_optimize import AllSizesImages
 from applications.zcomx.modules.indicias import \
     CreatorIndiciaPage, \
     PublicationMetadata, \
@@ -500,7 +500,7 @@ def book_post_image_upload():
         return do_error('Reorder service unavailable')
 
     # Step 1:  Trigger optimization of book images
-    optimize_images(book_record)
+    AllSizesImages.from_names(images(book_record)).optimize()
 
     # Step 2: Reorder book pages
     if 'book_page_ids[]' not in request.vars:
@@ -766,7 +766,7 @@ def creator_img_handler():
         creator_record.update_record(**data)
         db.commit()
         if img_changed:
-            on_add_image(creator_record[img_field])
+            AllSizesImages.from_names([creator_record[img_field]]).optimize()
         return image_as_json(db, creator_record.id, field=img_field)
 
     elif request.env.request_method == 'DELETE':

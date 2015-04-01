@@ -10,7 +10,6 @@ import ast
 import datetime
 import os
 import shutil
-import time
 import unittest
 import urlparse
 from BeautifulSoup import BeautifulSoup
@@ -45,11 +44,11 @@ from applications.zcomx.modules.books import \
     formatted_name, \
     formatted_number, \
     get_page, \
+    images, \
     magnet_link, \
     magnet_uri, \
     name_fields, \
     names, \
-    optimize_images, \
     orientation, \
     page_url, \
     publication_year_range, \
@@ -63,13 +62,10 @@ from applications.zcomx.modules.books import \
     torrent_file_name, \
     torrent_link, \
     torrent_url, \
-    unoptimized_images, \
     update_contributions_remaining, \
     update_rating, \
     url
-from applications.zcomx.modules.images import \
-    UploadImage, \
-    store
+from applications.zcomx.modules.images import store
 from applications.zcomx.modules.indicias import cc_licence_by_code
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
@@ -845,12 +841,12 @@ class TestFunctions(ImageTestCase):
         for book_entity in [book, book.id]:
             self.assertEqual(str(cover_image(db, book_entity)), placeholder)
 
-        images = [
+        book_images = [
             'book_page.image.page_trees.png',
             'book_page.image.page_flowers.png',
             'book_page.image.page_birds.png',
         ]
-        for count, i in enumerate(images):
+        for count, i in enumerate(book_images):
             self.add(db.book_page, dict(
                 book_id=book.id,
                 page_no=(count + 1),
@@ -1147,6 +1143,29 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(indicia.page_no, last.page_no + 1)
         self.assertEqual(indicia.image, None)
 
+    def test__images(self):
+        book = self.add(db.book, dict(
+            name='test_images'
+        ))
+
+        book_page_1 = self.add(db.book_page, dict(
+            book_id=book.id
+        ))
+
+        book_page_2 = self.add(db.book_page, dict(
+            book_id=book.id
+        ))
+
+        self.assertEqual(images(book), [])
+
+        book_page_1.update_record(image='a.1.jpg')
+        db.commit()
+        self.assertEqual(images(book), ['a.1.jpg'])
+
+        book_page_2.update_record(image='b.2.jpg')
+        db.commit()
+        self.assertEqual(sorted(images(book)), ['a.1.jpg', 'b.2.jpg'])
+
     def test__magnet_link(self):
         book = self.add(db.book, dict(
             name='My Book',
@@ -1317,77 +1336,6 @@ class TestFunctions(ImageTestCase):
                 'name_for_url': 'MyBook-02of09',
             }
         )
-
-    def test__optimize_images(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
-        book = self.add(db.book, dict(
-            name='Test Optimize Images'
-        ))
-
-        stored_filename = store(
-            db.book_page.image,
-            self._prep_image('unoptimized.png'),
-        )
-
-        page_1 = self.add(db.book_page, dict(
-            book_id=book.id,
-            page_no=1,
-            image=stored_filename,
-        ))
-
-        stored_filename = store(
-            db.book_page.image,
-            self._prep_image('unoptimized.png'),
-        )
-
-        page_2 = self.add(db.book_page, dict(
-            book_id=book.id,
-            page_no=2,
-            image=stored_filename,
-        ))
-
-        def get_sizes():
-            sizes = {}
-            for page in [page_1, page_2]:
-                up_image = UploadImage(db.book_page.image, page.image)
-                if page.id not in sizes:
-                    sizes[page.id] = {}
-                for size in ['original', 'cbz', 'web']:
-                    name = up_image.fullname(size=size)
-                    if os.path.exists(name):
-                        sizes[page.id][size] = os.stat(name).st_size
-            return sizes
-
-        before_sizes = get_sizes()
-
-        cli_options = {'--vv': True, '--uploads-path': self._image_dir}
-        jobs = optimize_images(book, cli_options=cli_options)
-        self.assertEqual(len(jobs), 2)
-
-        tries = 20
-        while tries > 0:
-            time.sleep(1)          # Wait for jobs to complete.
-            got = db(db.job.id.belongs([x.id for x in jobs])).select()
-            if len(got) == 0:
-                break
-            tries = tries - 1
-            if tries == 0:
-                self.fail('Jobs not done in expected time.')
-
-        after_sizes = get_sizes()
-
-        for page in [page_1, page_2]:
-            for size in before_sizes[page.id].keys():
-                self.assertTrue(
-                    after_sizes[page.id][size] < before_sizes[page.id][size])
-
-        # Cleanup
-        for page in [page_1, page_2]:
-            query = db.optimize_img_log.image == page.image
-            db(query).delete()
-        db.commit()
 
     def test__orientation(self):
         if self._opts.quick:
@@ -2034,54 +1982,6 @@ class TestFunctions(ImageTestCase):
         db.commit()
         self.assertEqual(
             torrent_url(book), '/FirstLast/MyBook-03of09.torrent')
-
-    def test__unoptimized_images(self):
-        book = self.add(db.book, dict(
-            name='Test Unoptmized Images'
-        ))
-
-        # No pages, no images, no unoptimized
-        self.assertEqual(unoptimized_images(book), [])
-
-        # Has pages, no logs, all should be unoptmized.
-
-        self.add(db.book_page, dict(
-            book_id=book.id,
-            page_no=1,
-            image='book_page.image.aaa.111.jpg',
-        ))
-
-        self.add(db.book_page, dict(
-            book_id=book.id,
-            page_no=2,
-            image='book_page.image.bbb.222.png',
-        ))
-
-        self.assertEqual(
-            unoptimized_images(book),
-            [
-                'book_page.image.aaa.111.jpg',
-                'book_page.image.bbb.222.png',
-            ]
-        )
-
-        # Has some logs, some unoptimized
-        self.add(db.optimize_img_log, dict(
-            image='book_page.image.aaa.111.jpg',
-        ))
-        self.assertEqual(
-            unoptimized_images(book),
-            [
-                'book_page.image.bbb.222.png',
-            ]
-        )
-
-        # Has all logs, none unoptimized
-        self.add(db.optimize_img_log, dict(
-            image='book_page.image.bbb.222.png',
-        ))
-
-        self.assertEqual(unoptimized_images(book), [])
 
     def test__update_rating(self):
         book = self.add(db.book, dict(name='test__update_rating'))

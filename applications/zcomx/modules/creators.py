@@ -10,9 +10,6 @@ import os
 from gluon import *
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.files import for_file
-from applications.zcomx.modules.images import \
-    is_optimized, \
-    queue_optimize
 from applications.zcomx.modules.job_queue import \
     UpdateIndiciaQueuer
 from applications.zcomx.modules.names import \
@@ -223,17 +220,17 @@ def image_as_json(db, creator_entity, field='image'):
             the creator. The creator record is read.
         field: string, the name of the creator field to get the image from.
     """
-    images = []
+    image_attributes = []
     creator_record = entity_to_row(db.creator, creator_entity)
     if not creator_record:
-        return dumps(dict(files=images))
+        return dumps(dict(files=image_attributes))
 
     if field not in db.creator.fields:
         LOG.error('Invalid creator image field: %s', field)
-        return dumps(dict(files=images))
+        return dumps(dict(files=image_attributes))
 
     if not creator_record[field]:
-        return dumps(dict(files=images))
+        return dumps(dict(files=image_attributes))
 
     filename, original_fullname = db.creator[field].retrieve(
         creator_record[field],
@@ -264,7 +261,7 @@ def image_as_json(db, creator_entity, field='image'):
         args=[field]
     )
 
-    images.append(
+    image_attributes.append(
         dict(
             name=filename,
             size=size,
@@ -275,7 +272,32 @@ def image_as_json(db, creator_entity, field='image'):
         )
     )
 
-    return dumps(dict(files=images))
+    return dumps(dict(files=image_attributes))
+
+
+def images(creator_entity):
+    """Return a list of image names associated with the creator.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator record.
+
+    Returns:
+        list of strings, list of image names. Eg of an image name:
+            creator.image.801685b627e099e.300332e6a7067.jpg
+    """
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
+
+    image_names = []
+    for field in db.creator.fields:
+        if db.creator[field].type != 'upload':
+            continue
+        if not creator[field]:
+            continue
+        image_names.append(creator[field])
+    return image_names
 
 
 def on_change_name(creator_entity):
@@ -299,41 +321,6 @@ def on_change_name(creator_entity):
     if update_data:
         db(db.creator.id == creator.id).update(**update_data)
         db.commit()
-
-
-def optimize_images(
-        creator_entity,
-        priority='optimize_img',
-        job_options=None,
-        cli_options=None):
-    """Optimize all images related to a creator.
-
-    Args:
-        creator_entity: Row instance or integer representing a creator.
-        priority: string, priority key, one of PROIRITIES
-        job_options: dict, job record attributes used for JobQueuer property
-        cli_options: dict, options for job command
-    """
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise NotFoundError('Book not found, {e}'.format(e=creator_entity))
-
-    jobs = []
-
-    for field in db.creator.fields:
-        if db.creator[field].type != 'upload' or not creator[field]:
-            continue
-        jobs.append(
-            queue_optimize(
-                creator[field],
-                priority=priority,
-                job_options=job_options,
-                cli_options=cli_options
-            )
-        )
-
-    return jobs
 
 
 def profile_onaccept(form):
@@ -503,37 +490,6 @@ def torrent_url(creator_entity, **url_kwargs):
         f='index',
         **kwargs
     )
-
-
-def unoptimized_images(creator_entity):
-    """Return a list of unoptimized images related to a creator.
-
-    Images are deemed unoptimized if there is no optimize_img_log record
-    indicating it has been optimized.
-
-    Args:
-        creator_entity: Row instance or integer representing a creator.
-
-    Returns:
-        list of strings, [image_name_1, image_name_2, ...]
-            eg image name: creator.image.801685b627e099e.300332e6a7067.jpg
-    """
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
-
-    unoptimals = []
-
-    for field in db.creator.fields:
-        if db.creator[field].type != 'upload':
-            continue
-        if not creator[field]:
-            continue
-        if not is_optimized(creator[field]):
-            unoptimals.append(creator[field])
-
-    return unoptimals
 
 
 def url(creator_entity, **url_kwargs):
