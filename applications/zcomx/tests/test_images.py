@@ -266,7 +266,7 @@ class TestCreatorImgTag(ImageTestCase):
             {'_class': 'preview placeholder_torso'}
         )
 
-        img_tag = CreatorImgTag(None, size='tbn')
+        img_tag = CreatorImgTag(None, size='web')
         self.assertEqual(img_tag.attributes, {})
         img_tag.set_placeholder()
         self.assertEqual(
@@ -331,17 +331,17 @@ class TestImgTag(ImageTestCase):
         has_attr(get_tag(tag, 'img'), 'src', self._creator.image, oper='in')
         has_attr(get_tag(tag, 'img'), 'src', 'size=original', oper='in')
 
-        img_tag = ImgTag(self._creator.image, size='tbn')
+        img_tag = ImgTag(self._creator.image, size='web')
         tag = img_tag()
-        has_attr(get_tag(tag, 'img'), 'src', 'size=tbn', oper='in')
+        has_attr(get_tag(tag, 'img'), 'src', 'size=web', oper='in')
 
         # Test no image
         img_tag = ImgTag(None)
         tag = img_tag()
         has_attr(get_tag(tag, 'div'), 'class', 'portrait_placeholder')
-        img_tag = ImgTag(None, size='tbn')
+        img_tag = ImgTag(None, size='web')
         tag = img_tag()
-        has_attr(get_tag(tag, 'div'), 'class', 'placeholder_170x170')
+        has_attr(get_tag(tag, 'div'), 'class', 'portrait_placeholder')
 
         # Test: provide tag
         img_tag = ImgTag(self._creator.image, tag=SPAN)
@@ -380,10 +380,11 @@ class TestImgTag(ImageTestCase):
             {'_class': 'portrait_placeholder'}
         )
 
-        img_tag = ImgTag(None, size='tbn')
+        img_tag = ImgTag(None, size='web')
         self.assertEqual(img_tag.attributes, {})
         img_tag.set_placeholder()
-        self.assertEqual(img_tag.attributes, {'_class': 'placeholder_170x170'})
+        self.assertEqual(
+            img_tag.attributes, {'_class': 'portrait_placeholder'})
 
         attrs = {'_id': 'img_id', '_class': 'img_class'}
         img_tag = ImgTag(None, attributes=attrs)

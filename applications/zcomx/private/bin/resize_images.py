@@ -141,11 +141,6 @@ class ImageHandler(object):
             data = {field.name: stored_filename}
             db(field.table.id == record_id).update(**data)
             db.commit()
-            up_image = UploadImage(field, stored_filename)
-            if str(field) == 'book_page.image':
-                set_thumb_dimensions(
-                    db, record_id, up_image.dimensions(size='tbn')
-                )
             if tmp_dir:
                 shutil.rmtree(tmp_dir)
 

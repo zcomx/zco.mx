@@ -30,7 +30,6 @@ SIZES = [
     'original',
     'cbz',
     'web',
-    'tbn',
 ]
 
 
@@ -90,8 +89,7 @@ class ImgTag(object):
 
     def set_placeholder(self):
         """Set the attributes for the placeholder."""
-        class_name = 'placeholder_170x170' \
-            if self.size == 'tbn' else 'portrait_placeholder'
+        class_name = 'portrait_placeholder'
         if '_class' in self.attributes:
             self.attributes['_class'] = '{c1} {c2}'.format(
                 c1=self.attributes['_class'],

@@ -566,33 +566,6 @@ def cover_image(db, book_entity, size='original', img_attributes=None):
 
     attributes = {'_alt': ''}
 
-    if size == 'tbn':
-        thumb_w = thumb_h = 170
-        if not first_page:
-            # Create a dummy book_page record
-            first_page = Storage(
-                thumb_w=thumb_w,
-                thumb_h=thumb_h,
-            )
-
-        fmt = ' '.join([
-            'width: {w}px;',
-            'height: {h}px;',
-            'margin: {pv}px {pr}px {pv}px {pl}px;',
-        ])
-        width = first_page.thumb_w
-        height = first_page.thumb_h
-        padding_vertical = (thumb_h - height) / 2
-        if padding_vertical < 0:
-            padding_vertical = 0
-        attributes['_style'] = fmt.format(
-            w=width,
-            h=height,
-            pl=0,
-            pr=0,
-            pv=padding_vertical,
-        )
-
     if img_attributes:
         attributes.update(img_attributes)
 

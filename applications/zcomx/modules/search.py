@@ -1055,7 +1055,7 @@ class CartoonistTile(Tile):
         creator_image = A(
             CreatorImgTag(
                 creator.image,
-                size='tbn',
+                size='web',
                 attributes={'_alt': row.auth_user.name}
             )(),
             _href=self.creator_href,
