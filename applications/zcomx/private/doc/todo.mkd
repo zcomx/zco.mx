@@ -20,12 +20,26 @@ VERSION 2 - Before Going Live
     * here is the grep I used, find /srv/http/zco.mx/web2py/ | grep '\.torrent'
 [x] Not receiving error emails from cronjobs on zco.mx
 
-[S] Test Release with Jordan's Books
+[S] Get Torrents Working
     applications/zcomx/private/var/tor/zco.mx
-    http://pydoc.net/Python/pyrocore/0.4.2/pyrocore.torrent.rtorrent/
-    [S] Load 'all', cartoonist and book torrents
-    [S] Seed 'all', cartoonist and book torrents
-    [S] Reload 'all', cartoonist and book torrents
+    applications/zcomx/private/var/cbz/zco.mx
+    https://pastee.org/ssmez
+    https://code.google.com/p/pyroscope/wiki/RtXmlRpcReference
+    http://code.google.com/p/gi-torrent/wiki/rTorrent_XMLRPC_reference
+    [S] Load & Seed 'all', cartoonist and book torrents
+        $ aurget -S pyrocore
+        $ dir="/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx/J/JordanCrane/"
+        $ tor="/srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/zco.mx/J/JordanCrane/Uptight 001 (2006) (103.zco.mx).cbz.torrent"
+        $ rtxmlrpc -q load.start '' "$tor" "d.directory_base.set=\"$dir\"" "d.priority.set=2" && sleep 1
+    [S] Delete Torrent
+        $ hash=$(lstor -qo __hash__ "$tor")
+        $ rtxmlrpc -q d.close=$hash && sleep 1
+        $ rtxmlrpc -q d.erase=$hash && sleep 1
+        $ rtxmlrpc -q system.file_status_cache.prune && sleep 1
+
+[ ] Get dc Working
+    * Set share dir to: applications/zcomx/private/var/cbz/
+    * After cbz is created, refresh share and announce
 
 [S] Email More Cartoonists
 
@@ -40,9 +54,14 @@ VERSION 2 - Before Going Live
     In the queue, the highest priority should be cbz images, then web
     and ori images should be the lowest of any job.
 
-[ ] Skip Terms & Conditions if 'admin'
+[ ] If 'admin', Skip Terms & Conditions Popup
 
-[ ] Do not post book until the cartoonist clicks 'Close'
+[ ] Login -> Books -> Upload
+    Do not post book until the cartoonist clicks 'Close'
+
+[ ] Front Page
+    Books without images are showing up on the front page
+    https://zco.mx/?page=4
 
 [ ] Login -> Release Model
     Now that we require the metadata to be used, I think this can be
@@ -59,6 +78,8 @@ VERSION 2 - Before Going Live
         CC BY-NC
         CC BY-NC-SA
         CC BY-NC-ND
+
+---
 
 [ ] Front Page/Book Page
     SB 2015-03-25 20:56  we should talk about this

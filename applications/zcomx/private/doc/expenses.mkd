@@ -17,8 +17,9 @@ EXPENSES
     Jan 2015    Server Hosting          $ 40
     Feb 2015    Server Hosting          $ 40
     Mar 2015    Server Hosting          $ 40
-  TOTAL Expense                                 $1172
+    Apr 2015    Server Hosting          $ 40
+  TOTAL Expense                                 $1212
 
 
-NET TOTAL                                      -$1172
+NET TOTAL                                      -$1212
 ``
