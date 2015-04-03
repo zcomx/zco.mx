@@ -31,22 +31,16 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     filename_for_size, \
     is_image, \
-    is_optimized, \
-    on_add_image, \
     on_delete_image, \
     optimize, \
-    queue_optimize, \
     set_thumb_dimensions, \
     store
-from applications.zcomx.modules.job_queue import PRIORITIES
 from applications.zcomx.modules.tests.runner import \
-    LocalTestCase, \
-    TableTracker
+    LocalTestCase
 from applications.zcomx.modules.shell_utils import \
     imagemagick_version, \
     TempDirectoryMixin
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 # C0111: Missing docstring
@@ -266,7 +260,7 @@ class TestCreatorImgTag(ImageTestCase):
             {'_class': 'preview placeholder_torso'}
         )
 
-        img_tag = CreatorImgTag(None, size='tbn')
+        img_tag = CreatorImgTag(None, size='web')
         self.assertEqual(img_tag.attributes, {})
         img_tag.set_placeholder()
         self.assertEqual(
@@ -331,17 +325,17 @@ class TestImgTag(ImageTestCase):
         has_attr(get_tag(tag, 'img'), 'src', self._creator.image, oper='in')
         has_attr(get_tag(tag, 'img'), 'src', 'size=original', oper='in')
 
-        img_tag = ImgTag(self._creator.image, size='tbn')
+        img_tag = ImgTag(self._creator.image, size='web')
         tag = img_tag()
-        has_attr(get_tag(tag, 'img'), 'src', 'size=tbn', oper='in')
+        has_attr(get_tag(tag, 'img'), 'src', 'size=web', oper='in')
 
         # Test no image
         img_tag = ImgTag(None)
         tag = img_tag()
         has_attr(get_tag(tag, 'div'), 'class', 'portrait_placeholder')
-        img_tag = ImgTag(None, size='tbn')
+        img_tag = ImgTag(None, size='web')
         tag = img_tag()
-        has_attr(get_tag(tag, 'div'), 'class', 'placeholder_170x170')
+        has_attr(get_tag(tag, 'div'), 'class', 'portrait_placeholder')
 
         # Test: provide tag
         img_tag = ImgTag(self._creator.image, tag=SPAN)
@@ -380,10 +374,11 @@ class TestImgTag(ImageTestCase):
             {'_class': 'portrait_placeholder'}
         )
 
-        img_tag = ImgTag(None, size='tbn')
+        img_tag = ImgTag(None, size='web')
         self.assertEqual(img_tag.attributes, {})
         img_tag.set_placeholder()
-        self.assertEqual(img_tag.attributes, {'_class': 'placeholder_170x170'})
+        self.assertEqual(
+            img_tag.attributes, {'_class': 'portrait_placeholder'})
 
         attrs = {'_id': 'img_id', '_class': 'img_class'}
         img_tag = ImgTag(None, attributes=attrs)
@@ -966,23 +961,6 @@ class TestFunctions(ImageTestCase):
         this_filename = inspect.getfile(inspect.currentframe())
         self.assertFalse(is_image(this_filename))
 
-    def test__is_optimized(self):
-        image_name = 'creator.image.aaa.000.jpg'
-        self.add(db.creator, dict(
-            image=image_name,
-        ))
-
-        self.assertFalse(is_optimized(image_name))
-
-        self.add(db.optimize_img_log, dict(
-            image=image_name
-        ))
-
-        self.assertTrue(is_optimized(image_name))
-
-    def test__on_add_image(self):
-        pass        # FIXME this is due for overhaul.
-
     def test__on_delete_image(self):
         pass        # FIXME this is due for overhaul.
 
@@ -993,52 +971,6 @@ class TestFunctions(ImageTestCase):
             optimize(working_image)
             size_aft = os.stat(working_image).st_size
             self.assertTrue(size_aft < size_bef)
-
-    def test__queue_optimize(self):
-        creator = self.add(db.creator, dict(
-            image='creator.image.aaa.000.jpg',
-        ))
-
-        job_options = {'status': 'd'}   # So tests don't actually run
-
-        tracker = TableTracker(db.job)
-        job = queue_optimize(
-            creator.image,
-            job_options=job_options
-        )
-        self.assertFalse(tracker.had(job))
-        self.assertTrue(tracker.has(job))
-        self._objects.append(job)
-        fmt = 'applications/zcomx/private/bin/process_img.py {i}'
-        self.assertEqual(
-            job.command,
-            fmt.format(i=creator.image)
-        )
-        self.assertEqual(
-            job.priority,
-            PRIORITIES.index('optimize_img')
-        )
-
-        # Test priority
-        job = queue_optimize(
-            creator.image,
-            priority='optimize_img_for_release',
-            job_options=job_options
-        )
-        self._objects.append(job)
-        self.assertEqual(
-            job.priority,
-            PRIORITIES.index('optimize_img_for_release')
-        )
-
-        # Test invalid priority
-        self.assertRaises(
-            NotFoundError,
-            queue_optimize,
-            creator.image,
-            priority='_fake_priority_',
-            job_options=job_options
-        )
 
     def test__set_thumb_dimensions(self):
         book_page = self.add(db.book_page, dict(

@@ -15,14 +15,12 @@ from PIL import Image
 from gluon import *
 from applications.zcomx.modules.job_queue import \
     DeleteImgQueuer, \
-    OptimizeImgQueuer, \
-    OptimizeImgForReleaseQueuer
+    OptimizeImgQueuer
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     TemporaryDirectory, \
     os_nice, \
     set_owner
-from applications.zcomx.modules.utils import NotFoundError
 
 LOG = logging.getLogger('app')
 
@@ -30,7 +28,6 @@ SIZES = [
     'original',
     'cbz',
     'web',
-    'tbn',
 ]
 
 
@@ -90,8 +87,7 @@ class ImgTag(object):
 
     def set_placeholder(self):
         """Set the attributes for the placeholder."""
-        class_name = 'placeholder_170x170' \
-            if self.size == 'tbn' else 'portrait_placeholder'
+        class_name = 'portrait_placeholder'
         if '_class' in self.attributes:
             self.attributes['_class'] = '{c1} {c2}'.format(
                 c1=self.attributes['_class'],
@@ -445,39 +441,6 @@ def is_image(filename, image_types=None):
     return True
 
 
-def is_optimized(image):
-    """Determined if the image is optimized.
-
-    Args:
-        image: string, name of image eg
-            book_page.image.801685b627e099e.300332e6a7067.jpg
-    """
-    db = current.app.db
-    query = (db.optimize_img_log.image == image)
-    return db(query).count() > 0
-
-
-def on_add_image(image):
-    """Handle all processing required when an image is added.
-
-    Args:
-        image: string, name of image eg
-            book_page.image.801685b627e099e.300332e6a7067.jpg
-    """
-    if not image:
-        return
-    db = current.app.db
-    job = OptimizeImgQueuer(
-        db.job,
-        cli_args=[image],
-    ).queue()
-    if not job:
-        LOG.error(
-            'Failed to create job to optimize img: %s', image)
-
-    return job
-
-
 def on_delete_image(image):
     """Handle all processing required when an image is deleted.
 
@@ -541,41 +504,6 @@ def optimize(filename, nice='max'):
         if p.returncode:
             raise ImageOptimizeError('Optimize failed: {err}'.format(
                 err=p_stderr or p_stdout))
-
-
-def queue_optimize(
-        image,
-        priority='optimize_img',
-        job_options=None,
-        cli_options=None):
-    """Queue job to optimize images associated with a record field.
-
-    Args:
-        image: string, name of image eg
-            book_page.image.801685b627e099e.300332e6a7067.jpg
-        priority: string, priority key, one of PROIRITIES
-        job_options: dict, job record attributes used for JobQueuer property
-        cli_options: dict, options for job command
-
-    Returns:
-        Row instance representing the queued job.
-    """
-    queuer_classes = {
-        'optimize_img': OptimizeImgQueuer,
-        'optimize_img_for_release': OptimizeImgForReleaseQueuer,
-    }
-    if priority not in queuer_classes:
-        raise NotFoundError('Invalid priority: {p}'.format(p=priority))
-
-    db = current.app.db
-    queuer = queuer_classes[priority](
-        db.job,
-        job_options=job_options,
-        cli_options=cli_options,
-        cli_args=[image],
-    )
-
-    return queuer.queue()
 
 
 def set_thumb_dimensions(db, book_page_id, dimensions):

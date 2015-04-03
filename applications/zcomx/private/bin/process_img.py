@@ -14,8 +14,8 @@ from optparse import OptionParser
 from applications.zcomx.modules.images import \
     SIZES, \
     UploadImage, \
-    is_optimized, \
     optimize
+from applications.zcomx.modules.images_optimize import AllSizesImages
 from applications.zcomx.modules.utils import NotFoundError
 
 VERSION = 'Version 0.1'
@@ -40,9 +40,14 @@ def run_delete(image, options):
     LOG.debug('Deleting: %s', image)
 
     upload_image = UploadImage(db[table][field], image)
-    upload_image.delete_all()
+    if options.size:
+        upload_image.delete(size=options.size)
+    else:
+        upload_image.delete_all()
 
     query = (db.optimize_img_log.image == image)
+    if options.size:
+        query = query & (db.optimize_img_log.size == options.size)
     db(query).delete()
     db.commit()
 
@@ -55,11 +60,6 @@ def run_optimize(image, options):
             book_page.image.801685b627e099e.300332e6a7067.jpg
         options: dict, OptionParser options
     """
-    if not options.force and is_optimized(image):
-        LOG.debug(
-            'Not necessary, already optimized: %s', image)
-        return
-
     try:
         table, field, _ = image.split('.', 2)
     except ValueError:
@@ -68,12 +68,19 @@ def run_optimize(image, options):
         raise NotFoundError('Invalid image {i}'.format(i=image))
 
     upload_image = UploadImage(db[table][field], image)
-
     up_folder = db[table][field].uploadfolder.rstrip('/').rstrip('original')
 
     LOG.debug('Optimizing: %s', image)
 
-    for size in SIZES:
+    size_to_classes = AllSizesImages.size_to_class_hash()
+    sizes = [options.size] if options.size else SIZES
+    for size in sizes:
+        img_class = size_to_classes[size]
+        if not options.force and img_class(image).is_optimized():
+            LOG.debug(
+                'Not necessary, already optimized (size: %s): %s', size, image)
+            continue
+
         fullname = upload_image.fullname(size=size)
         if options.uploads and fullname.startswith(up_folder):
             filename = os.path.join(
@@ -87,8 +94,11 @@ def run_optimize(image, options):
             LOG.debug('Optimizing filename: %s', filename)
             optimize(filename)
 
-    db.optimize_img_log.insert(image=image)
-    db.commit()
+        db.optimize_img_log.insert(
+            image=image,
+            size=size,
+        )
+        db.commit()
 
 
 def man_page():
@@ -122,9 +132,9 @@ OPTIONS
     --man
         Print man page-like help.
 
-    -p PRIORITY --priority=PRIORITY
-        Queue jobs at this priority. Must be one of PRIORITIES.
-        Default 'optimize_img'.
+    -s SIZE, --size=SIZE
+        By default all sizes of the image are processed. With this option,
+        only the SIZE size is processed.
 
     -u PATH --uploads-path=PATH
         Use this option to indicate the path of the directory the upload images
@@ -160,9 +170,10 @@ def main():
         help='Display manual page-like help and exit.',
     )
     parser.add_option(
-        '-p', '--priority',
-        dest='priority', default='optimize_img',
-        help='Queue jobs at this priority.',
+        '-s', '--size',
+        choices=SIZES,
+        dest='size', default=None,
+        help='Process this size only.',
     )
     parser.add_option(
         '-u', '--uploads-path',

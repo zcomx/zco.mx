@@ -569,6 +569,9 @@ db.define_table('optimize_img_log',
     Field(
         'image',
     ),
+    Field(
+        'size',
+    ),
     migrate=True,
 )
 

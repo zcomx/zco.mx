@@ -22,9 +22,9 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
-    on_add_image, \
     on_delete_image, \
     store
+from applications.zcomx.modules.images_optimize import AllSizesImages
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
@@ -1433,7 +1433,7 @@ def create_creator_indicia(creator, resize=False, optimize=False):
         if stored_filename:
             data[field] = stored_filename
             if optimize:
-                on_add_image(data[field])
+                AllSizesImages.from_names([data[field]]).optimize()
 
     creator.update_record(**data)
     db.commit()

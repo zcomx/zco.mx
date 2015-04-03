@@ -1078,7 +1078,7 @@ class TestCartoonistTile(LocalTestCase):
             # <div class="col-sm-12 image_container">
             #   <a href="/Charles_Forsman" title="">
             #     <img alt="Charles Forsman"
-            #      src="/images/download/creator.image.aaa.000.jpg?size=tbn" />
+            #      src="/images/download/creator.image.aaa.000.jpg?size=web" />
             #   </a>
             # </div
             div = soup.div

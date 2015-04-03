@@ -25,21 +25,25 @@ from applications.zcomx.modules.utils import \
 
 
 DAEMON_NAME = 'zco_queued'
-PRIORITIES = sorted([
+PRIORITIES = list(reversed([
     # Highest
+    'optimize_cbz_img_for_release',
     'optimize_img_for_release',
     'create_cbz',
     'create_book_torrent',
     'release_book',
+    'optimize_cbz_img',
     'optimize_img',
     'update_creator_indicia',
+    'optimize_web_img',
     'delete_book',
     'delete_img',
     'create_creator_torrent',
     'create_all_torrent',
     'log_downloads',
+    'optimize_original_img',
     # Lowest
-], reverse=True)
+]))
 
 
 LOG = logging.getLogger('app')
@@ -637,7 +641,7 @@ class OptimizeImgQueuer(JobQueuer):
     }
     valid_cli_options = [
         '-f', '--force',
-        '-p', '--priority',
+        '-s', '--size',
         '-u', '--uploads-path',
         '-v', '--vv',
     ]
@@ -654,11 +658,36 @@ class DeleteImgQueuer(OptimizeImgQueuer):
     valid_cli_options.append('--delete')
 
 
-class OptimizeImgForReleaseQueuer(OptimizeImgQueuer):
-    """Class representing a queuer for optimize_img for release jobs."""
+class OptimizeCBZImgQueuer(OptimizeImgQueuer):
+    """Class representing a queuer for optimizing cbz images."""
     default_job_options = dict(OptimizeImgQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index(
-        'optimize_img_for_release')
+        'optimize_cbz_img')
+    default_cli_options = {'--size': 'cbz'}
+
+
+class OptimizeOriginalImgQueuer(OptimizeImgQueuer):
+    """Class representing a queuer for optimizing original images."""
+    default_job_options = dict(OptimizeImgQueuer.default_job_options)
+    default_job_options['priority'] = PRIORITIES.index(
+        'optimize_original_img')
+    default_cli_options = {'--size': 'original'}
+
+
+class OptimizeWebImgQueuer(OptimizeImgQueuer):
+    """Class representing a queuer for optimizing web images."""
+    default_job_options = dict(OptimizeImgQueuer.default_job_options)
+    default_job_options['priority'] = PRIORITIES.index(
+        'optimize_web_img')
+    default_cli_options = {'--size': 'web'}
+
+
+class OptimizeCBZImgForReleaseQueuer(OptimizeImgQueuer):
+    """Class representing a queuer for optimizing cbz images for release."""
+    default_job_options = dict(OptimizeImgQueuer.default_job_options)
+    default_job_options['priority'] = PRIORITIES.index(
+        'optimize_cbz_img_for_release')
+    default_cli_options = {'--size': 'cbz'}
 
 
 class ReleaseBookQueuer(JobQueuer):

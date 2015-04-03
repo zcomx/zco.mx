@@ -137,7 +137,7 @@ class TestImageDownloader(ImageTestCase):
 
         def set_lengths():
             lengths = {}
-            for size in ['original', 'cbz', 'web', 'tbn']:
+            for size in ['original', 'cbz', 'web']:
                 unused_name, fullname = db.creator.image.retrieve(
                     self._creator.image, nameonly=True)
                 filename = filename_for_size(fullname, size)
@@ -161,12 +161,12 @@ class TestImageDownloader(ImageTestCase):
                     lengths[expect_size]
                 )
 
-        # tbn.jpg is tiny, only the thumbnail should be created.
-        filename = self._prep_image('tbn.jpg', to_name='file.jpg')
+        # web.jpg is small, only the web should be created.
+        filename = self._prep_image('web.jpg', to_name='file.jpg')
         self._set_image(db.creator.image, self._creator, filename)
         lengths = set_lengths()
         request.vars.size = 'web'
-        test_http('original')
+        test_http('web')
         request.vars.size = 'cbz'
         test_http('original')
         request.vars.size = 'original'

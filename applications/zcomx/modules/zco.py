@@ -25,7 +25,6 @@ class Zco(object):
     def __init__(self):
         """Constructor """
         if current.session.zco is None:
-            LOG.debug('FIXME @@@@ initializing session.zco')
             current.session.zco = Storage({})
 
     # Session variables

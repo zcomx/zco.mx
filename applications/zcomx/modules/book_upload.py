@@ -38,9 +38,7 @@ from gluon import *
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.books import book_page_for_json
 from applications.zcomx.modules.images import \
-    UploadImage, \
     is_image, \
-    set_thumb_dimensions, \
     store
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
@@ -446,8 +444,4 @@ def create_book_page(db, book_id, image_filename):
         image=stored_filename,
     )
     db.commit()
-
-    up_image = UploadImage(db.book_page.image, stored_filename)
-    set_thumb_dimensions(
-        db, book_page_id, up_image.dimensions(size='tbn'))
     return book_page_id

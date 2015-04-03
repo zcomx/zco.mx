@@ -8,7 +8,6 @@ Test suite for zcomx/modules/creators.py
 """
 import os
 import shutil
-import time
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
@@ -23,19 +22,16 @@ from applications.zcomx.modules.creators import \
     for_path, \
     formatted_name, \
     image_as_json, \
+    images, \
     on_change_name, \
-    optimize_images, \
     profile_onaccept, \
     queue_update_indicia, \
     short_url, \
     torrent_file_name, \
     torrent_link, \
     torrent_url, \
-    unoptimized_images, \
     url
-from applications.zcomx.modules.images import \
-    UploadImage, \
-    store
+from applications.zcomx.modules.images import store
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     NotFoundError, \
@@ -458,6 +454,44 @@ class TestFunctions(LocalTestCase):
         db.creator.image.uploadfolder = self._image_original
         db.creator.indicia_image.uploadfolder = self._image_original
 
+    def test__images(self):
+        creator = self.add(db.creator, dict(
+            email='test__images@example.com'
+        ))
+
+        self.assertEqual(images(creator), [])
+
+        data = {
+            'image': None,
+            'indicia_image': 'b.2.jpg',
+            'indicia_landscape': None,
+            'indicia_portrait': None,
+        }
+
+        creator.update_record(**data)
+        db.commit()
+        self.assertEqual(images(creator), ['b.2.jpg'])
+
+        data = {
+            'image': 'a.1.jpg',
+            'indicia_image': 'b.2.jpg',
+            'indicia_landscape': 'c.3.jpg',
+            'indicia_portrait': 'd.4.jpg',
+        }
+
+        creator.update_record(**data)
+        db.commit()
+
+        self.assertEqual(
+            sorted(images(creator)),
+            [
+                'a.1.jpg',
+                'b.2.jpg',
+                'c.3.jpg',
+                'd.4.jpg',
+            ]
+        )
+
     def test__on_change_name(self):
         auth_user = self.add(db.auth_user, dict(
             name='Test On Change Name'
@@ -493,71 +527,6 @@ class TestFunctions(LocalTestCase):
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.name_for_search, 'test-on-change-name')
         self.assertEqual(creator.name_for_url, 'TestOnChangeName')
-
-    def test__optimize_images(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
-        creator = self.add(db.creator, dict(
-            email='test__optimize_images@email.com'
-        ))
-
-        img_fields = [
-            'image',
-            'indicia_image',
-            'indicia_portrait',
-            'indicia_landscape',
-        ]
-
-        for field in img_fields:
-            stored_filename = store(
-                db.creator[field],
-                self._prep_image('unoptimized.png'),
-            )
-            data = {field: stored_filename}
-            creator.update_record(**data)
-            db.commit()
-
-        def get_sizes():
-            sizes = {}
-            for field in img_fields:
-                up_image = UploadImage(db.creator[field], creator[field])
-                if field not in sizes:
-                    sizes[field] = {}
-                for size in ['original', 'cbz', 'web']:
-                    name = up_image.fullname(size=size)
-                    if os.path.exists(name):
-                        sizes[field][size] = os.stat(name).st_size
-            return sizes
-
-        before_sizes = get_sizes()
-
-        cli_options = {'--vv': True, '--uploads-path': self._image_dir}
-        jobs = optimize_images(creator, cli_options=cli_options)
-        self.assertEqual(len(jobs), 4)
-
-        tries = 20
-        while tries > 0:
-            time.sleep(1)          # Wait for jobs to complete.
-            got = db(db.job.id.belongs([x.id for x in jobs])).select()
-            if len(got) == 0:
-                break
-            tries = tries - 1
-            if tries == 0:
-                self.fail('Jobs not done in expected time.')
-
-        after_sizes = get_sizes()
-
-        for field in img_fields:
-            for size in before_sizes[field].keys():
-                self.assertTrue(
-                    after_sizes[field][size] < before_sizes[field][size])
-
-        # Cleanup
-        for field in img_fields:
-            query = db.optimize_img_log.image == creator[field]
-            db(query).delete()
-        db.commit()
 
     def test__profile_onaccept(self):
         auth_user = self.add(db.auth_user, dict(
@@ -722,61 +691,6 @@ class TestFunctions(LocalTestCase):
             torrent_url(creator),
             '/FirstMiddleLast_({i}.zco.mx).torrent'.format(i=creator.id)
         )
-
-    def test__unoptimized_images(self):
-        creator = self.add(db.creator, dict(
-            image=None,
-            indicia_image=None,
-            indicia_portrait=None,
-            indicia_landscape=None,
-        ))
-
-        # No images, no unoptimized
-        self.assertEqual(unoptimized_images(creator), [])
-
-        # Add images, no logs, all should be unoptimized
-        creator.update_record(
-            image='creator.image.aaa.111.jpg',
-            indicia_image='creator.indicia_image.bbb.222.jpg',
-            indicia_portrait='creator.indicia_portrait.ccc.333.png',
-            indicia_landscape='creator.indicia_landscape.ddd.444.png',
-        )
-        db.commit()
-
-        self.assertEqual(
-            unoptimized_images(creator),
-            [
-                'creator.image.aaa.111.jpg',
-                'creator.indicia_image.bbb.222.jpg',
-                'creator.indicia_portrait.ccc.333.png',
-                'creator.indicia_landscape.ddd.444.png',
-            ]
-        )
-
-        # Has some logs, some unoptimized
-        self.add(db.optimize_img_log, dict(
-            image='creator.image.aaa.111.jpg',
-        ))
-        self.add(db.optimize_img_log, dict(
-            image='creator.indicia_portrait.ccc.333.png',
-        ))
-        self.assertEqual(
-            unoptimized_images(creator),
-            [
-                'creator.indicia_image.bbb.222.jpg',
-                'creator.indicia_landscape.ddd.444.png',
-            ]
-        )
-
-        # Has all logs, none unoptimized
-        self.add(db.optimize_img_log, dict(
-            image='creator.indicia_image.bbb.222.jpg',
-        ))
-        self.add(db.optimize_img_log, dict(
-            image='creator.indicia_landscape.ddd.444.png',
-        ))
-
-        self.assertEqual(unoptimized_images(creator), [])
 
     def test__url(self):
         creator = self.add(db.creator, dict(email='test__url@example.com'))
