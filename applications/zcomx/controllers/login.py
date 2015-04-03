@@ -34,8 +34,7 @@ from applications.zcomx.modules.indicias import \
     create_creator_indicia
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
-    ReleaseBookQueuer, \
-    UpdateIndiciaQueuer
+    ReleaseBookQueuer
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
@@ -751,21 +750,18 @@ def creator_img_handler():
                 )
                 db.commit()
 
-                job = UpdateIndiciaQueuer(
-                    db.job,
-                    cli_args=[str(creator_record.id)],
-                ).queue()
-                if not job:
-                    # This isn't critical, just log a message.
-                    LOG.error(
-                        'Failed to create job to update indicia: %s',
-                        creator_record.id
-                    )
-
         data = {img_field: stored_filename}
         creator_record.update_record(**data)
         db.commit()
         if img_changed:
+            if img_field == 'indicia_image':
+                # If indicias are blank, create them.
+                if not creator_record.indicia_portrait \
+                        or not creator_record.indicia_landscape:
+                    # This runs in the forground so keep it fast.
+                    create_creator_indicia(
+                        creator_record, resize=False, optimize=False)
+                queue_update_indicia(creator_record)
             AllSizesImages.from_names([creator_record[img_field]]).optimize()
         return image_as_json(db, creator_record.id, field=img_field)
 
@@ -786,18 +782,10 @@ def creator_img_handler():
             on_delete_image(creator_record['indicia_landscape'])
             data['indicia_portrait'] = None
             data['indicia_landscape'] = None
-            job = UpdateIndiciaQueuer(
-                db.job,
-                cli_args=[str(creator_record.id)],
-            ).queue()
-            if not job:
-                # This isn't critical, just log a message.
-                LOG.error(
-                    'Failed to create job to update indicia: %s',
-                    creator_record.id
-                )
         db(db.creator.id == creator_record.id).update(**data)
         db.commit()
+        if img_field == 'indicia_image':
+            queue_update_indicia(creator_record)
         return dumps({"files": [{filename: 'true'}]})
 
     # GET
@@ -858,13 +846,6 @@ def indicia_preview_urls():
     ).first()
     if not creator_record:
         return do_error('Permission denied')
-
-    # If indicias are blank, create them.
-    if not creator_record.indicia_portrait \
-            or not creator_record.indicia_landscape:
-        # This runs in the forground so keep it fast.
-        create_creator_indicia(creator_record, resize=False, optimize=False)
-        queue_update_indicia(creator_record)
 
     urls = {
         'portrait': None,
