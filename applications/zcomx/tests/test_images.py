@@ -33,6 +33,7 @@ from applications.zcomx.modules.images import \
     is_image, \
     on_delete_image, \
     optimize, \
+    scrub_extension_for_store, \
     set_thumb_dimensions, \
     store
 from applications.zcomx.modules.tests.runner import \
@@ -971,6 +972,19 @@ class TestFunctions(ImageTestCase):
             optimize(working_image)
             size_aft = os.stat(working_image).st_size
             self.assertTrue(size_aft < size_bef)
+
+    def test__scrub_extension_for_store(self):
+        tests = [
+            # (filename, expect)
+            (None, None),
+            ('', ''),
+            ('file.jpg', 'file.jpg'),
+            ('file.jpeg', 'file.jpg'),
+            ('file.png', 'file.png'),
+            ('file.gif', 'file.png'),
+        ]
+        for t in tests:
+            self.assertEqual(scrub_extension_for_store(t[0]), t[1])
 
     def test__set_thumb_dimensions(self):
         book_page = self.add(db.book_page, dict(

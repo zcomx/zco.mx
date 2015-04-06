@@ -13,9 +13,9 @@ import shutil
 import subprocess
 from PIL import Image
 from gluon import *
+from gluon.dal.helpers.regex import REGEX_STORE_PATTERN
 from applications.zcomx.modules.job_queue import \
-    DeleteImgQueuer, \
-    OptimizeImgQueuer
+    DeleteImgQueuer
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     TemporaryDirectory, \
@@ -506,6 +506,28 @@ def optimize(filename, nice='max'):
                 err=p_stderr or p_stdout))
 
 
+def scrub_extension_for_store(filename):
+    """Return the filename with extension scrubbed so filename is suitable for
+    store().
+    The Field.store() method stores the file in an uploads folder with the same
+    extension as the original filename. Some extensions are invalid
+    and cause problem when optimizing. This function cleans up the extension.
+    """
+    if not filename:
+        return filename
+
+    translates = {
+        'gif': 'png',
+        'jpeg': 'jpg',
+    }
+    m = REGEX_STORE_PATTERN.search(filename)
+    extension = m and m.group('e') or 'txt'
+    if extension not in translates:
+        return filename
+    return filename[:(len(filename) - 1 - len(extension))] \
+        + '.' + translates[extension]
+
+
 def set_thumb_dimensions(db, book_page_id, dimensions):
     """Set the db.book_page.thumb_* dimension values for a page.
 
@@ -542,6 +564,7 @@ def store(field, filename, resize=True, resizer=None):
     Return:
         string, the name of the file in storage.
     """
+    scrubbed_filename = scrub_extension_for_store(filename)
     obj_class = resizer if resizer is not None else ResizeImg
     resize_img = obj_class(filename)
     if resize:
@@ -549,10 +572,10 @@ def store(field, filename, resize=True, resizer=None):
     else:
         # Copy the files as is
         for size in resize_img.filenames.keys():
-            resize_img.filenames[size] = filename
+            resize_img.filenames[size] = scrubbed_filename
     original_filename = resize_img.filenames['ori']
     with open(original_filename, 'r+b') as f:
-        stored_filename = field.store(f, filename=filename)
+        stored_filename = field.store(f, filename=scrubbed_filename)
     # stored_filename doesn't have a full path. Use retreive to get
     # file name will full path.
     unused_name, fullname = field.retrieve(stored_filename, nameonly=True)
