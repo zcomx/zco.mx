@@ -7,6 +7,7 @@ Test suite for zcomx/modules/access.py
 """
 import unittest
 from gluon.http import HTTP
+from gluon.storage import Storage
 from applications.zcomx.modules.access import \
     requires_admin_ip, \
     requires_agreed_to_terms
@@ -65,6 +66,8 @@ class TestFunctions(LocalTestCase):
     def test__requires_agreed_to_terms(self):
         env = globals()
         auth = env['auth']
+        session = env['session']
+        session.auth = Storage({})              # Not logged in
 
         auth_user = self.add(db.auth_user, dict(
             email='tests__requires_agreed_to_terms@example.com',
@@ -82,6 +85,25 @@ class TestFunctions(LocalTestCase):
             return 'Success'
 
         # agreed_to_terms=False, should not permit access
+        try:
+            func()
+        except HTTP as err:
+            self.assertEqual(str(err), '303 SEE OTHER')
+        else:
+            self.fail('HTTP exception not raised.')
+
+        # auth_user is impersonating, should permit access
+        # Simulate a logged in session
+        session.auth = Storage(
+            user=auth_user,
+            impersonator='_fake_impersonator_'
+        )
+        self.assertTrue(auth.is_logged_in())
+        self.assertTrue(auth.is_impersonating())
+        self.assertEqual(func(), 'Success')
+
+        # Reset membership
+        session.auth = Storage(user=auth_user)   # No longer impersonating
         try:
             func()
         except HTTP as err:

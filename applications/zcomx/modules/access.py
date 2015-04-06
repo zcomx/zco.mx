@@ -47,11 +47,14 @@ def requires_agreed_to_terms():
             """Wrapped function."""
             db = current.app.db
             auth = current.app.auth
-            creator_record = db(
-                db.creator.auth_user_id == auth.user_id
-            ).select(db.creator.ALL).first()
-            if not creator_record or not creator_record.agreed_to_terms:
-                return redirect(URL(c='login', f='agree_to_terms'))
+
+            if not auth.is_impersonating():
+                creator_record = db(
+                    db.creator.auth_user_id == auth.user_id
+                ).select(db.creator.ALL).first()
+                if not creator_record or not creator_record.agreed_to_terms:
+                    return redirect(URL(c='login', f='agree_to_terms'))
+
             return action(*a, **b)
         wrapper.__doc__ = action.__doc__
         wrapper.__name__ = action.__name__
