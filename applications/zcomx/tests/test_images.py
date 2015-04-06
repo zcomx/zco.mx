@@ -14,6 +14,7 @@ import os
 import pwd
 import re
 import shutil
+import subprocess
 import unittest
 from BeautifulSoup import BeautifulSoup
 from PIL import Image
@@ -33,6 +34,7 @@ from applications.zcomx.modules.images import \
     is_image, \
     on_delete_image, \
     optimize, \
+    scrub_extension_for_store, \
     set_thumb_dimensions, \
     store
 from applications.zcomx.modules.tests.runner import \
@@ -153,7 +155,32 @@ class ImageTestCase(LocalTestCase):
         Args:
             file_obj: file or file like object.
         """
-        return hashlib.md5(open(file_obj, 'rb').read()).hexdigest()
+        file_to_hash = file_obj
+        if isinstance(file_obj, str) and file_obj.endswith('.png'):
+            # Remove the date metadata from png files as this will
+            # be unique everytime the file is converted.
+            outfile = file_obj + '.tmp'
+
+            # convert jimk.png +set date:modify +set date:create jimk2.pngn
+            args = [
+                'convert',
+                file_obj,
+                '+set',
+                'date:modify',
+                '+set',
+                'date:create',
+                outfile
+            ]
+            p = subprocess.Popen(
+                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p_stdout, p_stderr = p.communicate()
+            if p_stdout:
+                print 'FIXME p_stdout: {var}'.format(var=p_stdout)
+            if p_stderr:
+                print 'FIXME p_stderr: {var}'.format(var=p_stderr)
+            file_to_hash = outfile
+
+        return hashlib.md5(open(file_to_hash, 'rb').read()).hexdigest()
 
     @classmethod
     def _prep_image(cls, img, working_directory=None, to_name=None):
@@ -468,10 +495,6 @@ class TestResizeImg(ImageTestCase):
                 'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
                 'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
-                'tbn-256+colour.jpg': '8dc7e66f436eb9d0519d071897bdcd91',
-                'tbn-256colour-gif.png': 'd0a3d86b892a901372b67688d99565e7',
-                'tbn-256colour-jpg.jpg': 'e90043960e8afdfaffa4d166e46164f0',
-                'tbn-256colour-png.png': '1d686024ea76d3a864b36742aa31cb90',
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
                 'web-256colour-gif.png': '5467c6943af05ced624f04c60ebe7c2c',
                 'web-256colour-jpg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
@@ -486,10 +509,6 @@ class TestResizeImg(ImageTestCase):
                 'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
                 'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
-                'tbn-256+colour.jpg': '8dc7e66f436eb9d0519d071897bdcd91',
-                'tbn-256colour-gif.png': 'a9e8eeeab12fa223d77aefac1efbf2cc',
-                'tbn-256colour-jpg.jpg': 'e90043960e8afdfaffa4d166e46164f0',
-                'tbn-256colour-png.png': 'dc1360d982d2d874e9c9fc88f27b1cf3',
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
                 'web-256colour-gif.png': 'babcef0095c0082c7b9ffbea2b4bc89c',
                 'web-256colour-jpg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
@@ -498,14 +517,18 @@ class TestResizeImg(ImageTestCase):
             '6.9.0-0': {
                 'cbz-256+colour.jpg': '0e11a2cf49d1c1c4166969f463744bc2',
                 'cbz-256colour-gif.png': 'a98552ba461b7a71e4afbc99d6f7fa81',
+                'cbz-256colour-jpeg.jpg': '1bf61782de787ba0e4982f87a6617d3e',
                 'cbz-256colour-jpg.jpg': 'e248e32cc276d7e7ec02de22ad98e702',
                 'cbz-256colour-png.png': '9b2e81c0cf9e27f591d9bd24310fbece',
                 'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
                 'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
+                'ori-256colour-gif.png': '6c91f0802c68b9f4699d51688db530c5',
+                'ori-256colour-jpeg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
                 'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
                 'web-256colour-gif.png': '9951bff8ec37124ac7989e0fc465880e',
+                'web-256colour-jpeg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
                 'web-256colour-jpg.jpg': 'd4643040166b53463d04947677b72c74',
                 'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
             },
@@ -513,19 +536,18 @@ class TestResizeImg(ImageTestCase):
 
         imgs = [
             '256colour-jpg.jpg',
+            '256colour-jpeg.jpeg',
             '256colour-png.png',
             '256colour-gif.gif',
         ]
 
         for img in imgs:
-            fmt_ori = '{{typ}}-{dest}'.format(dest=img)
-            dest = img.replace('.gif', '.png')
+            dest = img.replace('.gif', '.png').replace('.jpeg', '.jpg')
             fmt = '{{typ}}-{dest}'.format(dest=dest)
             test_it(
                 img,
                 {
-                    fmt_ori: ['ori'],
-                    fmt: ['cbz', 'web'],
+                    fmt: ['ori', 'cbz', 'web'],
                 },
                 md5s=md5s[imagemagick_ver],
                 colors=256,
@@ -971,6 +993,19 @@ class TestFunctions(ImageTestCase):
             optimize(working_image)
             size_aft = os.stat(working_image).st_size
             self.assertTrue(size_aft < size_bef)
+
+    def test__scrub_extension_for_store(self):
+        tests = [
+            # (filename, expect)
+            (None, None),
+            ('', ''),
+            ('file.jpg', 'file.jpg'),
+            ('file.jpeg', 'file.jpg'),
+            ('file.png', 'file.png'),
+            ('file.gif', 'file.png'),
+        ]
+        for t in tests:
+            self.assertEqual(scrub_extension_for_store(t[0]), t[1])
 
     def test__set_thumb_dimensions(self):
         book_page = self.add(db.book_page, dict(
