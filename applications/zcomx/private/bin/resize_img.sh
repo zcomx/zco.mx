@@ -100,10 +100,13 @@ _resize() {
 _rename() {
     ext=$(identify -format '%m' "$j"[0] 2>/dev/null)
     [[ $ext == JPEG ]] && ext=jpg
+    ## there is no reason to store a gif; conver to png
+    [[ $ext == GIF ]] && { ext=png; convert "$j" "${j%.*}.$ext"; j=${j%.*}.$ext; }
     ori=${j##*/}; ori=ori-${ori%.*}.${ext,,}    ## strip off path and ensure ext is correct
-    mv "$j" "$ori"  ## ensure ext is correct
+    mv "$j" "$ori"  ## add 'ori-' to filename and mv file to current dir
     return 0
 }
+
 
 grep -q ^processor /proc/cpuinfo || _me "Could not determind number of CPUs"
 cpu=$(grep -c ^processor /proc/cpuinfo)
