@@ -19,40 +19,59 @@ VERSION 2 - Before Going Live
     * the cartoonist torrent for Jordan Crane and Roger Langridge's are missing as well as the zcomx.torrent
     * here is the grep I used, find /srv/http/zco.mx/web2py/ | grep '\.torrent'
 [x] Not receiving error emails from cronjobs on zco.mx
-
-[S] Get Torrents Working
+[x] Separate Optimization of ori, cbz and web images
+    Process the optimization of the ori, cbz and web images separately.
+    In the queue, the highest priority should be cbz images, then web
+    and ori images should be the lowest of any job.
+[x] Optimize Images
+    Add all unoptimized images to the queue
+[x] Get Torrents Working
     applications/zcomx/private/var/tor/zco.mx
     applications/zcomx/private/var/cbz/zco.mx
     https://pastee.org/ssmez
     https://code.google.com/p/pyroscope/wiki/RtXmlRpcReference
     http://code.google.com/p/gi-torrent/wiki/rTorrent_XMLRPC_reference
-    [S] Load & Seed 'all', cartoonist and book torrents
+    [x] Load & Seed 'all', cartoonist and book torrents
         $ aurget -S pyrocore
         $ dir="/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx/J/JordanCrane/"
         $ tor="/srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/zco.mx/J/JordanCrane/Uptight 001 (2006) (103.zco.mx).cbz.torrent"
         $ rtxmlrpc -q load.start '' "$tor" "d.directory_base.set=\"$dir\"" "d.priority.set=2" && sleep 1
-    [S] Delete Torrent
+    [x] Delete Torrent
         $ hash=$(lstor -qo __hash__ "$tor")
         $ rtxmlrpc -q d.close=$hash && sleep 1
         $ rtxmlrpc -q d.erase=$hash && sleep 1
         $ rtxmlrpc -q system.file_status_cache.prune && sleep 1
-
-[ ] Get dc Working
+    [x] Add Remaining Torrents
+[x] Get dc Working
     * Set share dir to: applications/zcomx/private/var/cbz/
     * After cbz is created, refresh share and announce
+
+[S] Quiet Nginx Logging
+
+[ ] Announce cbz releases using zcomx_bot accounts
+    [x] dc
+    [ ] twitter
+        Twitter Cards
+        https://dev.twitter.com/cards/overview
+        https://dev.twitter.com/cards/types/summary-large-image
+        http://unix.stackexchange.com/questions/84540/twitter-status-updates-from-command-line-via-curl
+        http://supertweetnews.140plus.com/p/a-quick-example-of-bash-shell-scripts-for-posting-twitter-updates/ZeRfz
+    [ ] tumblr
+        http://stackoverflow.com/questions/9305796/post-picture-from-directory-to-tumblr-via-python
+
+[S] Look into Varnish for caching
+    http://stackoverflow.com/questions/4490140/memcached-vs-varnish-for-speeding-up-3-tier-web-architecture
+    haproxy vs nginx vs stunnel vs pound
+        https://www.digitalocean.com/community/tutorials/how-to-configure-varnish-cache-4-0-with-ssl-termination-on-ubuntu-14-04
+    https://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
+    [/] Upload Modal
+        Can we downscale the web images for the thumbnails and remove the
+        actual thumbnails?
 
 [S] Email More Cartoonists
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
-
-[ ] Optimize Images
-    Add all unoptimized images to the queue
-
-[x] Separate Optimization of ori, cbz and web images
-    Process the optimization of the ori, cbz and web images separately.
-    In the queue, the highest priority should be cbz images, then web
-    and ori images should be the lowest of any job.
 
 [ ] If 'admin', Skip Terms & Conditions Popup
 
@@ -105,14 +124,6 @@ VERSION 2 - Before Going Live
 
 [ ] Optimize Pages -- especially the front page
     [ ] look at Q's console
-    [ ] caching?
-        http://stackoverflow.com/questions/4490140/memcached-vs-varnish-for-speeding-up-3-tier-web-architecture
-        haproxy vs nginx vs stunnel vs pound
-            https://www.digitalocean.com/community/tutorials/how-to-configure-varnish-cache-4-0-with-ssl-termination-on-ubuntu-14-04
-        https://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-        [/] Upload Modal
-            Can we downscale the web images for the thumbnails and remove the
-            actual thumbnails?
 
 [S] Add questions to faqc
     Waiting on Sara
@@ -126,8 +137,6 @@ VERSION 2 - Before Going Live
 [S] Email Karen telling her the site is live
 
 VERSION 3
-[ ] Announce cbz releases using zcomx_bot accounts
-    - twitter, tumblr and on dc
 [ ] Remove the ability to change to a more restrictive CC licence
 [S] Setup hypermail for real-only mailing lists in login area ?
 [S] Reader notifications for new material
@@ -190,11 +199,14 @@ VERSION 4
     * vote up/down
     * github's issue tracker?
     * does this need a separate page?  link in the footer?
+    * http://mashable.com/2011/03/06/user-feedback-apps/
 [ ] Copyright material
     'Report' button for DMCA / C&D
     https://zco.mx/copyright_claim
-[ ] Twitter Cards
-    https://dev.twitter.com/cards/overview
+[ ] Queue Error Too Ambiguous
+    [ERROR queue_check.py 86] Multiple pending jobs in queue.
+    * could be many jobs in the queue
+    * could have 'd' jobs -- output of these would be nice
 
 
 IDEAS
