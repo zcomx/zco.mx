@@ -44,6 +44,10 @@
             return raw_msg;
         },
 
+        img_count: function() {
+            return this.$element.find('.template-download').length;
+        },
+
         img_error: function(image) {
             var that = this;
             var tries = $(image).data('retries');
@@ -148,11 +152,13 @@
                 that.set_reorder_links(elem);
             });
             that.set_arrows();
+            that.set_close_button();
         },
 
         deleted_callback: function(e, data) {
             ImageUpload.prototype.deleted_callback.apply(this);
             this.set_arrows();
+            this.set_close_button();
         },
 
         loaded_callback: function(e) {
@@ -163,6 +169,11 @@
             $('.reorder-arrow').removeClass('arrow-muted');
             $('.reorder-arrow-up').first().addClass('arrow-muted');
             $('.reorder-arrow-down').last().addClass('arrow-muted');
+        },
+
+        set_close_button: function() {
+            var button_text = this.img_count() > 0 ? 'Post' : 'Close';
+            $('.btn_upload_close').first().text(button_text);
         },
 
         set_reorder_links: function(elem) {

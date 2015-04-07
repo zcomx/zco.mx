@@ -43,6 +43,7 @@ from applications.zcomx.modules.search import \
     torrent_link
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -89,7 +90,7 @@ class TestGrid(LocalTestCase):
         self.assertTrue('header_label' in grid._attributes)
 
         self.assertTrue(grid.form_grid)
-        query = (db.book.status == True)
+        query = (db.book.status == BOOK_STATUS_ACTIVE)
         rows = db(query).select(
             db.book.id,
             left=[
@@ -276,7 +277,9 @@ class TestGrid(LocalTestCase):
         self.assertEqual(anchor_3['href'], '/?o=creators')
 
     def test__tile_value(self):
-        creator = self.add(db.creator, dict(email='test__tile_value@email.com'))
+        creator = self.add(db.creator, dict(
+            email='test__tile_value@email.com'
+        ))
         name = '_My Book_'
         book_type_id = db(db.book_type).select().first().id
         book = self.add(db.book, dict(

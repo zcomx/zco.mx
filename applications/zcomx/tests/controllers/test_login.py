@@ -13,6 +13,9 @@ import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.zco import \
+    BOOK_STATUS_ACTIVE, \
+    BOOK_STATUS_INCOMPLETE
 
 
 # C0111: Missing docstring
@@ -56,11 +59,11 @@ class TestFunctions(LocalTestCase):
             '{"files":',
             '"thumbnailUrl"',
         ],
-        'book_post_image_upload_fail': [
+        'book_post_upload_session_fail': [
             '"success": false',
             '"error": "Reorder service unavailable"',
         ],
-        'book_post_image_upload': [
+        'book_post_upload_session': [
             '"success": true',
         ],
         'book_release': '<div id="book_release_section">',
@@ -462,53 +465,53 @@ class TestFunctions(LocalTestCase):
 
         self._objects.append(book_page)
 
-    def test__book_post_image_upload(self):
+    def test__book_post_upload_session(self):
         # No book_id, return fail message
         self.assertTrue(
             web.test(
-                '{url}/book_post_image_upload'.format(url=self.url),
-                self.titles['book_post_image_upload_fail']
+                '{url}/book_post_upload_session'.format(url=self.url),
+                self.titles['book_post_upload_session_fail']
             )
         )
 
         # Invalid book_id, return fail message
         self.assertTrue(
             web.test(
-                '{url}/book_post_image_upload/{bid}'.format(
+                '{url}/book_post_upload_session/{bid}'.format(
                     bid=999999, url=self.url),
-                self.titles['book_post_image_upload_fail']
+                self.titles['book_post_upload_session_fail']
             )
         )
 
         # Valid book_id, no book pages returns success
+        self._book.update_record(status=BOOK_STATUS_INCOMPLETE)
+        db.commit()
         self.assertTrue(
             web.test(
-                '{url}/book_post_image_upload/{bid}'.format(
+                '{url}/book_post_upload_session/{bid}'.format(
                     bid=self._book.id,
                     url=self.url,
                 ),
-                self.titles['book_post_image_upload']
+                self.titles['book_post_upload_session']
             )
         )
+        # book has pages, so it should reset the status
+        book = db(db.book.id == self._book.id).select().first()
+        self.assertEqual(book.status, BOOK_STATUS_ACTIVE)
 
         # Valid
         query = (db.book_page.book_id == self._book.id)
         book_page_ids = [x.id for x in db(query).select(db.book_page.id)]
-        bpids = ['book_page_ids[]={pid}'.format(pid=x) for x in book_page_ids]
-        job_ids = [x.id for x in db(db.job).select(db.job.id)]
+        bp_ids = ['book_page_ids[]={pid}'.format(pid=x) for x in book_page_ids]
         self.assertTrue(
             web.test(
-                '{url}/book_post_image_upload/{bid}?{bpid}'.format(
+                '{url}/book_post_upload_session/{bid}?{bpid}'.format(
                     bid=self._book.id,
-                    bpid='&'.join(bpids),
+                    bpid='&'.join(bp_ids),
                     url=self.url),
-                self.titles['book_post_image_upload']
+                self.titles['book_post_upload_session']
             )
         )
-
-        # Test that jobs for optimizing images created.
-        job_ids_after = [x.id for x in db(db.job).select(db.job.id)]
-        self.assertTrue(len(job_ids) - len(job_ids_after), len(bpids))
 
     def test__book_release(self):
         # No book_id, redirects to books page

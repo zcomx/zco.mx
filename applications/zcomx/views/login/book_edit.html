@@ -2,9 +2,10 @@
 {{from gluon.contrib.simplejson import dumps}}
 {{from applications.zcomx.modules.books import book_types}}
 {{from applications.zcomx.modules.indicias import cc_licences, cc_licence_places}}
+{{from applications.zcomx.modules.zco import BOOK_STATUS_DISABLED}}
 <div id="book_edit_section">
 
-{{if book and not book.status:}}
+{{if book and book.status == BOOK_STATUS_DISABLED:}}
 <div class="panel panel-warning">
     <div class="panel-heading">
         <h3 class="panel-title">This book is disabled.</h3>

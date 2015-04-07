@@ -65,7 +65,7 @@
 </script>
 <script id="template-download" type="text/x-tmpl">
 {% for (var i=0, file; file=o.files[i]; i++) { %}
-    <tr class="template-download fade" data-book_id="{%=file.book_id%}" data-book_page_id="{%=file.book_page_id%}">
+    <tr class="template-download fade" data-book_page_id="{%=file.book_page_id%}">
         <td>
             <a href="" class="reorder-arrow reorder-arrow-up" data-dir="up">
             <span class="glyphicon glyphicon-arrow-up" title="Move up"></span>
@@ -127,6 +127,7 @@
 <script src="{{=URL(c='static', f='js/image_upload.js')}}"> </script>
 <script>
 //<![CDATA[
+
     $(document).ready(function(){
         $('#fileupload').image_upload(
             'book_page',
