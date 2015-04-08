@@ -3,13 +3,24 @@
 
 """
 
-Zco: System globals and session classes and functions.
+Zco: System globals, constants and session classes and functions.
 """
 import logging
 from gluon import *
 from gluon.storage import Storage
 
 LOG = logging.getLogger('app')
+
+# Constants
+
+BOOK_STATUS_ACTIVE = 'a'
+BOOK_STATUS_DISABLED = 'd'
+BOOK_STATUS_INCOMPLETE = 'i'
+BOOK_STATUSES = [
+    BOOK_STATUS_ACTIVE,
+    BOOK_STATUS_DISABLED,
+    BOOK_STATUS_INCOMPLETE,
+]
 
 
 class Zco(object):

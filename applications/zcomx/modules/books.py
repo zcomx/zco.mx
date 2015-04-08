@@ -30,6 +30,11 @@ from applications.zcomx.modules.shell_utils import tthsum
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+from applications.zcomx.modules.zco import \
+    BOOK_STATUSES, \
+    BOOK_STATUS_ACTIVE, \
+    BOOK_STATUS_DISABLED, \
+    BOOK_STATUS_INCOMPLETE
 
 
 DEFAULT_BOOK_TYPE = 'one-shot'
@@ -387,6 +392,27 @@ def calc_contributions_remaining(db, book_entity):
     return remaining
 
 
+def calc_status(book_entity):
+    """Determine the calculated status of the book.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+
+    Returns:
+        string, the status of a book, eg BOOK_STATUS_ACTIVE
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    if book_record.status == BOOK_STATUS_DISABLED:
+        return BOOK_STATUS_DISABLED
+
+    page_count = db(db.book_page.book_id == book_record.id).count()
+    return BOOK_STATUS_ACTIVE if page_count > 0 else BOOK_STATUS_INCOMPLETE
+
+
 def cbz_comment(book_entity):
     """ Return a comment suitable for the cbz file.
 
@@ -511,7 +537,7 @@ def contributions_remaining_by_creator(db, creator_entity):
         return 0.00
 
     query = (db.book.creator_id == creator.id) & \
-            (db.book.status == True)
+            (db.book.status == BOOK_STATUS_ACTIVE)
 
     total = 0
     books = db(query).select(db.book.ALL)
@@ -1244,6 +1270,30 @@ def release_link(book_entity, components=None, **attributes):
             kwargs['_class'] = ' '.join([kwargs['_class'], 'disabled'])
 
     return A(*components, **kwargs)
+
+
+def set_status(book_entity, status):
+    """Set the status of a book.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+        status: string, the status of a book.
+
+    Raises:
+        NotFoundError, if book_entity doesn't represent a book on file.
+        ValueError, if the status is invalid.
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    if status not in BOOK_STATUSES:
+        raise ValueError('Invalid status {s}'.format(s=status))
+
+    if book_record.status != status:
+        book_record.update_record(status=status)
+        db.commit()
 
 
 def short_page_img_url(book_page_entity):

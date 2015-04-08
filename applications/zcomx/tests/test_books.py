@@ -32,6 +32,7 @@ from applications.zcomx.modules.books import \
     book_tables, \
     book_types, \
     calc_contributions_remaining, \
+    calc_status, \
     cbz_comment, \
     cc_licence_data, \
     contribute_link, \
@@ -56,6 +57,7 @@ from applications.zcomx.modules.books import \
     read_link, \
     release_barriers, \
     release_link, \
+    set_status, \
     short_page_img_url, \
     short_page_url, \
     short_url, \
@@ -73,6 +75,11 @@ from applications.zcomx.modules.tests.runner import \
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+from applications.zcomx.modules.zco import \
+    BOOK_STATUSES, \
+    BOOK_STATUS_ACTIVE, \
+    BOOK_STATUS_DISABLED, \
+    BOOK_STATUS_INCOMPLETE
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -583,6 +590,35 @@ class TestFunctions(ImageTestCase):
             amount=35.99,
         ))
         self.assertEqual(calc_contributions_remaining(db, book), 49.01)
+
+    def test__calc_status(self):
+        book = self.add(db.book, dict(
+            name='test__calc_status',
+        ))
+
+        tests = [
+            # (pages, disabled, expect)
+            (0, False, BOOK_STATUS_INCOMPLETE),
+            (0, True, BOOK_STATUS_DISABLED),
+            (1, False, BOOK_STATUS_ACTIVE),
+            (1, True, BOOK_STATUS_DISABLED),
+        ]
+
+        for t in tests:
+            pages = book_pages(book)
+
+            if t[0] and not pages:
+                self.add(db.book_page, dict(
+                    book_id=book.id
+                ))
+            if not t[0] and pages:
+                db(db.book_page.book_id == book.id).delete()
+                db.commit()
+            if t[1]:
+                book.update_record(status=BOOK_STATUS_DISABLED)
+            else:
+                book.update_record(status='')
+            self.assertEqual(calc_status(book), t[2])
 
     def test__cbz_comment(self):
 
@@ -1726,6 +1762,19 @@ class TestFunctions(ImageTestCase):
             '/login/book_release/{i}'.format(i=book.id)
         )
         self.assertEqual(anchor['class'], 'disabled')
+
+    def test__set_status(self):
+        book = self.add(db.book, dict(
+            name='test__set_status',
+        ))
+
+        self.assertRaises(NotFoundError, set_status, -1, BOOK_STATUS_ACTIVE)
+        self.assertRaises(ValueError, set_status, book, '_fake_')
+
+        for s in BOOK_STATUSES:
+            set_status(book, s)
+            book_1 = db(db.book.id == book.id).select().first()   # Reload
+            self.assertEqual(book_1.status, s)
 
     def test__short_page_img_url(self):
         book = self.add(db.book, dict())

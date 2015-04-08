@@ -9,6 +9,7 @@ Test suite for zcomx/controllers/search.py
 import unittest
 from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -40,7 +41,7 @@ class TestFunctions(LocalTestCase):
             )
         )
 
-        query = (db.book.status == True) & \
+        query = (db.book.status == BOOK_STATUS_ACTIVE) & \
                 (db.book.release_date == None)
         books = db(query).select(
             db.book.ALL,

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Creator login controller functions"""
+import collections
 import logging
 import os
 import shutil
@@ -7,18 +8,22 @@ import sys
 from PIL import Image
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.access import requires_agreed_to_terms
+from applications.zcomx.modules.book_lists import \
+    class_from_code as book_list_class_from_code
 from applications.zcomx.modules.book_types import \
     from_id as type_from_id
 from applications.zcomx.modules.book_upload import BookPageUploader
 from applications.zcomx.modules.books import \
     name_fields, \
     book_pages_as_json, \
+    calc_status, \
     defaults as book_defaults, \
     images, \
     names, \
     publication_year_range, \
     read_link, \
-    release_barriers
+    release_barriers, \
+    set_status
 from applications.zcomx.modules.creators import \
     image_as_json, \
     queue_update_indicia
@@ -346,24 +351,13 @@ def book_list():
     if not creator_record:
         return dict()
 
-    if not request.args(0) or \
-            request.args(0) not in ['released', 'ongoing', 'disabled']:
+    try:
+        lister = book_list_class_from_code(request.args(0))(creator_record)
+    except ValueError as err:
+        LOG.error(err)
         return dict()
 
-    creator_query = (db.book.creator_id == creator_record.id)
-    active_query = (db.book.status == True)
-
-    book_records = None
-    if request.args(0) == 'released':
-        query = creator_query & active_query & (db.book.release_date != None)
-    elif request.args(0) == 'ongoing':
-        query = creator_query & active_query & (db.book.release_date == None)
-    elif request.args(0) == 'disabled':
-        query = creator_query & (db.book.status == False)
-    if query:
-        book_records = db(query).select(
-            db.book.ALL, orderby=[db.book.name, db.book.number])
-    return dict(books=book_records)
+    return dict(lister=lister)
 
 
 @auth.requires_login()
@@ -471,10 +465,11 @@ def book_pages_handler():
 
 
 @auth.requires_login()
-def book_post_image_upload():
+def book_post_upload_session():
     """Callback function for handling processing to run after images have been
         uploaded.
 
+        * set book status
         * optimize book page images
         * reorder book pages
 
@@ -498,7 +493,10 @@ def book_post_image_upload():
     if not book_record or book_record.creator_id != creator_record.id:
         return do_error('Reorder service unavailable')
 
-    # Step 1:  Trigger optimization of book images
+    # Step 1:  Set book status
+    set_status(book_record, calc_status(book_record))
+
+    # Step 2:  Trigger optimization of book images
     AllSizesImages.from_names(images(book_record)).optimize()
 
     # Step 2: Reorder book pages
@@ -583,11 +581,20 @@ def books():
         )
     )
 
-    query = (db.book.creator_id == creator_record.id) & \
-            (db.book.status == False)
-    has_disabled = db(query).count()
+    query = (db.book.creator_id == creator_record.id)
+    status_count = db.book.status.count()
+    rows = db(query).select(
+        db.book.status,
+        status_count,
+        groupby=db.book.status,
+    )
 
-    return dict(has_disabled=has_disabled)
+    status_counts = collections.defaultdict(
+        lambda: 0,
+        [(r.book.status, r[status_count]) for r in rows]
+    )
+
+    return dict(status_counts=status_counts)
 
 
 @auth.requires_login()

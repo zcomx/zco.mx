@@ -36,6 +36,7 @@ from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_TWITTER_HANDLE, \
     IS_URL_FOR_DOMAIN
+from applications.zcomx.modules.zco import BOOK_STATUS_INCOMPLETE
 
 model_db = ModelDb(globals())
 db = model_db.db
@@ -228,10 +229,8 @@ db.define_table('book',
     ),
     Field(
         'status',
-        'boolean',
-        default=True,
-        represent=lambda v, r=None: 'Active' if v == True else \
-            'Deactive' if v == False else 'None',
+        'string',
+        default=BOOK_STATUS_INCOMPLETE,
     ),
     format='%(name)s',
     migrate=True,

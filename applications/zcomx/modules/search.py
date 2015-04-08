@@ -29,6 +29,7 @@ from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row, \
     replace_in_elements
+from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
 LOG = logging.getLogger('app')
 
@@ -105,7 +106,7 @@ class Grid(object):
         db = self.db
         request = self.request
         queries = list(self.queries) if self.queries else []
-        queries.append((db.book.status == True))
+        queries.append((db.book.status == BOOK_STATUS_ACTIVE))
         queries.extend(self.filters())
 
         db.auth_user.name.represent = lambda v, row: A(

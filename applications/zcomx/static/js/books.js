@@ -77,12 +77,9 @@
             if (!this.$book_id) {
                 if (this.options.book_id) {
                     this.$book_id = this.options.book_id;
-                } else {
-                    var link_func = 'book_' + this.$action;
-                    var href_parts = this.$element.attr('href').split('/');
-                    if (href_parts[2] === link_func) {
-                        this.$book_id = href_parts[3];
-                    }
+                }
+                else if(this.$element.data('book_id')) {
+                    this.$book_id = this.$element.data('book_id');
                 }
             }
             return this.$book_id;
@@ -398,16 +395,12 @@
             }
 
             var page_ids = [];
-            var book_id = 0;
             dialog.getModalBody().find('tr.template-download').each(function(index, elem) {
-                if (!book_id) {
-                    book_id = $(elem).data('book_id');
-                }
                 page_ids.push($(elem).data('book_page_id'));
             });
 
-            var url = '/zcomx/login/book_post_image_upload'
-            url = url + '/' + book_id;
+            var url = '/zcomx/login/book_post_upload_session'
+            url = url + '/' + this.$book_id;
 
             var that = $(this);
 
@@ -482,8 +475,13 @@
     function display_book_lists() {
         $.each(book_list_urls, function(key, url) {
             var target =  key + '_book_list';
-            if ($('#' + target).length) {
+            var target_elem =  $('#' + target);
+            if (target_elem.length) {
                 web2py_component(url, target);
+                var container = target_elem.closest('.books_list_container');
+                if (container.length) {
+                    container.removeClass('hidden');
+                }
             }
         });
     }
