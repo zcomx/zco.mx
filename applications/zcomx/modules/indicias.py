@@ -772,6 +772,25 @@ class PublicationMetadata(object):
             publr=publr.rstrip('.'),
         )
 
+    def publication_year(self):
+        """Calculate the book publication year based on the metadata.
+
+        Returns:
+            integer, the publication year
+        """
+        if not self.metadata:
+            fmt = 'No metadata, no publication year, book id: {i}'
+            raise ValueError(fmt.format(i=self.book.id))
+
+        if self.serials:
+            max_to_year = 0
+            for serial in self.serials:
+                if serial['to_year'] > max_to_year:
+                    max_to_year = serial['to_year']
+            return max_to_year
+        else:
+            return self.metadata['to_year']
+
     def serial_text(self, serial, is_anthology=False):
         """Return the sentence form of a publication_serial record.
 

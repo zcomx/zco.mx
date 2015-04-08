@@ -33,11 +33,6 @@ releasing the book.</li>
 
 {{if not barriers:}}
     <div class="instruction">
-        Edit the year of publication if necessary.
-        <div id="editable_fields_container"></div>
-    </div>
-
-    <div class="instruction">
         Click the <em>Release</em> button to release <em>{{=formatted_name(db, book)}}</em>.
         Click the <em>Cancel</em> button if you've changed your mind.
     </div>
@@ -79,29 +74,6 @@ releasing the book.</li>
 </div>
 <script>
 //<![CDATA[
-    var book_data = {
-        'publication_year': {
-            'label': '{{=db.book.publication_year.label}}',
-            'value': '{{=book.publication_year or "" if book else str(datetime.date.today().year)}}',
-            'x_editable_settings': {
-                'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
-                'inputclass': 'inplace_crud book_publication_year_input',
-                'source': [ {{=publication_years()}} ],
-                'type': 'select',
-            },
-        },
-    };
-
     var release_enabled = {{if barriers:}}false{{else:}}true{{pass}};
-
-    $(document).ready(function(){
-        $('#editable_fields_container').inplace_crud(
-            '{{=URL(c='login', f='book_crud.json', args=(book.id if book else 0))}}',
-            '{{=book.id if book else "0"}}',
-            {
-                source_data: book_data,
-            }
-        );
-    });
 //]]>
 </script>

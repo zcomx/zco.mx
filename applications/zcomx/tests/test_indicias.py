@@ -1185,6 +1185,45 @@ class TestPublicationMetadata(LocalTestCase):
             'This work was originally self-published in print in 2014-2015 as "My Old Book".'
         )
 
+    def test__publication_year(self):
+        book = self.add(db.book, dict(name='test__publication_year'))
+        meta = PublicationMetadata(book.id)
+
+        # Test: no metadata or serial data
+        self.assertRaises(ValueError, meta.publication_year)
+
+        # Test: metadata, no serial
+        metadata = Storage(dict(
+            book_id=book.id,
+            from_year=1998,
+            to_year=1999,
+        ))
+        meta.metadata = metadata
+        self.assertEqual(meta.publication_year(), 1999)
+
+        # Test: single serial
+        serial_1 = Storage(dict(
+            book_id=book.id,
+            from_year=2010,
+            to_year=2011,
+        ))
+        meta.serials = [serial_1]
+        self.assertEqual(meta.publication_year(), 2011)
+
+        # Test: multiple serial
+        serial_2 = Storage(dict(
+            book_id=book.id,
+            from_year=2013,
+            to_year=2014,
+        ))
+        serial_3 = Storage(dict(
+            book_id=book.id,
+            from_year=2000,
+            to_year=2001,
+        ))
+        meta.serials = [serial_1, serial_2, serial_3]
+        self.assertEqual(meta.publication_year(), 2014)
+
     def test__serial_text(self):
 
         # METADATA see mod 12687

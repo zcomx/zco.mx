@@ -16,6 +16,8 @@ from applications.zcomx.modules.creators import \
     images as creator_images
 from applications.zcomx.modules.images_optimize import \
     CBZImagesForRelease
+from applications.zcomx.modules.indicias import \
+    PublicationMetadata
 from applications.zcomx.modules.job_queue import \
     CreateCBZQueuer, \
     CreateTorrentQueuer, \
@@ -60,6 +62,10 @@ class Releaser(object):
 
     def requeue_cli_options(self, requeues, max_requeues):
         """Return dict of cli options on requeue."""
+
+        # R0201: *Method could be a function*
+        # pylint: disable=R0201
+
         return {
             '-r': requeues + 1,
             '-m': max_requeues,
@@ -80,6 +86,12 @@ class ReleaseBook(Releaser):
             book_id: string, first arg
         """
         super(ReleaseBook, self).__init__(book_id)
+
+    def publication_year(self):
+        """Return the publication year for the book."""
+        meta = PublicationMetadata(self.book)
+        meta.load()
+        return meta.publication_year()
 
     def run(self):
         """Run the release."""
@@ -118,6 +130,7 @@ class ReleaseBook(Releaser):
         self.book.update_record(
             release_date=datetime.datetime.today(),
             releasing=False,
+            publication_year=self.publication_year()
         )
         db.commit()
 
