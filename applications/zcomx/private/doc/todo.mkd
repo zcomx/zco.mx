@@ -8,6 +8,11 @@ VERSION 2 - Before Going Live
 [x] Front Page
     Books without images are showing up on the front page
     https://zco.mx/?page=4
+[x] Login -> Release Model
+    Now that we require the metadata to be used, I think this can be
+    removed:
+        "Edit the year of publication if necessary.  Published [2014]"
+    We should use the 'To Year' in the filename and title.
 
 [ ] Announce cbz releases using zcomx_bot accounts
     [x] dc
@@ -32,12 +37,6 @@ VERSION 2 - Before Going Live
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
-
-[ ] Login -> Release Model
-    Now that we require the metadata to be used, I think this can be
-    removed:
-        "Edit the year of publication if necessary.  Published [2014]"
-    We should use the 'To Year' in the filename and title.
 
 [ ] Login -> Book Edit -> Copyright Licence
     The licences should go in this order:
