@@ -64,8 +64,6 @@ def paypal():
         a contribution to zco.mx is presumed.
     request.vars.book_id takes precendence over request.vars.creator_id.
     """
-    LOG.debug('FIXME paypal() next_url: %s', Zco().next_url)
-    LOG.debug('FIXME paypal() paypal_in_progress: %s', Zco().paypal_in_progress)
     next_url = Zco().next_url or URL(c='search', f='index')
     if Zco().paypal_in_progress:
         Zco().paypal_in_progress = None
