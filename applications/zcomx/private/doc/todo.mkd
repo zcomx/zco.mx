@@ -2,6 +2,12 @@
 VERSION 2 - Before Going Live
 [x] Quiet Nginx Logging
 [x] Add questions to faqc
+[x] Login -> Books -> Upload
+    Do not post book until the cartoonist clicks 'Close'
+    Maybe if there is at least one image uploaded then change 'Close' to 'Post' ?
+[x] Front Page
+    Books without images are showing up on the front page
+    https://zco.mx/?page=4
 
 [ ] Announce cbz releases using zcomx_bot accounts
     [x] dc
@@ -26,14 +32,6 @@ VERSION 2 - Before Going Live
 
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
-
-[ ] Login -> Books -> Upload
-    Do not post book until the cartoonist clicks 'Close'
-    Maybe if there is at least one image uploaded then change 'Close' to 'Post' ?
-
-[ ] Front Page
-    Books without images are showing up on the front page
-    https://zco.mx/?page=4
 
 [ ] Login -> Release Model
     Now that we require the metadata to be used, I think this can be
