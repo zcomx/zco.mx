@@ -1,52 +1,7 @@
 ``
 VERSION 2 - Before Going Live
-[x] Figure out backup of images
-    Add exclude for cbz and web images to syncbackup script
-[x] http://kb.zco.mx/howto-backup
-[x] FAQ - What do the sections on the front page mean?
-    Remove 'contributions'
-[x] About Page -> Cartoonist Documentation
-    Add links to kb.zco.mx on 'about' page
-[x] faqc -> What file types can be uploaded?
-    Add link to kb entry for exporting to PNG
-[x] Add the CC licence to the cbz meta data
-    CC BY, CC BY-SA, etc
-[x] Trailing Slash on Book Name
-    https://zco.mx/LilliLoge/MyDayOff/  ## Page not found
-    https://zco.mx/LilliLoge/MyDayOff   ## works
-[x] Thumbnail images are still created in the uploads/tbn directory.
-[x] Cartoonist and zcomx.torrent are missing
-    * the cartoonist torrent for Jordan Crane and Roger Langridge's are missing as well as the zcomx.torrent
-    * here is the grep I used, find /srv/http/zco.mx/web2py/ | grep '\.torrent'
-[x] Not receiving error emails from cronjobs on zco.mx
-[x] Separate Optimization of ori, cbz and web images
-    Process the optimization of the ori, cbz and web images separately.
-    In the queue, the highest priority should be cbz images, then web
-    and ori images should be the lowest of any job.
-[x] Optimize Images
-    Add all unoptimized images to the queue
-[x] Get Torrents Working
-    applications/zcomx/private/var/tor/zco.mx
-    applications/zcomx/private/var/cbz/zco.mx
-    https://pastee.org/ssmez
-    https://code.google.com/p/pyroscope/wiki/RtXmlRpcReference
-    http://code.google.com/p/gi-torrent/wiki/rTorrent_XMLRPC_reference
-    [x] Load & Seed 'all', cartoonist and book torrents
-        $ aurget -S pyrocore
-        $ dir="/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx/J/JordanCrane/"
-        $ tor="/srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/zco.mx/J/JordanCrane/Uptight 001 (2006) (103.zco.mx).cbz.torrent"
-        $ rtxmlrpc -q load.start '' "$tor" "d.directory_base.set=\"$dir\"" "d.priority.set=2" && sleep 1
-    [x] Delete Torrent
-        $ hash=$(lstor -qo __hash__ "$tor")
-        $ rtxmlrpc -q d.close=$hash && sleep 1
-        $ rtxmlrpc -q d.erase=$hash && sleep 1
-        $ rtxmlrpc -q system.file_status_cache.prune && sleep 1
-    [x] Add Remaining Torrents
-[x] Get dc Working
-    * Set share dir to: applications/zcomx/private/var/cbz/
-    * After cbz is created, refresh share and announce
-
-[S] Quiet Nginx Logging
+[x] Quiet Nginx Logging
+[x] Add questions to faqc
 
 [ ] Announce cbz releases using zcomx_bot accounts
     [x] dc
@@ -57,7 +12,6 @@ VERSION 2 - Before Going Live
         http://unix.stackexchange.com/questions/84540/twitter-status-updates-from-command-line-via-curl
         http://supertweetnews.140plus.com/p/a-quick-example-of-bash-shell-scripts-for-posting-twitter-updates/ZeRfz
     [ ] tumblr
-        http://stackoverflow.com/questions/9305796/post-picture-from-directory-to-tumblr-via-python
 
 [S] Look into Varnish for caching
     http://stackoverflow.com/questions/4490140/memcached-vs-varnish-for-speeding-up-3-tier-web-architecture
@@ -73,10 +27,9 @@ VERSION 2 - Before Going Live
 [S] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
 
-[ ] If 'admin', Skip Terms & Conditions Popup
-
 [ ] Login -> Books -> Upload
     Do not post book until the cartoonist clicks 'Close'
+    Maybe if there is at least one image uploaded then change 'Close' to 'Post' ?
 
 [ ] Front Page
     Books without images are showing up on the front page
@@ -86,7 +39,7 @@ VERSION 2 - Before Going Live
     Now that we require the metadata to be used, I think this can be
     removed:
         "Edit the year of publication if necessary.  Published [2014]"
-    It should be the 'To Year' in the metadata.
+    We should use the 'To Year' in the filename and title.
 
 [ ] Login -> Book Edit -> Copyright Licence
     The licences should go in this order:
@@ -125,8 +78,6 @@ VERSION 2 - Before Going Live
 [ ] Optimize Pages -- especially the front page
     [ ] look at Q's console
 
-[S] Add questions to faqc
-    Waiting on Sara
 [S] Integrity Check Data
     * Make sure everyone has added their paypal address
 [ ] Nice Levels

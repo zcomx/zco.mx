@@ -4,6 +4,8 @@
 ##### [[Will all work be licenced under Creative Commons (CC)? #licence]]
 ##### [[Am I able to remove any of the work I posted on zco.mx? #remove]]
 ##### [[Should I post my older work or only new comics? Are you looking for short comics or longer works? #content2]]
+##### [[My friend and I have a collaborative work we'd like to post. Is that okay? #colab]]
+##### [[Are non-English comics allowed? #non-eng]]
 ##### [[As a cartoonist, why would I want to use zco.mx? #use]]
 ##### [[Why not just use my own website? #own]]
 ##### [[I run a successful webcomic. Wouldn't zco.mx lower my web traffic? #traffic]]
@@ -74,19 +76,38 @@ A cartoonist can add or remove their work from the site as they see fit.
 
 
 [[content2]]
-#### Should I post my older work or only new comics? Are you looking for short comics or longer works?
-Any work you've completed in the past and comics you're currently
-working on are welcome.
+#### Should I post my older work or  new comics only? Are you looking for short comics or longer works?
+Any work you've completed in the past and comics you're currently working on
+are welcome.
 
 As for length, we recommend uploading works of at least eight pages and
-approaching content as if it were being published in print. Shorter
-works could be collected and posted as a anthology.  It is much more
-enjoyable to read a longer anthology by a cartoonist than it is to open
-and close many small cbz files.
+approaching content as if it were being published in print. Shorter works could
+be collected and posted as an anthology. It is much more enjoyable to read a
+longer anthology by a cartoonist than it is to open and close many small cbz
+files.
 
-For anthologies, be sure the word 'End' is visible on the last page of
-each story and/or add an illustration between the stories to help
-separate them.
+For anthologies, be sure the word "end" is visible on the last page of each
+story and/or add an illustration between the stories to help separate them.
+
+
+[[colab]]
+#### My friend and I have a collaborative work we'd like to post. Is that okay?
+Currently, zco.mx allows for solo works only. From a technical standpoint, this
+helps narrow the scope of the project and keeps the site simple and easy to
+use. While we hope to expand the site, limiting content to solo works at this
+point allows for a streamlined process. For example, handling donations
+between collaborators raises issues around how to divide ownership as well as
+technical considerations. If a reader sends $2, would it be split 50-50? What
+if creators fought over the percentage?
+
+Readers may have to send donations to each  cartoonist separately, or the site
+might need an intermediary Paypal account to collect the total and then split
+it,  which would  incur more fees.
+
+
+[[non-eng]]
+#### Are non-English comics allowed?
+Yes.
 
 
 [[use]]
