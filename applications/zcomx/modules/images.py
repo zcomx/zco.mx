@@ -528,28 +528,6 @@ def scrub_extension_for_store(filename):
         + '.' + translates[extension]
 
 
-def set_thumb_dimensions(db, book_page_id, dimensions):
-    """Set the db.book_page.thumb_* dimension values for a page.
-
-    Args:
-        db: gluon.dal.Dal instance.
-        book_page_id: integer, id of book_page record
-        dimensions: tuple (w, h), dimensions of thumb image.
-    """
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
-    if not dimensions:
-        return
-    w = dimensions[0]
-    h = dimensions[1]
-
-    db(db.book_page.id == book_page_id).update(
-        thumb_w=w,
-        thumb_h=h,
-    )
-    db.commit()
-
-
 def store(field, filename, resize=True, resizer=None):
     """Store an image file in an uploads directory.
     This will create all sizes of the image file.

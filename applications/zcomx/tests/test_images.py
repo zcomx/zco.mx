@@ -35,7 +35,6 @@ from applications.zcomx.modules.images import \
     on_delete_image, \
     optimize, \
     scrub_extension_for_store, \
-    set_thumb_dimensions, \
     store
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase
@@ -1016,25 +1015,6 @@ class TestFunctions(ImageTestCase):
         ]
         for t in tests:
             self.assertEqual(scrub_extension_for_store(t[0]), t[1])
-
-    def test__set_thumb_dimensions(self):
-        book_page = self.add(db.book_page, dict(
-            page_no=1,
-            thumb_w=0,
-            thumb_h=0,
-        ))
-
-        tests = [
-            # dimensions
-            (170, 170),
-            (170, 121),
-        ]
-
-        for t in tests:
-            set_thumb_dimensions(db, book_page.id, t)
-            book_page = entity_to_row(db.book_page, book_page.id)
-            self.assertEqual(book_page.thumb_w, t[0])
-            self.assertEqual(book_page.thumb_h, t[1])
 
     def test__store(self):
         if self._opts.quick:
