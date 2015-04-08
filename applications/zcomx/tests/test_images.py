@@ -161,7 +161,7 @@ class ImageTestCase(LocalTestCase):
             # be unique everytime the file is converted.
             outfile = file_obj + '.tmp'
 
-            # convert jimk.png +set date:modify +set date:create jimk2.pngn
+            # convert infile.png +set date:modify +set date:create outfile.png
             args = [
                 'convert',
                 file_obj,
@@ -470,10 +470,12 @@ class TestResizeImg(ImageTestCase):
                         )
                     if colors is not None:
                         im = Image.open(resize_img.filenames[prefix])
-                        self.assertEqual(
-                            len(im.getcolors(maxcolors=99999)),
-                            colors
+                        self.assertTrue(
+                            len(im.getcolors(maxcolors=99999)) in colors
                         )
+
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
 
         # Test: test the md5 sum of files.
         #
@@ -483,6 +485,8 @@ class TestResizeImg(ImageTestCase):
         # rm *.png
         # rm *.gif
         # ./applications/zcomx/private/bin/resize_img.sh before/*
+        # # Remove the dates from png files
+        # for f in *.png; do echo "$f"; convert "$f" +set date:modify +set date:create "$f"; done
         # md5sum * | awk -v q="'" '{print q$2q": " q$1q","}'
 
         md5s = {
@@ -525,12 +529,15 @@ class TestResizeImg(ImageTestCase):
                 'ori-256colour-gif.png': '6c91f0802c68b9f4699d51688db530c5',
                 'ori-256colour-jpeg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
-                'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
+                # 'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
+                'ori-256colour-png.png': '68d8435b225949d36b428b380dd493ac',
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
-                'web-256colour-gif.png': '9951bff8ec37124ac7989e0fc465880e',
+                # 'web-256colour-gif.png': '9951bff8ec37124ac7989e0fc465880e',
+                'web-256colour-gif.png': 'bc300c3181e8a99e6d7562bc99beead0',
                 'web-256colour-jpeg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
                 'web-256colour-jpg.jpg': 'd4643040166b53463d04947677b72c74',
-                'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
+                # 'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
+                'web-256colour-png.png': '629453bf2ff2c60119c87e74cc8a1b21',
             },
         }
 
@@ -550,7 +557,9 @@ class TestResizeImg(ImageTestCase):
                     fmt: ['ori', 'cbz', 'web'],
                 },
                 md5s=md5s[imagemagick_ver],
-                colors=256,
+                # The number of colours may be reduced for png files. The
+                # exact value is not critical, as long as it is 256 or less.
+                colors=[255, 256],
             )
 
         # Test: more than 256 colours
@@ -583,9 +592,8 @@ class TestResizeImg(ImageTestCase):
         test_it(
             'eg.gif',
             {
-                '{typ}-eg.gif': ['ori'],
                 # Image is not big enough to produce a cbz file.
-                '{typ}-eg.png': ['web'],
+                '{typ}-eg.png': ['ori', 'web'],
             }
         )
 
@@ -593,9 +601,8 @@ class TestResizeImg(ImageTestCase):
         test_it(
             'animated.gif',
             {
-                '{typ}-animated.gif': ['ori'],
                 # Image is not big enough to produce a cbz file.
-                '{typ}-animated.png': ['web'],
+                '{typ}-animated.png': ['ori', 'web'],
             }
         )
 
@@ -618,6 +625,9 @@ class TestResizeImg(ImageTestCase):
         )
 
         # Test: files with prefixes
+        # The resize should handle files whose original names have formats
+        # similar to those of the temporary files created by the resize
+        # script.
         for dest in ['ori-file.png', 'web-file.png', 'tbn-file.png']:
             fmt = '{{typ}}-{dest}'.format(dest=dest)
             test_it(
