@@ -98,11 +98,9 @@ use. While we hope to expand the site, limiting content to solo works at this
 point allows for a streamlined process. For example, handling donations
 between collaborators raises issues around how to divide ownership as well as
 technical considerations. If a reader sends $2, would it be split 50-50? What
-if creators fought over the percentage?
-
-Readers may have to send donations to each  cartoonist separately, or the site
-might need an intermediary Paypal account to collect the total and then split
-it,  which would  incur more fees.
+if creators fought over the percentage? Readers may have to send donations to
+each  cartoonist separately, or the site might need an intermediary Paypal
+account to collect the total and then split it,  which would  incur more fees.
 
 
 [[non-eng]]
