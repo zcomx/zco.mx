@@ -252,16 +252,6 @@ db.define_table('book_page',
         uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
         uploadseparate=True,
     ),
-    Field(
-        'thumb_w',
-        'integer',
-        default=0,
-    ),
-    Field(
-        'thumb_h',
-        'integer',
-        default=0,
-    ),
     format='%(page_no)s',
     migrate=True,
 )

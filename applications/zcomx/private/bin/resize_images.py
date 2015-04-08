@@ -18,7 +18,6 @@ from optparse import OptionParser
 from applications.zcomx.modules.images import \
     SIZES, \
     UploadImage, \
-    set_thumb_dimensions, \
     store
 from applications.zcomx.modules.shell_utils import \
     temp_directory
