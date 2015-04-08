@@ -214,15 +214,16 @@ def main():
         else:
             LOG.debug('Adding: %s', template.code)
             if not options.dry_run:
-                db.cc_licence.insert(number=template.number)
+                db.cc_licence.insert(code=template.code)
                 db.commit()
-                cc_licence = db(db.cc_licence.number == template.number).select().first()
+                cc_licence = db(db.cc_licence.code == template.code).select().first()
         if not cc_licence:
             raise NotFoundError('cc_licence not found, code: {code}'.format(
                 code=template.code))
         if not options.dry_run:
             cc_licence.update_record(
                 code=template.code,
+                number=template.number,
                 url=template.url,
                 template_img=template.template_img,
                 template_web=template.template_web
