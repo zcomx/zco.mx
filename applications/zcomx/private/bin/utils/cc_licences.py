@@ -6,6 +6,7 @@ cc_licences.py
 
 Script to create cc_licence records. Script can be re-run without creating
 duplicate records, but will update/replace existing records.
+The --clear is not recommended if books already have cc_licences.
 """
 import logging
 import os
@@ -25,66 +26,91 @@ LOG = logging.getLogger('cli')
 # line-too-long (C0301): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
 
-# The TEMPLATES elements are matched to cc_licence db records on the 'number'
-# field. Changing 'number' values may result in data corruption.
+# The order of TEMPLATES is significant. The db cc_licence.number value is
+# set to the index of the codes. The licences are displayed in the ddm
+# in the same order.
 TEMPLATES = [
-    {
-        'number': 0,
-        'code': 'CC0',
+    'CC0',
+    'CC BY',
+    'CC BY-SA',
+    'CC BY-ND',
+    'CC BY-NC',
+    'CC BY-NC-SA',
+    'CC BY-NC-ND',
+    'All Rights Reserved',
+]
+
+TEMPLATE_DATA = {
+    'CC0': {
         'url': 'http://creativecommons.org/publicdomain/zero/1.0',
         'template_img': """TO THE EXTENT POSSIBLE UNDER LAW, {owner} HAS WAIVED ALL COPYRIGHT AND RELATED OR NEIGHBORING RIGHTS TO "{title}".  THIS WORK IS PUBLISHED FROM: {place}.  FOR MORE INFORMATION, VISIT {url}.""",
         'template_web': """TO THE EXTENT POSSIBLE UNDER LAW, <a href="{owner_url}">{owner}</a> HAS <a href="{url}" target="_blank">WAIVED ALL COPYRIGHT AND RELATED OR NEIGHBORING RIGHTS</a> TO <a href="{title_url}">{title}</a>.&nbsp; THIS WORK IS PUBLISHED FROM: {place}."""
     },
-    {
-        'number': 1,
-        'code': 'CC BY',
+    'CC BY': {
         'url': 'http://creativecommons.org/licenses/by/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
         'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY 4.0 INT`L LICENSE</a>."""
     },
-    {
-        'number': 2,
-        'code': 'CC BY-ND',
-        'url': 'http://creativecommons.org/licenses/by-nd/4.0',
-        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
-        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-ND 4.0 INT`L LICENSE</a>."""
-    },
-    {
-        'number': 3,
-        'code': 'CC BY-SA',
+    'CC BY-SA': {
         'url': 'http://creativecommons.org/licenses/by-sa/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-SHAREALIKE 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
         'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-SA 4.0 INT`L LICENSE</a>."""
     },
-    {
-        'number': 4,
-        'code': 'CC BY-NC',
+    'CC BY-ND': {
+        'url': 'http://creativecommons.org/licenses/by-nd/4.0',
+        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
+        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-ND 4.0 INT`L LICENSE</a>."""
+    },
+    'CC BY-NC': {
         'url': 'http://creativecommons.org/licenses/by-nc/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
         'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-NC 4.0 INT`L LICENSE</a>."""
     },
-    {
-        'number': 5,
-        'code': 'CC BY-NC-ND',
+    'CC BY-NC-SA': {
         'url': 'http://creativecommons.org/licenses/by-nc-nd/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
         'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-NC-ND 4.0 INT`L LICENSE</a>."""
     },
-    {
-        'number': 6,
-        'code': 'CC BY-NC-SA',
+    'CC BY-NC-ND': {
         'url': 'http://creativecommons.org/licenses/by-nc-sa/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-SHAREALIKE 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
         'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-NC-SA 4.0 INT`L LICENSE</a>."""
     },
-    {
-        'number': 7,
-        'code': 'All Rights Reserved',
+    'All Rights Reserved': {
         'url': '',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.""",
         'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
     },
-]
+}
+
+
+def run_checks():
+    """Run checks to expose foo in template data."""
+    errors = 0
+    # Each code in TEMPLATES should have a key in TEMPLATE_DATA
+    for code in TEMPLATES:
+        if code not in TEMPLATE_DATA:
+            errors += 1
+            LOG.error('Not found in TEMPLATE_DATA: %s', code)
+
+    # Each key in TEMPLATE_DATA should be in TEMPLATES
+    for code in TEMPLATE_DATA.keys():
+        if code not in TEMPLATES:
+            errors += 1
+            LOG.error('Not found in TEMPLATES: %s', code)
+
+    # Eech element in TEMPLATE_DATA should have the required keys
+    required_keys = ['url', 'template_img', 'template_web']
+    for code, data in TEMPLATE_DATA.items():
+        for k in data.keys():
+            if k not in required_keys:
+                errors += 1
+                LOG.error('Code %s invalid key: %s', code, k)
+        for k in required_keys:
+            if k not in data.keys():
+                errors += 1
+                LOG.error('Code %s missing key: %s', code, k)
+    return errors
 
 
 def man_page():
@@ -172,21 +198,28 @@ def main():
             LOG.debug('Dry run. No changes made.')
 
     LOG.info('Started.')
+    errors = run_checks()
+    if errors:
+        LOG.error('Aborting due to errors.')
+        exit(1)
 
-    for template_dict in TEMPLATES:
+    for number, code in enumerate(TEMPLATES):
+        template_dict = TEMPLATE_DATA[code]
+        template_dict['code'] = code
+        template_dict['number'] = number
         template = Storage(template_dict)
-        cc_licence = db(db.cc_licence.number == template.number).select().first()
+        cc_licence = db(db.cc_licence.code == code).select().first()
         if cc_licence:
-            LOG.debug('Updating: %s', template.number)
+            LOG.debug('Updating: %s', template.code)
         else:
-            LOG.debug('Adding: %s', template.number)
+            LOG.debug('Adding: %s', template.code)
             if not options.dry_run:
                 db.cc_licence.insert(number=template.number)
                 db.commit()
                 cc_licence = db(db.cc_licence.number == template.number).select().first()
         if not cc_licence:
-            raise NotFoundError('cc_licence not found, number: {number}'.format(
-                number=template.number))
+            raise NotFoundError('cc_licence not found, code: {code}'.format(
+                code=template.code))
         if not options.dry_run:
             cc_licence.update_record(
                 code=template.code,
