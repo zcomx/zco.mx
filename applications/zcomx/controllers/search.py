@@ -10,6 +10,7 @@ def box():
     return dict()
 
 
+@auth.requires_login()
 def index():
     """Default controller."""
     Zco().next_url = URL(
