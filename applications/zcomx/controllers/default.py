@@ -277,7 +277,6 @@ def terms():
     )
 
 
-@auth.requires_login()
 def todo():
     """Todo page"""
     return markmin('todo')
