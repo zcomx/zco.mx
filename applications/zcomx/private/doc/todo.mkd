@@ -49,6 +49,9 @@ VERSION 2 - Before Going Live
 
 ---
 
+[ ] Optimize Pages -- especially the front page
+    [ ] look at Q's console
+
 [ ] Front Page/Book Page
     SB 2015-03-25 20:56  we should talk about this
     The same stats on the front page should be on the book page and
@@ -70,9 +73,6 @@ VERSION 2 - Before Going Live
                                               [CC BY]
     Except  where  otherwise  noted, content  on this
     site is licenced under a CC BY 4.0 Int'l licence.
-
-[ ] Optimize Pages -- especially the front page
-    [ ] look at Q's console
 
 [S] Integrity Check Data
     * Make sure everyone has added their paypal address
@@ -120,6 +120,8 @@ VERSION 3
 
 
 VERSION 4
+[ ] Automate Mailing List Add/Remove
+    http://stackoverflow.com/questions/21253849/google-groups-api-add-member
 [ ] How to Handle Translations ?
 [ ] login -> books -> edit
     Use inline Editing for metadata
