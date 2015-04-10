@@ -16,11 +16,10 @@ from applications.zcomx.modules.books import \
     get_page, \
     page_url, \
     read_link, \
-    short_page_img_url, \
     url as book_url
 from applications.zcomx.modules.creators import \
-    formatted_name as creator_formatted_name, \
     url as creator_url
+from applications.zcomx.modules.html.meta import MetadataFactory
 from applications.zcomx.modules.indicias import BookIndiciaPage
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.search import \
@@ -336,7 +335,12 @@ class Router(object):
                     self.redirect = c_url
                 return
 
-        self.set_response_meta()
+        preparers = [
+            'opengraph',    # Used by facebook sharer.php
+            'twitter'       # Used by twitter Cards.
+        ]
+
+        self.set_response_meta(preparers)
 
         if self.book_page_record:
             if request.vars.page and os.path.splitext(request.vars.page)[1]:
@@ -537,63 +541,12 @@ class Router(object):
         self.view = 'books/slider.html' if reader == 'slider' else \
             'books/scroller.html'
 
-    def set_response_meta(self):
-        """Set the response.meta Open Graph values.
-        Facebook sharer.php uses these.
+    def set_response_meta(self, preparer_codes):
+        """Set the response.meta.
+
+        Args:
+            list of strings, preparer codes
         """
-        meta = {}       # k=property, v=content
-
-        meta['og:title'] = 'zco.mx'
-        meta['og:type'] = ''
-        meta['og:url'] = URL(host=True)
-        meta['og:image'] = URL(
-            c='static',
-            f='images/zco.mx-logo-small.png',
-            host=True,
-        )
-        meta['og:site_name'] = 'zco.mx'
-        meta['og:description'] = (
-            'zco.mx is a curated not-for-profit comic-sharing website'
-            ' for self-publishing cartoonists and their readers.'
-        )
-
-        creator_name = creator_formatted_name(self.creator_record) \
-            if self.creator_record else None
-
-        if self.book_record:
-            meta['og:title'] = self.book_record.name
-            meta['og:type'] = 'book'
-            meta['og:url'] = book_url(self.book_record, host=True)
-            try:
-                meta['og:image'] = short_page_img_url(
-                    get_page(self.book_record, page_no='first')
-                )
-            except NotFoundError:
-                pass            # Use default
-            if self.book_record.description:
-                meta['og:description'] = self.book_record.description
-            else:
-                if creator_name:
-                    meta['og:description'] = \
-                        'By {c} available at zco.mx'.format(c=creator_name)
-                else:
-                    meta['og:description'] = 'Available at zco.mx'
-        elif self.creator_record:
-            meta['og:title'] = creator_name
-            meta['og:type'] = 'profile'
-            meta['og:url'] = creator_url(self.creator_record, host=True)
-            meta['og:image'] = URL(
-                c='images',
-                f='download',
-                args=self.creator_record.image,
-                vars={'size': 'web'},
-                host=True
-            ) if self.creator_record.image else ''
-            if self.creator_record.bio:
-                meta['og:description'] = self.creator_record.bio
-            else:
-                meta['og:description'] = 'Available at zco.mx'
-
         response = current.response
-        for k, v in meta.items():
-            response.meta[k] = {'property': k, 'content': v}
+        response.meta = MetadataFactory(
+            preparer_codes, self.creator_record, self.book_record).metadata()

@@ -796,6 +796,46 @@ def get_page(book_entity, page_no=1):
     return book_page
 
 
+def html_metadata(book_entity):
+    """Return book attributes for HTML metadata.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+
+    Returns:
+        dict
+    """
+    if not book_entity:
+        return {}
+
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    creator_record = entity_to_row(db.creator, book_record.creator_id)
+    if not creator_record:
+        raise NotFoundError('Creator not found, {e}'.format(
+            e=book_record.creator_id))
+
+    try:
+        image_url = short_page_img_url(
+            get_page(book_record, page_no='first')
+        )
+    except NotFoundError:
+        image_url = None
+
+    return {
+        'creator_name': creator_formatted_name(creator_record),
+        'creator_twitter': creator_record.twitter,
+        'description': book_record.description,
+        'image_url': image_url,
+        'name': book_record.name,
+        'type': 'book',
+        'url': url(book_record, host=True),
+    }
+
+
 def images(book_entity):
     """Return a list of image names associated with the book.
 

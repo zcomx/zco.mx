@@ -875,60 +875,97 @@ class TestRouter(LocalTestCase):
         db.commit()
 
     def test__set_response_meta(self):
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         router = Router(db, self._request, auth)
+        codes = ['opengraph']
+
+        # Has book and creator
+        router.book_record = self._book
         router.creator_record = self._creator
         response.meta = Storage()
+        router.set_response_meta(codes)
+        self.assertEqual(
+            response.meta,
+            {
+                'og:description': {
+                    'content': 'By First Last available at zco.mx',
+                    'property': 'og:description'
+                },
+                'og:image': {
+                    'content': 'http://{cid}.zco.mx/MyBook/001.png'.format(cid=self._creator.id),
+                    'property': 'og:image'
+                },
+                'og:site_name': {
+                    'content': 'zco.mx',
+                    'property': 'og:site_name'
+                },
+                'og:title': {'content': 'My Book', 'property': 'og:title'},
+                'og:type': {'content': 'book', 'property': 'og:type'},
+                'og:url': {
+                    'content': 'http://127.0.0.1:8000/FirstLast/MyBook',
+                    'property': 'og:url'
+                }
+            }
+        )
 
-        def test_it(expect):
-            meta = dict(response.meta)
-            self.assertEqual(sorted(meta.keys()), sorted(expect.keys()))
-            for k, v in expect.items():
-                self.assertEqual(
-                    meta[k],
-                    {'content': v, 'property': k}
-                )
+        # Has creator
+        router.book_record = None
+        router.creator_record = self._creator
+        response.meta = Storage()
+        router.set_response_meta(codes)
+        self.assertEqual(
+            response.meta,
+            {
+                'og:description': {
+                    'content': 'Available at zco.mx',
+                    'property': 'og:description'
+                },
+                'og:image': {
+                    'content': '',
+                    'property': 'og:image'
+                },
+                'og:site_name': {
+                    'content': 'zco.mx',
+                    'property': 'og:site_name'
+                },
+                'og:title': {'content': 'First Last', 'property': 'og:title'},
+                'og:type': {'content': 'profile', 'property': 'og:type'},
+                'og:url': {
+                    'content': 'http://127.0.0.1:8000/FirstLast',
+                    'property': 'og:url'
+                }
+            }
+        )
 
-        test_it({})
-
-        # Router has no book, expect creator data.
-        expect = {
-            'og:description': 'Available at zco.mx',
-            'og:image': '',
-            'og:site_name': 'zco.mx',
-            'og:title': 'First Last',
-            'og:type': 'profile',
-            'og:url': 'http://127.0.0.1:8000/FirstLast'
-        }
-        router.set_response_meta()
-        test_it(expect)
-
-        bio = 'Creator of creations at zco.mx'
-        router.creator_record.bio = bio
-        expect['og:description'] = bio
-        router.set_response_meta()
-        test_it(expect)
-
-        # Router has book, expect book data.
-        router.book_record = self._book
-
-        expect = {
-            'og:description': 'By First Last available at zco.mx',
-            'og:image': 'http://{cid}.zco.mx/MyBook/001.png'.format(
-                cid=self._creator.id),
-            'og:site_name': 'zco.mx',
-            'og:title': 'My Book',
-            'og:type': 'book',
-            'og:url': 'http://127.0.0.1:8000/FirstLast/MyBook'
-        }
-
-        router.set_response_meta()
-        test_it(expect)
-
-        descr = 'One of many fine books at zco.mx'
-        router.book_record.description = descr
-        expect['og:description'] = descr
-        router.set_response_meta()
-        test_it(expect)
+        # Has neither book nor creator
+        router.book_record = None
+        router.creator_record = None
+        response.meta = Storage()
+        router.set_response_meta(codes)
+        self.assertEqual(
+            response.meta,
+            {
+                'og:description': {
+                    'content': 'zco.mx is a curated not-for-profit comic-sharing website for self-publishing cartoonists and their readers.',
+                    'property': 'og:description'
+                },
+                'og:image': {
+                    'content': 'http://127.0.0.1:8000/zcomx/static/images/zco.mx-logo-small.png',
+                    'property': 'og:image'
+                },
+                'og:site_name': {
+                    'content': 'zco.mx',
+                    'property': 'og:site_name'
+                },
+                'og:title': {'content': 'zco.mx', 'property': 'og:title'},
+                'og:type': {'content': '', 'property': 'og:type'},
+                'og:url': {
+                    'content': 'http://127.0.0.1:8000/',
+                    'property': 'og:url'
+                }
+            }
+        )
 
 
 class TestFunctions(LocalTestCase):
