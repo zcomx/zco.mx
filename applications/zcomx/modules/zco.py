@@ -87,3 +87,27 @@ class Zco(object):
     def all_torrent_url(self):
         """FIXME"""
         return dict(c='zco.mx.torrent', f='index')
+
+
+def html_metadata():
+    """Return the HTML metadata for the site.
+
+    Returns:
+        dict
+    """
+    return {
+        'name': 'zco.mx',
+        'title': 'zco.mx',
+        'description': (
+            'zco.mx is a curated not-for-profit comic-sharing website'
+            ' for self-publishing cartoonists and their readers.'
+        ),
+        'icon': URL(
+            c='static',
+            f='images/zco.mx-logo-small.png',
+            host=True,
+        ),
+        'type': '',
+        'twitter': '@zcomx_bot',
+        'url': URL(host=True),
+    }
