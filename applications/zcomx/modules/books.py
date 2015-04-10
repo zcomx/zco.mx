@@ -34,7 +34,8 @@ from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_INCOMPLETE
+    BOOK_STATUS_INCOMPLETE, \
+    SITE_NAME
 
 
 DEFAULT_BOOK_TYPE = 'one-shot'
@@ -1515,6 +1516,52 @@ def torrent_url(book_entity, **url_kwargs):
         f='{name}.torrent'.format(name=name),
         **kwargs
     )
+
+
+def tumblr_data(book_entity):
+    """Return book attributes for tumblr data.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+
+    Returns:
+        dict
+    """
+    if not book_entity:
+        return {}
+
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    try:
+        first_page = get_page(book_entity, page_no='first')
+    except NotFoundError:
+        first_page = None
+
+    source = None
+    if first_page:
+        source = URL(
+            c='images',
+            f='download',
+            args=first_page.image,
+            vars={'size': 'web'},
+            host=SITE_NAME,
+        )
+
+    return {
+        'description': book_record.description,
+        'name': book_record.name,
+        'slug_name': book_name(book_record, use='search'),
+        'source': source,
+        'tag_name': book_name(book_record, use='url'),
+        'title': formatted_name(
+            db, book_record, include_publication_year=True),
+        'tweet_name': formatted_name(
+            db, book_record, include_publication_year=False),
+        'url': url(book_record, host=SITE_NAME),
+    }
 
 
 def update_contributions_remaining(db, book_entity):

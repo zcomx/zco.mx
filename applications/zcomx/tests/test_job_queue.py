@@ -33,6 +33,7 @@ from applications.zcomx.modules.job_queue import \
     OptimizeImgQueuer, \
     OptimizeOriginalImgQueuer, \
     OptimizeWebImgQueuer, \
+    PostBookOnTumblrQueuer, \
     PRIORITIES, \
     Queue, \
     QueueEmptyError, \
@@ -601,6 +602,28 @@ class TestOptimizeWebImgQueuer(LocalTestCase):
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/process_img.py --size web'
+        )
+
+
+class TestPostBookOnTumblrQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = PostBookOnTumblrQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'--vv': True},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/post_book_on_tumblr.py --vv 123'
         )
 
 

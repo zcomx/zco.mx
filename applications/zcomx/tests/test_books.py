@@ -65,6 +65,7 @@ from applications.zcomx.modules.books import \
     torrent_file_name, \
     torrent_link, \
     torrent_url, \
+    tumblr_data, \
     update_contributions_remaining, \
     update_rating, \
     url
@@ -1887,6 +1888,52 @@ class TestFunctions(ImageTestCase):
             book.update_record(creator_id=t[0], name_for_url=t[1])
             db.commit()
             self.assertEqual(short_url(book), t[2])
+
+    def test__tumblr_data(self):
+
+        self.assertEqual(tumblr_data(None), {})
+
+        creator = self.add(db.creator, dict(
+            name_for_url='FirstLast',
+        ))
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            number=2,
+            of_number=4,
+            book_type_id=self._type_id_by_name['mini-series'],
+            creator_id=creator.id,
+            description='This is my book!',
+            name_for_url='MyBook',
+            name_for_search='my-book-02-of-04',
+            publication_year=1999,
+        ))
+
+        # Book without cover
+        expect = {
+            'description': 'This is my book!',
+            'name': 'My Book',
+            'slug_name': 'my-book-02-of-04',
+            'source': None,
+            'tag_name': 'MyBook',
+            'title': 'My Book 02 (of 04) (1999)',
+            'tweet_name': 'My Book 02 (of 04)',
+            'url': 'http://zco.mx/FirstLast/MyBook',
+        }
+        self.assertEqual(tumblr_data(book), expect)
+
+        # Book with cover
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            image='book_page.image.aaa.000.jpg',
+        ))
+
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+
+        expect['source'] = 'http://zco.mx/images/download/book_page.image.aaa.000.jpg?size=web'
+        self.assertEqual(tumblr_data(book), expect)
 
     def test__update_contributions_remaining(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
