@@ -10,7 +10,8 @@ from gluon.http import HTTP
 from gluon.storage import Storage
 from applications.zcomx.modules.access import \
     requires_admin_ip, \
-    requires_agreed_to_terms
+    requires_agreed_to_terms, \
+    requires_login_if_configured
 from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
@@ -115,6 +116,32 @@ class TestFunctions(LocalTestCase):
         creator.update_record(agreed_to_terms=True)
         db.commit()
         self.assertEqual(func(), 'Success')
+
+    def test__requires_login_if_configured(self):
+        env = globals()
+        auth = env['auth']
+
+        otherwise = lambda: 'Not logged in'
+
+        local_settings = Storage({'require_login': True})
+        @requires_login_if_configured(local_settings, otherwise=otherwise)
+        def as_true():
+            return 'Success'
+
+        local_settings = Storage({'require_login': False})
+        @requires_login_if_configured(local_settings, otherwise=otherwise)
+        def as_false():
+            return 'Success'
+
+        # Not logged in
+        auth.user = None
+        self.assertEqual(as_true(), 'Not logged in')
+        self.assertEqual(as_false(), 'Success')
+
+        # Logged in
+        auth.user = 'myuser'          # Anything truthy will work
+        self.assertEqual(as_true(), 'Success')
+        self.assertEqual(as_false(), 'Success')
 
 
 def setUpModule():

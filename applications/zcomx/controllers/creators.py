@@ -3,6 +3,7 @@
 
 import cgi
 from gluon.storage import Storage
+from applications.zcomx.modules.access import requires_login_if_configured
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.zco import Zco
 
@@ -13,7 +14,7 @@ def creator():
     raise HTTP(404, "Page not found")
 
 
-@auth.requires_login()
+@requires_login_if_configured(local_settings)
 def index():
     """Creators default controller.
 

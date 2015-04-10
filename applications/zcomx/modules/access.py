@@ -61,3 +61,24 @@ def requires_agreed_to_terms():
         wrapper.__dict__.update(action.__dict__)
         return wrapper
     return _decorator
+
+
+def requires_login_if_configured(local_settings, otherwise=None):
+    """Decorator restricting access to a function if the configuration
+    settings prescribe login is required.
+
+    private/settings.conf
+        require_login = True            # Only allow access if logged in
+        require_login = False           # Allow access to everyone
+
+    Args:
+        otherwise: callable, what to do if requires fails.
+
+    Returns:
+        decorated function
+    """
+    return current.app.auth.requires(
+        True,
+        requires_login=local_settings.require_login,
+        otherwise=otherwise
+    )
