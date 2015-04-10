@@ -21,6 +21,7 @@ from applications.zcomx.modules.creators import \
     creator_name, \
     for_path, \
     formatted_name, \
+    html_metadata, \
     image_as_json, \
     images, \
     on_change_name, \
@@ -366,6 +367,46 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(formatted_name(creator), 'Test Name')
         # By integer instance
         self.assertEqual(formatted_name(creator.id), 'Test Name')
+
+    def test__html_metadata(self):
+
+        self.assertEqual(html_metadata(None), {})
+
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(
+            auth_user_id=auth_user.id,
+            name_for_url='FirstLast',
+            bio='First was born...',
+            twitter='@firstlast',
+        ))
+
+        # Creator without image
+        self.assertEqual(
+            html_metadata(creator),
+            {
+                'description': 'First was born...',
+                'image_url': None,
+                'name': 'First Last',
+                'twitter': '@firstlast',
+                'type': 'profile',
+                'url': 'http://127.0.0.1:8000/FirstLast'
+            }
+        )
+
+        # Creator with image
+        creator.image = 'file.jpg'
+        img_url = 'http://127.0.0.1:8000/images/download/file.jpg?size=web'
+        self.assertEqual(
+            html_metadata(creator),
+            {
+                'description': 'First was born...',
+                'image_url': img_url,
+                'name': 'First Last',
+                'twitter': '@firstlast',
+                'type': 'profile',
+                'url': 'http://127.0.0.1:8000/FirstLast'
+            }
+        )
 
     def test__image_as_json(self):
         db.creator.image.uploadfolder = self._uploadfolders['image']

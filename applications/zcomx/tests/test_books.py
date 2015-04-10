@@ -45,6 +45,7 @@ from applications.zcomx.modules.books import \
     formatted_name, \
     formatted_number, \
     get_page, \
+    html_metadata, \
     images, \
     magnet_link, \
     magnet_uri, \
@@ -1178,6 +1179,59 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(indicia.book_id, book.id)
         self.assertEqual(indicia.page_no, last.page_no + 1)
         self.assertEqual(indicia.image, None)
+
+    def test__html_metadata(self):
+
+        self.assertEqual(html_metadata(None), {})
+
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(
+            auth_user_id=auth_user.id,
+            name_for_url='FirstLast',
+            twitter='@firstlast',
+        ))
+        book = self.add(db.book, dict(
+            name='My Book',
+            creator_id=creator.id,
+            description='This is my book!',
+            name_for_url='MyBook',
+        ))
+
+        # Book without cover
+        self.assertEqual(
+            html_metadata(book),
+            {
+                'creator_name': 'First Last',
+                'creator_twitter': '@firstlast',
+                'description': 'This is my book!',
+                'image_url': None,
+                'name': 'My Book',
+                'type': 'book',
+                'url': 'http://127.0.0.1:8000/FirstLast/MyBook'
+            }
+        )
+
+        # Book with cover
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            image='book_page.image.aaa.000.jpg',
+        ))
+
+        img_url = 'http://{cid}.zco.mx/MyBook/001.jpg'.format(cid=creator.id)
+
+        self.assertEqual(
+            html_metadata(book),
+            {
+                'creator_name': 'First Last',
+                'creator_twitter': '@firstlast',
+                'description': 'This is my book!',
+                'image_url': img_url,
+                'name': 'My Book',
+                'type': 'book',
+                'url': 'http://127.0.0.1:8000/FirstLast/MyBook'
+            }
+        )
 
     def test__images(self):
         book = self.add(db.book, dict(
