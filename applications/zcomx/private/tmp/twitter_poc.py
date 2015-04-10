@@ -96,10 +96,10 @@ def main():
     # x = t.statuses.user_timeline(screen_name="CharlesForsman", count=1)
     # x = t.search.tweets(q="sittler", count=2)
     # x = t.statuses.update(status='Testing')
-    # x = t.statuses.update(status='Finnish hockey elimanation balloons http://i.imgur.com/rBqOaW1.jpg')
+    # x = t.statuses.update(status='Development test http://zco.mx')
+    x = t.statuses.destroy(id='586561746363621377')
 
-    x = t.statuses.destroy(id='586247550140833792')
-    print 'FIXME x: {var}'.format(var=x)
+    print 'x: {var}'.format(var=x)
     LOG.info('Done.')
 
 

@@ -22,6 +22,7 @@ from applications.zcomx.modules.strings import \
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = logging.getLogger('app')
 
@@ -212,7 +213,7 @@ def formatted_name(creator_entity):
 
 
 def html_metadata(creator_entity):
-    """Return book attributes for HTML metadata.
+    """Return creator attributes for HTML metadata.
 
     Args:
         creator_entity: Row instance or integer representing a creator.
@@ -527,6 +528,45 @@ def torrent_url(creator_entity, **url_kwargs):
         f='index',
         **kwargs
     )
+
+
+def tumblr_data(creator_entity):
+    """Return creator attributes for tumblr data.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator.
+
+    Returns:
+        dict
+    """
+    if not creator_entity:
+        return {}
+
+    db = current.app.db
+    creator_record = entity_to_row(db.creator, creator_entity)
+    if not creator_record:
+        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
+
+    social_media = []           # (field, url) tuples
+    social_media_fields = [
+        'website',
+        'twitter',
+        'shop',
+        'tumblr',
+        'facebook',
+    ]
+
+    for field in social_media_fields:
+        if creator_record[field]:
+            social_media.append((field, creator_record[field]))
+
+    return {
+        'slug_name': creator_name(creator_entity, use='search'),
+        'social_media': social_media,
+        'tag_name': creator_name(creator_entity, use='url'),
+        'tweet_name': formatted_name(creator_record),
+        'url': url(creator_record, host=SITE_NAME),
+    }
 
 
 def url(creator_entity, **url_kwargs):

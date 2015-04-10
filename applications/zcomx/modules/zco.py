@@ -22,6 +22,8 @@ BOOK_STATUSES = [
     BOOK_STATUS_INCOMPLETE,
 ]
 
+SITE_NAME = 'zco.mx'
+
 
 class Zco(object):
     """Class used for system globals and sessions
@@ -96,8 +98,8 @@ def html_metadata():
         dict
     """
     return {
-        'name': 'zco.mx',
-        'title': 'zco.mx',
+        'name': SITE_NAME,
+        'title': SITE_NAME,
         'description': (
             'zco.mx is a curated not-for-profit comic-sharing website'
             ' for self-publishing cartoonists and their readers.'

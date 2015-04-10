@@ -21,7 +21,9 @@ from applications.zcomx.modules.indicias import \
 from applications.zcomx.modules.job_queue import \
     CreateCBZQueuer, \
     CreateTorrentQueuer, \
+    PostBookOnTumblrQueuer, \
     ReleaseBookQueuer
+from applications.zcomx.modules.tumblr import POST_IN_PROGRESS
 from applications.zcomx.modules.utils import \
     NotFoundError
 
@@ -126,12 +128,29 @@ class ReleaseBook(Releaser):
             self.needs_requeue = True
             return
 
+        if not self.book.tumblr_post_id:
+            # Create book torrent
+            PostBookOnTumblrQueuer(
+                db.job,
+                cli_args=[str(self.book.id)],
+            ).queue()
+            self.needs_requeue = True
+            # Set the tumblr post id to a dummy value to prevent this step
+            # from running over and over.
+            data = dict(
+                tumblr_post_id=POST_IN_PROGRESS
+            )
+            self.book.update_record(**data)
+            db.commit()
+            return
+
         # Everythings good. Release the book.
-        self.book.update_record(
+        data = dict(
             release_date=datetime.datetime.today(),
             releasing=False,
             publication_year=self.publication_year()
         )
+        self.book.update_record(**data)
         db.commit()
 
 
@@ -167,12 +186,17 @@ class UnreleaseBook(Releaser):
                 os.unlink(self.book.torrent)
 
         # Everythings good. Unrelease the book.
-        self.book.update_record(
+        data = dict(
             cbz=None,
             torrent=None,
             release_date=None,
             releasing=False,
         )
+
+        if self.book.tumblr_post_id == POST_IN_PROGRESS:
+            data['tumblr_post_id'] = None
+
+        self.book.update_record(**data)
         db.commit()
 
 
