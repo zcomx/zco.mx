@@ -9,7 +9,9 @@ Test suite for zcomx/modules/zco.py
 import unittest
 from gluon import *
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.zco import Zco
+from applications.zcomx.modules.zco import \
+    Zco, \
+    html_metadata
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -50,6 +52,27 @@ class TestZco(LocalTestCase):
             URL(**Zco().all_torrent_url),
             '/zco.mx.torrent'
         )
+
+
+class TestFunctions(LocalTestCase):
+
+    def test__html_metadata(self):
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+
+        expect = {
+            'name': 'zco.mx',
+            'title': 'zco.mx',
+            'description': (
+                'zco.mx is a curated not-for-profit comic-sharing website'
+                ' for self-publishing cartoonists and their readers.'
+            ),
+            'icon': 'http://127.0.0.1:8000/zcomx/static/images/zco.mx-logo-small.png',
+            'twitter': '@zcomx_bot',
+            'type': '',
+            'url': 'http://127.0.0.1:8000/',
+        }
+        self.assertEqual(html_metadata(), expect)
 
 
 def setUpModule():

@@ -211,6 +211,43 @@ def formatted_name(creator_entity):
     return auth_user.name
 
 
+def html_metadata(creator_entity):
+    """Return book attributes for HTML metadata.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator.
+
+    Returns:
+        dict
+    """
+    if not creator_entity:
+        return {}
+
+    db = current.app.db
+    creator_record = entity_to_row(db.creator, creator_entity)
+    if not creator_record:
+        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
+
+    image_url = None
+    if creator_record.image:
+        image_url = URL(
+            c='images',
+            f='download',
+            args=creator_record.image,
+            vars={'size': 'web'},
+            host=True
+        )
+
+    return {
+        'description': creator_record.bio,
+        'image_url': image_url,
+        'name': formatted_name(creator_record),
+        'twitter': creator_record.twitter,
+        'type': 'profile',
+        'url': url(creator_record, host=True),
+    }
+
+
 def image_as_json(db, creator_entity, field='image'):
     """Return the creator image as json.
 
