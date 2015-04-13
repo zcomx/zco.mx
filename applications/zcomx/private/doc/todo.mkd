@@ -22,6 +22,8 @@ VERSION 2 - Before Going Live
         CC BY-NC
         CC BY-NC-SA
         CC BY-NC-ND
+[x] Setup Mailing List
+    One for 'announce' and the other for 'feedback' ?
 
 [ ] Announce cbz releases using zcomx_bot accounts
     [x] dc
@@ -33,6 +35,9 @@ VERSION 2 - Before Going Live
         http://supertweetnews.140plus.com/p/a-quick-example-of-bash-shell-scripts-for-posting-twitter-updates/ZeRfz
     [ ] tumblr
 
+[S] Photos
+    [/] chris.anthony.diaz@gmail.com
+
 [S] Look into Varnish for caching
     http://stackoverflow.com/questions/4490140/memcached-vs-varnish-for-speeding-up-3-tier-web-architecture
     haproxy vs nginx vs stunnel vs pound
@@ -43,9 +48,6 @@ VERSION 2 - Before Going Live
         actual thumbnails?
 
 [S] Email More Cartoonists
-
-[S] Setup Mailing List
-    One for 'announce' and the other for 'feedback' ?
 
 ---
 
@@ -95,8 +97,11 @@ VERSION 3
     Add book links to html indicia page
 [ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] Extend left/right clickable areas while in slider mode
+    * maybe show an 1/8th of the prev/next image and very opague?
 [ ] All Ages Modal via cookie ?
 [ ] Explicit Content Warning (modal)
+[ ] Redesign Cartoonist Page
+    * handle portrait and landscape photos better
 [ ] KB
     http://kb.zco.mx/
     [ ] git-ify and add to zco.mx server
@@ -105,8 +110,6 @@ VERSION 3
         [logo] about | faq | kb | login | all.torrent
 [ ] Check for duplicate file/book names
 [ ] Url checker
-[ ] Redesign Cartoonist Page
-    * handle portrait and landscape photos better
 [ ] zco.mx Modal Link
     Prevent opening zco.mx modal links in 'New Window'
     https://zco.mx/contributions/modal
@@ -162,9 +165,10 @@ IDEAS
 [S] Setup wikipedia page for David
 [ ] Rethink Crowdfunding Idea
     see emails with blumenstein
-    discuss on brainstorming ml
+    discuss on feedback ml
 [ ] resize.sh - convert tiff's to png's ?
 [S] wildcard ssl cert for zco.mx ?
+    https://www.wosign.com/english/
 [ ] Is re-releasing released books a problem?
     * use the upload modal with any read-only fields
     * update a version number on the indicia?
