@@ -819,11 +819,19 @@ def html_metadata(book_entity):
             e=book_record.creator_id))
 
     try:
-        image_url = short_page_img_url(
-            get_page(book_record, page_no='first')
-        )
+        first_page = get_page(book_entity, page_no='first')
     except NotFoundError:
-        image_url = None
+        first_page = None
+
+    image_url = None
+    if first_page:
+        image_url = URL(
+            c='images',
+            f='download',
+            args=first_page.image,
+            vars={'size': 'web'},
+            host=True,
+        )
 
     return {
         'creator_name': creator_formatted_name(creator_record),
