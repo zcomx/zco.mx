@@ -558,7 +558,10 @@ def tumblr_data(creator_entity):
 
     for field in social_media_fields:
         if creator_record[field]:
-            social_media.append((field, creator_record[field]))
+            anchor = db.creator[field].represent(
+                creator_record[field], creator_record)
+            value = anchor.attributes['_href']
+            social_media.append((field, value))
 
     return {
         'slug_name': creator_name(creator_entity, use='search'),
