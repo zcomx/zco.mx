@@ -1198,18 +1198,16 @@ class TestFunctions(ImageTestCase):
         ))
 
         # Book without cover
-        self.assertEqual(
-            html_metadata(book),
-            {
-                'creator_name': 'First Last',
-                'creator_twitter': '@firstlast',
-                'description': 'This is my book!',
-                'image_url': None,
-                'name': 'My Book',
-                'type': 'book',
-                'url': 'http://127.0.0.1:8000/FirstLast/MyBook'
-            }
-        )
+        expect = {
+            'creator_name': 'First Last',
+            'creator_twitter': '@firstlast',
+            'description': 'This is my book!',
+            'image_url': None,
+            'name': 'My Book',
+            'type': 'book',
+            'url': 'http://127.0.0.1:8000/FirstLast/MyBook'
+        }
+        self.assertEqual(html_metadata(book), expect)
 
         # Book with cover
         self.add(db.book_page, dict(
@@ -1218,20 +1216,11 @@ class TestFunctions(ImageTestCase):
             image='book_page.image.aaa.000.jpg',
         ))
 
-        img_url = 'http://{cid}.zco.mx/MyBook/001.jpg'.format(cid=creator.id)
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
 
-        self.assertEqual(
-            html_metadata(book),
-            {
-                'creator_name': 'First Last',
-                'creator_twitter': '@firstlast',
-                'description': 'This is my book!',
-                'image_url': img_url,
-                'name': 'My Book',
-                'type': 'book',
-                'url': 'http://127.0.0.1:8000/FirstLast/MyBook'
-            }
-        )
+        expect['image_url'] = 'http://127.0.0.1:8000/images/download/book_page.image.aaa.000.jpg?size=web'
+        self.assertEqual(html_metadata(book), expect)
 
     def test__images(self):
         book = self.add(db.book, dict(
