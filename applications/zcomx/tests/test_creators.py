@@ -756,7 +756,7 @@ class TestFunctions(LocalTestCase):
                 'slug_name': 'first-last',
                 'social_media': [
                     ('website', 'http://website.com'),
-                    ('twitter', '@firstlast'),
+                    ('twitter', 'https://twitter.com/firstlast'),
                     ('tumblr', 'http://tumblr.com/firstlast'),
                     ('facebook', 'htt://facebook.com/firstlast'),
                 ],

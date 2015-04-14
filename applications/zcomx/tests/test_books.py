@@ -1915,7 +1915,7 @@ class TestFunctions(ImageTestCase):
             'name': 'My Book',
             'slug_name': 'my-book-02-of-04',
             'source': None,
-            'tag_name': 'MyBook',
+            'tag_name': 'My Book',
             'title': 'My Book 02 (of 04) (1999)',
             'tweet_name': 'My Book 02 (of 04)',
             'url': 'http://zco.mx/FirstLast/MyBook',

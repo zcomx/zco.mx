@@ -1555,7 +1555,7 @@ def tumblr_data(book_entity):
         'name': book_record.name,
         'slug_name': book_name(book_record, use='search'),
         'source': source,
-        'tag_name': book_name(book_record, use='url'),
+        'tag_name': book_record.name,
         'title': formatted_name(
             db, book_record, include_publication_year=True),
         'tweet_name': formatted_name(
