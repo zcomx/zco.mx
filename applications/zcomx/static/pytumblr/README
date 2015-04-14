@@ -1,0 +1,7 @@
+# Install pytumblr
+$ mkdir ~/tmp/tumblr
+$ cp PKGBUILD ~/tmp/tumblr
+$ cd ~/tmp/tumblr
+$ makepkg --asroot
+# In the following command, the version in the tar file may be different.
+$ pacman -U pytumblr-0.0.6-1-any.pkg.tar.xz
