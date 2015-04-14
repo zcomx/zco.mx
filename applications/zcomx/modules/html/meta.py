@@ -228,17 +228,17 @@ class MetadataFactory(object):
         },
     }
 
-    def __init__(self, preparer_codes, creator_entity, book_entity):
+    def __init__(self, preparer_codes, html_metadata, page_type='site'):
         """Constructor
 
         Args:
             preparer_codes: list of strings, codes of preparers.
-            creator_entity: Row instance or integer representing a creator
-            book_entity: Row instance or integer representing a book
+            html_metadata: dict as returned by html_metadata_from_records
+            page_type: str, one of 'book', 'creator', or 'site'
         """
         self.preparer_codes = preparer_codes
-        self.creator_entity = creator_entity
-        self.book_entity = book_entity
+        self.html_metadata = html_metadata
+        self.page_type = page_type
 
     def classes(self):
         """Return the preparer classes needed to prepare the records.
@@ -246,13 +246,9 @@ class MetadataFactory(object):
         Returns:
             list of BaseMetaPreparer subclass classes
         """
-        lookup_key = 'book' if self.book_entity is not None else \
-            'creator' if self.creator_entity is not None else \
-            'site'
-
         classes = []
         for preparer_code in self.preparer_codes:
-            classes.append(self.class_lookup[preparer_code][lookup_key])
+            classes.append(self.class_lookup[preparer_code][self.page_type])
         return classes
 
     def instantiated_preparers(self):
@@ -262,10 +258,9 @@ class MetadataFactory(object):
             classes: list of BaseMetaPreparer subclass classes
             metadata: dict of data as per metadata_from_records
         """
-        data = self.prepared_metadata()
         preparers = []
         for c in self.classes():
-            preparers.append(c(data))
+            preparers.append(c(self.html_metadata))
         return preparers
 
     def metadata(self):
@@ -275,20 +270,25 @@ class MetadataFactory(object):
             meta.update(p.prepared())
         return meta
 
-    def prepared_metadata(self):
-        """Get the prepared metadata from records.
 
-        Returns:
-            dict {'book': {}, 'creator': {}, 'site': {}}
-        """
-        metadata = {
-            'book': {},
-            'creator': {},
-            'site': site_metadata(),
-        }
+def html_metadata_from_records(creator_entity, book_entity):
+    """Get the prepared metadata from records.
 
-        if self.book_entity is not None:
-            metadata['book'] = book_metadata(self.book_entity)
-        if self.creator_entity is not None:
-            metadata['creator'] = creator_metadata(self.creator_entity)
-        return metadata
+    Args:
+        creator_entity: Row instance or integer representing a creator
+        book_entity: Row instance or integer representing a book
+
+    Returns:
+        dict {'book': {}, 'creator': {}, 'site': {}}
+    """
+    metadata = {
+        'book': {},
+        'creator': {},
+        'site': site_metadata(),
+    }
+
+    if book_entity is not None:
+        metadata['book'] = book_metadata(book_entity)
+    if creator_entity is not None:
+        metadata['creator'] = creator_metadata(creator_entity)
+    return metadata

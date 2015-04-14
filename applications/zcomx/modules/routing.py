@@ -19,7 +19,9 @@ from applications.zcomx.modules.books import \
     url as book_url
 from applications.zcomx.modules.creators import \
     url as creator_url
-from applications.zcomx.modules.html.meta import MetadataFactory
+from applications.zcomx.modules.html.meta import \
+    MetadataFactory, \
+    html_metadata_from_records
 from applications.zcomx.modules.indicias import BookIndiciaPage
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.search import \
@@ -547,6 +549,12 @@ class Router(object):
         Args:
             list of strings, preparer codes
         """
+        html_metadata = html_metadata_from_records(
+            self.creator_record, self.book_record)
+        page_type = 'book' if self.book_record is not None else \
+            'creator' if self.creator_record is not None else \
+            'site'
+
         response = current.response
         response.meta = MetadataFactory(
-            preparer_codes, self.creator_record, self.book_record).metadata()
+            preparer_codes, html_metadata, page_type=page_type).metadata()
