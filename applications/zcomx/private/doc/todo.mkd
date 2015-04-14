@@ -24,6 +24,16 @@ VERSION 2 - Before Going Live
         CC BY-NC-ND
 [x] Setup Mailing List
     One for 'announce' and the other for 'feedback' ?
+[x] Upload Modal
+    Can we downscale the web images for the thumbnails and remove the
+    actual thumbnails?
+
+[ ] BUG: Deleting a Cover
+    http://stackoverflow.com/questions/14515313/how-to-modify-web2py-download-function-to-return-304-not-modified-in-case-the
+    After a book has been posted, if a cartoonist then deletes the cover
+    no cover image is shown until they click 'Post'.
+    SOLUTION: Don't make changes (move, add, delete) to the book until
+    the cartoonist clicks 'Post'.
 
 [ ] Announce cbz releases using zcomx_bot accounts
     [x] dc
@@ -35,22 +45,11 @@ VERSION 2 - Before Going Live
         http://supertweetnews.140plus.com/p/a-quick-example-of-bash-shell-scripts-for-posting-twitter-updates/ZeRfz
     [ ] tumblr
 
-[S] Book Page -> Photos
-    [ ] Courtesy of [Photographer's Name]    [  {link back}  ]
-        If blank, write nothing
-
-[S] Look into Varnish for caching
-    http://stackoverflow.com/questions/4490140/memcached-vs-varnish-for-speeding-up-3-tier-web-architecture
-    haproxy vs nginx vs stunnel vs pound
-        https://www.digitalocean.com/community/tutorials/how-to-configure-varnish-cache-4-0-with-ssl-termination-on-ubuntu-14-04
-    https://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-    [/] Upload Modal
-        Can we downscale the web images for the thumbnails and remove the
-        actual thumbnails?
+[ ] Look into Varnish for caching
+    see mod: 30442
+    [ ] Modify 'Cache-Control: private' so images are cached
 
 [S] Email More Cartoonists
-
----
 
 [ ] Optimize Pages -- especially the front page
     [ ] look at Q's console
@@ -60,11 +59,6 @@ VERSION 2 - Before Going Live
     The same stats on the front page should be on the book page and
     vice versa
     * missing from Front page, 'pages'
-
-[ ] Obfuscate Email Addresses
-    SB 2015-03-26 10:19  we should talk about this
-    See how dokuwiki does it
-    http://bronze-age.com/nospam/
 
 [ ] Add CC licence to zco.mx footer
     http://www.ycombinator.com/legal/
@@ -103,6 +97,10 @@ VERSION 3
 [ ] Explicit Content Warning (modal)
 [ ] Redesign Cartoonist Page
     * handle portrait and landscape photos better
+[ ] Obfuscate Email Addresses
+    SB 2015-03-26 10:19  we should talk about this
+    See how dokuwiki does it
+    http://bronze-age.com/nospam/
 [ ] KB
     http://kb.zco.mx/
     [ ] git-ify and add to zco.mx server
@@ -126,6 +124,9 @@ VERSION 3
 VERSION 4
 [ ] Automate Mailing List Add/Remove
     http://stackoverflow.com/questions/21253849/google-groups-api-add-member
+[S] Book Page -> Photos
+        "Photo Courtesy of [Photographer's Name]    [  {link back}  ]"
+        If blank, write nothing
 [ ] How to Handle Translations ?
 [ ] login -> books -> edit
     Use inline Editing for metadata
