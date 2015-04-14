@@ -31,6 +31,7 @@ from applications.zcomx.modules.creators import \
     torrent_file_name, \
     torrent_link, \
     torrent_url, \
+    tumblr_data, \
     url
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -731,6 +732,38 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(
             torrent_url(creator),
             '/FirstMiddleLast_({i}.zco.mx).torrent'.format(i=creator.id)
+        )
+
+    def test__tumblr_data(self):
+
+        self.assertEqual(tumblr_data(None), {})
+
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(
+            auth_user_id=auth_user.id,
+            name_for_search='first-last',
+            name_for_url='FirstLast',
+            website='http://website.com',
+            twitter='@firstlast',
+            shop=None,
+            tumblr='http://tumblr.com/firstlast',
+            facebook='htt://facebook.com/firstlast',
+        ))
+
+        self.assertEqual(
+            tumblr_data(creator),
+            {
+                'slug_name': 'first-last',
+                'social_media': [
+                    ('website', 'http://website.com'),
+                    ('twitter', '@firstlast'),
+                    ('tumblr', 'http://tumblr.com/firstlast'),
+                    ('facebook', 'htt://facebook.com/firstlast'),
+                ],
+                'tag_name': 'FirstLast',
+                'tweet_name': 'First Last',
+                'url': 'http://zco.mx/FirstLast',
+            }
         )
 
     def test__url(self):

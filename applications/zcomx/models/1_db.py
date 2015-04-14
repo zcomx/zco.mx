@@ -228,6 +228,9 @@ db.define_table('book',
         default=False,
     ),
     Field(
+        'tumblr_post_id'
+    ),
+    Field(
         'status',
         'string',
         default=BOOK_STATUS_INCOMPLETE,

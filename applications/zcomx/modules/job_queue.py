@@ -31,6 +31,7 @@ PRIORITIES = list(reversed([
     'optimize_img_for_release',
     'create_cbz',
     'create_book_torrent',
+    'post_book_on_tumblr',
     'release_book',
     'optimize_cbz_img',
     'optimize_img',
@@ -688,6 +689,19 @@ class OptimizeCBZImgForReleaseQueuer(OptimizeImgQueuer):
     default_job_options['priority'] = PRIORITIES.index(
         'optimize_cbz_img_for_release')
     default_cli_options = {'--size': 'cbz'}
+
+
+class PostBookOnTumblrQueuer(JobQueuer):
+    """Class representing a queuer for post_book_on_tumblr jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'post_book_on_tumblr.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('post_book_on_tumblr'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
 
 
 class ReleaseBookQueuer(JobQueuer):
