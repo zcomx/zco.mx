@@ -10,13 +10,17 @@ import copy
 import unittest
 from applications.zcomx.modules.html.meta import \
     BaseMetaPreparer, \
+    MetadataFactory, \
     OpenGraphBookMetaPreparer, \
     OpenGraphCreatorMetaPreparer, \
     OpenGraphMetaPreparer, \
     TwitterBookMetaPreparer, \
     TwitterCreatorMetaPreparer, \
-    TwitterMetaPreparer
+    TwitterMetaPreparer, \
+    html_metadata_from_records
 from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.zco import \
+    html_metadata as site_metadata
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -93,6 +97,120 @@ class TestBaseMetaPreparer(LocalTestCase):
         preparer = BaseMetaPreparer({})
         self.assertRaises(NotImplementedError, preparer.set_data)
 
+
+class TestMetadataFactory(LocalTestCase):
+
+    def test____init__(self):
+        meta_factory = MetadataFactory([''], {})
+        self.assertTrue(meta_factory)
+        self.assertEqual(
+            sorted(meta_factory.class_lookup.keys()),
+            ['opengraph', 'twitter']
+        )
+
+    def test__classes(self):
+        meta_factory = MetadataFactory([], None)
+        self.assertEqual(meta_factory.classes(), [])
+        html_metadata = {}
+
+        tests = [
+            # (codes, page_type, expect)
+            ([], 'site', []),
+            ([], 'creator', []),
+            ([], 'book', []),
+            (['opengraph'], 'site', [OpenGraphMetaPreparer]),
+            (['twitter'], 'site', [TwitterMetaPreparer]),
+            (
+                ['opengraph', 'twitter'], 'site',
+                [OpenGraphMetaPreparer, TwitterMetaPreparer]
+            ),
+            (['opengraph'], 'creator', [OpenGraphCreatorMetaPreparer]),
+            (['opengraph'], 'book', [OpenGraphBookMetaPreparer]),
+            (
+                ['opengraph', 'twitter'], 'book',
+                [OpenGraphBookMetaPreparer, TwitterBookMetaPreparer]
+            ),
+        ]
+
+        for t in tests:
+            meta_factory = MetadataFactory(t[0], html_metadata, page_type=t[1])
+            self.assertEqual(meta_factory.classes(), t[2])
+
+    def test__instantiated_preparers(self):
+        meta_factory = MetadataFactory([], None)
+        self.assertEqual(meta_factory.instantiated_preparers(), [])
+
+        html_metadata = {
+            'book': {},
+            'creator': {},
+            'site': {},
+        }
+
+        meta_factory = MetadataFactory(['opengraph', 'twitter'], html_metadata)
+        preparers = meta_factory.instantiated_preparers()
+        self.assertEqual(len(preparers), 2)
+        self.assertTrue(isinstance(preparers[0], OpenGraphMetaPreparer))
+        self.assertTrue(isinstance(preparers[1], TwitterMetaPreparer))
+
+        meta_factory = MetadataFactory(
+            ['opengraph', 'twitter'], html_metadata, page_type='book')
+        preparers = meta_factory.instantiated_preparers()
+        self.assertEqual(len(preparers), 2)
+        self.assertTrue(isinstance(preparers[0], OpenGraphBookMetaPreparer))
+        self.assertTrue(isinstance(preparers[1], TwitterBookMetaPreparer))
+
+        meta_factory = MetadataFactory(
+            ['opengraph', 'twitter'], html_metadata, page_type='creator')
+        preparers = meta_factory.instantiated_preparers()
+        self.assertEqual(len(preparers), 2)
+        self.assertTrue(isinstance(preparers[0], OpenGraphCreatorMetaPreparer))
+        self.assertTrue(isinstance(preparers[1], TwitterCreatorMetaPreparer))
+
+    def test__metadata(self):
+        meta_factory = MetadataFactory([], None)
+        self.assertEqual(meta_factory.metadata(), {})
+
+        html_metadata = {
+            'book': {},
+            'creator': {},
+            'site': {
+                'title': 'zco.mx',
+                'type': 'site',
+                'url': 'http://zco.mx',
+                'icon': 'http://zco.mx/icon.png',
+                'name': 'zco.mx',
+                'description': 'The zco.mx website',
+                'twitter': 'zcomx',
+            },
+        }
+
+        meta_factory = MetadataFactory(['opengraph', 'twitter'], html_metadata)
+        self.assertEqual(
+            meta_factory.metadata(),
+            {
+                'og:description': {
+                    'content': 'The zco.mx website',
+                    'property': 'og:description'
+                },
+                'og:image': {
+                    'content': 'http://zco.mx/icon.png',
+                    'property': 'og:image'
+                },
+                'og:site_name': {
+                    'content': 'zco.mx',
+                    'property': 'og:site_name'
+                },
+                'og:title': {'content': 'zco.mx', 'property': 'og:title'},
+                'og:type': {'content': 'site', 'property': 'og:type'},
+                'og:url': {'content': 'http://zco.mx', 'property': 'og:url'},
+                'twitter:card': 'summary_large_image',
+                'twitter:creator': 'zcomx',
+                'twitter:description': 'The zco.mx website',
+                'twitter:image:src': 'http://zco.mx/icon.png',
+                'twitter:site': 'zcomx',
+                'twitter:title': 'zco.mx'
+            }
+        )
 
 class TestOpenGraphBookMetaPreparer(LocalTestCase):
 
@@ -238,6 +356,69 @@ class TestTwitterMetaPreparer(LocalTestCase):
         }
         preparer = TwitterMetaPreparer(metadata)
         self.assertEqual(preparer.set_data(), expect)
+
+
+class TestFunctions(LocalTestCase):
+    # C0103: *Invalid name "%%s" (should match %%s)*
+    # pylint: disable=C0103
+
+    def test__html_metadata_from_records(self):
+
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(
+            auth_user_id=auth_user.id,
+            name_for_url='FirstLast',
+        ))
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            creator_id=creator.id
+        ))
+
+        expect_book = {
+            'creator_name': 'First Last',
+            'creator_twitter': None,
+            'description': None,
+            'image_url': None,
+            'name': 'My Book',
+            'type': 'book',
+            'url': None,
+        }
+
+        expect_creator = {
+            'description': None,
+            'image_url': None,
+            'name': 'First Last',
+            'twitter': None,
+            'type': 'profile',
+            'url': 'http://127.0.0.1:8000/FirstLast',
+        }
+
+        expect_site = site_metadata()
+
+        got = html_metadata_from_records(None, None)
+        expect = {
+            'book': {},
+            'creator': {},
+            'site': expect_site,
+        }
+        self.assertEqual(got, expect)
+
+        got = html_metadata_from_records(creator, None)
+        expect = {
+            'book': {},
+            'creator': expect_creator,
+            'site': expect_site,
+        }
+        self.assertEqual(got, expect)
+
+        got = html_metadata_from_records(creator, book)
+        expect = {
+            'book': expect_book,
+            'creator': expect_creator,
+            'site': expect_site,
+        }
+        self.assertEqual(got, expect)
 
 
 def setUpModule():
