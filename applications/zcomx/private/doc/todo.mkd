@@ -35,8 +35,9 @@ VERSION 2 - Before Going Live
         http://supertweetnews.140plus.com/p/a-quick-example-of-bash-shell-scripts-for-posting-twitter-updates/ZeRfz
     [ ] tumblr
 
-[S] Photos
-    [/] chris.anthony.diaz@gmail.com
+[S] Book Page -> Photos
+    [ ] Courtesy of [Photographer's Name]    [  {link back}  ]
+        If blank, write nothing
 
 [S] Look into Varnish for caching
     http://stackoverflow.com/questions/4490140/memcached-vs-varnish-for-speeding-up-3-tier-web-architecture
