@@ -206,7 +206,7 @@ class TestMetadataFactory(LocalTestCase):
                 'twitter:card': 'summary_large_image',
                 'twitter:creator': 'zcomx',
                 'twitter:description': 'The zco.mx website',
-                'twitter:image:src': 'http://zco.mx/icon.png',
+                'twitter:image': 'http://zco.mx/icon.png',
                 'twitter:site': 'zcomx',
                 'twitter:title': 'zco.mx'
             }
@@ -320,7 +320,7 @@ class TestTwitterBookMetaPreparer(LocalTestCase):
             'twitter:creator': '_book_creator_twitter_',
             'twitter:title': '_book_name_',
             'twitter:description': '_book_description_',
-            'twitter:image:src': '_book_image_url_',
+            'twitter:image': '_book_image_url_',
         }
         preparer = TwitterBookMetaPreparer(metadata)
         self.assertEqual(preparer.set_data(), expect)
@@ -336,7 +336,7 @@ class TestTwitterCreatorMetaPreparer(LocalTestCase):
             'twitter:creator': '_creator_twitter_',
             'twitter:title': '_creator_name_',
             'twitter:description': '_creator_description_',
-            'twitter:image:src': '_creator_image_url_',
+            'twitter:image': '_creator_image_url_',
         }
         preparer = TwitterCreatorMetaPreparer(metadata)
         self.assertEqual(preparer.set_data(), expect)
@@ -352,7 +352,7 @@ class TestTwitterMetaPreparer(LocalTestCase):
             'twitter:creator': '_site_twitter_',
             'twitter:title': '_site_title_',
             'twitter:description': '_site_description_',
-            'twitter:image:src': '_site_icon_',
+            'twitter:image': '_site_icon_',
         }
         preparer = TwitterMetaPreparer(metadata)
         self.assertEqual(preparer.set_data(), expect)
@@ -372,6 +372,7 @@ class TestFunctions(LocalTestCase):
 
         book = self.add(db.book, dict(
             name='My Book',
+            publication_year=1997,
             creator_id=creator.id
         ))
 
@@ -380,7 +381,7 @@ class TestFunctions(LocalTestCase):
             'creator_twitter': None,
             'description': None,
             'image_url': None,
-            'name': 'My Book',
+            'name': 'My Book (1997)',
             'type': 'book',
             'url': None,
         }

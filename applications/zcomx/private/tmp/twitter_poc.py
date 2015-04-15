@@ -78,27 +78,23 @@ def main():
 
     LOG.info('Started.')
 
-    TOKEN = '262332119-7bclllngLikvfVFAqgSe1cRNUE0cnVSYD2YOX7Ju'
-    TOKEN_KEY = 'aRTJHmcY6szoRLCfHZccTkCqX7yrL3B4fYjwB5ZrI'
-    CONSUMER_KEY = 'uS6hO2sV6tDKIOeVjhnFnQ'
-    CONSUMER_SECRET = 'MEYTOS97VvlHX7K1rwHPEqVpTSqZ71HtvoK4sVuYk'
-
-    token = TOKEN
-    token_key = TOKEN_KEY
-    con_secret = CONSUMER_KEY
-    con_secret_key = CONSUMER_SECRET
+    settings = current.app.local_settings
 
     t = Twitter(
-        auth=OAuth(token, token_key, con_secret, con_secret_key)
+        auth=OAuth(
+            settings.twitter_oauth_token,
+            settings.twitter_oauth_secret,
+            settings.twitter_consumer_key,
+            settings.twitter_consumer_secret
+        )
     )
-    # x = t.statuses.home_timeline()
+    x = t.statuses.home_timeline()
     # x = t.account.settings()
     # x = t.statuses.user_timeline(screen_name="CharlesForsman", count=1)
     # x = t.search.tweets(q="sittler", count=2)
     # x = t.statuses.update(status='Testing')
     # x = t.statuses.update(status='Development test http://zco.mx')
-    x = t.statuses.destroy(id='586561746363621377')
-
+    # x = t.statuses.destroy(id='586561746363621377')
     print 'x: {var}'.format(var=x)
     LOG.info('Done.')
 

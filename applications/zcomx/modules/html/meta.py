@@ -165,7 +165,7 @@ class TwitterMetaPreparer(BaseMetaPreparer):
         meta['twitter:creator'] = site['twitter']
         meta['twitter:title'] = site['title']
         meta['twitter:description'] = site['description']
-        meta['twitter:image:src'] = site['icon']
+        meta['twitter:image'] = site['icon']
         return meta
 
 
@@ -184,7 +184,7 @@ class TwitterBookMetaPreparer(TwitterMetaPreparer):
         meta['twitter:description'] = \
             book['description'] if book['description'] else \
             site_msg
-        meta['twitter:image:src'] = book['image_url'] or site['icon']
+        meta['twitter:image'] = book['image_url'] or site['icon']
         return meta
 
 
@@ -203,7 +203,7 @@ class TwitterCreatorMetaPreparer(TwitterMetaPreparer):
         meta['twitter:description'] = \
             creator['description'] if creator['description'] else \
             site_msg
-        meta['twitter:image:src'] = creator['image_url'] or site['icon']
+        meta['twitter:image'] = creator['image_url'] or site['icon']
         return meta
 
 
