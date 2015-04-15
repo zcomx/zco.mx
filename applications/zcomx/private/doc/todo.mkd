@@ -54,6 +54,9 @@ VERSION 2 - Before Going Live
 [ ] Optimize Pages -- especially the front page
     [ ] look at Q's console
 
+[ ] Front Page -> cartoonists
+    Only list 'CartoonistName.torrent' if they have a torrent file
+
 [ ] Front Page/Book Page
     SB 2015-03-25 20:56  we should talk about this
     The same stats on the front page should be on the book page and
