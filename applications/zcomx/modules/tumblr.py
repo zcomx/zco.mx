@@ -107,6 +107,7 @@ class PhotoDataPreparer(object):
         return [
             self.tumblr_data['book']['tag_name'],
             self.tumblr_data['creator']['tag_name'],
+            'comics',
             self.tumblr_data['site']['name'],
         ]
 
