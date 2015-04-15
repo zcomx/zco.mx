@@ -180,15 +180,7 @@ class TwitterBookMetaPreparer(TwitterMetaPreparer):
         meta['twitter:site'] = site['twitter']
         meta['twitter:creator'] = book['creator_twitter'] or site['twitter']
         meta['twitter:title'] = book['name']
-        by_msg = 'By {c} available at {s}'.format(
-            c=book['creator_name'],
-            s=site['name']
-        )
-        site_msg = 'Available at {s}'.format(s=site['name'])
-        meta['twitter:description'] = \
-            book['description'] if book['description'] else \
-            by_msg if book['creator_name'] else \
-            site_msg
+        meta['twitter:description'] = book['description'] or ''
         meta['twitter:image:src'] = book['image_url'] or site['icon']
         return meta
 

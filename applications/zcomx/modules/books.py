@@ -839,7 +839,7 @@ def html_metadata(book_entity):
         'creator_twitter': creator_record.twitter,
         'description': book_record.description,
         'image_url': image_url,
-        'name': book_record.name,
+        'name': formatted_name(db, book_record, include_publication_year=True),
         'type': 'book',
         'url': url(book_record, host=True),
     }
