@@ -1193,6 +1193,9 @@ class TestFunctions(ImageTestCase):
         ))
         book = self.add(db.book, dict(
             name='My Book',
+            number=2,
+            book_type_id=self._type_id_by_name['ongoing'],
+            publication_year=1998,
             creator_id=creator.id,
             description='This is my book!',
             name_for_url='MyBook',
@@ -1204,7 +1207,7 @@ class TestFunctions(ImageTestCase):
             'creator_twitter': '@firstlast',
             'description': 'This is my book!',
             'image_url': None,
-            'name': 'My Book',
+            'name': 'My Book 002 (1998)',
             'type': 'book',
             'url': 'http://127.0.0.1:8000/FirstLast/MyBook'
         }
