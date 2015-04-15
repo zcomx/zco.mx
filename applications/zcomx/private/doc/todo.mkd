@@ -47,7 +47,8 @@ VERSION 2 - Before Going Live
 
 [ ] Look into Varnish for caching
     see mod: 30442
-    [ ] Modify 'Cache-Control: private' so images are cached
+    [x] Modify 'Cache-Control: private' so images are cached
+    [ ] Set 'Cache-Control' so images on book pages aren't cached
 
 [S] Email More Cartoonists
 
