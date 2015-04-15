@@ -73,6 +73,8 @@ class ImageDownloader(Response):
             fmt = 'attachment; filename="%s"'
             headers['Content-Disposition'] = \
                 fmt % download_filename.replace('"', '\"')
+        headers['Cache-Control'] = 'max-age=315360000, public'
+        headers['Expires'] = 'Thu, 31 Dec 2037 23:59:59 GMT'
         return self.stream(stream, chunk_size=chunk_size, request=request)
 
 
