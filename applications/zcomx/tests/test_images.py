@@ -22,6 +22,7 @@ from gluon import *
 from gluon.html import DIV, IMG
 from gluon.http import HTTP
 from applications.zcomx.modules.images import \
+    CachedImgTag, \
     CreatorImgTag, \
     ImageOptimizeError, \
     ImgTag, \
@@ -265,6 +266,22 @@ class ImageTestCase(LocalTestCase):
             up_image.delete_all()
 
 
+class TestCachedImgTag(LocalTestCase):
+
+    def test__url_vars(self):
+        img_tag = CachedImgTag(None)
+        self.assertEqual(
+            img_tag.url_vars(),
+            {'cache': 1, 'size': 'original'}
+        )
+
+        img_tag.size = 'web'
+        self.assertEqual(
+            img_tag.url_vars(),
+            {'cache': 1, 'size': 'web'}
+        )
+
+
 class TestCreatorImgTag(ImageTestCase):
 
     def test_parent__init__(self):
@@ -415,6 +432,15 @@ class TestImgTag(ImageTestCase):
             {'_class': 'img_class portrait_placeholder', '_id': 'img_id'}
         )
 
+    def test__url_vars(self):
+        img_tag = ImgTag(None)
+        self.assertEqual(img_tag.url_vars(), {'size': 'original'})
+
+        img_tag.size = 'web'
+        self.assertEqual(img_tag.url_vars(), {'size': 'web'})
+
+        img_tag.size = '_fake_'
+        self.assertEqual(img_tag.url_vars(), {'size': '_fake_'})
 
 class TestResizeImg(ImageTestCase):
 

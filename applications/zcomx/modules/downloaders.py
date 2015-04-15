@@ -31,7 +31,9 @@ class ImageDownloader(Response):
         Adapted from Response.download.
 
         request.vars.size: string, one of SIZES. If provided the image is
-                streamed from a subdirectory with that name.
+            streamed from a subdirectory with that name.
+        request.vars.cache: boolean, if set, set response headers to
+            enable caching.
         """
         # C0103: *Invalid name "%%s" (should match %%s)*
         # pylint: disable=C0103
@@ -73,8 +75,9 @@ class ImageDownloader(Response):
             fmt = 'attachment; filename="%s"'
             headers['Content-Disposition'] = \
                 fmt % download_filename.replace('"', '\"')
-        headers['Cache-Control'] = 'max-age=315360000, public'
-        headers['Expires'] = 'Thu, 31 Dec 2037 23:59:59 GMT'
+        if request.vars.cache:
+            headers['Cache-Control'] = 'max-age=315360000, public'
+            headers['Expires'] = 'Thu, 31 Dec 2037 23:59:59 GMT'
         return self.stream(stream, chunk_size=chunk_size, request=request)
 
 
