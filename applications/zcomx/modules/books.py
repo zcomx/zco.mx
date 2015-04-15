@@ -20,7 +20,7 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
-    ImgTag
+    CachedImgTag
 from applications.zcomx.modules.names import \
     BookName, \
     BookNumber, \
@@ -593,7 +593,7 @@ def cover_image(db, book_entity, size='original', img_attributes=None):
     if img_attributes:
         attributes.update(img_attributes)
 
-    return ImgTag(image, size=size, attributes=attributes)()
+    return CachedImgTag(image, size=size, attributes=attributes)()
 
 
 def default_contribute_amount(db, book_entity):

@@ -77,7 +77,7 @@ class ImgTag(object):
                         c='images',
                         f='download',
                         args=self.image,
-                        vars={'size': self.size},
+                        vars=self.url_vars(),
                     ),
                 ))
         else:
@@ -96,8 +96,22 @@ class ImgTag(object):
         else:
             self.attributes['_class'] = class_name
 
+    def url_vars(self):
+        """Return the URL(..., vars=?) value."""
+        return {'size': self.size}
 
-class CreatorImgTag(ImgTag):
+
+class CachedImgTag(ImgTag):
+    """Class representing a cached image TAG"""
+
+    def url_vars(self):
+        """Return the URL(..., vars=?) value."""
+        cached_vars = super(CachedImgTag, self).url_vars()
+        cached_vars['cache'] = 1
+        return cached_vars
+
+
+class CreatorImgTag(CachedImgTag):
     """Class representing a creator image TAG"""
 
     def set_placeholder(self):
