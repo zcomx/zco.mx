@@ -128,7 +128,7 @@ by <a href="http://zco.mx/FirstLast">http://zco.mx/FirstLast</a>"""
 
         expect = {
             'state': 'published',
-            'tags': ['My Book', 'FirstLast', 'zco.mx'],
+            'tags': ['My Book', 'FirstLast', 'comics', 'zco.mx'],
             'tweet': 'My Book 001|First Last|http://zco.mx/FirstLast/MyBook',
             'slug': 'first-last-my-book-001',
             'format': 'markdown',
@@ -170,7 +170,7 @@ by <a href="http://zco.mx/FirstLast">http://zco.mx/FirstLast</a>"""
         preparer = PhotoDataPreparer(data)
         self.assertEqual(
             preparer.tags(),
-            ['My Book', 'First Last', 'zco.mx']
+            ['My Book', 'First Last', 'comics', 'zco.mx']
         )
 
     def test__tweet(self):
