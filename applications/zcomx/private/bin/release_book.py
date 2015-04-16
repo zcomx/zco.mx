@@ -19,8 +19,11 @@ from applications.zcomx.modules.images_optimize import \
 from applications.zcomx.modules.indicias import \
     PublicationMetadata
 from applications.zcomx.modules.job_queue import \
+    CreateAllTorrentQueuer, \
+    CreateBookTorrentQueuer, \
     CreateCBZQueuer, \
-    CreateTorrentQueuer, \
+    CreateCreatorTorrentQueuer, \
+    NotifyP2PQueuer, \
     PostBookOnTumblrQueuer, \
     ReleaseBookQueuer
 from applications.zcomx.modules.tumblr import POST_IN_PROGRESS
@@ -120,11 +123,23 @@ class ReleaseBook(Releaser):
             return
 
         if not self.book.torrent:
-            # Create book torrent
-            CreateTorrentQueuer(
+            CreateBookTorrentQueuer(
                 db.job,
                 cli_args=[str(self.book.id)],
             ).queue()
+
+            CreateCreatorTorrentQueuer(
+                db.job,
+                cli_args=[str(self.book.creator_id)],
+            ).queue()
+
+            CreateAllTorrentQueuer(db.job).queue()
+
+            NotifyP2PQueuer(
+                db.job,
+                cli_args=[str(self.book.id)],
+            ).queue()
+
             self.needs_requeue = True
             return
 

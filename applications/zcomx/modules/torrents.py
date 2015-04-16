@@ -265,3 +265,48 @@ class CreatorTorrentCreator(BaseTorrentCreator):
     def set_cbz_base_path(self, path):
         """Helper function to designate the cbz_base_path for get_target."""
         self._cbz_base_path = path
+
+
+class P2PNotifyError(Exception):
+    """Exception class for a torrent file create error."""
+    pass
+
+
+class P2PNotifier(object):
+    """Class representing a P2PNotifier"""
+
+    def __init__(self, cbz_filename):
+        """Constructor
+
+        Args:
+            cbz_filename: string, first arg
+        """
+        self.cbz_filename = cbz_filename
+
+    def notify(self, delete=False):
+        """Notify p2p networks of cbz file.
+
+        Args:
+            delete: boolean, if True notify of deleting of the cbz file.
+
+        """
+        zc_p2p = os.path.abspath(
+            os.path.join(current.request.folder, 'private', 'bin', 'zc-p2p.sh')
+        )
+
+        real_filename = os.path.abspath(self.cbz_filename)
+
+        args = []
+        args.append(zc_p2p)
+        if delete:
+            args.append('-d')
+        args.append(real_filename)
+        p = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        unused_stdout, p_stderr = p.communicate()
+        # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
+        # pylint: disable=E1101
+        if p.returncode:
+            print >> sys.stderr, 'Run of zc-p2p call failed: {e}'.format(
+                e=p_stderr)
+            raise P2PNotifyError('Run of zc-p2p call failed.')

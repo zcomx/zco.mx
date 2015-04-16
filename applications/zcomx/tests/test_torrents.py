@@ -16,6 +16,8 @@ from applications.zcomx.modules.torrents import \
     BaseTorrentCreator, \
     BookTorrentCreator, \
     CreatorTorrentCreator, \
+    P2PNotifier, \
+    P2PNotifyError, \
     TorrentCreateError
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import NotFoundError
@@ -340,6 +342,24 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         self.assertEqual(tor_creator._cbz_base_path, None)
         tor_creator.set_cbz_base_path(self._tmp_dir)
         self.assertEqual(tor_creator._cbz_base_path, self._tmp_dir)
+
+
+class TestP2PNotifier(TorrentTestCase):
+
+    def test____init__(self):
+        notifier = P2PNotifier('aaa.cbz')
+        self.assertTrue(notifier)
+
+    def test__notify(self):
+        notifier = P2PNotifier(self._test_file)
+
+        # This test should fail. The test server doesn't have the
+        # required tools installed. If the exception is raised, it's
+        # proof the script was run, which is all we need to test.
+        self.assertRaises(
+            P2PNotifyError,
+            notifier.notify
+        )
 
 
 class TestTorrentCreateError(LocalTestCase):

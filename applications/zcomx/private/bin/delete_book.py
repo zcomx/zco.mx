@@ -11,28 +11,16 @@ import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.books import book_tables
+from applications.zcomx.modules.job_queue import \
+    CreateAllTorrentQueuer, \
+    CreateCreatorTorrentQueuer, \
+    NotifyP2PQueuer
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
-
-
-def set_creator_rebuild_torrent(book):
-    """Flag the creator record so the torrent is rebuilt.
-
-    This will trigger the cronned program to update the creator torrent.
-
-    Args:
-        book: Row instance representing book record.
-    """
-    creator = entity_to_row(db.creator, book.creator_id)
-    if not creator:
-        raise NotFoundError('Creator not found, {e}'.format(
-            e=book.creator_id))
-    creator.update_record(rebuild_torrent=True)
-    db.commit()
 
 
 def delete_cbz(book):
@@ -103,6 +91,25 @@ def delete_torrent(book):
             raise
 
 
+def queue_rebuild_torrents(book):
+    """Queue rebuilds of creator and all torrents.
+
+    Args:
+        book: Row instance representing book record.
+    """
+    CreateCreatorTorrentQueuer(
+        db.job,
+        cli_args=[str(book.creator_id)],
+    ).queue()
+
+    CreateAllTorrentQueuer(db.job).queue()
+
+    NotifyP2PQueuer(
+        db.job,
+        cli_args=[str(book.id)],
+    ).queue()
+
+
 def man_page():
     """Print manual page-like help"""
     print """
@@ -170,11 +177,15 @@ def main():
     if not book:
         raise NotFoundError('Book not found, id: %s', book_id)
 
+    redo_creator_and_all_torrents = False
     if book.cbz:
         delete_cbz(book)
-        set_creator_rebuild_torrent(book)
+        redo_creator_and_all_torrents = True
     if book.torrent:
         delete_torrent(book)
+
+    if redo_creator_and_all_torrents:
+        queue_rebuild_torrents(book)
 
     delete_records(book)
 

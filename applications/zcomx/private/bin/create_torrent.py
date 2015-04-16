@@ -13,7 +13,8 @@ from optparse import OptionParser
 from applications.zcomx.modules.torrents import \
     AllTorrentCreator, \
     BookTorrentCreator, \
-    CreatorTorrentCreator
+    CreatorTorrentCreator, \
+    P2PNotifier
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -63,6 +64,20 @@ def creator_torrent(creator_id):
         db.commit()
 
 
+def notify_p2p(book_id):
+    """Notify p2p networks of book torrent."""
+    book = entity_to_row(db.book, book_id)
+    if not book:
+        raise NotFoundError('Book not found, id: {i}'.format(i=book_id))
+
+    if not book.cbz:
+        raise NotFoundError('Book does not have a cbz, id: {i}'.format(
+            i=book_id))
+
+    notifier = P2PNotifier(book.cbz)
+    notifier.notify()
+
+
 def man_page():
     """Print manual page-like help"""
     print """
@@ -75,6 +90,10 @@ USAGE
 
     # Create 'all' torrent
     create_torrent.py [OPTIONS] --all
+
+    # Notify p2p networks of torrent release
+    create_torrent.py [OPTIONS] --notify book_id [book_id book_id ...]
+
 
 OPTIONS
     -a, --all
@@ -91,6 +110,11 @@ OPTIONS
 
     --man
         Print man page-like help.
+
+    -n, --notify
+        If this option is provided, notify P2P networks of the release of
+        the book torrent. This does not create the book torrent. Not to
+        be used with either the --all or --creator options.
 
     -v, --verbose
         Print information messages to stdout.
@@ -122,6 +146,11 @@ def main():
         help='Display manual page-like help and exit.',
     )
     parser.add_option(
+        '-n', '--notify',
+        action='store_true', dest='notify', default=False,
+        help='Notify P2P networks of book torrent.',
+    )
+    parser.add_option(
         '-v', '--verbose',
         action='store_true', dest='verbose', default=False,
         help='Print messages to stdout.',
@@ -149,6 +178,10 @@ def main():
         parser.print_help()
         exit(1)
 
+    if options.notify and (options.all or options.creator):
+        parser.print_help()
+        exit(1)
+
     if options.all:
         all_torrent()
 
@@ -156,7 +189,10 @@ def main():
         if options.creator:
             creator_torrent(record_id)
         else:
-            book_torrent(record_id)
+            if options.notify:
+                notify_p2p(record_id)
+            else:
+                book_torrent(record_id)
 
 
 if __name__ == '__main__':

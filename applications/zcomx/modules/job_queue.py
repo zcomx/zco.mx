@@ -41,6 +41,7 @@ PRIORITIES = list(reversed([
     'delete_img',
     'create_creator_torrent',
     'create_all_torrent',
+    'notify_p2p_networks',
     'log_downloads',
     'optimize_original_img',
     # Lowest
@@ -601,6 +602,18 @@ class CreateCreatorTorrentQueuer(CreateTorrentQueuer):
     default_cli_options = {'--creator': True}
     valid_cli_options = [
         '-c', '--creator',
+        '-v', '--vv',
+    ]
+
+
+class NotifyP2PQueuer(CreateTorrentQueuer):
+    """Class representing a queuer for notify p2p network jobs."""
+    default_job_options = dict(CreateTorrentQueuer.default_job_options)
+    default_job_options['priority'] = \
+        PRIORITIES.index('notify_p2p_networks')
+    default_cli_options = {'--notify': True}
+    valid_cli_options = [
+        '-n', '--notify',
         '-v', '--vv',
     ]
 
