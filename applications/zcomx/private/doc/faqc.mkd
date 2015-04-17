@@ -245,7 +245,7 @@ than a Standard account. More information can be found [[here https://www.paypal
 An active Paypal account can be switched from Standard to Micropayments
 (see step 3). Otherwise, a new account is required:
 
-+ To set up a new account, go [[here https://www.paypal.com/ca/cgi-bin/marketingweb?cmd=_product-go&product=none]].
++ To set up a Paypal account, go [[here https://www.paypal.com/ca/cgi-bin/marketingweb?cmd=_product-go&product=none]].
 + After creating an account, Paypal will send you an email with an activation link.
 + To switch a Paypal account from Standard to Micropayments, you must call Paypal and speak with an agent directly. To find the number in your country, go [[here
 https://www.paypal.com/ca/cgi-bin/webscr?cmd=_contact-phone]]. Their auto-attendant is voice operated. None of their options are for switching to a Micropayments account. To drop out of their auto-attendant and speak to an agent, say the word "agent."

@@ -45,10 +45,10 @@ VERSION 2 - Before Going Live
         http://supertweetnews.140plus.com/p/a-quick-example-of-bash-shell-scripts-for-posting-twitter-updates/ZeRfz
     [ ] tumblr
 
-[ ] Look into Varnish for caching
+[ ] Varnish for caching
     see mod: 30442
     [x] Modify 'Cache-Control: private' so images are cached
-    [ ] Set 'Cache-Control' so images on book pages aren't cached
+    [x] Set 'Cache-Control' so images on book pages aren't cached
 
 [S] Email More Cartoonists
 
@@ -77,6 +77,7 @@ VERSION 2 - Before Going Live
 
 [S] Integrity Check Data
     * Make sure everyone has added their paypal address
+    * book description
 [ ] Nice Levels
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
 [ ] 12354 - Test scripts
