@@ -87,7 +87,7 @@ class PhotoDataPreparer(object):
         return {
             'state': 'published',
             'tags': self.tags(),
-            'tweet': self.tweet(),
+            'tweet': None,
             'slug': self.slug(),
             'format': 'markdown',
             'source': self.tumblr_data['book']['source'],
@@ -105,19 +105,11 @@ class PhotoDataPreparer(object):
     def tags(self):
         """Return the tags."""
         return [
-            self.tumblr_data['book']['tag_name'],
+            self.tumblr_data['book']['name'],
             self.tumblr_data['creator']['tag_name'],
             'comics',
             self.tumblr_data['site']['name'],
         ]
-
-    def tweet(self):
-        """Return the tweet text."""
-        return '|'.join([
-            self.tumblr_data['book']['tweet_name'],
-            self.tumblr_data['creator']['tweet_name'],
-            self.tumblr_data['book']['url'],
-        ])
 
 
 class Poster(object):

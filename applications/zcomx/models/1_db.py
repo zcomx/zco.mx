@@ -231,6 +231,9 @@ db.define_table('book',
         'tumblr_post_id'
     ),
     Field(
+        'twitter_post_id'
+    ),
+    Field(
         'status',
         'string',
         default=BOOK_STATUS_INCOMPLETE,

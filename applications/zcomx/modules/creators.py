@@ -564,10 +564,12 @@ def tumblr_data(creator_entity):
             social_media.append((field, value))
 
     return {
+        'name': formatted_name(creator_record),
         'slug_name': creator_name(creator_entity, use='search'),
         'social_media': social_media,
         'tag_name': creator_name(creator_entity, use='url'),
         'tweet_name': formatted_name(creator_record),
+        'twitter_username': creator_record.twitter,
         'url': url(creator_record, host=SITE_NAME),
     }
 
