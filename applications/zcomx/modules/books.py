@@ -1555,11 +1555,14 @@ def tumblr_data(book_entity):
         'name': book_record.name,
         'slug_name': book_name(book_record, use='search'),
         'source': source,
-        'tag_name': book_record.name,
+        'image_name': first_page.image,
+        'tag_name': BookName(book_record.name).for_url(),
+        'formatted_number': formatted_number(book_record),
         'title': formatted_name(
             db, book_record, include_publication_year=True),
         'tweet_name': formatted_name(
             db, book_record, include_publication_year=False),
+        'short_url': short_url(book_record),
         'url': url(book_record, host=SITE_NAME),
     }
 

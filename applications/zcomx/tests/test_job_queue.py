@@ -33,7 +33,7 @@ from applications.zcomx.modules.job_queue import \
     OptimizeImgQueuer, \
     OptimizeOriginalImgQueuer, \
     OptimizeWebImgQueuer, \
-    PostBookOnTumblrQueuer, \
+    PostOnSocialMediaQueuer, \
     PRIORITIES, \
     Queue, \
     QueueEmptyError, \
@@ -605,10 +605,10 @@ class TestOptimizeWebImgQueuer(LocalTestCase):
         )
 
 
-class TestPostBookOnTumblrQueuer(LocalTestCase):
+class TestPostOnSocialMediaQueuer(LocalTestCase):
 
     def test_queue(self):
-        queuer = PostBookOnTumblrQueuer(
+        queuer = PostOnSocialMediaQueuer(
             db.job,
             job_options={'status': 'd'},
             cli_options={'--vv': True},
@@ -623,7 +623,7 @@ class TestPostBookOnTumblrQueuer(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/post_book_on_tumblr.py --vv 123'
+            'applications/zcomx/private/bin/post_on_social_media.py --vv 123'
         )
 
 
