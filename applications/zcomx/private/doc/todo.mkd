@@ -35,28 +35,31 @@ VERSION 2 - Before Going Live
     SOLUTION: Don't make changes (move, add, delete) to the book until
     the cartoonist clicks 'Post'.
 
-[ ] Announce cbz releases using zcomx_bot accounts
+[x] Announce cbz releases using zcomx_bot accounts
     [x] dc
-    [ ] twitter
+    [x] twitter
         Twitter Cards
         https://dev.twitter.com/cards/overview
         https://dev.twitter.com/cards/types/summary-large-image
         http://unix.stackexchange.com/questions/84540/twitter-status-updates-from-command-line-via-curl
         http://supertweetnews.140plus.com/p/a-quick-example-of-bash-shell-scripts-for-posting-twitter-updates/ZeRfz
-    [ ] tumblr
+    [x] tumblr
 
-[ ] Varnish for caching
+[S] Varnish for caching
     see mod: 30442
     [x] Modify 'Cache-Control: private' so images are cached
     [x] Set 'Cache-Control' so images on book pages aren't cached
 
 [S] Email More Cartoonists
+[S] wildcard ssl cert for zco.mx ?
 
 [ ] Optimize Pages -- especially the front page
     [ ] look at Q's console
 
 [ ] Front Page -> cartoonists
     Only list 'CartoonistName.torrent' if they have a torrent file
+
+[ ] Add Cartoonist ID to the 'profile' page ?
 
 [ ] Front Page/Book Page
     SB 2015-03-25 20:56  we should talk about this
@@ -86,15 +89,25 @@ VERSION 2 - Before Going Live
 [S] Email Karen telling her the site is live
 
 VERSION 3
+[ ] Follow cartoonists on twitter
 [ ] Remove the ability to change to a more restrictive CC licence
+[S] Change bg to #fafafa ?
 [S] Setup hypermail for real-only mailing lists in login area ?
 [S] Reader notifications for new material
     Follow Links
         by cartoonist and by book
         via rss? and mailing list?
+    [ ] On Indicia
+        [$1.00] (contribute) | Next Book By Cartoonist Name
+                             | Book Name 03 (of 04)
+
+                Follow Cartoonist Name
+                on zco.mx  [ ] [ ]          ## ML and RSS
+                or on    [ ] [ ] [ ]        ## twitter, tumblr & fb
+
 [ ] Indicia - html version
-    Add link for 'Read Next' book
     Add book links to html indicia page
+    Add link for 'Read Next' book
 [ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] Extend left/right clickable areas while in slider mode
     * maybe show an 1/8th of the prev/next image and very opague?
@@ -174,7 +187,6 @@ IDEAS
     see emails with blumenstein
     discuss on feedback ml
 [ ] resize.sh - convert tiff's to png's ?
-[S] wildcard ssl cert for zco.mx ?
     https://www.wosign.com/english/
 [ ] Is re-releasing released books a problem?
     * use the upload modal with any read-only fields
