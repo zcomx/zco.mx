@@ -36,15 +36,15 @@ _check() {
 _del_tor() {
     hash=$(lstor -qo __hash__ "$tor")
     _v && _mi "hash:   $hash"
-    rtxmlrpc -q d.close=$hash &>/dev/null && sleep 1
-    rtxmlrpc -q d.erase=$hash &>/dev/null && sleep 1
-    rtxmlrpc -q system.file_status_cache.prune && sleep 1
+    rtxmlrpc --config-dir "$rtconf" -q d.close=$hash &>/dev/null && sleep 1
+    rtxmlrpc --config-dir "$rtconf" -q d.erase=$hash &>/dev/null && sleep 1
+    rtxmlrpc --config-dir "$rtconf" -q system.file_status_cache.prune && sleep 1
 }
 
 _add_tor() {
     cp -alf "$tor" "${tor}.loaded" || _me "Error"   ## Create Hardlink of .torrent file
-    _v && _mi "rtxmlrpc -q load.start '' ${tor}.loaded d.directory_base.set=\"$cbzdir\" d.priority.set=2"
-    rtxmlrpc -q load.start '' "${tor}.loaded" "d.directory_base.set=\"$cbzdir\"" "d.priority.set=2" && sleep 1
+    _v && _mi "rtxmlrpc --config-dir "$rtconf" -q load.start '' ${tor}.loaded d.directory_base.set=\"$cbzdir\" d.priority.set=2"
+    rtxmlrpc --config-dir "$rtconf" -q load.start '' "${tor}.loaded" "d.directory_base.set=\"$cbzdir\"" "d.priority.set=2" && sleep 1
 }
 
 _cbz() {
@@ -124,6 +124,8 @@ _options() {
     cbzdir=${cbz%/*}
     tor=${cbz/\/cbz\//\/tor\/}.torrent
 }
+
+rtconf=/root/.pyroscope
 
 _options "$@"
 
