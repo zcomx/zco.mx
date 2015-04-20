@@ -167,13 +167,29 @@ class TestGrid(LocalTestCase):
         self.assertEqual(str(order_fields[0]), 'book.name')
 
     def test__orderby(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+
         grid = SubGrid()
+
+        self.assertEqual(grid._attributes['order_dir'], 'DESC')
         orderby = grid.orderby()
         self.assertEqual(len(orderby), 3)
         self.assertEqual(
             [str(x) for x in orderby],
-            ['book.name DESC', 'book.number', 'book.id']
+            ['book.name DESC', 'book.number DESC', 'book.id DESC']
         )
+
+        grid._attributes['order_dir'] = 'ASC'
+        self.assertEqual(grid._attributes['order_dir'], 'ASC')
+        orderby = grid.orderby()
+        self.assertEqual(len(orderby), 3)
+        self.assertEqual(
+            [str(x) for x in orderby],
+            ['book.name', 'book.number', 'book.id']
+        )
+
+        grid._attributes['order_dir'] = 'DESC'          # reset
 
     def test__render(self):
         grid = SubGrid()
@@ -527,7 +543,7 @@ class TestMoniesBookTile(LocalTestCase):
         img = anchor.img
         self.assertEqual(img['alt'], '')
         first = get_page(self._row.book, page_no='first')
-        self.assertEqual(img['src'], '/images/download/{i}?size=web'.format(
+        self.assertEqual(img['src'], '/images/download/{i}?cache=1&size=web'.format(
             i=first.image))
 
         # Test: can contribute = False
@@ -547,7 +563,7 @@ class TestMoniesBookTile(LocalTestCase):
         img = div.img
         self.assertEqual(img['alt'], '')
         first = get_page(self._row.book, page_no='first')
-        self.assertEqual(img['src'], '/images/download/{i}?size=web'.format(
+        self.assertEqual(img['src'], '/images/download/{i}?cache=1&size=web'.format(
             i=first.image))
 
         # Restore

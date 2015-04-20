@@ -313,10 +313,10 @@ class Grid(object):
         """
         db = self.db
         fields = self.order_fields()
-        if self._attributes['order_dir'] == 'DESC':
-            fields[0] = ~fields[0]
         fields.append(db.book.number)
         fields.append(db.book.id)                # For consistent results
+        if self._attributes['order_dir'] == 'DESC':
+            fields = [~x for x in fields]
         return fields
 
     def render(self):
