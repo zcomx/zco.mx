@@ -1297,6 +1297,9 @@ def metadata_crud():
         if meta.errors:
             return {'status': 'error', 'fields': meta.errors}
         meta.update()
+        book_record.update_record(
+            publication_year=meta.publication_year()
+        )
         return {'status': 'ok'}
     return do_error('Invalid data provided')
 

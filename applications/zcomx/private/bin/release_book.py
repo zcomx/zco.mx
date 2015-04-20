@@ -16,8 +16,6 @@ from applications.zcomx.modules.creators import \
     images as creator_images
 from applications.zcomx.modules.images_optimize import \
     CBZImagesForRelease
-from applications.zcomx.modules.indicias import \
-    PublicationMetadata
 from applications.zcomx.modules.job_queue import \
     CreateAllTorrentQueuer, \
     CreateBookTorrentQueuer, \
@@ -92,12 +90,6 @@ class ReleaseBook(Releaser):
         """
         super(ReleaseBook, self).__init__(book_id)
 
-    def publication_year(self):
-        """Return the publication year for the book."""
-        meta = PublicationMetadata(self.book)
-        meta.load()
-        return meta.publication_year()
-
     def run(self):
         """Run the release."""
 
@@ -165,7 +157,6 @@ class ReleaseBook(Releaser):
         data = dict(
             release_date=datetime.datetime.today(),
             releasing=False,
-            publication_year=self.publication_year()
         )
         self.book.update_record(**data)
         db.commit()
@@ -207,7 +198,6 @@ class UnreleaseBook(Releaser):
             LOG.debug('Removing torrent file: %s', self.book.torrent)
             if os.path.exists(self.book.torrent):
                 os.unlink(self.book.torrent)
-
 
         # Everythings good. Unrelease the book.
         data = dict(
