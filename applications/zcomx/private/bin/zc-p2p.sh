@@ -29,7 +29,7 @@ _check() {
     _v && _mi "cbzdir: $cbzdir"
     _v && _mi "tor:    $tor"
     for i in lstor rtxmlrpc tmux tthsum; do command -v "$i" &>/dev/null || _me "$i not installed"; done
-    [[ -f $cbz ]] || _me 'cbz file not found'
+    [[ ! $d ]] && { [[ -f $cbz ]] || _me 'cbz file not found'; }
     [[ -f $tor ]] || _me 'torrent file not found'
 }
 
@@ -39,6 +39,7 @@ _del_tor() {
     rtxmlrpc --config-dir "$rtconf" -q d.close=$hash &>/dev/null && sleep 1
     rtxmlrpc --config-dir "$rtconf" -q d.erase=$hash &>/dev/null && sleep 1
     rtxmlrpc --config-dir "$rtconf" -q system.file_status_cache.prune && sleep 1
+    [[ -f $tor.loaded ]] && rm "$tor.loaded"
 }
 
 _add_tor() {
@@ -69,8 +70,8 @@ _car() {
 
 _all() {
     _v && _mi "Update zco.mx torrent"
-    cbzdir="/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx"
-    tor="/srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/zco.mx/zco.mx.torrent"
+    cbzdir=/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx
+    tor=/srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/zco.mx/zco.mx.torrent
     _check
     _del_tor
     _add_tor

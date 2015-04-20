@@ -5,6 +5,7 @@
 
 Classes and functions related to torrents.
 """
+import logging
 import os
 import subprocess
 import sys
@@ -21,6 +22,8 @@ from applications.zcomx.modules.shell_utils import TempDirectoryMixin
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+
+LOG = logging.getLogger('app')
 
 
 class TorrentCreateError(Exception):
@@ -302,6 +305,7 @@ class P2PNotifier(object):
         if delete:
             args.append('-d')
         args.append(real_filename)
+        LOG.debug('zc-p2p.sh args: %s', args)
         p = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         unused_stdout, p_stderr = p.communicate()

@@ -137,7 +137,7 @@ class ReleaseBook(Releaser):
 
             NotifyP2PQueuer(
                 db.job,
-                cli_args=[str(self.book.id)],
+                cli_args=[self.book.cbz],
             ).queue()
 
             self.needs_requeue = True
@@ -193,6 +193,12 @@ class UnreleaseBook(Releaser):
         """Run the release."""
 
         if self.book.cbz:
+            NotifyP2PQueuer(
+                db.job,
+                cli_options={'--delete': True},
+                cli_args=[self.book.cbz],
+            ).queue()
+
             LOG.debug('Removing cbz file: %s', self.book.cbz)
             if os.path.exists(self.book.cbz):
                 os.unlink(self.book.cbz)
@@ -201,6 +207,7 @@ class UnreleaseBook(Releaser):
             LOG.debug('Removing torrent file: %s', self.book.torrent)
             if os.path.exists(self.book.torrent):
                 os.unlink(self.book.torrent)
+
 
         # Everythings good. Unrelease the book.
         data = dict(
@@ -212,6 +219,8 @@ class UnreleaseBook(Releaser):
 
         if self.book.tumblr_post_id == POST_IN_PROGRESS:
             data['tumblr_post_id'] = None
+        if self.book.twitter_post_id == POST_IN_PROGRESS:
+            data['twitter_post_id'] = None
 
         self.book.update_record(**data)
         db.commit()

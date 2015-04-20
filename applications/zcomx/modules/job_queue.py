@@ -606,18 +606,6 @@ class CreateCreatorTorrentQueuer(CreateTorrentQueuer):
     ]
 
 
-class NotifyP2PQueuer(CreateTorrentQueuer):
-    """Class representing a queuer for notify p2p network jobs."""
-    default_job_options = dict(CreateTorrentQueuer.default_job_options)
-    default_job_options['priority'] = \
-        PRIORITIES.index('notify_p2p_networks')
-    default_cli_options = {'--notify': True}
-    valid_cli_options = [
-        '-n', '--notify',
-        '-v', '--vv',
-    ]
-
-
 class DeleteBookQueuer(JobQueuer):
     """Class representing a queuer for delete_book jobs."""
     program = os.path.join(JobQueuer.bin_path, 'delete_book.py')
@@ -641,6 +629,20 @@ class LogDownloadsQueuer(JobQueuer):
     valid_cli_options = [
         '-l', '--limit',
         '-r', '--requeue',
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
+class NotifyP2PQueuer(JobQueuer):
+    """Class representing a queuer for notify p2p network jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'notify_p2p_networks.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('notify_p2p_networks'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-d', '--delete',
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal

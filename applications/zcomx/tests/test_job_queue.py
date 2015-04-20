@@ -28,6 +28,7 @@ from applications.zcomx.modules.job_queue import \
     InvalidStatusError, \
     JobQueuer, \
     LogDownloadsQueuer, \
+    NotifyP2PQueuer, \
     OptimizeCBZImgForReleaseQueuer, \
     OptimizeCBZImgQueuer, \
     OptimizeImgQueuer, \
@@ -485,6 +486,28 @@ class TestLogDownloadsQueuer(LocalTestCase):
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/log_downloads.py -l 10 -r'
+        )
+
+
+class TestNotifyP2PQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = NotifyP2PQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'-d': True},
+            cli_args=['path/to/file.cbz'],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/notify_p2p_networks.py -d path/to/file.cbz'
         )
 
 

@@ -106,7 +106,7 @@ def queue_rebuild_torrents(book):
 
     NotifyP2PQueuer(
         db.job,
-        cli_args=[str(book.id)],
+        cli_args=[book.cbz],
     ).queue()
 
 
