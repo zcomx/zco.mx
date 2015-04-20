@@ -34,7 +34,7 @@ _check() {
 }
 
 _del_tor() {
-    hash=$(lstor -qo __hash__ "$tor")
+    hash=$(lstor -qo __hash__ "$tor.loaded")
     _v && _mi "hash:   $hash"
     rtxmlrpc --config-dir "$rtconf" -q d.close=$hash &>/dev/null && sleep 1
     rtxmlrpc --config-dir "$rtconf" -q d.erase=$hash &>/dev/null && sleep 1

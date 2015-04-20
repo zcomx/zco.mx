@@ -297,6 +297,7 @@ class P2PNotifier(object):
         real_filename = os.path.abspath(self.cbz_filename)
 
         args = []
+        args.append('sudo')
         args.append(zc_p2p)
         if delete:
             args.append('-d')

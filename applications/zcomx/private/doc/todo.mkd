@@ -1,32 +1,17 @@
 ``
 VERSION 2 - Before Going Live
-[x] Quiet Nginx Logging
-[x] Add questions to faqc
-[x] Login -> Books -> Upload
-    Do not post book until the cartoonist clicks 'Close'
-    Maybe if there is at least one image uploaded then change 'Close' to 'Post' ?
-[x] Front Page
-    Books without images are showing up on the front page
-    https://zco.mx/?page=4
-[x] Login -> Release Model
-    Now that we require the metadata to be used, I think this can be
-    removed:
-        "Edit the year of publication if necessary.  Published [2014]"
-    We should use the 'To Year' in the filename and title.
-[x] Login -> Book Edit -> Copyright Licence
-    The licences should go in this order:
-        CC0
-        CC BY
-        CC BY-SA
-        CC BY-ND
-        CC BY-NC
-        CC BY-NC-SA
-        CC BY-NC-ND
-[x] Setup Mailing List
-    One for 'announce' and the other for 'feedback' ?
-[x] Upload Modal
-    Can we downscale the web images for the thumbnails and remove the
-    actual thumbnails?
+[x] Job Queue
+
+[S] Varnish for caching
+    see mod: 30442
+    [x] Modify 'Cache-Control: private' so images are cached
+    [x] Set 'Cache-Control' so images on book pages aren't cached
+
+[S] Remove zco.mx.torrent and CartoonistName.torrent before replacing those torrents
+    Fix sent to Jim, zc-p2p.sh needs testing
+
+[S] Test Password Reset
+    >when I try to reset my password it says 'invalid password reset'
 
 [ ] BUG: Deleting a Cover
     http://stackoverflow.com/questions/14515313/how-to-modify-web2py-download-function-to-return-304-not-modified-in-case-the
@@ -34,21 +19,6 @@ VERSION 2 - Before Going Live
     no cover image is shown until they click 'Post'.
     SOLUTION: Don't make changes (move, add, delete) to the book until
     the cartoonist clicks 'Post'.
-
-[x] Announce cbz releases using zcomx_bot accounts
-    [x] dc
-    [x] twitter
-        Twitter Cards
-        https://dev.twitter.com/cards/overview
-        https://dev.twitter.com/cards/types/summary-large-image
-        http://unix.stackexchange.com/questions/84540/twitter-status-updates-from-command-line-via-curl
-        http://supertweetnews.140plus.com/p/a-quick-example-of-bash-shell-scripts-for-posting-twitter-updates/ZeRfz
-    [x] tumblr
-
-[S] Varnish for caching
-    see mod: 30442
-    [x] Modify 'Cache-Control: private' so images are cached
-    [x] Set 'Cache-Control' so images on book pages aren't cached
 
 [S] Email More Cartoonists
 [S] wildcard ssl cert for zco.mx ?
@@ -86,6 +56,7 @@ VERSION 2 - Before Going Live
 [ ] 12354 - Test scripts
 [ ] "creator.table appears corrupted" Error
 [S] Clean up kb.zco.mx
+[ ] Send Out Tweets and Post to Tumblr Any Released Books
 [S] Email Karen telling her the site is live
 
 VERSION 3
@@ -111,6 +82,7 @@ VERSION 3
 [ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] Extend left/right clickable areas while in slider mode
     * maybe show an 1/8th of the prev/next image and very opague?
+[ ] Randomize Cartoonist on "Page Not Found" ?
 [ ] All Ages Modal via cookie ?
 [ ] Explicit Content Warning (modal)
 [ ] Redesign Cartoonist Page
