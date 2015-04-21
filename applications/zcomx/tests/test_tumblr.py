@@ -25,7 +25,7 @@ class DubClient(object):
     def __init__(self):
         self.posts = {}
 
-    def create_photo(self, username, **kwargs):
+    def create_photo(self, unused_username, **kwargs):
         post_id = uuid.uuid4()
         self.posts[post_id] = kwargs
         return post_id
@@ -69,7 +69,7 @@ class TestPhotoDataPreparer(LocalTestCase):
         # pylint: disable=C0301
         data = {
             'book': {
-                'title': 'My Book 001 (1999)',
+                'formatted_name': 'My Book 001 (1999)',
                 'description': 'This is my book!',
                 'url': 'http://zco.mx/FirstLast/MyBook',
             },
@@ -107,18 +107,16 @@ by <a href="http://zco.mx/FirstLast">http://zco.mx/FirstLast</a>"""
         data = {
             'book': {
                 'description': None,
-                'slug_name': 'my-book-001',
-                'source': 'http://source',
-                'title': 'My Book 001 (1999)',
-                'tag_name': 'My Book',
-                'tweet_name': 'My Book 001',
+                'download_url': 'http://source',
+                'formatted_name': 'My Book 001 (1999)',
+                'name': 'My Book',
+                'name_for_search': 'my-book-001',
                 'url': 'http://zco.mx/FirstLast/MyBook',
             },
             'creator': {
-                'slug_name': 'first-last',
+                'name_for_search': 'first-last',
                 'social_media': [],
-                'tag_name': 'FirstLast',
-                'tweet_name': 'First Last',
+                'name_for_url': 'FirstLast',
                 'url': 'http://zco.mx/FirstLast',
             },
             'site': {
@@ -129,7 +127,7 @@ by <a href="http://zco.mx/FirstLast">http://zco.mx/FirstLast</a>"""
         expect = {
             'state': 'published',
             'tags': ['My Book', 'FirstLast', 'comics', 'zco.mx'],
-            'tweet': 'My Book 001|First Last|http://zco.mx/FirstLast/MyBook',
+            'tweet': None,
             'slug': 'first-last-my-book-001',
             'format': 'markdown',
             'source': 'http://source',
@@ -145,10 +143,10 @@ by <a href="http://zco.mx/FirstLast">http://zco.mx/FirstLast</a>"""
     def test__slug(self):
         data = {
             'book': {
-                'slug_name': 'my-book-001',
+                'name_for_search': 'my-book-001',
             },
             'creator': {
-                'slug_name': 'first-last',
+                'name_for_search': 'first-last',
             },
         }
         preparer = PhotoDataPreparer(data)
@@ -157,10 +155,10 @@ by <a href="http://zco.mx/FirstLast">http://zco.mx/FirstLast</a>"""
     def test__tags(self):
         data = {
             'book': {
-                'tag_name': 'My Book',
+                'name': 'My Book',
             },
             'creator': {
-                'tag_name': 'First Last',
+                'name_for_url': 'First Last',
             },
             'site': {
                 'name': 'zco.mx'
@@ -171,23 +169,6 @@ by <a href="http://zco.mx/FirstLast">http://zco.mx/FirstLast</a>"""
         self.assertEqual(
             preparer.tags(),
             ['My Book', 'First Last', 'comics', 'zco.mx']
-        )
-
-    def test__tweet(self):
-        data = {
-            'book': {
-                'tweet_name': 'My Book 001',
-                'url': 'http://zco.mx/FirstLast/MyBook-001',
-            },
-            'creator': {
-                'tweet_name': 'First Last',
-            },
-        }
-
-        preparer = PhotoDataPreparer(data)
-        self.assertEqual(
-            preparer.tweet(),
-            'My Book 001|First Last|http://zco.mx/FirstLast/MyBook-001'
         )
 
 

@@ -1540,9 +1540,11 @@ def tumblr_data(book_entity):
     except NotFoundError:
         first_page = None
 
-    source = None
+    first_page_image = first_page.image if first_page else None
+
+    download_url = None
     if first_page:
-        source = URL(
+        download_url = URL(
             c='images',
             f='download',
             args=first_page.image,
@@ -1551,17 +1553,17 @@ def tumblr_data(book_entity):
         )
 
     return {
+        'cover_image_name': first_page_image,
         'description': book_record.description,
-        'name': book_record.name,
-        'slug_name': book_name(book_record, use='search'),
-        'source': source,
-        'image_name': first_page.image,
-        'tag_name': BookName(book_record.name).for_url(),
-        'formatted_number': formatted_number(book_record),
-        'title': formatted_name(
+        'download_url': download_url,
+        'formatted_name': formatted_name(
             db, book_record, include_publication_year=True),
-        'tweet_name': formatted_name(
+        'formatted_name_no_year': formatted_name(
             db, book_record, include_publication_year=False),
+        'formatted_number': formatted_number(book_record),
+        'name': book_record.name,
+        'name_camelcase': BookName(book_record.name).for_url(),
+        'name_for_search': book_name(book_record, use='search'),
         'short_url': short_url(book_record),
         'url': url(book_record, host=SITE_NAME),
     }

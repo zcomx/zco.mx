@@ -565,11 +565,10 @@ def tumblr_data(creator_entity):
 
     return {
         'name': formatted_name(creator_record),
-        'slug_name': creator_name(creator_entity, use='search'),
+        'name_for_search': creator_name(creator_entity, use='search'),
+        'name_for_url': creator_name(creator_entity, use='url'),
         'social_media': social_media,
-        'tag_name': creator_name(creator_entity, use='url'),
-        'tweet_name': formatted_name(creator_record),
-        'twitter_username': creator_record.twitter,
+        'twitter': creator_record.twitter,
         'url': url(creator_record, host=SITE_NAME),
     }
 
