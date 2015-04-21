@@ -1,6 +1,12 @@
 ``
 VERSION 2 - Before Going Live
-[x] Job Queue
+[x] Clean Out Job Queue
+[x] BUG: Deleting a Cover
+    http://stackoverflow.com/questions/14515313/how-to-modify-web2py-download-function-to-return-304-not-modified-in-case-the
+    After a book has been posted, if a cartoonist then deletes the cover
+    no cover image is shown until they click 'Post'.
+    SOLUTION: Don't make changes (move, add, delete) to the book until
+    the cartoonist clicks 'Post'.
 
 [S] Varnish for caching
     see mod: 30442
@@ -13,18 +19,13 @@ VERSION 2 - Before Going Live
 [S] Test Password Reset
     >when I try to reset my password it says 'invalid password reset'
 
-[ ] BUG: Deleting a Cover
-    http://stackoverflow.com/questions/14515313/how-to-modify-web2py-download-function-to-return-304-not-modified-in-case-the
-    After a book has been posted, if a cartoonist then deletes the cover
-    no cover image is shown until they click 'Post'.
-    SOLUTION: Don't make changes (move, add, delete) to the book until
-    the cartoonist clicks 'Post'.
-
 [S] Email More Cartoonists
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
     Buy a wildcard cert
+
+[ ] Should CartoonistName.torrent be in /C/CartoonistName/ ?
 
 [ ] Optimize Pages -- especially the front page
     [ ] look at Q's console
