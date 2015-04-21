@@ -40,11 +40,10 @@ from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
 
 try:
     # MIGRATE is optionally defined in models/0_migrate.py
-    default_migrate = MIGRATE
-except Exception as err:
-    default_migrate = False
+    model_class = MigratedModelDb if MIGRATE else ModelDb
+except NameError:
+    model_class = ModelDb
 
-model_class = MigratedModelDb if default_migrate == True else ModelDb
 model_db = model_class(globals())
 
 db = model_db.db
@@ -569,7 +568,6 @@ db.define_table('page_comment',
         'integer',
     ),
     Field('comment_text'),
-    Field('deleteme_text'),
     format='%(comment_text)s',
 )
 

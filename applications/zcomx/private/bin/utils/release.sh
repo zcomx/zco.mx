@@ -112,6 +112,10 @@ _update_static_version "$SETTINGS_CONF"
 __v && __mi "Restarting uwsgi emperor"
 systemctl restart emperor.uwsgi.service
 
+__v && __mi "SQL integrity"
+$PY_SCRIPT applications/zcomx/private/bin/utils/sql_integrity.py
+
+
 __v && __mi "Done"
 
 exit 0
