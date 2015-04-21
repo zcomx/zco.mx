@@ -1,4 +1,4 @@
-#!/usr/bin/python
+    #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """
@@ -88,6 +88,7 @@ class ExposeImproved(Expose):
 
 class ModelDb(object):
     """Class representing the db.py model"""
+    migrate = False
 
     def __init__(self, environment, config_file=None, init_all=True):
         """Constructor.
@@ -196,7 +197,6 @@ class ModelDb(object):
         """Create a database handle
 
         """
-
         request = self.environment['request']
         response = self.environment['response']
         session = self.environment['session']
@@ -213,7 +213,11 @@ class ModelDb(object):
             #   from gluon.contrib.memdb import MEMDB
             #   from google.appengine.api.memcache import Client
             #   session.connect(request, response, db=MEMDB(Client())
-            db = self.DAL('sqlite://storage.sqlite', debug=True)
+            db = self.DAL(
+                'sqlite://storage.sqlite',
+                migrate=self.migrate,
+                debug=True,
+            )
         return db
 
     def _mail(self):
@@ -282,6 +286,11 @@ class ModelDb(object):
                     self.auth.id_group(admin), user.id):
                 self.auth.add_membership(
                     self.auth.id_group(admin), user.id)
+
+
+class MigratedModelDb(ModelDb):
+    """Class representing the db.py model with migration enabled."""
+    migrate = True
 
 
 class SettingsLoader(object):

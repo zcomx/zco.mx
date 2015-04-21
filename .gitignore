@@ -43,6 +43,7 @@ applications/*/databases/*
 !applications/*/databases/.gitignore
 applications/*/errors/*
 !applications/*/errors/.gitignore
+applications/*/models/0_migrate.py
 applications/*/private/settings.conf
 applications/*/private/var
 applications/*/private/var/*

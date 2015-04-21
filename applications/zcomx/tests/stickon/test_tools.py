@@ -14,6 +14,7 @@ from gluon.shell import env
 from gluon.storage import Storage
 from applications.zcomx.modules.stickon.tools import \
     ExposeImproved, \
+    MigratedModelDb, \
     ModelDb, \
     SettingsLoader
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -84,6 +85,14 @@ class TestExposeImproved(LocalTestCase):
         self.assertEqual(len(h2s), 0)
 
 
+class TestMigratedModelDb(LocalTestCase):
+
+    def test_parent__init__(self):
+        model_db = ModelDb(APP_ENV, init_all=False)
+        self.assertTrue(model_db)
+        self.assertEqual(model_db.migrate, False)
+
+
 class TestModelDb(LocalTestCase):
 
     def test____init__(self):
@@ -95,6 +104,8 @@ class TestModelDb(LocalTestCase):
         #
         model_db = ModelDb(APP_ENV, init_all=False)
         self.assertTrue(model_db)  # returns object
+
+        self.assertEqual(model_db.migrate, False)
 
         # response.static_version is set
         self.assertRegexpMatches(

@@ -31,14 +31,22 @@ from applications.zcomx.modules.books import publication_year_range
 from applications.zcomx.modules.creators import add_creator
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.stickon.sqlhtml import formstyle_bootstrap3_custom
-from applications.zcomx.modules.stickon.tools import ModelDb
+from applications.zcomx.modules.stickon.tools import ModelDb, MigratedModelDb
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_TWITTER_HANDLE, \
     IS_URL_FOR_DOMAIN
 from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
 
-model_db = ModelDb(globals())
+try:
+    # MIGRATE is optionally defined in models/0_migrate.py
+    default_migrate = MIGRATE
+except Exception as err:
+    default_migrate = False
+
+model_class = MigratedModelDb if default_migrate == True else ModelDb
+model_db = model_class(globals())
+
 db = model_db.db
 auth = model_db.auth
 crud = model_db.crud
@@ -239,7 +247,6 @@ db.define_table('book',
         default=BOOK_STATUS_DRAFT,
     ),
     format='%(name)s',
-    migrate=True,
 )
 
 db.define_table('book_page',
@@ -259,21 +266,18 @@ db.define_table('book_page',
         uploadseparate=True,
     ),
     format='%(page_no)s',
-    migrate=True,
 )
 
 db.define_table('book_to_link',
     Field('book_id', 'integer'),
     Field('link_id', 'integer'),
     Field('order_no', 'integer'),
-    migrate=True,
 )
 
 db.define_table('book_type',
     Field('name'),
     Field('description'),
     Field('sequence', 'integer'),
-    migrate=True,
 )
 
 db.define_table('book_view',
@@ -286,7 +290,6 @@ db.define_table('book_view',
         'integer',
     ),
     Field('time_stamp', 'datetime'),
-    migrate=True,
 )
 
 db.define_table('cc_licence',
@@ -295,7 +298,6 @@ db.define_table('cc_licence',
     Field('url'),
     Field('template_img'),
     Field('template_web'),
-    migrate=True,
 )
 
 db.define_table('contribution',
@@ -309,7 +311,6 @@ db.define_table('contribution',
     ),
     Field('time_stamp', 'datetime'),
     Field('amount', 'double'),
-    migrate=True,
 )
 
 db.define_table('creator',
@@ -447,14 +448,12 @@ db.define_table('creator',
         'boolean',
         default=None,
     ),
-    migrate=True,
 )
 
 db.define_table('creator_to_link',
     Field('creator_id', 'integer'),
     Field('link_id', 'integer'),
     Field('order_no', 'integer'),
-    migrate=True,
 )
 
 db.define_table('derivative',
@@ -490,7 +489,6 @@ db.define_table('derivative',
         default=request.now.year,
         label='To',
     ),
-    migrate=True,
 )
 
 db.define_table('download',
@@ -507,7 +505,6 @@ db.define_table('download',
         'integer',
     ),
     Field('time_stamp', 'datetime'),
-    migrate=True,
 )
 
 db.define_table('download_click',
@@ -526,7 +523,6 @@ db.define_table('download_click',
         'boolean',
         default=False,
     ),
-    migrate=True,
 )
 
 db.define_table('job',
@@ -538,7 +534,6 @@ db.define_table('job',
         default='a',
         requires=IS_IN_SET(['a', 'd', 'p']),
     ),
-    migrate=True,
 )
 
 db.define_table('link',
@@ -557,7 +552,6 @@ db.define_table('link',
     ),
     Field('title'),
     format='%(name)s',
-    migrate=True,
 )
 
 db.define_table('optimize_img_log',
@@ -567,7 +561,6 @@ db.define_table('optimize_img_log',
     Field(
         'size',
     ),
-    migrate=True,
 )
 
 db.define_table('page_comment',
@@ -576,8 +569,8 @@ db.define_table('page_comment',
         'integer',
     ),
     Field('comment_text'),
+    Field('deleteme_text'),
     format='%(comment_text)s',
-    migrate=True,
 )
 
 db.define_table('paypal_log',
@@ -622,7 +615,6 @@ db.define_table('paypal_log',
     Field('custom'),
     Field('verify_sign'),
     format='%(txn_id)s',
-    migrate=True,
 )
 
 db.define_table('publication_metadata',
@@ -685,7 +677,6 @@ db.define_table('publication_metadata',
         default=request.now.year,
         label='To',
     ),
-    migrate=True,
 )
 
 db.define_table('publication_serial',
@@ -741,7 +732,6 @@ db.define_table('publication_serial',
         default=request.now.year,
         label='To',
     ),
-    migrate=True,
 )
 
 db.define_table('rating',
@@ -755,7 +745,6 @@ db.define_table('rating',
     ),
     Field('time_stamp', 'datetime'),
     Field('amount', 'double'),
-    migrate=True,
 )
 
 db.book.book_type_id.requires = IS_IN_DB(
