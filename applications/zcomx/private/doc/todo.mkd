@@ -21,7 +21,10 @@ VERSION 2 - Before Going Live
     the cartoonist clicks 'Post'.
 
 [S] Email More Cartoonists
-[S] wildcard ssl cert for zco.mx ?
+
+[S] Wildcard ssl cert for zco.mx
+    https://131.zco.mx will cause a self-signed cert warning to appear
+    Buy a wildcard cert
 
 [ ] Optimize Pages -- especially the front page
     [ ] look at Q's console
