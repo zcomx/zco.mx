@@ -15,7 +15,7 @@ from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
-    BOOK_STATUS_INCOMPLETE
+    BOOK_STATUS_DRAFT
 
 
 # C0111: Missing docstring
@@ -484,7 +484,7 @@ class TestFunctions(LocalTestCase):
         )
 
         # Valid book_id, no book pages returns success
-        self._book.update_record(status=BOOK_STATUS_INCOMPLETE)
+        self._book.update_record(status=BOOK_STATUS_DRAFT)
         db.commit()
         self.assertTrue(
             web.test(

@@ -47,7 +47,7 @@ from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
     reorder
-from applications.zcomx.modules.zco import BOOK_STATUS_INCOMPLETE
+from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
 
 LOG = logging.getLogger('app')
 
@@ -379,9 +379,9 @@ def book_pages():
     if not book_record or book_record.creator_id != creator_record.id:
         MODAL_ERROR('Invalid data provided')
 
-    # Temporarily set the book status to incomplete, so it does not appear
+    # Temporarily set the book status to draft, so it does not appear
     # in search results while it is being edited.
-    set_status(book_record, BOOK_STATUS_INCOMPLETE)
+    set_status(book_record, BOOK_STATUS_DRAFT)
 
     read_button = read_link(
         db,

@@ -34,7 +34,7 @@ from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_INCOMPLETE, \
+    BOOK_STATUS_DRAFT, \
     SITE_NAME
 
 
@@ -411,7 +411,7 @@ def calc_status(book_entity):
         return BOOK_STATUS_DISABLED
 
     page_count = db(db.book_page.book_id == book_record.id).count()
-    return BOOK_STATUS_ACTIVE if page_count > 0 else BOOK_STATUS_INCOMPLETE
+    return BOOK_STATUS_ACTIVE if page_count > 0 else BOOK_STATUS_DRAFT
 
 
 def cbz_comment(book_entity):

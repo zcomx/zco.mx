@@ -10,7 +10,7 @@ from gluon import *
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_INCOMPLETE
+    BOOK_STATUS_DRAFT
 
 LOG = logging.getLogger('app')
 
@@ -137,8 +137,8 @@ class DisabledBookList(BaseBookList):
         )
 
 
-class IncompleteBookList(BaseBookList):
-    """Class representing a list of incomplete books for a creator."""
+class DraftBookList(BaseBookList):
+    """Class representing a list of draft books for a creator."""
 
     @property
     def allow_upload_on_edit(self):
@@ -146,12 +146,12 @@ class IncompleteBookList(BaseBookList):
 
     @property
     def code(self):
-        return 'incomplete'
+        return 'draft'
 
     def filters(self):
         db = self.db
         queries = []
-        queries.append((db.book.status == BOOK_STATUS_INCOMPLETE))
+        queries.append((db.book.status == BOOK_STATUS_DRAFT))
         return queries
 
     @property
@@ -160,14 +160,19 @@ class IncompleteBookList(BaseBookList):
 
     @property
     def no_records_found_msg(self):
-        return 'No incomplete books'
+        return 'No draft books'
 
     @property
     def subtitle(self):
         return (
-            'Books remain incomplete until pages are added. '
+            'Books remain as a draft until pages are added. '
             'Use the Upload button to add page images. '
+            'Drafts are not posted online, nor available in search results. '
         )
+
+    @property
+    def title(self):
+        return 'DRAFTS'
 
 
 class OngoingBookList(BaseBookList):
@@ -252,7 +257,7 @@ def class_from_code(code):
     """Return a BaseBookList subclass for the given code."""
     lookup = {
         'disabled': DisabledBookList,
-        'incomplete': IncompleteBookList,
+        'draft': DraftBookList,
         'ongoing': OngoingBookList,
         'released': ReleasedBookList,
     }

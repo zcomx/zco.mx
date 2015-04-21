@@ -81,7 +81,7 @@ from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_INCOMPLETE
+    BOOK_STATUS_DRAFT
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -600,7 +600,7 @@ class TestFunctions(ImageTestCase):
 
         tests = [
             # (pages, disabled, expect)
-            (0, False, BOOK_STATUS_INCOMPLETE),
+            (0, False, BOOK_STATUS_DRAFT),
             (0, True, BOOK_STATUS_DISABLED),
             (1, False, BOOK_STATUS_ACTIVE),
             (1, True, BOOK_STATUS_DISABLED),

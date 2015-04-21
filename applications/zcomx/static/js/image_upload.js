@@ -171,7 +171,7 @@
         },
 
         set_close_button: function() {
-            var button_text = this.img_count() > 0 ? 'Post' : 'Close';
+            var button_text = this.img_count() > 0 ? 'Post On Web' : 'Close';
             $('.btn_upload_close').first().text(button_text);
         },
 

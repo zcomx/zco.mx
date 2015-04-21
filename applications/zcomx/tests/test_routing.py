@@ -20,6 +20,10 @@ from applications.zcomx.modules.creators import creator_name
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.zco import \
+    BOOK_STATUS_ACTIVE, \
+    BOOK_STATUS_DISABLED, \
+    BOOK_STATUS_DRAFT
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -129,6 +133,7 @@ class TestRouter(LocalTestCase):
             creator_id=cls._creator.id,
             reader='slider',
             name_for_url='MyBook',
+            status=BOOK_STATUS_ACTIVE,
         ))
 
         cls._book_2 = cls.add(db.book, dict(
@@ -140,6 +145,7 @@ class TestRouter(LocalTestCase):
             creator_id=cls._creator_2.id,
             reader='slider',
             name_for_url='MySecondBook',
+            status=BOOK_STATUS_ACTIVE,
         ))
 
         cls._book_page = cls.add(db.book_page, dict(
@@ -372,6 +378,19 @@ class TestRouter(LocalTestCase):
         # No request.vars.reader, no book_record
         self.assertEqual(router.get_reader(), None)
 
+        unreadable_statuses = [BOOK_STATUS_DRAFT, BOOK_STATUS_DISABLED]
+        readers = ['_reader_', 'slider', 'scroller']
+        router.book_record = self._book
+        for status in unreadable_statuses:
+            self._book.update_record(status=status)
+            db.commit()
+            for reader in readers:
+                router.request.vars.reader = reader
+                self.assertEqual(router.get_reader(), 'draft')
+
+        self._book.update_record(status=BOOK_STATUS_ACTIVE)
+        db.commit()
+        router.book_record = None
         router.request.vars.reader = '_reader_'
         self.assertEqual(router.get_reader(), '_reader_')
 

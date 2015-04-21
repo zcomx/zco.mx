@@ -1,0 +1,18 @@
+{{from applications.zcomx.modules.images import ImgTag}}
+{{extend 'books/reader.html'}}
+<div id="draft_page">
+    <div class="draft_page_notice">
+        <p><strong>We're sorry, this book is unavailable at the moment.</strong></p>
+        <p>
+            The creator may be updating the contents.
+            Please try again in a few minutes.
+        </p>
+    </div>
+</div>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('.loading_gif').removeClass('processing');
+    });
+//]]>
+</script>
