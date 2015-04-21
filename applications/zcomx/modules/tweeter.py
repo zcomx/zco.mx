@@ -68,7 +68,7 @@ class PhotoDataPreparer(object):
         db = current.app.db
         upload_image = UploadImage(
             db.book_page.image,
-            self.twitter_data['book']['image_name']
+            self.twitter_data['book']['cover_image_name']
         )
         img = upload_image.fullname(size='web')
         file_h = open(img, "rb")
@@ -82,19 +82,19 @@ class PhotoDataPreparer(object):
 
         In twitter land, the status is the 140 character tweet.
         """
-        creator = self.twitter_data['creator']['twitter_username'] or \
+        creator = self.twitter_data['creator']['twitter'] or \
             self.twitter_data['creator']['name']
 
         tags = [
             self.twitter_data['site']['name'].replace('.', ''),
             'comics',
-            self.twitter_data['creator']['tag_name'],
+            self.twitter_data['creator']['name_for_url'],
         ]
 
         tags_str = ' '.join(['#' + x for x in tags])
 
         return '{name} by {creator} | {url} | {tags}'.format(
-            name=self.twitter_data['book']['tweet_name'],
+            name=self.twitter_data['book']['formatted_name_no_year'],
             creator=creator,
             tags=tags_str,
             url=self.twitter_data['book']['short_url'],

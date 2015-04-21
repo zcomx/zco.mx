@@ -1914,13 +1914,16 @@ class TestFunctions(ImageTestCase):
 
         # Book without cover
         expect = {
+            'cover_image_name': None,
             'description': 'This is my book!',
+            'download_url': None,
+            'formatted_name': 'My Book 02 (of 04) (1999)',
+            'formatted_name_no_year': 'My Book 02 (of 04)',
+            'formatted_number': '02 (of 04)',
             'name': 'My Book',
-            'slug_name': 'my-book-02-of-04',
-            'source': None,
-            'tag_name': 'My Book',
-            'title': 'My Book 02 (of 04) (1999)',
-            'tweet_name': 'My Book 02 (of 04)',
+            'name_camelcase': 'MyBook',
+            'name_for_search': 'my-book-02-of-04',
+            'short_url': 'http://{cid}.zco.mx/MyBook'.format(cid=creator.id),
             'url': 'http://zco.mx/FirstLast/MyBook',
         }
         self.assertEqual(tumblr_data(book), expect)
@@ -1935,7 +1938,8 @@ class TestFunctions(ImageTestCase):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
 
-        expect['source'] = 'http://zco.mx/images/download/book_page.image.aaa.000.jpg?size=web'
+        expect['download_url'] = 'http://zco.mx/images/download/book_page.image.aaa.000.jpg?size=web'
+        expect['cover_image_name'] = 'book_page.image.aaa.000.jpg'
         self.assertEqual(tumblr_data(book), expect)
 
     def test__update_contributions_remaining(self):

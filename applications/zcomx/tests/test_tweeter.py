@@ -85,19 +85,15 @@ class TestPhotoDataPreparer(LocalTestCase):
         # pylint: disable=C0301
         data = {
             'book': {
+                'cover_image_name': 'http://source',
                 'description': None,
-                'slug_name': 'my-book-001',
-                'image_name': 'http://source',
-                'title': 'My Book 001 (1999)',
-                'tag_name': 'My Book',
-                'tweet_name': 'My Book 001',
+                'formatted_name_no_year': 'My Book 001',
                 'url': 'http://zco.mx/FirstLast/MyBook',
             },
             'creator': {
-                'slug_name': 'first-last',
+                'name': 'First Last',
                 'social_media': [],
-                'tag_name': 'FirstLast',
-                'tweet_name': 'First Last',
+                'name_for_url': 'FirstLast',
                 'url': 'http://zco.mx/FirstLast',
             },
             'site': {
@@ -117,7 +113,7 @@ class TestPhotoDataPreparer(LocalTestCase):
         self.fail('FIXME')
         data = {
             'book': {
-                'source': '/tmp/fixem',
+                'cover_image_name': '/tmp/fixem',
             },
         }
         preparer = PhotoDataPreparer(data)
@@ -126,13 +122,13 @@ class TestPhotoDataPreparer(LocalTestCase):
     def test__status(self):
         data = {
             'book': {
-                'tweet_name': 'My Book 001',
+                'formatted_name_no_year': 'My Book 001',
                 'short_url': 'http://101.zco.mx/MyBook-001',
             },
             'creator': {
-                'twitter_username': '@First_Last',
-                'tag_name': 'FirstLast',
                 'name': 'First Last',
+                'name_for_url': 'FirstLast',
+                'twitter': '@First_Last',
             },
             'site': {
                 'name': 'zco.mx',

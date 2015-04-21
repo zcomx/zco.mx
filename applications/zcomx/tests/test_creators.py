@@ -753,15 +753,16 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(
             tumblr_data(creator),
             {
-                'slug_name': 'first-last',
+                'name': 'First Last',
+                'name_for_search': 'first-last',
+                'name_for_url': 'FirstLast',
                 'social_media': [
                     ('website', 'http://website.com'),
                     ('twitter', 'https://twitter.com/firstlast'),
                     ('tumblr', 'http://tumblr.com/firstlast'),
                     ('facebook', 'htt://facebook.com/firstlast'),
                 ],
-                'tag_name': 'FirstLast',
-                'tweet_name': 'First Last',
+                'twitter': '@firstlast',
                 'url': 'http://zco.mx/FirstLast',
             }
         )
