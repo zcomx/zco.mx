@@ -7,14 +7,12 @@ VERSION 2 - Before Going Live
     no cover image is shown until they click 'Post'.
     SOLUTION: Don't make changes (move, add, delete) to the book until
     the cartoonist clicks 'Post'.
-
-[S] Varnish for caching
+[x] Remove zco.mx.torrent and CartoonistName.torrent before replacing those torrents
+    Fix sent to Jim, zc-p2p.sh needs testing
+[-] Varnish for caching
     see mod: 30442
     [x] Modify 'Cache-Control: private' so images are cached
     [x] Set 'Cache-Control' so images on book pages aren't cached
-
-[S] Remove zco.mx.torrent and CartoonistName.torrent before replacing those torrents
-    Fix sent to Jim, zc-p2p.sh needs testing
 
 [S] Test Password Reset
     >when I try to reset my password it says 'invalid password reset'
@@ -24,6 +22,8 @@ VERSION 2 - Before Going Live
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
     Buy a wildcard cert
+
+[ ] "creator.table appears corrupted" Error
 
 [ ] Should CartoonistName.torrent be in /C/CartoonistName/ ?
 
@@ -58,8 +58,8 @@ VERSION 2 - Before Going Live
 [ ] Nice Levels
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
 [ ] 12354 - Test scripts
-[ ] "creator.table appears corrupted" Error
 [S] Clean up kb.zco.mx
+
 [ ] Send Out Tweets and Post to Tumblr Any Released Books
 [S] Email Karen telling her the site is live
 
@@ -87,6 +87,7 @@ VERSION 3
 [ ] Extend left/right clickable areas while in slider mode
     * maybe show an 1/8th of the prev/next image and very opague?
 [ ] Randomize Cartoonist on "Page Not Found" ?
+[ ] How to find all comics in a specific language?
 [ ] All Ages Modal via cookie ?
 [ ] Explicit Content Warning (modal)
 [ ] Redesign Cartoonist Page
