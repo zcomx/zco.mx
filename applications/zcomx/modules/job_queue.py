@@ -37,11 +37,12 @@ PRIORITIES = list(reversed([
     'optimize_img',
     'update_creator_indicia',
     'optimize_web_img',
-    'delete_book',
-    'delete_img',
     'create_creator_torrent',
     'create_all_torrent',
     'notify_p2p_networks',
+    'reverse_release_book',
+    'delete_book',
+    'delete_img',
     'log_downloads',
     'optimize_original_img',
     # Lowest
@@ -732,6 +733,16 @@ class ReleaseBookQueuer(JobQueuer):
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal
+
+
+class ReverseReleaseBookQueuer(ReleaseBookQueuer):
+    """Class representing a queuer for reversing release_book jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'release_book.py')
+    default_job_options = dict(ReleaseBookQueuer.default_job_options)
+    default_job_options['priority'] = PRIORITIES.index('reverse_release_book')
+    default_cli_options = {'--reverse': True}
+    valid_cli_options = list(ReleaseBookQueuer.valid_cli_options)
+    valid_cli_options.append('--reverse')
 
 
 class UpdateIndiciaQueuer(JobQueuer):
