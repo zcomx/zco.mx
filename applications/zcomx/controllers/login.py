@@ -756,10 +756,11 @@ def creator_img_handler():
                 # in indicia_preview_urls
                 on_delete_image(creator_record['indicia_portrait'])
                 on_delete_image(creator_record['indicia_landscape'])
-                creator_record.update_record(
-                    indicia_portrait=None,
-                    indicia_landscape=None,
-                )
+                data = {
+                    'indicia_portrait': None,
+                    'indicia_landscape': None,
+                }
+                creator_record.update_record(**data)
                 db.commit()
 
         data = {img_field: stored_filename}
@@ -1302,9 +1303,8 @@ def metadata_crud():
         if meta.errors:
             return {'status': 'error', 'fields': meta.errors}
         meta.update()
-        book_record.update_record(
-            publication_year=meta.publication_year()
-        )
+        book_record.update_record(publication_year=meta.publication_year())
+        db.commit()
         return {'status': 'ok'}
     return do_error('Invalid data provided')
 

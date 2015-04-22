@@ -680,10 +680,11 @@ class TestFunctions(LocalTestCase):
 
         web.login()
 
-        self._creator.update_record(
+        data = dict(
             indicia_portrait=None,
             indicia_landscape=None,
         )
+        self._creator.update_record(**data)
         db.commit()
 
         creator = get_creator()

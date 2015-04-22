@@ -102,6 +102,7 @@ def main():
             continue
         LOG.debug('Updating: %s to %s', book_record.name, publication_year)
         book_record.update_record(publication_year=publication_year)
+        db.commit()
     LOG.info('Done.')
 
 

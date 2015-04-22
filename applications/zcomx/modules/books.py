@@ -1595,9 +1595,7 @@ def update_contributions_remaining(db, book_entity):
 
     total = contributions_remaining_by_creator(db, creator_record)
     if creator_record.contributions_remaining != total:
-        creator_record.update_record(
-            contributions_remaining=total
-        )
+        creator_record.update_record(contributions_remaining=total)
         db.commit()
 
 

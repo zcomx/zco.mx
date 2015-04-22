@@ -636,9 +636,7 @@ class TestFunctions(LocalTestCase):
         )
 
         # Test scrubbed character.
-        auth_user.update_record(
-            name='First <Middle> Last',
-        )
+        auth_user.update_record(name='First <Middle> Last')
         db.commit()
 
         self.assertEqual(

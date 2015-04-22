@@ -221,13 +221,14 @@ def main():
             raise NotFoundError('cc_licence not found, code: {code}'.format(
                 code=template.code))
         if not options.dry_run:
-            cc_licence.update_record(
+            data = dict(
                 code=template.code,
                 number=template.number,
                 url=template.url,
                 template_img=template.template_img,
                 template_web=template.template_web
             )
+            cc_licence.update_record(**data)
             db.commit()
         else:
             LOG.debug('Dry run. No changes made.')

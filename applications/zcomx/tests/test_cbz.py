@@ -169,11 +169,12 @@ class TestCBZCreator(ImageTestCase):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
 
-        self._book.update_record(
+        data = dict(
             name='My Book',
             publication_year=1998,
             creator_id=123,
         )
+        self._book.update_record(**data)
         db.commit()
 
         cbz_creator = CBZCreator(self._book)

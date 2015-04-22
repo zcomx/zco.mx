@@ -62,8 +62,8 @@ class TestCustomLinks(LocalTestCase):
                 cls._remove_comments_for(cls, obj)
                 obj.remove()
             elif hasattr(obj, 'delete_record'):
-                obj.delete_record()
                 db = current.app.db
+                obj.delete_record()
                 db.commit()
 
     def _ordered_records(self):
