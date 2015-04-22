@@ -39,7 +39,8 @@ from applications.zcomx.modules.indicias import \
     create_creator_indicia
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
-    ReleaseBookQueuer
+    ReleaseBookQueuer, \
+    ReverseReleaseBookQueuer
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
@@ -198,14 +199,21 @@ def book_crud():
         # take care of it. Flag the book status=False so it is hidden.
         db(db.book.id == book_record.id).update(status=False)
         db.commit()
+        err_msg = 'Delete failed. The book cannot be deleted at this time.'
+
+        job = ReverseReleaseBookQueuer(
+            db.job,
+            cli_args=[str(book_record.id)],
+        ).queue()
+        if not job:
+            return do_error(err_msg)
 
         job = DeleteBookQueuer(
             db.job,
             cli_args=[str(book_record.id)],
         ).queue()
         if not job:
-            return do_error(
-                'Delete failed. The book cannot be deleted at this time.')
+            return do_error(err_msg)
 
         return {'status': 'ok'}
 

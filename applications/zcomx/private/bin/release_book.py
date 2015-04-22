@@ -91,7 +91,6 @@ class ReleaseBook(Releaser):
         super(ReleaseBook, self).__init__(book_id)
 
     def run(self):
-        """Run the release."""
 
         book_image_set = CBZImagesForRelease.from_names(book_images(self.book))
         if book_image_set.has_unoptimized():
@@ -181,18 +180,24 @@ class UnreleaseBook(Releaser):
         return options
 
     def run(self):
-        """Run the release."""
 
         if self.book.cbz:
+            LOG.debug('Removing cbz file: %s', self.book.cbz)
+            if os.path.exists(self.book.cbz):
+                os.unlink(self.book.cbz)
+
+            CreateCreatorTorrentQueuer(
+                db.job,
+                cli_args=[str(self.book.creator_id)],
+            ).queue()
+
+            CreateAllTorrentQueuer(db.job).queue()
+
             NotifyP2PQueuer(
                 db.job,
                 cli_options={'--delete': True},
                 cli_args=[self.book.cbz],
             ).queue()
-
-            LOG.debug('Removing cbz file: %s', self.book.cbz)
-            if os.path.exists(self.book.cbz):
-                os.unlink(self.book.cbz)
 
         if self.book.torrent:
             LOG.debug('Removing torrent file: %s', self.book.torrent)

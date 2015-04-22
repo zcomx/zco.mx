@@ -6,42 +6,15 @@ delete_book.py
 
 Script to delete a book.
 """
-import errno
 import logging
-import os
 from optparse import OptionParser
 from applications.zcomx.modules.books import book_tables
-from applications.zcomx.modules.job_queue import \
-    CreateAllTorrentQueuer, \
-    CreateCreatorTorrentQueuer, \
-    NotifyP2PQueuer
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
-
-
-def delete_cbz(book):
-    """Delete the cbz related to the book.
-
-    Args:
-        book: Row instance representing book record.
-    """
-    if not book.cbz:
-        return
-
-    # line-too-long (C0301): *Line too long (%%s/%%s)*
-    # pylint: disable=C0301
-    # Eg book.cbz
-    # applications/zcomx/private/var/cbz/zco.mx/F/First Last/My Book 01 (of 01) (2015) (98.zco.mx).cbz
-
-    try:
-        os.unlink(book.cbz)
-    except OSError as err:
-        if err.errno != errno.ENOENT:
-            raise
 
 
 def delete_records(book):
@@ -68,46 +41,6 @@ def delete_records(book):
     # Delete the book
     db(db.book.id == book.id).delete()
     db.commit()
-
-
-def delete_torrent(book):
-    """Delete the torrent related to the book.
-
-    Args:
-        book: Row instance representing book record.
-    """
-    if not book.torrent:
-        return
-
-    # line-too-long (C0301): *Line too long (%%s/%%s)*
-    # pylint: disable=C0301
-    # Eg book.torrent
-    # applications/zcomx/private/var/tor/zco.mx/F/First Last/My Book 01 (of 01) (2015) (98.zco.mx).cbz.torrent
-
-    try:
-        os.unlink(book.torrent)
-    except OSError as err:
-        if err.errno != errno.ENOENT:
-            raise
-
-
-def queue_rebuild_torrents(book):
-    """Queue rebuilds of creator and all torrents.
-
-    Args:
-        book: Row instance representing book record.
-    """
-    CreateCreatorTorrentQueuer(
-        db.job,
-        cli_args=[str(book.creator_id)],
-    ).queue()
-
-    CreateAllTorrentQueuer(db.job).queue()
-
-    NotifyP2PQueuer(
-        db.job,
-        cli_args=[book.cbz],
-    ).queue()
 
 
 def man_page():
@@ -176,16 +109,6 @@ def main():
     book = entity_to_row(db.book, book_id)
     if not book:
         raise NotFoundError('Book not found, id: %s', book_id)
-
-    redo_creator_and_all_torrents = False
-    if book.cbz:
-        delete_cbz(book)
-        redo_creator_and_all_torrents = True
-    if book.torrent:
-        delete_torrent(book)
-
-    if redo_creator_and_all_torrents:
-        queue_rebuild_torrents(book)
 
     delete_records(book)
 
