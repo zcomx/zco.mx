@@ -568,10 +568,11 @@ class TestRouter(LocalTestCase):
     def test__preset_links(self):
         router = Router(db, self._request, auth)
 
-        self._creator.update_record(
+        data = dict(
             shop=None,
             tumblr=None,
         )
+        self._creator.update_record(**data)
         db.commit()
 
         # Creator not set.
@@ -596,28 +597,31 @@ class TestRouter(LocalTestCase):
                 self.assertEqual(anchor['target'], '_blank')
 
         # Set creator.shop
-        self._creator.update_record(
+        data = dict(
             shop='http://www.shop.com',
             tumblr=None
         )
+        self._creator.update_record(**data)
         db.commit()
         router.creator_record = None
         test_presets(router.preset_links(), ['shop'])
 
         # Set creator.tumblr
-        self._creator.update_record(
+        data = dict(
             shop=None,
             tumblr='user.tumblr.com',
         )
+        self._creator.update_record(**data)
         db.commit()
         router.creator_record = None
         test_presets(router.preset_links(), ['tumblr'])
 
         # Set both creator.shop and creator.tumblr
-        self._creator.update_record(
+        data = dict(
             shop='http://www.shop.com',
             tumblr='user.tumblr.com',
         )
+        self._creator.update_record(**data)
         db.commit()
         router.creator_record = None
         test_presets(router.preset_links(), ['shop', 'tumblr'])

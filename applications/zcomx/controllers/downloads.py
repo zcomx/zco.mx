@@ -46,10 +46,11 @@ def download_click_handler():
     db.commit()
     click_record = db(db.download_click.id == click_id).select().first()
     if is_loggable(click_record):
-        click_record.update_record(
-            loggable=True,
-            completed=False,
-        )
+        click_data = {
+            'loggable': True,
+            'completed': False,
+        }
+        click_record.update_record(**click_data)
         db.commit()
 
         if not request.vars.no_queue:
@@ -59,10 +60,11 @@ def download_click_handler():
             ).queue()
             LOG.debug('Log downloads job id: %s', job.id)
     else:
-        click_record.update_record(
-            loggable=False,
-            completed=True,
-        )
+        click_data = {
+            'loggable': False,
+            'completed': True,
+        }
+        click_record.update_record(**click_data)
         db.commit()
     return {
         'id': click_record.id,

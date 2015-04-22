@@ -60,8 +60,8 @@ class LocalTestCase(unittest.TestCase):
                 self._remove_comments_for(obj)
                 obj.remove()
             elif hasattr(obj, 'delete_record'):
-                obj.delete_record()
                 db = current.app.db
+                obj.delete_record()
                 db.commit()
         LocalTestCase._objects = []
 

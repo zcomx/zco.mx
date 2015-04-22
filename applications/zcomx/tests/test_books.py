@@ -618,8 +618,10 @@ class TestFunctions(ImageTestCase):
                 db.commit()
             if t[1]:
                 book.update_record(status=BOOK_STATUS_DISABLED)
+                db.commit()
             else:
                 book.update_record(status='')
+                db.commit()
             self.assertEqual(calc_status(book), t[2])
 
     def test__cbz_comment(self):
@@ -948,11 +950,12 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(got, expect)
 
         # Test book name not unique, various number values.
-        self._book.update_record(
+        data = dict(
             book_type_id=types_by_name[DEFAULT_BOOK_TYPE].id,
             number=1,
             of_number=1
         )
+        self._book.update_record(**data)
         db.commit()
 
         got = defaults(db, self._book.name, self._creator)
@@ -967,10 +970,11 @@ class TestFunctions(ImageTestCase):
         }
         self.assertEqual(got, expect)
 
-        self._book.update_record(
+        data = dict(
             number=2,
             of_number=9
         )
+        self._book.update_record(**data)
         db.commit()
         got = defaults(db, self._book.name, self._creator)
         expect = {
@@ -985,11 +989,12 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(got, expect)
 
         # Test invalid creator
-        self._book.update_record(
+        data = dict(
             book_type_id=types_by_name[DEFAULT_BOOK_TYPE].id,
             number=1,
             of_number=1
         )
+        self._book.update_record(**data)
         db.commit()
 
         got = defaults(db, self._book.name, -1)
@@ -1099,13 +1104,14 @@ class TestFunctions(ImageTestCase):
             ),
         ]
         for t in tests:
-            book.update_record(
+            data = dict(
                 name=t[0],
                 publication_year=t[1],
                 book_type_id=self._type_id_by_name[t[2]],
                 number=t[3],
                 of_number=t[4],
             )
+            book.update_record(**data)
             db.commit()
             self.assertEqual(
                 formatted_name(db, book, include_publication_year=False),
@@ -1128,11 +1134,12 @@ class TestFunctions(ImageTestCase):
             ('mini-series', 2, 9, '02 (of 09)'),
         ]
         for t in tests:
-            book.update_record(
+            data = dict(
                 book_type_id=self._type_id_by_name[t[0]],
                 number=t[1],
                 of_number=t[2],
             )
+            book.update_record(**data)
             db.commit()
             self.assertEqual(formatted_number(book), t[3])
             self.assertEqual(formatted_number(book.id), t[3])
@@ -1713,13 +1720,14 @@ class TestFunctions(ImageTestCase):
         )
 
         # Image too small
-        book_page.update_record(
+        data = dict(
             book_id=book.id,
             image=self._store_image(
                 db.book_page.image,
                 self._create_image('file.jpg', (598, 1600)),
             )
         )
+        book_page.update_record(**data)
         db.commit()
         got = release_barriers(book)
         self.assertEqual(len(got), 6)
@@ -1856,6 +1864,7 @@ class TestFunctions(ImageTestCase):
         ]
         for t in tests:
             book.update_record(creator_id=t[0], name_for_url=t[1])
+            db.commit()
             book_page.update_record(page_no=t[2], image=t[3])
             db.commit()
             self.assertEqual(short_page_img_url(book_page), t[4])
@@ -1874,6 +1883,7 @@ class TestFunctions(ImageTestCase):
         ]
         for t in tests:
             book.update_record(creator_id=t[0], name_for_url=t[1])
+            db.commit()
             book_page.update_record(page_no=t[2])
             db.commit()
             self.assertEqual(short_page_url(book_page), t[3])
@@ -2022,11 +2032,12 @@ class TestFunctions(ImageTestCase):
             'My Book 002 (1999) ({i}.zco.mx).cbz.torrent'.format(i=creator.id)
         )
 
-        book.update_record(
+        data = dict(
             number=2,
             of_number=4,
             book_type_id=self._type_id_by_name['mini-series'],
         )
+        book.update_record(**data)
         db.commit()
         self.assertEqual(
             torrent_file_name(book),
@@ -2122,9 +2133,7 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(torrent_url(book), '/FirstLast/MyBook-002.torrent')
 
-        book.update_record(
-            name_for_url='MyBook-03of09',
-        )
+        book.update_record(name_for_url='MyBook-03of09')
         db.commit()
         self.assertEqual(
             torrent_url(book), '/FirstLast/MyBook-03of09.torrent')
@@ -2134,13 +2143,14 @@ class TestFunctions(ImageTestCase):
         self._set_pages(db, book.id, 10)
 
         def reset(book_record):
-            book_record.update_record(
+            data = dict(
                 contributions=0,
                 contributions_remaining=0,
                 downloads=0,
                 views=0,
                 rating=0,
             )
+            book_record.update_record(**data)
             db.commit()
 
         def zero(storage):
@@ -2271,11 +2281,12 @@ class TestFunctions(ImageTestCase):
         ]
 
         for t in tests:
-            book.update_record(
+            data = dict(
                 name=t[0],
                 name_for_url=t[1],
                 creator_id=creator.id,
             )
+            book.update_record(**data)
             db.commit()
             self.assertEqual(url(book), t[2])
 

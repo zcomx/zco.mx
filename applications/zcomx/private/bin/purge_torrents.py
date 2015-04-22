@@ -161,10 +161,11 @@ def main():
     for creator in creators_needing_purge():
         LOG.debug('Purging torrent for creator: %s', formatted_name(creator))
         delete_torrent(creator)
-        creator.update_record(
+        data = dict(
             torrent=None,
             rebuild_torrent=False,
         )
+        creator.update_record(**data)
         db.commit()
 
     count = num_books_with_cbz()

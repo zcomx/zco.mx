@@ -102,11 +102,12 @@ def main():
     alg = 'pbkdf2(1000,20,sha512)'
     passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
 
-    user.update_record(**{
+    data = {
         'password': passkey,
         'registration_key': '',
         'reset_password_key': ''
-    })
+    }
+    user.update_record(**data)
     db.commit()
 
 

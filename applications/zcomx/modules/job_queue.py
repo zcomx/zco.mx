@@ -473,9 +473,9 @@ class Queue(object):
         if status not in self.job_statuses:
             raise InvalidStatusError(
                 'Invalid status: {s}'.format(s=status))
-        job_record.update_record(status=status)
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
+        job_record.update_record(status=status)
         self.tbl._db.commit()
 
     def stats(self):

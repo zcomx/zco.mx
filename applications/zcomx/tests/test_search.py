@@ -1270,6 +1270,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(book_contribute_button(self._row()), '')
 
         self._book.update_record(creator_id=self._creator.id)
+        db.commit()
         self._creator.update_record(paypal_email='')
         db.commit()
         self.assertEqual(book_contribute_button(self._row()), '')
