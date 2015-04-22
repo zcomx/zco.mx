@@ -13,19 +13,16 @@ VERSION 2 - Before Going Live
     see mod: 30442
     [x] Modify 'Cache-Control: private' so images are cached
     [x] Set 'Cache-Control' so images on book pages aren't cached
-
-[S] Test Password Reset
+[-] Test Password Reset
     >when I try to reset my password it says 'invalid password reset'
+    SB 2015-04-21 19:54  Works fine
+[x] "creator.table appears corrupted" Error
 
 [S] Email More Cartoonists
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
     Buy a wildcard cert
-
-[ ] "creator.table appears corrupted" Error
-
-[ ] Should CartoonistName.torrent be in /C/CartoonistName/ ?
 
 [ ] Optimize Pages -- especially the front page
     [ ] look at Q's console
@@ -51,6 +48,8 @@ VERSION 2 - Before Going Live
                                               [CC BY]
     Except  where  otherwise  noted, content  on this
     site is licenced under a CC BY 4.0 Int'l licence.
+
+[ ] Should CartoonistName.torrent be in /C/CartoonistName/ ?
 
 [S] Integrity Check Data
     * Make sure everyone has added their paypal address
