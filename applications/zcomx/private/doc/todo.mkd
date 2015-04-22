@@ -64,6 +64,10 @@ VERSION 2 - Before Going Live
 
 VERSION 3
 [ ] Follow cartoonists on twitter
+[ ] Rewrite these urls ?
+    https://zco.mx/?o=ongoing to https://zco.mx/ongoing
+    https://zco.mx/?o=releases to https://zco.mx/releases
+    https://zco.mx/?o=creators to https://zco.mx/cartoonists
 [ ] Remove the ability to change to a more restrictive CC licence
 [S] Change bg to #fafafa ?
 [S] Setup hypermail for real-only mailing lists in login area ?
