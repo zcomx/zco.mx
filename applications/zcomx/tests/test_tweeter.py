@@ -83,41 +83,72 @@ class TestPhotoDataPreparer(LocalTestCase):
     def test__data(self):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
+
+        # Use an existing image to test with.
+        query = (db.book.release_date != None) & \
+                (db.book_page.page_no == 1)
+        rows = db(query).select(
+            db.book_page.image,
+            left=[
+                db.book.on(db.book_page.book_id == db.book.id),
+            ],
+            limitby=(0, 1),
+        )
+        if not rows:
+            self.fail('Unable to get image to test with.')
+        test_image = rows[0]['image']
+
         data = {
             'book': {
-                'cover_image_name': 'http://source',
-                'description': None,
+                'cover_image_name': test_image,
                 'formatted_name_no_year': 'My Book 001',
-                'url': 'http://zco.mx/FirstLast/MyBook',
+                'short_url': 'http://101.zco.mx/MyBook-001',
             },
             'creator': {
                 'name': 'First Last',
-                'social_media': [],
                 'name_for_url': 'FirstLast',
-                'url': 'http://zco.mx/FirstLast',
+                'twitter': '@First_Last',
             },
             'site': {
                 'name': 'zco.mx'
             }
         }
 
-        expect = {
-            'media[]': 'FIXME',
-            'status': 'FIXME',
-        }
-
         preparer = PhotoDataPreparer(data)
-        self.assertEqual(preparer.data(), expect)
+        got = preparer.data()
+        self.assertEqual(sorted(got.keys()), ['media[]', 'status'])
+        # The media[] is binary so difficult to test.
+        self.assertTrue(len(got['media[]']) > 1000)
+        self.assertEqual(
+            got['status'],
+            'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx #comics #FirstLast'
+        )
 
     def test__media(self):
-        self.fail('FIXME')
+        # Use an existing image to test with.
+        query = (db.book.release_date != None) & \
+                (db.book_page.page_no == 1)
+        rows = db(query).select(
+            db.book_page.image,
+            left=[
+                db.book.on(db.book_page.book_id == db.book.id),
+            ],
+            limitby=(0, 1),
+        )
+        if not rows:
+            self.fail('Unable to get image to test with.')
+        test_image = rows[0]['image']
+
         data = {
             'book': {
-                'cover_image_name': '/tmp/fixem',
+                'cover_image_name': test_image,
             },
         }
         preparer = PhotoDataPreparer(data)
-        self.assertEqual(preparer.media(), 'first-last-my-book-001')
+        got = preparer.media()
+
+        # The media[] is binary so difficult to test.
+        self.assertTrue(len(got) > 1000)
 
     def test__status(self):
         data = {
@@ -135,6 +166,8 @@ class TestPhotoDataPreparer(LocalTestCase):
             },
         }
         preparer = PhotoDataPreparer(data)
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         self.assertEqual(
             preparer.status(),
             'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx #comics #FirstLast'

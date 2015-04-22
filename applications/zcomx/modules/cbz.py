@@ -9,7 +9,6 @@ import logging
 import math
 import os
 import subprocess
-import sys
 import zipfile
 from gluon import *
 from gluon.storage import Storage
@@ -189,7 +188,7 @@ class CBZCreator(TempDirectoryMixin):
         # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
         # pylint: disable=E1101
         if p.returncode:
-            print >> sys.stderr, '7z call failed: {e}'.format(e=p_stderr)
+            LOG.error('7z call failed: %s', p_stderr)
             raise CBZCreateError('Creation of cbz file failed.')
         return cbz_filename
 

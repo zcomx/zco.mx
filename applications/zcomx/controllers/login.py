@@ -4,7 +4,6 @@ import collections
 import logging
 import os
 import shutil
-import sys
 from PIL import Image
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.access import requires_agreed_to_terms
@@ -452,7 +451,7 @@ def book_pages_handler():
         try:
             result = BookPageUploader(book_record.id, files).upload()
         except Exception as err:
-            print >> sys.stderr, 'Upload failed, err: {err}'.format(err=err)
+            LOG.error('Upload failed, err: %s', str(err))
             return do_error(
                 'The upload was not successful.',
                 files=[x.filename for x in files]
@@ -696,9 +695,7 @@ def creator_img_handler():
     img_field = 'image'
     if request.args(0):
         if request.args(0) not in db.creator.fields:
-            print >> sys.stderr, \
-                'creator_img_handler invalid field: {fld}'.format(
-                    fld=request.vargs(0))
+            LOG.error('creator_img_handler invalid field: %s', request.args(0))
             return do_error('Upload service unavailable')
         img_field = request.args(0)
 
@@ -741,8 +738,7 @@ def creator_img_handler():
                 stored_filename = store(
                     db.creator[img_field], local_filename, resizer=resizer)
             except Exception as err:
-                print >> sys.stderr, \
-                    'Creator image upload error: {err}'.format(err=err)
+                LOG.error('Creator image upload error: %s', str(err))
                 stored_filename = None
 
         if not stored_filename:

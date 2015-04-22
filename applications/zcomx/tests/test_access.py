@@ -17,6 +17,27 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
 class TestFunctions(LocalTestCase):
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+
+    _auth_user = None
+    _request_client = None
+
+    @classmethod
+    def setUpClass(cls):
+        env = globals()
+        auth = env['auth']
+        cls._auth_user = auth.user
+        request = env['request']
+        cls._request_client = request.client
+
+    @classmethod
+    def tearDownClass(cls):
+        env = globals()
+        auth = env['auth']
+        auth.user = cls._auth_user
+        request = env['request']
+        request.client = cls._request_client
 
     def test__requires_admin_ip(self):
         env = globals()
@@ -124,11 +145,13 @@ class TestFunctions(LocalTestCase):
         otherwise = lambda: 'Not logged in'
 
         local_settings = Storage({'require_login': True})
+
         @requires_login_if_configured(local_settings, otherwise=otherwise)
         def as_true():
             return 'Success'
 
         local_settings = Storage({'require_login': False})
+
         @requires_login_if_configured(local_settings, otherwise=otherwise)
         def as_false():
             return 'Success'

@@ -323,6 +323,7 @@ class ImageTestCase(LocalTestCase):
     _image_name_2 = 'file_2.jpg'
     _test_data_dir = None
     _type_id_by_name = {}
+    _uploadfolders = {}
 
     _objects = []
 
@@ -383,7 +384,11 @@ class ImageTestCase(LocalTestCase):
             os.makedirs(cls._image_original)
 
         # Store images in tmp directory
-        db.book_page.image.uploadfolder = cls._image_original
+        for field in db.book_page.fields:
+            if db.book_page[field].type == 'upload':
+                cls._uploadfolders[field] = db.book_page[field].uploadfolder
+                db.book_page[field].uploadfolder = cls._image_original
+
         if not os.path.exists(db.book_page.image.uploadfolder):
             os.makedirs(db.book_page.image.uploadfolder)
 
@@ -422,6 +427,10 @@ class ImageTestCase(LocalTestCase):
     def tearDown(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
+
+        for field in db.book_page.fields:
+            if db.book_page[field].type == 'upload':
+                db.book_page[field].uploadfolder = cls._uploadfolders[field]
 
     def _set_pages(self, db, book_id, num_of_pages):
         set_pages(self, db, book_id, num_of_pages)
@@ -802,6 +811,7 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(
             name='test__contributions_remaining_by_creator',
             creator_id=creator.id,
+            status=BOOK_STATUS_ACTIVE,
         ))
         self._set_pages(db, book.id, 10)
         self.assertEqual(contributions_target(db, book.id), 100.00)
@@ -836,9 +846,18 @@ class TestFunctions(ImageTestCase):
         book_2 = self.add(db.book, dict(
             name='test__contributions_remaining_by_creator',
             creator_id=creator.id,
+            status=BOOK_STATUS_DRAFT,
         ))
         self._set_pages(db, book_2.id, 5)
         self.assertEqual(contributions_target(db, book_2.id), 50.00)
+
+        # status = draft
+        self.assertEqual(
+            contributions_remaining_by_creator(db, creator),
+            49.01
+        )
+        book_2.update_record(status=BOOK_STATUS_ACTIVE)
+        db.commit()
         self.assertAlmostEqual(
             contributions_remaining_by_creator(db, creator),
             99.01
@@ -899,7 +918,7 @@ class TestFunctions(ImageTestCase):
         for book_entity in [book, book.id]:
             self.assertEqual(
                 str(cover_image(db, book_entity)),
-                '<img alt="" src="/images/download/book_page.image.page_trees.png?size=original" />'
+                '<img alt="" src="/images/download/book_page.image.page_trees.png?cache=1&amp;size=original" />'
             )
 
     def test__default_contribute_amount(self):
@@ -1969,6 +1988,7 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(
             name='test__contributions_remaining_by_creator',
             creator_id=creator.id,
+            status=BOOK_STATUS_ACTIVE,
         ))
         self._set_pages(db, book.id, 10)
         update_contributions_remaining(db, book)
@@ -1997,6 +2017,7 @@ class TestFunctions(ImageTestCase):
         book_2 = self.add(db.book, dict(
             name='test__contributions_remaining_by_creator',
             creator_id=creator.id,
+            status=BOOK_STATUS_ACTIVE,
         ))
         self._set_pages(db, book_2.id, 5)
         update_contributions_remaining(db, book_2)
