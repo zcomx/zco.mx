@@ -325,9 +325,9 @@ class Queue(object):
         data.update(job_data)
         LOG.debug('job_data: %s', job_data)
         job_id = self.tbl.insert(**data)
+        self.db.commit()
         if 'command' in job_data:
             LOG.debug('Queued command: %s', job_data['command'])
-        self.db.commit()
         self.post_add_job()
         return entity_to_row(self.tbl, job_id)
 
