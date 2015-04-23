@@ -20,7 +20,8 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
-    CachedImgTag
+    CachedImgTag, \
+    ImageDescriptor
 from applications.zcomx.modules.names import \
     BookName, \
     BookNumber, \
@@ -226,7 +227,7 @@ def book_page_for_json(db, book_page_id):
         return
 
     filename = page.upload_image().original_name()
-    size = page.upload_image().size()
+    size = ImageDescriptor(page.upload_image().fullname()).size_bytes()
 
     down_url = URL(
         c='images',
@@ -1008,7 +1009,7 @@ def orientation(book_page_entity):
         raise NotFoundError('Book page has no image, book_page.id {i}'.format(
             i=page.book_page.id))
 
-    return page.upload_image().orientation()
+    return ImageDescriptor(page.upload_image().fullname()).orientation()
 
 
 def page_url(book_page_entity, reader=None, **url_kwargs):
@@ -1263,9 +1264,17 @@ def release_barriers(book_entity):
         small_images = []
         min_width = BookPage.min_cbz_width
         for page in pages:
-            dims = page.upload_image().dimensions(size='cbz')
+            try:
+                dims = ImageDescriptor(
+                    page.upload_image().fullname(size='cbz')
+                ).dimensions()
+            except IOError:
+                # The 'cbz' size may not exist.
+                dims = None
             if not dims:
-                dims = page.upload_image().dimensions(size='original')
+                dims = ImageDescriptor(
+                    page.upload_image().fullname(size='original')
+                ).dimensions()
             width, unused_h = dims
             if width < min_width:
                 original_name = page.upload_image().original_name()
