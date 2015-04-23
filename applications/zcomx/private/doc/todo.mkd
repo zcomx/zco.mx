@@ -25,9 +25,6 @@ VERSION 2 - Before Going Live
     https://131.zco.mx will cause a self-signed cert warning to appear
     Buy a wildcard cert
 
-[ ] Optimize Pages -- especially the front page
-    [ ] look at Q's console
-
 [ ] Front Page -> cartoonists
     Only list 'CartoonistName.torrent' if they have a torrent file
 
@@ -118,6 +115,10 @@ VERSION 3
     Change https://github.com/zcomx/zcomix.com to
     https://github.com/zcomx/zcomx or
     https://github.com/zcomx/website ?
+[ ] Optimize Pages -- especially the front page
+    [ ] CDN
+    [ ] Minify
+
 
 
 VERSION 4
