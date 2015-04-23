@@ -916,14 +916,14 @@ class TestRouter(LocalTestCase):
                     'property': 'og:description'
                 },
                 'og:image': {
-                    'content': 'http://{cid}.zco.mx/MyBook/001.png'.format(cid=self._creator.id),
+                    'content': 'http://127.0.0.1:8000/images/download/book_page.image.000.aaa.png?size=web',
                     'property': 'og:image'
                 },
                 'og:site_name': {
                     'content': 'zco.mx',
                     'property': 'og:site_name'
                 },
-                'og:title': {'content': 'My Book', 'property': 'og:title'},
+                'og:title': {'content': 'My Book (1999)', 'property': 'og:title'},
                 'og:type': {'content': 'book', 'property': 'og:type'},
                 'og:url': {
                     'content': 'http://127.0.0.1:8000/FirstLast/MyBook',

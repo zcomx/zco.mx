@@ -157,7 +157,9 @@ def route():
             return page_not_found()
 
     if torrent_type == 'book':
-        book_name = torrent_name.rstrip('.torrent')
+        extension = '.torrent'
+        if torrent_name.endswith(extension):
+            book_name = torrent_name[:(-1 * len(extension))]
         query = (db.book.creator_id == creator_record.id) & \
             (db.book.name_for_url == book_name)
         book = db(query).select().first()

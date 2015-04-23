@@ -543,8 +543,9 @@ class TestMoniesBookTile(LocalTestCase):
         img = anchor.img
         self.assertEqual(img['alt'], '')
         first = get_page(self._row.book, page_no='first')
-        self.assertEqual(img['src'], '/images/download/{i}?cache=1&size=web'.format(
-            i=first.image))
+        self.assertEqual(
+            img['src'],
+            '/images/download/{i}?cache=1&size=web'.format(i=first.image))
 
         # Test: can contribute = False
         self._row.creator.paypal_email = None
@@ -563,8 +564,10 @@ class TestMoniesBookTile(LocalTestCase):
         img = div.img
         self.assertEqual(img['alt'], '')
         first = get_page(self._row.book, page_no='first')
-        self.assertEqual(img['src'], '/images/download/{i}?cache=1&size=web'.format(
-            i=first.image))
+        self.assertEqual(
+            img['src'],
+            '/images/download/{i}?cache=1&size=web'.format(i=first.image)
+        )
 
         # Restore
         self._row.creator.paypal_email = save_paypal
@@ -924,8 +927,10 @@ class TestBookTile(LocalTestCase):
 
         img = anchor.img
         self.assertEqual(img['alt'], '')
-        self.assertEqual(img['src'], '/images/download/{i}?size=web'.format(
-            i=first.image))
+        self.assertEqual(
+            img['src'],
+            '/images/download/{i}?cache=1&size=web'.format(i=first.image)
+        )
 
     def test_render(self):
         tile = BookTile(db, self._value, self._row)

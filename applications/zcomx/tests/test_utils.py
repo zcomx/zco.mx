@@ -204,8 +204,10 @@ class TestFunctions(LocalTestCase):
                 'reader': 'slider',
                 'release_date': None,
                 'releasing': False,
-                'status': True,
+                'status': 'd',
                 'torrent': None,
+                'tumblr_post_id': None,
+                'twitter_post_id': None,
                 'views': 0
             }
         )

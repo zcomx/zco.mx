@@ -8,7 +8,6 @@ Classes and functions related to torrents.
 import logging
 import os
 import subprocess
-import sys
 from gluon import *
 from applications.zcomx.modules.archives import \
     CBZArchive, \
@@ -87,8 +86,7 @@ class BaseTorrentCreator(TempDirectoryMixin):
         # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
         # pylint: disable=E1101
         if p.returncode:
-            print >> sys.stderr, 'mktorrent call failed: {e}'.format(
-                e=p_stderr)
+            LOG.error('mktorrent call failed: %s', p_stderr)
             raise TorrentCreateError('Creation of torrent file failed.')
         self._tor_file = output_file
         return self
@@ -312,6 +310,5 @@ class P2PNotifier(object):
         # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
         # pylint: disable=E1101
         if p.returncode:
-            print >> sys.stderr, 'Run of zc-p2p call failed: {e}'.format(
-                e=p_stderr)
+            LOG.error('Run of zc-p2p call failed: %s', p_stderr)
             raise P2PNotifyError('Run of zc-p2p call failed.')
