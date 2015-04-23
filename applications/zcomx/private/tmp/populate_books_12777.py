@@ -6,6 +6,7 @@ populate_books_12777.py
 
 Script to populate books table for testing mod 12777.
 """
+import datetime
 import logging
 import os
 import sys
