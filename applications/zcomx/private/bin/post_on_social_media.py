@@ -15,14 +15,14 @@ from applications.zcomx.modules.books import \
     tumblr_data as book_tumblr_data
 from applications.zcomx.modules.creators import \
     tumblr_data as creator_tumblr_data
-# From applications.zcomx.modules.tumblr import \
-#     Authenticator, \
-#     PhotoDataPreparer, \
-#     Poster
+from applications.zcomx.modules.tumblr import \
+    Authenticator, \
+    PhotoDataPreparer, \
+    Poster
 from applications.zcomx.modules.tweeter import \
-    Authenticator as Authenticator, \
-    PhotoDataPreparer as PhotoDataPreparer, \
-    Poster as Poster
+    Authenticator as TwAuthenticator, \
+    PhotoDataPreparer as TwPhotoDataPreparer, \
+    Poster as TwPoster
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -102,28 +102,29 @@ def post_on_twitter(book, creator):
         'oauth_token': settings.twitter_oauth_token,
         'oauth_secret': settings.twitter_oauth_secret,
     }
-    client = Authenticator(credentials).authenticate()
-    poster = Poster(client)
+    client = TwAuthenticator(credentials).authenticate()
+    poster = TwPoster(client)
     twitter_data = {
         'book': book_tumblr_data(book),
         'creator': creator_tumblr_data(creator),
         'site': {'name': SITE_NAME},
     }
 
-    photo_data = PhotoDataPreparer(twitter_data).data()
+    photo_data = TwPhotoDataPreparer(twitter_data).data()
 
-    err = None
+    error = None
     try:
         result = poster.post_photo(photo_data)
     except TwitterHTTPError as err:
+        error = err
         result = {}
 
     if 'id' not in result:
         LOG.error(
             'Twitter post failed for book: %s - %s', book.id, book.name
         )
-        if err:
-            response_data = json.loads(err.response_data)
+        if error:
+            response_data = json.loads(error.response_data)
             if 'errors' in response_data and response_data['errors']:
                 code = response_data['errors'][0]['code']
                 msg = response_data['errors'][0]['message']
@@ -133,7 +134,6 @@ def post_on_twitter(book, creator):
     post_id = result['id']
     LOG.debug('post_id: %s', post_id)
     return post_id
-
 
 
 def man_page():
