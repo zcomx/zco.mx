@@ -144,10 +144,11 @@ class TestFunctions(LocalTestCase):
         ]
         for f in cls._fields:
             if f not in names:
-                record_id = db.test__reorder.insert(
+                data = dict(
                     name=f,
                     order_no=0,
                 )
+                record_id = db.test__reorder.insert(**data)
                 db.commit()
                 cls._by_name[f] = record_id
 
@@ -374,10 +375,11 @@ class TestFunctions(LocalTestCase):
 
         # Add record to table
         self._reset()
-        db.test__reorder.insert(
+        data = dict(
             name='d',
             order_no=9999,
         )
+        db.test__reorder.insert(**data)
         db.commit()
         reorder(db.test__reorder.order_no)
         self.assertEqual(self._ordered_values(), ['a', 'b', 'c', 'd'])

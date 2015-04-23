@@ -94,10 +94,7 @@ def run_optimize(image, options):
             LOG.debug('Optimizing filename: %s', filename)
             optimize(filename)
 
-        db.optimize_img_log.insert(
-            image=image,
-            size=size,
-        )
+        db.optimize_img_log.insert(image=image, size=size)
         db.commit()
 
 

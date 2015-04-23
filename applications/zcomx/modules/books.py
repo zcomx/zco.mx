@@ -82,12 +82,13 @@ class ContributionEvent(BookEvent):
         if value is None:
             return
         db = current.app.db
-        event_id = db.contribution.insert(
+        data = dict(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
             time_stamp=datetime.datetime.now(),
             amount=value
         )
+        event_id = db.contribution.insert(**data)
         db.commit()
         return event_id
 
@@ -113,12 +114,13 @@ class DownloadEvent(BookEvent):
             LOG.error('download_click not found: %s', value)
             return
 
-        event_id = db.download.insert(
+        data = dict(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
             time_stamp=datetime.datetime.now(),
             download_click_id=download_click.id,
         )
+        event_id = db.download.insert(**data)
         db.commit()
         return event_id
 
@@ -138,12 +140,13 @@ class RatingEvent(BookEvent):
         if value is None:
             return
         db = current.app.db
-        event_id = db.rating.insert(
+        data = dict(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
             time_stamp=datetime.datetime.now(),
             amount=value
         )
+        event_id = db.rating.insert(**data)
         db.commit()
         return event_id
 
@@ -161,11 +164,12 @@ class ViewEvent(BookEvent):
 
     def _log(self, value=None):
         db = current.app.db
-        event_id = db.book_view.insert(
+        data = dict(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
             time_stamp=datetime.datetime.now()
         )
+        event_id = db.book_view.insert(**data)
         db.commit()
         return event_id
 

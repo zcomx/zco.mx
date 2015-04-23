@@ -87,11 +87,13 @@ def main():
     number = int(args[0])
     for num in range(1, number + 1):
         print 'FIXME num: {var}'.format(var=num)
-        db.book.insert(
+        data = dict(
             name='POC {n:06d}'.format(n=num),
             release_date=now,
             torrent='aaa',
         )
+        db.book.insert(**data)
+        db.commit()
 
     LOG.info('Done.')
 
