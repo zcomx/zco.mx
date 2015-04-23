@@ -17,8 +17,9 @@ VERSION 2 - Before Going Live
     >when I try to reset my password it says 'invalid password reset'
     SB 2015-04-21 19:54  Works fine
 [x] "creator.table appears corrupted" Error
+[x] Email More Cartoonists
 
-[S] Email More Cartoonists
+[S] Mail Mailing List
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
