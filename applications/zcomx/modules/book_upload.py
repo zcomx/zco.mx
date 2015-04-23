@@ -440,10 +440,11 @@ def create_book_page(db, book_id, image_filename):
     except TypeError:
         page_no = 1
 
-    book_page_id = db.book_page.insert(
+    data = dict(
         book_id=book_id,
         page_no=page_no,
         image=stored_filename,
     )
+    book_page_id = db.book_page.insert(**data)
     db.commit()
     return book_page_id

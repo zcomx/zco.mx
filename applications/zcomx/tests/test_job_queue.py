@@ -759,8 +759,8 @@ class TestQueue(LocalTestCase):
         for j in job_data:
             job_d = dict(command='pwd', start=j[0], priority=j[1], status=j[2])
             job_id = db.job.insert(**job_d)
+            db.commit()
             job_ids.append(job_id)
-        db.commit()
 
         job_set = queue.jobs()
         self.assertEqual(len(job_set), 6)

@@ -36,13 +36,14 @@ def download_click_handler():
         except (TypeError, ValueError):
             return do_error('Invalid data provided')
 
-    click_id = db.download_click.insert(
+    data = dict(
         ip_address=request.client,
         time_stamp=request.now,
         auth_user_id=auth.user_id or 0,
         record_table=request.vars.record_table,
         record_id=record_id,
     )
+    click_id = db.download_click.insert(**data)
     db.commit()
     click_record = db(db.download_click.id == click_id).select().first()
     if is_loggable(click_record):

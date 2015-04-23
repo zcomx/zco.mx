@@ -78,9 +78,7 @@ def main():
 
     db.optimize_img_log.truncate()
     for _ in range(0, int(args[0])):
-        record_id = db.optimize_img_log.insert(
-            image='table.field.aaa.111.jpg'
-        )
+        record_id = db.optimize_img_log.insert(image='table.field.aaa.111.jpg')
         # db.commit()
         query = (db.optimize_img_log.id == record_id)
         db(query).delete()

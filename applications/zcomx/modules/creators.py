@@ -55,10 +55,11 @@ def add_creator(form):
     ).first()
 
     if not creator:
-        creator_id = db.creator.insert(
+        data = dict(
             auth_user_id=auth_user.id,
             email=auth_user.email,
         )
+        creator_id = db.creator.insert(**data)
         db.commit()
         on_change_name(creator_id)
 
