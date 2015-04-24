@@ -483,8 +483,8 @@ def book_post_upload_session():
         uploaded.
 
         * set book status
-        * optimize book page images
         * reorder book pages
+        * optimize book page images
 
     request.args(0): integer, id of book.
     request.vars.book_page_ids[], list of book page ids.
@@ -509,28 +509,26 @@ def book_post_upload_session():
     # Step 1:  Set book status
     set_status(book_record, calc_status(book_record))
 
-    # Step 2:  Trigger optimization of book images
+    # Step 2: Reorder book pages
+    if 'book_page_ids[]' in request.vars:
+        page_ids = []
+        for page_id in request.vars['book_page_ids[]']:
+            try:
+                page_ids.append(int(page_id))
+            except (TypeError, ValueError):
+                # reordering pages isn't critical, if page is not valid, just
+                # move on
+                continue
+
+        for count, page_id in enumerate(page_ids):
+            page_record = entity_to_row(db.book_page, page_id)
+            if page_record and page_record.book_id == book_record.id:
+                page_record.update_record(page_no=(count + 1))
+                db.commit()
+
+    # Step 3:  Trigger optimization of book images
     AllSizesImages.from_names(images(book_record)).optimize()
 
-    # Step 2: Reorder book pages
-    if 'book_page_ids[]' not in request.vars:
-        # Nothing more to do
-        return dumps({'success': True})
-
-    page_ids = []
-    for page_id in request.vars['book_page_ids[]']:
-        try:
-            page_ids.append(int(page_id))
-        except (TypeError, ValueError):
-            # reordering pages isn't critical, if page is not valid, just move
-            # on
-            continue
-
-    for count, page_id in enumerate(page_ids):
-        page_record = entity_to_row(db.book_page, page_id)
-        if page_record and page_record.book_id == book_record.id:
-            page_record.update_record(page_no=(count + 1))
-            db.commit()
     return dumps({'success': True})
 
 
