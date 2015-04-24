@@ -22,6 +22,7 @@ from applications.zcomx.modules.creators import \
     can_receive_contributions, \
     contribute_link as creator_contribute_link, \
     torrent_link as creator_torrent_link, \
+    torrent_url as creator_torrent_url, \
     url as creator_url
 from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
@@ -174,8 +175,8 @@ class Grid(object):
         if 'read' in self._buttons:
             add_link(read_link)
 
-        if 'torrent' in self._buttons:
-            add_link(torrent_link)
+        if 'creator_torrent' in self._buttons:
+            add_link(link_for_creator_torrent)
 
         if 'creator_contribute' in self._buttons:
             add_link(creator_contribute_button)
@@ -484,7 +485,7 @@ class CartoonistsGrid(Grid):
 
     _buttons = [
         'creator_contribute',
-        'torrent',
+        'creator_torrent',
     ]
 
     _not_found_msg = 'No cartoonists found'
@@ -1027,9 +1028,14 @@ class CartoonistTile(Tile):
 
     def download_link(self):
         """Return the tile download link."""
+        empty = SPAN('')
+        row = self.row
+        if not row.creator or not row.creator.id or not row.creator.torrent:
+            return empty
+        url = creator_torrent_url(row.creator.id)
         return A(
             'download',
-            _href=self.creator_href
+            _href=url
         )
 
     def footer(self):
@@ -1238,6 +1244,15 @@ def link_book_id(row):
     return book_id
 
 
+def link_for_creator_torrent(row):
+    """Return a creator torrent link suitable for grid row."""
+    if not row:
+        return ''
+    if 'creator' not in row or not row.creator.id or not row.creator.torrent:
+        return ''
+    return creator_torrent_link(row.creator.id)
+
+
 def read_link(row):
     """Return an 'Read' link suitable for grid row."""
     if not row:
@@ -1251,12 +1266,3 @@ def read_link(row):
         book_id,
         **dict(_class='btn btn-default')
     )
-
-
-def torrent_link(row):
-    """Return a torrent link suitable for grid row."""
-    if not row:
-        return ''
-    if 'creator' not in row or not row.creator.id:
-        return ''
-    return creator_torrent_link(row.creator.id)
