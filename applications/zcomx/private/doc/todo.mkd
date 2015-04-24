@@ -22,31 +22,31 @@ VERSION 2 - Before Going Live
 [x] Some Landscape Images May Not Be The Correct Size
 [x] Front Page -> cartoonists
     Only list 'CartoonistName.torrent' if they have a torrent file
-
-[S] Wildcard ssl cert for zco.mx
-    https://131.zco.mx will cause a self-signed cert warning to appear
-    Buy a wildcard cert
-
-[S] Integrity Check Data
-    * Make sure everyone has added their paypal address
-    * book description
-
-[ ] Bug: Reordering Images
+[x] Add Short URL to the 'profile' page
+    Shortened URL       http://131.zco.mx
+[-] Bug: Reordering Images
     SB 2015-04-24 13:03  A cartoonist clicks 'Post On Web' and then
     realizes the images are out of order.  After setting the correct
     order they had to make over 20+ minutes for those changes to take
     effect.  There were many images in the queue.  I assume the slowdown
     was caused by jobs which had a higher priority.  When I looked at
     the queue, there was over 900 jobs.
+[x] Tony Zuvela Photo Is Missing
+[x] Make sure everyone has added their paypal address
+    sqlite> select distinct creator.name_for_url from creator left join book on book.creator_id=creator.id where paypal_email is null and book.id is not null;
+        [x] Aaron Poliwoda
+        [x] Damien Jay
+        [x] Dave Ortega
+        [x] John Hankiewicz
+        [x] Lukas Verstraete
+        [x] Léo Quiévreux
+        [x] Patrick Kyle
 
-[ ] Add Short URL to the 'profile' page
-    Shortened URL       http://131.zco.mx
+[S] Wildcard ssl cert for zco.mx
+    https://131.zco.mx will cause a self-signed cert warning to appear
+    Buy a wildcard cert
 
-[ ] Front Page/Book Page
-    SB 2015-03-25 20:56  we should talk about this
-    The same stats on the front page should be on the book page and
-    vice versa
-    * missing from Front page, 'pages'
+[ ] Switch 'ongoing' and 'releases'
 
 [ ] Add CC licence to zco.mx footer
                                               [CC BY]
@@ -58,13 +58,18 @@ VERSION 2 - Before Going Live
     Except  where  otherwise  noted, content  on this
     site is licenced under a CC BY 4.0 Int'l licence.
 
-[ ] Tony Zuvela Picture
-
 [ ] Nice Levels
+    * lower rtorrent
+    * lower opentracker
+
 [S] Clean up kb.zco.mx
 
 MONDAY MORNING
+[ ] Ordering
 [ ] Send Out Tweets and Post to Tumblr Any Released Books
+[ ] Email ML
+    * shortened url
+    * two twitter accounts
 [S] Email Karen telling her the site is live
 
 VERSION 3
@@ -104,6 +109,11 @@ VERSION 3
     SB 2015-03-26 10:19  we should talk about this
     See how dokuwiki does it
     http://bronze-age.com/nospam/
+[ ] Front Page/Book Page
+    SB 2015-03-25 20:56  we should talk about this
+    The same stats on the front page should be on the book page and
+    vice versa
+    * missing from Front page, 'pages'
 [ ] KB
     http://kb.zco.mx/
     [ ] git-ify and add to zco.mx server
