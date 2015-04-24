@@ -25,7 +25,8 @@ from applications.zcomx.modules.books import \
     set_status
 from applications.zcomx.modules.creators import \
     image_as_json, \
-    queue_update_indicia
+    queue_update_indicia, \
+    short_url
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
     on_delete_image, \
@@ -1373,4 +1374,4 @@ def profile():
         )
     )
 
-    return dict(creator=creator_record)
+    return dict(creator=creator_record, short_url=short_url(creator_record))
