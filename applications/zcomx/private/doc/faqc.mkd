@@ -66,8 +66,11 @@ change the work.
 
 There are six CC licencing options available to cartoonists. More
 information about the different licences can be found [[here
-http://kb.zco.mx/cc]] and on the Creative Commons [[FAQ
-http://kb.zco.mx/faqcc]] page.
+http://kb.zco.mx/cc]] and [[here https://youtu.be/8YkbeycRa2A]] and on
+the Creative Commons [[FAQ http://kb.zco.mx/faqcc]] page.  A documentary
+meant to illustrate the problems the CC licences are trying to solve,
+titled ''RiP: A Remix Manifesto'', can be found [[here
+https://vimeo.com/8040182]].
 
 
 [[remove]]

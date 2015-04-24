@@ -18,12 +18,15 @@ VERSION 2 - Before Going Live
     SB 2015-04-21 19:54  Works fine
 [x] "creator.table appears corrupted" Error
 [x] Email More Cartoonists
-
-[S] Add video links to kb
+[x] Add video links to kb
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
     Buy a wildcard cert
+
+[S] Integrity Check Data
+    * Make sure everyone has added their paypal address
+    * book description
 
 [ ] Some Landscape Images May Not Be The Correct Size
 
@@ -49,9 +52,8 @@ VERSION 2 - Before Going Live
     Except  where  otherwise  noted, content  on this
     site is licenced under a CC BY 4.0 Int'l licence.
 
-[S] Integrity Check Data
-    * Make sure everyone has added their paypal address
-    * book description
+[ ] Tony Zuvela Picture
+
 [ ] Nice Levels
 [S] Clean up kb.zco.mx
 
