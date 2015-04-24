@@ -241,11 +241,11 @@ class TestGrid(LocalTestCase):
         tabs = grid.tabs()
         soup = BeautifulSoup(str(tabs))
         # <ul class="nav nav-tabs">
-        #   <li class="nav-tab active">
-        #     <a href="/?o=ongoing">ongoing</a>
-        #   </li>
         #   <li class="nav-tab ">
         #     <a href="/?o=releases">releases</a>
+        #   </li>
+        #   <li class="nav-tab active">
+        #     <a href="/?o=ongoing">ongoing</a>
         #   </li>
         #   <li class="nav-tab ">
         #     <a href="/?o=contributions">contributions</a>
@@ -260,13 +260,13 @@ class TestGrid(LocalTestCase):
         li_1 = ul.li
         self.assertEqual(li_1['class'], 'nav-tab active')
         anchor_1 = li_1.a
-        self.assertEqual(anchor_1['href'], '/?o=ongoing')
-        self.assertEqual(anchor_1.string, 'ongoing')
+        self.assertEqual(anchor_1['href'], '/?o=releases')
+        self.assertEqual(anchor_1.string, 'releases')
 
         li_2 = li_1.nextSibling
         anchor_2 = li_2.a
-        self.assertEqual(anchor_2['href'], '/?o=releases')
-        self.assertEqual(anchor_2.string, 'releases')
+        self.assertEqual(anchor_2['href'], '/?o=ongoing')
+        self.assertEqual(anchor_2.string, 'ongoing')
 
         # li_2 = li_1.nextSibling
         # anchor_2 = li_2.a
@@ -284,9 +284,9 @@ class TestGrid(LocalTestCase):
         tabs = grid.tabs()
         soup = BeautifulSoup(str(tabs))
         anchor_1 = soup.ul.li.a
-        self.assertEqual(anchor_1['href'], '/?o=ongoing')
+        self.assertEqual(anchor_1['href'], '/?o=releases')
         anchor_2 = soup.ul.li.nextSibling.a
-        self.assertEqual(anchor_2['href'], '/?o=releases')
+        self.assertEqual(anchor_2['href'], '/?o=ongoing')
         # anchor_2 = soup.ul.li.nextSibling.a
         # self.assertEqual(anchor_2['href'], '/?o=contributions')
         anchor_3 = soup.ul.li.nextSibling.nextSibling.a
@@ -1056,6 +1056,8 @@ class TestCartoonistTile(LocalTestCase):
         )
 
     def test__footer(self):
+        book = db(db.book.id == self._row.book.id).select().first()
+
         tile = CartoonistTile(db, self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer))
@@ -1088,16 +1090,23 @@ class TestCartoonistTile(LocalTestCase):
             self.assertEqual(anchor.string, 'contribute')
             dl_li = li.nextSibling
         else:
-            self.assertEqual(len(lis), 1)
-            dl_li = lis[0]
+            expect = 1 if book.torrent else 0
+            self.assertEqual(len(lis), expect)
+            if expect:
+                dl_li = lis[0]
+            else:
+                dl_li = None
 
-        anchor = dl_li.a
-        self.assertEqual(
-            anchor['href'],
-            '/{name}'.format(
-                name=creator_name(self._row.creator.id, use='url'))
-        )
-        self.assertEqual(anchor.string, 'download')
+        if dl_li:
+            anchor = dl_li.a
+            self.assertEqual(
+                anchor['href'],
+                '/{name}_({cid}.zco.mx).torrent'.format(
+                    name=creator_name(self._row.creator.id, use='url'),
+                    cid=self._row.creator.id
+                )
+            )
+            self.assertEqual(anchor.string, 'download')
 
         div_2 = div.div
         self.assertEqual(div_2['class'], 'orderby_field_value')
@@ -1278,7 +1287,7 @@ class TestFunctions(LocalTestCase):
     def test_constants(self):
         self.assertEqual(
             GRID_CLASSES.keys(),
-            ['ongoing', 'releases', 'creators', 'search']
+            ['releases', 'ongoing', 'creators', 'search']
         )
 
     def test__book_contribute_button(self):
@@ -1308,8 +1317,8 @@ class TestFunctions(LocalTestCase):
 
         tests = [
             # (request.vars.o, expect)
-            (None, OngoingGrid),
-            ('_fake_', OngoingGrid),
+            (None, ReleasesGrid),
+            ('_fake_', ReleasesGrid),
             ('ongoing', OngoingGrid),
             ('releases', ReleasesGrid),
             # ('contributions', ContributionsGrid),
