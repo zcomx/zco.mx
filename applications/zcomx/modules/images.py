@@ -31,6 +31,83 @@ SIZES = [
 ]
 
 
+class ImageDescriptor(object):
+    """Class representing an image descriptor. The class can be used
+    to access attributes of an image file.
+
+    Attributes:
+        filename: string, name of the file including path.
+
+    """
+    def __init__(self, filename):
+        """Initializer"""
+        self.filename = filename
+        self._dimensions = None  # (w, h)
+        self._size_bytes = None  # kb
+        self._number_of_colours = None  # integer
+        self._pil = None  # PIL Image instance
+
+    def dimensions(self):
+        """Return the dimensions of the image.
+
+        Returns:
+            tuple, (width, height) in pixels
+        """
+        if self._dimensions is None:
+            im = self.pil_image()
+            self._dimensions = im.size
+        return self._dimensions
+
+    def number_of_colours(self):
+        """Return the number of colours in the image.
+
+        Returns:
+            integer, the number of colours in the image.
+        """
+        if self._number_of_colours is None:
+            im = self.pil_image()
+            self._number_of_colours = len(im.getcolors(maxcolors=99999))
+        return self._number_of_colours
+
+    def orientation(self):
+        """Return the orientation of the image.
+
+        Returns:
+            string, one of 'portrait', 'landscape', 'square'
+        """
+        width, height = self.dimensions()
+        if width == height:
+            return 'square'
+        elif width > height:
+            return 'landscape'
+        else:
+            return 'portrait'
+
+    def pil_image(self):
+        """Return a PIL Image instance representing the image.
+
+        Returns:
+            PIL Image instance.
+        """
+        if not self._pil:
+            self._pil = Image.open(self.filename)
+        return self._pil
+
+    def size_bytes(self):
+        """Return the size (in bytes) of the image.
+
+        Returns:
+            integer, number of kb
+        """
+        if self._size_bytes is None:
+            try:
+                num_bytes = os.stat(self.filename).st_size
+            except (KeyError, OSError):
+                num_bytes = 0
+            self._size_bytes = num_bytes
+        return self._size_bytes
+
+
 class ImageOptimizeError(Exception):
     """Exception class for an image optimize errors."""
     pass
@@ -291,9 +368,6 @@ class UploadImage(object):
         """
         self.field = field
         self.image_name = image_name
-        self._images = {}               # {'size': Image instance}
-        self._dimensions = {}           # {'size': (w, h)}
-        self._sizes = {}                # {'size': x kb}
         self._full_name = None          # eg applications/zcomx/uploads/...
         self._original_name = None
 
@@ -313,38 +387,10 @@ class UploadImage(object):
             self.delete(size)
         self.delete('original')
 
-    def dimensions(self, size='original'):
-        """Return the dimensions of the image of the indicated size.
-
-        Args:
-            size: string, name of size, must one of SIZES
-        """
-        if not self._dimensions or size not in self._dimensions:
-            im = self.pil_image(size=size)
-            if im:
-                self._dimensions[size] = im.size
-            else:
-                self._dimensions[size] = None
-        return self._dimensions[size]
-
     def fullname(self, size='original'):
         """Return the fullname of the image."""
         self.retrieve()
         return filename_for_size(self._full_name, size)
-
-    def orientation(self):
-        """Return the orientation of the image.
-
-        Returns:
-            string, one of 'portrait', 'landscape', 'square'
-        """
-        width, height = self.dimensions()
-        if width == height:
-            return 'square'
-        elif width > height:
-            return 'landscape'
-        else:
-            return 'portrait'
 
     def original_name(self):
         """Return the original name of the image.
@@ -354,23 +400,6 @@ class UploadImage(object):
         """
         self.retrieve()
         return self._original_name
-
-    def pil_image(self, size='original'):
-        """Return a PIL Image instance representing the image.
-
-        Args:
-            size: string, name of size, must one of SIZES
-
-        Returns:
-            PIL Image instance.
-        """
-        if not self._images or size not in self._images:
-            filename = self.fullname(size=size)
-            if os.path.exists(filename):
-                self._images[size] = Image.open(filename)
-            else:
-                self._images[size] = None
-        return self._images[size]
 
     def retrieve(self):
         """Retrieve the names of the image.
@@ -384,24 +413,6 @@ class UploadImage(object):
                 nameonly=True,
             )
         return (self._original_name, self._full_name)
-
-    def size(self, size='original'):
-        """Return the size (bytes) of the image.
-
-        Args:
-            size: string, name of size, must one of SIZES
-
-        Returns:
-            integer, size of image in bytes
-        """
-        if not self._sizes or size not in self._sizes:
-            full_name = self.fullname(size=size)
-            try:
-                size_bytes = os.stat(full_name).st_size
-            except (KeyError, OSError):
-                size_bytes = 0
-            self._sizes[size] = size_bytes
-        return self._sizes[size]
 
 
 def filename_for_size(original_filename, size):
