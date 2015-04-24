@@ -19,16 +19,19 @@ VERSION 2 - Before Going Live
 [x] "creator.table appears corrupted" Error
 [x] Email More Cartoonists
 
-[S] Mail Mailing List
+[S] Add video links to kb
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
     Buy a wildcard cert
 
+[ ] Some Landscape Images May Not Be The Correct Size
+
 [ ] Front Page -> cartoonists
     Only list 'CartoonistName.torrent' if they have a torrent file
 
-[ ] Add Cartoonist ID to the 'profile' page ?
+[ ] Add Short URL to the 'profile' page
+    Shortened URL       http://131.zco.mx
 
 [ ] Front Page/Book Page
     SB 2015-03-25 20:56  we should talk about this
@@ -37,7 +40,6 @@ VERSION 2 - Before Going Live
     * missing from Front page, 'pages'
 
 [ ] Add CC licence to zco.mx footer
-    http://www.ycombinator.com/legal/
                                               [CC BY]
        Every comic on zco.mx has its own licence. All
        other content on this site is licenced under a
@@ -47,16 +49,13 @@ VERSION 2 - Before Going Live
     Except  where  otherwise  noted, content  on this
     site is licenced under a CC BY 4.0 Int'l licence.
 
-[ ] Should CartoonistName.torrent be in /C/CartoonistName/ ?
-
 [S] Integrity Check Data
     * Make sure everyone has added their paypal address
     * book description
 [ ] Nice Levels
-[ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
-[ ] 12354 - Test scripts
 [S] Clean up kb.zco.mx
 
+MONDAY MORNING
 [ ] Send Out Tweets and Post to Tumblr Any Released Books
 [S] Email Karen telling her the site is live
 
@@ -115,9 +114,12 @@ VERSION 3
     Change https://github.com/zcomx/zcomix.com to
     https://github.com/zcomx/zcomx or
     https://github.com/zcomx/website ?
+[ ] Should CartoonistName.torrent be in /C/CartoonistName/ ?
 [ ] Optimize Pages -- especially the front page
     [ ] CDN
     [ ] Minify
+[ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
+[ ] 12354 - Test scripts
 
 
 
