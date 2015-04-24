@@ -39,8 +39,8 @@ from applications.zcomx.modules.search import \
     classified, \
     download_link, \
     link_book_id, \
-    read_link, \
-    torrent_link
+    link_for_creator_torrent, \
+    read_link
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
@@ -371,6 +371,10 @@ class TestCartoonistsGrid(LocalTestCase):
         self.assertTrue(grid)
         self.assertEqual(grid._attributes['table'], 'creator')
         self.assertEqual(grid._attributes['field'], 'contributions_remaining')
+        self.assertEqual(
+            grid._buttons,
+            ['creator_contribute', 'creator_torrent']
+        )
 
     def test__groupby(self):
         grid = CartoonistsGrid()
@@ -1030,15 +1034,25 @@ class TestCartoonistTile(LocalTestCase):
         )
 
     def test__download_link(self):
+        # Test no torrent
+        self._row.creator.torrent = None
         tile = CartoonistTile(db, self._value, self._row)
         link = tile.download_link()
         soup = BeautifulSoup(str(link))
-        # <a href="/Jim_Karsten">download</a>
+        self.assertEqual(str(soup), '<span></span>')
+
+        self._row.creator.torrent = 'file.torrent'
+        link = tile.download_link()
+        soup = BeautifulSoup(str(link))
+        # <a href="/FirstLast_(123.zco.mx).torrent">download</a>
         anchor = soup.a
+        self.assertEqual(anchor.string, 'download')
         self.assertEqual(
             anchor['href'],
-            '/{name}'.format(
-                name=creator_name(self._row.creator.id, use='url'))
+            '/{name}_({cid}.zco.mx).torrent'.format(
+                name=creator_name(self._row.creator.id, use='url'),
+                cid=self._row.creator.id
+            )
         )
 
     def test__footer(self):
@@ -1340,6 +1354,27 @@ class TestFunctions(LocalTestCase):
         row.book = None
         self.assertEqual(link_book_id(row), 0)
 
+    def test__link_for_creator_torrent(self):
+        self.assertEqual(link_for_creator_torrent({}), '')
+
+        self._creator.update_record(torrent=None)
+        db.commit()
+        self.assertEqual(self._row().creator.torrent, None)
+        self.assertEqual(link_for_creator_torrent(self._row()), '')
+
+        self._creator.update_record(torrent='FirstLast.torrent')
+        db.commit()
+        self.assertEqual(self._row().creator.torrent, 'FirstLast.torrent')
+
+        data = self._parse_link(link_for_creator_torrent(self._row()))
+        self.assertEqual(data['string'], 'FirstLast.torrent')
+        self.assertEqual(
+            data['href'],
+            '/FirstLast_({i}.zco.mx).torrent'.format(i=self._creator.id)
+        )
+        self.assertEqual(data['class'], 'log_download_link')
+        self.assertEqual(data['type'], None)
+
     def test__read_link(self):
         self.assertEqual(read_link({}), '')
 
@@ -1348,18 +1383,6 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(
             '/FirstLast/MyFunctionsBook/001' in data['href'])
         self.assertTrue('btn' in data['class'])
-
-    def test__torrent_link(self):
-        self.assertEqual(torrent_link({}), '')
-
-        data = self._parse_link(torrent_link(self._row()))
-        self.assertEqual(data['string'], 'FirstLast.torrent')
-        self.assertEqual(
-            data['href'],
-            '/FirstLast_({i}.zco.mx).torrent'.format(i=self._creator.id)
-        )
-        self.assertEqual(data['class'], 'log_download_link')
-        self.assertEqual(data['type'], None)
 
 
 def setUpModule():
