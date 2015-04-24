@@ -807,8 +807,8 @@ class SearchGrid(Grid):
 
 
 GRID_CLASSES = collections.OrderedDict()
-GRID_CLASSES['ongoing'] = OngoingGrid
 GRID_CLASSES['releases'] = ReleasesGrid
+GRID_CLASSES['ongoing'] = OngoingGrid
 # GRID_CLASSES['contributions'] = ContributionsGrid
 GRID_CLASSES['creators'] = CartoonistsGrid
 GRID_CLASSES['search'] = SearchGrid
@@ -1194,7 +1194,7 @@ def classified(request):
     Returns:
         Grid class or subclass
     """
-    grid_class = OngoingGrid
+    grid_class = ReleasesGrid
     LOG.debug('request.vars.o: %s', request.vars.o)
     if request.vars.o:
         if request.vars.o in GRID_CLASSES:
