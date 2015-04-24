@@ -135,6 +135,13 @@
 <script>
 //<![CDATA[
     var creator_data = {
+        'short_url': {
+            'label': 'shortened url',
+            'value': '{{=short_url}}',
+            'x_editable_settings': {
+                'disabled': true,
+            },
+        },
         'email': {
             'label': '{{=db.creator.email.label}}',
             'value': '{{=creator.email or ""}}',
