@@ -19,6 +19,9 @@ VERSION 2 - Before Going Live
 [x] "creator.table appears corrupted" Error
 [x] Email More Cartoonists
 [x] Add video links to kb
+[x] Some Landscape Images May Not Be The Correct Size
+[x] Front Page -> cartoonists
+    Only list 'CartoonistName.torrent' if they have a torrent file
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
@@ -28,10 +31,13 @@ VERSION 2 - Before Going Live
     * Make sure everyone has added their paypal address
     * book description
 
-[ ] Some Landscape Images May Not Be The Correct Size
-
-[ ] Front Page -> cartoonists
-    Only list 'CartoonistName.torrent' if they have a torrent file
+[ ] Bug: Reordering Images
+    SB 2015-04-24 13:03  A cartoonist clicks 'Post On Web' and then
+    realizes the images are out of order.  After setting the correct
+    order they had to make over 20+ minutes for those changes to take
+    effect.  There were many images in the queue.  I assume the slowdown
+    was caused by jobs which had a higher priority.  When I looked at
+    the queue, there was over 900 jobs.
 
 [ ] Add Short URL to the 'profile' page
     Shortened URL       http://131.zco.mx
