@@ -110,6 +110,7 @@ class TestBookPage(ImageTestCase):
         page = BookPage(book_page)
         self.assertRaises(NotFoundError, BookPage, -1)
         self.assertEqual(page.min_cbz_width, 1600)
+        self.assertEqual(page.min_cbz_height_to_exempt, 2560)
 
     def test__upload_image(self):
         book_page = self.add(db.book_page, dict(

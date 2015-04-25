@@ -1260,9 +1260,12 @@ def release_barriers(book_entity):
         })
 
     # Images are wide enough.
+    # Images must be a min_cbz_width unless the height is a
+    # minimum (min_cbz_height_to_exempt)
     if pages:
         small_images = []
         min_width = BookPage.min_cbz_width
+        min_height = BookPage.min_cbz_height_to_exempt
         for page in pages:
             try:
                 dims = ImageDescriptor(
@@ -1275,8 +1278,8 @@ def release_barriers(book_entity):
                 dims = ImageDescriptor(
                     page.upload_image().fullname(size='original')
                 ).dimensions()
-            width, unused_h = dims
-            if width < min_width:
+            width, height = dims
+            if width < min_width and height < min_height:
                 original_name = page.upload_image().original_name()
                 small_images.append(
                     '{n} (width: {w} px)'.format(n=original_name, w=width)
