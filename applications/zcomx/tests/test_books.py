@@ -1739,28 +1739,42 @@ class TestFunctions(ImageTestCase):
         )
 
         # Image too small
-        data = dict(
-            book_id=book.id,
-            image=self._store_image(
-                db.book_page.image,
-                self._create_image('file.jpg', (598, 1600)),
+        tests = [
+            # (dimensions (w, h), ok to release)
+            ((1600, 1600), True),       # width is good
+            ((1599, 1600), False),      # width too narrow
+            ((1600, 1599), True),       # if width is good, height is ignored
+            ((1599, 2560), True),       # width too narrow, but height is good
+        ]
+
+        always_expect = [
+            'no_name',
+            'dupe_name',
+            'dupe_number',
+            'licence_arr',
+            'no_metadata',
+        ]
+
+        for t in tests:
+            data = dict(
+                book_id=book.id,
+                image=self._store_image(
+                    db.book_page.image,
+                    self._create_image('file.jpg', t[0]),
+                )
             )
-        )
-        book_page.update_record(**data)
-        db.commit()
-        got = release_barriers(book)
-        self.assertEqual(len(got), 6)
-        self.assertEqual(
-            [x['code'] for x in got],
-            [
-                'no_name',
-                'dupe_name',
-                'dupe_number',
-                'licence_arr',
-                'no_metadata',
-                'images_too_narrow',
-            ]
-        )
+            book_page.update_record(**data)
+            db.commit()
+            got = release_barriers(book)
+            codes = [x['code'] for x in got]
+            expect = list(always_expect)
+            if not t[1]:
+                expect.append('images_too_narrow')
+            self.assertEqual(len(got), len(expect))
+            self.assertEqual(
+                [x['code'] for x in got],
+                expect
+            )
 
     def test__release_link(self):
         empty = '<span></span>'

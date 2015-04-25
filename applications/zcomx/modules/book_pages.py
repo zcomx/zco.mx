@@ -20,6 +20,7 @@ class BookPage(object):
     """Class representing a book page"""
 
     min_cbz_width = 1600                # pixels
+    min_cbz_height_to_exempt = 2560     # pixels
 
     def __init__(self, book_page_entity):
         """Constructor
