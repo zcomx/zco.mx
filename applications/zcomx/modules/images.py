@@ -21,6 +21,7 @@ from applications.zcomx.modules.shell_utils import \
     TemporaryDirectory, \
     os_nice, \
     set_owner
+from applications.zcomx.modules.zco import NICES
 
 LOG = logging.getLogger('app')
 
@@ -222,7 +223,7 @@ class ResizeImg(TempDirectoryMixin):
         self.filename = filename
         self.filenames = {'ori': None, 'cbz': None, 'web': None}
 
-    def run(self, nice='max'):
+    def run(self, nice=NICES['resize']):
         """Run the shell script and get the output.
 
         Args:
@@ -294,7 +295,7 @@ class ResizeImgIndicia(ResizeImg):
         ResizeImg.__init__(self, filename)
         self.filenames = {'ori': None}
 
-    def run(self, nice='max'):
+    def run(self, nice=NICES['resize']):
         """Run the shell script and get the output.
 
         Args:
@@ -489,7 +490,7 @@ def on_delete_image(image):
     return job
 
 
-def optimize(filename, nice='max'):
+def optimize(filename, nice=NICES['optimize']):
     """Optimize an image file in place.
 
     Args:

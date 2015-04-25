@@ -19,10 +19,13 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import creator_name
 from applications.zcomx.modules.images import filename_for_size
 from applications.zcomx.modules.indicias import BookIndiciaPagePng
-from applications.zcomx.modules.shell_utils import TempDirectoryMixin
+from applications.zcomx.modules.shell_utils import \
+    TempDirectoryMixin, \
+    os_nice
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+from applications.zcomx.modules.zco import NICES
 
 LOG = logging.getLogger('app')
 
@@ -174,7 +177,7 @@ class CBZCreator(TempDirectoryMixin):
                 os.makedirs(self._working_directory)
         return self._working_directory
 
-    def zip(self):
+    def zip(self, nice=NICES['zip']):
         """Zip book page images."""
         # Ex 7z a -tzip -mx=9 "Name of Comic 001.cbz" "/path/to/Name_of_Comic/"
         args = ['7z', 'a', '-tzip', '-mx=9']
@@ -183,7 +186,11 @@ class CBZCreator(TempDirectoryMixin):
         args.append(cbz_filename)
         args.append(self.working_directory())
         p = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os_nice(nice),
+        )
         unused_stdout, p_stderr = p.communicate()
         # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
         # pylint: disable=E1101

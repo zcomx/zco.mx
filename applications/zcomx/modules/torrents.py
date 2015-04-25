@@ -17,10 +17,13 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import \
     creator_name, \
     torrent_file_name as creator_torrent_file_name
-from applications.zcomx.modules.shell_utils import TempDirectoryMixin
+from applications.zcomx.modules.shell_utils import \
+    TempDirectoryMixin, \
+    os_nice
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+from applications.zcomx.modules.zco import NICES
 
 LOG = logging.getLogger('app')
 
@@ -59,7 +62,7 @@ class BaseTorrentCreator(TempDirectoryMixin):
         result = archive.add_file(self._tor_file, self.get_destination())
         return result
 
-    def create(self):
+    def create(self, nice=NICES['mktorrent']):
         """Create the torrent file.
 
         Returns:
@@ -81,7 +84,11 @@ class BaseTorrentCreator(TempDirectoryMixin):
         args.append(output_file)
         args.append(target)
         p = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os_nice(nice),
+        )
         unused_stdout, p_stderr = p.communicate()
         # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
         # pylint: disable=E1101
@@ -284,7 +291,7 @@ class P2PNotifier(object):
         """
         self.cbz_filename = cbz_filename
 
-    def notify(self, delete=False):
+    def notify(self, delete=False, nice=NICES['zc-p2p']):
         """Notify p2p networks of cbz file.
 
         Args:
@@ -305,7 +312,11 @@ class P2PNotifier(object):
         args.append(real_filename)
         LOG.debug('zc-p2p.sh args: %s', args)
         p = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os_nice(nice),
+        )
         unused_stdout, p_stderr = p.communicate()
         # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
         # pylint: disable=E1101

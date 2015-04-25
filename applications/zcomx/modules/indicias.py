@@ -34,6 +34,7 @@ from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
     vars_to_records
+from applications.zcomx.modules.zco import NICES
 
 LOG = logging.getLogger('app')
 DEFAULT_BOOK_TYPE = 'one-shot'
@@ -497,7 +498,7 @@ class IndiciaSh(TempDirectoryMixin):
             ))
         self.png_filename = None
 
-    def run(self, nice='max'):
+    def run(self, nice=NICES['indicia']):
         """Run the shell script and get the output.
 
         Args:

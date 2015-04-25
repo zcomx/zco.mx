@@ -22,6 +22,15 @@ BOOK_STATUSES = [
     BOOK_STATUS_DRAFT,
 ]
 
+NICES = {
+    'resize': 11,
+    'indicia': 13,
+    'mktorrent': 14,
+    'zip': 15,
+    'zc-p2p': 18,
+    'optimize': 19,         # max
+}
+
 SITE_NAME = 'zco.mx'
 
 
