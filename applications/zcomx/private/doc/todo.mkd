@@ -1,78 +1,7 @@
 ``
-VERSION 2 - Before Going Live
-[x] Clean Out Job Queue
-[x] BUG: Deleting a Cover
-    http://stackoverflow.com/questions/14515313/how-to-modify-web2py-download-function-to-return-304-not-modified-in-case-the
-    After a book has been posted, if a cartoonist then deletes the cover
-    no cover image is shown until they click 'Post'.
-    SOLUTION: Don't make changes (move, add, delete) to the book until
-    the cartoonist clicks 'Post'.
-[x] Remove zco.mx.torrent and CartoonistName.torrent before replacing those torrents
-    Fix sent to Jim, zc-p2p.sh needs testing
-[-] Varnish for caching
-    see mod: 30442
-    [x] Modify 'Cache-Control: private' so images are cached
-    [x] Set 'Cache-Control' so images on book pages aren't cached
-[-] Test Password Reset
-    >when I try to reset my password it says 'invalid password reset'
-    SB 2015-04-21 19:54  Works fine
-[x] "creator.table appears corrupted" Error
-[x] Email More Cartoonists
-[x] Add video links to kb
-[x] Some Landscape Images May Not Be The Correct Size
-[x] Front Page -> cartoonists
-    Only list 'CartoonistName.torrent' if they have a torrent file
-[x] Add Short URL to the 'profile' page
-    Shortened URL       http://131.zco.mx
-[-] Bug: Reordering Images
-    SB 2015-04-24 13:03  A cartoonist clicks 'Post On Web' and then
-    realizes the images are out of order.  After setting the correct
-    order they had to make over 20+ minutes for those changes to take
-    effect.  There were many images in the queue.  I assume the slowdown
-    was caused by jobs which had a higher priority.  When I looked at
-    the queue, there was over 900 jobs.
-[x] Tony Zuvela Photo Is Missing
-[x] Make sure everyone has added their paypal address
-    sqlite> select distinct creator.name_for_url from creator left join book on book.creator_id=creator.id where paypal_email is null and book.id is not null;
-        [x] Aaron Poliwoda
-        [x] Damien Jay
-        [x] Dave Ortega
-        [x] John Hankiewicz
-        [x] Lukas Verstraete
-        [x] Léo Quiévreux
-        [x] Patrick Kyle
-[x] Switch 'ongoing' and 'releases'
-[x] Clean up kb.zco.mx
-[x] Nice Levels - set to 17
-    [x] rtorrent
-    [x] ncdc
-    [x] uhub
-    [x] opentracker
-
-[x] Add zcomx to twitter client
-[x] Follow All the Cartoonists on Twitter
-[x] zcomx-bot on twitter: remove 'Coming April 27'
-[x] Email ML - update #3
-    * shortened url
-    * two twitter accounts
-    [-] release bug
-    [x] short urls
-        * cartooist page
-        * book page
-        * read page
-    [x] zcomx zcomx-bot twitter and zcomx on tumblr
-[x] Set Spares
-[x] Remove 'Please note this site is under development.' from login area
-[x] Email David and Karen telling them the site is live
-
-[ ] Send Out Tweets and Post to Tumblr Any Released Books
-[S] Update #4
-    [ ] longer than 8 pages/anthology
-    [ ] covers
-    [ ] unrelease
-    [ ] no uploads
-
 BUGS
+[/] Send Out Tweets and Post to Tumblr Any Released Books
+    [ ] Long Titles
 [ ] Hi-res jpg's bring the server to its knees
 [ ] Forgot password?
     I receive the 'Password reset' email but get "Invalid reset
@@ -87,8 +16,6 @@ BUGS
     applications/zcomx/private/bin/notify_p2p_networks.py --delete 'applications/zcomx/private/var/cbz/zco.mx/S/SamSharpe/The End of Action Man (2015) (196.zco.mx).cbz'|d|
 
 VERSION 3
-[ ] Web images are too small on mac laptops
-
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
     Buy a wildcard cert
@@ -114,7 +41,9 @@ VERSION 3
     https://zco.mx/?o=releases to https://zco.mx/releases
     https://zco.mx/?o=creators to https://zco.mx/cartoonists
 [ ] Remove the ability to change to a more restrictive CC licence
-[S] Change bg to #fafafa ?
+[ ] Separate '001' and '01 (of 02)' from the title ?
+[ ] Web images are too small on mac laptops
+[S] Change bg to #fafafa ?  Not on the reader page
 [S] Setup hypermail for real-only mailing lists in login area ?
 [S] Reader notifications for new material
     Follow Links
