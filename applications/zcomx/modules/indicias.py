@@ -34,6 +34,7 @@ from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
     vars_to_records
+from applications.zcomx.modules.zco import NICES
 
 LOG = logging.getLogger('app')
 DEFAULT_BOOK_TYPE = 'one-shot'
@@ -497,7 +498,7 @@ class IndiciaSh(TempDirectoryMixin):
             ))
         self.png_filename = None
 
-    def run(self, nice='max'):
+    def run(self, nice=NICES['indicia']):
         """Run the shell script and get the output.
 
         Args:
@@ -1034,6 +1035,9 @@ class PublicationMetadata(object):
                     db_meta.publisher_type.requires = IS_IN_SET(
                         publisher_types)
                     db_meta.publisher.requires = IS_NOT_EMPTY()
+                    if self.metadata['published_format'] == 'paper' and \
+                            self.metadata['publisher_type'] == 'self':
+                        db_meta.publisher.requires = None
                     db_meta.from_year.requires = IS_INT_IN_RANGE(
                         min_year, max_year)
                     db_meta.to_year.requires = self.to_year_requires(
