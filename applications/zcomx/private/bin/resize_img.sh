@@ -105,7 +105,8 @@ _rename() {
 
 grep -q ^processor /proc/cpuinfo || _me "Could not determind number of CPUs"
 cpu=$(grep -c ^processor /proc/cpuinfo)
-export MAGICK_THREAD_LIMIT=$cpu
+# export MAGICK_THREAD_LIMIT=$cpu
+export MAGICK_THREAD_LIMIT=3
 
 for i in convert identify; do command -v "$i" &>/dev/null || _me "$i not installed"; done
 (( $# == 0 )) && { _u; exit 1; }
