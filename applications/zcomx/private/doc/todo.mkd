@@ -41,39 +41,73 @@ VERSION 2 - Before Going Live
         [x] Lukas Verstraete
         [x] Léo Quiévreux
         [x] Patrick Kyle
+[x] Switch 'ongoing' and 'releases'
+[x] Clean up kb.zco.mx
+[x] Nice Levels - set to 17
+    [x] rtorrent
+    [x] ncdc
+    [x] uhub
+    [x] opentracker
+
+[x] Add zcomx to twitter client
+[x] Follow All the Cartoonists on Twitter
+[x] zcomx-bot on twitter: remove 'Coming April 27'
+[x] Email ML - update #3
+    * shortened url
+    * two twitter accounts
+    [-] release bug
+    [x] short urls
+        * cartooist page
+        * book page
+        * read page
+    [x] zcomx zcomx-bot twitter and zcomx on tumblr
+[x] Set Spares
+
+MONDAY MORNING
+[ ] Remove 'Please note this site is under development.' from login area
+[S] Email David and Karen telling them the site is live
+[ ] Send Out Tweets and Post to Tumblr Any Released Books
+[S] Update #4
+    [ ] longer than 8/anthology
+    [ ] covers
+    [ ] unrelease
+
+BUGS
+[ ] Forgot password?
+    I receive the 'Password reset' email but get "Invalid reset
+    password" when I click on it.
+[ ] Upload Modal - 'Delete' button off to the side
+[ ] Metadata: 2015|T. Motley|Made Out of "Mac"||CC BY-NC-ND|http://194.zco.mx
+[ ] /home/jimk/bin/py_web2py.sh -- applications/zcomx/private/bin/release_book.py --reverse 223
+    Didn't remove torrent.loaded from rtorrent
+[ ] Colin's Metadata Issue
+    Repub, In Whole, Square Dance #6, Paper, Self, 2013, 2013
+[ ] Delete Release
+    applications/zcomx/private/bin/notify_p2p_networks.py --delete 'applications/zcomx/private/var/cbz/zco.mx/S/SamSharpe/The End of Action Man (2015) (196.zco.mx).cbz'|d|
+
+VERSION 3
+[ ] Web images are too small on mac laptops
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
     Buy a wildcard cert
-
-[ ] Switch 'ongoing' and 'releases'
+    [ ] Test on sb.zco.mx
+    [ ] Setup for kb.zco.mx as well
 
 [ ] Add CC licence to zco.mx footer
-                                              [CC BY]
-       Every comic on zco.mx has its own licence. All
-       other content on this site is licenced under a
-                             CC BY 4.0 Int'l licence.
+                                                      [CC BY]
+         Every comic on zco.mx has its own licence; all other
+        content is licenced under the CC BY 4.0 Int'l licence
 
-                                              [CC BY]
-    Except  where  otherwise  noted, content  on this
-    site is licenced under a CC BY 4.0 Int'l licence.
+                                                      [CC BY]
+            Except  where  otherwise  noted, content  on this
+             site is licenced under a CC BY 4.0 Int'l licence
 
-[ ] Nice Levels
-    * lower rtorrent
-    * lower opentracker
+    [-] Add Space Between CC Logo and Text
+    [x] Change colour of CC logo (lighter grey)
+    [ ] http://sb.zco.mx:8080/login -- alignment is off
 
-[S] Clean up kb.zco.mx
-
-MONDAY MORNING
-[ ] Ordering
-[ ] Send Out Tweets and Post to Tumblr Any Released Books
-[ ] Email ML
-    * shortened url
-    * two twitter accounts
-[S] Email Karen telling her the site is live
-
-VERSION 3
-[ ] Follow cartoonists on twitter
+[ ] Add shortened url to cartoonist page ?
 [ ] Rewrite these urls ?
     https://zco.mx/?o=ongoing to https://zco.mx/ongoing
     https://zco.mx/?o=releases to https://zco.mx/releases
