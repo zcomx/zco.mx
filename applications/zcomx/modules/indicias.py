@@ -1035,6 +1035,9 @@ class PublicationMetadata(object):
                     db_meta.publisher_type.requires = IS_IN_SET(
                         publisher_types)
                     db_meta.publisher.requires = IS_NOT_EMPTY()
+                    if self.metadata['published_format'] == 'paper' and \
+                            self.metadata['publisher_type'] == 'self':
+                        db_meta.publisher.requires = None
                     db_meta.from_year.requires = IS_INT_IN_RANGE(
                         min_year, max_year)
                     db_meta.to_year.requires = self.to_year_requires(

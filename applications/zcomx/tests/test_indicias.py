@@ -1728,6 +1728,28 @@ class TestPublicationMetadata(LocalTestCase):
                 'publication_metadata_to_year',
             ])
         )
+
+        # Valid: whole, paper, self, no publisher
+        meta.metadata['published_type'] = 'whole'
+        meta.metadata['published_name'] = 'Some Name',
+        meta.metadata['published_format'] = 'paper'
+        meta.metadata['publisher_type'] = 'self'
+        meta.metadata['publisher'] = ''
+        meta.metadata['from_year'] = 2000
+        meta.metadata['to_year'] = 2001
+        meta.validate()
+        self.assertEqual(meta.errors, {})
+
+        # Invalid: whole, paper, press, no publisher
+        meta.metadata['publisher_type'] = 'press'
+        meta.metadata['publisher'] = ''
+        meta.validate()
+        self.assertEqual(
+            meta.errors['publication_metadata_publisher'],
+            'Enter a value'
+        )
+
+        # Invalid years
         meta.metadata = dict(metadata)
         meta.metadata['from_year'] = 2000
         meta.metadata['to_year'] = 1999
