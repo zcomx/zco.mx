@@ -134,23 +134,23 @@ class ReleaseBook(Releaser):
             self.needs_requeue = True
             return
 
-        # FIXME if not self.book.tumblr_post_id:
-        # FIXME     PostOnSocialMediaQueuer(
-        # FIXME         db.job,
-        # FIXME         cli_args=[str(self.book.id)],
-        # FIXME     ).queue()
-        # FIXME     self.needs_requeue = True
-        # FIXME     # Set the tumblr post id to a dummy value to prevent this step
-        # FIXME     # from running over and over.
-        # FIXME     data = dict(
-        # FIXME         tumblr_post_id=POST_IN_PROGRESS,
-        # FIXME         twitter_post_id=POST_IN_PROGRESS
-        # FIXME     )
-        # FIXME     self.book.update_record(**data)
-        # FIXME     db.commit()
+        if not self.book.tumblr_post_id:
+            PostOnSocialMediaQueuer(
+                db.job,
+                cli_args=[str(self.book.id)],
+            ).queue()
+            self.needs_requeue = True
+            # Set the tumblr post id to a dummy value to prevent this step
+            # from running over and over.
+            data = dict(
+                tumblr_post_id=POST_IN_PROGRESS,
+                twitter_post_id=POST_IN_PROGRESS
+            )
+            self.book.update_record(**data)
+            db.commit()
 
-        # FIXME     self.needs_requeue = True
-        # FIXME     return
+            self.needs_requeue = True
+            return
 
         # Everythings good. Release the book.
         data = dict(
