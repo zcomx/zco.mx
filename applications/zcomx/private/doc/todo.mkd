@@ -63,8 +63,8 @@ VERSION 2 - Before Going Live
     [x] zcomx zcomx-bot twitter and zcomx on tumblr
 [x] Set Spares
 [x] Remove 'Please note this site is under development.' from login area
+[x] Email David and Karen telling them the site is live
 
-[S] Email David and Karen telling them the site is live
 [ ] Send Out Tweets and Post to Tumblr Any Released Books
 [S] Update #4
     [ ] longer than 8 pages/anthology
