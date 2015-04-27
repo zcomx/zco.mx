@@ -568,6 +568,7 @@ def tumblr_data(creator_entity):
         'name': formatted_name(creator_record),
         'name_for_search': creator_name(creator_entity, use='search'),
         'name_for_url': creator_name(creator_entity, use='url'),
+        'short_url': short_url(creator_record),
         'social_media': social_media,
         'twitter': creator_record.twitter,
         'url': url(creator_record, host=SITE_NAME),

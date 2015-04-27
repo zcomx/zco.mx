@@ -756,6 +756,7 @@ class TestFunctions(LocalTestCase):
                 'name': 'First Last',
                 'name_for_search': 'first-last',
                 'name_for_url': 'FirstLast',
+                'short_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
                 'social_media': [
                     ('website', 'http://website.com'),
                     ('twitter', 'https://twitter.com/firstlast'),
