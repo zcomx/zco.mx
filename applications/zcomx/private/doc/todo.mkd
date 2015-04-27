@@ -62,17 +62,18 @@ VERSION 2 - Before Going Live
         * read page
     [x] zcomx zcomx-bot twitter and zcomx on tumblr
 [x] Set Spares
+[x] Remove 'Please note this site is under development.' from login area
 
-MONDAY MORNING
-[ ] Remove 'Please note this site is under development.' from login area
 [S] Email David and Karen telling them the site is live
 [ ] Send Out Tweets and Post to Tumblr Any Released Books
 [S] Update #4
-    [ ] longer than 8/anthology
+    [ ] longer than 8 pages/anthology
     [ ] covers
     [ ] unrelease
+    [ ] no uploads
 
 BUGS
+[ ] Hi-res jpg's bring the server to its knees
 [ ] Forgot password?
     I receive the 'Password reset' email but get "Invalid reset
     password" when I click on it.
