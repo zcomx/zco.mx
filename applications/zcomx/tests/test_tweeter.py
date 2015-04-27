@@ -14,7 +14,8 @@ from applications.zcomx.modules.tweeter import \
     Authenticator, \
     POST_IN_PROGRESS, \
     PhotoDataPreparer, \
-    Poster
+    Poster, \
+    TWEET_MAX_CHARS
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -45,6 +46,7 @@ class DubClient(object):
 class TestConstants(LocalTestCase):
     def test_constants(self):
         self.assertEqual(POST_IN_PROGRESS, '__in_progress__')
+        self.assertEqual(TWEET_MAX_CHARS, 140)
 
 
 class TestAuthenticator(LocalTestCase):
@@ -160,6 +162,7 @@ class TestPhotoDataPreparer(LocalTestCase):
                 'name': 'First Last',
                 'name_for_url': 'FirstLast',
                 'twitter': '@First_Last',
+                'short_url': 'http://101.zco.mx',
             },
             'site': {
                 'name': 'zco.mx',
@@ -171,6 +174,43 @@ class TestPhotoDataPreparer(LocalTestCase):
         self.assertEqual(
             preparer.status(),
             'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx #comics #FirstLast'
+        )
+
+        # Exactly 140 characters
+        name = '123456789012345678901234567890123456'
+        data['book']['formatted_name_no_year'] = name
+        data['book']['short_url'] = 'http://101.zco.mx/{name}-001'.format(name=name)
+        preparer = PhotoDataPreparer(data)
+        got = preparer.status()
+        self.assertEqual(len(got), 140)
+        self.assertEqual(
+            got,
+            '123456789012345678901234567890123456 by @First_Last | http://101.zco.mx/123456789012345678901234567890123456-001 | #zcomx #comics #FirstLast'
+        )
+
+        # Longer than 140 characters (uses creator.short_url to reduce length)
+        name = '1234567890123456789012345678901234567890123456789'
+        data['book']['formatted_name_no_year'] = name
+        data['book']['short_url'] = 'http://101.zco.mx/{name}-001'.format(name=name)
+        preparer = PhotoDataPreparer(data)
+        got = preparer.status()
+        self.assertTrue(len(got) <= 140)
+        self.assertEqual(
+            got,
+            '1234567890123456789012345678901234567890123456789 by @First_Last | http://101.zco.mx | #zcomx #comics #FirstLast'
+        )
+
+        # Longer than 140 characters even with creator short url
+        # This is ok. The tweet will be sent and return an error.
+        name = '1234567890123456789012345678901234567890123456789012345678901234567890123456789'
+        data['book']['formatted_name_no_year'] = name
+        data['book']['short_url'] = 'http://101.zco.mx/{name}-001'.format(name=name)
+        preparer = PhotoDataPreparer(data)
+        got = preparer.status()
+        self.assertTrue(len(got) > 140)
+        self.assertEqual(
+            got,
+            '1234567890123456789012345678901234567890123456789012345678901234567890123456789 by @First_Last | http://101.zco.mx | #zcomx #comics #FirstLast'
         )
 
 

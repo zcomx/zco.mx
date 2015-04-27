@@ -13,6 +13,7 @@ from applications.zcomx.modules.images import UploadImage
 
 LOG = logging.getLogger('app')
 POST_IN_PROGRESS = '__in_progress__'
+TWEET_MAX_CHARS = 140
 
 
 class Authenticator(object):
@@ -93,12 +94,21 @@ class PhotoDataPreparer(object):
 
         tags_str = ' '.join(['#' + x for x in tags])
 
-        return '{name} by {creator} | {url} | {tags}'.format(
+        tweet = '{name} by {creator} | {url} | {tags}'.format(
             name=self.twitter_data['book']['formatted_name_no_year'],
             creator=creator,
             tags=tags_str,
             url=self.twitter_data['book']['short_url'],
         )
+
+        if len(tweet) > TWEET_MAX_CHARS:
+            tweet = '{name} by {creator} | {url} | {tags}'.format(
+                name=self.twitter_data['book']['formatted_name_no_year'],
+                creator=creator,
+                tags=tags_str,
+                url=self.twitter_data['creator']['short_url'],
+            )
+        return tweet
 
 
 class Poster(object):
