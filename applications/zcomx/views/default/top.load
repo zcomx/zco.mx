@@ -18,7 +18,7 @@
     </div>
 </div>
 {{if request.args(0) == 'login':}}
-{{if True or current.app.local_settings.requires_login:}}
+{{if current.app.local_settings.requires_login:}}
     <div class="development_notice alert alert-warning" role="alert">
         Please note this site is under development.
     </div>
