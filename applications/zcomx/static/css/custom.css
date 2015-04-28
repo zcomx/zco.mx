@@ -1593,6 +1593,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding-top: 0;
 }
 
+.footer-content {
+    bottom: 0;
+    margin-bottom: 2em;
+    margin-top: 4em;
+}
+
 .footer-content div {
     display: inline-block;
 }
@@ -1600,8 +1606,16 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .footer-content #footer_links .breadcrumb {
     background-color: inherit;
     font-size: 12px;
-    margin: 0 0 20px;
+    margin: 0;
     line-height: 2em;
+}
+
+.footer-content #footer_cc {
+    color: #999999;
+    float: right;
+    font-size: 8pt;
+    margin-top: -1.8em;
+    text-align: right;
 }
 
 #add_link_container {
