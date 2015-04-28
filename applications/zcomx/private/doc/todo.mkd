@@ -7,20 +7,19 @@ BUGS
     password" when I click on it.
 [x] Graxa Gamgasher - Isn't being seeded
     $ rtxmlrpc -q load.start '' "/srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/zco.mx/A/AndreaTsurumi/Graxa Gamgasher - Teen Girl Sleuth 001 (2014) (182.zco.mx).cbz.torrent.loaded" d.directory_base.set=\"/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx/A/AndreaTsurumi/\" d.priority.set=2
+[x] /home/jimk/bin/py_web2py.sh -- applications/zcomx/private/bin/release_book.py --reverse 223
+    Didn't remove torrent.loaded from rtorrent
+    [x] Colin & Sam's Metadata Issue
+        [x] colin - Repub, In Whole, Square Dance #6, Paper, Self, 2013, 2013
+        [x] sam - It was self published in 2012. Paper.
+[x] Delete Release
+    applications/zcomx/private/bin/notify_p2p_networks.py --delete 'applications/zcomx/private/var/cbz/zco.mx/S/SamSharpe/The End of Action Man (2015) (196.zco.mx).cbz'|d|
 
 [S] Hi-res jpg's bring the server to its knees
-[ ] /home/jimk/bin/py_web2py.sh -- applications/zcomx/private/bin/release_book.py --reverse 223
-    Didn't remove torrent.loaded from rtorrent
-    [S] Colin & Sam's Metadata Issue
-        * colin - Repub, In Whole, Square Dance #6, Paper, Self, 2013, 2013
-        * sam - It was self published in 2012. Paper.
-[ ] Delete Release
-    applications/zcomx/private/bin/notify_p2p_networks.py --delete 'applications/zcomx/private/var/cbz/zco.mx/S/SamSharpe/The End of Action Man (2015) (196.zco.mx).cbz'|d|
 [S] Integrity Check For Torrents
 
 VERSION 3
-[ ] instagram
-[ ] release -> published
+[S] releases/released to 'published'
 [S] microdc
 [S] Setup On jimk.zsw.ca
     rtorrent
@@ -52,6 +51,7 @@ VERSION 3
     https://zco.mx/?o=releases to https://zco.mx/releases
     https://zco.mx/?o=creators to https://zco.mx/cartoonists
 [ ] Remove the ability to change to a more restrictive CC licence
+[ ] Announce on instagram ?
 [ ] Separate '001' and '01 (of 02)' from the title ?
 [ ] Web images are too small on mac laptops
 [S] Change bg to #fafafa ?
