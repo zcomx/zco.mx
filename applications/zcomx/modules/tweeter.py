@@ -6,6 +6,7 @@
 Classes and functions related to twitter posts.
 """
 import logging
+import re
 from gluon import *
 from twitter import Twitter
 from twitter.oauth import OAuth
@@ -13,7 +14,7 @@ from applications.zcomx.modules.images import UploadImage
 
 LOG = logging.getLogger('app')
 POST_IN_PROGRESS = '__in_progress__'
-TWEET_MAX_CHARS = 140
+# Twitter t.co links: https://dev.twitter.com/overview/t.co
 
 
 class Authenticator(object):
@@ -43,6 +44,13 @@ class Authenticator(object):
 
 class PhotoDataPreparer(object):
     """Class representing a preparer of data for twitter photo posting."""
+
+    tweet_formats = {
+        # Twitter appends a photo url (a t.co link) to the end.
+        # Append url for length calculations.
+        'normal': '{name} by {creator} | {url} | {tags}',
+        'length': '{name} by {creator} | {url} | {tags} {url}',
+    }
 
     def __init__(self, twitter_data):
         """Constructor
@@ -83,32 +91,8 @@ class PhotoDataPreparer(object):
 
         In twitter land, the status is the 140 character tweet.
         """
-        creator = self.twitter_data['creator']['twitter'] or \
-            self.twitter_data['creator']['name']
-
-        tags = [
-            self.twitter_data['site']['name'].replace('.', ''),
-            'comics',
-            self.twitter_data['creator']['name_for_url'],
-        ]
-
-        tags_str = ' '.join(['#' + x for x in tags])
-
-        tweet = '{name} by {creator} | {url} | {tags}'.format(
-            name=self.twitter_data['book']['formatted_name_no_year'],
-            creator=creator,
-            tags=tags_str,
-            url=self.twitter_data['book']['short_url'],
-        )
-
-        if len(tweet) > TWEET_MAX_CHARS:
-            tweet = '{name} by {creator} | {url} | {tags}'.format(
-                name=self.twitter_data['book']['formatted_name_no_year'],
-                creator=creator,
-                tags=tags_str,
-                url=self.twitter_data['creator']['short_url'],
-            )
-        return tweet
+        tweet = Tweet.from_data(self.twitter_data)
+        return tweet.status()
 
 
 class Poster(object):
@@ -137,3 +121,107 @@ class Poster(object):
             photo_data: dict of data required for twitter photo post.
         """
         return self.client.statuses.update_with_media(**photo_data)
+
+
+class Tweet(object):
+    """Class representing a tweet"""
+    TWEET_MAX_CHARS = 140
+    SAMPLE_TCO_LINK = 'http://t.co/1234567890'
+
+    tweet_formats = {
+        # Twitter appends a photo url (a t.co link) to the end.
+        # Append url for length calculations.
+        'normal': '{name} by {creator} | {url} | {tags}',
+        'length': '{name} by {creator} | {url} | {tags} {url}',
+    }
+
+    def __init__(self, twitter_data):
+        """Initializer
+
+        Args:
+            data: string, first arg
+        """
+        self.twitter_data = twitter_data
+
+    def creator(self):
+        """Return the creator as used in the tweet.
+
+        Returns:
+            string
+        """
+        return self.twitter_data['creator']['twitter'] or \
+            self.twitter_data['creator']['name']
+
+    @classmethod
+    def from_data(cls, twitter_data):
+        """Return a Tweet instance appropriate for the provided data."""
+        tweet = cls(twitter_data)
+        if len(tweet.for_length_calculation()) > cls.TWEET_MAX_CHARS:
+            tweet = TruncatedTweet(twitter_data)
+        return tweet
+
+    def for_length_calculation(self):
+        """Return the tweet as used for calculating the length.
+
+        Returns:
+            string
+        """
+        tags = formatted_tags(self.hash_tag_values())
+
+        data = {
+            'name': self.twitter_data['book']['formatted_name_no_year'],
+            'creator': self.creator(),
+            'tags': tags,
+            'url': self.SAMPLE_TCO_LINK,
+        }
+
+        return self.tweet_formats['length'].format(**data)
+
+    def hash_tag_values(self):
+        """Return a list of hash tag values.
+
+        Returns:
+            list of strings used for hash tags.
+        """
+        return [
+            self.twitter_data['site']['name'],
+            'comics',
+            self.twitter_data['creator']['name_for_url'],
+        ]
+
+    def status(self):
+        """Return the status.
+
+        In twitter land, the status is the 140 character tweet.
+        """
+        tags = self.hash_tag_values()
+
+        data = {
+            'name': self.twitter_data['book']['formatted_name_no_year'],
+            'creator': self.creator(),
+            'tags': formatted_tags(tags),
+            'url': self.twitter_data['book']['short_url'],
+        }
+
+        return self.tweet_formats['normal'].format(**data)
+
+
+class TruncatedTweet(Tweet):
+    """Class representing a truncated"""
+
+    def hash_tag_values(self):
+        return [self.twitter_data['site']['name']]
+
+
+def formatted_tags(tags):
+    """Return tweet hash tags formatted.
+
+    Args:
+        list of strings, tag values.
+
+    Returns:
+        string, eg '#val1 #val2 #val3'
+    """
+    # Twitter allows letters, numbers, and underscores.
+    scrub = lambda x: re.sub(r'[^\w]+', '', x)
+    return ' '.join(['#' + scrub(x) for x in tags])
