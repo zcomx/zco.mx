@@ -43,6 +43,7 @@ def post_on_tumblr(book, creator):
     Returns:
         str, tumblr posting id
     """
+    LOG.debug('Creating tumblr posting for: %s', book.name)
     settings = current.app.local_settings
     credentials = {
         'consumer_key': settings.tumblr_consumer_key,
@@ -95,6 +96,7 @@ def post_on_twitter(book, creator):
     Returns:
         str, twitter posting id
     """
+    LOG.debug('Creating twitter posting for: %s', book.name)
     settings = current.app.local_settings
     credentials = {
         'consumer_key': settings.twitter_consumer_key,
@@ -223,7 +225,6 @@ def main():
     if not creator:
         raise NotFoundError('Creator not found, id: %s', book.creator_id)
 
-    LOG.debug('Creating tumblr posting for: %s', book.name)
     services = []
     if options.tumblr:
         services.append('tumblr')
