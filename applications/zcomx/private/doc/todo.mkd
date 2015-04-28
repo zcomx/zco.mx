@@ -35,7 +35,7 @@ VERSION 3
     [x] Change colour of CC logo (lighter grey)
     [ ] http://sb.zco.mx:8080/login -- alignment is off
 
-[ ] Add shortened url to cartoonist page ?
+[ ] Add 'shortened url' to cartoonist page
 [ ] Rewrite these urls ?
     https://zco.mx/?o=ongoing to https://zco.mx/ongoing
     https://zco.mx/?o=releases to https://zco.mx/releases
@@ -43,7 +43,8 @@ VERSION 3
 [ ] Remove the ability to change to a more restrictive CC licence
 [ ] Separate '001' and '01 (of 02)' from the title ?
 [ ] Web images are too small on mac laptops
-[S] Change bg to #fafafa ?  Not on the reader page
+[S] Change bg to #fafafa ?
+    Not on the reader page
 [S] Setup hypermail for real-only mailing lists in login area ?
 [S] Reader notifications for new material
     Follow Links
