@@ -28,12 +28,13 @@ from applications.zcomx.modules.job_queue import \
     InvalidStatusError, \
     JobQueuer, \
     LogDownloadsQueuer, \
+    NotifyP2PQueuer, \
     OptimizeCBZImgForReleaseQueuer, \
     OptimizeCBZImgQueuer, \
     OptimizeImgQueuer, \
     OptimizeOriginalImgQueuer, \
     OptimizeWebImgQueuer, \
-    PostBookOnTumblrQueuer, \
+    PostOnSocialMediaQueuer, \
     PRIORITIES, \
     Queue, \
     QueueEmptyError, \
@@ -41,6 +42,7 @@ from applications.zcomx.modules.job_queue import \
     QueueLockedExtendedError, \
     QueueWithSignal, \
     ReleaseBookQueuer, \
+    ReverseReleaseBookQueuer, \
     UpdateIndiciaQueuer
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
@@ -488,6 +490,28 @@ class TestLogDownloadsQueuer(LocalTestCase):
         )
 
 
+class TestNotifyP2PQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = NotifyP2PQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'-d': True},
+            cli_args=['path/to/file.cbz'],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/notify_p2p_networks.py -d path/to/file.cbz'
+        )
+
+
 class TestOptimizeCBZImgQueuer(LocalTestCase):
 
     def test_queue(self):
@@ -605,10 +629,10 @@ class TestOptimizeWebImgQueuer(LocalTestCase):
         )
 
 
-class TestPostBookOnTumblrQueuer(LocalTestCase):
+class TestPostOnSocialMediaQueuer(LocalTestCase):
 
     def test_queue(self):
-        queuer = PostBookOnTumblrQueuer(
+        queuer = PostOnSocialMediaQueuer(
             db.job,
             job_options={'status': 'd'},
             cli_options={'--vv': True},
@@ -623,7 +647,7 @@ class TestPostBookOnTumblrQueuer(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/post_book_on_tumblr.py --vv 123'
+            'applications/zcomx/private/bin/post_on_social_media.py --vv 123'
         )
 
 
@@ -735,8 +759,8 @@ class TestQueue(LocalTestCase):
         for j in job_data:
             job_d = dict(command='pwd', start=j[0], priority=j[1], status=j[2])
             job_id = db.job.insert(**job_d)
+            db.commit()
             job_ids.append(job_id)
-        db.commit()
 
         job_set = queue.jobs()
         self.assertEqual(len(job_set), 6)
@@ -1030,6 +1054,28 @@ class TestReleaseBookQueuer(LocalTestCase):
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/release_book.py --requeues 4 -m 10 123'
+        )
+
+
+class TestReverseReleaseBookQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = ReverseReleaseBookQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'--requeues': '4', '-m': '10'},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/release_book.py --requeues 4 --reverse -m 10 123'
         )
 
 

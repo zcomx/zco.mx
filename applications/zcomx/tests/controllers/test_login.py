@@ -15,7 +15,7 @@ from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
-    BOOK_STATUS_INCOMPLETE
+    BOOK_STATUS_DRAFT
 
 
 # C0111: Missing docstring
@@ -104,38 +104,20 @@ class TestFunctions(LocalTestCase):
         if not cls._creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
-        # Get a book by creator with pages and links.
-        count = db.book_page.book_id.count()
-        query = (db.creator.id == cls._creator.id) & \
-                (db.book.release_date == None)
-        book_page = db(query).select(
-            db.book_page.ALL,
-            count,
-            left=[
-                db.book.on(db.book.id == db.book_page.book_id),
-                db.book_to_link.on(db.book_to_link.book_id == db.book.id),
-                db.creator.on(db.creator.id == db.book.creator_id),
-            ],
-            groupby=db.book_page.book_id,
-            orderby=~count
-        ).first()
-        if not book_page:
-            raise SyntaxError(
-                'No book page from creator with email: {e}'.format(e=email)
-            )
-
-        query = (db.book_page.id == book_page.book_page.id)
-        cls._book_page = db(query).select().first()
-        if not cls._book_page:
-            raise SyntaxError(
-                'Unable to get book_page for: {e}'.format(e=email)
-            )
-
-        query = (db.book.id == cls._book_page.book_id)
+        query = (db.book.creator_id == cls._creator.id) & \
+                (db.book.name_for_url == 'TestDoNotDelete')
         cls._book = db(query).select().first()
         if not cls._book:
             raise SyntaxError(
                 'No books for creator with email: {e}'.format(e=email)
+            )
+
+        query = (db.book_page.book_id == cls._book.id) & \
+                (db.book_page.page_no == 1)
+        cls._book_page = db(query).select().first()
+        if not cls._book_page:
+            raise SyntaxError(
+                'Unable to get book_page for: {e}'.format(e=email)
             )
 
         query = (db.creator_to_link.creator_id == cls._creator.id)
@@ -484,7 +466,7 @@ class TestFunctions(LocalTestCase):
         )
 
         # Valid book_id, no book pages returns success
-        self._book.update_record(status=BOOK_STATUS_INCOMPLETE)
+        self._book.update_record(status=BOOK_STATUS_DRAFT)
         db.commit()
         self.assertTrue(
             web.test(
@@ -614,17 +596,9 @@ class TestFunctions(LocalTestCase):
             verify=False,
         )
         self.assertEqual(response.status_code, 200)
+
         creator = get_creator()
         self.assertTrue(creator.image)
-
-        # A job to process the image should be created. It may take a bit
-        # to complete so check that the job exists, or it is completed.
-        query = (db.job.command.like(
-            '%process_img.py {i}'.format(i=creator.image)))
-        job_count = db(query).count()
-        query = (db.optimize_img_log.image == creator.image)
-        log_count = db(query).count()
-        self.assertTrue(job_count == 1 or log_count == 1)
 
         response_2 = requests.delete(
             web.app + '/login/creator_img_handler',
@@ -634,13 +608,6 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(response_2.status_code, 200)
         creator = get_creator()
         self.assertFalse(creator.image)
-
-        query = (db.job.command.like(
-            '%process_img.py --delete {i}'.format(i=creator.image)))
-        job_count = db(query).count()
-        query = (db.optimize_img_log.image == creator.image)
-        log_count = db(query).count()
-        self.assertTrue(job_count == 1 or log_count == 0)
 
         # Reset the image
         sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')
@@ -680,41 +647,53 @@ class TestFunctions(LocalTestCase):
 
         web.login()
 
-        self._creator.update_record(
+        # Test: no images set
+        data = dict(
             indicia_portrait=None,
             indicia_landscape=None,
         )
+        self._creator.update_record(**data)
         db.commit()
 
         creator = get_creator()
         self.assertEqual(creator.indicia_portrait, None)
         self.assertEqual(creator.indicia_landscape, None)
 
-        # Create book
         url = '{url}/indicia_preview_urls.json'.format(url=self.url)
         web.post(url, data={})
         result = loads(web.text)
         self.assertEqual(result['status'], 'ok')
 
         creator = get_creator()
-        self.assertRegexpMatches(
-            creator.indicia_landscape,
-            r'^creator.indicia_landscape.[a-z0-9.]+\.png$'
-        )
-        self.assertRegexpMatches(
-            creator.indicia_portrait,
-            r'^creator.indicia_portrait.[a-z0-9.]+\.png$'
-        )
 
         self.assertEqual(
             result['urls']['landscape'],
-            '/images/download.json/{i}?size=web'.format(
-                i=creator.indicia_landscape)
+            '/zcomx/static/images/generic_indicia_landscape.png'
         )
         self.assertEqual(
             result['urls']['portrait'],
-            '/images/download.json/{i}?size=web'.format(
-                i=creator.indicia_portrait)
+            '/zcomx/static/images/generic_indicia_portrait.png'
+        )
+
+        # Test: with images set
+        data = dict(
+            indicia_landscape='creator.indicia_landscape.lll.000.png',
+            indicia_portrait='creator.indicia_portrait.ppp.111.png',
+        )
+        creator.update_record(**data)
+        db.commit()
+        web.post(url, data={})
+        result = loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            result['urls']['landscape'],
+            '/images/download.json/creator.indicia_landscape.lll.000.png?size=web'
+        )
+        self.assertEqual(
+            result['urls']['portrait'],
+            '/images/download.json/creator.indicia_portrait.ppp.111.png?size=web'
         )
 
         # Re-run should return exact same results
@@ -936,10 +915,16 @@ class TestFunctions(LocalTestCase):
             '_action': 'update',
             'publication_metadata_republished': 'repub',
             'publication_metadata_published_type': 'serial',
+            'publication_metadata_from_year': '1997',
+            'publication_metadata_to_year': '1998',
             'publication_serial_published_name__0': 'My Story',
             'publication_serial_story_number__0': '1',
+            'publication_serial_from_year__0': '2001',
+            'publication_serial_to_year__0': '2002',
             'publication_serial_published_name__1': 'My Story',
             'publication_serial_story_number__1': '2',
+            'publication_serial_from_year__1': '2005',
+            'publication_serial_to_year__1': '2006',
             'is_derivative': 'yes',
             'derivative_title': 'My D Title',
             'derivative_creator': 'Creator Smith',

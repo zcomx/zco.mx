@@ -5,9 +5,9 @@
 
 Classes and functions related to torrents.
 """
+import logging
 import os
 import subprocess
-import sys
 from gluon import *
 from applications.zcomx.modules.archives import \
     CBZArchive, \
@@ -17,10 +17,15 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import \
     creator_name, \
     torrent_file_name as creator_torrent_file_name
-from applications.zcomx.modules.shell_utils import TempDirectoryMixin
+from applications.zcomx.modules.shell_utils import \
+    TempDirectoryMixin, \
+    os_nice
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+from applications.zcomx.modules.zco import NICES
+
+LOG = logging.getLogger('app')
 
 
 class TorrentCreateError(Exception):
@@ -57,7 +62,7 @@ class BaseTorrentCreator(TempDirectoryMixin):
         result = archive.add_file(self._tor_file, self.get_destination())
         return result
 
-    def create(self):
+    def create(self, nice=NICES['mktorrent']):
         """Create the torrent file.
 
         Returns:
@@ -79,13 +84,16 @@ class BaseTorrentCreator(TempDirectoryMixin):
         args.append(output_file)
         args.append(target)
         p = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os_nice(nice),
+        )
         unused_stdout, p_stderr = p.communicate()
         # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
         # pylint: disable=E1101
         if p.returncode:
-            print >> sys.stderr, 'mktorrent call failed: {e}'.format(
-                e=p_stderr)
+            LOG.error('mktorrent call failed: %s', p_stderr)
             raise TorrentCreateError('Creation of torrent file failed.')
         self._tor_file = output_file
         return self
@@ -265,3 +273,53 @@ class CreatorTorrentCreator(BaseTorrentCreator):
     def set_cbz_base_path(self, path):
         """Helper function to designate the cbz_base_path for get_target."""
         self._cbz_base_path = path
+
+
+class P2PNotifyError(Exception):
+    """Exception class for a torrent file create error."""
+    pass
+
+
+class P2PNotifier(object):
+    """Class representing a P2PNotifier"""
+
+    def __init__(self, cbz_filename):
+        """Constructor
+
+        Args:
+            cbz_filename: string, first arg
+        """
+        self.cbz_filename = cbz_filename
+
+    def notify(self, delete=False, nice=NICES['zc-p2p']):
+        """Notify p2p networks of cbz file.
+
+        Args:
+            delete: boolean, if True notify of deleting of the cbz file.
+
+        """
+        zc_p2p = os.path.abspath(
+            os.path.join(current.request.folder, 'private', 'bin', 'zc-p2p.sh')
+        )
+
+        real_filename = os.path.abspath(self.cbz_filename)
+
+        args = []
+        args.append('sudo')
+        args.append(zc_p2p)
+        if delete:
+            args.append('-d')
+        args.append(real_filename)
+        LOG.debug('zc-p2p.sh args: %s', args)
+        p = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os_nice(nice),
+        )
+        unused_stdout, p_stderr = p.communicate()
+        # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
+        # pylint: disable=E1101
+        if p.returncode:
+            LOG.error('Run of zc-p2p call failed: %s', p_stderr)
+            raise P2PNotifyError('Run of zc-p2p call failed.')

@@ -24,6 +24,7 @@ from gluon.http import HTTP
 from applications.zcomx.modules.images import \
     CachedImgTag, \
     CreatorImgTag, \
+    ImageDescriptor, \
     ImageOptimizeError, \
     ImgTag, \
     ResizeImgError, \
@@ -33,7 +34,6 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     filename_for_size, \
     is_image, \
-    on_delete_image, \
     optimize, \
     scrub_extension_for_store, \
     store
@@ -42,8 +42,6 @@ from applications.zcomx.modules.tests.runner import \
 from applications.zcomx.modules.shell_utils import \
     imagemagick_version, \
     TempDirectoryMixin
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -320,6 +318,79 @@ class TestCreatorImgTag(ImageTestCase):
             {'_class': 'img_class preview placeholder_torso', '_id': 'img_id'})
 
 
+class TestImageDescriptor(ImageTestCase):
+
+    def test____init__(self):
+        descriptor = ImageDescriptor('/path/to/file')
+        self.assertTrue(descriptor)
+
+    def test__dimensions(self):
+        tests = [
+            # (filename, expect)
+            ('landscape.png', (300, 170)),
+            ('portrait.png', (140, 168)),
+            ('square.png', (200, 200)),
+        ]
+        for t in tests:
+            filename = self._prep_image(t[0])
+            descriptor = ImageDescriptor(filename)
+            self.assertEqual(descriptor.dimensions(), t[1])
+
+        # Test cache
+        descriptor = ImageDescriptor('/path/to/file')
+        descriptor._dimensions = (1, 1)
+        self.assertEqual(descriptor.dimensions(), (1, 1))
+
+    def test__number_of_colours(self):
+        tests = [
+            # (filename, expect)
+            ('square.png', 1),
+            ('256colour-png.png', 256),
+            ('256+colour.jpg', 2594),
+        ]
+        for t in tests:
+            filename = self._prep_image(t[0])
+            descriptor = ImageDescriptor(filename)
+            self.assertEqual(descriptor.number_of_colours(), t[1])
+
+        # Test cache
+        descriptor = ImageDescriptor('/path/to/file')
+        descriptor._number_of_colours = -1
+        self.assertEqual(descriptor.number_of_colours(), -1)
+
+    def test__orientation(self):
+        for t in ['portrait', 'landscape', 'square']:
+            img = '{n}.png'.format(n=t)
+            filename = self._prep_image(img)
+            descriptor = ImageDescriptor(filename)
+            self.assertEqual(descriptor.orientation(), t)
+
+    def test__pil_image(self):
+        filename = self._prep_image('file.png')
+        descriptor = ImageDescriptor(filename)
+        im = descriptor.pil_image()
+        self.assertTrue(hasattr(im, 'size'))
+        self.assertTrue(hasattr(im, 'info'))
+        self.assertTrue(hasattr(im, 'getcolors'))
+
+    def test__size_bytes(self):
+        tests = [
+            # (filename, expect)
+            ('landscape.png', 690),
+            ('portrait.png', 255),
+            ('square.png', 274),
+        ]
+        for t in tests:
+            filename = self._prep_image(t[0])
+            descriptor = ImageDescriptor(filename)
+            self.assertEqual(descriptor.size_bytes(), t[1])
+
+        # Test cache
+        descriptor = ImageDescriptor('/path/to/file')
+        descriptor._size_bytes = 1
+        self.assertEqual(descriptor.size_bytes(), 1)
+
+
 class TestImageOptimizeError(LocalTestCase):
     def test_parent_init(self):
         msg = 'This is an error message.'
@@ -442,6 +513,7 @@ class TestImgTag(ImageTestCase):
         img_tag.size = '_fake_'
         self.assertEqual(img_tag.url_vars(), {'size': '_fake_'})
 
+
 class TestResizeImg(ImageTestCase):
 
     def test____init__(self):
@@ -494,6 +566,8 @@ class TestResizeImg(ImageTestCase):
                             md5s[fmt.format(typ=prefix)]
                         )
                     if colors is not None:
+                        img = ImageDescriptor(resize_img.filenames[prefix])
+                        self.assertTrue(img.number_of_colours() in colors)
                         im = Image.open(resize_img.filenames[prefix])
                         self.assertTrue(
                             len(im.getcolors(maxcolors=99999)) in colors
@@ -780,8 +854,8 @@ class TestUploadImage(ImageTestCase):
             nameonly=True,
         )
         self.assertEqual(self._image_name, file_name)
-        self.assertEqual(up_image._images, {})
-        self.assertEqual(up_image._dimensions, {})
+        self.assertEqual(up_image._full_name, None)
+        self.assertEqual(up_image._original_name, None)
 
     def test__delete(self):
         if self._opts.quick:
@@ -813,28 +887,6 @@ class TestUploadImage(ImageTestCase):
         self._exist(have_not=['original', 'cbz', 'web'])
         up_image.delete_all()        # Handle subsequent delete gracefully
         self._exist(have_not=['original', 'cbz', 'web'])
-
-    def test__dimensions(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
-
-        up_image = UploadImage(db.creator.image, self._creator.image)
-        self.assertEqual(up_image._dimensions, {})
-
-        dims = up_image.dimensions()
-        self.assertTrue('original' in up_image._dimensions)
-        self.assertEqual(dims, up_image._dimensions['original'])
-
-        # Should get from cache.
-        up_image._dimensions['original'] = (1, 1)
-        dims_2 = up_image.dimensions()
-        self.assertEqual(dims_2, (1, 1))
-
-        dims_3 = up_image.dimensions(size='web')
-        self.assertTrue('web' in up_image._dimensions)
-        self.assertEqual(dims_3, (750, 1125))
 
     def test__fullname(self):
         if self._opts.quick:
@@ -870,19 +922,6 @@ class TestUploadImage(ImageTestCase):
             ),
         )
 
-    def test__orientation(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
-        book_page = self.add(db.book_page, dict())
-
-        for t in ['portrait', 'landscape', 'square']:
-            img = '{n}.png'.format(n=t)
-            filename = self._prep_image(img)
-            self._set_image(db.book_page.image, book_page, filename)
-            up_image = UploadImage(db.book_page.image, book_page.image)
-            self.assertEqual(up_image.orientation(), t)
-
     def test__original_name(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
@@ -891,28 +930,6 @@ class TestUploadImage(ImageTestCase):
 
         up_image = UploadImage(db.creator.image, self._creator.image)
         self.assertEqual(up_image.original_name(), 'abc.jpg')
-
-    def test__pil_image(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
-
-        up_image = UploadImage(db.creator.image, self._creator.image)
-        self.assertEqual(up_image._images, {})
-
-        im = up_image.pil_image()
-        self.assertTrue('original' in up_image._images)
-        self.assertEqual(im, up_image._images['original'])
-
-        # Should get from cache.
-        up_image._images['original'] = '_stub_'
-        im_2 = up_image.pil_image()
-        self.assertEqual(im_2, up_image._images['original'])
-
-        im_3 = up_image.pil_image(size='web')
-        self.assertTrue('web' in up_image._images)
-        self.assertTrue(hasattr(im_3, 'size'))
 
     def test__retrieve(self):
         if self._opts.quick:
@@ -935,29 +952,6 @@ class TestUploadImage(ImageTestCase):
         up_image._original_name = '_original_'
         up_image._full_name = '_full_'
         self.assertEqual(up_image.retrieve(), ('_original_', '_full_'))
-
-    def test__size(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-        filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
-
-        up_image = UploadImage(db.creator.image, self._creator.image)
-        self.assertEqual(up_image._sizes, {})
-
-        size = up_image.size()
-        self.assertTrue('original' in up_image._sizes)
-        self.assertEqual(size, up_image._sizes['original'])
-        self.assertEqual(size, 77015)
-
-        # Should get from cache.
-        up_image._sizes['original'] = 9999
-        size_2 = up_image.size()
-        self.assertEqual(size_2, 9999)
-
-        size_3 = up_image.size(size='web')
-        self.assertTrue('web' in up_image._sizes)
-        self.assertEqual(size_3, 3474)
 
 
 class TestFunctions(ImageTestCase):
@@ -1070,7 +1064,7 @@ class TestFunctions(ImageTestCase):
             filename = up_image.fullname(size=size)
             self.assertTrue(os.path.exists(filename))
             self.assertEqual(owner(filename), ('http', 'http'))
-            dims[size] = up_image.dimensions(size=size)
+            dims[size] = ImageDescriptor(filename).dimensions()
         for i in range(0, 2):
             self.assertTrue(dims['original'][i] > dims['cbz'][i])
             self.assertTrue(dims['cbz'][i] > dims['web'][i])
@@ -1100,7 +1094,7 @@ class TestFunctions(ImageTestCase):
             filename = up_image.fullname(size=size)
             self.assertTrue(os.path.exists(filename))
             self.assertEqual(owner(filename), ('http', 'http'))
-            dims[size] = up_image.dimensions(size=size)
+            dims[size] = ImageDescriptor(filename).dimensions()
         # All should be the same size
         for i in range(0, 2):
             self.assertEqual(dims['original'][i], dims['cbz'][i])

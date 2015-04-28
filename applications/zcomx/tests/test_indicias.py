@@ -155,11 +155,12 @@ class TestBookIndiciaPage(ImageTestCase):
         self.assertTrue(indicia)
 
     def test__call_to_action_text(self):
-        self._creator.update_record(
+        data = dict(
             twitter=None,
             tumblr=None,
             facebook=None,
         )
+        self._creator.update_record(**data)
         db.commit()
 
         indicia = BookIndiciaPage(self._book)
@@ -408,10 +409,11 @@ class TestCreatorIndiciaPagePng(ImageTestCase):
         self.assertEqual(png_page.creator.id, self._creator.id)
 
     def test__create(self):
-        self._creator.update_record(
+        data = dict(
             indicia_portrait=None,
             indicia_landscape=None,
         )
+        self._creator.update_record(**data)
         db.commit()
 
         png_page = CreatorIndiciaPagePng(self._creator)
@@ -1726,6 +1728,28 @@ class TestPublicationMetadata(LocalTestCase):
                 'publication_metadata_to_year',
             ])
         )
+
+        # Valid: whole, paper, self, no publisher
+        meta.metadata['published_type'] = 'whole'
+        meta.metadata['published_name'] = 'Some Name',
+        meta.metadata['published_format'] = 'paper'
+        meta.metadata['publisher_type'] = 'self'
+        meta.metadata['publisher'] = ''
+        meta.metadata['from_year'] = 2000
+        meta.metadata['to_year'] = 2001
+        meta.validate()
+        self.assertEqual(meta.errors, {})
+
+        # Invalid: whole, paper, press, no publisher
+        meta.metadata['publisher_type'] = 'press'
+        meta.metadata['publisher'] = ''
+        meta.validate()
+        self.assertEqual(
+            meta.errors['publication_metadata_publisher'],
+            'Enter a value'
+        )
+
+        # Invalid years
         meta.metadata = dict(metadata)
         meta.metadata['from_year'] = 2000
         meta.metadata['to_year'] = 1999
@@ -1943,11 +1967,12 @@ class TestFunctions(ImageTestCase):
             return os.path.exists(f)
 
         # Test cleared
-        self._creator.update_record(
+        data = dict(
             indicia_image=None,
             indicia_portrait=None,
             indicia_landscap=None,
         )
+        self._creator.update_record(**data)
         db.commit()
 
         creator = entity_to_row(db.creator, self._creator.id)
@@ -1957,9 +1982,7 @@ class TestFunctions(ImageTestCase):
 
         filename = self._prep_image('cbz_plus.png')
         indicia_image = store(db.creator.indicia_image, filename)
-        self._creator.update_record(
-            indicia_image=indicia_image,
-        )
+        self._creator.update_record(indicia_image=indicia_image)
         db.commit()
 
         create_creator_indicia(self._creator)
@@ -1977,11 +2000,12 @@ class TestFunctions(ImageTestCase):
         for field in fields:
             if creator_1[field]:
                 on_delete_image(creator_1[field])
-        creator_1.update_record(
+        data = dict(
             indicia_image=None,
             indicia_portrait=None,
             indicia_landscape=None,
         )
+        creator_1.update_record(**data)
         db.commit()
 
     def test__render_cc_licence(self):

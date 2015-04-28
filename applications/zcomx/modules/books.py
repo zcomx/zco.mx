@@ -20,7 +20,8 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
-    CachedImgTag
+    CachedImgTag, \
+    ImageDescriptor
 from applications.zcomx.modules.names import \
     BookName, \
     BookNumber, \
@@ -34,7 +35,7 @@ from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_INCOMPLETE, \
+    BOOK_STATUS_DRAFT, \
     SITE_NAME
 
 
@@ -82,12 +83,13 @@ class ContributionEvent(BookEvent):
         if value is None:
             return
         db = current.app.db
-        event_id = db.contribution.insert(
+        data = dict(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
             time_stamp=datetime.datetime.now(),
             amount=value
         )
+        event_id = db.contribution.insert(**data)
         db.commit()
         return event_id
 
@@ -113,12 +115,13 @@ class DownloadEvent(BookEvent):
             LOG.error('download_click not found: %s', value)
             return
 
-        event_id = db.download.insert(
+        data = dict(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
             time_stamp=datetime.datetime.now(),
             download_click_id=download_click.id,
         )
+        event_id = db.download.insert(**data)
         db.commit()
         return event_id
 
@@ -138,12 +141,13 @@ class RatingEvent(BookEvent):
         if value is None:
             return
         db = current.app.db
-        event_id = db.rating.insert(
+        data = dict(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
             time_stamp=datetime.datetime.now(),
             amount=value
         )
+        event_id = db.rating.insert(**data)
         db.commit()
         return event_id
 
@@ -161,11 +165,12 @@ class ViewEvent(BookEvent):
 
     def _log(self, value=None):
         db = current.app.db
-        event_id = db.book_view.insert(
+        data = dict(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
             time_stamp=datetime.datetime.now()
         )
+        event_id = db.book_view.insert(**data)
         db.commit()
         return event_id
 
@@ -222,7 +227,7 @@ def book_page_for_json(db, book_page_id):
         return
 
     filename = page.upload_image().original_name()
-    size = page.upload_image().size()
+    size = ImageDescriptor(page.upload_image().fullname()).size_bytes()
 
     down_url = URL(
         c='images',
@@ -411,7 +416,7 @@ def calc_status(book_entity):
         return BOOK_STATUS_DISABLED
 
     page_count = db(db.book_page.book_id == book_record.id).count()
-    return BOOK_STATUS_ACTIVE if page_count > 0 else BOOK_STATUS_INCOMPLETE
+    return BOOK_STATUS_ACTIVE if page_count > 0 else BOOK_STATUS_DRAFT
 
 
 def cbz_comment(book_entity):
@@ -1004,7 +1009,7 @@ def orientation(book_page_entity):
         raise NotFoundError('Book page has no image, book_page.id {i}'.format(
             i=page.book_page.id))
 
-    return page.upload_image().orientation()
+    return ImageDescriptor(page.upload_image().fullname()).orientation()
 
 
 def page_url(book_page_entity, reader=None, **url_kwargs):
@@ -1255,15 +1260,26 @@ def release_barriers(book_entity):
         })
 
     # Images are wide enough.
+    # Images must be a min_cbz_width unless the height is a
+    # minimum (min_cbz_height_to_exempt)
     if pages:
         small_images = []
         min_width = BookPage.min_cbz_width
+        min_height = BookPage.min_cbz_height_to_exempt
         for page in pages:
-            dims = page.upload_image().dimensions(size='cbz')
+            try:
+                dims = ImageDescriptor(
+                    page.upload_image().fullname(size='cbz')
+                ).dimensions()
+            except IOError:
+                # The 'cbz' size may not exist.
+                dims = None
             if not dims:
-                dims = page.upload_image().dimensions(size='original')
-            width, unused_h = dims
-            if width < min_width:
+                dims = ImageDescriptor(
+                    page.upload_image().fullname(size='original')
+                ).dimensions()
+            width, height = dims
+            if width < min_width and height < min_height:
                 original_name = page.upload_image().original_name()
                 small_images.append(
                     '{n} (width: {w} px)'.format(n=original_name, w=width)
@@ -1540,9 +1556,11 @@ def tumblr_data(book_entity):
     except NotFoundError:
         first_page = None
 
-    source = None
+    first_page_image = first_page.image if first_page else None
+
+    download_url = None
     if first_page:
-        source = URL(
+        download_url = URL(
             c='images',
             f='download',
             args=first_page.image,
@@ -1551,15 +1569,18 @@ def tumblr_data(book_entity):
         )
 
     return {
+        'cover_image_name': first_page_image,
         'description': book_record.description,
-        'name': book_record.name,
-        'slug_name': book_name(book_record, use='search'),
-        'source': source,
-        'tag_name': book_record.name,
-        'title': formatted_name(
+        'download_url': download_url,
+        'formatted_name': formatted_name(
             db, book_record, include_publication_year=True),
-        'tweet_name': formatted_name(
+        'formatted_name_no_year': formatted_name(
             db, book_record, include_publication_year=False),
+        'formatted_number': formatted_number(book_record),
+        'name': book_record.name,
+        'name_camelcase': BookName(book_record.name).for_url(),
+        'name_for_search': book_name(book_record, use='search'),
+        'short_url': short_url(book_record),
         'url': url(book_record, host=SITE_NAME),
     }
 
@@ -1590,9 +1611,7 @@ def update_contributions_remaining(db, book_entity):
 
     total = contributions_remaining_by_creator(db, creator_record)
     if creator_record.contributions_remaining != total:
-        creator_record.update_record(
-            contributions_remaining=total
-        )
+        creator_record.update_record(contributions_remaining=total)
         db.commit()
 
 

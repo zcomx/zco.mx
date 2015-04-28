@@ -2,17 +2,22 @@
 # -*- coding: utf-8 -*-
 
 """
-reset_password.py
+publication_year_fix.py
 
-Script reset the password of a auth_user record.
+Script to set the book.publication_year field based on metadata.
 """
-import getpass
 import logging
 import os
+import sys
+import traceback
 from gluon import *
 from gluon.shell import env
-from gluon.validators import CRYPT
 from optparse import OptionParser
+from applications.zcomx.modules.indicias import \
+    PublicationMetadata
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -22,24 +27,19 @@ db = APP_ENV['db']
 
 LOG = logging.getLogger('cli')
 
-# line-too-long (C0301): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
-
 
 def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    reset_password.py [OPTIONS] email [password]
-
-    If the password is not provided, the user is prompted for it.
+    publication_year_fix.py
 
 OPTIONS
     -h, --help
         Print a brief help.
 
     --man
-        Print extended help.
+        Print man page-like help.
 
     -v, --verbose
         Print information messages to stdout.
@@ -53,7 +53,7 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] email [password]'
+    usage = '%prog [options]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -72,7 +72,7 @@ def main():
         help='More verbose.',
     )
 
-    (options, args) = parser.parse_args()
+    (options, unused_args) = parser.parse_args()
 
     if options.man:
         man_page()
@@ -85,30 +85,25 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if not args or len(args) > 2:
-        print parser.print_help()
-        exit(1)
+    LOG.info('Started.')
+    ids = [x.id for x in db(db.book).select(db.book.id)]
+    for book_id in ids:
+        book_record = entity_to_row(db.book, book_id)
+        if not book_record:
+            raise NotFoundError('Book not found, id: {i}'.format(i=book_id))
+        meta = PublicationMetadata(book_record)
+        meta.load()
+        try:
+            publication_year = meta.publication_year()
+        except ValueError:
+            continue        # This is expected if the metadata is not set.
 
-    email = args[0]
-    user = db(db.auth_user.email == email).select().first()
-    if not user:
-        raise LookupError('User not found, email: {e}'.format(e=email))
-
-    if len(args) == 1:
-        passwd = getpass.getpass()
-    else:
-        passwd = args[1]
-
-    alg = 'pbkdf2(1000,20,sha512)'
-    passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
-
-    data = {
-        'password': passkey,
-        'registration_key': '',
-        'reset_password_key': ''
-    }
-    user.update_record(**data)
-    db.commit()
+        if book_record.publication_year == publication_year:
+            continue
+        LOG.debug('Updating: %s to %s', book_record.name, publication_year)
+        book_record.update_record(publication_year=publication_year)
+        db.commit()
+    LOG.info('Done.')
 
 
 if __name__ == '__main__':
@@ -116,6 +111,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)

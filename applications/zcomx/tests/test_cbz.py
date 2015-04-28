@@ -21,6 +21,7 @@ from applications.zcomx.modules.cbz import \
 from applications.zcomx.modules.images import \
     UploadImage, \
     store
+from applications.zcomx.modules.indicias import cc_licence_by_code
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     NotFoundError, \
@@ -115,7 +116,8 @@ class ImageTestCase(LocalTestCase):
         cls._book = cls.add(db.book, dict(
             name='My CBZ Test',
             creator_id=cls._creator.id,
-            book_type_id=book_type_id
+            book_type_id=book_type_id,
+            cc_licence_id=cc_licence_by_code('CC BY-ND', want='id', default=0),
         ))
 
         cls._book_page = cls.add(db.book_page, dict(
@@ -169,11 +171,12 @@ class TestCBZCreator(ImageTestCase):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
 
-        self._book.update_record(
+        data = dict(
             name='My Book',
             publication_year=1998,
             creator_id=123,
         )
+        self._book.update_record(**data)
         db.commit()
 
         cbz_creator = CBZCreator(self._book)
@@ -301,12 +304,11 @@ class TestCBZCreator(ImageTestCase):
         files_comment = 'Files: {c}'.format(c=pages + 1)    # +1 for indicia
         self.assertTrue(files_comment in p_stdout)
 
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         zipper = zipfile.ZipFile(zip_file)
-        self.assertEqual(
-            zipper.comment,
-            '2015|Jim Karsten|My CBZ Test||http://{cid}.zco.mx'.format(
-                cid=self._creator.id)
-        )
+        fmt = '2015|Jim Karsten|My CBZ Test||CC BY-ND|http://{cid}.zco.mx'
+        self.assertEqual(zipper.comment, fmt.format(cid=self._creator.id))
 
     def test__working_directory(self):
         if self._opts.quick:

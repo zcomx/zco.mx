@@ -2,60 +2,60 @@
 # -*- coding: utf-8 -*-
 
 """
-reset_password.py
+notify_p2p_networks.py
 
-Script reset the password of a auth_user record.
+Script to notify p2p networks of addition or deletion of a cbz file.
 """
-import getpass
+# W0404: *Reimport %r (imported line %s)*
+# pylint: disable=W0404
 import logging
-import os
-from gluon import *
-from gluon.shell import env
-from gluon.validators import CRYPT
 from optparse import OptionParser
+from applications.zcomx.modules.torrents import \
+    P2PNotifier
 
 VERSION = 'Version 0.1'
-APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
-db = APP_ENV['db']
-
 LOG = logging.getLogger('cli')
-
-# line-too-long (C0301): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
 
 
 def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    reset_password.py [OPTIONS] email [password]
+    notify_p2p_networks.py [OPTIONS] path/to/file.cbz
 
-    If the password is not provided, the user is prompted for it.
 
 OPTIONS
+
+    -d, --delete
+        By default, p2p networks are notified of the addition of the cbz file.
+        With this option, the p2p networks are notified of the deletion
+        of the file. With this option, the cbz file does not have to exist.
+
     -h, --help
         Print a brief help.
 
     --man
-        Print extended help.
+        Print man page-like help.
 
     -v, --verbose
         Print information messages to stdout.
 
     --vv,
         More verbose. Print debug messages to stdout.
-
     """
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] email [password]'
+    usage = '%prog [options] file.cbz'
     parser = OptionParser(usage=usage, version=VERSION)
 
+    parser.add_option(
+        '-d', '--delete',
+        action='store_true', dest='delete', default=False,
+        help='Notify p2p networks of deletion of cbz file.',
+    )
     parser.add_option(
         '--man',
         action='store_true', dest='man', default=False,
@@ -85,30 +85,13 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if not args or len(args) > 2:
-        print parser.print_help()
+    if len(args) < 1:
+        parser.print_help()
         exit(1)
 
-    email = args[0]
-    user = db(db.auth_user.email == email).select().first()
-    if not user:
-        raise LookupError('User not found, email: {e}'.format(e=email))
-
-    if len(args) == 1:
-        passwd = getpass.getpass()
-    else:
-        passwd = args[1]
-
-    alg = 'pbkdf2(1000,20,sha512)'
-    passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
-
-    data = {
-        'password': passkey,
-        'registration_key': '',
-        'reset_password_key': ''
-    }
-    user.update_record(**data)
-    db.commit()
+    for cbz_filename in args:
+        notifier = P2PNotifier(cbz_filename)
+        notifier.notify(delete=options.delete)
 
 
 if __name__ == '__main__':

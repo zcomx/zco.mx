@@ -28,7 +28,6 @@
         },
 
         deleted_callback: function(e, data) {
-            $.fn.image_upload.stats.deleted += 1;
             return;
         },
 
@@ -115,7 +114,7 @@
         },
 
         processdone_callback: function(e, data) {
-            $.fn.image_upload.stats.uploaded += 1;
+            return;
         },
 
         reload_img: function(elem) {
@@ -172,7 +171,7 @@
         },
 
         set_close_button: function() {
-            var button_text = this.img_count() > 0 ? 'Post' : 'Close';
+            var button_text = this.img_count() > 0 ? 'Post On Web' : 'Close';
             $('.btn_upload_close').first().text(button_text);
         },
 
@@ -194,7 +193,6 @@
                         obj.set_arrows();
                     });
                 });
-                $.fn.image_upload.stats.reordered += 1;
                 obj.$element.removeClass('fileupload-processing');
             });
         },
@@ -324,12 +322,6 @@
             previewMaxWidth:  170,
             previewMaxHeight: 170,
         }
-    };
-
-    $.fn.image_upload.stats = {
-        deleted: 0,
-        reordered: 0,
-        uploaded: 0,
     };
 
 }(window.jQuery));

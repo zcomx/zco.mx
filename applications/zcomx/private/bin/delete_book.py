@@ -6,9 +6,7 @@ delete_book.py
 
 Script to delete a book.
 """
-import errno
 import logging
-import os
 from optparse import OptionParser
 from applications.zcomx.modules.books import book_tables
 from applications.zcomx.modules.utils import \
@@ -17,43 +15,6 @@ from applications.zcomx.modules.utils import \
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
-
-
-def set_creator_rebuild_torrent(book):
-    """Flag the creator record so the torrent is rebuilt.
-
-    This will trigger the cronned program to update the creator torrent.
-
-    Args:
-        book: Row instance representing book record.
-    """
-    creator = entity_to_row(db.creator, book.creator_id)
-    if not creator:
-        raise NotFoundError('Creator not found, {e}'.format(
-            e=book.creator_id))
-    creator.update_record(rebuild_torrent=True)
-    db.commit()
-
-
-def delete_cbz(book):
-    """Delete the cbz related to the book.
-
-    Args:
-        book: Row instance representing book record.
-    """
-    if not book.cbz:
-        return
-
-    # line-too-long (C0301): *Line too long (%%s/%%s)*
-    # pylint: disable=C0301
-    # Eg book.cbz
-    # applications/zcomx/private/var/cbz/zco.mx/F/First Last/My Book 01 (of 01) (2015) (98.zco.mx).cbz
-
-    try:
-        os.unlink(book.cbz)
-    except OSError as err:
-        if err.errno != errno.ENOENT:
-            raise
 
 
 def delete_records(book):
@@ -80,27 +41,6 @@ def delete_records(book):
     # Delete the book
     db(db.book.id == book.id).delete()
     db.commit()
-
-
-def delete_torrent(book):
-    """Delete the torrent related to the book.
-
-    Args:
-        book: Row instance representing book record.
-    """
-    if not book.torrent:
-        return
-
-    # line-too-long (C0301): *Line too long (%%s/%%s)*
-    # pylint: disable=C0301
-    # Eg book.torrent
-    # applications/zcomx/private/var/tor/zco.mx/F/First Last/My Book 01 (of 01) (2015) (98.zco.mx).cbz.torrent
-
-    try:
-        os.unlink(book.torrent)
-    except OSError as err:
-        if err.errno != errno.ENOENT:
-            raise
 
 
 def man_page():
@@ -169,12 +109,6 @@ def main():
     book = entity_to_row(db.book, book_id)
     if not book:
         raise NotFoundError('Book not found, id: %s', book_id)
-
-    if book.cbz:
-        delete_cbz(book)
-        set_creator_rebuild_torrent(book)
-    if book.torrent:
-        delete_torrent(book)
 
     delete_records(book)
 

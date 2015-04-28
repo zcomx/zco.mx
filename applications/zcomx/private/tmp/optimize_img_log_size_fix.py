@@ -44,6 +44,7 @@ def add_sizes(log):
             continue
         data['size'] = size
         db.optimize_img_log.insert(**data)
+        db.commit()
 
     log.update_record(size='original')
     db.commit()

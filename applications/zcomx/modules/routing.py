@@ -31,6 +31,9 @@ from applications.zcomx.modules.search import \
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
+from applications.zcomx.modules.zco import \
+    BOOK_STATUS_DISABLED, \
+    BOOK_STATUS_DRAFT
 
 LOG = logging.getLogger('app')
 
@@ -170,8 +173,11 @@ class Router(object):
         """Get the reader type.
 
         Returns:
-            string, one of 'scroller' or 'slider'
+            string, one of 'scroller', 'slider' or 'draft'
         """
+        unreadable_statuses = [BOOK_STATUS_DRAFT, BOOK_STATUS_DISABLED]
+        if self.book_record and self.book_record.status in unreadable_statuses:
+            return 'draft'
         request = self.request
         if request.vars.reader:
             return request.vars.reader
@@ -540,8 +546,7 @@ class Router(object):
             start_page_no=book_page_record.page_no,
         )
 
-        self.view = 'books/slider.html' if reader == 'slider' else \
-            'books/scroller.html'
+        self.view = 'books/{reader}.html'.format(reader=reader)
 
     def set_response_meta(self, preparer_codes):
         """Set the response.meta.

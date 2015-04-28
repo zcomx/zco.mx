@@ -55,10 +55,11 @@ def add_creator(form):
     ).first()
 
     if not creator:
-        creator_id = db.creator.insert(
+        data = dict(
             auth_user_id=auth_user.id,
             email=auth_user.email,
         )
+        creator_id = db.creator.insert(**data)
         db.commit()
         on_change_name(creator_id)
 
@@ -564,10 +565,12 @@ def tumblr_data(creator_entity):
             social_media.append((field, value))
 
     return {
-        'slug_name': creator_name(creator_entity, use='search'),
+        'name': formatted_name(creator_record),
+        'name_for_search': creator_name(creator_entity, use='search'),
+        'name_for_url': creator_name(creator_entity, use='url'),
+        'short_url': short_url(creator_record),
         'social_media': social_media,
-        'tag_name': creator_name(creator_entity, use='url'),
-        'tweet_name': formatted_name(creator_record),
+        'twitter': creator_record.twitter,
         'url': url(creator_record, host=SITE_NAME),
     }
 

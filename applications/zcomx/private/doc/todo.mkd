@@ -1,102 +1,80 @@
 ``
-VERSION 2 - Before Going Live
-[x] Quiet Nginx Logging
-[x] Add questions to faqc
-[x] Login -> Books -> Upload
-    Do not post book until the cartoonist clicks 'Close'
-    Maybe if there is at least one image uploaded then change 'Close' to 'Post' ?
-[x] Front Page
-    Books without images are showing up on the front page
-    https://zco.mx/?page=4
-[x] Login -> Release Model
-    Now that we require the metadata to be used, I think this can be
-    removed:
-        "Edit the year of publication if necessary.  Published [2014]"
-    We should use the 'To Year' in the filename and title.
-[x] Login -> Book Edit -> Copyright Licence
-    The licences should go in this order:
-        CC0
-        CC BY
-        CC BY-SA
-        CC BY-ND
-        CC BY-NC
-        CC BY-NC-SA
-        CC BY-NC-ND
-[x] Setup Mailing List
-    One for 'announce' and the other for 'feedback' ?
-[x] Upload Modal
-    Can we downscale the web images for the thumbnails and remove the
-    actual thumbnails?
-
-[ ] BUG: Deleting a Cover
-    http://stackoverflow.com/questions/14515313/how-to-modify-web2py-download-function-to-return-304-not-modified-in-case-the
-    After a book has been posted, if a cartoonist then deletes the cover
-    no cover image is shown until they click 'Post'.
-    SOLUTION: Don't make changes (move, add, delete) to the book until
-    the cartoonist clicks 'Post'.
-
-[ ] Announce cbz releases using zcomx_bot accounts
-    [x] dc
-    [ ] twitter
-        Twitter Cards
-        https://dev.twitter.com/cards/overview
-        https://dev.twitter.com/cards/types/summary-large-image
-        http://unix.stackexchange.com/questions/84540/twitter-status-updates-from-command-line-via-curl
-        http://supertweetnews.140plus.com/p/a-quick-example-of-bash-shell-scripts-for-posting-twitter-updates/ZeRfz
-    [ ] tumblr
-
-[ ] Look into Varnish for caching
-    see mod: 30442
-    [x] Modify 'Cache-Control: private' so images are cached
-    [ ] Set 'Cache-Control' so images on book pages aren't cached
-
-[S] Email More Cartoonists
-
-[ ] Optimize Pages -- especially the front page
-    [ ] look at Q's console
-
-[ ] Front Page -> cartoonists
-    Only list 'CartoonistName.torrent' if they have a torrent file
-
-[ ] Front Page/Book Page
-    SB 2015-03-25 20:56  we should talk about this
-    The same stats on the front page should be on the book page and
-    vice versa
-    * missing from Front page, 'pages'
-
-[ ] Add CC licence to zco.mx footer
-    http://www.ycombinator.com/legal/
-                                              [CC BY]
-       Every comic on zco.mx has its own licence. All
-       other content on this site is licenced under a
-                             CC BY 4.0 Int'l licence.
-
-                                              [CC BY]
-    Except  where  otherwise  noted, content  on this
-    site is licenced under a CC BY 4.0 Int'l licence.
-
-[S] Integrity Check Data
-    * Make sure everyone has added their paypal address
-[ ] Nice Levels
-[ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
-[ ] 12354 - Test scripts
-[ ] "creator.table appears corrupted" Error
-[S] Clean up kb.zco.mx
-[S] Email Karen telling her the site is live
+BUGS
+[x] Send Out Tweets and Post to Tumblr Any Released Books
+    [x] Long Titles
+[S] Graxa Gamgasher - Isn't being seeded
+[S] Hi-res jpg's bring the server to its knees
+[ ] /home/jimk/bin/py_web2py.sh -- applications/zcomx/private/bin/release_book.py --reverse 223
+    Didn't remove torrent.loaded from rtorrent
+    [S] Colin & Sam's Metadata Issue
+        * colin - Repub, In Whole, Square Dance #6, Paper, Self, 2013, 2013
+        * sam - It was self published in 2012. Paper.
+[ ] Delete Release
+    applications/zcomx/private/bin/notify_p2p_networks.py --delete 'applications/zcomx/private/var/cbz/zco.mx/S/SamSharpe/The End of Action Man (2015) (196.zco.mx).cbz'|d|
+[S] Integrity Check For Torrents
+[ ] Forgot password?
+    I receive the 'Password reset' email but get "Invalid reset
+    password" when I click on it.
 
 VERSION 3
+[ ] instagram
+[ ] release -> published
+[S] microdc
+[S] Setup On jimk.zsw.ca
+    rtorrent
+    tmux+ncdc
+    rtxmlrpc
+
+[S] Wildcard ssl cert for zco.mx
+    https://131.zco.mx will cause a self-signed cert warning to appear
+    Buy a wildcard cert
+    [ ] Test on sb.zco.mx
+    [ ] Setup for kb.zco.mx as well
+
+[ ] Add CC licence to zco.mx footer
+                                                      [CC BY]
+         Every comic on zco.mx has its own licence; all other
+        content is licenced under the CC BY 4.0 Int'l licence
+
+                                                      [CC BY]
+            Except  where  otherwise  noted, content  on this
+             site is licenced under a CC BY 4.0 Int'l licence
+
+    [-] Add Space Between CC Logo and Text
+    [x] Change colour of CC logo (lighter grey)
+    [ ] http://sb.zco.mx:8080/login -- alignment is off
+
+[ ] Add 'shortened url' to cartoonist page
+[ ] Rewrite these urls ?
+    https://zco.mx/?o=ongoing to https://zco.mx/ongoing
+    https://zco.mx/?o=releases to https://zco.mx/releases
+    https://zco.mx/?o=creators to https://zco.mx/cartoonists
 [ ] Remove the ability to change to a more restrictive CC licence
+[ ] Separate '001' and '01 (of 02)' from the title ?
+[ ] Web images are too small on mac laptops
+[S] Change bg to #fafafa ?
+    Not on the reader page
 [S] Setup hypermail for real-only mailing lists in login area ?
 [S] Reader notifications for new material
     Follow Links
         by cartoonist and by book
         via rss? and mailing list?
+    [ ] On Indicia
+        [$1.00] (contribute) | Next Book By Cartoonist Name
+                             | Book Name 03 (of 04)
+
+                Follow Cartoonist Name
+                on zco.mx  [ ] [ ]          ## ML and RSS
+                or on    [ ] [ ] [ ]        ## twitter, tumblr & fb
+
 [ ] Indicia - html version
-    Add link for 'Read Next' book
     Add book links to html indicia page
+    Add link for 'Read Next' book
 [ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] Extend left/right clickable areas while in slider mode
     * maybe show an 1/8th of the prev/next image and very opague?
+[ ] Randomize Cartoonist on "Page Not Found" ?
+[ ] How to find all comics in a specific language?
 [ ] All Ages Modal via cookie ?
 [ ] Explicit Content Warning (modal)
 [ ] Redesign Cartoonist Page
@@ -105,6 +83,11 @@ VERSION 3
     SB 2015-03-26 10:19  we should talk about this
     See how dokuwiki does it
     http://bronze-age.com/nospam/
+[ ] Front Page/Book Page
+    SB 2015-03-25 20:56  we should talk about this
+    The same stats on the front page should be on the book page and
+    vice versa
+    * missing from Front page, 'pages'
 [ ] KB
     http://kb.zco.mx/
     [ ] git-ify and add to zco.mx server
@@ -123,6 +106,13 @@ VERSION 3
     Change https://github.com/zcomx/zcomix.com to
     https://github.com/zcomx/zcomx or
     https://github.com/zcomx/website ?
+[ ] Should CartoonistName.torrent be in /C/CartoonistName/ ?
+[ ] Optimize Pages -- especially the front page
+    [ ] CDN
+    [ ] Minify
+[ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
+[ ] 12354 - Test scripts
+
 
 
 VERSION 4
@@ -132,6 +122,7 @@ VERSION 4
         "Photo Courtesy of [Photographer's Name]    [  {link back}  ]"
         If blank, write nothing
 [ ] How to Handle Translations ?
+    [ ] Add 'Translated By' Field  (after 'To' year ?)
 [ ] login -> books -> edit
     Use inline Editing for metadata
 [ ] Read Page -> Scroll
@@ -173,7 +164,6 @@ IDEAS
     see emails with blumenstein
     discuss on feedback ml
 [ ] resize.sh - convert tiff's to png's ?
-[S] wildcard ssl cert for zco.mx ?
     https://www.wosign.com/english/
 [ ] Is re-releasing released books a problem?
     * use the upload modal with any read-only fields

@@ -14,13 +14,22 @@ LOG = logging.getLogger('app')
 # Constants
 
 BOOK_STATUS_ACTIVE = 'a'
-BOOK_STATUS_DISABLED = 'd'
-BOOK_STATUS_INCOMPLETE = 'i'
+BOOK_STATUS_DISABLED = 'x'
+BOOK_STATUS_DRAFT = 'd'
 BOOK_STATUSES = [
     BOOK_STATUS_ACTIVE,
     BOOK_STATUS_DISABLED,
-    BOOK_STATUS_INCOMPLETE,
+    BOOK_STATUS_DRAFT,
 ]
+
+NICES = {
+    'resize': 11,
+    'indicia': 13,
+    'mktorrent': 14,
+    'zip': 15,
+    'zc-p2p': 18,
+    'optimize': 19,         # max
+}
 
 SITE_NAME = 'zco.mx'
 

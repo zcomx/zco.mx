@@ -14,8 +14,7 @@ from applications.zcomx.modules.book_pages import \
     BookPage
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
-    entity_to_row
+    NotFoundError
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -34,6 +33,7 @@ class ImageTestCase(LocalTestCase):
     _image_name_2 = 'file_2.jpg'
     _test_data_dir = None
     _type_id_by_name = {}
+    _uploadfolders = {}
 
     _objects = []
 
@@ -82,7 +82,12 @@ class ImageTestCase(LocalTestCase):
             os.makedirs(cls._image_original)
 
         # Store images in tmp directory
-        db.book_page.image.uploadfolder = cls._image_original
+        # Store images in tmp directory
+        for field in db.book_page.fields:
+            if db.book_page[field].type == 'upload':
+                cls._uploadfolders[field] = db.book_page[field].uploadfolder
+                db.book_page[field].uploadfolder = cls._image_original
+
         if not os.path.exists(db.book_page.image.uploadfolder):
             os.makedirs(db.book_page.image.uploadfolder)
 
@@ -90,6 +95,10 @@ class ImageTestCase(LocalTestCase):
     def tearDown(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
+
+        for field in db.book_page.fields:
+            if db.book_page[field].type == 'upload':
+                db.book_page[field].uploadfolder = cls._uploadfolders[field]
 
 
 class TestBookPage(ImageTestCase):
@@ -101,6 +110,7 @@ class TestBookPage(ImageTestCase):
         page = BookPage(book_page)
         self.assertRaises(NotFoundError, BookPage, -1)
         self.assertEqual(page.min_cbz_width, 1600)
+        self.assertEqual(page.min_cbz_height_to_exempt, 2560)
 
     def test__upload_image(self):
         book_page = self.add(db.book_page, dict(
@@ -110,6 +120,9 @@ class TestBookPage(ImageTestCase):
         page = BookPage(book_page)
         up_image = page.upload_image()
         self.assertTrue(hasattr(up_image, 'retrieve'))
+
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
 
         # Test cache
         page._upload_image = '_cache_'

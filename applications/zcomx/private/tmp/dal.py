@@ -2,44 +2,33 @@
 # -*- coding: utf-8 -*-
 
 """
-reset_password.py
+dal.py
 
-Script reset the password of a auth_user record.
+Script to test dal commands.
 """
-import getpass
 import logging
-import os
+import sys
+import traceback
 from gluon import *
-from gluon.shell import env
-from gluon.validators import CRYPT
 from optparse import OptionParser
 
 VERSION = 'Version 0.1'
-APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
-db = APP_ENV['db']
 
 LOG = logging.getLogger('cli')
-
-# line-too-long (C0301): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
 
 
 def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    reset_password.py [OPTIONS] email [password]
-
-    If the password is not provided, the user is prompted for it.
+    dal.py
 
 OPTIONS
     -h, --help
         Print a brief help.
 
     --man
-        Print extended help.
+        Print man page-like help.
 
     -v, --verbose
         Print information messages to stdout.
@@ -53,7 +42,7 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] email [password]'
+    usage = '%prog [options]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -72,7 +61,7 @@ def main():
         help='More verbose.',
     )
 
-    (options, args) = parser.parse_args()
+    (options, unused_args) = parser.parse_args()
 
     if options.man:
         man_page()
@@ -85,30 +74,37 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if not args or len(args) > 2:
-        print parser.print_help()
-        exit(1)
+    LOG.info('Started.')
+    groupby = db.book_page.book_id
+    page_count = db.book.id.count()
+    max_on = db.book_page.created_on.max()
+    page2 = db.book_page.with_alias('page2')
 
-    email = args[0]
-    user = db(db.auth_user.email == email).select().first()
-    if not user:
-        raise LookupError('User not found, email: {e}'.format(e=email))
 
-    if len(args) == 1:
-        passwd = getpass.getpass()
-    else:
-        passwd = args[1]
+    rows = db(db.book).select(
+        db.book.id,
+        db.book.name,
+        page_count,
+        max_on,
+        left=[
+            db.creator.on(db.book.creator_id == db.creator.id),
+            db.auth_user.on(
+                db.creator.auth_user_id == db.auth_user.id
+            ),
+            db.book_page.on(db.book_page.book_id == db.book.id),
+            page2.on(
+                (page2.book_id == db.book.id) &
+                (page2.id != db.book_page.id) &
+                (page2.created_on < db.book_page.created_on)
+            ),
+        ],
+        groupby=groupby,
+    )
+    for r in rows:
+        print r.book.id, ' ', r.book.name, ' ', r[page_count], r[max_on]
+    print 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
 
-    alg = 'pbkdf2(1000,20,sha512)'
-    passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
-
-    data = {
-        'password': passkey,
-        'registration_key': '',
-        'reset_password_key': ''
-    }
-    user.update_record(**data)
-    db.commit()
+    LOG.info('Done.')
 
 
 if __name__ == '__main__':
@@ -116,6 +112,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)

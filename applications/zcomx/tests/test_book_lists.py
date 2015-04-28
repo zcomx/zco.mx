@@ -11,7 +11,7 @@ from gluon import *
 from applications.zcomx.modules.book_lists import \
     BaseBookList, \
     DisabledBookList, \
-    IncompleteBookList, \
+    DraftBookList, \
     OngoingBookList, \
     ReleasedBookList, \
     class_from_code
@@ -133,7 +133,7 @@ class TestDisabledBookList(LocalTestCase):
         book_list = DisabledBookList({})
         filters = book_list.filters()
         self.assertEqual(len(filters), 1)
-        self.assertEqual(str(filters[0]), "(book.status = 'd')")
+        self.assertEqual(str(filters[0]), "(book.status = 'x')")
 
     def test__no_records_found_msg(self):
         book_list = DisabledBookList({})
@@ -144,33 +144,37 @@ class TestDisabledBookList(LocalTestCase):
         self.assertTrue('Books are disabled by' in book_list.subtitle)
 
 
-class TestIncompleteBookList(LocalTestCase):
+class TestDraftBookList(LocalTestCase):
 
     def test__allow_upload_on_edit(self):
-        book_list = IncompleteBookList({})
+        book_list = DraftBookList({})
         self.assertTrue(book_list.allow_upload_on_edit)
 
     def test__code(self):
-        book_list = IncompleteBookList({})
-        self.assertEqual(book_list.code, 'incomplete')
+        book_list = DraftBookList({})
+        self.assertEqual(book_list.code, 'draft')
 
     def test__filters(self):
-        book_list = IncompleteBookList({})
+        book_list = DraftBookList({})
         filters = book_list.filters()
         self.assertEqual(len(filters), 1)
-        self.assertEqual(str(filters[0]), "(book.status = 'i')")
+        self.assertEqual(str(filters[0]), "(book.status = 'd')")
 
     def test__include_upload(self):
-        book_list = IncompleteBookList({})
+        book_list = DraftBookList({})
         self.assertTrue(book_list.include_upload)
 
     def test__no_records_found_msg(self):
-        book_list = IncompleteBookList({})
-        self.assertEqual(book_list.no_records_found_msg, 'No incomplete books')
+        book_list = DraftBookList({})
+        self.assertEqual(book_list.no_records_found_msg, 'No draft books')
 
     def test__subtitle(self):
-        book_list = IncompleteBookList({})
-        self.assertTrue('Books remain incomplete' in book_list.subtitle)
+        book_list = DraftBookList({})
+        self.assertTrue('Books remain as a draft' in book_list.subtitle)
+
+    def test__title(self):
+        book_list = DraftBookList({})
+        self.assertEqual(book_list.title, 'DRAFTS')
 
 
 class TestOngoingBookList(LocalTestCase):
@@ -253,7 +257,7 @@ class TestFunctions(LocalTestCase):
 
     def test__class_from_code(self):
         self.assertEqual(class_from_code('disabled'), DisabledBookList)
-        self.assertEqual(class_from_code('incomplete'), IncompleteBookList)
+        self.assertEqual(class_from_code('draft'), DraftBookList)
         self.assertEqual(class_from_code('ongoing'), OngoingBookList)
         self.assertEqual(class_from_code('released'), ReleasedBookList)
         self.assertRaises(ValueError, class_from_code, None)

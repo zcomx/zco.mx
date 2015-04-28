@@ -16,14 +16,15 @@ VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
 
 
-def create_img(filename, dimensions):
+def create_img(filename, dimensions, color):
     """Create an image.
 
     Args:
         filename: string, name of output file
         dimenstions: tuple, (width, height)
+        color: color for image, see PIL.Image.new()
     """
-    im = Image.new('RGB', dimensions)
+    im = Image.new('RGB', dimensions, color)
     with open(filename, 'wb') as f:
         im.save(f)
 
@@ -35,6 +36,9 @@ USAGE
     create_img.py [OPTIONS] path/to/outfile.jpg width height
 
 OPTIONS
+    -c, --colour
+        The colour of the image. Default: black.
+
     -h, --help
         Print a brief help.
 
@@ -55,6 +59,11 @@ def main():
     usage = '%prog [options] path/to/outfile.jpg width height'
     parser = OptionParser(usage=usage, version=VERSION)
 
+    parser.add_option(
+        '-c', '--colour',
+        dest='colour', default='#000000',
+        help='Specify the colour.',
+    )
     parser.add_option(
         '--man',
         action='store_true', dest='man', default=False,
@@ -100,7 +109,7 @@ def main():
         parser.print_help()
         exit(1)
 
-    create_img(args[0], (width, height))
+    create_img(args[0], (width, height), options.colour)
 
 if __name__ == '__main__':
     # W0703: *Catch "Exception"*

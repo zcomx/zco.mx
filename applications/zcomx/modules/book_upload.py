@@ -29,10 +29,10 @@ record.
 If an archive file is uploaded, there is one UploadedArchive instance and many
 book_page records, one for each image file extracted from the archive.
 """
+import logging
 import os
 import shutil
 import subprocess
-import sys
 import zipfile
 from gluon import *
 from gluon.contrib.simplejson import dumps
@@ -45,6 +45,8 @@ from applications.zcomx.modules.shell_utils import \
     TemporaryDirectory, \
     UnixFile
 from applications.zcomx.modules.utils import entity_to_row
+
+LOG = logging.getLogger('app')
 
 
 class BookPageUploader(object):
@@ -428,7 +430,7 @@ def create_book_page(db, book_id, image_filename):
     try:
         stored_filename = store(db.book_page.image, image_filename)
     except IOError as err:
-        print >> sys.stderr, 'IOError: {err}'.format(err=err)
+        LOG.error('IOError: %s', str(err))
         return
 
     max_page = db.book_page.page_no.max()
@@ -438,10 +440,11 @@ def create_book_page(db, book_id, image_filename):
     except TypeError:
         page_no = 1
 
-    book_page_id = db.book_page.insert(
+    data = dict(
         book_id=book_id,
         page_no=page_no,
         image=stored_filename,
     )
+    book_page_id = db.book_page.insert(**data)
     db.commit()
     return book_page_id

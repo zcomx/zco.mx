@@ -16,12 +16,13 @@ from applications.zcomx.modules.creators import \
     images as creator_images
 from applications.zcomx.modules.images_optimize import \
     CBZImagesForRelease
-from applications.zcomx.modules.indicias import \
-    PublicationMetadata
 from applications.zcomx.modules.job_queue import \
+    CreateAllTorrentQueuer, \
+    CreateBookTorrentQueuer, \
     CreateCBZQueuer, \
-    CreateTorrentQueuer, \
-    PostBookOnTumblrQueuer, \
+    CreateCreatorTorrentQueuer, \
+    NotifyP2PQueuer, \
+    PostOnSocialMediaQueuer, \
     ReleaseBookQueuer
 from applications.zcomx.modules.tumblr import POST_IN_PROGRESS
 from applications.zcomx.modules.utils import \
@@ -89,14 +90,7 @@ class ReleaseBook(Releaser):
         """
         super(ReleaseBook, self).__init__(book_id)
 
-    def publication_year(self):
-        """Return the publication year for the book."""
-        meta = PublicationMetadata(self.book)
-        meta.load()
-        return meta.publication_year()
-
     def run(self):
-        """Run the release."""
 
         book_image_set = CBZImagesForRelease.from_names(book_images(self.book))
         if book_image_set.has_unoptimized():
@@ -120,17 +114,28 @@ class ReleaseBook(Releaser):
             return
 
         if not self.book.torrent:
-            # Create book torrent
-            CreateTorrentQueuer(
+            CreateBookTorrentQueuer(
                 db.job,
                 cli_args=[str(self.book.id)],
             ).queue()
+
+            CreateCreatorTorrentQueuer(
+                db.job,
+                cli_args=[str(self.book.creator_id)],
+            ).queue()
+
+            CreateAllTorrentQueuer(db.job).queue()
+
+            NotifyP2PQueuer(
+                db.job,
+                cli_args=[self.book.cbz],
+            ).queue()
+
             self.needs_requeue = True
             return
 
         if not self.book.tumblr_post_id:
-            # Create book torrent
-            PostBookOnTumblrQueuer(
+            PostOnSocialMediaQueuer(
                 db.job,
                 cli_args=[str(self.book.id)],
             ).queue()
@@ -138,17 +143,19 @@ class ReleaseBook(Releaser):
             # Set the tumblr post id to a dummy value to prevent this step
             # from running over and over.
             data = dict(
-                tumblr_post_id=POST_IN_PROGRESS
+                tumblr_post_id=POST_IN_PROGRESS,
+                twitter_post_id=POST_IN_PROGRESS
             )
             self.book.update_record(**data)
             db.commit()
+
+            self.needs_requeue = True
             return
 
         # Everythings good. Release the book.
         data = dict(
             release_date=datetime.datetime.today(),
             releasing=False,
-            publication_year=self.publication_year()
         )
         self.book.update_record(**data)
         db.commit()
@@ -173,12 +180,24 @@ class UnreleaseBook(Releaser):
         return options
 
     def run(self):
-        """Run the release."""
 
         if self.book.cbz:
             LOG.debug('Removing cbz file: %s', self.book.cbz)
             if os.path.exists(self.book.cbz):
                 os.unlink(self.book.cbz)
+
+            CreateCreatorTorrentQueuer(
+                db.job,
+                cli_args=[str(self.book.creator_id)],
+            ).queue()
+
+            CreateAllTorrentQueuer(db.job).queue()
+
+            NotifyP2PQueuer(
+                db.job,
+                cli_options={'--delete': True},
+                cli_args=[self.book.cbz],
+            ).queue()
 
         if self.book.torrent:
             LOG.debug('Removing torrent file: %s', self.book.torrent)
@@ -195,6 +214,8 @@ class UnreleaseBook(Releaser):
 
         if self.book.tumblr_post_id == POST_IN_PROGRESS:
             data['tumblr_post_id'] = None
+        if self.book.twitter_post_id == POST_IN_PROGRESS:
+            data['twitter_post_id'] = None
 
         self.book.update_record(**data)
         db.commit()

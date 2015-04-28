@@ -60,6 +60,7 @@ def fix_names(tablename):
         else:
             continue
         record.update_record(**data)
+        db.commit()
 
 
 def man_page():

@@ -88,17 +88,19 @@ class TestFunctions(LocalTestCase):
             os.makedirs(cls._image_original)
 
         # Store images in tmp directory
-        img_fields = [
-            'image', 'indicia_image', 'indicia_portrait', 'indicia_landscape']
-
-        for img_field in img_fields:
-            cls._uploadfolders[img_field] = db.creator[img_field].uploadfolder
-            db.creator[img_field].uploadfolder = cls._image_original
+        for field in db.creator.fields:
+            if db.creator[field].type == 'upload':
+                cls._uploadfolders[field] = db.creator[field].uploadfolder
+                db.creator[field].uploadfolder = cls._image_original
 
     @classmethod
     def tearDownClass(cls):
         if os.path.exists(cls._image_dir):
             shutil.rmtree(cls._image_dir)
+
+        for field in db.creator.fields:
+            if db.creator[field].type == 'upload':
+                db.creator[field].uploadfolder = cls._uploadfolders[field]
 
     def test__add_creator(self):
         email = 'test__add_creator@example.com'
@@ -636,9 +638,7 @@ class TestFunctions(LocalTestCase):
         )
 
         # Test scrubbed character.
-        auth_user.update_record(
-            name='First <Middle> Last',
-        )
+        auth_user.update_record(name='First <Middle> Last')
         db.commit()
 
         self.assertEqual(
@@ -753,15 +753,17 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(
             tumblr_data(creator),
             {
-                'slug_name': 'first-last',
+                'name': 'First Last',
+                'name_for_search': 'first-last',
+                'name_for_url': 'FirstLast',
+                'short_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
                 'social_media': [
                     ('website', 'http://website.com'),
                     ('twitter', 'https://twitter.com/firstlast'),
                     ('tumblr', 'http://tumblr.com/firstlast'),
                     ('facebook', 'htt://facebook.com/firstlast'),
                 ],
-                'tag_name': 'FirstLast',
-                'tweet_name': 'First Last',
+                'twitter': '@firstlast',
                 'url': 'http://zco.mx/FirstLast',
             }
         )

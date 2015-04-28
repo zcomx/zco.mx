@@ -4,7 +4,6 @@ import collections
 import logging
 import os
 import shutil
-import sys
 from PIL import Image
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.access import requires_agreed_to_terms
@@ -26,7 +25,8 @@ from applications.zcomx.modules.books import \
     set_status
 from applications.zcomx.modules.creators import \
     image_as_json, \
-    queue_update_indicia
+    queue_update_indicia, \
+    short_url
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
     on_delete_image, \
@@ -39,7 +39,8 @@ from applications.zcomx.modules.indicias import \
     create_creator_indicia
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
-    ReleaseBookQueuer
+    ReleaseBookQueuer, \
+    ReverseReleaseBookQueuer
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
@@ -47,6 +48,7 @@ from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
     reorder
+from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
 
 LOG = logging.getLogger('app')
 
@@ -197,14 +199,21 @@ def book_crud():
         # take care of it. Flag the book status=False so it is hidden.
         db(db.book.id == book_record.id).update(status=False)
         db.commit()
+        err_msg = 'Delete failed. The book cannot be deleted at this time.'
+
+        job = ReverseReleaseBookQueuer(
+            db.job,
+            cli_args=[str(book_record.id)],
+        ).queue()
+        if not job:
+            return do_error(err_msg)
 
         job = DeleteBookQueuer(
             db.job,
             cli_args=[str(book_record.id)],
         ).queue()
         if not job:
-            return do_error(
-                'Delete failed. The book cannot be deleted at this time.')
+            return do_error(err_msg)
 
         return {'status': 'ok'}
 
@@ -378,6 +387,10 @@ def book_pages():
     if not book_record or book_record.creator_id != creator_record.id:
         MODAL_ERROR('Invalid data provided')
 
+    # Temporarily set the book status to draft, so it does not appear
+    # in search results while it is being edited.
+    set_status(book_record, BOOK_STATUS_DRAFT)
+
     read_button = read_link(
         db,
         book_record,
@@ -439,7 +452,7 @@ def book_pages_handler():
         try:
             result = BookPageUploader(book_record.id, files).upload()
         except Exception as err:
-            print >> sys.stderr, 'Upload failed, err: {err}'.format(err=err)
+            LOG.error('Upload failed, err: %s', str(err))
             return do_error(
                 'The upload was not successful.',
                 files=[x.filename for x in files]
@@ -470,8 +483,8 @@ def book_post_upload_session():
         uploaded.
 
         * set book status
-        * optimize book page images
         * reorder book pages
+        * optimize book page images
 
     request.args(0): integer, id of book.
     request.vars.book_page_ids[], list of book page ids.
@@ -496,28 +509,26 @@ def book_post_upload_session():
     # Step 1:  Set book status
     set_status(book_record, calc_status(book_record))
 
-    # Step 2:  Trigger optimization of book images
+    # Step 2: Reorder book pages
+    if 'book_page_ids[]' in request.vars:
+        page_ids = []
+        for page_id in request.vars['book_page_ids[]']:
+            try:
+                page_ids.append(int(page_id))
+            except (TypeError, ValueError):
+                # reordering pages isn't critical, if page is not valid, just
+                # move on
+                continue
+
+        for count, page_id in enumerate(page_ids):
+            page_record = entity_to_row(db.book_page, page_id)
+            if page_record and page_record.book_id == book_record.id:
+                page_record.update_record(page_no=(count + 1))
+                db.commit()
+
+    # Step 3:  Trigger optimization of book images
     AllSizesImages.from_names(images(book_record)).optimize()
 
-    # Step 2: Reorder book pages
-    if 'book_page_ids[]' not in request.vars:
-        # Nothing more to do
-        return dumps({'success': True})
-
-    page_ids = []
-    for page_id in request.vars['book_page_ids[]']:
-        try:
-            page_ids.append(int(page_id))
-        except (TypeError, ValueError):
-            # reordering pages isn't critical, if page is not valid, just move
-            # on
-            continue
-
-    for count, page_id in enumerate(page_ids):
-        page_record = entity_to_row(db.book_page, page_id)
-        if page_record and page_record.book_id == book_record.id:
-            page_record.update_record(page_no=(count + 1))
-            db.commit()
     return dumps({'success': True})
 
 
@@ -683,9 +694,7 @@ def creator_img_handler():
     img_field = 'image'
     if request.args(0):
         if request.args(0) not in db.creator.fields:
-            print >> sys.stderr, \
-                'creator_img_handler invalid field: {fld}'.format(
-                    fld=request.vargs(0))
+            LOG.error('creator_img_handler invalid field: %s', request.args(0))
             return do_error('Upload service unavailable')
         img_field = request.args(0)
 
@@ -728,8 +737,7 @@ def creator_img_handler():
                 stored_filename = store(
                     db.creator[img_field], local_filename, resizer=resizer)
             except Exception as err:
-                print >> sys.stderr, \
-                    'Creator image upload error: {err}'.format(err=err)
+                LOG.error('Creator image upload error: %s', str(err))
                 stored_filename = None
 
         if not stored_filename:
@@ -751,10 +759,11 @@ def creator_img_handler():
                 # in indicia_preview_urls
                 on_delete_image(creator_record['indicia_portrait'])
                 on_delete_image(creator_record['indicia_landscape'])
-                creator_record.update_record(
-                    indicia_portrait=None,
-                    indicia_landscape=None,
-                )
+                data = {
+                    'indicia_portrait': None,
+                    'indicia_landscape': None,
+                }
+                creator_record.update_record(**data)
                 db.commit()
 
         data = {img_field: stored_filename}
@@ -1297,6 +1306,8 @@ def metadata_crud():
         if meta.errors:
             return {'status': 'error', 'fields': meta.errors}
         meta.update()
+        book_record.update_record(publication_year=meta.publication_year())
+        db.commit()
         return {'status': 'ok'}
     return do_error('Invalid data provided')
 
@@ -1361,4 +1372,4 @@ def profile():
         )
     )
 
-    return dict(creator=creator_record)
+    return dict(creator=creator_record, short_url=short_url(creator_record))

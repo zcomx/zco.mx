@@ -31,16 +31,18 @@ PRIORITIES = list(reversed([
     'optimize_img_for_release',
     'create_cbz',
     'create_book_torrent',
-    'post_book_on_tumblr',
+    'post_on_social_media',
     'release_book',
     'optimize_cbz_img',
     'optimize_img',
     'update_creator_indicia',
     'optimize_web_img',
-    'delete_book',
-    'delete_img',
     'create_creator_torrent',
     'create_all_torrent',
+    'notify_p2p_networks',
+    'reverse_release_book',
+    'delete_book',
+    'delete_img',
     'log_downloads',
     'optimize_original_img',
     # Lowest
@@ -323,9 +325,9 @@ class Queue(object):
         data.update(job_data)
         LOG.debug('job_data: %s', job_data)
         job_id = self.tbl.insert(**data)
+        self.db.commit()
         if 'command' in job_data:
             LOG.debug('Queued command: %s', job_data['command'])
-        self.db.commit()
         self.post_add_job()
         return entity_to_row(self.tbl, job_id)
 
@@ -472,9 +474,9 @@ class Queue(object):
         if status not in self.job_statuses:
             raise InvalidStatusError(
                 'Invalid status: {s}'.format(s=status))
-        job_record.update_record(status=status)
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
+        job_record.update_record(status=status)
         self.tbl._db.commit()
 
     def stats(self):
@@ -633,6 +635,20 @@ class LogDownloadsQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
+class NotifyP2PQueuer(JobQueuer):
+    """Class representing a queuer for notify p2p network jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'notify_p2p_networks.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('notify_p2p_networks'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-d', '--delete',
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
 class OptimizeImgQueuer(JobQueuer):
     """Class representing a queuer for optimize_img jobs."""
     program = os.path.join(JobQueuer.bin_path, 'process_img.py')
@@ -691,11 +707,11 @@ class OptimizeCBZImgForReleaseQueuer(OptimizeImgQueuer):
     default_cli_options = {'--size': 'cbz'}
 
 
-class PostBookOnTumblrQueuer(JobQueuer):
-    """Class representing a queuer for post_book_on_tumblr jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'post_book_on_tumblr.py')
+class PostOnSocialMediaQueuer(JobQueuer):
+    """Class representing a queuer for post_on_social_media jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'post_on_social_media.py')
     default_job_options = {
-        'priority': PRIORITIES.index('post_book_on_tumblr'),
+        'priority': PRIORITIES.index('post_on_social_media'),
         'status': 'a',
     }
     valid_cli_options = [
@@ -717,6 +733,16 @@ class ReleaseBookQueuer(JobQueuer):
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal
+
+
+class ReverseReleaseBookQueuer(ReleaseBookQueuer):
+    """Class representing a queuer for reversing release_book jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'release_book.py')
+    default_job_options = dict(ReleaseBookQueuer.default_job_options)
+    default_job_options['priority'] = PRIORITIES.index('reverse_release_book')
+    default_cli_options = {'--reverse': True}
+    valid_cli_options = list(ReleaseBookQueuer.valid_cli_options)
+    valid_cli_options.append('--reverse')
 
 
 class UpdateIndiciaQueuer(JobQueuer):
