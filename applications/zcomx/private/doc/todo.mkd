@@ -19,12 +19,11 @@ BUGS
 [S] Integrity Check For Torrents
 
 VERSION 3
-[S] releases/released to 'published'
 [S] microdc
-[S] Setup On jimk.zsw.ca
-    rtorrent
-    tmux+ncdc
-    rtxmlrpc
+    [S] Setup On jimk.zsw.ca
+        rtorrent
+        tmux+ncdc
+        rtxmlrpc
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
@@ -32,7 +31,9 @@ VERSION 3
     [ ] Test on sb.zco.mx
     [ ] Setup for kb.zco.mx as well
 
-[ ] Add CC licence to zco.mx footer
+[S] releases/released to 'published'
+
+[/] Add CC licence to zco.mx footer
                                                       [CC BY]
          Every comic on zco.mx has its own licence; all other
         content is licenced under the CC BY 4.0 Int'l licence
