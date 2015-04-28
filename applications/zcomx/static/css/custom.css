@@ -1627,6 +1627,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
     text-align: right;
 }
 
+@media (max-width: 687px) {
+    .footer-content #footer_cc {
+        float: left;
+        margin-top: 1em;
+        margin-bottom: 2em;
+        text-align: left;
+    }
+}
+
 #add_link_container {
     margin-top: 0.2em;
 }
