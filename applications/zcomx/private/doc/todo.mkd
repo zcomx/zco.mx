@@ -2,7 +2,12 @@
 BUGS
 [x] Send Out Tweets and Post to Tumblr Any Released Books
     [x] Long Titles
-[S] Graxa Gamgasher - Isn't being seeded
+[x] Forgot password?
+    I receive the 'Password reset' email but get "Invalid reset
+    password" when I click on it.
+[x] Graxa Gamgasher - Isn't being seeded
+    $ rtxmlrpc -q load.start '' "/srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/zco.mx/A/AndreaTsurumi/Graxa Gamgasher - Teen Girl Sleuth 001 (2014) (182.zco.mx).cbz.torrent.loaded" d.directory_base.set=\"/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx/A/AndreaTsurumi/\" d.priority.set=2
+
 [S] Hi-res jpg's bring the server to its knees
 [ ] /home/jimk/bin/py_web2py.sh -- applications/zcomx/private/bin/release_book.py --reverse 223
     Didn't remove torrent.loaded from rtorrent
@@ -12,9 +17,6 @@ BUGS
 [ ] Delete Release
     applications/zcomx/private/bin/notify_p2p_networks.py --delete 'applications/zcomx/private/var/cbz/zco.mx/S/SamSharpe/The End of Action Man (2015) (196.zco.mx).cbz'|d|
 [S] Integrity Check For Torrents
-[ ] Forgot password?
-    I receive the 'Password reset' email but get "Invalid reset
-    password" when I click on it.
 
 VERSION 3
 [ ] instagram
