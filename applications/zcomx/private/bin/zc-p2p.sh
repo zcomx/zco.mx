@@ -29,8 +29,10 @@ _check() {
     _v && _mi "cbzdir: $cbzdir"
     _v && _mi "tor:    $tor"
     for i in lstor rtxmlrpc tmux tthsum; do command -v "$i" &>/dev/null || _me "$i not installed"; done
-    [[ ! $d ]] && { [[ -f $cbz ]] || _me 'cbz file not found'; }
-    [[ -f $tor ]] || _me 'torrent file not found'
+    if [[ ! $d ]]; then
+        [[ -f $cbz ]] || _me 'cbz file not found'
+        [[ -f $tor ]] || _me 'torrent file not found'
+    fi
 }
 
 _del_tor() {
