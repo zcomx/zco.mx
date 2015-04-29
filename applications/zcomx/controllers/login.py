@@ -514,8 +514,13 @@ def book_post_upload_session():
 
     # Step 2: Reorder book pages
     if 'book_page_ids[]' in request.vars:
+        if not isinstance(request.vars['book_page_ids[]'], list):
+            book_page_ids = [request.vars['book_page_ids[]']]
+        else:
+            book_page_ids = request.vars['book_page_ids[]']
+
         page_ids = []
-        for page_id in request.vars['book_page_ids[]']:
+        for page_id in book_page_ids:
             try:
                 page_ids.append(int(page_id))
             except (TypeError, ValueError):
