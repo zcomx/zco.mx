@@ -62,6 +62,7 @@ VERSION 3
         https://zco.mx/todo     ->  https://zco.mx/z/todo
         https://zco.mx/terms    ->  https://zco.mx/z/terms
         https://zco.mx/login    ->  https://zco.mx/z/login
+        https://zco.mx/expenses ->  https://zco.mx/z/expenses
 
 [ ] Remove the ability to change to a more restrictive CC licence
 [ ] Announce on instagram ?
