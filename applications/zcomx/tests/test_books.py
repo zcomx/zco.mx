@@ -18,12 +18,14 @@ from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
+    BaseEvent, \
     BookEvent, \
     ContributionEvent, \
+    DEFAULT_BOOK_TYPE, \
     DownloadEvent, \
     RatingEvent, \
     ViewEvent, \
-    DEFAULT_BOOK_TYPE, \
+    ZcoContributionEvent, \
     book_name, \
     book_page_for_json, \
     book_pages, \
@@ -107,23 +109,23 @@ class EventTestCase(LocalTestCase):
         set_pages(self, db, book_id, num_of_pages)
 
 
-class TestBookEvent(EventTestCase):
+class TestBaseEvent(EventTestCase):
     def test____init__(self):
-        event = BookEvent(self._book, self._user.id)
+        event = BaseEvent(self._user.id)
         self.assertTrue(event)
 
     def test_log(self):
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
-        event = BookEvent(self._book, self._user.id)
+        event = BaseEvent(self._user.id)
         self.assertRaises(NotImplementedError, event._log, None)
 
     def test__log(self):
 
-        class SubBookEvent(BookEvent):
+        class SubBaseEvent(BaseEvent):
 
-            def __init__(self, book_entity, user_id):
-                BookEvent.__init__(self, book_entity, user_id)
+            def __init__(self, user_id):
+                BaseEvent.__init__(self, user_id)
                 self.actions = []
 
             def _log(self, value=None):
@@ -132,21 +134,25 @@ class TestBookEvent(EventTestCase):
             def _post_log(self):
                 self.actions.append('post_log')
 
-        event = SubBookEvent(self._book, self._user.id)
+        event = SubBaseEvent(self._user.id)
         event.log(value='log_me')
         self.assertEqual(event.actions, ['log_me', 'post_log'])
 
     def test_post_log(self):
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
-        event = BookEvent(self._book, self._user.id)
+        event = BaseEvent(self._user.id)
         self.assertRaises(NotImplementedError, event._post_log)
 
 
-class TestContributionEvent(EventTestCase):
+class TestBookEvent(EventTestCase):
     def test____init__(self):
-        event = ContributionEvent(self._book, self._user.id)
+        event = BookEvent(self._book, self._user.id)
         self.assertTrue(event)
+        self.assertEqual(event.book.name, self._book.name)
+
+
+class TestContributionEvent(EventTestCase):
 
     def test_log(self):
         self._set_pages(db, self._book.id, 10)
@@ -162,6 +168,7 @@ class TestContributionEvent(EventTestCase):
         event_id = event._log(123.45)
         contribution = entity_to_row(db.contribution, event_id)
         self.assertEqual(contribution.id, event_id)
+        self.assertEqual(contribution.book_id, self._book.id)
         self.assertAlmostEqual(
             contribution.time_stamp,
             datetime.datetime.now(),
@@ -192,9 +199,6 @@ class TestContributionEvent(EventTestCase):
 
 
 class TestDownloadEvent(EventTestCase):
-    def test____init__(self):
-        event = DownloadEvent(self._book, self._user.id)
-        self.assertTrue(event)
 
     def test_log(self):
         update_rating(db, self._book)
@@ -212,6 +216,7 @@ class TestDownloadEvent(EventTestCase):
 
         download = entity_to_row(db.download, event_id)
         self.assertEqual(download.id, event_id)
+        self.assertEqual(download.book_id, self._book.id)
         self.assertEqual(download.download_click_id, download_click.id)
         self.assertAlmostEqual(
             download.time_stamp,
@@ -229,9 +234,6 @@ class TestDownloadEvent(EventTestCase):
 
 
 class TestRatingEvent(EventTestCase):
-    def test____init__(self):
-        event = RatingEvent(self._book, self._user.id)
-        self.assertTrue(event)
 
     def test_log(self):
         update_rating(db, self._book)
@@ -246,6 +248,7 @@ class TestRatingEvent(EventTestCase):
         event_id = event._log(5)
         rating = entity_to_row(db.rating, event_id)
         self.assertEqual(rating.id, event_id)
+        self.assertEqual(rating.book_id, self._book.id)
         self.assertAlmostEqual(
             rating.time_stamp,
             datetime.datetime.now(),
@@ -273,9 +276,6 @@ class TestRatingEvent(EventTestCase):
 
 
 class TestViewEvent(EventTestCase):
-    def test____init__(self):
-        event = ViewEvent(self._book, self._user.id)
-        self.assertTrue(event)
 
     def test_log(self):
         update_rating(db, self._book)
@@ -286,6 +286,7 @@ class TestViewEvent(EventTestCase):
 
         view = entity_to_row(db.book_view, event_id)
         self.assertEqual(view.id, event_id)
+        self.assertEqual(view.book_id, self._book.id)
         self.assertAlmostEqual(
             view.time_stamp,
             datetime.datetime.now(),
@@ -309,6 +310,39 @@ class TestViewEvent(EventTestCase):
         event._post_log()
         book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
         self.assertEqual(book.views, 1)
+
+
+class TestZcoContributionEvent(EventTestCase):
+
+    def test_log(self):
+        self._set_pages(db, self._book.id, 10)
+        update_rating(db, self._book)
+        event = ZcoContributionEvent(self._user.id)
+
+        # no value
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event_id = event._log()
+        self.assertFalse(event_id)
+
+        event_id = event._log(123.45)
+        contribution = entity_to_row(db.contribution, event_id)
+        self.assertEqual(contribution.id, event_id)
+        self.assertEqual(contribution.book_id, 0)
+        self.assertAlmostEqual(
+            contribution.time_stamp,
+            datetime.datetime.now(),
+            delta=datetime.timedelta(minutes=1)
+        )
+        self.assertEqual(contribution.amount, 123.45)
+        self._objects.append(contribution)
+
+    def test_post_log(self):
+        # This does nothing, test that.
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        event = ZcoContributionEvent(self._user.id)
+        event._post_log()
 
 
 class ImageTestCase(LocalTestCase):
@@ -1766,7 +1800,6 @@ class TestFunctions(ImageTestCase):
             book_page.update_record(**data)
             db.commit()
             got = release_barriers(book)
-            codes = [x['code'] for x in got]
             expect = list(always_expect)
             if not t[1]:
                 expect.append('images_too_narrow')
