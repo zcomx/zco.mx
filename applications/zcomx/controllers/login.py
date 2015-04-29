@@ -9,6 +9,9 @@ from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.access import requires_agreed_to_terms
 from applications.zcomx.modules.book_lists import \
     class_from_code as book_list_class_from_code
+from applications.zcomx.modules.book.release_barriers import \
+    has_release_barriers, \
+    release_barriers
 from applications.zcomx.modules.book_pages import \
     delete_pages_not_in_ids, \
     reset_book_page_nos
@@ -24,7 +27,6 @@ from applications.zcomx.modules.books import \
     names, \
     publication_year_range, \
     read_link, \
-    release_barriers, \
     set_status
 from applications.zcomx.modules.creators import \
     image_as_json, \
@@ -221,7 +223,7 @@ def book_crud():
         return {'status': 'ok'}
 
     if action == 'release':
-        if release_barriers(book_record):
+        if has_release_barriers(book_record):
             return do_error('This book cannot be released.')
 
         book_record.update_record(releasing=True)
