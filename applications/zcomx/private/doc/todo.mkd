@@ -49,11 +49,20 @@ VERSION 3
 
 [S] releases/released to 'published' ?  'complete' ?
 
-[ ] Add 'shortened url' to cartoonist page
+[S] Add 'shortened url' to cartoonist page
 [ ] Rewrite these urls ?
-    https://zco.mx/?o=ongoing to https://zco.mx/ongoing
-    https://zco.mx/?o=releases to https://zco.mx/releases
-    https://zco.mx/?o=creators to https://zco.mx/cartoonists
+    https://zco.mx/?o=ongoing to https://zco.mx/z/ongoing
+    https://zco.mx/?o=releases to https://zco.mx/z/releases
+    https://zco.mx/?o=creators to https://zco.mx/z/cartoonists
+    [ ] Restrict cartoonist names to be 2 charactors or longer
+    [ ] Add redirects for:
+        https://zco.mx/about    ->  https://zco.mx/z/about
+        https://zco.mx/faq      ->  https://zco.mx/z/faq
+        https://zco.mx/faqc     ->  https://zco.mx/z/faqc
+        https://zco.mx/todo     ->  https://zco.mx/z/todo
+        https://zco.mx/terms    ->  https://zco.mx/z/terms
+        https://zco.mx/login    ->  https://zco.mx/z/login
+
 [ ] Remove the ability to change to a more restrictive CC licence
 [ ] Announce on instagram ?
 [S] Setup hypermail for real-only mailing lists in login area ?
