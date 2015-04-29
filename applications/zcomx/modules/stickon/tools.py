@@ -208,6 +208,9 @@ class ModelDb(object):
             db = self.DAL('gae')
             session.connect(request, response, db=db)
         else:
+            driver_args={
+                'timeout': 500          # milliseconds
+            }
 
             # or use the following lines to store sessions in Memcache
             #   from gluon.contrib.memdb import MEMDB
@@ -217,6 +220,7 @@ class ModelDb(object):
                 'sqlite://storage.sqlite',
                 migrate=self.migrate,
                 debug=True,
+                driver_args=driver_args,
             )
         return db
 
