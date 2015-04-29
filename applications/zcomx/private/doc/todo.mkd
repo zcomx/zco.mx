@@ -47,8 +47,7 @@ VERSION 3
     [ ] Test on sb.zco.mx
     [ ] Setup for kb.zco.mx as well
 
-[S] releases/released to 'published'
-
+[S] releases/released to 'published' ?  'complete' ?
 
 [ ] Add 'shortened url' to cartoonist page
 [ ] Rewrite these urls ?
@@ -57,10 +56,6 @@ VERSION 3
     https://zco.mx/?o=creators to https://zco.mx/cartoonists
 [ ] Remove the ability to change to a more restrictive CC licence
 [ ] Announce on instagram ?
-[S] Separate '001' and '01 (of 02)' from the title ?
-[ ] Web images are too small on mac laptops
-[S] Change bg to #fafafa ?
-    Not on the reader page
 [S] Setup hypermail for real-only mailing lists in login area ?
 [S] Reader notifications for new material
     Follow Links
@@ -77,12 +72,18 @@ VERSION 3
 [ ] Indicia - html version
     Add book links to html indicia page
     Add link for 'Read Next' book
-[ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] Extend left/right clickable areas while in slider mode
     * maybe show an 1/8th of the prev/next image and very opague?
 [ ] Randomize Cartoonist on "Page Not Found" ?
 [S] Redesign Cartoonist Page
     * handle portrait and landscape photos better
+
+
+[S] Separate '001' and '01 (of 02)' from the title ?
+[ ] Web images are too small on mac laptops
+[S] Change bg to #fafafa ?
+    Not on the reader page
+[ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] Obfuscate Email Addresses
     SB 2015-03-26 10:19  we should talk about this
     See how dokuwiki does it
