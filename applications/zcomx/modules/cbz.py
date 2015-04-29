@@ -143,6 +143,15 @@ class CBZCreator(TempDirectoryMixin):
                 self.image_filename(page, fmt)
             )
 
+            if os.path.exists(dst_filename):
+                msg = (
+                    "Unable to link image file for page.\n"
+                    "File with that name already exists.\n"
+                    "Possible duplicate page_no.\n"
+                    "Book id: {bid}, page: {page_no}"
+                ).format(bid=self.book.id, page_no=page.page_no)
+                raise CBZCreateError(msg)
+
             os.link(src_filename, dst_filename)
 
         # Copy indicia page image file to directory of images.
