@@ -9,6 +9,9 @@ from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.access import requires_agreed_to_terms
 from applications.zcomx.modules.book_lists import \
     class_from_code as book_list_class_from_code
+from applications.zcomx.modules.book_pages import \
+    delete_pages_not_in_ids, \
+    reset_book_page_nos
 from applications.zcomx.modules.book_types import \
     from_id as type_from_id
 from applications.zcomx.modules.book_upload import BookPageUploader
@@ -520,11 +523,8 @@ def book_post_upload_session():
                 # move on
                 continue
 
-        for count, page_id in enumerate(page_ids):
-            page_record = entity_to_row(db.book_page, page_id)
-            if page_record and page_record.book_id == book_record.id:
-                page_record.update_record(page_no=(count + 1))
-                db.commit()
+        delete_pages_not_in_ids(book_record.id, page_ids)
+        reset_book_page_nos(page_ids)
 
     # Step 3:  Trigger optimization of book images
     AllSizesImages.from_names(images(book_record)).optimize()
