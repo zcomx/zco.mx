@@ -14,9 +14,25 @@ BUGS
         [x] sam - It was self published in 2012. Paper.
 [x] Delete Release
     applications/zcomx/private/bin/notify_p2p_networks.py --delete 'applications/zcomx/private/var/cbz/zco.mx/S/SamSharpe/The End of Action Man (2015) (196.zco.mx).cbz'|d|
+[x] Add CC licence to zco.mx footer
+                                                      [CC BY]
+         Every comic on zco.mx has its own licence; all other
+        content is licenced under the CC BY 4.0 Int'l licence
+
+                                                      [CC BY]
+            Except  where  otherwise  noted, content  on this
+             site is licenced under a CC BY 4.0 Int'l licence
+
+    [-] Add Space Between CC Logo and Text
+    [x] Change colour of CC logo (lighter grey)
+    [x] http://sb.zco.mx:8080/login -- alignment is off
+
+[S] Integrity Check For Torrents
+    https://code.google.com/p/pyroscope/wiki/RtControlExamples
+    $ rtcontrol -q -oname name=* alias=zco.mx
+    $ for i in /srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/**; do [[ $i == *.torrent.loaded* ]] && echo "$i"; done
 
 [S] Hi-res jpg's bring the server to its knees
-[S] Integrity Check For Torrents
 
 VERSION 3
 [S] microdc
@@ -33,18 +49,6 @@ VERSION 3
 
 [S] releases/released to 'published'
 
-[/] Add CC licence to zco.mx footer
-                                                      [CC BY]
-         Every comic on zco.mx has its own licence; all other
-        content is licenced under the CC BY 4.0 Int'l licence
-
-                                                      [CC BY]
-            Except  where  otherwise  noted, content  on this
-             site is licenced under a CC BY 4.0 Int'l licence
-
-    [-] Add Space Between CC Logo and Text
-    [x] Change colour of CC logo (lighter grey)
-    [ ] http://sb.zco.mx:8080/login -- alignment is off
 
 [ ] Add 'shortened url' to cartoonist page
 [ ] Rewrite these urls ?
@@ -53,7 +57,7 @@ VERSION 3
     https://zco.mx/?o=creators to https://zco.mx/cartoonists
 [ ] Remove the ability to change to a more restrictive CC licence
 [ ] Announce on instagram ?
-[ ] Separate '001' and '01 (of 02)' from the title ?
+[S] Separate '001' and '01 (of 02)' from the title ?
 [ ] Web images are too small on mac laptops
 [S] Change bg to #fafafa ?
     Not on the reader page
@@ -77,10 +81,7 @@ VERSION 3
 [ ] Extend left/right clickable areas while in slider mode
     * maybe show an 1/8th of the prev/next image and very opague?
 [ ] Randomize Cartoonist on "Page Not Found" ?
-[ ] How to find all comics in a specific language?
-[ ] All Ages Modal via cookie ?
-[ ] Explicit Content Warning (modal)
-[ ] Redesign Cartoonist Page
+[S] Redesign Cartoonist Page
     * handle portrait and landscape photos better
 [ ] Obfuscate Email Addresses
     SB 2015-03-26 10:19  we should talk about this
@@ -117,8 +118,10 @@ VERSION 3
 [ ] 12354 - Test scripts
 
 
-
 VERSION 4
+[ ] How to find all comics in a specific language?
+[ ] All Ages Modal via cookie ?
+[ ] Explicit Content Warning (modal)
 [ ] Automate Mailing List Add/Remove
     http://stackoverflow.com/questions/21253849/google-groups-api-add-member
 [S] Book Page -> Photos
