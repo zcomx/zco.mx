@@ -5,6 +5,7 @@ Controllers for contributions.
 import logging
 from applications.zcomx.modules.books import \
     ContributionEvent, \
+    ZcoContributionEvent, \
     default_contribute_amount
 from applications.zcomx.modules.creators import \
     book_for_contributions, \
@@ -166,11 +167,15 @@ def paypal_notify():
     """Controller for paypal notifications (return_url)"""
     if request.vars.payment_status == 'Completed':
         valid = True
-        try:
-            book_id = int(request.vars.item_number)
-        except (TypeError, ValueError):
-            LOG.error('Invalid book item_number: %s', request.vars.item_number)
-            valid = False
+        if request.vars.item_number:
+            try:
+                book_id = int(request.vars.item_number)
+            except (TypeError, ValueError):
+                LOG.error(
+                    'Invalid book item_number: %s', request.vars.item_number)
+                valid = False
+        else:
+            book_id = 0     # Contribution to zco.mx
 
         try:
             amount = float(request.vars.payment_gross)
@@ -178,7 +183,12 @@ def paypal_notify():
             LOG.error('Invalid gross payment: %s', request.vars.payment_gross)
             valid = False
         if valid:
-            ContributionEvent(book_id, 0).log(amount)
+            # Log the event
+            auth_user_id = 0      # there is no user is this context
+            if book_id:
+                ContributionEvent(book_id, auth_user_id).log(amount)
+            else:
+                ZcoContributionEvent(auth_user_id).log(amount)
 
     paypal_log = {}
     for f in db.paypal_log.fields:

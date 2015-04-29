@@ -151,6 +151,9 @@ class TestFunctions(LocalTestCase):
         def get_contributions():
             return db(db.contribution.book_id == book.id).select()
 
+        def get_zco_contributions():
+            return db(db.contribution.book_id == 0).select()
+
         def get_paypal_log(txn_id):
             return db(db.paypal_log.txn_id == txn_id).select()
 
@@ -233,6 +236,41 @@ class TestFunctions(LocalTestCase):
         self._objects.append(logs[0])
         self.assertEqual(logs[0].payment_status, 'Completed')
 
+        # Test contribution to zco.mx
+        txn_id = '_test_paypal_notify_zco'
+        notify_vars['txn_id'] = txn_id
+        del notify_vars['item_number']
+        before_zco_contributions = get_zco_contributions()
+
+        self.assertTrue(
+            web.test(
+                '{url}/paypal_notify?{q}'.format(
+                    url=self.url,
+                    q=urllib.urlencode(notify_vars),
+                ),
+                self.titles['faq']
+            )
+        )
+
+        after_zco_contributions = get_zco_contributions()
+        self.assertEqual(
+            len(before_zco_contributions) + 1,
+            len(after_zco_contributions)
+        )
+        new_contribs = set(after_zco_contributions).difference(
+            set(before_zco_contributions))
+        self.assertEqual(len(new_contribs), 1)
+        new_contrib = list(new_contribs)[0]
+        self._objects.append(new_contrib)
+
+        logs = get_paypal_log(txn_id)
+        self.assertEqual(len(logs), 1)
+        self._objects.append(logs[0])
+
+        # reset
+        notify_vars['item_number'] = str(book.id)
+
+        # Test variations on status
         statuses = ['Denied', 'Pending']
         for count, status in enumerate(statuses):
             txn_id = '_test_paypal_notify_{idx:03d}'.format(idx=count)
@@ -261,21 +299,28 @@ class TestFunctions(LocalTestCase):
 
     def test__widget(self):
         # Should handle no id, but display nothing.
-        self.assertTrue(web.test('{url}/widget.load'.format(
-            url=self.url),
-            self.titles['widget']))
+        self.assertTrue(web.test(
+            '{url}/widget.load'.format(url=self.url),
+            self.titles['widget']
+        ))
 
         # Invalid id, should handle gracefully
-        self.assertTrue(web.test('{url}/widget.load/{bid}'.format(
-            url=self.url,
-            bid=self._invalid_book_id),
-            self.titles['widget']))
+        self.assertTrue(web.test(
+            '{url}/widget.load/{bid}'.format(
+                url=self.url,
+                bid=self._invalid_book_id
+            ),
+            self.titles['widget']
+        ))
 
         # Test valid id
-        self.assertTrue(web.test('{url}/widget.load/{bid}'.format(
-            url=self.url,
-            bid=self._book.id),
-            self.titles['widget']))
+        self.assertTrue(web.test(
+            '{url}/widget.load/{bid}'.format(
+                url=self.url,
+                bid=self._book.id
+            ),
+            self.titles['widget']
+        ))
 
 
 def setUpModule():

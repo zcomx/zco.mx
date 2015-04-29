@@ -42,21 +42,16 @@ from applications.zcomx.modules.zco import \
 DEFAULT_BOOK_TYPE = 'one-shot'
 LOG = logging.getLogger('app')
 
+class BaseEvent(object):
+    """Base class representing a loggable event"""
 
-class BookEvent(object):
-    """Class representing a loggable book event"""
-
-    def __init__(self, book_entity, user_id):
+    def __init__(self, user_id):
         """Constructor
 
         Args:
-            book_entity: Row instance or integer, if integer, this is the id of
-                the book. The book record is read.
             user_id: integer, id of user triggering event.
         """
         db = current.app.db
-        self.book_entity = book_entity
-        self.book = entity_to_row(db.book, book_entity)
         self.user_id = user_id
 
     def _log(self, value=None):
@@ -73,11 +68,31 @@ class BookEvent(object):
         raise NotImplementedError
 
 
-class ContributionEvent(BookEvent):
-    """Class representing a book contribution event."""
+class BookEvent(BaseEvent):
+    """Class representing a loggable book event"""
 
     def __init__(self, book_entity, user_id):
-        BookEvent.__init__(self, book_entity, user_id)
+        """Constructor
+
+        Args:
+            book_entity: Row instance or integer, if integer, this is the id of
+                the book. The book record is read.
+            user_id: integer, id of user triggering event.
+        """
+        super(BookEvent, self).__init__(user_id)
+        db = current.app.db
+        self.book_entity = book_entity
+        self.book = entity_to_row(db.book, book_entity)
+
+    def _log(self, value=None):
+        raise NotImplementedError
+
+    def _post_log(self):
+        raise NotImplementedError
+
+
+class ContributionEvent(BookEvent):
+    """Class representing a book contribution event."""
 
     def _log(self, value=None):
         if value is None:
@@ -94,16 +109,12 @@ class ContributionEvent(BookEvent):
         return event_id
 
     def _post_log(self):
-        """Post log functionality."""
         db = current.app.db
         update_rating(db, self.book, rating='contribution')
 
 
 class DownloadEvent(BookEvent):
     """Class representing a book download event."""
-
-    def __init__(self, book_entity, user_id):
-        BookEvent.__init__(self, book_entity, user_id)
 
     def _log(self, value=None):
         if value is None:
@@ -126,16 +137,12 @@ class DownloadEvent(BookEvent):
         return event_id
 
     def _post_log(self):
-        """Post log functionality."""
         # download event ratings are updated en masse.
         pass
 
 
 class RatingEvent(BookEvent):
     """Class representing a book rating event."""
-
-    def __init__(self, book_entity, user_id):
-        BookEvent.__init__(self, book_entity, user_id)
 
     def _log(self, value=None):
         if value is None:
@@ -152,16 +159,12 @@ class RatingEvent(BookEvent):
         return event_id
 
     def _post_log(self):
-        """Post log functionality."""
         db = current.app.db
         update_rating(db, self.book, rating='rating')
 
 
 class ViewEvent(BookEvent):
     """Class representing a book view event."""
-
-    def __init__(self, book_entity, user_id):
-        BookEvent.__init__(self, book_entity, user_id)
 
     def _log(self, value=None):
         db = current.app.db
@@ -175,9 +178,29 @@ class ViewEvent(BookEvent):
         return event_id
 
     def _post_log(self):
-        """Post log functionality."""
         db = current.app.db
         update_rating(db, self.book, rating='view')
+
+
+class ZcoContributionEvent(BaseEvent):
+    """Class representing a contribution to zco.mx event."""
+
+    def _log(self, value=None):
+        if value is None:
+            return
+        db = current.app.db
+        data = dict(
+            auth_user_id=self.user_id or 0,
+            book_id=0,
+            time_stamp=datetime.datetime.now(),
+            amount=value
+        )
+        event_id = db.contribution.insert(**data)
+        db.commit()
+        return event_id
+
+    def _post_log(self):
+        pass
 
 
 def book_name(book_entity, use='file'):
