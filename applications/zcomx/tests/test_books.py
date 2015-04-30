@@ -69,10 +69,10 @@ from applications.zcomx.modules.books import \
     short_page_img_url, \
     short_page_url, \
     short_url, \
+    social_media_data, \
     torrent_file_name, \
     torrent_link, \
     torrent_url, \
-    tumblr_data, \
     update_contributions_remaining, \
     update_rating, \
     url
@@ -1953,9 +1953,9 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             db.commit()
             self.assertEqual(short_url(book), t[2])
 
-    def test__tumblr_data(self):
+    def test__social_media_data(self):
 
-        self.assertEqual(tumblr_data(None), {})
+        self.assertEqual(social_media_data(None), {})
 
         creator = self.add(db.creator, dict(
             name_for_url='FirstLast',
@@ -1987,7 +1987,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             'short_url': 'http://{cid}.zco.mx/MyBook'.format(cid=creator.id),
             'url': 'http://zco.mx/FirstLast/MyBook',
         }
-        self.assertEqual(tumblr_data(book), expect)
+        self.assertEqual(social_media_data(book), expect)
 
         # Book with cover
         self.add(db.book_page, dict(
@@ -2001,69 +2001,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         expect['download_url'] = 'http://zco.mx/images/download/book_page.image.aaa.000.jpg?size=web'
         expect['cover_image_name'] = 'book_page.image.aaa.000.jpg'
-        self.assertEqual(tumblr_data(book), expect)
-
-    def test__update_contributions_remaining(self):
-        # invalid-name (C0103): *Invalid %%s name "%%s"*
-        # pylint: disable=C0103
-        creator = self.add(db.creator, dict(
-            email='test__update_contributions_remaining@eg.com'
-        ))
-
-        book_contributions = lambda b: calc_contributions_remaining(db, b)
-        creator_contributions = \
-            lambda c: entity_to_row(db.creator, c.id).contributions_remaining
-
-        # Creator has no books
-        self.assertEqual(creator_contributions(creator), 0)
-
-        book = self.add(db.book, dict(
-            name='test__contributions_remaining_by_creator',
-            creator_id=creator.id,
-            status=BOOK_STATUS_ACTIVE,
-        ))
-        self._set_pages(db, book.id, 10)
-        update_contributions_remaining(db, book)
-        self.assertEqual(creator_contributions(creator), 100.00)
-        self.assertEqual(book_contributions(book), 100.00)
-
-        # Book has one contribution
-        self.add(db.contribution, dict(
-            book_id=book.id,
-            amount=15.00,
-        ))
-        update_contributions_remaining(db, book)
-        self.assertEqual(creator_contributions(creator), 85.00)
-        self.assertEqual(book_contributions(book), 85.00)
-
-        # Book has multiple contribution
-        self.add(db.contribution, dict(
-            book_id=book.id,
-            amount=35.99,
-        ))
-        update_contributions_remaining(db, book)
-        self.assertEqual(creator_contributions(creator), 49.01)
-        self.assertEqual(book_contributions(book), 49.01)
-
-        # Creator has multiple books.
-        book_2 = self.add(db.book, dict(
-            name='test__contributions_remaining_by_creator',
-            creator_id=creator.id,
-            status=BOOK_STATUS_ACTIVE,
-        ))
-        self._set_pages(db, book_2.id, 5)
-        update_contributions_remaining(db, book_2)
-        self.assertAlmostEqual(creator_contributions(creator), 99.01)
-        self.assertEqual(book_contributions(book), 49.01)
-        self.assertEqual(book_contributions(book_2), 50.00)
-
-        # Creator contributions_remaining should be updated by any of it's
-        # books.
-        creator.update_record(contributions_remaining=0)
-        db.commit()
-        self.assertEqual(creator_contributions(creator), 0)
-        update_contributions_remaining(db, book)
-        self.assertAlmostEqual(creator_contributions(creator), 99.01)
+        self.assertEqual(social_media_data(book), expect)
 
     def test__torrent_file_name(self):
         self.assertRaises(LookupError, torrent_file_name, -1)
@@ -2184,6 +2122,68 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         db.commit()
         self.assertEqual(
             torrent_url(book), '/FirstLast/MyBook-03of09.torrent')
+
+    def test__update_contributions_remaining(self):
+        # invalid-name (C0103): *Invalid %%s name "%%s"*
+        # pylint: disable=C0103
+        creator = self.add(db.creator, dict(
+            email='test__update_contributions_remaining@eg.com'
+        ))
+
+        book_contributions = lambda b: calc_contributions_remaining(db, b)
+        creator_contributions = \
+            lambda c: entity_to_row(db.creator, c.id).contributions_remaining
+
+        # Creator has no books
+        self.assertEqual(creator_contributions(creator), 0)
+
+        book = self.add(db.book, dict(
+            name='test__contributions_remaining_by_creator',
+            creator_id=creator.id,
+            status=BOOK_STATUS_ACTIVE,
+        ))
+        self._set_pages(db, book.id, 10)
+        update_contributions_remaining(db, book)
+        self.assertEqual(creator_contributions(creator), 100.00)
+        self.assertEqual(book_contributions(book), 100.00)
+
+        # Book has one contribution
+        self.add(db.contribution, dict(
+            book_id=book.id,
+            amount=15.00,
+        ))
+        update_contributions_remaining(db, book)
+        self.assertEqual(creator_contributions(creator), 85.00)
+        self.assertEqual(book_contributions(book), 85.00)
+
+        # Book has multiple contribution
+        self.add(db.contribution, dict(
+            book_id=book.id,
+            amount=35.99,
+        ))
+        update_contributions_remaining(db, book)
+        self.assertEqual(creator_contributions(creator), 49.01)
+        self.assertEqual(book_contributions(book), 49.01)
+
+        # Creator has multiple books.
+        book_2 = self.add(db.book, dict(
+            name='test__contributions_remaining_by_creator',
+            creator_id=creator.id,
+            status=BOOK_STATUS_ACTIVE,
+        ))
+        self._set_pages(db, book_2.id, 5)
+        update_contributions_remaining(db, book_2)
+        self.assertAlmostEqual(creator_contributions(creator), 99.01)
+        self.assertEqual(book_contributions(book), 49.01)
+        self.assertEqual(book_contributions(book_2), 50.00)
+
+        # Creator contributions_remaining should be updated by any of it's
+        # books.
+        creator.update_record(contributions_remaining=0)
+        db.commit()
+        self.assertEqual(creator_contributions(creator), 0)
+        update_contributions_remaining(db, book)
+        self.assertAlmostEqual(creator_contributions(creator), 99.01)
 
     def test__update_rating(self):
         book = self.add(db.book, dict(name='test__update_rating'))

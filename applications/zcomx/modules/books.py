@@ -57,7 +57,6 @@ class BaseEvent(object):
         Args:
             user_id: integer, id of user triggering event.
         """
-        db = current.app.db
         self.user_id = user_id
 
     def _log(self, value=None):
@@ -1392,6 +1391,57 @@ def short_url(book_entity):
     return urlparse.urljoin(url_for_creator, name)
 
 
+def social_media_data(book_entity):
+    """Return book attributes for social media.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+
+    Returns:
+        dict
+    """
+    if not book_entity:
+        return {}
+
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
+
+    try:
+        first_page = get_page(book_entity, page_no='first')
+    except LookupError:
+        first_page = None
+
+    first_page_image = first_page.image if first_page else None
+
+    download_url = None
+    if first_page:
+        download_url = URL(
+            c='images',
+            f='download',
+            args=first_page.image,
+            vars={'size': 'web'},
+            host=SITE_NAME,
+        )
+
+    return {
+        'cover_image_name': first_page_image,
+        'description': book_record.description,
+        'download_url': download_url,
+        'formatted_name': formatted_name(
+            db, book_record, include_publication_year=True),
+        'formatted_name_no_year': formatted_name(
+            db, book_record, include_publication_year=False),
+        'formatted_number': formatted_number(book_record),
+        'name': book_record.name,
+        'name_camelcase': BookName(book_record.name).for_url(),
+        'name_for_search': book_name(book_record, use='search'),
+        'short_url': short_url(book_record),
+        'url': url(book_record, host=SITE_NAME),
+    }
+
+
 def torrent_file_name(book_entity):
     """Return the name of the torrent file for the book.
 
@@ -1486,57 +1536,6 @@ def torrent_url(book_entity, **url_kwargs):
         f='{name}.torrent'.format(name=name),
         **kwargs
     )
-
-
-def tumblr_data(book_entity):
-    """Return book attributes for tumblr data.
-
-    Args:
-        book_entity: Row instance or integer representing a book.
-
-    Returns:
-        dict
-    """
-    if not book_entity:
-        return {}
-
-    db = current.app.db
-    book_record = entity_to_row(db.book, book_entity)
-    if not book_record:
-        raise LookupError('Book not found, {e}'.format(e=book_entity))
-
-    try:
-        first_page = get_page(book_entity, page_no='first')
-    except LookupError:
-        first_page = None
-
-    first_page_image = first_page.image if first_page else None
-
-    download_url = None
-    if first_page:
-        download_url = URL(
-            c='images',
-            f='download',
-            args=first_page.image,
-            vars={'size': 'web'},
-            host=SITE_NAME,
-        )
-
-    return {
-        'cover_image_name': first_page_image,
-        'description': book_record.description,
-        'download_url': download_url,
-        'formatted_name': formatted_name(
-            db, book_record, include_publication_year=True),
-        'formatted_name_no_year': formatted_name(
-            db, book_record, include_publication_year=False),
-        'formatted_number': formatted_number(book_record),
-        'name': book_record.name,
-        'name_camelcase': BookName(book_record.name).for_url(),
-        'name_for_search': book_name(book_record, use='search'),
-        'short_url': short_url(book_record),
-        'url': url(book_record, host=SITE_NAME),
-    }
 
 
 def update_contributions_remaining(db, book_entity):

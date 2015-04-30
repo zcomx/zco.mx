@@ -495,6 +495,50 @@ def short_url(creator_entity):
     )
 
 
+def social_media_data(creator_entity):
+    """Return creator attributes for social media.
+
+    Args:
+        creator_entity: Row instance or integer representing a creator.
+
+    Returns:
+        dict
+    """
+    if not creator_entity:
+        return {}
+
+    db = current.app.db
+    creator_record = entity_to_row(db.creator, creator_entity)
+    if not creator_record:
+        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
+
+    social_media = []           # (field, url) tuples
+    social_media_fields = [
+        'website',
+        'twitter',
+        'shop',
+        'tumblr',
+        'facebook',
+    ]
+
+    for field in social_media_fields:
+        if creator_record[field]:
+            anchor = db.creator[field].represent(
+                creator_record[field], creator_record)
+            value = anchor.attributes['_href']
+            social_media.append((field, value))
+
+    return {
+        'name': formatted_name(creator_record),
+        'name_for_search': creator_name(creator_entity, use='search'),
+        'name_for_url': creator_name(creator_entity, use='url'),
+        'short_url': short_url(creator_record),
+        'social_media': social_media,
+        'twitter': creator_record.twitter,
+        'url': url(creator_record, host=SITE_NAME),
+    }
+
+
 def torrent_file_name(creator_entity):
     """Return the name of the torrent file for the creator.
 
@@ -582,50 +626,6 @@ def torrent_url(creator_entity, **url_kwargs):
         f='index',
         **kwargs
     )
-
-
-def tumblr_data(creator_entity):
-    """Return creator attributes for tumblr data.
-
-    Args:
-        creator_entity: Row instance or integer representing a creator.
-
-    Returns:
-        dict
-    """
-    if not creator_entity:
-        return {}
-
-    db = current.app.db
-    creator_record = entity_to_row(db.creator, creator_entity)
-    if not creator_record:
-        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
-
-    social_media = []           # (field, url) tuples
-    social_media_fields = [
-        'website',
-        'twitter',
-        'shop',
-        'tumblr',
-        'facebook',
-    ]
-
-    for field in social_media_fields:
-        if creator_record[field]:
-            anchor = db.creator[field].represent(
-                creator_record[field], creator_record)
-            value = anchor.attributes['_href']
-            social_media.append((field, value))
-
-    return {
-        'name': formatted_name(creator_record),
-        'name_for_search': creator_name(creator_entity, use='search'),
-        'name_for_url': creator_name(creator_entity, use='url'),
-        'short_url': short_url(creator_record),
-        'social_media': social_media,
-        'twitter': creator_record.twitter,
-        'url': url(creator_record, host=SITE_NAME),
-    }
 
 
 def url(creator_entity, **url_kwargs):

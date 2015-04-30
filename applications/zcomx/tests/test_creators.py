@@ -30,10 +30,10 @@ from applications.zcomx.modules.creators import \
     queue_update_indicia, \
     rss_url, \
     short_url, \
+    social_media_data, \
     torrent_file_name, \
     torrent_link, \
     torrent_url, \
-    tumblr_data, \
     url
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.tests.helpers import \
@@ -638,6 +638,40 @@ class TestFunctions(ImageTestCase):
         for t in tests:
             self.assertEqual(short_url(t[0]), t[1])
 
+    def test__social_media_data(self):
+
+        self.assertEqual(social_media_data(None), {})
+
+        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        creator = self.add(db.creator, dict(
+            auth_user_id=auth_user.id,
+            name_for_search='first-last',
+            name_for_url='FirstLast',
+            website='http://website.com',
+            twitter='@firstlast',
+            shop=None,
+            tumblr='http://tumblr.com/firstlast',
+            facebook='htt://facebook.com/firstlast',
+        ))
+
+        self.assertEqual(
+            social_media_data(creator),
+            {
+                'name': 'First Last',
+                'name_for_search': 'first-last',
+                'name_for_url': 'FirstLast',
+                'short_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
+                'social_media': [
+                    ('website', 'http://website.com'),
+                    ('twitter', 'https://twitter.com/firstlast'),
+                    ('tumblr', 'http://tumblr.com/firstlast'),
+                    ('facebook', 'htt://facebook.com/firstlast'),
+                ],
+                'twitter': '@firstlast',
+                'url': 'http://zco.mx/FirstLast',
+            }
+        )
+
     def test__torrent_file_name(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
         creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
@@ -735,40 +769,6 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(
             torrent_url(creator),
             '/FirstMiddleLast_({i}.zco.mx).torrent'.format(i=creator.id)
-        )
-
-    def test__tumblr_data(self):
-
-        self.assertEqual(tumblr_data(None), {})
-
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(
-            auth_user_id=auth_user.id,
-            name_for_search='first-last',
-            name_for_url='FirstLast',
-            website='http://website.com',
-            twitter='@firstlast',
-            shop=None,
-            tumblr='http://tumblr.com/firstlast',
-            facebook='htt://facebook.com/firstlast',
-        ))
-
-        self.assertEqual(
-            tumblr_data(creator),
-            {
-                'name': 'First Last',
-                'name_for_search': 'first-last',
-                'name_for_url': 'FirstLast',
-                'short_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
-                'social_media': [
-                    ('website', 'http://website.com'),
-                    ('twitter', 'https://twitter.com/firstlast'),
-                    ('tumblr', 'http://tumblr.com/firstlast'),
-                    ('facebook', 'htt://facebook.com/firstlast'),
-                ],
-                'twitter': '@firstlast',
-                'url': 'http://zco.mx/FirstLast',
-            }
         )
 
     def test__url(self):
