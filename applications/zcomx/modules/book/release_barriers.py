@@ -242,6 +242,54 @@ class ImagesTooNarrowBarrier(BaseReleaseBarrier):
         return 'Some images are not large enough.'
 
 
+class InvalidPageNoBarrier(BaseReleaseBarrier):
+    """Class representing a 'invalid page no' barrier."""
+
+    def applies(self):
+        db = current.app.db
+        # Must have a cover page
+        book_id_query = (db.book_page.book_id == self.book.id)
+        query = book_id_query & (db.book_page.page_no == 1)
+        rows = db(query).select(db.book_page.id)
+        if not rows:
+            return True
+
+        count = db.book_page.book_id.count()
+        query = book_id_query
+        rows = db(query).select(
+            db.book_page.page_no,
+            count,
+            groupby=[db.book_page.book_id, db.book_page.page_no],
+            having=(count > 1)
+        )
+        if rows:
+            return True
+        return False
+
+    @property
+    def code(self):
+        return 'invalid_page_no'
+
+    @property
+    def description(self):
+        return (
+            'Occassionaly during the upload of images, '
+            'the page numbers are assigned improperly by our system. '
+        )
+
+    @property
+    def fixes(self):
+        return [
+            'Click the Upload button associated with the book.',
+            'Check that images are in the correct order and fix as necessary.',
+            'Once complete, click the "Post On Web" button.',
+        ]
+
+    @property
+    def reason(self):
+        return 'The page numbers were not set properly.'
+
+
 class NoBookNameBarrier(BaseReleaseBarrier):
     """Class representing a 'no book name' barrier."""
 
@@ -363,6 +411,7 @@ BARRIER_CLASSES = [
     NoLicenceBarrier,
     AllRightsReservedBarrier,
     NoPublicationMetadataBarrier,
+    InvalidPageNoBarrier,
     ImagesTooNarrowBarrier,
 ]
 

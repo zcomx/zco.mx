@@ -6,6 +6,7 @@
 Test suite for zcomx/modules/book/release_barriers.py
 
 """
+import inspect
 import os
 import datetime
 import shutil
@@ -14,10 +15,12 @@ from PIL import Image
 from gluon import *
 from applications.zcomx.modules.book.release_barriers import \
     AllRightsReservedBarrier, \
+    BARRIER_CLASSES, \
     BaseReleaseBarrier, \
     DupeNameBarrier, \
     DupeNumberBarrier, \
     ImagesTooNarrowBarrier, \
+    InvalidPageNoBarrier, \
     NoBookNameBarrier, \
     NoLicenceBarrier, \
     NoPagesBarrier, \
@@ -396,6 +399,66 @@ class TestImagesTooNarrowBarrier(ImageTestCase):
         self.assertTrue('images are not large enough' in barrier.reason)
 
 
+class TestInvalidPageNoBarrier(LocalTestCase):
+
+    def test__applies(self):
+        book = self.add(db.book, dict(
+            name='test__applies',
+        ))
+
+        book_page_1 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+        ))
+
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=2,
+        ))
+
+        book_page_3 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=3,
+        ))
+
+        # Has a cover page and no dupes, alls good
+        barrier = InvalidPageNoBarrier(book)
+        self.assertFalse(barrier.applies())
+
+        # Has no cover
+        book_page_1.update_record(page_no=4)
+        db.commit()
+        barrier = InvalidPageNoBarrier(book)
+        self.assertTrue(barrier.applies())
+
+        # Has dupe page no
+        book_page_1.update_record(page_no=1)
+        db.commit()
+        book_page_3.update_record(page_no=2)
+        db.commit()
+        barrier = InvalidPageNoBarrier(book)
+        self.assertTrue(barrier.applies())
+
+    def test__code(self):
+        barrier = InvalidPageNoBarrier({})
+        self.assertEqual(barrier.code, 'invalid_page_no')
+
+    def test__description(self):
+        barrier = InvalidPageNoBarrier({})
+        self.assertTrue(
+            'numbers are assigned improperly' in barrier.description)
+
+    def test__fixes(self):
+        barrier = InvalidPageNoBarrier({})
+
+        self.assertEqual(len(barrier.fixes), 3)
+        self.assertTrue('Click the Upload' in barrier.fixes[0])
+
+    def test__reason(self):
+        barrier = InvalidPageNoBarrier({})
+        self.assertTrue('numbers were not set properly' in barrier.reason)
+
+
 class TestNoBookNameBarrier(LocalTestCase):
 
     def test__applies(self):
@@ -537,6 +600,22 @@ class TestNoPublicationMetadataBarrier(LocalTestCase):
         barrier = NoPublicationMetadataBarrier({})
         self.assertTrue(
             'publication metadata has not been set' in barrier.reason)
+
+
+class TestConstants(LocalTestCase):
+    def test_barrier_classes(self):
+        base_class = BaseReleaseBarrier
+        base_classes = []
+
+        classes = [x for x in globals().values() if inspect.isclass(x)]
+        ignore_classes = [base_class]
+        for c in classes:
+            if c not in ignore_classes and base_class in inspect.getmro(c):
+                base_classes.append(c)
+        self.assertEqual(
+            sorted(base_classes),
+            sorted(BARRIER_CLASSES)
+        )
 
 
 class TestFunctions(ImageTestCase):
