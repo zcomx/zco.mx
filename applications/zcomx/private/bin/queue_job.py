@@ -12,7 +12,7 @@ Queue a job.
 import logging
 import time
 from optparse import OptionParser
-from applications.zcomx.modules.job_queue import QueueWithSignal
+import applications.zcomx.modules.job_queue as job_queue
 
 VERSION = 'Version 0.1'
 
@@ -31,6 +31,11 @@ def main():
         '-p', '--priority', type='int',
         dest='priority', default=0,
         help='job priority, default: 0',
+    )
+    parser.add_option(
+        '-q', '--queuer',
+        dest='queuer', default=None,
+        help='Use queuer to queue job',
     )
     parser.add_option(
         '-s', '--start',
@@ -59,18 +64,30 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if len(args) != 1:
+    if not options.queuer and len(args) != 1:
         parser.print_help()
         exit(1)
 
-    job_d = {
-        'command': ' '.join(args),
-        'start': options.start,
-        'priority': options.priority,
-    }
+    if options.queuer:
+        try:
+            queuer_class = getattr(job_queue, options.queuer)
+        except AttributeError as err:
+            queuer_class = None
+            LOG.error('Invalid queuer: %s', options.queuer)
+            LOG.error(err)
+            exit(1)
+        if queuer_class:
+            queuer = queuer_class(db.job)
+            job = queuer.queue()
+    else:
+        job_d = {
+            'command': ' '.join(args),
+            'start': options.start,
+            'priority': options.priority,
+        }
 
-    queue = QueueWithSignal(db.job)
-    job = queue.add_job(job_d)
+        queue = job_queue.QueueWithSignal(db.job)
+        job = queue.add_job(job_d)
     LOG.info("Created job id: %s", str(job.id))
 
 

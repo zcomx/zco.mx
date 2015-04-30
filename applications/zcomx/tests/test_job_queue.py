@@ -36,6 +36,7 @@ from applications.zcomx.modules.job_queue import \
     OptimizeWebImgQueuer, \
     PostOnSocialMediaQueuer, \
     PRIORITIES, \
+    PurgeTorrentsQueuer, \
     Queue, \
     QueueEmptyError, \
     QueueLockedError, \
@@ -617,8 +618,6 @@ class TestOptimizeWebImgQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
         self.assertEqual(
             job.priority,
             PRIORITIES.index('optimize_web_img')
@@ -643,11 +642,28 @@ class TestPostOnSocialMediaQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/post_on_social_media.py --vv 123'
+        )
+
+
+class TestPurgeTorrentsQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = PurgeTorrentsQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'--vv': True},
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/purge_torrents.py --vv'
         )
 
 

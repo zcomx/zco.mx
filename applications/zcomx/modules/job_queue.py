@@ -45,6 +45,7 @@ PRIORITIES = list(reversed([
     'delete_img',
     'log_downloads',
     'optimize_original_img',
+    'purge_torrents',
     # Lowest
 ]))
 
@@ -712,6 +713,19 @@ class PostOnSocialMediaQueuer(JobQueuer):
     program = os.path.join(JobQueuer.bin_path, 'post_on_social_media.py')
     default_job_options = {
         'priority': PRIORITIES.index('post_on_social_media'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
+class PurgeTorrentsQueuer(JobQueuer):
+    """Class representing a queuer for purge_torrent jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'purge_torrents.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('purge_torrents'),
         'status': 'a',
     }
     valid_cli_options = [
