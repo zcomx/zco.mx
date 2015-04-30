@@ -71,7 +71,7 @@ Jim Karsten and Steve Blatchford write the code, but zco.mx is very much a
 group effort. Curation of European cartoonist is by [[David Schilter of kuš!
 komiksi http://www.komikss.lv]].  Many people have contributed to the project
 thus far; too many to list everyone.  Here are a few who need mentioning:
-[[dfkt http://dfkt.tk/]],
+[[Martin Sägmüller https://services.dfkt.tk/]],
 [[Chuck Forsman http://charlesforsman.com]],
 [[Kevin Huizenga https://plus.google.com/107420980080038159626/about]],
 [[Marc Bell http://marcbelldept.blogspot.com]],

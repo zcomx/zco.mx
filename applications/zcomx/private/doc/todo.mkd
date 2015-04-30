@@ -27,19 +27,19 @@ BUGS
     [x] Change colour of CC logo (lighter grey)
     [x] http://sb.zco.mx:8080/login -- alignment is off
 
+[S] Hi-res jpg's bring the server to its knees
+    $ sleep 1 && cpulimit -l 90 -e CMD
+
+VERSION 3
 [S] Integrity Check For Torrents
     https://code.google.com/p/pyroscope/wiki/RtControlExamples
     $ rtcontrol -q -oname name=* alias=zco.mx
     $ for i in /srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/**; do [[ $i == *.torrent.loaded* ]] && echo "$i"; done
 
-[S] Hi-res jpg's bring the server to its knees
-
-VERSION 3
-[S] microdc
-    [S] Setup On jimk.zsw.ca
-        rtorrent
-        tmux+ncdc
-        rtxmlrpc
+[S] Setup On jimk.zsw.ca
+    rtorrent
+    tmux+ncdc
+    rtxmlrpc
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
@@ -50,6 +50,7 @@ VERSION 3
 [S] releases/released to 'published' ?  'complete' ?
 
 [S] Add 'shortened url' to cartoonist page
+
 [ ] Rewrite these urls ?
     https://zco.mx/?o=ongoing to https://zco.mx/z/ongoing
     https://zco.mx/?o=releases to https://zco.mx/z/releases
