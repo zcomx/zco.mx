@@ -46,14 +46,14 @@ releasing the book.</li>
 
             {{for barrier in barriers:}}
             <li>
-                {{=barrier['reason']}}
-                {{if 'description' in barrier:}}
+                {{=barrier.reason}}
+                {{if barrier.description:}}
                 <div class="release_barrier_description">
-                    {{=barrier['description']}}
+                    {{=barrier.description}}
                 </div>
                 {{pass}}
                 <ul>
-                    {{for fix in barrier['fixes']:}}
+                    {{for fix in barrier.fixes:}}
                     <li>{{=fix}}</li>
                     {{pass}}
                 </ul>
