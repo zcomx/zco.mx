@@ -7,7 +7,7 @@
         <div id="reader_page_header">
             {{try:}}{{first_page = get_page(book, page_no='first')}}{{except:}}{{first_page = None}}{{pass}}
             {{book_page_id = first_page.id if first_page else 0}}
-            {{=LOAD(c='default', f='top', args='reader', vars={'book_id': book.id, 'creator_id': book.creator_id, 'book_page_id': book_page_id}, extension='load', ajax=False, content='')}}
+            {{=LOAD(c='z', f='top', args='reader', vars={'book_id': book.id, 'creator_id': book.creator_id, 'book_page_id': book_page_id}, extension='load', ajax=False, content='')}}
             <div class="row" id="name_creator_section">
                 <div class="col-sm-12" id="name_creator_inlay">
                     <div class="row" id="name_creator">

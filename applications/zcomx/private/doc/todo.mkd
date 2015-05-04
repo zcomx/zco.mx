@@ -169,7 +169,7 @@ VERSION 4
     * http://mashable.com/2011/03/06/user-feedback-apps/
 [ ] Copyright material
     'Report' button for DMCA / C&D
-    https://zco.mx/copyright_claim
+    https://zco.mx/z/copyright_claim
 [ ] Queue Error Too Ambiguous
     [ERROR queue_check.py 86] Multiple pending jobs in queue.
     * could be many jobs in the queue

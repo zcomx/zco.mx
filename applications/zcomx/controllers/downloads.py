@@ -84,7 +84,7 @@ def modal():
     request.args(0): integer, id of book (required)
     """
     do_error = lambda msg: redirect(
-        URL(c='default', f='modal_error', vars={'message': msg}))
+        URL(c='z', f='modal_error', vars={'message': msg}))
 
     book_record = None
     if request.args(0):

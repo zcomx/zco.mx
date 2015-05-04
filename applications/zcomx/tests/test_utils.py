@@ -245,10 +245,10 @@ class TestFunctions(LocalTestCase):
         # <div class="faq_options_container">
         #    <ul class="nav nav-tabs">
         #        <li class="nav-tab active">
-        #            <a href="{{=URL(c='default', f='faq')}}">general</a>
+        #            <a href="{{=URL(c='z', f='faq')}}">general</a>
         #        </li>
         #        <li class="nav-tab">
-        #            <a href="{{=URL(c='default', f='faqc')}}">cartoonist</a>
+        #            <a href="{{=URL(c='z', f='faqc')}}">cartoonist</a>
         #        </li>
         #    </ul>
         # </div>
@@ -267,14 +267,14 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(li_1['class'], 'nav-tab active')
 
         anchor_1 = li_1.a
-        self.assertEqual(anchor_1['href'], '/faq')
+        self.assertEqual(anchor_1['href'], '/z/faq')
         self.assertEqual(anchor_1.string, 'general')
 
         li_2 = li_1.nextSibling
         self.assertEqual(li_2['class'], 'nav-tab ')
 
         anchor_2 = li_2.a
-        self.assertEqual(anchor_2['href'], '/faqc')
+        self.assertEqual(anchor_2['href'], '/z/faqc')
         self.assertEqual(anchor_2.string, 'cartoonist')
 
     def test__markmin(self):

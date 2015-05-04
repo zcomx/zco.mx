@@ -38,7 +38,7 @@ and commissions.
 
 If self-publishing cartoonists worked together, the "try before you buy"
 method could generate a huge amount of goodwill and community support.
-zco.mx offers a platform for this exchange, including [[ways to support /faq#contribution]]
+zco.mx offers a platform for this exchange, including [[ways to support /z/faq#contribution]]
 cartoonists' work directly.
 
 
@@ -83,7 +83,7 @@ developers.
 
 Site administrators donate their time and the site accepts
 ``donations``:contribute_link, which are used to offset [[hosting costs
-/expenses]]. Any surplus is put towards the site and its community. The
+/z/expenses]]. Any surplus is put towards the site and its community. The
 site code is open source and made available on [[github
 https://github.com/zcomix]], so the community has an opportunity to
 contribute features and bug fixes.

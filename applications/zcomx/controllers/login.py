@@ -58,7 +58,7 @@ from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
 LOG = logging.getLogger('app')
 
 MODAL_ERROR = lambda msg: redirect(
-    URL(c='default', f='modal_error', vars={'message': msg}))
+    URL(c='z', f='modal_error', vars={'message': msg}))
 
 
 @auth.requires_login()

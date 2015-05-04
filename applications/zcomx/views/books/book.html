@@ -6,7 +6,7 @@
 {{creator_name = formatted_creator_name(creator)}}
 <div id="book_page">
 
-{{=LOAD(c='default', f='top', args='book', vars={'book_id': book.id, 'creator_id': book.creator_id}, extension='load', ajax=False, content='')}}
+{{=LOAD(c='z', f='top', args='book', vars={'book_id': book.id, 'creator_id': book.creator_id}, extension='load', ajax=False, content='')}}
 
 <div class="row">
     <div class="col-sm-5" id="left_column">

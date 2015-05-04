@@ -406,16 +406,16 @@ class Grid(object):
         for o in orderbys:
             active = 'active' if o == orderby else ''
             orderby_vars = dict(self.request.vars)
+            orderby_vars.pop('o', None)    # The url takes care of this
             orderby_vars.pop('contribute', None)    # Del contribute modal trig
             if 'page' in orderby_vars:
                 # Each tab should reset to page 1.
                 del orderby_vars['page']
-            orderby_vars['o'] = o
             label = GRID_CLASSES[o].label('tab_label')
             lis.append(LI(
                 A(
                     label,
-                    _href=URL(r=self.request, vars=orderby_vars),
+                    _href=URL(c='z', f=label, vars=orderby_vars),
                 ),
                 _class='nav-tab {a}'.format(a=active),
             ))
@@ -446,6 +446,7 @@ class Grid(object):
             creator = viewby_vars.pop('creator', None)
             if creator:
                 args.append(creator)
+            viewby_vars.pop('o', None)     # Urls contain this
             viewby_vars.pop('contribute', None)     # Del contribute modal trig
             viewby_vars['view'] = v
             disabled = 'disabled' if v == self.viewby else 'active'
