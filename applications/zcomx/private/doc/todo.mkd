@@ -1,34 +1,6 @@
 ``
 BUGS
-[x] Send Out Tweets and Post to Tumblr Any Released Books
-    [x] Long Titles
-[x] Forgot password?
-    I receive the 'Password reset' email but get "Invalid reset
-    password" when I click on it.
-[x] Graxa Gamgasher - Isn't being seeded
-    $ rtxmlrpc -q load.start '' "/srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/zco.mx/A/AndreaTsurumi/Graxa Gamgasher - Teen Girl Sleuth 001 (2014) (182.zco.mx).cbz.torrent.loaded" d.directory_base.set=\"/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx/A/AndreaTsurumi/\" d.priority.set=2
-[x] /home/jimk/bin/py_web2py.sh -- applications/zcomx/private/bin/release_book.py --reverse 223
-    Didn't remove torrent.loaded from rtorrent
-    [x] Colin & Sam's Metadata Issue
-        [x] colin - Repub, In Whole, Square Dance #6, Paper, Self, 2013, 2013
-        [x] sam - It was self published in 2012. Paper.
-[x] Delete Release
-    applications/zcomx/private/bin/notify_p2p_networks.py --delete 'applications/zcomx/private/var/cbz/zco.mx/S/SamSharpe/The End of Action Man (2015) (196.zco.mx).cbz'|d|
-[x] Add CC licence to zco.mx footer
-                                                      [CC BY]
-         Every comic on zco.mx has its own licence; all other
-        content is licenced under the CC BY 4.0 Int'l licence
-
-                                                      [CC BY]
-            Except  where  otherwise  noted, content  on this
-             site is licenced under a CC BY 4.0 Int'l licence
-
-    [-] Add Space Between CC Logo and Text
-    [x] Change colour of CC logo (lighter grey)
-    [x] http://sb.zco.mx:8080/login -- alignment is off
-
-[S] Hi-res jpg's bring the server to its knees
-    $ sleep 1 && cpulimit -l 90 -e CMD
+[ ] Temp files like 'tmpuz5Dph' are hanging around on zc:/tmp
 
 VERSION 3
 [S] Integrity Check For Torrents
@@ -65,14 +37,15 @@ VERSION 3
         https://zco.mx/login    ->  https://zco.mx/z/login
         https://zco.mx/expenses ->  https://zco.mx/z/expenses
 
-[ ] Remove the ability to change to a more restrictive CC licence
-[ ] Announce on instagram ?
+[S] Announce on instagram ?
 [S] Setup hypermail for real-only mailing lists in login area ?
 [S] Reader notifications for new material
+    [S] Create Mockup
     Follow Links
         by cartoonist and by book
         via rss? and mailing list?
-    [ ] On Indicia
+    [ ] On Indicia - Add Link For Next Book
+    [ ] On Indicia - Add Reader Notifications
         [$1.00] (contribute) | Next Book By Cartoonist Name
                              | Book Name 03 (of 04)
 
@@ -80,18 +53,29 @@ VERSION 3
                 on zco.mx  [ ] [ ]          ## ML and RSS
                 or on    [ ] [ ] [ ]        ## twitter, tumblr & fb
 
-[ ] Indicia - html version
-    Add book links to html indicia page
-    Add link for 'Read Next' book
+[S] Indicia - html version
+    [S] Create Mockup
+    Add book_to_link links to html indicia page
 [ ] Extend left/right clickable areas while in slider mode
     * maybe show an 1/8th of the prev/next image and very opague?
+[ ] Read Page -> Slider (Mobile Phone)
+    Float to Center - doesn't seem to be working properly
 [ ] Randomize Cartoonist on "Page Not Found" ?
+    * Only Released Books
+    * Change 'Creator page' to 'Cartoonist page'
 [S] Redesign Cartoonist Page
+    [S] Mock Up
     * handle portrait and landscape photos better
+    [S] Book Page -> Photos
+            "Photo Courtesy of [Photographer's Name]    [  {link back}  ]"
+            If blank, write nothing
 
 
-[S] Separate '001' and '01 (of 02)' from the title ?
+VERSION 4
 [ ] Web images are too small on mac laptops
+[S] Dynamically Resize Image on Browser Resize
+    eg http://believedbehavior.com
+[S] Separate '001' and '01 (of 02)' from the title ?
 [S] Change bg to #fafafa ?
     Not on the reader page
 [ ] comic name? and page numbers (ie 05/22) in the Window Title?
@@ -130,15 +114,14 @@ VERSION 3
 [ ] 12354 - Test scripts
 
 
-VERSION 4
+VERSION 5
+[ ] Creator page -> Links to Cartoonist Articles/interviews?
+[ ] Book page -> Links to Book Reviews ?
 [ ] How to find all comics in a specific language?
 [ ] All Ages Modal via cookie ?
 [ ] Explicit Content Warning (modal)
 [ ] Automate Mailing List Add/Remove
     http://stackoverflow.com/questions/21253849/google-groups-api-add-member
-[S] Book Page -> Photos
-        "Photo Courtesy of [Photographer's Name]    [  {link back}  ]"
-        If blank, write nothing
 [ ] How to Handle Translations ?
     [ ] Add 'Translated By' Field  (after 'To' year ?)
 [ ] login -> books -> edit
@@ -147,8 +130,6 @@ VERSION 4
     12459 - how to paginate long gn's -- modulo 30?
 [ ] login -> books page
     paginate 'released' and 'ongoing' books
-[ ] Creator page -> Links to Cartoonist Articles/interviews?
-[ ] Book page -> Links to Book Reviews ?
 
 [ ] Tags (kids, by genre ??)
 [ ] Front Page -> 12560 - store attributes in session and reuse
@@ -174,6 +155,7 @@ VERSION 4
     [ERROR queue_check.py 86] Multiple pending jobs in queue.
     * could be many jobs in the queue
     * could have 'd' jobs -- output of these would be nice
+[ ] Add warning to change to a more restrictive CC licence
 
 
 IDEAS

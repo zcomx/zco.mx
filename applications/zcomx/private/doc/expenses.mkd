@@ -1,6 +1,7 @@
 ``
 INCOME
-  TOTAL Income                                  $  0
+    Apr                                 $  5
+  TOTAL Income                                  $   5
 
 EXPENSES
     Jun 2014    Server Hosting          $ 40
@@ -18,8 +19,10 @@ EXPENSES
     Feb 2015    Server Hosting          $ 40
     Mar 2015    Server Hosting          $ 40
     Apr 2015    Server Hosting          $ 40
-  TOTAL Expense                                 $1212
+    Apr 2015    Contract Work - copy    $165
+    May 2015    Server Hosting          $ 40
+  TOTAL Expense                                 $1417
 
 
-NET TOTAL                                      -$1212
+NET TOTAL                                      -$1412
 ``
