@@ -120,12 +120,22 @@
             var that = this;
             $('#page_nav_total').text((that.image_count() + 1).toString());
 
-            $('#reader_section_right').click(function(e) {
+            $('#reader_handle_right').click(function(e) {
                 that.next_slide(NO_ROTATE);
                 e.preventDefault();
             });
 
-            $('#reader_section_left').click(function(e) {
+            $('#reader_handle_left').click(function(e) {
+                that.prev_slide(NO_ROTATE);
+                e.preventDefault();
+            });
+
+            $('#slider_overlay_right').click(function(e) {
+                that.next_slide(NO_ROTATE);
+                e.preventDefault();
+            });
+
+            $('#slider_overlay_left').click(function(e) {
                 that.prev_slide(NO_ROTATE);
                 e.preventDefault();
             });
@@ -178,7 +188,11 @@
                     }
                 })
                 .resize(function(e) {
-                    that.set_overlays();
+                    that.$reader_section.find('.slide:visible').each( function(id, elem) {
+                        var num = $(this).attr('id').split('-')[1];
+                        that.show_slide(num);
+                        that.set_overlays();
+                    });
             });
         },
 
@@ -216,8 +230,8 @@
 
         set_overlays: function(num) {
             var img = this.$reader_section.find('img:visible'),
-                left_section = $('#reader_section_left'),
-                right_section = $('#reader_section_right');
+                left_section = $('#slider_overlay_left'),
+                right_section = $('#slider_overlay_right');
 
             if (typeof(num) === 'undefined') {
                 num = this.$reader_section.find('.slide:visible').first().attr('id').split('-')[1];
@@ -231,21 +245,32 @@
             var img_h = img.outerHeight();
             var img_w = img.outerWidth();
 
+            var gutter_w = 20; /* gutter in center has no overlay (allow right click on image) */
+            if (gutter_w > img_w) {
+                gutter_w = img_w;
+            }
+
+            var min_extend_w = 30;
+            var extend_w = Math.round(img_w / 8);
+            if (extend_w < min_extend_w) {
+                extend_w = 0;
+            }
+
+            var overlay_w = (img_w / 2.0) - gutter_w + extend_w;
+
             left_section.css({
                 height: img_h,
-                width: img_w/2.0,
-                border: '1px solid red',
+                width: overlay_w,
             })
 
             right_section.css({
                 height: img_h,
-                width: img_w/2.0,
-                border: '1px solid blue',
+                width: overlay_w,
             })
 
             $(left_section).jquery_ui_position(
                 {
-                my: 'left top',
+                my: 'left-' + extend_w + ' top',
                 at: 'left top',
                 of: $(img),
                 collision: 'none',
@@ -254,7 +279,7 @@
 
             $(right_section).jquery_ui_position(
                 {
-                my: 'right top',
+                my: 'right+' + extend_w + ' top',
                 at: 'right top',
                 of: $(img),
                 collision: 'none',
