@@ -1,7 +1,7 @@
 {{from applications.zcomx.modules.utils import markmin}}
 {{extend layout}}
 {{if layout == 'layout_main.html':}}
-    {{=LOAD(c='default', f='top', args='terms', extension='load', ajax=False, content='')}}
+    {{=LOAD(c='z', f='top', args='terms', extension='load', ajax=False, content='')}}
     {{row_class='row'}}
 {{else:}}
     {{row_class=''}}

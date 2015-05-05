@@ -97,7 +97,7 @@ To the extent authorized by law, you agree to indemnify and hold harmless zco.mx
 
 zco.mx respects copyright, and we prohibit users of the Services from submitting, uploading, posting, or otherwise transmitting any Content on the Services that violates another person’s proprietary rights.
 
-To report allegedly infringing Content hosted on a website owned or controlled by zco.mx, follow the instructions on zco.mx’s [[Notice and Procedure for Making Claims of Copyright Infringement /copyright_claim]] page.
+To report allegedly infringing Content hosted on a website owned or controlled by zco.mx, follow the instructions on zco.mx’s [[Notice and Procedure for Making Claims of Copyright Infringement /z/copyright_claim]] page.
 
 #### 12. Termination
 

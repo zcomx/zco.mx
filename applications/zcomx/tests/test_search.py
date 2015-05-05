@@ -314,12 +314,12 @@ class TestGrid(LocalTestCase):
         li_1 = ul.li
         self.assertEqual(li_1['class'], 'nav-tab active')
         anchor_1 = li_1.a
-        self.assertEqual(anchor_1['href'], '/?o=releases')
+        self.assertEqual(anchor_1['href'], '/z/releases')
         self.assertEqual(anchor_1.string, 'releases')
 
         li_2 = li_1.nextSibling
         anchor_2 = li_2.a
-        self.assertEqual(anchor_2['href'], '/?o=ongoing')
+        self.assertEqual(anchor_2['href'], '/z/ongoing')
         self.assertEqual(anchor_2.string, 'ongoing')
 
         # li_2 = li_1.nextSibling
@@ -330,7 +330,7 @@ class TestGrid(LocalTestCase):
         li_3 = li_2.nextSibling
         self.assertEqual(li_3['class'], 'nav-tab ')
         anchor_3 = li_3.a
-        self.assertEqual(anchor_3['href'], '/?o=creators')
+        self.assertEqual(anchor_3['href'], '/z/cartoonists')
         self.assertEqual(anchor_3.string, 'cartoonists')
 
         # Test removal of request.vars.contribute
@@ -338,13 +338,13 @@ class TestGrid(LocalTestCase):
         tabs = grid.tabs()
         soup = BeautifulSoup(str(tabs))
         anchor_1 = soup.ul.li.a
-        self.assertEqual(anchor_1['href'], '/?o=releases')
+        self.assertEqual(anchor_1['href'], '/z/releases')
         anchor_2 = soup.ul.li.nextSibling.a
-        self.assertEqual(anchor_2['href'], '/?o=ongoing')
+        self.assertEqual(anchor_2['href'], '/z/ongoing')
         # anchor_2 = soup.ul.li.nextSibling.a
-        # self.assertEqual(anchor_2['href'], '/?o=contributions')
+        # self.assertEqual(anchor_2['href'], '/z/contributions')
         anchor_3 = soup.ul.li.nextSibling.nextSibling.a
-        self.assertEqual(anchor_3['href'], '/?o=creators')
+        self.assertEqual(anchor_3['href'], '/z/cartoonists')
 
     def test__tile_value(self):
         creator = self.add(db.creator, dict(

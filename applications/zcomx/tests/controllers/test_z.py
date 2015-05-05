@@ -21,6 +21,7 @@ class TestFunctions(LocalTestCase):
     titles = {
         '404': 'Page not found',
         'about': '<h1>About</h1>',
+        'cartoonists': '<div id="front_page">',
         'contribute': '<form id="paypal_form"',
         'copyright_claim':
             '<h3>Notice and Procedure for Making Claims of Copyright',
@@ -36,10 +37,14 @@ class TestFunctions(LocalTestCase):
         'login': '<h2>Cartoonist Login</h2>',
         'logos': '<h1>Logos</h1>',
         'modal_error': 'An error occurred. Please try again.',
+        'ongoing': '<div id="front_page">',
         'overview': '<h1>Overview</h1>',
         'page_not_found': '<h3>Page not found</h3>',
+        'releases': '<div id="front_page">',
+        'search': '<div id="front_page">',
         'terms': '<h1>Terms and Conditions</h1>',
         'todo': '<h1>TODO</h1>',
+        'top': '<h2>Top</h2>',
         'user': [
             'web2py_user_form',
             'web2py_user_form_container',
@@ -47,7 +52,7 @@ class TestFunctions(LocalTestCase):
             'register_container'
         ],
     }
-    url = '/zcomx/default'
+    url = '/zcomx/z'
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
@@ -62,11 +67,11 @@ class TestFunctions(LocalTestCase):
             self.titles['about']
         ))
 
-    def test__call(self):
-        with self.assertRaises(urllib2.HTTPError) as cm:
-            web.test('{url}/call'.format(url=self.url), None)
-        self.assertEqual(cm.exception.code, 404)
-        self.assertEqual(cm.exception.msg, 'NOT FOUND')
+    def test__cartoonists(self):
+        self.assertTrue(web.test(
+            '{url}/cartoonists'.format(url=self.url),
+            self.titles['cartoonists']
+        ))
 
     def test__contribute(self):
         self.assertTrue(web.test(
@@ -79,27 +84,6 @@ class TestFunctions(LocalTestCase):
             '{url}/copyright_claim'.format(url=self.url),
             self.titles['copyright_claim']
         ))
-
-    def test__data(self):
-        # Permission is denied here, should redirect to index
-        self.assertTrue(
-            web.test(
-                '{url}/data'.format(url=self.url),
-                self.titles['index']
-            )
-        )
-        self.assertTrue(
-            web.test(
-                '{url}/data/book'.format(url=self.url),
-                self.titles['index']
-            )
-        )
-
-    def test__download(self):
-        with self.assertRaises(urllib2.HTTPError) as cm:
-            web.test('{url}/download'.format(url=self.url), None)
-        self.assertEqual(cm.exception.code, 404)
-        self.assertEqual(cm.exception.msg, 'NOT FOUND')
 
     def test__expenses(self):
         self.assertTrue(web.test(
@@ -131,9 +115,6 @@ class TestFunctions(LocalTestCase):
             self.titles['index']
         ))
 
-        # Test that settings.conf is respected
-        self.assertEqual(auth.settings.expiration, 86400)
-
     def test__logos(self):
         self.assertTrue(web.test(
             '{url}/logos'.format(url=self.url),
@@ -154,10 +135,28 @@ class TestFunctions(LocalTestCase):
             self.titles['index']
         ))
 
+    def test__ongoing(self):
+        self.assertTrue(web.test(
+            '{url}/ongoing'.format(url=self.url),
+            self.titles['ongoing']
+        ))
+
     def test__overview(self):
         self.assertTrue(web.test(
             '{url}/overview'.format(url=self.url),
             self.titles['overview']
+        ))
+
+    def test__releases(self):
+        self.assertTrue(web.test(
+            '{url}/releases'.format(url=self.url),
+            self.titles['releases']
+        ))
+
+    def test__search(self):
+        self.assertTrue(web.test(
+            '{url}/search'.format(url=self.url),
+            self.titles['search']
         ))
 
     def test__terms(self):
@@ -172,28 +171,11 @@ class TestFunctions(LocalTestCase):
             self.titles['todo']
         ))
 
-    def test__user(self):
+    def test__top(self):
         self.assertTrue(web.test(
-            '{url}/user/login'.format(url=self.url),
-            self.titles['user']
+            '{url}/top'.format(url=self.url),
+            self.titles['top']
         ))
-
-    def test_routes(self):
-        """Test various urls and make sure they behave."""
-        tests = [
-            # (url, expect)
-            ('/', 'index'),
-            ('/zcomx', 'index'),
-            ('/zcomx/default', 'index'),
-            ('/zcomx/default/index', 'index'),
-            ('/admin', 'index'),
-            ('/zcomx/admin', 'index'),
-            ('/zcomx/admin/index', 'index'),
-            ('/appadmin', 'page_not_found'),
-            ('/zcomx/appadmin', 'page_not_found'),
-        ]
-        for t in tests:
-            self.assertTrue(web.test(t[0], self.titles[t[1]]))
 
 
 def setUpModule():

@@ -162,7 +162,7 @@ def faq_tabs(active='faq'):
         lis.append(LI(
             A(
                 t['label'],
-                _href=URL(c='default', f=t['controller'])
+                _href=URL(c='z', f=t['controller'])
             ),
             _class='nav-tab {a}'.format(a=active_css),
         ))

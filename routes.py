@@ -45,8 +45,10 @@ CONTROLLERS = '|'.join([
     'login',
     'search',
     'torrents',
+    'z',
 ])
 
+# These are deprecated. Use zco.mx/z/...
 DEFAULT_FUNCTIONS = '|'.join([
     'about',
     'contribute',

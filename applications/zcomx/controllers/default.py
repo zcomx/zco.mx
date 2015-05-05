@@ -3,26 +3,16 @@
 Default controller.
 """
 import logging
-import os
-from applications.zcomx.modules.books import \
-    page_url, \
-    url as book_url
 from applications.zcomx.modules.creators import \
     add_creator, \
     for_path, \
-    profile_onaccept, \
-    url as creator_url
+    profile_onaccept
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.stickon.sqlhtml import \
     formstyle_bootstrap3_login
-from applications.zcomx.modules.stickon.tools import ExposeImproved
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_SCRUBBED
-from applications.zcomx.modules.utils import \
-    faq_tabs, \
-    markmin
-from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
 
@@ -111,6 +101,7 @@ def user():
             IS_NOT_EMPTY(
                 error_message='This is a required field.',
             ),
+            IS_LENGTH(minsize=2),
             IS_ALLOWED_CHARS(not_allowed=FileName.invalid_chars),
             IS_NOT_IN_DB_SCRUBBED(
                 db,
@@ -180,209 +171,78 @@ def data():
 
 def about():
     """About page"""
-    return markmin('about')
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def contribute():
     """Contribute to zcomx admin controller"""
-    Zco().paypal_in_progress = None
-    redirect(URL(c='contributions', f='paypal', extension=False))
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def copyright_claim():
     """Copyright claim page"""
-    return markmin('copyright_claim')
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def expenses():
     """Expenses page"""
-    return markmin('expenses')
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def faq():
     """FAQ page"""
-    # Set up for 'donations' contributions to paypal handling.
-    layout = 'login/layout.html' if auth and auth.user_id \
-        else 'layout_main.html'
-    extra = dict(
-        tabs=faq_tabs(active='faq'),
-        layout=layout,
-    )
-    return markmin('faq', extra=extra)
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def faqc():
     """Creator FAQ page"""
-    extra = dict(
-        tabs=faq_tabs(active='faqc'),
-    )
-
-    return markmin('faqc', extra=extra)
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 @auth.requires_login()
 def files():
     """Logos page"""
-    base_path = os.path.join(request.folder, 'static', 'files')
-    expose = ExposeImproved(base=base_path, display_breadcrumbs=False)
-    return dict(expose=expose)
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def logos():
     """Logos page"""
-    base_path = os.path.join(request.folder, 'static', 'images', 'logos')
-    expose = ExposeImproved(base=base_path, display_breadcrumbs=False)
-    return dict(expose=expose)
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def modal_error():
-    """Controller for displaying error messages within modal.
-
-    request.vars.message: string, error message
-    """
-    return dict(message=request.vars.message)
+    """Controller for displaying error messages within modal. """
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def monies():
     """Controller for front page with contribute modal open."""
-    redirect(URL(c='search', f='index', vars={'contribute': 1}))
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def overview():
     """Overview page"""
-    return markmin('overview')
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def terms():
     """Terms page"""
-    is_creator = auth and auth.user_id
-    layout = 'login/layout.html' if is_creator else 'layout_main.html'
-
-    summary_sections = []
-    if is_creator:
-        summary_sections = [
-            'terms-key_points',
-        ]
-
-    sections = [
-        'terms-terms_of_use',
-        'terms-content_guidelines',
-        'terms-privacy_policy',
-    ]
-
-    return dict(
-        layout=layout,
-        sections=sections,
-        summary_sections=summary_sections,
-    )
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))
 
 
 def todo():
     """Todo page"""
-    return markmin('todo')
-
-
-def top():
-    """Controller for top header component
-
-    request.args(0): name of page, optional. Set to None for home page.
-    """
-    left_links = []
-    right_links = []
-    delimiter_class = 'pipe_delimiter'
-
-    home = A(
-        'home',
-        _href=URL(c='default', f='index', extension=False)
-    )
-    left_links.append(LI(home))
-
-    def li_link(label, url, **kwargs):
-        """Return a LI(A(...)) structure."""
-        if url is not None:
-            li_text = A(label, _href=url)
-        else:
-            li_text = label
-        return LI(li_text, **kwargs)
-
-    def book_link(book_id, text_only=False):
-        """Return a book link."""
-        label = 'book'
-        url = book_url(book_id, extension=False) \
-            if book_id and not text_only else None
-        return li_link(label, url)
-
-    def creator_link(creator_id, text_only=False):
-        """Return a creator link."""
-        label = 'cartoonist'
-        url = creator_url(creator_id, extension=False) \
-            if creator_id and not text_only else None
-        return li_link(label, url)
-
-    def login_link(label):
-        """Return a link suitable for a login label"""
-        return li_link(
-            label,
-            URL(c='login', f=label, extension=False),
-            _class='active' if request.args(1) == label else '',
-        )
-
-    def page_link(page_id, text_only=False):
-        """Return a read (book page) link."""
-        label = 'read'
-        url = page_url(page_id, extension=False) \
-            if page_id and not text_only else None
-        return li_link(label, url)
-
-    def search_link(request):
-        """Return a search results link."""
-        label = 'search'
-        url = URL(c='search', f='index', vars=request.vars)
-        return li_link(label, url)
-
-    if request.args(0):
-        if request.args(0) == 'reader':
-            delimiter_class = 'gt_delimiter'
-            left_links.append(creator_link(request.vars.creator_id))
-            left_links.append(book_link(request.vars.book_id))
-            left_links.append(page_link(
-                request.vars.book_page_id,
-                text_only=True
-            ))
-        elif request.args(0) == 'book':
-            delimiter_class = 'gt_delimiter'
-            left_links.append(creator_link(request.vars.creator_id))
-            left_links.append(book_link(
-                request.vars.book_id,
-                text_only=True
-            ))
-        elif request.args(0) == 'creator':
-            delimiter_class = 'gt_delimiter'
-            left_links.append(creator_link(
-                request.vars.creator_id,
-                text_only=True
-            ))
-        elif request.args(0) == 'login':
-            delimiter_class = 'pipe_delimiter'
-            left_links.append(login_link('books'))
-            left_links.append(login_link('indicia'))
-            left_links.append(login_link('profile'))
-            left_links.append(login_link('account'))
-    else:
-        if request.vars.o == 'search':
-            delimiter_class = 'gt_delimiter'
-            left_links.append(search_link(request))
-
-    breadcrumbs = {}
-    breadcrumbs['left'] = OL(
-        left_links,
-        _class='breadcrumb left {d}'.format(d=delimiter_class),
-    )
-
-    if right_links:
-        breadcrumbs['right'] = OL(
-            right_links,
-            _class='breadcrumb right',
-        )
-
-    return dict(breadcrumbs=breadcrumbs)
+    redirect(
+        URL(c='z', f=request.function, args=request.args, vars=request.vars))

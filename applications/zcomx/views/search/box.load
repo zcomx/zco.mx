@@ -1,6 +1,5 @@
 <div id="search">
-    <form action="/" method="POST" class="search_form">
+    <form action="/z/search" method="POST" class="search_form">
     <input type="text" name="kw" class="input-block-level" placeholder="search:  cartoonist / title" title="Enter a book title or cartoonist name in whole or part">
-    <input type="hidden" name="o" value="search"/>
     </form>
 </div>
