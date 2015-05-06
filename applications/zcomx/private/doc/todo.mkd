@@ -1,6 +1,19 @@
 ``
+[x] Rewrite these urls ?
+    https://zco.mx/?o=ongoing to https://zco.mx/z/ongoing
+    https://zco.mx/?o=releases to https://zco.mx/z/releases
+    https://zco.mx/?o=creators to https://zco.mx/z/cartoonists
+    [x] Restrict cartoonist names to be 2 charactors or longer
+    [x] Add redirects for:
+        https://zco.mx/about    ->  https://zco.mx/z/about
+        https://zco.mx/faq      ->  https://zco.mx/z/faq
+        https://zco.mx/faqc     ->  https://zco.mx/z/faqc
+        https://zco.mx/todo     ->  https://zco.mx/z/todo
+        https://zco.mx/terms    ->  https://zco.mx/z/terms
+        https://zco.mx/login    ->  https://zco.mx/z/login
+        https://zco.mx/expenses ->  https://zco.mx/z/expenses
+
 BUGS
-[ ] Temp files like 'tmpuz5Dph' are hanging around on zc:/tmp
 
 VERSION 3
 [S] Integrity Check For Torrents
@@ -19,26 +32,14 @@ VERSION 3
     [ ] Test on sb.zco.mx
     [ ] Setup for kb.zco.mx as well
 
+[S] Setup hypermail for real-only mailing lists in login area ?
+
 [S] releases/released to 'published' ?  'complete' ?
 
-[S] Add 'shortened url' to cartoonist page
+[S] Indicia - html version
+    Add book_to_link links to html indicia page
+    [S] Create Mockup
 
-[ ] Rewrite these urls ?
-    https://zco.mx/?o=ongoing to https://zco.mx/z/ongoing
-    https://zco.mx/?o=releases to https://zco.mx/z/releases
-    https://zco.mx/?o=creators to https://zco.mx/z/cartoonists
-    [ ] Restrict cartoonist names to be 2 charactors or longer
-    [ ] Add redirects for:
-        https://zco.mx/about    ->  https://zco.mx/z/about
-        https://zco.mx/faq      ->  https://zco.mx/z/faq
-        https://zco.mx/faqc     ->  https://zco.mx/z/faqc
-        https://zco.mx/todo     ->  https://zco.mx/z/todo
-        https://zco.mx/terms    ->  https://zco.mx/z/terms
-        https://zco.mx/login    ->  https://zco.mx/z/login
-        https://zco.mx/expenses ->  https://zco.mx/z/expenses
-
-[S] Announce on instagram ?
-[S] Setup hypermail for real-only mailing lists in login area ?
 [S] Reader notifications for new material
     [S] Create Mockup
     Follow Links
@@ -53,16 +54,29 @@ VERSION 3
                 on zco.mx  [ ] [ ]          ## ML and RSS
                 or on    [ ] [ ] [ ]        ## twitter, tumblr & fb
 
-[S] Indicia - html version
-    [S] Create Mockup
-    Add book_to_link links to html indicia page
+[ ] Temp files like 'tmpuz5Dph' are hanging around on zc:/tmp
+
+[ ] Add 'shortened url' to cartoonist page
+    http://p.zsw.ca/D4.png
+    SB 2015-05-06 18:38  In the mockup I have 'color: #999' but I think
+    it should be left as #333
+
 [ ] Extend left/right clickable areas while in slider mode
     * maybe show an 1/8th of the prev/next image and very opague?
+
+[ ] Dynamically Resize Image on Browser Resize
+    eg http://believedbehavior.com
+
+[ ] Announce on instagram
+    SB 2015-05-06 18:49  Emailed u/p to jimk
+
 [ ] Read Page -> Slider (Mobile Phone)
     Float to Center - doesn't seem to be working properly
+
 [ ] Randomize Cartoonist on "Page Not Found" ?
     * Only Released Books
     * Change 'Creator page' to 'Cartoonist page'
+
 [S] Redesign Cartoonist Page
     [S] Mock Up
     * handle portrait and landscape photos better
@@ -73,8 +87,6 @@ VERSION 3
 
 VERSION 4
 [ ] Web images are too small on mac laptops
-[S] Dynamically Resize Image on Browser Resize
-    eg http://believedbehavior.com
 [S] Separate '001' and '01 (of 02)' from the title ?
 [S] Change bg to #fafafa ?
     Not on the reader page
@@ -115,7 +127,7 @@ VERSION 4
 
 
 VERSION 5
-[ ] Creator page -> Links to Cartoonist Articles/interviews?
+[ ] Cartoonist Page -> Links to Cartoonist Articles/interviews?
 [ ] Book page -> Links to Book Reviews ?
 [ ] How to find all comics in a specific language?
 [ ] All Ages Modal via cookie ?
