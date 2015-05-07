@@ -417,6 +417,37 @@ class TestRouter(LocalTestCase):
             self.assertEqual(dict(router.view_dict['urls']), expect.view_dict)
             self.assertEqual(router.view, expect.view)
 
+        def do_test_random(request_vars):
+            """Run test."""
+            self._request.vars = request_vars
+            router = Router(db, self._request, auth)
+            router.page_not_found()
+
+            self.assertTrue('urls' in router.view_dict)
+            self.assertTrue('suggestions' in router.view_dict['urls'])
+            labels = [
+                x['label'] for x in router.view_dict['urls']['suggestions']]
+            self.assertEqual(
+                labels,
+                ['Cartoonist page:', 'Book page:', 'Read:']
+            )
+            self.assertEqual(
+                router.view_dict['urls']['invalid'],
+                'http://www.domain.com/path/to/page'
+            )
+            self.assertEqual(router.view, 'errors/page_not_found.html')
+            book_url = router.view_dict['urls']['suggestions'][1]['url']
+            # http://127.0.0.1:8000/FirstLast/MyBook
+            unused_scheme, _, unused_url, creator_for_url, book_for_url = \
+                book_url.split('/')
+
+            query = (db.creator.name_for_url == creator_for_url)
+            got = db(query).select().first()
+            self.assertTrue(got)
+            got = db(db.book.name_for_url == book_for_url).select().first()
+            self.assertTrue(got)
+            self.assertTrue(got.release_date is not None)
+
         # Test first page, all parameters
         request_vars = Storage(dict(
             creator=self._creator_name,
@@ -427,7 +458,7 @@ class TestRouter(LocalTestCase):
             'view_dict': {
                 'suggestions': [
                     {
-                        'label': 'Creator page:',
+                        'label': 'Cartoonist page:',
                         'url': 'http://127.0.0.1:8000/FirstLast',
                     },
                     {
@@ -450,7 +481,7 @@ class TestRouter(LocalTestCase):
             'view_dict': {
                 'suggestions': [
                     {
-                        'label': 'Creator page:',
+                        'label': 'Cartoonist page:',
                         'url': crea_url,
                     },
                     {
@@ -516,40 +547,17 @@ class TestRouter(LocalTestCase):
         request_vars.creator = self._creator_2_name
         do_test(request_vars, expect_2)
 
-        # If creator not indicated, first book of first creator should be
-        # found.
-        expect_first = Storage({
-            'view_dict': {
-                'suggestions': [
-                    {
-                        'label': 'Creator page:',
-                        'url': self._first_creator_links.creator,
-                    },
-                    {
-                        'label': 'Book page:',
-                        'url': self._first_creator_links.book,
-                    },
-                    {
-                        'label': 'Read:',
-                        'url': self._first_creator_links.page,
-                    },
-                ],
-                'invalid': 'http://www.domain.com/path/to/page',
-            },
-            'view': 'errors/page_not_found.html',
-        })
-
-        # If invalid creator, first book of first creator should be found.
+        # If invalid creator, random released book is used.
         if request_vars.page:
             del request_vars.page
         if request_vars.book:
             del request_vars.book
-        request_vars.creator = '_Hannah _Montana'
-        do_test(request_vars, expect_first)
+        request_vars.creator = '_Invalid _Cartoonist'
+        do_test_random(request_vars)
 
         # If no creator, first book of first creator should be found.
         del request_vars.creator
-        do_test(request_vars, expect_first)
+        do_test_random(request_vars)
 
         # Test missing web2py_original_uri
         self._request.env.web2py_original_uri = None
@@ -660,7 +668,7 @@ class TestRouter(LocalTestCase):
             'view_dict': {
                 'suggestions': [
                     {
-                        'label': 'Creator page:',
+                        'label': 'Cartoonist page:',
                         'url': self._first_creator_links.creator,
                     },
                     {
@@ -685,7 +693,7 @@ class TestRouter(LocalTestCase):
             {
                 'suggestions': [
                     {
-                        'label': 'Creator page:',
+                        'label': 'Cartoonist page:',
                         'url': self._first_creator_links.creator,
                     },
                     {

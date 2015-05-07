@@ -202,7 +202,7 @@ class Router(object):
         #   elif book_record: use first page of that book
         #   elif creator_record: use first page of first book with pages from
         #       creator
-        #   else: use first page of first book with pages from first creator
+        #   else: use first page of random released book
         creator_record = self.get_creator()
         book_record = self.get_book()
         page_record = self.get_book_page()
@@ -214,7 +214,15 @@ class Router(object):
             query_wants.append((db.book.id == book_record.id))
         if creator_record and creator_record.id:
             query_wants.append((db.creator.id == creator_record.id))
-        query_wants.append(None)
+        if not query_wants:
+            # random released book
+            random_book = db(db.book.release_date != None).select(
+                db.book.id,
+                orderby='<random>',
+                limitby=(0, 1),
+            ).first()
+            if random_book:
+                query_wants.append((db.book.id == random_book.id))
 
         url_page_record = None
         url_book_record = None
@@ -234,7 +242,7 @@ class Router(object):
                     db.book.on(db.book_page.book_id == db.book.id),
                     db.creator.on(db.book.creator_id == db.creator.id),
                 ],
-                orderby=[db.creator.name_for_url, db.book_page.page_no],
+                orderby=[db.creator.name_for_url, ~db.book.release_date, db.book_page.page_no],
                 limitby=(0, 1),
             )
             if rows:
@@ -254,7 +262,7 @@ class Router(object):
 
         urls.suggestions = []
         urls.suggestions.append({
-            'label': 'Creator page:',
+            'label': 'Cartoonist page:',
             'url': creator_url(url_creator_record, host=True),
         })
         urls.suggestions.append({

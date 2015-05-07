@@ -80,14 +80,14 @@ def route():
         ]
 
         creator = db(db.creator.torrent != None).select(
-            orderby=db.creator.id).first()
+            orderby='<random>').first()
         if creator:
             urls.suggestions.append({
-                'label': 'Creator torrent:',
+                'label': 'Cartoonist torrent:',
                 'url': creator_torrent_url(creator, host=True),
             })
 
-        book = db(db.book.torrent != None).select(orderby=db.book.id).first()
+        book = db(db.book.torrent != None).select(orderby='<random>').first()
         if book:
             urls.suggestions.append({
                 'label': 'Book torrent:',
