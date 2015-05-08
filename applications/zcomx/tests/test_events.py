@@ -10,8 +10,11 @@ import datetime
 import unittest
 from gluon import *
 from applications.zcomx.modules.events import \
-    is_loggable
+    is_loggable, \
+    log_download_click
 from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.utils import entity_to_row
+
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -95,6 +98,32 @@ class TestFunctions(LocalTestCase):
 
         set_time_stamp(6)
         self.assertTrue(is_loggable(download_click_2, interval_seconds=5))
+
+    def test__log_download_click(self):
+        env = globals()
+        request = env['request']
+        auth = env['auth']
+        test_ip = '000.111.111.333'
+        request.client = test_ip
+
+        query = (db.download_click.ip_address == test_ip)
+        db(query).delete()
+        db.commit()
+
+        click_id = log_download_click('all', 0, queue_log_downloads=False)
+        download_click = entity_to_row(db.download_click, click_id)
+        self.assertTrue(download_click)
+        self.assertEqual(download_click.ip_address, test_ip)
+        self.assertEqual(download_click.loggable, is_loggable(download_click))
+        self.assertEqual(download_click.completed, False)
+        self._objects.append(download_click)
+
+        click_id_2 = log_download_click('all', 0, queue_log_downloads=False)
+        download_click_2 = entity_to_row(db.download_click, click_id_2)
+        self.assertEqual(download_click_2.ip_address, test_ip)
+        self.assertEqual(download_click_2.loggable, False)
+        self.assertEqual(download_click_2.completed, True)
+        self._objects.append(download_click_2)
 
 
 def setUpModule():

@@ -1317,11 +1317,7 @@ def torrent_link(book_entity, components=None, **attributes):
         )
         components = [name]
 
-    kwargs = {
-        '_data-record_table': 'book',
-        '_data-record_id': str(book.id),
-        '_class': 'log_download_link',
-    }
+    kwargs = {}
     kwargs.update(attributes)
 
     if '_href' not in attributes:
