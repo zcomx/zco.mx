@@ -15,9 +15,10 @@
 [x] Extend left/right clickable areas while in slider mode
 [x] Dynamically Resize Image on Browser Resize
     eg http://believedbehavior.com
+[x] Randomize Cartoonist on "Page Not Found" ?
+    * Only Released Books
+    * Change 'Creator page' to 'Cartoonist page'
 
-
-BUGS
 
 VERSION 3
 [S] Integrity Check For Torrents
@@ -65,7 +66,7 @@ VERSION 3
     SB 2015-05-06 18:38  In the mockup I have 'color: #999' but I think
     it should be left as #333
 
-[ ] Show an 1/8th of the prev/next image and very opague?
+[/] Show an 1/8th of the prev/next image and very opague?
 
 [ ] Announce on instagram
     SB 2015-05-06 18:49  Emailed u/p to jimk
@@ -73,16 +74,14 @@ VERSION 3
 [ ] Read Page -> Slider (Mobile Phone)
     Float to Center - doesn't seem to be working properly
 
-[ ] Randomize Cartoonist on "Page Not Found" ?
-    * Only Released Books
-    * Change 'Creator page' to 'Cartoonist page'
-
 [S] Redesign Cartoonist Page
     [S] Mock Up
     * handle portrait and landscape photos better
     [S] Book Page -> Photos
             "Photo Courtesy of [Photographer's Name]    [  {link back}  ]"
             If blank, write nothing
+[S] Cartoonist Page -> Links to Cartoonist Articles/interviews?
+[S] Book page -> Links to Book Reviews ?
 
 
 VERSION 4
@@ -127,8 +126,7 @@ VERSION 4
 
 
 VERSION 5
-[ ] Cartoonist Page -> Links to Cartoonist Articles/interviews?
-[ ] Book page -> Links to Book Reviews ?
+[ ] Replace bootstrap with http://purecss.io/ ?
 [ ] How to find all comics in a specific language?
 [ ] All Ages Modal via cookie ?
 [ ] Explicit Content Warning (modal)
