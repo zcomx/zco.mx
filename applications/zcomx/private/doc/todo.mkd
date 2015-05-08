@@ -18,6 +18,8 @@
 [x] Randomize Cartoonist on "Page Not Found" ?
     * Only Released Books
     * Change 'Creator page' to 'Cartoonist page'
+[x] Read Page -> Slider (Mobile Phone)
+    Float to Center - doesn't seem to be working properly
 
 
 VERSION 3
@@ -66,13 +68,10 @@ VERSION 3
     SB 2015-05-06 18:38  In the mockup I have 'color: #999' but I think
     it should be left as #333
 
-[/] Show an 1/8th of the prev/next image and very opague?
+[D] Show an 1/8th of the prev/next image and very opague?
 
 [ ] Announce on instagram
     SB 2015-05-06 18:49  Emailed u/p to jimk
-
-[ ] Read Page -> Slider (Mobile Phone)
-    Float to Center - doesn't seem to be working properly
 
 [S] Redesign Cartoonist Page
     [S] Mock Up

@@ -8,8 +8,11 @@ material available to readers with a simple-to-use user interface and
 where books can be uploaded within minutes.
 
 zco.mx was created around the idea of goodwill and inspired by the
-comics communities that are formed through events such as [[TCAF
-http://torontocomics.com/about-tcaf/]].
+comics communities that are formed through events such as
+[[SPX http://www.spxpo.com]],
+[[TCAF http://torontocomics.com/about-tcaf]],
+[[CAB http://comicartsbrooklyn.com]] and
+[[CAKE http://www.cakechicago.com]].
 
 
 #### The Whole Is Greater Than the Sum of Its Parts
