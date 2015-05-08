@@ -666,9 +666,6 @@ class TestFunctions(LocalTestCase):
             anchor['href'],
             '/FirstLast_({i}.zco.mx).torrent'.format(i=creator.id)
         )
-        self.assertEqual(anchor['class'], 'log_download_link')
-        self.assertEqual(anchor['data-record_table'], 'creator')
-        self.assertEqual(anchor['data-record_id'], str(creator.id))
 
         # As Row, creator
         link = torrent_link(creator)
@@ -679,9 +676,6 @@ class TestFunctions(LocalTestCase):
             anchor['href'],
             '/FirstLast_({i}.zco.mx).torrent'.format(i=creator.id)
         )
-        self.assertEqual(anchor['class'], 'log_download_link')
-        self.assertEqual(anchor['data-record_table'], 'creator')
-        self.assertEqual(anchor['data-record_id'], str(creator.id))
 
         # Invalid id
         self.assertRaises(NotFoundError, torrent_link, -1)

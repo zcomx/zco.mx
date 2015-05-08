@@ -1978,9 +1978,6 @@ class TestFunctions(ImageTestCase):
             anchor['href'],
             '/FirstLast/MyBook-02of98.torrent'.format(i=book.id)
         )
-        self.assertEqual(anchor['class'], 'log_download_link')
-        self.assertEqual(anchor['data-record_table'], 'book')
-        self.assertEqual(anchor['data-record_id'], str(book.id))
 
         # As Row, book
         link = torrent_link(book)
@@ -1991,9 +1988,6 @@ class TestFunctions(ImageTestCase):
             anchor['href'],
             '/FirstLast/MyBook-02of98.torrent'.format(i=book.id)
         )
-        self.assertEqual(anchor['class'], 'log_download_link')
-        self.assertEqual(anchor['data-record_table'], 'book')
-        self.assertEqual(anchor['data-record_id'], str(book.id))
 
         # Invalid id
         self.assertRaises(NotFoundError, torrent_link, -1)

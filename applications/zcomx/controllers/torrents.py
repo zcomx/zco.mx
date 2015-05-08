@@ -9,6 +9,7 @@ from applications.zcomx.modules.creators import \
     torrent_url as creator_torrent_url, \
     url as creator_url
 from applications.zcomx.modules.downloaders import TorrentDownloader
+from applications.zcomx.modules.events import log_download_click
 from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import Zco
 
@@ -22,7 +23,18 @@ def download():
     request.args(1): integer, id of record
         if request.args(0) is 'book' or 'creator'.
         Not used if request.args(0) is 'all'.
+    request.vars.no_queue: boolean, if set, don't queue a logs_download job
     """
+    if request.args:
+        record_table = request.args(0)
+        record_id = request.args(1) or 0
+        queue_log_downloads = True if not request.vars.no_queue else False
+        log_download_click(
+            record_table,
+            record_id,
+            queue_log_downloads=queue_log_downloads,
+        )
+
     return TorrentDownloader().download(request, db)
 
 
@@ -46,6 +58,8 @@ def route():
 
         If request.vars.creator is an integer (creator id) the page is
             redirected to the string (creator name) page.
+
+    request.vars.no_queue: boolean, if set, don't queue a logs_download job
     """
     # Note: there is a bug in web2py Ver 2.9.11-stable where request.vars
     # is not set by routes.
@@ -133,7 +147,10 @@ def route():
         if '{i:03d}'.format(i=creator_record.id) == request.vars.creator:
             # Redirect to name version
             c_url = creator_url(creator_record)
-            redirect('/'.join([c_url, request.vars.torrent]))
+            redirect_url = '/'.join([c_url, request.vars.torrent])
+            if request.vars.no_queue:
+                redirect_url += '?no_queue=' + str(request.vars.no_queue)
+            redirect(redirect_url)
 
         torrent_type = 'book'
         torrent_name = request.vars.torrent
@@ -144,15 +161,24 @@ def route():
             torrent_type = 'creator'
             torrent_name = request.vars.torrent
 
+    download_vars = {'no_queue': request.vars.no_queue} \
+        if request.vars.no_queue else {}
+
     if torrent_type == 'all':
-        redirect(URL(download, args='all'))
+        redirect(
+            URL(c='torrents', f='download', args='all', vars=download_vars))
 
     if torrent_type == 'creator':
         query = (db.creator.torrent.like('%/{t}'.format(
             t=torrent_name)))
         creator = db(query).select().first()
         if creator:
-            redirect(URL(download, args=['creator', creator.id]))
+            redirect(URL(
+                c='torrents',
+                f='download',
+                args=['creator', creator.id],
+                vars=download_vars
+            ))
         else:
             return page_not_found()
 
@@ -166,7 +192,12 @@ def route():
         if not book or not book.torrent:
             return page_not_found()
         if book:
-            redirect(URL(download, args=['book', book.id]))
+            redirect(URL(
+                c='torrents',
+                f='download',
+                args=['book', book.id],
+                vars=download_vars
+            ))
         else:
             return page_not_found()
 

@@ -4,14 +4,10 @@ Controllers related to downloads.
 """
 import logging
 from gluon.contrib.simplejson import dumps
-from applications.zcomx.modules.events import is_loggable
-from applications.zcomx.modules.job_queue import \
-    LogDownloadsQueuer
+from applications.zcomx.modules.events import log_download_click
 from applications.zcomx.modules.utils import entity_to_row
 
 LOG = logging.getLogger('app')
-
-LOG_DOWNLOADS_LIMIT = 1000
 
 
 def download_click_handler():
@@ -36,41 +32,18 @@ def download_click_handler():
         except (TypeError, ValueError):
             return do_error('Invalid data provided')
 
-    data = dict(
-        ip_address=request.client,
-        time_stamp=request.now,
-        auth_user_id=auth.user_id or 0,
-        record_table=request.vars.record_table,
-        record_id=record_id,
-    )
-    click_id = db.download_click.insert(**data)
-    db.commit()
-    click_record = db(db.download_click.id == click_id).select().first()
-    if is_loggable(click_record):
-        click_data = {
-            'loggable': True,
-            'completed': False,
-        }
-        click_record.update_record(**click_data)
-        db.commit()
+    queue_log_downloads = True if not request.vars.no_queue else False
 
-        if not request.vars.no_queue:
-            job = LogDownloadsQueuer(
-                db.job,
-                cli_options={'-r': True, '-l': str(LOG_DOWNLOADS_LIMIT)},
-            ).queue()
-            LOG.debug('Log downloads job id: %s', job.id)
-    else:
-        click_data = {
-            'loggable': False,
-            'completed': True,
-        }
-        click_record.update_record(**click_data)
-        db.commit()
-    return {
-        'id': click_record.id,
+    click_id = log_download_click(
+        request.vars.record_table,
+        record_id,
+        queue_log_downloads=queue_log_downloads,
+    )
+
+    return dumps({
+        'id': click_id,
         'status': 'ok',
-    }
+    })
 
 
 def index():
