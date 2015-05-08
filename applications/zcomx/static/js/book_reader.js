@@ -112,6 +112,12 @@
     }
     $.fn.zco_utils.inherit(SliderReader, BookReader);
     $.extend(SliderReader.prototype, {
+        align_to_current_image: function() {
+            var num = this.$reader_section.find('.slide:visible').first().attr('id').split('-')[1];
+            var anchor = 'img-' + num;
+            $.fn.zco_utils.scroll_to_element(anchor);
+        },
+
         image_count: function() {
             return this.$reader_section.find('.slide').length - 1;
         },
@@ -322,8 +328,9 @@
         },
 
         to_page: function(page_no) {
-            this.show_slide(page_no - 1);
-            $.fn.zco_utils.scroll_to_element('reader_section');
+            var num = ('000'+page_no) - 1;
+            this.show_slide(num);
+            this.align_to_current_image();
         }
     });
 

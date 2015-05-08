@@ -111,7 +111,11 @@
                 e.preventDefault();
                 return;
             }
-            $.fn.zco_utils.scroll_to_element('reader_container');
+            var data = $('#reader_container').data();
+            if (!data || !data.book_reader) {
+                return;
+            }
+            data.book_reader.align_to_current_image();
             e.preventDefault();
         });
     });
