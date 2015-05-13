@@ -10,11 +10,14 @@ import StringIO
 import datetime
 import inspect
 import os
+import socket
 import subprocess
 import sys
 import time
 import unittest
 import urllib
+import urllib2
+import urlparse
 
 from gluon.contrib.webclient import \
     WebClient, \
@@ -548,6 +551,12 @@ class LocalWebClient(WebClient):
         if self.db:
             self.db.commit()
         return result
+
+    def server_ip(self):
+        """Return the server ip address."""
+        self.get('/')
+        url = self.response.geturl()
+        return socket.gethostbyname(urlparse.urlparse(url).hostname)
 
     def test(
         self,
