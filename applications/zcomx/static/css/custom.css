@@ -952,6 +952,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin: 0.2em 0 1em;
 }
 
+#creator_page .shortened_url {
+    color: #999999;
+}
+
 #creator_page #report_section {
     padding-top: 1em;
 }
