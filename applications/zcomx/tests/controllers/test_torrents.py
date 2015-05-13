@@ -22,6 +22,7 @@ class TestFunctions(LocalTestCase):
 
     _creator = None
     _book = None
+    _server_ip = None
 
     titles = {
         'download': '<h2>Not authorized</h2>',
@@ -34,6 +35,12 @@ class TestFunctions(LocalTestCase):
     def setUp(cls):
         # Prevent 'Changed session ID' warnings.
         web.sessions = {}
+
+    @classmethod
+    def tearDown(cls):
+        server_ip = web.server_ip()
+        db(db.download_click.ip_address == server_ip).delete()
+        db.commit()
 
     @classmethod
     def setUpClass(cls):
@@ -56,13 +63,15 @@ class TestFunctions(LocalTestCase):
             raise SyntaxError('No book for creator with email: {e}'.format(
                 e=email))
 
+        cls._server_ip = web.server_ip()
+
+    def _get_download_clicks(self, record_table, record_id):
+        query = (db.download_click.record_table == record_table) & \
+                (db.download_click.record_id == record_id) & \
+                (db.download_click.ip_address == self._server_ip)
+        return db(query).select()
+
     def test__download(self):
-        def get_download_clicks(record_table, record_id, ip_address=None):
-            query = (db.download_click.record_table == record_table) & \
-                    (db.download_click.record_id == record_id)
-            if ip_address is not None:
-                query = query & (db.download_click.ip_address == ip_address)
-            return db(query).select()
 
         # Test book torrent.
         expect = []
@@ -75,7 +84,7 @@ class TestFunctions(LocalTestCase):
             ),
             expect
         ))
-        download_clicks = get_download_clicks('book', self._book.id)
+        download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
 
@@ -90,11 +99,10 @@ class TestFunctions(LocalTestCase):
             ),
             expect
         ))
-        download_clicks = get_download_clicks('creator', self._creator.id)
+        download_clicks = self._get_download_clicks(
+            'creator', self._creator.id)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
-
-        ip_address = download_clicks[0].ip_address
 
         # Test 'all' torrent.
         expect = []
@@ -105,9 +113,11 @@ class TestFunctions(LocalTestCase):
             '{url}/download/all?no_queue=1'.format(url=self.url),
             expect
         ))
-        download_clicks = get_download_clicks('all', 0, ip_address=ip_address)
+        download_clicks = self._get_download_clicks('all', 0)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
+
+        web.sessions = {}    # Prevent 'Changed session ID' warnings.
 
         def test_invalid(url):
             with self.assertRaises(urllib2.HTTPError) as cm:
@@ -129,18 +139,7 @@ class TestFunctions(LocalTestCase):
         test_invalid('{url}/download/creator/-1?no_queue=1'.format(
             url=self.url))
 
-        # Cleanup
-        db(db.download_click.ip_address == ip_address).delete()
-        db.commit()
-
     def test__route(self):
-
-        def get_download_clicks(record_table, record_id, ip_address=None):
-            query = (db.download_click.record_table == record_table) & \
-                    (db.download_click.record_id == record_id)
-            if ip_address is not None:
-                query = query & (db.download_click.ip_address == ip_address)
-            return db(query).select()
 
         # Test creator torrent
         expect = []
@@ -154,11 +153,10 @@ class TestFunctions(LocalTestCase):
             ),
             expect
         ))
-        download_clicks = get_download_clicks('creator', self._creator.id)
+        download_clicks = self._get_download_clicks(
+            'creator', self._creator.id)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
-
-        ip_address = download_clicks[0].ip_address
 
         # Test book torrent, creator as id
         expect = []
@@ -173,7 +171,7 @@ class TestFunctions(LocalTestCase):
             ),
             expect
         ))
-        download_clicks = get_download_clicks('book', self._book.id)
+        download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
 
@@ -189,7 +187,7 @@ class TestFunctions(LocalTestCase):
             ),
             expect
         ))
-        download_clicks = get_download_clicks('book', self._book.id)
+        download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 2)
         self._objects.append(download_clicks[1])
 
@@ -199,10 +197,11 @@ class TestFunctions(LocalTestCase):
         expect.append(creator_name(self._creator, use='file'))
         expect.append(self._book.name)
         self.assertTrue(web.test(
-            '{url}/route?no_queue=1&torrent=zco.mx.torrent'.format(url=self.url),
+            '{url}/route?no_queue=1&torrent=zco.mx.torrent'.format(
+                url=self.url),
             expect
         ))
-        download_clicks = get_download_clicks('all', 0, ip_address=ip_address)
+        download_clicks = self._get_download_clicks('all', 0)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
 
