@@ -93,7 +93,21 @@ contribute features and bug fixes.
 
 
 #### Copyright
-By using a [[Creative Commons http://creativecommons.org/]] [[licence
-http://creativecommons.org/licenses]], cartoonists also add a level of
-goodwill to the community, by attracting readers and maintaining
-interest in the site.
+The current copyright law only serves a handful of people.  It is broken
+and because of this black/grey markets appear.  The [[Creative Commons
+http://creativecommons.org/]] (CC) [[licenses
+http://creativecommons.org/licenses]] are a set of public copyright
+licenses that work within the boundaries of copyright law to enable the
+free distribution of an otherwise copyrighted work.
+
+A CC license is used when an author wants to give people the right to
+share, use, and possibly build upon a work that they have created.
+Different CC licences provide an author with the flexibility on how
+people can make use of their work.  The licenses protect those people
+who use or redistribute an author's work from concerns of copyright
+infringement as long as they abide by the conditions that are specified
+in the license the author chooses.
+
+A chart summarizing the different CC licences can be found [[here
+http://kb.zco.mx/cc]].  A summary of the Creative Commons FAQ can be
+found [[here http://kb.zco.mx/faqcc]].
