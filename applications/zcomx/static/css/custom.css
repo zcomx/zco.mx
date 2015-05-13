@@ -1446,6 +1446,30 @@ a.modal-link-btn, a.modal-link-btn:hover {
     z-index: 2;
 }
 
+#reader_handle_left,
+#reader_handle_right {
+    background-color: #999999;
+    border: solid 2px #AAAAAA;
+    border-radius: 6px;
+    height:100%;
+    opacity: 0.0;
+    position: absolute;
+    top: 0;
+    z-index: 3;
+}
+
+#reader_handle_left {
+    left: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+#reader_handle_right {
+    right: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
 #slider_overlay_left,
 #slider_overlay_right {
     background-color: inherit;
@@ -1463,24 +1487,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #slider_overlay_right {
     right: -10;
-}
-
-#slider_preview_left,
-#slider_preview_right {
-    background-color: inherit;
-    display: none;
-    height:100%;
-    opacity: 0.1;
-    overflow: hidden;
-    position: absolute;
-    top: 0;
-    width: 50%;
-    z-index: 3;
-}
-
-#slider_preview_left img,
-#slider_preview_right img {
-    height: 100%;
 }
 
 #reader_section #reader_container{
