@@ -112,10 +112,8 @@
     }
     $.fn.zco_utils.inherit(SliderReader, BookReader);
     $.extend(SliderReader.prototype, {
-        align_to_current_image: function() {
-            var num = this.$reader_section.find('.slide:visible').first().attr('id').split('-')[1];
-            var anchor = 'img-' + num;
-            $.fn.zco_utils.scroll_to_element(anchor);
+        align_vertically: function() {
+            $.fn.zco_utils.scroll_to_element('reader_section');
         },
 
         image_count: function() {
@@ -330,7 +328,7 @@
         to_page: function(page_no) {
             var num = ('000'+page_no) - 1;
             this.show_slide(num);
-            this.align_to_current_image();
+            this.align_vertically();
         }
     });
 
