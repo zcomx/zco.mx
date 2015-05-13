@@ -43,7 +43,6 @@ VERSION 3
     * on upload modal: "All images must have a minimum width of 1600px in order to move a comic from the 'ONGOING' section to the 'COMPLETED' section."
     * make the working on the release/complete modal as simple as clear as possible
 
-
 [S] Indicia - html version
     Add book_to_link links to html indicia page
     [S] Create Mockup
