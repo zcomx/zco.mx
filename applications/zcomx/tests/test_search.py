@@ -25,13 +25,13 @@ from applications.zcomx.modules.search import \
     BookTile, \
     CartoonistTile, \
     CartoonistsGrid, \
+    CompleteGrid, \
     ContributionsGrid, \
     CreatorMoniesGrid, \
     GRID_CLASSES, \
     Grid, \
     MoniesBookTile, \
     OngoingGrid, \
-    ReleasesGrid, \
     SearchGrid, \
     Tile, \
     book_contribute_button, \
@@ -296,7 +296,7 @@ class TestGrid(LocalTestCase):
         soup = BeautifulSoup(str(tabs))
         # <ul class="nav nav-tabs">
         #   <li class="nav-tab ">
-        #     <a href="/?o=releases">releases</a>
+        #     <a href="/?o=complete">complete</a>
         #   </li>
         #   <li class="nav-tab active">
         #     <a href="/?o=ongoing">ongoing</a>
@@ -314,8 +314,8 @@ class TestGrid(LocalTestCase):
         li_1 = ul.li
         self.assertEqual(li_1['class'], 'nav-tab active')
         anchor_1 = li_1.a
-        self.assertEqual(anchor_1['href'], '/z/releases')
-        self.assertEqual(anchor_1.string, 'releases')
+        self.assertEqual(anchor_1['href'], '/z/complete')
+        self.assertEqual(anchor_1.string, 'complete')
 
         li_2 = li_1.nextSibling
         anchor_2 = li_2.a
@@ -338,7 +338,7 @@ class TestGrid(LocalTestCase):
         tabs = grid.tabs()
         soup = BeautifulSoup(str(tabs))
         anchor_1 = soup.ul.li.a
-        self.assertEqual(anchor_1['href'], '/z/releases')
+        self.assertEqual(anchor_1['href'], '/z/complete')
         anchor_2 = soup.ul.li.nextSibling.a
         self.assertEqual(anchor_2['href'], '/z/ongoing')
         # anchor_2 = soup.ul.li.nextSibling.a
@@ -446,6 +446,35 @@ class TestCartoonistsGrid(LocalTestCase):
             grid.visible_fields(),
             # [db.auth_user.name, db.creator.contributions_remaining]
             [db.auth_user.name]
+        )
+
+
+class TestCompleteGrid(LocalTestCase):
+
+    def test____init__(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        grid = CompleteGrid()
+        self.assertTrue(grid)
+        self.assertEqual(grid._attributes['table'], 'book')
+        self.assertEqual(grid._attributes['field'], 'release_date')
+
+    def test__filters(self):
+        grid = CompleteGrid()
+        self.assertEqual(len(grid.filters()), 1)
+
+    def test__visible_fields(self):
+        grid = CompleteGrid()
+        self.assertEqual(
+            grid.visible_fields(),
+            [
+                db.book.name,
+                db.book.publication_year,
+                db.book.release_date,
+                db.book.downloads,
+                # db.book.contributions_remaining,
+                db.auth_user.name,
+            ]
         )
 
 
@@ -662,35 +691,6 @@ class TestOngoingGrid(LocalTestCase):
                 db.book.name,
                 db.book.page_added_on,
                 db.book.views,
-                # db.book.contributions_remaining,
-                db.auth_user.name,
-            ]
-        )
-
-
-class TestReleasesGrid(LocalTestCase):
-
-    def test____init__(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-        grid = ReleasesGrid()
-        self.assertTrue(grid)
-        self.assertEqual(grid._attributes['table'], 'book')
-        self.assertEqual(grid._attributes['field'], 'release_date')
-
-    def test__filters(self):
-        grid = ReleasesGrid()
-        self.assertEqual(len(grid.filters()), 1)
-
-    def test__visible_fields(self):
-        grid = ReleasesGrid()
-        self.assertEqual(
-            grid.visible_fields(),
-            [
-                db.book.name,
-                db.book.publication_year,
-                db.book.release_date,
-                db.book.downloads,
                 # db.book.contributions_remaining,
                 db.auth_user.name,
             ]
@@ -1022,7 +1022,7 @@ class TestBookTile(TileTestCase):
         self.assertEqual(anchor['title'], book_formatted)
         self.assertEqual(anchor.string, book_formatted)
 
-        # Released book
+        # Completed book
         self._row.book.release_date = datetime.date(2014, 01, 31)
         title_div = tile.title()
         soup = BeautifulSoup(str(title_div))
@@ -1334,7 +1334,7 @@ class TestFunctions(LocalTestCase):
     def test_constants(self):
         self.assertEqual(
             GRID_CLASSES.keys(),
-            ['releases', 'ongoing', 'creators', 'search']
+            ['complete', 'ongoing', 'creators', 'search']
         )
 
     def test__book_contribute_button(self):
@@ -1364,10 +1364,10 @@ class TestFunctions(LocalTestCase):
 
         tests = [
             # (request.vars.o, expect)
-            (None, ReleasesGrid),
-            ('_fake_', ReleasesGrid),
+            (None, CompleteGrid),
+            ('_fake_', CompleteGrid),
+            ('complete', CompleteGrid),
             ('ongoing', OngoingGrid),
-            ('releases', ReleasesGrid),
             # ('contributions', ContributionsGrid),
             ('creators', CartoonistsGrid),
         ]

@@ -180,11 +180,11 @@ class TestRouter(LocalTestCase):
 
         cls._keys_for_view = {
             'creator': [
+                'complete_grid',
                 'creator',
                 'grid',
                 'links',
                 'ongoing_grid',
-                'released_grid',
             ],
             'creator_monies': [
                 'creator',

@@ -42,6 +42,7 @@ from applications.zcomx.modules.zco import \
 DEFAULT_BOOK_TYPE = 'one-shot'
 LOG = logging.getLogger('app')
 
+
 class BaseEvent(object):
     """Base class representing a loggable event"""
 
@@ -512,6 +513,43 @@ def cc_licence_data(book_entity):
         year=years,
         place=book_record.cc_licence_place,
     )
+
+
+def complete_link(book_entity, components=None, **attributes):
+    """Return html code suitable for a 'Complete' link or button.
+
+    Args:
+        book_entity: Row instance or integer representing a book record.
+        components: list, passed to A(*components),  default ['Complete']
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        return empty
+
+    if not components:
+        if book.releasing:
+            components = ['Complete (in progress)']
+        else:
+            components = ['Complete']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='login', f='book_release', args=book.id, extension=False)
+
+    if book.releasing:
+        if '_class' not in attributes:
+            kwargs['_class'] = 'disabled'
+        else:
+            kwargs['_class'] = ' '.join([kwargs['_class'], 'disabled'])
+
+    return A(*components, **kwargs)
 
 
 def contribute_link(db, book_entity, components=None, **attributes):
@@ -1128,43 +1166,6 @@ def read_link(db, book_entity, components=None, **attributes):
 
     if '_href' not in attributes:
         kwargs['_href'] = page_url(first_page, extension=False)
-
-    return A(*components, **kwargs)
-
-
-def release_link(book_entity, components=None, **attributes):
-    """Return html code suitable for a 'Release' link or button.
-
-    Args:
-        book_entity: Row instance or integer representing a book record.
-        components: list, passed to A(*components),  default ['Release']
-        attributes: dict of attributes for A()
-    """
-    empty = SPAN('')
-
-    db = current.app.db
-    book = entity_to_row(db.book, book_entity)
-    if not book:
-        return empty
-
-    if not components:
-        if book.releasing:
-            components = ['Release (in progress)']
-        else:
-            components = ['Release']
-
-    kwargs = {}
-    kwargs.update(attributes)
-
-    if '_href' not in attributes:
-        kwargs['_href'] = URL(
-            c='login', f='book_release', args=book.id, extension=False)
-
-    if book.releasing:
-        if '_class' not in attributes:
-            kwargs['_class'] = 'disabled'
-        else:
-            kwargs['_class'] = ' '.join([kwargs['_class'], 'disabled'])
 
     return A(*components, **kwargs)
 

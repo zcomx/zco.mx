@@ -22,6 +22,7 @@ class TestFunctions(LocalTestCase):
         '404': 'Page not found',
         'about': '<h1>About</h1>',
         'cartoonists': '<div id="front_page">',
+        'complete': '<div id="front_page">',
         'contribute': '<form id="paypal_form"',
         'copyright_claim':
             '<h3>Notice and Procedure for Making Claims of Copyright',
@@ -40,7 +41,6 @@ class TestFunctions(LocalTestCase):
         'ongoing': '<div id="front_page">',
         'overview': '<h1>Overview</h1>',
         'page_not_found': '<h3>Page not found</h3>',
-        'releases': '<div id="front_page">',
         'search': '<div id="front_page">',
         'terms': '<h1>Terms and Conditions</h1>',
         'todo': '<h1>TODO</h1>',
@@ -71,6 +71,12 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test(
             '{url}/cartoonists'.format(url=self.url),
             self.titles['cartoonists']
+        ))
+
+    def test__complete(self):
+        self.assertTrue(web.test(
+            '{url}/complete'.format(url=self.url),
+            self.titles['complete']
         ))
 
     def test__contribute(self):
@@ -145,12 +151,6 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test(
             '{url}/overview'.format(url=self.url),
             self.titles['overview']
-        ))
-
-    def test__releases(self):
-        self.assertTrue(web.test(
-            '{url}/releases'.format(url=self.url),
-            self.titles['releases']
         ))
 
     def test__search(self):

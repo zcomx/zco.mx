@@ -315,6 +315,14 @@ div.centered table {
     line-height: 1;
 }
 
+#profile_page .book_list .mark_as_complete {
+    float: right;
+    font-size: 9pt;
+    margin-right: 1em;
+    margin-top: -2em;
+    max-width: 5em;
+}
+
 #profile_page .book_list .table-condensed td:nth-last-child(-n+1) {
     text-align: right;
 }
@@ -351,8 +359,8 @@ div.centered table {
     color: #999999;
 }
 
-#book_delete_section #message_panel,
-#book_release_section #message_panel {
+#book_complete_section #message_panel,
+#book_delete_section #message_panel{
     margin-top: 1em;
 }
 
@@ -833,28 +841,27 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 4em;
 }
 
+.grid_section .web2py_grid.grid_key_cartoonists td:nth-child(2),
+.grid_section .web2py_grid.grid_key_complete td:nth-child(2),
+.grid_section .web2py_grid.grid_key_complete td:nth-child(3),
+.grid_section .web2py_grid.grid_key_complete td:nth-child(4),
+.grid_section .web2py_grid.grid_key_complete td:nth-child(5),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(2),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(3),
-.grid_section .web2py_grid.grid_key_cartoonists td:nth-child(2),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(2),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(3),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(4),
-.grid_section .web2py_grid.grid_key_releases td:nth-child(2),
-.grid_section .web2py_grid.grid_key_releases td:nth-child(3),
-.grid_section .web2py_grid.grid_key_releases td:nth-child(4),
-.grid_section .web2py_grid.grid_key_releases td:nth-child(5),
 .grid_section .web2py_grid.grid_key_search td:nth-child(2),
 .grid_section .web2py_grid.grid_key_search td:nth-child(3),
-.grid_section .web2py_grid.grid_key_search td:nth-child(4)
-{
+.grid_section .web2py_grid.grid_key_search td:nth-child(4) {
     padding: 2px 10px;
     text-align: right;
 }
 
-.grid_section .web2py_grid.grid_key_contributions td:nth-child(3),
 .grid_section .web2py_grid.grid_key_cartoonists td:nth-child(2),
-.grid_section .web2py_grid.grid_key_ongoing td:nth-child(4),
-.grid_section .web2py_grid.grid_key_releases td:nth-child(5) {
+.grid_section .web2py_grid.grid_key_complete td:nth-child(5),
+.grid_section .web2py_grid.grid_key_contributions td:nth-child(3),
+.grid_section .web2py_grid.grid_key_ongoing td:nth-child(4) {
     color: #D04444;
 }
 

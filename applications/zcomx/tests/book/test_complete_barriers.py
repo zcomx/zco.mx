@@ -3,7 +3,7 @@
 
 """
 
-Test suite for zcomx/modules/book/release_barriers.py
+Test suite for zcomx/modules/book/complete_barriers.py
 
 """
 import inspect
@@ -13,10 +13,10 @@ import shutil
 import unittest
 from PIL import Image
 from gluon import *
-from applications.zcomx.modules.book.release_barriers import \
+from applications.zcomx.modules.book.complete_barriers import \
     AllRightsReservedBarrier, \
     BARRIER_CLASSES, \
-    BaseReleaseBarrier, \
+    BaseCompleteBarrier, \
     DupeNameBarrier, \
     DupeNumberBarrier, \
     ImagesTooNarrowBarrier, \
@@ -26,8 +26,8 @@ from applications.zcomx.modules.book.release_barriers import \
     NoPagesBarrier, \
     NoPublicationMetadataBarrier, \
     barriers_for_book, \
-    has_release_barriers, \
-    release_barriers
+    complete_barriers, \
+    has_complete_barriers
 from applications.zcomx.modules.indicias import cc_licence_by_code
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -149,18 +149,18 @@ class TestAllRightsReservedBarrier(LocalTestCase):
         self.assertTrue('All Rights Reserved' in barrier.reason)
 
 
-class TestBaseReleaseBarrier(LocalTestCase):
+class TestBaseCompleteBarrier(LocalTestCase):
 
     def test____init__(self):
-        barrier = BaseReleaseBarrier({})
+        barrier = BaseCompleteBarrier({})
         self.assertTrue(barrier)
 
     def test__applies(self):
-        barrier = BaseReleaseBarrier({})
+        barrier = BaseCompleteBarrier({})
         self.assertRaises(NotImplementedError, barrier.applies)
 
     def test__code(self):
-        barrier = BaseReleaseBarrier({})
+        barrier = BaseCompleteBarrier({})
         try:
             barrier.code
         except NotImplementedError:
@@ -169,11 +169,11 @@ class TestBaseReleaseBarrier(LocalTestCase):
             self.fail('NotImplementedError not raised')
 
     def test__description(self):
-        barrier = BaseReleaseBarrier({})
+        barrier = BaseCompleteBarrier({})
         self.assertEqual(barrier.description, '')
 
     def test__fixes(self):
-        barrier = BaseReleaseBarrier({})
+        barrier = BaseCompleteBarrier({})
         try:
             barrier.fixes
         except NotImplementedError:
@@ -182,7 +182,7 @@ class TestBaseReleaseBarrier(LocalTestCase):
             self.fail('NotImplementedError not raised')
 
     def test__reason(self):
-        barrier = BaseReleaseBarrier({})
+        barrier = BaseCompleteBarrier({})
         try:
             barrier.reason
         except NotImplementedError:
@@ -366,7 +366,7 @@ class TestImagesTooNarrowBarrier(ImageTestCase):
         barrier = ImagesTooNarrowBarrier(book)
 
         tests = [
-            # (dimensions (w, h), is invalid for release)
+            # (dimensions (w, h), is invalid for complete)
             ((1600, 1600), False),       # width is good
             ((1599, 1600), True),      # width too narrow
             ((1600, 1599), False),       # if width is good, height is ignored
@@ -604,7 +604,7 @@ class TestNoPublicationMetadataBarrier(LocalTestCase):
 
 class TestConstants(LocalTestCase):
     def test_barrier_classes(self):
-        base_class = BaseReleaseBarrier
+        base_class = BaseCompleteBarrier
         base_classes = []
 
         classes = [x for x in globals().values() if inspect.isclass(x)]
@@ -624,16 +624,16 @@ class TestFunctions(ImageTestCase):
         # W0223: *Method ??? is abstract in class
         # pylint: disable=W0223
 
-        class DubAppliesBarrier(BaseReleaseBarrier):
+        class DubAppliesBarrier(BaseCompleteBarrier):
             """Class representing a dub barrier that applies."""
             def applies(self):
                 return True
 
-        class DubApplies2Barrier(BaseReleaseBarrier):
+        class DubApplies2Barrier(BaseCompleteBarrier):
             def applies(self):
                 return True
 
-        class DubNotAppliesBarrier(BaseReleaseBarrier):
+        class DubNotAppliesBarrier(BaseCompleteBarrier):
             """Class representing a dub barrier that does not apply"""
             def applies(self):
                 return False
@@ -654,49 +654,15 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(len(barriers), 1)
         self.assertTrue(isinstance(barriers[0], DubAppliesBarrier))
 
-    def test__has_release_barriers(self):
+    def test__complete_barriers(self):
         creator = self.add(db.creator, dict(
-            email='test__release_barriers@gmail.com',
+            email='test__complete_barriers@gmail.com',
         ))
 
         cc0_id = cc_licence_by_code('CC0', want='id')
 
         book = self.add(db.book, dict(
-            name='test__release_barriers',
-            number=999,
-            creator_id=creator.id,
-            book_type_id=self._type_id_by_name['ongoing'],
-            cc_licence_id=cc0_id,
-        ))
-
-        self.add(db.book_page, dict(
-            book_id=book.id,
-            page_no=1,
-            image=self._store_image(
-                db.book_page.image,
-                self._create_image('file.jpg', (1600, 1600)),
-            ),
-        ))
-
-        self.add(db.publication_metadata, dict(
-            book_id=book.id,
-            republished=False,
-        ))
-
-        self.assertFalse(has_release_barriers(book))
-        book.update_record(name='')
-        db.commit()
-        self.assertTrue(has_release_barriers(book))
-
-    def test__release_barriers(self):
-        creator = self.add(db.creator, dict(
-            email='test__release_barriers@gmail.com',
-        ))
-
-        cc0_id = cc_licence_by_code('CC0', want='id')
-
-        book = self.add(db.book, dict(
-            name='test__release_barriers',
+            name='test__complete_barriers',
             number=999,
             creator_id=creator.id,
             book_type_id=self._type_id_by_name['ongoing'],
@@ -718,8 +684,42 @@ class TestFunctions(ImageTestCase):
         ))
 
         # Has all criteria
-        self.assertEqual(release_barriers(book), [])
+        self.assertEqual(complete_barriers(book), [])
 
+
+    def test__has_complete_barriers(self):
+        creator = self.add(db.creator, dict(
+            email='test__complete_barriers@gmail.com',
+        ))
+
+        cc0_id = cc_licence_by_code('CC0', want='id')
+
+        book = self.add(db.book, dict(
+            name='test__complete_barriers',
+            number=999,
+            creator_id=creator.id,
+            book_type_id=self._type_id_by_name['ongoing'],
+            cc_licence_id=cc0_id,
+        ))
+
+        self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            image=self._store_image(
+                db.book_page.image,
+                self._create_image('file.jpg', (1600, 1600)),
+            ),
+        ))
+
+        self.add(db.publication_metadata, dict(
+            book_id=book.id,
+            republished=False,
+        ))
+
+        self.assertFalse(has_complete_barriers(book))
+        book.update_record(name='')
+        db.commit()
+        self.assertTrue(has_complete_barriers(book))
 
 def setUpModule():
     """Set up web2py environment."""

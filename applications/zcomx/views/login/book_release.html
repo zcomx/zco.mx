@@ -1,23 +1,22 @@
 {{from applications.zcomx.modules.books import formatted_name, publication_years}}
-<div id="book_release_section">
+<div id="book_complete_section">
 
 <div>
     <p>
-    Releasing a book means a CBZ file will be created and shared with
+    Marking a book complete means a CBZ file will be created and shared with
     others via two file sharing networks: bittorrent and direct connect.
+    </p>
+    <p>Before proceeding:</p>
     <ul>
         <li>Ensure all images have been uploaded and are in the correct order.</li>
         <li>If you want to use a custom indicia image, make sure it has been uploaded before
-releasing the book.</li>
+marking the book complete.</li>
     </ul>
-    </p>
-    <p>Processing the release of a book can take several minutes.</p>
-
 </div>
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        Releasing a book has the following effect:
+        Marking a book as complete has the following effect:
     </div>
     <div class="panel-body">
         <ul>
@@ -28,18 +27,19 @@ releasing the book.</li>
             <li>The file is added to the torrent containing all books from zco.mx</li>
             <li>The file pages are locked from further modifications</li>
         </ul>
+        <p>The process can take several minutes.</p>
     </div>
 </div>
 
 {{if not barriers:}}
     <div class="instruction">
-        Click the <em>Release</em> button to release <em>{{=formatted_name(db, book)}}</em>.
+        Click the <em>Complete</em> button to mark <em>{{=formatted_name(db, book)}}</em> as complete.
         Click the <em>Cancel</em> button if you've changed your mind.
     </div>
 {{else:}}
     <div class="panel panel-danger">
         <div class="panel-heading">
-            The book <em>{{=formatted_name(db, book)}}</em> cannot be released.
+            The book <em>{{=formatted_name(db, book)}}</em> cannot be marked complete.
         </div>
         <div class="panel-body">
             {{if len(barriers) > 1:}}<ol>{{else:}}<ul>{{pass}}
@@ -48,7 +48,7 @@ releasing the book.</li>
             <li>
                 {{=barrier.reason}}
                 {{if barrier.description:}}
-                <div class="release_barrier_description">
+                <div class="complete_barrier_description">
                     {{=barrier.description}}
                 </div>
                 {{pass}}
@@ -62,7 +62,7 @@ releasing the book.</li>
             {{if len(barriers) > 1:}}</ol>{{else:}}</ul>{{pass}}
         </div>
         <div class="panel-footer">
-            Once all problems have been resolved, try the release again.
+            Once all problems have been resolved, try again.
         </div>
     </div>
 {{pass}}
@@ -74,6 +74,6 @@ releasing the book.</li>
 </div>
 <script>
 //<![CDATA[
-    var release_enabled = {{if barriers:}}false{{else:}}true{{pass}};
+    var complete_enabled = {{if barriers:}}false{{else:}}true{{pass}};
 //]]>
 </script>

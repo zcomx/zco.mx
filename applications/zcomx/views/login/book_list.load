@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import formatted_name, read_link, release_link, url as book_url}}
+{{from applications.zcomx.modules.books import complete_link, formatted_name, read_link, url as book_url}}
 
 {{if lister and (lister.books() or lister.display_if_none):}}
 <div class="books_list_title">
@@ -48,9 +48,9 @@
                     **{'_data-book_id': book.id}
                 )}}
             </td>
-            {{if lister.include_release:}}
+            {{if lister.include_complete:}}
             <td>
-                {{=release_link(book.id, **{'_class': 'btn btn-default modal-release-btn no_rclick_menu', '_data-book_id': book.id})}}
+                {{=complete_link(book.id, **{'_class': 'btn btn-default modal-complete-btn no_rclick_menu', '_data-book_id': book.id})}}
             </td>
             {{pass}}
         </tr>

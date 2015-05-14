@@ -46,9 +46,9 @@ class TestFunctions(LocalTestCase):
             "'label': 'Reader Background'"
         ],
         'book_list': '<h2>Book List</h2>',
+        'book_list_completed': '<div id="completed_container">',
         'book_list_disabled': '<div id="disabled_container">',
         'book_list_ongoing': '<div id="ongoing_container">',
-        'book_list_released': '<div id="released_container">',
         'book_pages': '<div id="profile_book_pages_page">',
         'book_pages_invalid': 'Invalid data provided',
         'book_pages_handler_fail': [
@@ -66,7 +66,7 @@ class TestFunctions(LocalTestCase):
         'book_post_upload_session': [
             '"success": true',
         ],
-        'book_release': '<div id="book_release_section">',
+        'book_release': '<div id="book_complete_section">',
         'book_release_invalid': 'Invalid data provided',
         'books': '<div id="ongoing_book_list" class="book_list">',
         'default': '<div id="front_page">',
@@ -354,11 +354,11 @@ class TestFunctions(LocalTestCase):
             )
         )
 
-        # Released
+        # Completed
         self.assertTrue(
             web.test(
-                '{url}/book_list.load/released'.format(url=self.url),
-                self.titles['book_list_released']
+                '{url}/book_list.load/completed'.format(url=self.url),
+                self.titles['book_list_completed']
             )
         )
 

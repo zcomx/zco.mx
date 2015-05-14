@@ -25,9 +25,9 @@ from applications.zcomx.modules.html.meta import \
 from applications.zcomx.modules.indicias import BookIndiciaPage
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.search import \
+    CompleteGrid, \
     CreatorMoniesGrid, \
-    OngoingGrid, \
-    ReleasesGrid
+    OngoingGrid
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -445,21 +445,21 @@ class Router(object):
 
         queries = [(db.creator.id == creator_record.id)]
         LOG.debug('queries: %s', queries)
-        released_grid = ReleasesGrid(queries=queries, default_viewby='list')
+        complete_grid = CompleteGrid(queries=queries, default_viewby='list')
 
         LOG.debug('queries: %s', queries)
         ongoing_grid = OngoingGrid(queries=queries, default_viewby='list')
 
         self.view_dict = dict(
             creator=creator_record,
-            grid=released_grid,
+            grid=complete_grid,
             links=CustomLinks(
                 db.creator, creator_record.id
             ).represent(
                 pre_links=self.preset_links()
             ),
             ongoing_grid=ongoing_grid.render(),
-            released_grid=released_grid.render()
+            complete_grid=complete_grid.render()
         )
 
         self.view = 'creators/creator.html'
