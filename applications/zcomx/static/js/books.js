@@ -126,6 +126,12 @@
                                 that.options.onshow.call(that, dialog);
                             }
                         },
+                        onshown: function(dialog) {
+                            that.onshown(dialog);
+                            if ($.isFunction(that.options.onshown)) {
+                                that.options.onshown.call(that, dialog);
+                            }
+                        },
                         buttons: this.buttons(),
                     },
                     this.options.bootstrap_dialog_options
@@ -166,6 +172,7 @@
             this.$book_id = null;
             this.$book_title = null;
             this.$click_listener_key = 'has_modal_' + action + '_btn';
+            this.$page_count = 0;
             this.$url = null;
 
             var that = this;
@@ -211,6 +218,10 @@
 
         onshow: function(dialog) {
             dialog.getModalDialog().addClass('modal-lg');
+        },
+
+        onshown: function(dialog) {
+            return;  // implement in sub-class
         },
 
         update: function() {
@@ -382,21 +393,28 @@
             return btns;
         },
 
+        get_page_ids: function(dialog) {
+            var page_ids = [];
+            dialog.getModalBody().find('tr.template-download').each(function(index, elem) {
+                page_ids.push($(elem).data('book_page_id'));
+            });
+            return page_ids;
+        },
+
         onhidden: function(dialog) {
             this.post_image_upload(dialog);
             UploadModalize.superclass.onhidden.call(this, dialog);
         },
 
+        onshown: function(dialog) {
+            var page_ids = this.get_page_ids(dialog);
+            this.$page_count = page_ids.length;
+        },
+
         post_image_upload: function(dialog) {
-            var page_ids = [];
-            dialog.getModalBody().find('tr.template-download').each(function(index, elem) {
-                page_ids.push($(elem).data('book_page_id'));
-            });
 
             var url = '/zcomx/login/book_post_upload_session'
             url = url + '/' + this.$book_id;
-
-            var that = $(this);
 
             $('#fileupload').addClass('fileupload-processing');
 
@@ -404,11 +422,14 @@
                 url: url,
                 type: 'POST',
                 dataType: 'json',
-                data: {book_page_ids: page_ids},
+                data: {
+                    book_page_ids: this.get_page_ids(dialog),
+                    original_page_count: this.$page_count,
+                },
             }).always(function () {
                 $('#fileupload').removeClass('fileupload-processing');
             // }).done(function (result) {
-            // Reordering not critical, ignore results
+                // Reordering not critical, ignore results
             })
         }
     });

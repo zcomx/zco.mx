@@ -223,6 +223,11 @@ db.define_table('book',
         requires=IS_NOT_EMPTY(error_message='Select a territory'),
         comment='Jurisdiction from which the work is being offered under CC0.'
     ),
+    # page_added_on: Used to sort ongoing books and control necrobumping.
+    Field(
+        'page_added_on',
+        'datetime',
+    ),
     Field(
         'cbz'
     ),
