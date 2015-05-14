@@ -636,6 +636,7 @@ class TestRouter(LocalTestCase):
 
     def test__route(self):
         router = Router(db, self._request, auth)
+        random = '_random_placeholder_'
 
         def book_views(book_id):
             return db(db.book_view.book_id == book_id).select()
@@ -650,9 +651,16 @@ class TestRouter(LocalTestCase):
             if 'redirect' in expect:
                 self.assertEqual(router.redirect, expect.redirect)
             if 'view_dict' in expect:
+                urls = dict(router.view_dict['urls'])
+                if 'suggestions' in expect.view_dict:
+                    if expect.view_dict['suggestions'] != random:
+                        self.assertEqual(
+                            urls['suggestions'],
+                            expect.view_dict['suggestions']
+                        )
                 self.assertEqual(
-                    dict(router.view_dict['urls']),
-                    expect.view_dict
+                    urls['invalid'],
+                    expect.view_dict['invalid']
                 )
             if 'view_dict_keys' in expect:
                 self.assertEqual(
@@ -661,53 +669,38 @@ class TestRouter(LocalTestCase):
                 )
             self.assertEqual(router.view, expect.view)
 
-        # No creator, should route to page_not_found with first creator.
+        # No creator, should route to page_not_found with random creator.
         request_vars = Storage(dict())
 
-        first_expect = Storage({
+        page_not_found_expect = Storage({
             'view_dict': {
-                'suggestions': [
-                    {
-                        'label': 'Cartoonist page:',
-                        'url': self._first_creator_links.creator,
-                    },
-                    {
-                        'label': 'Book page:',
-                        'url': self._first_creator_links.book,
-                    },
-                    {
-                        'label': 'Read:',
-                        'url': self._first_creator_links.page,
-                    },
-                ],
+                'suggestions': random,
                 'invalid': 'http://www.domain.com/path/to/page',
             },
             'view': 'errors/page_not_found.html',
         })
-        do_test(request_vars, first_expect)
+
+        do_test(request_vars, page_not_found_expect)
         self.assertEqual(len(book_views(self._book.id)), 0)
 
         router.route()
+        urls = router.view_dict['urls']
+        suggestion_labels = [x['label'] for x in urls['suggestions']]
+        suggestion_urls = [x['url'] for x in urls['suggestions']]
+
+        self.assertEqual(sorted(urls.keys()), ['invalid', 'suggestions'])
+        self.assertEqual(urls['invalid'], 'http://www.domain.com/path/to/page')
         self.assertEqual(
-            router.view_dict['urls'],
-            {
-                'suggestions': [
-                    {
-                        'label': 'Cartoonist page:',
-                        'url': self._first_creator_links.creator,
-                    },
-                    {
-                        'label': 'Book page:',
-                        'url': self._first_creator_links.book,
-                    },
-                    {
-                        'label': 'Read:',
-                        'url': self._first_creator_links.page,
-                    },
-                ],
-                'invalid': 'http://www.domain.com/path/to/page',
-            },
+            suggestion_labels,
+            ['Cartoonist page:', 'Book page:', 'Read:']
         )
+        # Urls will be random creator/book/read. Look for expected patterns.
+        local_domain = 'http://127.0.0.1:8000'
+        for count, suggestion_url in enumerate(suggestion_urls):
+            self.assertTrue(suggestion_url.startswith(local_domain))
+            relative_url = suggestion_url.replace(local_domain, '').lstrip('/')
+            parts = relative_url.split('/')
+            self.assertTrue(len(parts), count + 1)
 
         # Creator as integer (creator_id) should redirect.
         self.assertEqual(len(book_views(self._book.id)), 0)
