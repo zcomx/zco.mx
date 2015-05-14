@@ -20,27 +20,38 @@
     * Change 'Creator page' to 'Cartoonist page'
 [x] Read Page -> Slider (Mobile Phone)
     Float to Center - doesn't seem to be working properly
+[x] Temp files like 'tmpuz5Dph' are hanging around on zc:/tmp
+    JK 2015-05-08 18:04  I made a fix that will prevent at least most of
+    the temporary files in the /tmp from being left behind. I fixed one
+    cause but there may be others. web2py can create temp files for
+    certain processes and it's not at all obvious. We'll have to monitor
+    it.
 [-] Show an 1/8th of the prev/next image and very opague?
     https://jimk.zsw.ca/JimKarsten/TranlatorA/001?reader=slider
     SB 2015-05-13 15:45  We're going to scrape this idea
 [x] Add 'shortened url' to cartoonist page
     http://p.zsw.ca/D4.png
+[x] Necrobumping of 'ongoing' books
+    Only update the timestamp if >=1 pages are added
 
 
 VERSION 3
 [S] Bug?  'Post on Web' twice or else stuck as a draft
     * test with a refresh
+    * race condition?
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
     Buy a wildcard cert
     [/] Test on sb.zco.mx and kb.zco.mx
 
-[ ] Change 'releases'/'released' to 'complete'/'completed' ?
+[ ] Change 'releases'/'released' to 'completed'
     mockup: http://p.zsw.ca/7S.png
-    * on upload modal: "All images must have a minimum width of 1600px in order to set a comic as 'complete'."
-    * on upload modal: "All images must have a minimum width of 1600px in order to move a comic from the 'ONGOING' section to the 'COMPLETED' section."
-    * make the working on the release/complete modal as simple as clear as possible
+    * on upload modal:
+        "All images must have a minimum width of 1600px in order to set a comic as 'completed'."
+        "All images must have a minimum width of 1600px (portrait) or 2560px (landscape) in order to move a comic from the 'ONGOING' section to the 'COMPLETED' section."
+        "In order to move a comic from the 'ONGOING' section to the 'COMPLETED' section all images must have a minimum width of 1600px for portrait or 2560px for landscape."
+    * make the wording & formating on the release/completed modal as simple as clear as possible
 
 [S] Indicia - html version
     Add book_to_link links to html indicia page
@@ -59,9 +70,6 @@ VERSION 3
                 Follow Cartoonist Name
                 on zco.mx  [ ] [ ]          ## ML and RSS
                 or on    [ ] [ ] [ ]        ## twitter, tumblr & fb
-
-[ ] Necrobumping
-    Only update the timestamp if >1 pages are added
 
 [ ] Announce on instagram
     SB 2015-05-06 18:49  Emailed u/p to jimk
@@ -93,6 +101,7 @@ VERSION 3
 
 
 VERSION 4
+[ ] Search Auto-Completion on 'cartoonist name' and 'title'
 [S] news.zco.mx
 [ ] Web images are too small on mac laptops
 [S] Separate '001' and '01 (of 02)' from the title ?
@@ -103,6 +112,7 @@ VERSION 4
     SB 2015-03-26 10:19  we should talk about this
     See how dokuwiki does it
     http://bronze-age.com/nospam/
+[ ] Add warning to change to a more restrictive CC licence
 [ ] Front Page/Book Page
     SB 2015-03-25 20:56  we should talk about this
     The same stats on the front page should be on the book page and
@@ -113,23 +123,20 @@ VERSION 4
     [ ] git-ify and add to zco.mx server
     [ ] update dns for kb.zco.mx
     [ ] add link to footer ?
-        [logo] about | faq | kb | login | all.torrent
+        [z]  about | faq | kb | terms | login | all.torrent
 [ ] Check for duplicate file/book names
-[ ] Url checker
+[ ] Url checker - for broken links
 [ ] zco.mx Modal Link
     Prevent opening zco.mx modal links in 'New Window'
     https://zco.mx/contributions/modal
 
     SB 2015-02-09 19:09  It does this with middle click
-[ ] Terms and Conditions - Pop-up Model for Reader
+[ ] Terms and Conditions - Pop-up Modal for Reader
 [ ] Terms Page
     Change https://github.com/zcomx/zcomix.com to
     https://github.com/zcomx/zcomx or
     https://github.com/zcomx/website ?
 [ ] Should CartoonistName.torrent be in /C/CartoonistName/ ?
-[ ] Optimize Pages -- especially the front page
-    [ ] CDN
-    [ ] Minify
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
 [ ] 12354 - Test scripts
 
@@ -174,13 +181,9 @@ VERSION 5
     [ERROR queue_check.py 86] Multiple pending jobs in queue.
     * could be many jobs in the queue
     * could have 'd' jobs -- output of these would be nice
-[ ] Add warning to change to a more restrictive CC licence
-[/] Temp files like 'tmpuz5Dph' are hanging around on zc:/tmp
-    JK 2015-05-08 18:04  I made a fix that will prevent at least most of
-    the temporary files in the /tmp from being left behind. I fixed one
-    cause but there may be others. web2py can create temp files for
-    certain processes and it's not at all obvious. We'll have to monitor
-    it.
+[ ] Optimize Pages -- especially the front page
+    [ ] CDN
+    [ ] Minify
 
 
 IDEAS
