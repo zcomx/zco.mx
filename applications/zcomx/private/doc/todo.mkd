@@ -20,17 +20,16 @@
     * Change 'Creator page' to 'Cartoonist page'
 [x] Read Page -> Slider (Mobile Phone)
     Float to Center - doesn't seem to be working properly
+[-] Show an 1/8th of the prev/next image and very opague?
+    https://jimk.zsw.ca/JimKarsten/TranlatorA/001?reader=slider
+    SB 2015-05-13 15:45  We're going to scrape this idea
+[x] Add 'shortened url' to cartoonist page
+    http://p.zsw.ca/D4.png
 
 
 VERSION 3
-[D] Show an 1/8th of the prev/next image and very opague?
-    https://jimk.zsw.ca/JimKarsten/TranlatorA/001?reader=slider
-
 [S] Bug?  'Post on Web' twice or else stuck as a draft
     * test with a refresh
-
-[ ] Add 'shortened url' to cartoonist page
-    http://p.zsw.ca/D4.png
 
 [S] Wildcard ssl cert for zco.mx
     https://131.zco.mx will cause a self-signed cert warning to appear
@@ -62,6 +61,7 @@ VERSION 3
                 or on    [ ] [ ] [ ]        ## twitter, tumblr & fb
 
 [ ] Necrobumping
+    Only update the timestamp if >1 pages are added
 
 [ ] Announce on instagram
     SB 2015-05-06 18:49  Emailed u/p to jimk
