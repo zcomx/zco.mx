@@ -42,13 +42,13 @@ class TestFunctions(LocalTestCase):
         )
 
         query = (db.book.status == BOOK_STATUS_ACTIVE) & \
-                (db.book.release_date == None)
+                (db.book.release_date != None)
         books = db(query).select(
             db.book.ALL,
             left=[
                 db.book_page.on(db.book_page.book_id == db.book.id)
             ],
-            orderby=~db.book_page.created_on,
+            orderby=~db.book.release_date,
             limitby=(0, 1)
         )
         if not books:

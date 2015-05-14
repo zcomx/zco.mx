@@ -37,6 +37,7 @@ from applications.zcomx.modules.books import \
     calc_status, \
     cbz_comment, \
     cc_licence_data, \
+    complete_link, \
     contribute_link, \
     contributions_remaining_by_creator, \
     contributions_target, \
@@ -58,7 +59,6 @@ from applications.zcomx.modules.books import \
     publication_year_range, \
     publication_years, \
     read_link, \
-    release_link, \
     set_status, \
     short_page_img_url, \
     short_page_url, \
@@ -768,6 +768,81 @@ class TestFunctions(ImageTestCase):
         ))
 
         self.assertEqual(cc_licence_data(book)['year'], '2010-2014')
+
+    def test__complete_link(self):
+        empty = '<span></span>'
+
+        book = self.add(db.book, dict(
+            name='test__complete_link',
+        ))
+
+        self.assertEqual(book.releasing, False)
+
+        # As integer, book_id
+        link = complete_link(book.id)
+        # Eg <a href="/login/book_release/4790">Complete</a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Complete')
+        self.assertEqual(
+            anchor['href'],
+            '/login/book_release/{i}'.format(i=book.id)
+        )
+
+        # As Row, book
+        link = complete_link(book)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Complete')
+        self.assertEqual(
+            anchor['href'],
+            '/login/book_release/{i}'.format(i=book.id)
+        )
+
+        # Invalid id
+        link = complete_link(-1)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = complete_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = complete_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = complete_link(book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Complete')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
+
+        # Test release queued
+        book.update_record(releasing=True)
+        db.commit()
+        link = complete_link(book.id)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Complete (in progress)')
+        self.assertEqual(
+            anchor['href'],
+            '/login/book_release/{i}'.format(i=book.id)
+        )
+        self.assertEqual(anchor['class'], 'disabled')
 
     def test__contribute_link(self):
         empty = '<span></span>'
@@ -1649,81 +1724,6 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
-
-    def test__release_link(self):
-        empty = '<span></span>'
-
-        book = self.add(db.book, dict(
-            name='test__release_link',
-        ))
-
-        self.assertEqual(book.releasing, False)
-
-        # As integer, book_id
-        link = release_link(book.id)
-        # Eg <a href="/login/book_release/4790">Release</a>
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Release')
-        self.assertEqual(
-            anchor['href'],
-            '/login/book_release/{i}'.format(i=book.id)
-        )
-
-        # As Row, book
-        link = release_link(book)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Release')
-        self.assertEqual(
-            anchor['href'],
-            '/login/book_release/{i}'.format(i=book.id)
-        )
-
-        # Invalid id
-        link = release_link(-1)
-        self.assertEqual(str(link), empty)
-
-        # Test components param
-        components = ['aaa', 'bbb']
-        link = release_link(book, components=components)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'aaabbb')
-
-        components = [IMG(_src='http://www.img.com', _alt='')]
-        link = release_link(book, components=components)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        img = anchor.img
-        self.assertEqual(img['src'], 'http://www.img.com')
-
-        # Test attributes
-        attributes = dict(
-            _href='/path/to/file',
-            _class='btn btn-large',
-            _target='_blank',
-        )
-        link = release_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Release')
-        self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
-        self.assertEqual(anchor['target'], '_blank')
-
-        # Test release queued
-        book.update_record(releasing=True)
-        db.commit()
-        link = release_link(book.id)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Release (in progress)')
-        self.assertEqual(
-            anchor['href'],
-            '/login/book_release/{i}'.format(i=book.id)
-        )
-        self.assertEqual(anchor['class'], 'disabled')
 
     def test__set_status(self):
         book = self.add(db.book, dict(

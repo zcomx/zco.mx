@@ -68,6 +68,11 @@ class BaseBookList(object):
         return []
 
     @property
+    def include_complete(self):
+        """Return whether to include the complete button."""
+        return False
+
+    @property
     def include_publication_year(self):
         """Return whether to include the publication year."""
         return False
@@ -75,11 +80,6 @@ class BaseBookList(object):
     @property
     def include_read(self):
         """Return whether to include the read button."""
-        return False
-
-    @property
-    def include_release(self):
-        """Return whether to include the release button."""
         return False
 
     @property
@@ -110,6 +110,41 @@ class BaseBookList(object):
     def title(self):
         """Return the title of the book list."""
         return self.code.upper()
+
+
+class CompletedBookList(BaseBookList):
+    """Class representing a list of completed books for a creator."""
+
+    @property
+    def code(self):
+        return 'completed'
+
+    @property
+    def display_if_none(self):
+        return True
+
+    def filters(self):
+        db = self.db
+        queries = []
+        queries.append((db.book.status == BOOK_STATUS_ACTIVE))
+        queries.append((db.book.release_date != None))
+        return queries
+
+    @property
+    def include_publication_year(self):
+        return True
+
+    @property
+    def include_read(self):
+        return True
+
+    @property
+    def link_to_book_page(self):
+        return True
+
+    @property
+    def no_records_found_msg(self):
+        return 'No completed books'
 
 
 class DisabledBookList(BaseBookList):
@@ -198,11 +233,11 @@ class OngoingBookList(BaseBookList):
         return queries
 
     @property
-    def include_read(self):
+    def include_complete(self):
         return True
 
     @property
-    def include_release(self):
+    def include_read(self):
         return True
 
     @property
@@ -217,49 +252,21 @@ class OngoingBookList(BaseBookList):
     def no_records_found_msg(self):
         return 'No ongoing series'
 
-
-class ReleasedBookList(BaseBookList):
-    """Class representing a list of released books for a creator."""
-
     @property
-    def code(self):
-        return 'released'
-
-    @property
-    def display_if_none(self):
-        return True
-
-    def filters(self):
-        db = self.db
-        queries = []
-        queries.append((db.book.status == BOOK_STATUS_ACTIVE))
-        queries.append((db.book.release_date != None))
-        return queries
-
-    @property
-    def include_publication_year(self):
-        return True
-
-    @property
-    def include_read(self):
-        return True
-
-    @property
-    def link_to_book_page(self):
-        return True
-
-    @property
-    def no_records_found_msg(self):
-        return 'No books released'
+    def subtitle(self):
+        return DIV(
+            'Mark as complete',
+            _class="mark_as_complete",
+        )
 
 
 def class_from_code(code):
     """Return a BaseBookList subclass for the given code."""
     lookup = {
+        'completed': CompletedBookList,
         'disabled': DisabledBookList,
         'draft': DraftBookList,
         'ongoing': OngoingBookList,
-        'released': ReleasedBookList,
     }
 
     if code not in lookup:

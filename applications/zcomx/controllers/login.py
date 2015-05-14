@@ -9,9 +9,9 @@ from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.access import requires_agreed_to_terms
 from applications.zcomx.modules.book_lists import \
     class_from_code as book_list_class_from_code
-from applications.zcomx.modules.book.release_barriers import \
-    has_release_barriers, \
-    release_barriers
+from applications.zcomx.modules.book.complete_barriers import \
+    complete_barriers, \
+    has_complete_barriers
 from applications.zcomx.modules.book_pages import \
     delete_pages_not_in_ids, \
     reset_book_page_nos
@@ -223,7 +223,7 @@ def book_crud():
         return {'status': 'ok'}
 
     if action == 'release':
-        if has_release_barriers(book_record):
+        if has_complete_barriers(book_record):
             return do_error('This book cannot be released.')
 
         book_record.update_record(releasing=True)
@@ -356,7 +356,7 @@ def book_edit():
 def book_list():
     """Book list component controller.
 
-    request.args(0): string, optional, one of 'released', 'ongoing', 'disabled'
+    request.args(0): string, optional, one of 'completed', 'ongoing', 'disabled'
     """
     # Verify user is legit
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
@@ -572,7 +572,7 @@ def book_release():
 
     return dict(
         book=book_record,
-        barriers=release_barriers(book_record),
+        barriers=complete_barriers(book_record),
     )
 
 

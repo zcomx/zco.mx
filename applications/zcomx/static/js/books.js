@@ -284,6 +284,26 @@
         }
     });
 
+    var CompleteModalize = function (element, action, options) {
+        this.init(element, action, options);
+    }
+    $.fn.zco_utils.inherit(CompleteModalize, Modalize);
+    $.extend(CompleteModalize.prototype, {
+        buttons: function() {
+            var that = this;
+            var btns = [];
+            btns.push({
+                label: 'Complete',
+                cssClass: 'btn_complete',
+                action : function(dialog){
+                    that.update();
+                }
+            });
+            btns.push(this.close_button('Cancel'));
+            return btns;
+        }
+    });
+
     var DeleteModalize = function (element, action, options) {
         this.init(element, action, options);
     }
@@ -338,26 +358,6 @@
                 }
             });
             btns.push(this.close_button());
-            return btns;
-        }
-    });
-
-    var ReleaseModalize = function (element, action, options) {
-        this.init(element, action, options);
-    }
-    $.fn.zco_utils.inherit(ReleaseModalize, Modalize);
-    $.extend(ReleaseModalize.prototype, {
-        buttons: function() {
-            var that = this;
-            var btns = [];
-            btns.push({
-                label: 'Release',
-                cssClass: 'btn_release',
-                action : function(dialog){
-                    that.update();
-                }
-            });
-            btns.push(this.close_button('Cancel'));
             return btns;
         }
     });
@@ -446,6 +446,9 @@
                     case 'add':
                         obj = new AddModalize(this, action, options);
                         break;
+                    case 'complete':
+                        obj = new CompleteModalize(this, action, options);
+                        break;
                     case 'delete':
                         obj = new DeleteModalize(this, action, options);
                         break;
@@ -454,9 +457,6 @@
                         break;
                     case 'edit_ongoing':
                         obj = new EditOngoingModalize(this, 'edit', options);
-                        break;
-                    case 'release':
-                        obj = new ReleaseModalize(this, action, options);
                         break;
                     case 'upload':
                         obj = new UploadModalize(this, action, options);
@@ -523,11 +523,11 @@
                 'closeByKeyboard': false,
             }
         });
-        $('.modal-release-btn').modalize('release', {
+        $('.modal-complete-btn').modalize('complete', {
             'onhidden': display_book_lists,
             'bootstrap_dialog_options':  {
                 'onshown': function(dialog) {
-                    $('.btn_release').prop('disabled', !release_enabled).toggleClass('disabled', !release_enabled);
+                    $('.btn_complete').prop('disabled', !complete_enabled).toggleClass('disabled', !complete_enabled);
                 }
             }
         });

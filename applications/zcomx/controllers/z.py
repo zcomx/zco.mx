@@ -62,6 +62,11 @@ def cartoonists():
     return _search_results(request, response, 'creators')
 
 
+def complete():
+    """Front page 'complete' tab."""
+    return _search_results(request, response, 'complete')
+
+
 def contribute():
     """Contribute to zcomx admin controller"""
     Zco().paypal_in_progress = None
@@ -140,11 +145,6 @@ def ongoing():
 def overview():
     """Overview page"""
     return markmin('overview')
-
-
-def releases():
-    """Front page 'releases' tab."""
-    return _search_results(request, response, 'releases')
 
 
 def search():

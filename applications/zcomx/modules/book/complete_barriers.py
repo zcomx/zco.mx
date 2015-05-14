@@ -3,7 +3,7 @@
 
 """
 
-Classes and functions related to book release barriers.
+Classes and functions related to book complete barriers.
 """
 import logging
 from gluon import *
@@ -14,8 +14,8 @@ from applications.zcomx.modules.images import ImageDescriptor
 LOG = logging.getLogger('app')
 
 
-class BaseReleaseBarrier(object):
-    """Class representing a release barrier"""
+class BaseCompleteBarrier(object):
+    """Class representing a complete barrier"""
 
     def __init__(self, book):
         """Initializer
@@ -29,13 +29,13 @@ class BaseReleaseBarrier(object):
         """Test if the barrier is a applicable.
 
         Returns
-            True if the barrier applies and should prevent release.
+            True if the barrier applies and should prevent complete.
         """
         raise NotImplementedError
 
     @property
     def code(self):
-        """The release barrier code."""
+        """The complete barrier code."""
         raise NotImplementedError
 
     @property
@@ -56,7 +56,7 @@ class BaseReleaseBarrier(object):
         raise NotImplementedError
 
 
-class AllRightsReservedBarrier(BaseReleaseBarrier):
+class AllRightsReservedBarrier(BaseCompleteBarrier):
     """Class representing a 'licence is all rights reserved' barrier."""
 
     def applies(self):
@@ -71,7 +71,7 @@ class AllRightsReservedBarrier(BaseReleaseBarrier):
     @property
     def description(self):
         return (
-            'Books released on zco.mx '
+            'On zco.mx, completed books'
             'are published on public file sharing networks. '
             'This is not permitted if the licence is '
             '"All Rights Reserved".'
@@ -88,7 +88,7 @@ class AllRightsReservedBarrier(BaseReleaseBarrier):
         return "The licence on the book is set to 'All Rights Reserved'."
 
 
-class DupeNameBarrier(BaseReleaseBarrier):
+class DupeNameBarrier(BaseCompleteBarrier):
     """Class representing a 'duplicate name' barrier."""
 
     def applies(self):
@@ -125,10 +125,10 @@ class DupeNameBarrier(BaseReleaseBarrier):
 
     @property
     def reason(self):
-        return 'You already released a book with the same name.'
+        return 'You have a completed book with the same name.'
 
 
-class DupeNumberBarrier(BaseReleaseBarrier):
+class DupeNumberBarrier(BaseCompleteBarrier):
     """Class representing a 'duplicate number' barrier."""
 
     def applies(self):
@@ -164,10 +164,10 @@ class DupeNumberBarrier(BaseReleaseBarrier):
 
     @property
     def reason(self):
-        return 'You already released a book with the same name and number.'
+        return 'You have a completed book with the same name and number.'
 
 
-class ImagesTooNarrowBarrier(BaseReleaseBarrier):
+class ImagesTooNarrowBarrier(BaseCompleteBarrier):
     """Class representing a 'no publication metadata' barrier."""
 
     def __init__(self, book):
@@ -190,11 +190,11 @@ class ImagesTooNarrowBarrier(BaseReleaseBarrier):
     @property
     def description(self):
         return (
-            'Released books are packaged for CBZ viewers. '
+            'Completed books are packaged for CBZ viewers. '
             'In order for images to display clearly '
             'a minimum resolution of {w}px is required. '
             'The following images need to be replaced:'
-        )
+        ).format(w=BookPage.min_cbz_width)
 
     @property
     def fixes(self):
@@ -203,7 +203,7 @@ class ImagesTooNarrowBarrier(BaseReleaseBarrier):
 
     def narrow_images(self):
         """Return a list of image names representing images too narrow
-        for release.
+        for complete.
 
         Returns:
             list of strings, image names.
@@ -242,7 +242,7 @@ class ImagesTooNarrowBarrier(BaseReleaseBarrier):
         return 'Some images are not large enough.'
 
 
-class InvalidPageNoBarrier(BaseReleaseBarrier):
+class InvalidPageNoBarrier(BaseCompleteBarrier):
     """Class representing a 'invalid page no' barrier."""
 
     def applies(self):
@@ -290,7 +290,7 @@ class InvalidPageNoBarrier(BaseReleaseBarrier):
         return 'The page numbers were not set properly.'
 
 
-class NoBookNameBarrier(BaseReleaseBarrier):
+class NoBookNameBarrier(BaseCompleteBarrier):
     """Class representing a 'no book name' barrier."""
 
     def applies(self):
@@ -318,7 +318,7 @@ class NoBookNameBarrier(BaseReleaseBarrier):
         return 'The book has no name.'
 
 
-class NoLicenceBarrier(BaseReleaseBarrier):
+class NoLicenceBarrier(BaseCompleteBarrier):
     """Class representing a 'no licence' barrier."""
 
     def applies(self):
@@ -331,7 +331,7 @@ class NoLicenceBarrier(BaseReleaseBarrier):
     @property
     def description(self):
         return (
-            'Books released on zco.mx '
+            'On zco.mx, completed books '
             'are published on public file sharing networks. '
             'A licence must be set indicating permission to do this.'
         )
@@ -347,7 +347,7 @@ class NoLicenceBarrier(BaseReleaseBarrier):
         return 'No licence has been selected for the book.'
 
 
-class NoPagesBarrier(BaseReleaseBarrier):
+class NoPagesBarrier(BaseCompleteBarrier):
     """Class representing a 'no pages' barrier."""
 
     def applies(self):
@@ -369,7 +369,7 @@ class NoPagesBarrier(BaseReleaseBarrier):
         return 'The book has no pages.'
 
 
-class NoPublicationMetadataBarrier(BaseReleaseBarrier):
+class NoPublicationMetadataBarrier(BaseCompleteBarrier):
     """Class representing a 'no publication metadata' barrier."""
 
     def applies(self):
@@ -385,7 +385,7 @@ class NoPublicationMetadataBarrier(BaseReleaseBarrier):
     @property
     def description(self):
         return (
-            'Books released on zco.mx include an indicia page. '
+            'On zco.mx, completed books include an indicia page. '
             'The page has a paragraph outlining '
             'the publication history of the book.'
             'The publication metadata has to be set '
@@ -417,17 +417,17 @@ BARRIER_CLASSES = [
 
 
 def barriers_for_book(book, barrier_classes, fail_fast=False):
-    """Return ReleaseBarrier instances for a book.
+    """Return CompleteBarrier instances for a book.
 
     Args:
         book: Row instance representing a book.
-        barrier_classes: list of BaseReleaseBarrier subclasses
+        barrier_classes: list of BaseCompleteBarrier subclasses
         fail_fast: If True, return the first barrier that applies.
             This can be used to test if a book has any barriers.
 
     Returns:
-        list of BaseReleaseBarrier sub class instances representing
-            all barriers that prevent the release of the book.
+        list of BaseCompleteBarrier sub class instances representing
+            all barriers that prevent the complete of the book.
     """
     barriers = []
 
@@ -440,26 +440,26 @@ def barriers_for_book(book, barrier_classes, fail_fast=False):
     return barriers
 
 
-def has_release_barriers(book):
-    """Determine whether a book has barriers preventing release.
+def complete_barriers(book):
+    """Return a list of barriers preventing the book from being set complete.
 
     Args:
         book: Row instance representing a book record.
 
     Returns:
-        True if book has release barriers
-    """
-    return barriers_for_book(book, BARRIER_CLASSES, fail_fast=True)
-
-
-def release_barriers(book):
-    """Return a list of barriers preventing the release of a book.
-
-    Args:
-        book: Row instance representing a book record.
-
-    Returns:
-        list of BaseReleaseBarrier sub class instances representing
-            all barriers that prevent the release of the book.
+        list of BaseCompleteBarrier sub class instances representing
+            all barriers that prevent the book from being set complete.
     """
     return barriers_for_book(book, BARRIER_CLASSES)
+
+
+def has_complete_barriers(book):
+    """Determine whether a book has barriers preventing complete.
+
+    Args:
+        book: Row instance representing a book record.
+
+    Returns:
+        True if book has barriers
+    """
+    return barriers_for_book(book, BARRIER_CLASSES, fail_fast=True)

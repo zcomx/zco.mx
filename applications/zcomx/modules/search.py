@@ -159,7 +159,7 @@ class Grid(object):
             'auth_user.name': 'Cartoonist',
             'book.name': 'Title',
             'book.publication_year': 'Year',
-            'book.released_date': 'Released',
+            'book.released_date': 'Complete',
             'book.views': 'Views',
             'book.contributions_remaining': 'Remaining',
             'book.page_added_on': 'Added',
@@ -526,6 +526,62 @@ class CartoonistsGrid(Grid):
         ]
 
 
+class CompleteGrid(Grid):
+    """Class representing a grid for search results: complete"""
+
+    _attributes = {
+        'table': 'book',
+        'field': 'release_date',
+        'label': 'release date',
+        'tab_label': 'complete',
+        'header_label': 'complete',
+        'class': 'orderby_complete',
+        'order_dir': 'DESC',
+    }
+
+    _not_found_msg = 'No completed books'
+
+    def __init__(
+            self,
+            form_grid_args=None,
+            queries=None,
+            default_viewby='tile'):
+        """Constructor"""
+        Grid.__init__(
+            self,
+            form_grid_args=form_grid_args,
+            queries=queries,
+            default_viewby=default_viewby
+        )
+
+    def filters(self):
+        """Define query filters.
+
+        Returns:
+            list of gluon.dal.Expression instances
+        """
+        db = self.db
+        queries = []
+        queries.append((db.book.release_date != None))
+        return queries
+
+    def visible_fields(self):
+        """Return list of visisble fields.
+
+        Returns:
+            list of gluon.dal.Field instances
+        """
+        db = self.db
+        return [
+            db.book.name,
+            db.book.publication_year,
+            db.book.release_date,
+            db.book.downloads,
+            # db.book.contributions_remaining,
+            db.auth_user.name,
+        ]
+
+
 class ContributionsGrid(Grid):
     """Class representing a grid for search results: contributions"""
 
@@ -683,62 +739,6 @@ class OngoingGrid(Grid):
         ]
 
 
-class ReleasesGrid(Grid):
-    """Class representing a grid for search results: releases"""
-
-    _attributes = {
-        'table': 'book',
-        'field': 'release_date',
-        'label': 'release date',
-        'tab_label': 'releases',
-        'header_label': 'released',
-        'class': 'orderby_releases',
-        'order_dir': 'DESC',
-    }
-
-    _not_found_msg = 'No books released'
-
-    def __init__(
-            self,
-            form_grid_args=None,
-            queries=None,
-            default_viewby='tile'):
-        """Constructor"""
-        Grid.__init__(
-            self,
-            form_grid_args=form_grid_args,
-            queries=queries,
-            default_viewby=default_viewby
-        )
-
-    def filters(self):
-        """Define query filters.
-
-        Returns:
-            list of gluon.dal.Expression instances
-        """
-        db = self.db
-        queries = []
-        queries.append((db.book.release_date != None))
-        return queries
-
-    def visible_fields(self):
-        """Return list of visisble fields.
-
-        Returns:
-            list of gluon.dal.Field instances
-        """
-        db = self.db
-        return [
-            db.book.name,
-            db.book.publication_year,
-            db.book.release_date,
-            db.book.downloads,
-            # db.book.contributions_remaining,
-            db.auth_user.name,
-        ]
-
-
 class SearchGrid(Grid):
     """Class representing a grid for search results."""
 
@@ -800,7 +800,7 @@ class SearchGrid(Grid):
 
 
 GRID_CLASSES = collections.OrderedDict()
-GRID_CLASSES['releases'] = ReleasesGrid
+GRID_CLASSES['complete'] = CompleteGrid
 GRID_CLASSES['ongoing'] = OngoingGrid
 # GRID_CLASSES['contributions'] = ContributionsGrid
 GRID_CLASSES['creators'] = CartoonistsGrid
@@ -1187,7 +1187,7 @@ def classified(request):
     Returns:
         Grid class or subclass
     """
-    grid_class = ReleasesGrid
+    grid_class = CompleteGrid
     LOG.debug('request.vars.o: %s', request.vars.o)
     if request.vars.o:
         if request.vars.o in GRID_CLASSES:

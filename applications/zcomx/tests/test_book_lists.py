@@ -13,7 +13,7 @@ from applications.zcomx.modules.book_lists import \
     DisabledBookList, \
     DraftBookList, \
     OngoingBookList, \
-    ReleasedBookList, \
+    CompletedBookList, \
     class_from_code
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -90,6 +90,10 @@ class TestBaseBookList(LocalTestCase):
         book_list = BaseBookList({})
         self.assertEqual(book_list.filters(), [])
 
+    def test__include_complete(self):
+        book_list = BaseBookList({})
+        self.assertFalse(book_list.include_complete)
+
     def test__include_publication_year(self):
         book_list = BaseBookList({})
         self.assertFalse(book_list.include_publication_year)
@@ -97,10 +101,6 @@ class TestBaseBookList(LocalTestCase):
     def test__include_read(self):
         book_list = BaseBookList({})
         self.assertFalse(book_list.include_read)
-
-    def test__include_release(self):
-        book_list = BaseBookList({})
-        self.assertFalse(book_list.include_release)
 
     def test__include_upload(self):
         book_list = BaseBookList({})
@@ -121,6 +121,40 @@ class TestBaseBookList(LocalTestCase):
     def test__title(self):
         book_list = DubBookList({})
         self.assertEqual(book_list.title, 'DUBBED')
+
+
+class TestCompletedBookList(LocalTestCase):
+
+    def test__code(self):
+        book_list = CompletedBookList({})
+        self.assertEqual(book_list.code, 'completed')
+
+    def test__display_if_none(self):
+        book_list = CompletedBookList({})
+        self.assertTrue(book_list.display_if_none)
+
+    def test__filters(self):
+        book_list = CompletedBookList({})
+        filters = book_list.filters()
+        self.assertEqual(len(filters), 2)
+        self.assertEqual(str(filters[0]), "(book.status = 'a')")
+        self.assertEqual(str(filters[1]), "(book.release_date IS NOT NULL)")
+
+    def test__include_publication_year(self):
+        book_list = CompletedBookList({})
+        self.assertTrue(book_list.include_publication_year)
+
+    def test__include_read(self):
+        book_list = CompletedBookList({})
+        self.assertTrue(book_list.include_read)
+
+    def test__link_to_book_page(self):
+        book_list = CompletedBookList({})
+        self.assertTrue(book_list.link_to_book_page)
+
+    def test__no_records_found_msg(self):
+        book_list = CompletedBookList({})
+        self.assertEqual(book_list.no_records_found_msg, 'No completed books')
 
 
 class TestDisabledBookList(LocalTestCase):
@@ -198,13 +232,13 @@ class TestOngoingBookList(LocalTestCase):
         self.assertEqual(str(filters[0]), "(book.status = 'a')")
         self.assertEqual(str(filters[1]), "(book.release_date IS NULL)")
 
+    def test__include_complete(self):
+        book_list = OngoingBookList({})
+        self.assertTrue(book_list.include_complete)
+
     def test__include_read(self):
         book_list = OngoingBookList({})
         self.assertTrue(book_list.include_read)
-
-    def test__include_release(self):
-        book_list = OngoingBookList({})
-        self.assertTrue(book_list.include_release)
 
     def test__include_upload(self):
         book_list = OngoingBookList({})
@@ -218,39 +252,9 @@ class TestOngoingBookList(LocalTestCase):
         book_list = OngoingBookList({})
         self.assertEqual(book_list.no_records_found_msg, 'No ongoing series')
 
-
-class TestReleasedBookList(LocalTestCase):
-
-    def test__code(self):
-        book_list = ReleasedBookList({})
-        self.assertEqual(book_list.code, 'released')
-
-    def test__display_if_none(self):
-        book_list = ReleasedBookList({})
-        self.assertTrue(book_list.display_if_none)
-
-    def test__filters(self):
-        book_list = ReleasedBookList({})
-        filters = book_list.filters()
-        self.assertEqual(len(filters), 2)
-        self.assertEqual(str(filters[0]), "(book.status = 'a')")
-        self.assertEqual(str(filters[1]), "(book.release_date IS NOT NULL)")
-
-    def test__include_publication_year(self):
-        book_list = ReleasedBookList({})
-        self.assertTrue(book_list.include_publication_year)
-
-    def test__include_read(self):
-        book_list = ReleasedBookList({})
-        self.assertTrue(book_list.include_read)
-
-    def test__link_to_book_page(self):
-        book_list = ReleasedBookList({})
-        self.assertTrue(book_list.link_to_book_page)
-
-    def test__no_records_found_msg(self):
-        book_list = ReleasedBookList({})
-        self.assertEqual(book_list.no_records_found_msg, 'No books released')
+    def test__subtitle(self):
+        book_list = OngoingBookList({})
+        self.assertTrue('Mark as complete' in book_list.subtitle)
 
 
 class TestFunctions(LocalTestCase):
@@ -259,7 +263,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(class_from_code('disabled'), DisabledBookList)
         self.assertEqual(class_from_code('draft'), DraftBookList)
         self.assertEqual(class_from_code('ongoing'), OngoingBookList)
-        self.assertEqual(class_from_code('released'), ReleasedBookList)
+        self.assertEqual(class_from_code('completed'), CompletedBookList)
         self.assertRaises(ValueError, class_from_code, None)
         self.assertRaises(ValueError, class_from_code, '')
         self.assertRaises(ValueError, class_from_code, 'fake')

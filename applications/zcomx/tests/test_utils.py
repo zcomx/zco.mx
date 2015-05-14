@@ -200,6 +200,7 @@ class TestFunctions(LocalTestCase):
                 'name_for_url': None,
                 'number': 1,
                 'of_number': 1,
+                'page_added_on': None,
                 'publication_year': 2015,
                 'rating': 0,
                 'reader': 'slider',
