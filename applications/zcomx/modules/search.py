@@ -124,7 +124,7 @@ class Grid(object):
             _href=book_url(row.book.id, extension=False)
         )
 
-        db.book_page.created_on.represent = lambda v, row: \
+        db.book.page_added_on.represent = lambda v, row: \
             str(prettydate(v, T=current.T)) if v is not None else 'n/a'
 
         fields = [
@@ -133,13 +133,13 @@ class Grid(object):
             db.book.book_type_id,
             db.book.number,
             db.book.of_number,
-            db.book_page.created_on,
             db.book.publication_year,
             db.book.release_date,
             db.book.views,
             db.book.downloads,
             db.book.contributions_remaining,
             db.book.name_for_url,
+            db.book.page_added_on,
             db.book.created_on,
             db.creator.id,
             db.auth_user.name,
@@ -162,7 +162,7 @@ class Grid(object):
             'book.released_date': 'Released',
             'book.views': 'Views',
             'book.contributions_remaining': 'Remaining',
-            'book_page.created_on': 'Added',
+            'book.page_added_on': 'Added',
             'creator.contributions_remaining': 'Remaining',
         }
 
@@ -186,8 +186,6 @@ class Grid(object):
 
         if 'book_contribute' in self._buttons:
             add_link(book_contribute_button)
-
-        page2 = db.book_page.with_alias('page2')
 
         sorter_icons = (
             SPAN(
@@ -218,12 +216,6 @@ class Grid(object):
                 db.creator.on(db.book.creator_id == db.creator.id),
                 db.auth_user.on(
                     db.creator.auth_user_id == db.auth_user.id
-                ),
-                db.book_page.on(db.book_page.book_id == db.book.id),
-                page2.on(
-                    (page2.book_id == db.book.id) &
-                    (page2.id != db.book_page.id) &
-                    (page2.created_on < db.book_page.created_on)
                 ),
             ],
             paginate=self.viewbys[self.viewby]['items_per_page'],
@@ -640,8 +632,8 @@ class OngoingGrid(Grid):
     """Class representing a grid for search results: ongoing"""
 
     _attributes = {
-        'table': 'book_page',
-        'field': 'created_on',
+        'table': 'book',
+        'field': 'page_added_on',
         'label': 'page added',
         'tab_label': 'ongoing',
         'header_label': 'added',
@@ -684,7 +676,7 @@ class OngoingGrid(Grid):
         db = self.db
         return [
             db.book.name,
-            db.book_page.created_on,
+            db.book.page_added_on,
             db.book.views,
             # db.book.contributions_remaining,
             db.auth_user.name,
@@ -751,8 +743,8 @@ class SearchGrid(Grid):
     """Class representing a grid for search results."""
 
     _attributes = {
-        'table': 'book_page',
-        'field': 'created_on',
+        'table': 'book',
+        'field': 'page_added_on',
         'label': 'page added',
         'tab_label': 'search',
         'header_label': 'added',
@@ -800,7 +792,7 @@ class SearchGrid(Grid):
         db = self.db
         return [
             db.book.name,
-            db.book_page.created_on,
+            db.book.page_added_on,
             db.book.views,
             db.book.contributions_remaining,
             db.auth_user.name,

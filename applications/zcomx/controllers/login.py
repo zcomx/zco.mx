@@ -493,6 +493,8 @@ def book_post_upload_session():
 
     request.args(0): integer, id of book.
     request.vars.book_page_ids[], list of book page ids.
+    request.vars.original_page_count, integer, number of pages before upload
+        session.
     """
     def do_error(msg):
         """Error handler."""
@@ -511,29 +513,40 @@ def book_post_upload_session():
     if not book_record or book_record.creator_id != creator_record.id:
         return do_error('Reorder service unavailable')
 
-    # Step 1:  Set book status
-    set_status(book_record, calc_status(book_record))
-
-    # Step 2: Reorder book pages
+    book_page_ids = []
     if 'book_page_ids[]' in request.vars:
         if not isinstance(request.vars['book_page_ids[]'], list):
             book_page_ids = [request.vars['book_page_ids[]']]
         else:
             book_page_ids = request.vars['book_page_ids[]']
 
-        page_ids = []
-        for page_id in book_page_ids:
-            try:
-                page_ids.append(int(page_id))
-            except (TypeError, ValueError):
-                # reordering pages isn't critical, if page is not valid, just
-                # move on
-                continue
+    # Step 1:  Set book status
+    set_status(book_record, calc_status(book_record))
 
-        delete_pages_not_in_ids(book_record.id, page_ids)
-        reset_book_page_nos(page_ids)
+    # Step 2: Update book page_added_on if applicable.
+    try:
+        original_page_count = int(request.vars.original_page_count)
+    except (TypeError, ValueError):
+        original_page_count = 0
+    pages_added = len(book_page_ids) - original_page_count
+    if pages_added > 0:
+        book_record.update_record(page_added_on=request.now)
+        db.commit()
 
-    # Step 3:  Trigger optimization of book images
+    # Step 3: Reorder book pages
+    page_ids = []
+    for page_id in book_page_ids:
+        try:
+            page_ids.append(int(page_id))
+        except (TypeError, ValueError):
+            # reordering pages isn't critical, if page is not valid, just
+            # move on
+            continue
+
+    delete_pages_not_in_ids(book_record.id, page_ids)
+    reset_book_page_nos(page_ids)
+
+    # Step 4:  Trigger optimization of book images
     AllSizesImages.from_names(images(book_record)).optimize()
 
     return dumps({'success': True})

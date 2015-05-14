@@ -264,7 +264,7 @@ class TestGrid(LocalTestCase):
         self.assertEqual(len(rows), grid._paginate)
         self.assertEqual(
             sorted(rows[0].keys()),
-            ['auth_user', 'book', 'book_page', 'creator']
+            ['auth_user', 'book', 'creator']
         )
 
     def test__set_field(self):
@@ -647,8 +647,8 @@ class TestOngoingGrid(LocalTestCase):
         # pylint: disable=W0212
         grid = OngoingGrid()
         self.assertTrue(grid)
-        self.assertEqual(grid._attributes['table'], 'book_page')
-        self.assertEqual(grid._attributes['field'], 'created_on')
+        self.assertEqual(grid._attributes['table'], 'book')
+        self.assertEqual(grid._attributes['field'], 'page_added_on')
 
     def test__filters(self):
         grid = OngoingGrid()
@@ -660,7 +660,7 @@ class TestOngoingGrid(LocalTestCase):
             grid.visible_fields(),
             [
                 db.book.name,
-                db.book_page.created_on,
+                db.book.page_added_on,
                 db.book.views,
                 # db.book.contributions_remaining,
                 db.auth_user.name,
@@ -704,8 +704,8 @@ class TestSearchGrid(LocalTestCase):
         # pylint: disable=W0212
         grid = SearchGrid()
         self.assertTrue(grid)
-        self.assertEqual(grid._attributes['table'], 'book_page')
-        self.assertEqual(grid._attributes['field'], 'created_on')
+        self.assertEqual(grid._attributes['table'], 'book')
+        self.assertEqual(grid._attributes['field'], 'page_added_on')
 
     def test__filters(self):
         grid = SearchGrid()
@@ -721,7 +721,7 @@ class TestSearchGrid(LocalTestCase):
             grid.visible_fields(),
             [
                 db.book.name,
-                db.book_page.created_on,
+                db.book.page_added_on,
                 db.book.views,
                 db.book.contributions_remaining,
                 db.auth_user.name,
@@ -1428,7 +1428,7 @@ class TestFunctions(LocalTestCase):
             data['href'],
             '/FirstLast_({i}.zco.mx).torrent'.format(i=self._creator.id)
         )
-        self.assertEqual(data['class'], 'log_download_link')
+        self.assertEqual(data['class'], None)
         self.assertEqual(data['type'], None)
 
     def test__read_link(self):
