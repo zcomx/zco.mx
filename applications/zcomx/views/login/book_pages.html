@@ -1,6 +1,14 @@
 <div id="profile_book_pages_page">
 
 <div class="fileupload_container">
+    <div id="tooltip_text" class="panel panel-default">
+        <div class="panel-body">
+        <div>Images must be a minimum width of 2560px to be used in Completed books.</div>
+        <div>To select a range of files, choose the first file to upload, press and hold 'Shift', then click the last file.</div>
+        <div>To select individual files, choose files while holding down the 'Ctrl' key.</div>
+        <div>Valid file types: gif, jpg and png</div>
+        </div>
+    </div>
     <form id="fileupload" class="fileupload-processing" action="/zcomx/login/book_pages_handler/{{=book.id}}" method="POST" enctype="multipart/form-data">
         <noscript><input type="hidden" name="redirect" value="/zcomx/login/book_edit/{{=book.id}}"></noscript>
         <div class="row fileupload-buttonbar">
@@ -31,7 +39,9 @@
     <br>
 </div>
 
+
 </div>
+
 <script id="template-upload" type="text/x-tmpl">
 {% for (var i=0, file; file=o.files[i]; i++) { %}
     <tr class="template-upload fade">
@@ -134,9 +144,10 @@
             '/zcomx/login/book_pages_handler/{{=book.id}}'
         );
         $('#fileupload').removeClass('fileupload-processing');
+        var tooltip_text = $('#tooltip_text').find('.panel-body').first().html();
         var icon = $.fn.zco_utils.tooltip(
             'book_pages_upload',
-            '<div>To select a range of files, choose the first file to upload, press and hold \'Shift\', then click the last file.</div><br><div>To select individual files, choose files while holding down the \'Ctrl\' key.</div><br><div>Valid file types: gif, jpg and png</div>'
+            tooltip_text
         );
         $('#fileupload').find('.fileinput-button').first().after(icon);
     });

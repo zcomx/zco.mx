@@ -152,16 +152,19 @@
             });
             that.set_arrows();
             that.set_close_button();
+            this.set_tooltip_text();
         },
 
         deleted_callback: function(e, data) {
             ImageUpload.prototype.deleted_callback.apply(this);
             this.set_arrows();
             this.set_close_button();
+            this.set_tooltip_text();
         },
 
         loaded_callback: function(e) {
             $('span.preview').removeClass('hidden');
+            this.set_tooltip_text();
         },
 
         set_arrows: function() {
@@ -195,6 +198,17 @@
                 });
                 obj.$element.removeClass('fileupload-processing');
             });
+        },
+
+        set_tooltip_text: function(elem) {
+            var icon_container = $('.fileupload-buttonbar').find('.info_icon_container').first();
+            if (this.img_count() > 0) {
+                $('#tooltip_text').hide();
+                icon_container.show();
+            } else {
+                $('#tooltip_text').show();
+                icon_container.hide();
+            }
         },
 
     });

@@ -1598,6 +1598,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
     padding-top: 2em;
 }
 
+#profile_book_pages_page #tooltip_text {
+    color: #666666;
+    display: none;
+}
+
+#profile_book_pages_page #tooltip_text .panel-body {
+    line-height: 2em;
+}
+
 #profile_book_pages_page .template-download span.preview img {
     max-height: 170px;
     max-width: 170px;
