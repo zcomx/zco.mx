@@ -318,9 +318,10 @@ div.centered table {
 #profile_page .book_list .mark_as_complete {
     float: right;
     font-size: 9pt;
-    margin-right: 1em;
-    margin-top: -2em;
+    margin-right: 1.6em;
+    margin-top: -2.4em;
     max-width: 5em;
+    text-align: center;
 }
 
 #profile_page .book_list .table-condensed td:nth-last-child(-n+1) {
