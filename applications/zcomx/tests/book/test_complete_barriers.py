@@ -19,15 +19,16 @@ from applications.zcomx.modules.book.complete_barriers import \
     BaseCompleteBarrier, \
     DupeNameBarrier, \
     DupeNumberBarrier, \
-    ImagesTooNarrowBarrier, \
     InvalidPageNoBarrier, \
     NoBookNameBarrier, \
+    NoCBZImageBarrier, \
     NoLicenceBarrier, \
     NoPagesBarrier, \
     NoPublicationMetadataBarrier, \
     barriers_for_book, \
     complete_barriers, \
     has_complete_barriers
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.indicias import cc_licence_by_code
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -47,6 +48,14 @@ class ImageTestCase(LocalTestCase):
     _type_id_by_name = {}
 
     _objects = []
+
+    @classmethod
+    def _create_cbz(cls, book_page):
+        # Quick and dirty method for created a cbz size. Just copy the original
+        upload_img = BookPage(book_page).upload_image()
+        original = upload_img.fullname(size='original')
+        cbz = upload_img.fullname(size='cbz')
+        shutil.copy(original, cbz)
 
     @classmethod
     def _create_image(cls, image_name, dimensions=None):
@@ -314,91 +323,6 @@ class TestDupeNumberBarrier(LocalTestCase):
         self.assertTrue('book with the same name and number' in barrier.reason)
 
 
-class TestImagesTooNarrowBarrier(ImageTestCase):
-
-    def test____init__(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
-        barrier = ImagesTooNarrowBarrier({})
-        self.assertTrue(barrier)
-        self.assertEqual(barrier._narrow_images, None)
-
-    def test__applies(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
-        barrier = ImagesTooNarrowBarrier({})
-
-        barrier._narrow_images = []
-        self.assertFalse(barrier.applies())
-
-        barrier._narrow_images = ['file.jpg']
-        self.assertTrue(barrier.applies())
-
-    def test__code(self):
-        barrier = ImagesTooNarrowBarrier({})
-        self.assertEqual(barrier.code, 'images_too_narrow')
-
-    def test__description(self):
-        barrier = ImagesTooNarrowBarrier({})
-        self.assertTrue('images need to be replaced' in barrier.description)
-
-    def test__fixes(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
-        barrier = ImagesTooNarrowBarrier({})
-
-        barrier._narrow_images = []
-        self.assertEqual(barrier.fixes, [])
-
-        barrier._narrow_images = ['file.jpg', 'file2.png']
-        self.assertEqual(barrier.fixes, ['file.jpg', 'file2.png'])
-
-    def test__narrow_images(self):
-        book = self.add(db.book, dict(
-            name='test__narrow_images'
-        ))
-
-        book_page = self.add(db.book_page, dict(
-            book_id=book.id,
-            page_no=1,
-        ))
-
-        barrier = ImagesTooNarrowBarrier(book)
-
-        tests = [
-            # (dimensions (w, h), is invalid for complete)
-            ((1600, 1600), False),       # width is good
-            ((1599, 1600), True),      # width too narrow
-            ((1600, 1599), False),       # if width is good, height is ignored
-            ((1599, 2560), False),       # width too narrow, but height is good
-        ]
-
-        for t in tests:
-            data = dict(
-                book_id=book.id,
-                image=self._store_image(
-                    db.book_page.image,
-                    self._create_image('file.jpg', t[0]),
-                )
-            )
-            book_page.update_record(**data)
-            db.commit()
-
-            # W0212 (protected-access): *Access to a protected member
-            # pylint: disable=W0212
-            barrier._narrow_images = None       # clear cache
-            got = barrier.narrow_images()
-            if t[1]:
-                expect = '{f} (width: {w} px)'.format(f='file.jpg', w=t[0][0])
-                self.assertEqual(got, [expect])
-            else:
-                self.assertEqual(got, [])
-
-    def test__reason(self):
-        barrier = ImagesTooNarrowBarrier({})
-        self.assertTrue('images are not large enough' in barrier.reason)
-
-
 class TestInvalidPageNoBarrier(LocalTestCase):
 
     def test__applies(self):
@@ -492,6 +416,129 @@ class TestNoBookNameBarrier(LocalTestCase):
     def test__reason(self):
         barrier = NoBookNameBarrier({})
         self.assertTrue('book has no name' in barrier.reason)
+
+
+class TestNoCBZImageBarrier(ImageTestCase):
+
+    def test____init__(self):
+        # W0212 (protected-access): *Access to a protected member
+        # pylint: disable=W0212
+        barrier = NoCBZImageBarrier({})
+        self.assertTrue(barrier)
+        self.assertEqual(barrier._no_cbz_images, None)
+
+    def test__applies(self):
+        # W0212 (protected-access): *Access to a protected member
+        # pylint: disable=W0212
+        barrier = NoCBZImageBarrier({})
+
+        barrier._no_cbz_images = []
+        self.assertFalse(barrier.applies())
+
+        barrier._no_cbz_images = ['file.jpg']
+        self.assertTrue(barrier.applies())
+
+    def test__code(self):
+        barrier = NoCBZImageBarrier({})
+        self.assertEqual(barrier.code, 'no_cbz_images')
+
+    def test__description(self):
+        barrier = NoCBZImageBarrier({})
+        self.assertTrue('images should be replaced' in barrier.description)
+
+    def test__fixes(self):
+        # W0212 (protected-access): *Access to a protected member
+        # pylint: disable=W0212
+        barrier = NoCBZImageBarrier({})
+
+        barrier._no_cbz_images = []
+        self.assertEqual(barrier.fixes, [])
+
+        barrier._no_cbz_images = ['file.jpg', 'file2.png']
+        self.assertEqual(barrier.fixes, ['file.jpg', 'file2.png'])
+
+    def test__no_cbz_images(self):
+        book = self.add(db.book, dict(
+            name='test__no_cbz_images'
+        ))
+
+        # The images and their sizes are irrelevant other than for identity.
+        # The existence of a cbz file will determine whether images violate
+        # or not.
+        landscape_page = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            image=self._store_image(
+                db.book_page.image,
+                self._create_image('landscape.png', (370, 170)),
+            )
+        ))
+
+        portrait_page = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            image=self._store_image(
+                db.book_page.image,
+                self._create_image('portrait.png', (140, 168)),
+            )
+        ))
+
+        square_page = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=1,
+            image=self._store_image(
+                db.book_page.image,
+                self._create_image('square.png', (200, 200)),
+            )
+        ))
+
+        barrier = NoCBZImageBarrier(book)
+        self.assertEqual(barrier._no_cbz_images, None)
+
+        # No images have cbz sizes, all should be in violation
+        got = barrier.no_cbz_images()
+        self.assertEqual(
+            got,
+            [
+                'landscape.png (width: 370 px)',
+                'portrait.png (width: 140 px)',
+                'square.png (width: 200 px)',
+            ]
+        )
+
+        def has_size(book_page, size):
+            upload_img = BookPage(book_page).upload_image()
+            fullname = upload_img.fullname(size=size)
+            return os.path.exists(fullname)
+
+        # One images has cbz size, others should be in violation
+        barrier._no_cbz_images = None       # clear cache
+        self._create_cbz(landscape_page)
+        self.assertTrue(has_size(landscape_page, 'cbz'))
+        self.assertFalse(has_size(portrait_page, 'cbz'))
+        self.assertFalse(has_size(square_page, 'cbz'))
+        got = barrier.no_cbz_images()
+        self.assertEqual(
+            got,
+            [
+                'portrait.png (width: 140 px)',
+                'square.png (width: 200 px)',
+            ]
+        )
+
+        # All images have cbz size, none should be in violation
+        barrier._no_cbz_images = None       # clear cache
+        self._create_cbz(portrait_page)
+        self._create_cbz(square_page)
+        self.assertTrue(has_size(landscape_page, 'cbz'))
+        self.assertTrue(has_size(portrait_page, 'cbz'))
+        self.assertTrue(has_size(square_page, 'cbz'))
+        got = barrier.no_cbz_images()
+        self.assertEqual(got, [])
+
+    def test__reason(self):
+        barrier = NoCBZImageBarrier({})
+        self.assertTrue('images are not large enough' in barrier.reason)
 
 
 class TestNoLicenceBarrier(LocalTestCase):
@@ -669,7 +716,7 @@ class TestFunctions(ImageTestCase):
             cc_licence_id=cc0_id,
         ))
 
-        self.add(db.book_page, dict(
+        book_page = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
             image=self._store_image(
@@ -678,6 +725,8 @@ class TestFunctions(ImageTestCase):
             ),
         ))
 
+        self._create_cbz(book_page)
+
         self.add(db.publication_metadata, dict(
             book_id=book.id,
             republished=False,
@@ -685,7 +734,6 @@ class TestFunctions(ImageTestCase):
 
         # Has all criteria
         self.assertEqual(complete_barriers(book), [])
-
 
     def test__has_complete_barriers(self):
         creator = self.add(db.creator, dict(
@@ -702,7 +750,7 @@ class TestFunctions(ImageTestCase):
             cc_licence_id=cc0_id,
         ))
 
-        self.add(db.book_page, dict(
+        book_page = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
             image=self._store_image(
@@ -710,6 +758,8 @@ class TestFunctions(ImageTestCase):
                 self._create_image('file.jpg', (1600, 1600)),
             ),
         ))
+
+        self._create_cbz(book_page)
 
         self.add(db.publication_metadata, dict(
             book_id=book.id,
@@ -720,6 +770,7 @@ class TestFunctions(ImageTestCase):
         book.update_record(name='')
         db.commit()
         self.assertTrue(has_complete_barriers(book))
+
 
 def setUpModule():
     """Set up web2py environment."""

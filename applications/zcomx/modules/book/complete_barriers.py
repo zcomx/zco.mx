@@ -6,6 +6,7 @@
 Classes and functions related to book complete barriers.
 """
 import logging
+import os
 from gluon import *
 from applications.zcomx.modules.books import book_pages as b_pages
 from applications.zcomx.modules.book_pages import BookPage
@@ -167,81 +168,6 @@ class DupeNumberBarrier(BaseCompleteBarrier):
         return 'You have a completed book with the same name and number.'
 
 
-class ImagesTooNarrowBarrier(BaseCompleteBarrier):
-    """Class representing a 'no publication metadata' barrier."""
-
-    def __init__(self, book):
-        """Initializer
-
-        Args:
-            book: Row instance representing a book.
-        """
-        super(ImagesTooNarrowBarrier, self).__init__(book)
-        self._narrow_images = None
-
-    def applies(self):
-        small_images = self.narrow_images()
-        return len(small_images) > 0
-
-    @property
-    def code(self):
-        return 'images_too_narrow'
-
-    @property
-    def description(self):
-        return (
-            'Completed books are packaged for CBZ viewers. '
-            'In order for images to display clearly '
-            'a minimum resolution of {w}px is required. '
-            'The following images need to be replaced:'
-        ).format(w=BookPage.min_cbz_width)
-
-    @property
-    def fixes(self):
-        small_images = self.narrow_images()
-        return small_images
-
-    def narrow_images(self):
-        """Return a list of image names representing images too narrow
-        for complete.
-
-        Returns:
-            list of strings, image names.
-        """
-        # Images must be a min_cbz_width unless the height is a
-        # minimum (min_cbz_height_to_exempt)
-        if self._narrow_images is None:
-            pages = b_pages(self.book)
-            small_images = []
-            min_width = BookPage.min_cbz_width
-            min_height = BookPage.min_cbz_height_to_exempt
-            for page in pages:
-                try:
-                    dims = ImageDescriptor(
-                        page.upload_image().fullname(size='cbz')
-                    ).dimensions()
-                except IOError:
-                    # The 'cbz' size may not exist.
-                    dims = None
-                if not dims:
-                    dims = ImageDescriptor(
-                        page.upload_image().fullname(size='original')
-                    ).dimensions()
-                width = dims[0]
-                height = dims[1]
-                if width < min_width and height < min_height:
-                    original_name = page.upload_image().original_name()
-                    small_images.append(
-                        '{n} (width: {w} px)'.format(n=original_name, w=width)
-                    )
-            self._narrow_images = small_images
-        return self._narrow_images
-
-    @property
-    def reason(self):
-        return 'Some images are not large enough.'
-
-
 class InvalidPageNoBarrier(BaseCompleteBarrier):
     """Class representing a 'invalid page no' barrier."""
 
@@ -316,6 +242,76 @@ class NoBookNameBarrier(BaseCompleteBarrier):
     @property
     def reason(self):
         return 'The book has no name.'
+
+
+class NoCBZImageBarrier(BaseCompleteBarrier):
+    """Class representing a 'no CBZ size image' barrier."""
+
+    def __init__(self, book):
+        """Initializer
+
+        Args:
+            book: Row instance representing a book.
+        """
+        super(NoCBZImageBarrier, self).__init__(book)
+        self._no_cbz_images = None
+
+    def applies(self):
+        violating_images = self.no_cbz_images()
+        return len(violating_images) > 0
+
+    @property
+    def code(self):
+        return 'no_cbz_images'
+
+    @property
+    def description(self):
+        return (
+            'A minimum width of 2560px is recommended. '
+            'The following images should be replaced:'
+        )
+
+    @property
+    def fixes(self):
+        violating_images = self.no_cbz_images()
+        return violating_images
+
+    def no_cbz_images(self):
+        """Return a list of image names representing images with out a
+        'cbz' size.
+
+        Returns:
+            list of strings, image names.
+        """
+        # Images must have a 'cbz' sized version.
+        if self._no_cbz_images is None:
+            pages = b_pages(self.book)
+            violating_images = []
+            for page in pages:
+                upload_img = page.upload_image()
+                fullname = upload_img.fullname(size='cbz')
+                if not os.path.exists(fullname):
+                    # Get width and original name
+                    try:
+                        dims = ImageDescriptor(fullname).dimensions()
+                    except IOError:
+                        # The 'cbz' size may not exist.
+                        dims = None
+                    if not dims:
+                        dims = ImageDescriptor(
+                            upload_img.fullname(size='original')
+                        ).dimensions()
+                    width = dims[0]
+                    original_name = upload_img.original_name()
+                    violating_images.append(
+                        '{n} (width: {w} px)'.format(n=original_name, w=width)
+                    )
+            self._no_cbz_images = violating_images
+        return self._no_cbz_images
+
+    @property
+    def reason(self):
+        return 'Some images are not large enough.'
 
 
 class NoLicenceBarrier(BaseCompleteBarrier):
@@ -412,7 +408,7 @@ BARRIER_CLASSES = [
     AllRightsReservedBarrier,
     NoPublicationMetadataBarrier,
     InvalidPageNoBarrier,
-    ImagesTooNarrowBarrier,
+    NoCBZImageBarrier,
 ]
 
 
