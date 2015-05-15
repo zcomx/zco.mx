@@ -52,6 +52,7 @@ VERSION 3
         "All images must have a minimum width of 1600px (portrait) or 2560px (landscape) in order to move a comic from the 'ONGOING' section to the 'COMPLETED' section."
         "In order to move a comic from the 'ONGOING' section to the 'COMPLETED' section all images must have a minimum width of 1600px for portrait or 2560px for landscape."
     * make the wording & formating on the release/completed modal as simple as clear as possible
+    [S] Update Faq
 
 [S] Indicia - html version
     Add book_to_link links to html indicia page
