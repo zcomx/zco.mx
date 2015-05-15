@@ -90,9 +90,9 @@ class TestBaseBookList(LocalTestCase):
         book_list = BaseBookList({})
         self.assertEqual(book_list.filters(), [])
 
-    def test__include_complete(self):
+    def test__include_complete_checkbox(self):
         book_list = BaseBookList({})
-        self.assertFalse(book_list.include_complete)
+        self.assertFalse(book_list.include_complete_checkbox)
 
     def test__include_publication_year(self):
         book_list = BaseBookList({})
@@ -232,9 +232,9 @@ class TestOngoingBookList(LocalTestCase):
         self.assertEqual(str(filters[0]), "(book.status = 'a')")
         self.assertEqual(str(filters[1]), "(book.release_date IS NULL)")
 
-    def test__include_complete(self):
+    def test__include_complete_checkbox(self):
         book_list = OngoingBookList({})
-        self.assertTrue(book_list.include_complete)
+        self.assertTrue(book_list.include_complete_checkbox)
 
     def test__include_read(self):
         book_list = OngoingBookList({})

@@ -516,11 +516,11 @@ def cc_licence_data(book_entity):
 
 
 def complete_link(book_entity, components=None, **attributes):
-    """Return html code suitable for a 'Complete' link or button.
+    """Return html code suitable for a 'set as complete' link/button/checkbox.
 
     Args:
         book_entity: Row instance or integer representing a book record.
-        components: list, passed to A(*components),  default ['Complete']
+        components: list, passed to A(*components)
         attributes: dict of attributes for A()
     """
     empty = SPAN('')
@@ -536,7 +536,7 @@ def complete_link(book_entity, components=None, **attributes):
         else:
             components = [
                 DIV(
-                    INPUT(_type='checkbox'),
+                    INPUT(_type='checkbox', _value='off'),
                     _class="completed_checkbox_wrapper"
                 )
             ]
@@ -544,13 +544,13 @@ def complete_link(book_entity, components=None, **attributes):
     kwargs = {}
     kwargs.update(attributes)
 
-    if '_href' not in attributes:
+    tag = SPAN if book.releasing else A
+
+    if tag == A and '_href' not in attributes:
         kwargs['_href'] = URL(
             c='login', f='book_release', args=book.id, extension=False)
 
-    tag = A
     if book.releasing:
-        tag = SPAN
         if '_class' not in attributes:
             kwargs['_class'] = 'disabled'
         else:

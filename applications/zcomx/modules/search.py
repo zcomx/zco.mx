@@ -159,7 +159,7 @@ class Grid(object):
             'auth_user.name': 'Cartoonist',
             'book.name': 'Title',
             'book.publication_year': 'Year',
-            'book.released_date': 'Complete',
+            'book.released_date': 'Completed',
             'book.views': 'Views',
             'book.contributions_remaining': 'Remaining',
             'book.page_added_on': 'Added',
@@ -238,8 +238,6 @@ class Grid(object):
             kwargs.update(self.form_grid_args)
 
         self.form_grid = LocalSQLFORM.grid(query, **kwargs)
-        LOG.debug('self: %s', self)
-        LOG.debug('db._lastsql: %s', db._lastsql)
         self._paginate = kwargs['paginate']
         # Remove 'None' record count if applicable.
         for count, div in enumerate(self.form_grid[0]):
@@ -526,16 +524,16 @@ class CartoonistsGrid(Grid):
         ]
 
 
-class CompleteGrid(Grid):
-    """Class representing a grid for search results: complete"""
+class CompletedGrid(Grid):
+    """Class representing a grid for search results: completed"""
 
     _attributes = {
         'table': 'book',
         'field': 'release_date',
         'label': 'release date',
-        'tab_label': 'complete',
-        'header_label': 'complete',
-        'class': 'orderby_complete',
+        'tab_label': 'completed',
+        'header_label': 'completed',
+        'class': 'orderby_completed',
         'order_dir': 'DESC',
     }
 
@@ -800,7 +798,7 @@ class SearchGrid(Grid):
 
 
 GRID_CLASSES = collections.OrderedDict()
-GRID_CLASSES['complete'] = CompleteGrid
+GRID_CLASSES['completed'] = CompletedGrid
 GRID_CLASSES['ongoing'] = OngoingGrid
 # GRID_CLASSES['contributions'] = ContributionsGrid
 GRID_CLASSES['creators'] = CartoonistsGrid
@@ -1187,7 +1185,7 @@ def classified(request):
     Returns:
         Grid class or subclass
     """
-    grid_class = CompleteGrid
+    grid_class = CompletedGrid
     LOG.debug('request.vars.o: %s', request.vars.o)
     if request.vars.o:
         if request.vars.o in GRID_CLASSES:

@@ -30,7 +30,7 @@ class BaseCompleteBarrier(object):
         """Test if the barrier is a applicable.
 
         Returns
-            True if the barrier applies and should prevent complete.
+            True if the barrier applies and should prevent setting complete.
         """
         raise NotImplementedError
 
@@ -208,7 +208,7 @@ class InvalidPageNoBarrier(BaseCompleteBarrier):
         return [
             'Click the Upload button associated with the book.',
             'Check that images are in the correct order and fix as necessary.',
-            'Once complete, click the "Post On Web" button.',
+            'Then click the "Post On Web" button.',
         ]
 
     @property
@@ -450,7 +450,8 @@ def complete_barriers(book):
 
 
 def has_complete_barriers(book):
-    """Determine whether a book has barriers preventing complete.
+    """Determine whether a book has barriers preventing it from being set
+    complete.
 
     Args:
         book: Row instance representing a book record.

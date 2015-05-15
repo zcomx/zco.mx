@@ -25,7 +25,7 @@ from applications.zcomx.modules.html.meta import \
 from applications.zcomx.modules.indicias import BookIndiciaPage
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.search import \
-    CompleteGrid, \
+    CompletedGrid, \
     CreatorMoniesGrid, \
     OngoingGrid
 from applications.zcomx.modules.utils import \
@@ -445,21 +445,21 @@ class Router(object):
 
         queries = [(db.creator.id == creator_record.id)]
         LOG.debug('queries: %s', queries)
-        complete_grid = CompleteGrid(queries=queries, default_viewby='list')
+        completed_grid = CompletedGrid(queries=queries, default_viewby='list')
 
         LOG.debug('queries: %s', queries)
         ongoing_grid = OngoingGrid(queries=queries, default_viewby='list')
 
         self.view_dict = dict(
             creator=creator_record,
-            grid=complete_grid,
+            grid=completed_grid,
             links=CustomLinks(
                 db.creator, creator_record.id
             ).represent(
                 pre_links=self.preset_links()
             ),
             ongoing_grid=ongoing_grid.render(),
-            complete_grid=complete_grid.render()
+            completed_grid=completed_grid.render()
         )
 
         self.view = 'creators/creator.html'

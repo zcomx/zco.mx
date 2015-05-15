@@ -25,7 +25,7 @@ from applications.zcomx.modules.search import \
     BookTile, \
     CartoonistTile, \
     CartoonistsGrid, \
-    CompleteGrid, \
+    CompletedGrid, \
     ContributionsGrid, \
     CreatorMoniesGrid, \
     GRID_CLASSES, \
@@ -296,7 +296,7 @@ class TestGrid(LocalTestCase):
         soup = BeautifulSoup(str(tabs))
         # <ul class="nav nav-tabs">
         #   <li class="nav-tab ">
-        #     <a href="/?o=complete">complete</a>
+        #     <a href="/?o=completed">completed</a>
         #   </li>
         #   <li class="nav-tab active">
         #     <a href="/?o=ongoing">ongoing</a>
@@ -314,8 +314,8 @@ class TestGrid(LocalTestCase):
         li_1 = ul.li
         self.assertEqual(li_1['class'], 'nav-tab active')
         anchor_1 = li_1.a
-        self.assertEqual(anchor_1['href'], '/z/complete')
-        self.assertEqual(anchor_1.string, 'complete')
+        self.assertEqual(anchor_1['href'], '/z/completed')
+        self.assertEqual(anchor_1.string, 'completed')
 
         li_2 = li_1.nextSibling
         anchor_2 = li_2.a
@@ -338,7 +338,7 @@ class TestGrid(LocalTestCase):
         tabs = grid.tabs()
         soup = BeautifulSoup(str(tabs))
         anchor_1 = soup.ul.li.a
-        self.assertEqual(anchor_1['href'], '/z/complete')
+        self.assertEqual(anchor_1['href'], '/z/completed')
         anchor_2 = soup.ul.li.nextSibling.a
         self.assertEqual(anchor_2['href'], '/z/ongoing')
         # anchor_2 = soup.ul.li.nextSibling.a
@@ -449,22 +449,22 @@ class TestCartoonistsGrid(LocalTestCase):
         )
 
 
-class TestCompleteGrid(LocalTestCase):
+class TestCompletedGrid(LocalTestCase):
 
     def test____init__(self):
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
-        grid = CompleteGrid()
+        grid = CompletedGrid()
         self.assertTrue(grid)
         self.assertEqual(grid._attributes['table'], 'book')
         self.assertEqual(grid._attributes['field'], 'release_date')
 
     def test__filters(self):
-        grid = CompleteGrid()
+        grid = CompletedGrid()
         self.assertEqual(len(grid.filters()), 1)
 
     def test__visible_fields(self):
-        grid = CompleteGrid()
+        grid = CompletedGrid()
         self.assertEqual(
             grid.visible_fields(),
             [
@@ -1334,7 +1334,7 @@ class TestFunctions(LocalTestCase):
     def test_constants(self):
         self.assertEqual(
             GRID_CLASSES.keys(),
-            ['complete', 'ongoing', 'creators', 'search']
+            ['completed', 'ongoing', 'creators', 'search']
         )
 
     def test__book_contribute_button(self):
@@ -1364,9 +1364,9 @@ class TestFunctions(LocalTestCase):
 
         tests = [
             # (request.vars.o, expect)
-            (None, CompleteGrid),
-            ('_fake_', CompleteGrid),
-            ('complete', CompleteGrid),
+            (None, CompletedGrid),
+            ('_fake_', CompletedGrid),
+            ('completed', CompletedGrid),
             ('ongoing', OngoingGrid),
             # ('contributions', ContributionsGrid),
             ('creators', CartoonistsGrid),
