@@ -68,8 +68,8 @@ class BaseBookList(object):
         return []
 
     @property
-    def include_complete(self):
-        """Return whether to include the complete button."""
+    def include_complete_checkbox(self):
+        """Return whether to include the complete checkbox."""
         return False
 
     @property
@@ -233,7 +233,7 @@ class OngoingBookList(BaseBookList):
         return queries
 
     @property
-    def include_complete(self):
+    def include_complete_checkbox(self):
         return True
 
     @property

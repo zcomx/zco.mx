@@ -8,18 +8,9 @@ from applications.zcomx.modules.books import \
     page_url, \
     url as book_url
 from applications.zcomx.modules.creators import \
-    add_creator, \
-    for_path, \
-    profile_onaccept, \
     url as creator_url
-from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.search import classified
-from applications.zcomx.modules.stickon.sqlhtml import \
-    formstyle_bootstrap3_login
 from applications.zcomx.modules.stickon.tools import ExposeImproved
-from applications.zcomx.modules.stickon.validators import \
-    IS_ALLOWED_CHARS, \
-    IS_NOT_IN_DB_SCRUBBED
 from applications.zcomx.modules.utils import \
     faq_tabs, \
     markmin
@@ -27,7 +18,8 @@ from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
 
-def _search_results(request, response, o):
+
+def _search_results(request, response, orderby):
     """Helper function for search results."""
     response.view = 'search/index.html'
 
@@ -38,7 +30,7 @@ def _search_results(request, response, o):
         vars=request.vars
     )
 
-    request.vars.o = o
+    request.vars.o = orderby
 
     icons = {'list': 'th-list', 'tile': 'th-large'}
 
@@ -51,7 +43,6 @@ def _search_results(request, response, o):
     )
 
 
-
 def about():
     """About page"""
     return markmin('about')
@@ -62,9 +53,9 @@ def cartoonists():
     return _search_results(request, response, 'creators')
 
 
-def complete():
-    """Front page 'complete' tab."""
-    return _search_results(request, response, 'complete')
+def completed():
+    """Front page 'completed' tab."""
+    return _search_results(request, response, 'completed')
 
 
 def contribute():

@@ -853,10 +853,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .grid_section .web2py_grid.grid_key_cartoonists td:nth-child(2),
-.grid_section .web2py_grid.grid_key_complete td:nth-child(2),
-.grid_section .web2py_grid.grid_key_complete td:nth-child(3),
-.grid_section .web2py_grid.grid_key_complete td:nth-child(4),
-.grid_section .web2py_grid.grid_key_complete td:nth-child(5),
+.grid_section .web2py_grid.grid_key_completed td:nth-child(2),
+.grid_section .web2py_grid.grid_key_completed td:nth-child(3),
+.grid_section .web2py_grid.grid_key_completed td:nth-child(4),
+.grid_section .web2py_grid.grid_key_completed td:nth-child(5),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(2),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(3),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(2),
@@ -870,7 +870,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .grid_section .web2py_grid.grid_key_cartoonists td:nth-child(2),
-.grid_section .web2py_grid.grid_key_complete td:nth-child(5),
+.grid_section .web2py_grid.grid_key_completed td:nth-child(5),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(3),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(4) {
     color: #D04444;

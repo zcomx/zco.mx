@@ -45,7 +45,7 @@
                     <div id="book_links">
                         <dl class="dl-horizontal">
                         <dt>pages</dt><dd>{{=page_count}}</dd>
-                        <dt>status</dt><dd>{{='complete' if book.release_date else 'ongoing'}}</dd>
+                        <dt>status</dt><dd>{{='completed' if book.release_date else 'ongoing'}}</dd>
                         <dt>views</dt><dd>{{=book.views}}</dd>
                         <dt>downloads</dt><dd>{{=book.downloads or 0}}</dd>
                         {{if links:}}

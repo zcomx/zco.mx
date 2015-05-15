@@ -22,7 +22,7 @@ class TestFunctions(LocalTestCase):
         '404': 'Page not found',
         'about': '<h1>About</h1>',
         'cartoonists': '<div id="front_page">',
-        'complete': '<div id="front_page">',
+        'completed': '<div id="front_page">',
         'contribute': '<form id="paypal_form"',
         'copyright_claim':
             '<h3>Notice and Procedure for Making Claims of Copyright',
@@ -73,10 +73,10 @@ class TestFunctions(LocalTestCase):
             self.titles['cartoonists']
         ))
 
-    def test__complete(self):
+    def test__completed(self):
         self.assertTrue(web.test(
-            '{url}/complete'.format(url=self.url),
-            self.titles['complete']
+            '{url}/completed'.format(url=self.url),
+            self.titles['completed']
         ))
 
     def test__contribute(self):

@@ -780,24 +780,36 @@ class TestFunctions(ImageTestCase):
 
         # As integer, book_id
         link = complete_link(book.id)
-        # Eg <a href="/login/book_release/4790">Complete</a>
+        # <a href="/login/book_release/2876">
+        #   <div class="completed_checkbox_wrapper">
+        #     <input type="checkbox" value="off" />
+        #   </div>
+        # </a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Complete')
         self.assertEqual(
             anchor['href'],
             '/login/book_release/{i}'.format(i=book.id)
         )
+        div = anchor.find('div')
+        self.assertEqual(div['class'], 'completed_checkbox_wrapper')
+        checkbox_input = div.find('input')
+        self.assertEqual(checkbox_input['type'], 'checkbox')
+        self.assertEqual(checkbox_input['value'], 'off')
 
         # As Row, book
         link = complete_link(book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Complete')
         self.assertEqual(
             anchor['href'],
             '/login/book_release/{i}'.format(i=book.id)
         )
+        div = anchor.find('div')
+        self.assertEqual(div['class'], 'completed_checkbox_wrapper')
+        checkbox_input = div.find('input')
+        self.assertEqual(checkbox_input['type'], 'checkbox')
+        self.assertEqual(checkbox_input['value'], 'off')
 
         # Invalid id
         link = complete_link(-1)
@@ -826,7 +838,8 @@ class TestFunctions(ImageTestCase):
         link = complete_link(book, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Complete')
+        div = anchor.find('div')
+        self.assertEqual(div['class'], 'completed_checkbox_wrapper')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
@@ -836,13 +849,10 @@ class TestFunctions(ImageTestCase):
         db.commit()
         link = complete_link(book.id)
         soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Complete (in progress)')
-        self.assertEqual(
-            anchor['href'],
-            '/login/book_release/{i}'.format(i=book.id)
-        )
-        self.assertEqual(anchor['class'], 'disabled')
+        # <span class="disabled">(in progress)</span>
+        span = soup.find('span')
+        self.assertEqual(span['class'], 'disabled')
+        self.assertEqual(span.string, '(in progress)')
 
     def test__contribute_link(self):
         empty = '<span></span>'
