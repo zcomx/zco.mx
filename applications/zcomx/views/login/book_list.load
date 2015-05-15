@@ -50,7 +50,8 @@
             </td>
             {{if lister.include_complete:}}
             <td>
-                {{=complete_link(book.id, **{'_class': 'btn btn-default modal-complete-btn no_rclick_menu', '_data-book_id': book.id})}}
+                {{btn_class = 'modal-complete-btn' if not book.releasing else ''}}
+                {{=complete_link(book.id, **{'_class': btn_class + ' no_rclick_menu', '_data-book_id': book.id})}}
             </td>
             {{pass}}
         </tr>

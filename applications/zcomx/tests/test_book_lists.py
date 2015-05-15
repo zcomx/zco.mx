@@ -254,7 +254,7 @@ class TestOngoingBookList(LocalTestCase):
 
     def test__subtitle(self):
         book_list = OngoingBookList({})
-        self.assertTrue('Mark as complete' in book_list.subtitle)
+        self.assertTrue('Set as completed' in book_list.subtitle)
 
 
 class TestFunctions(LocalTestCase):

@@ -255,8 +255,8 @@ class OngoingBookList(BaseBookList):
     @property
     def subtitle(self):
         return DIV(
-            'Mark as complete',
-            _class="mark_as_complete",
+            'Set as completed',
+            _class="set_as_completed",
         )
 
 

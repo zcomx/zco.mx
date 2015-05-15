@@ -315,13 +315,23 @@ div.centered table {
     line-height: 1;
 }
 
-#profile_page .book_list .mark_as_complete {
+#profile_page .book_list .set_as_completed {
     float: right;
     font-size: 9pt;
     margin-right: 1.6em;
     margin-top: -2.4em;
     max-width: 5em;
     text-align: center;
+}
+
+#profile_page .book_list span.disabled {
+    opacity: 0.4;
+}
+
+#profile_page .book_list .completed_checkbox_wrapper {
+    width: 4em;
+    text-align: center;
+    margin-left: 1em;
 }
 
 #profile_page .book_list .table-condensed td:nth-last-child(-n+1) {
