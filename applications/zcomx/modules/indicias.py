@@ -19,12 +19,14 @@ from applications.zcomx.modules.books import \
     orientation as page_orientation, \
     publication_year_range
 from applications.zcomx.modules.creators import \
+    can_receive_contributions, \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
     on_delete_image, \
     store
 from applications.zcomx.modules.images_optimize import AllSizesImages
+from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
@@ -107,92 +109,6 @@ class IndiciaPage(object):
             {},
             self.default_licence(),
             template_field=template_field,
-        )
-
-    def render(self, orientation='portrait'):
-        """Render the indicia page.
-
-        Args:
-            orientation: string, one of 'portrait' or 'landscape'
-        """
-        img_src = URL(
-            c=self.default_indicia_paths[0],
-            f=os.path.join(*self.default_indicia_paths[1:])
-        )
-        if self.creator and self.creator.indicia_image:
-            img_src = URL(
-                c='images',
-                f='download',
-                args=self.creator.indicia_image,
-                vars={'size': 'web'}
-            )
-
-        text_divs = []
-
-        text_divs.append(
-            DIV(
-                self.call_to_action_text(),
-                _class='call_to_action',
-            )
-        )
-
-        # js is used to flesh out the contribute widget
-
-        text_divs.append(
-            DIV(**{
-                '_class': 'contribute_widget',
-                '_data-link_type': 'button',
-            })
-        )
-
-        if self.creator:
-            creator_name = creator_formatted_name(self.creator)
-            if creator_name:
-                creator_href = creator_short_url(self.creator)
-                follow_text = creator_name
-                if creator_href:
-                    follow_text = A(
-                        creator_name,
-                        _href=creator_href,
-                    )
-                text_divs.append(DIV(
-                    'FOLLOW',
-                    follow_text,
-                    _class='follow_creator',
-                ))
-
-        icon_divs = []
-        for icon in self.follow_icons().values():
-            icon_divs.append(DIV(
-                icon,
-                _class='follow_icon',
-            ))
-
-        if icon_divs:
-            text_divs.append(DIV(
-                icon_divs,
-                _class='follow_icons',
-            ))
-
-        text_divs.append(
-            DIV(
-                XML(self.licence_text()),
-                _class='copyright_licence',
-            )
-        )
-
-        return DIV(
-            DIV(
-                IMG(
-                    _src=img_src,
-                ),
-                _class='indicia_image_container',
-            ),
-            DIV(
-                text_divs,
-                _class='indicia_text_container',
-            ),
-            _class='indicia_preview_section {o}'.format(o=orientation)
         )
 
 
@@ -337,7 +253,136 @@ class BookIndiciaPage(IndiciaPage):
         """
         if orientation is None:
             orientation = self.get_orientation()
-        return IndiciaPage.render(self, orientation=orientation)
+
+        img_src = URL(
+            c=self.default_indicia_paths[0],
+            f=os.path.join(*self.default_indicia_paths[1:])
+        )
+        if self.creator and self.creator.indicia_image:
+            img_src = URL(
+                c='images',
+                f='download',
+                args=self.creator.indicia_image,
+                vars={'size': 'web'}
+            )
+
+        text_divs = []
+
+        text_divs.append(
+            DIV(
+                self.call_to_action_text(),
+                _class='call_to_action',
+            )
+        )
+
+        contribute_and_links_divs = []
+
+        db = current.app.db
+        if self.creator and can_receive_contributions(db, self.creator):
+            # js is used to flesh out the contribute widget
+            contribute_and_links_divs.append(
+                DIV(
+                    DIV(
+                        'Contribute',
+                        _class='label',
+                    ),
+                    DIV(**{
+                        '_class': 'contribute_widget',
+                        '_data-link_type': 'button',
+                    }),
+                    _class='contribute_widget_container col-xs-12',
+                )
+            )
+
+        links = CustomLinks(db.book, self.book.id).represent(
+            ul_class='custom_links'
+        )
+        if links:
+            contribute_and_links_divs.append(
+                DIV(
+                    DIV(
+                        'Buy this book',
+                        _class='label',
+                    ),
+                    DIV(
+                        links,
+                        _class='book_links_content',
+                    ),
+                    _class='book_links_container col-xs-12',
+                )
+            )
+
+        col_sm = 6
+        col_sm_offset = 0
+        container_class = 'empty'
+        if contribute_and_links_divs:
+            col_sm_offset = int(
+                (12 - (len(contribute_and_links_divs) * col_sm)) / 2)
+            if col_sm_offset < 0:
+                col_sm_offset = 0
+            container_class = 'non_empty'
+        col_class = ' col-sm-{s} col-sm-offset-{o}'.format(
+            s=col_sm, o=col_sm_offset)
+        for div in contribute_and_links_divs:
+            div['_class'] += col_class
+
+        text_divs.append(
+            DIV(
+                contribute_and_links_divs,
+                _class='row contribute_and_links_container {c}'.format(
+                    c=container_class),
+            )
+        )
+
+        if self.creator:
+            creator_name = creator_formatted_name(self.creator)
+            if creator_name:
+                creator_href = creator_short_url(self.creator)
+                follow_text = creator_name
+                if creator_href:
+                    follow_text = A(
+                        creator_name,
+                        _href=creator_href,
+                    )
+                text_divs.append(DIV(
+                    'FOLLOW',
+                    follow_text,
+                    _class='follow_creator',
+                ))
+
+        icon_divs = []
+        for icon in self.follow_icons().values():
+            icon_divs.append(DIV(
+                icon,
+                _class='follow_icon',
+            ))
+
+        if icon_divs:
+            text_divs.append(DIV(
+                icon_divs,
+                _class='follow_icons',
+            ))
+
+        text_divs.append(
+            DIV(
+                XML(self.licence_text()),
+                _class='copyright_licence',
+            )
+        )
+
+        return DIV(
+            DIV(
+                IMG(
+                    _src=img_src,
+                ),
+                _class='indicia_image_container',
+            ),
+            DIV(
+                text_divs,
+                _class='indicia_text_container',
+            ),
+            _class='indicia_preview_section {o}'.format(o=orientation)
+        )
 
 
 class BookIndiciaPagePng(BookIndiciaPage, IndiciaPagePng):
@@ -383,12 +428,8 @@ class BookIndiciaPagePng(BookIndiciaPage, IndiciaPagePng):
         return filename
 
 
-class CreatorIndiciaPage(IndiciaPage):
-    """Class representing a creator indicia page.
-
-    A creator indicia page is used to preview what a creator's book indicia
-    page would look like.
-    """
+class CreatorIndiciaPagePng(IndiciaPage, IndiciaPagePng):
+    """Class representing a creator indicia page in png format."""
 
     def __init__(self, entity):
         """Constructor
@@ -400,37 +441,6 @@ class CreatorIndiciaPage(IndiciaPage):
         db = current.app.db
         IndiciaPage.__init__(self, entity)
         self.creator = entity_to_row(db.creator, self.entity)
-
-    def licence_text(self, template_field='template_web'):
-        """Return the licence record used for the licence text on the indicia
-        page.
-
-        Args:
-            template_field: string, name of cc_licence template field. One of
-                'template_img', 'template_web'
-        """
-        data = dict(
-            owner=creator_formatted_name(self.creator),
-            owner_url=creator_short_url(self.creator)
-        )
-        return render_cc_licence(
-            data,
-            self.default_licence(),
-            template_field=template_field,
-        )
-
-
-class CreatorIndiciaPagePng(CreatorIndiciaPage, IndiciaPagePng):
-    """Class representing a creator indicia page in png format."""
-
-    def __init__(self, entity):
-        """Constructor
-
-        Args:
-            entity: Row instance or integer representing a record,
-                if integer, this is the id of the record. The record is read.
-        """
-        CreatorIndiciaPage.__init__(self, entity)
         self.metadata_filename = None
         self._indicia_filename = None
 
@@ -454,6 +464,24 @@ class CreatorIndiciaPagePng(CreatorIndiciaPage, IndiciaPagePng):
         filename = os.path.join(self.temp_directory(), 'indicia.png')
         shutil.copy(indicia_sh.png_filename, filename)
         return filename
+
+    def licence_text(self, template_field='template_web'):
+        """Return the licence record used for the licence text on the indicia
+        page.
+
+        Args:
+            template_field: string, name of cc_licence template field. One of
+                'template_img', 'template_web'
+        """
+        data = dict(
+            owner=creator_formatted_name(self.creator),
+            owner_url=creator_short_url(self.creator)
+        )
+        return render_cc_licence(
+            data,
+            self.default_licence(),
+            template_field=template_field,
+        )
 
 
 class IndiciaShError(Exception):
@@ -626,7 +654,7 @@ class PublicationMetadata(object):
         query = (db.cc_licence.id == self.derivative['cc_licence_id'])
         cc_licence = db(query).select().first()
         cc_code = cc_licence.code if cc_licence \
-            else CreatorIndiciaPage.default_licence_code
+            else IndiciaPage.default_licence_code
 
         return fmt.format(
             name=self.book.name,
@@ -985,7 +1013,7 @@ class PublicationMetadata(object):
                 raise NotFoundError('derivative record not found')
 
             cc_licence_id = cc_licence_by_code(
-                CreatorIndiciaPage.default_licence_code,
+                IndiciaPage.default_licence_code,
                 want='id',
                 default=0
             )

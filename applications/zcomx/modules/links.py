@@ -135,13 +135,19 @@ class CustomLinks(object):
             query=filter_query
         )
 
-    def represent(self, pre_links=None, post_links=None):
+    def represent(
+            self,
+            pre_links=None,
+            post_links=None,
+            ul_class='custom_links breadcrumb pipe_delimiter'):
         """Return HTML representing the links suitable for displaying on a
         public webpage.
 
         Args:
-            pre_links: list of A() instances, links are added to the start of the links list.
-            post_links: list of A() instances, links are added to the end of the links list.
+            pre_links: list of A() instances, links are added to the start of
+                the links list.
+            post_links: list of A() instances, links are added to the end of
+                the links list.
         """
         links = []
         if pre_links:
@@ -153,5 +159,5 @@ class CustomLinks(object):
             return None
         return UL(
             [LI(x) for x in links],
-            _class='custom_links breadcrumb pipe_delimiter',
+            _class=ul_class,
         )

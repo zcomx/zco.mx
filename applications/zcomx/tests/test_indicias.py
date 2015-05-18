@@ -25,7 +25,6 @@ from applications.zcomx.modules.images import \
 from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
     BookIndiciaPagePng, \
-    CreatorIndiciaPage, \
     CreatorIndiciaPagePng, \
     IndiciaPage, \
     IndiciaSh, \
@@ -140,6 +139,18 @@ class ImageTestCase(LocalTestCase):
             book_id=cls._book.id,
             page_no=1,
             image=create_image('file.jpg'),
+        ))
+
+        link = cls.add(db.link, dict(
+            url='http://www.test.com',
+            name='test',
+            title='Test',
+        ))
+
+        cls.add(db.book_to_link, dict(
+            link_id=link.id,
+            book_id=cls._book.id,
+            order_no=1,
         ))
 
     @classmethod
@@ -318,6 +329,8 @@ class TestBookIndiciaPage(ImageTestCase):
         div_2 = div_1.nextSibling
         div_2a = div_2.div
         div_2b = div_2a.nextSibling
+        div_2bi = div_2b.div
+        div_2bii = div_2bi.nextSibling
         div_2c = div_2b.nextSibling
         div_2d = div_2c.nextSibling
         div_2e = div_2d.nextSibling
@@ -328,7 +341,9 @@ class TestBookIndiciaPage(ImageTestCase):
         self.assertEqual(div_1['class'], 'indicia_image_container')
         self.assertEqual(div_2['class'], 'indicia_text_container')
         self.assertEqual(div_2a['class'], 'call_to_action')
-        self.assertEqual(div_2b['class'], 'contribute_widget')
+        self.assertEqual(div_2b['class'], 'row contribute_and_links_container non_empty')
+        self.assertEqual(div_2bi['class'], 'contribute_widget_container col-xs-12 col-sm-6 col-sm-offset-0')
+        self.assertEqual(div_2bii['class'], 'book_links_container col-xs-12 col-sm-6 col-sm-offset-0')
         self.assertEqual(div_2c['class'], 'follow_creator')
         self.assertEqual(div_2d['class'], 'follow_icons')
         self.assertEqual(div_2e['class'], 'copyright_licence')
@@ -339,7 +354,8 @@ class TestBookIndiciaPage(ImageTestCase):
         self.assertEqual(
             div_1.img['src'], '/zcomx/static/images/indicia_image.png')
         self.assertTrue(div_2a.contents[0].startswith('IF YOU ENJOYED '))
-        self.assertEqual(div_2b.contents, [])
+        self.assertTrue('Contribute' in div_2bi.contents[0])
+        self.assertTrue('Buy this book' in div_2bii.contents[0])
         self.assertEqual(div_2c.contents[0], 'FOLLOW')
         self.assertEqual(div_2c.a.string, 'First Last')
         self.assertTrue('ALL RIGHTS RESERVED' in div_2e.contents[3])
@@ -387,21 +403,6 @@ class TestBookIndiciaPagePng(ImageTestCase):
         self.assertEqual(error, '')
 
 
-class TestCreatorIndiciaPage(ImageTestCase):
-    def test____init__(self):
-        indicia = CreatorIndiciaPage(self._creator)
-        self.assertTrue(indicia)
-
-    def test__licence_text(self):
-        this_year = datetime.date.today().year
-
-        indicia = CreatorIndiciaPage(self._creator)
-        self.assertEqual(
-            indicia.licence_text(),
-            '<a href="/">NAME OF BOOK</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{url}">FIRST LAST</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(url=creator_short_url(self._creator), y=this_year)
-        )
-
-
 class TestCreatorIndiciaPagePng(ImageTestCase):
     def test____init__(self):
         png_page = CreatorIndiciaPagePng(self._creator)
@@ -434,6 +435,15 @@ class TestCreatorIndiciaPagePng(ImageTestCase):
         im = Image.open(filename)
         width, height = im.size
         self.assertTrue(width > height)
+
+    def test__licence_text(self):
+        this_year = datetime.date.today().year
+
+        indicia = CreatorIndiciaPagePng(self._creator)
+        self.assertEqual(
+            indicia.licence_text(),
+            '<a href="/">NAME OF BOOK</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{url}">FIRST LAST</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(url=creator_short_url(self._creator), y=this_year)
+        )
 
 
 class TestIndiciaPage(LocalTestCase):
@@ -472,119 +482,6 @@ class TestIndiciaPage(LocalTestCase):
             indicia.licence_text(template_field='template_img'),
             ' "NAME OF BOOK" IS COPYRIGHT (C) 2015 BY CREATOR NAME.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
         )
-
-    def test__render(self):
-        indicia = IndiciaPage(None)
-
-        # test without creator name
-        got = indicia.render()
-        soup = BeautifulSoup(str(got))
-
-        # <div class="indicia_preview_section portrait">
-        #   <div class="indicia_image_container">
-        #     <img src="/zcomx/static/images/indicia_image.png" />
-        #   </div>
-        #   <div class="indicia_text_container">
-        #     <div class="call_to_action">
-        #       IF YOU ENJOYED THIS WORK... TUMBLR AND FACEBOOK.
-        #     </div>
-        #     <div class="contribute_widget"></div>
-        #     <div class="copyright_licence">
-        #       <a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) 2015 BY
-        #       <a href="/">CREATOR NAME</a>.  ALL RIGHTS RESERVED.
-        #       PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED
-        #       FROM THE AUTHOR.
-        #     </div>
-        #   </div>
-        # </div>
-
-        div = soup.div
-        self.assertEqual(div['class'], 'indicia_preview_section portrait')
-        div_1 = div.div
-        self.assertEqual(div_1['class'], 'indicia_image_container')
-        img = div_1.img
-        self.assertEqual(img['src'], '/zcomx/static/images/indicia_image.png')
-        div_2 = div_1.nextSibling
-        self.assertEqual(div_2['class'], 'indicia_text_container')
-        div_2a = div_2.div
-        self.assertEqual(div_2a['class'], 'call_to_action')
-        self.assertTrue(div_2a.string.startswith('IF YOU ENJOYED '))
-        div_2b = div_2a.nextSibling
-        self.assertEqual(div_2b['class'], 'contribute_widget')
-        self.assertEqual(div_2b.contents, [])
-        div_2c = div_2b.nextSibling
-        self.assertEqual(div_2c['class'], 'copyright_licence')
-        self.assertTrue('ALL RIGHTS RESERVED' in div_2c.contents[3])
-
-        # test orientation
-        got = indicia.render(orientation='landscape')
-        soup = BeautifulSoup(str(got))
-        div = soup.div
-        self.assertEqual(div['class'], 'indicia_preview_section landscape')
-
-        # test creator name set but no indicia image
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(
-            auth_user_id=auth_user.id,
-            indicia_image=None,
-        ))
-        indicia = IndiciaPage(None)
-        indicia.creator = creator
-        got = indicia.render()
-
-        soup = BeautifulSoup(str(got))
-        div = soup.div
-
-        # <div class="indicia_preview_section portrait">
-        #   <div class="indicia_image_container">
-        #     <img src="/zcomx/static/images/indicia_image.png" />
-        #   </div>
-        #   <div class="indicia_text_container">
-        #     <div class="call_to_action">
-        #       IF YOU ENJOYED THIS WORK... TUMBLR AND FACEBOOK.
-        #     </div>
-        #     <div class="contribute_widget"></div>
-        #     <div class="follow_creator">
-        #       FOLLOW<a href="https://10001.zco.mx">First Last</a>
-        #     </div>
-        #     <div class="copyright_licence">
-        #       <a href="/">NAME OF BOOK</a> &nbsp; IS COPYRIGHT (C) 2015 BY
-        #       <a href="/">CREATOR NAME</a>.  ALL RIGHTS RESERVED.
-        #       PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED
-        #       FROM THE AUTHOR.
-        #     </div>
-        #   </div>
-        # </div>
-
-        self.assertEqual(div['class'], 'indicia_preview_section portrait')
-        div_1 = div.div
-        self.assertEqual(div_1['class'], 'indicia_image_container')
-        img = div_1.img
-        self.assertEqual(img['src'], '/zcomx/static/images/indicia_image.png')
-        div_2 = div_1.nextSibling
-        self.assertEqual(div_2['class'], 'indicia_text_container')
-        div_2a = div_2.div
-        div_2b = div_2a.nextSibling
-        self.assertEqual(div_2b['class'], 'contribute_widget')
-        div_2c = div_2b.nextSibling
-        self.assertEqual(div_2c['class'], 'follow_creator')
-        self.assertEqual(div_2c.contents[0], 'FOLLOW')
-        self.assertEqual(div_2c.a.string, 'First Last')
-        div_2d = div_2c.nextSibling
-        self.assertTrue('ALL RIGHTS RESERVED' in div_2d.contents[3])
-
-        # test creator with indicia
-        indicia = IndiciaPage(None)
-        creator.update_record(indicia_image='creator.indicia_image.000.aaa.jpg')
-        db.commit()
-        indicia.creator = creator
-        got = indicia.render()
-        soup = BeautifulSoup(str(got))
-        div = soup.div
-        div_1 = div.div
-        img = div_1.img
-        self.assertEqual(
-            img['src'], '/images/download/creator.indicia_image.000.aaa.jpg?size=web')
 
 
 class TestIndiciaPagePng(ImageTestCase):
