@@ -1,6 +1,10 @@
 ``
 [-] Announce on instagram
     SB 2015-05-06 18:49  Emailed u/p to jimk
+[x] Indicia - html version
+    [x] Create Mockup -- http://p.zsw.ca/TW.png
+    [x] Add book_to_link links to html indicia page
+    [x] On Indicia - Add Link For Next Book
 
 VERSION 3
 [ ] Checkbox for 'Set as completed' isn't aligning properly
@@ -9,11 +13,6 @@ VERSION 3
 [S] Promote
     [S] mail promo cards
     [S] emails
-
-[ ] Indicia - html version
-    Add book_to_link links to html indicia page
-    [x] Create Mockup -- http://p.zsw.ca/TW.png
-    [ ] On Indicia - Add Link For Next Book
 
 [ ] Reader notifications for new material
     [x] Create Mockup -- http://p.zsw.ca/TW.png
