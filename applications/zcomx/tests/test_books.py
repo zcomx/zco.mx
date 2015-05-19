@@ -54,6 +54,7 @@ from applications.zcomx.modules.books import \
     magnet_uri, \
     name_fields, \
     names, \
+    next_book_in_series, \
     orientation, \
     page_url, \
     publication_year_range, \
@@ -1563,6 +1564,92 @@ class TestFunctions(ImageTestCase):
                 'name_for_url': 'MyBook-02of09',
             }
         )
+
+    def test__next_book_in_series(self):
+        creator_one = -1
+        creator_two = -2
+
+        one_shot_1 = self.add(db.book, dict(
+            name='one_shot',
+            creator_id=creator_one,
+            number=1,
+            book_type_id=self._type_id_by_name['one-shot'],
+        ))
+
+        one_shot_2 = self.add(db.book, dict(
+            name='one_shot',
+            creator_id=creator_one,
+            number=2,
+            book_type_id=self._type_id_by_name['one-shot'],
+        ))
+
+        ongoing_1 = self.add(db.book, dict(
+            name='ongoing',
+            creator_id=creator_one,
+            number=1,
+            book_type_id=self._type_id_by_name['ongoing'],
+        ))
+
+        ongoing_2 = self.add(db.book, dict(
+            name='ongoing',
+            creator_id=creator_one,
+            number=2,
+            book_type_id=self._type_id_by_name['ongoing'],
+        ))
+
+        mini_series_1 = self.add(db.book, dict(
+            name='mini_series',
+            creator_id=creator_one,
+            number=1,
+            book_type_id=self._type_id_by_name['mini-series'],
+        ))
+
+        mini_series_2 = self.add(db.book, dict(
+            name='mini_series',
+            creator_id=creator_one,
+            number=2,
+            book_type_id=self._type_id_by_name['mini-series'],
+        ))
+
+        tests = [
+            # (book, next_book)
+            (one_shot_1, None),
+            (one_shot_2, None),
+            (ongoing_1, ongoing_2),
+            (ongoing_2, None),
+            (mini_series_1, mini_series_2),
+            (mini_series_2, None),
+        ]
+
+        for t in tests:
+            self.assertEqual(next_book_in_series(t[0]), t[1])
+
+        # Test: book from different creator is ignored
+        self.add(db.book, dict(
+            name='mini_series',
+            creator_id=creator_two,
+            number=3,
+            book_type_id=self._type_id_by_name['mini-series'],
+        ))
+        self.assertEqual(next_book_in_series(mini_series_2), None)
+
+        # Test: book from different name is ignored
+        self.add(db.book, dict(
+            name='mini_series_ZZZ',
+            creator_id=creator_one,
+            number=3,
+            book_type_id=self._type_id_by_name['mini-series'],
+        ))
+        self.assertEqual(next_book_in_series(mini_series_2), None)
+
+        # Test: skipped numbers are okay
+        mini_series_3 = self.add(db.book, dict(
+            name='mini_series',
+            creator_id=creator_one,
+            number=999,
+            book_type_id=self._type_id_by_name['mini-series'],
+        ))
+        self.assertEqual(next_book_in_series(mini_series_2), mini_series_3)
 
     def test__orientation(self):
         if self._opts.quick:

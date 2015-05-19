@@ -39,6 +39,15 @@ class BaseBookType(object):
         """
         raise NotImplementedError()
 
+    def is_series(self):
+        """Return whether the book type is a series.
+
+        Returns:
+            True if the type is a series.
+        """
+        statuses = self.number_field_statuses()
+        return statuses['number']
+
     @staticmethod
     def number_field_statuses():
         """Return the use statuses of number related fields."""

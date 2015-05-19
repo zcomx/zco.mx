@@ -1302,6 +1302,64 @@ a.modal-link-btn, a.modal-link-btn:hover {
     background-color: #ffffff;
 }
 
+#reader_section .indicia_preview_section .indicia_text_container {
+    max-width: 540px;
+}
+
+#reader_section .indicia_preview_section .contribute_and_links_container {
+    margin-bottom: 3em;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    height: 0px;
+}
+
+#reader_section .indicia_preview_section .contribute_and_links_container.non_empty {
+    height: 140px;
+}
+
+
+#reader_section .indicia_preview_section .contribute_and_links_container > div {
+    border: 1px solid #AAAAAA;
+    border-right: none;
+    min-width: 50%;
+    height: 100%;
+    margin-top: 2em;
+}
+
+#reader_section .indicia_preview_section .contribute_and_links_container > div:last-child {
+    border-right: 1px solid #AAAAAA;
+}
+
+#reader_section .indicia_preview_section .contribute_and_links_container .label {
+    background-color: #FFFFFF;
+    color: #666666;
+    left: 10px;
+    position: absolute;
+    text-transform: uppercase;
+    top: -12px;
+}
+
+#reader_section .indicia_preview_section .contribute_and_links_container .book_links_content {
+    margin-top: 1.4em;
+    text-align: left;
+}
+
+#reader_section .indicia_preview_section .contribute_and_links_container .book_links_content .custom_links {
+    font-size: 14pt;
+    margin: 0;
+    list-style-type: none;
+}
+
+#reader_section .indicia_preview_section .read_next_link {
+    font-size: 12pt;
+    text-transform: uppercase;
+}
+
+#reader_section .indicia_preview_section .read_next_link .glyphicon {
+    padding-left: 0.4em;
+}
+
 #reader_section img.book_page_img,
 .indicia_image_container img {
     width: auto;
@@ -2060,7 +2118,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-size: 26px;
     margin-left: auto;
     margin-right: auto;
-    max-width: 540px;
 }
 
 .indicia_text_container .contribute_widget {
@@ -2080,7 +2137,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .indicia_text_container .follow_icons {
-    margin: 0 0 3em;
+    margin: 0 0 0.4em;
 }
 
 .indicia_text_container .follow_icons div {
@@ -2098,8 +2155,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-size: 14px;
     margin-left: auto;
     margin-right: auto;
-    max-width: 540px;
     padding-bottom: 1em;
+    padding-top: 2em;
     text-transform: uppercase;
 }
 

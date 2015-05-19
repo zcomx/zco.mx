@@ -24,6 +24,10 @@ from applications.zcomx.modules.utils import NotFoundError
 # pylint: disable=C0111,R0904
 
 
+class DubBookType(BaseBookType):
+    pass
+
+
 class TestBaseBookType(LocalTestCase):
 
     def test____init__(self):
@@ -34,6 +38,14 @@ class TestBaseBookType(LocalTestCase):
         book_type = BaseBookType('name', 'description', 1)
         self.assertRaises(
             NotImplementedError, book_type.formatted_number, 1, 1)
+
+    def test__is_series(self):
+        book_type = DubBookType('name', 'description', 1)
+        book_type.number_field_statuses = lambda: {'number': True }
+        self.assertTrue(book_type.is_series())
+
+        book_type.number_field_statuses = lambda: {'number': False }
+        self.assertFalse(book_type.is_series())
 
     def test__number_field_statuses(self):
         book_type = BaseBookType('name', 'description', 1)

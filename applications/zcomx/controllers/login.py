@@ -38,7 +38,7 @@ from applications.zcomx.modules.images import \
     store
 from applications.zcomx.modules.images_optimize import AllSizesImages
 from applications.zcomx.modules.indicias import \
-    CreatorIndiciaPage, \
+    IndiciaPage, \
     PublicationMetadata, \
     cc_licence_by_code, \
     create_creator_indicia
@@ -1267,7 +1267,7 @@ def metadata_crud():
         )
 
         cc_licence_id = cc_licence_by_code(
-            CreatorIndiciaPage.default_licence_code, want='id', default=0)
+            IndiciaPage.default_licence_code, want='id', default=0)
 
         data['derivative']['fields']['cc_licence_id'].update({
             'type': 'select',

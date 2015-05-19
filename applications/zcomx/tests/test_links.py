@@ -234,6 +234,13 @@ class TestCustomLinks(LocalTestCase):
         links = CustomLinks(db.creator, self._creator_2['id'])
         self.assertEqual(links.represent(), None)
 
+        # Test ul_class parameter
+        links = CustomLinks(db.creator, self._creator['id'])
+        got = links.represent(ul_class='class_1 class_2')
+        soup = BeautifulSoup(str(got))
+        ul = soup.find('ul')
+        self.assertEqual(ul['class'], 'class_1 class_2')
+
 
 def setUpModule():
     """Set up web2py environment."""
