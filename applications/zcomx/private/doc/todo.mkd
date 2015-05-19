@@ -1,83 +1,27 @@
 ``
-[x] Rewrite these urls ?
-    https://zco.mx/?o=ongoing to https://zco.mx/z/ongoing
-    https://zco.mx/?o=releases to https://zco.mx/z/releases
-    https://zco.mx/?o=creators to https://zco.mx/z/cartoonists
-    [x] Restrict cartoonist names to be 2 charactors or longer
-    [x] Add redirects for:
-        https://zco.mx/about    ->  https://zco.mx/z/about
-        https://zco.mx/faq      ->  https://zco.mx/z/faq
-        https://zco.mx/faqc     ->  https://zco.mx/z/faqc
-        https://zco.mx/todo     ->  https://zco.mx/z/todo
-        https://zco.mx/terms    ->  https://zco.mx/z/terms
-        https://zco.mx/login    ->  https://zco.mx/z/login
-        https://zco.mx/expenses ->  https://zco.mx/z/expenses
-[x] Extend left/right clickable areas while in slider mode
-[x] Dynamically Resize Image on Browser Resize
-    eg http://believedbehavior.com
-[x] Randomize Cartoonist on "Page Not Found" ?
-    * Only Released Books
-    * Change 'Creator page' to 'Cartoonist page'
-[x] Read Page -> Slider (Mobile Phone)
-    Float to Center - doesn't seem to be working properly
-[x] Temp files like 'tmpuz5Dph' are hanging around on zc:/tmp
-    JK 2015-05-08 18:04  I made a fix that will prevent at least most of
-    the temporary files in the /tmp from being left behind. I fixed one
-    cause but there may be others. web2py can create temp files for
-    certain processes and it's not at all obvious. We'll have to monitor
-    it.
-[-] Show an 1/8th of the prev/next image and very opague?
-    https://jimk.zsw.ca/JimKarsten/TranlatorA/001?reader=slider
-    SB 2015-05-13 15:45  We're going to scrape this idea
-[x] Add 'shortened url' to cartoonist page
-    http://p.zsw.ca/D4.png
-[x] Necrobumping of 'ongoing' books
-    Only update the timestamp if >=1 pages are added
-
+[-] Announce on instagram
+    SB 2015-05-06 18:49  Emailed u/p to jimk
 
 VERSION 3
-[S] Bug?  'Post on Web' twice or else stuck as a draft
-    * test with a refresh
-    * race condition?
+[ ] Checkbox for 'Set as completed' isn't aligning properly
+    http://p.zsw.ca/JI.png
 
-[S] Wildcard ssl cert for zco.mx
-    https://131.zco.mx will cause a self-signed cert warning to appear
-    Buy a wildcard cert
-    [/] Test on sb.zco.mx and kb.zco.mx
+[S] Promote
+    [S] mail promo cards
+    [S] emails
 
-[ ] Change 'releases'/'released' to 'completed'
-    mockup: http://p.zsw.ca/7S.png
-    * on upload modal:
-        "All images must have a minimum width of 1600px in order to set a comic as 'completed'."
-        "All images must have a minimum width of 1600px (portrait) or 2560px (landscape) in order to move a comic from the 'ONGOING' section to the 'COMPLETED' section."
-        "In order to move a comic from the 'ONGOING' section to the 'COMPLETED' section all images must have a minimum width of 1600px for portrait or 2560px for landscape."
-    * make the wording & formating on the release/completed modal as simple as clear as possible
-    [S] Update Faq
-
-[S] Indicia - html version
+[ ] Indicia - html version
     Add book_to_link links to html indicia page
-    [S] Create Mockup
-
-[S] Reader notifications for new material
-    [S] Create Mockup
-    Follow Links
-        by cartoonist and by book
-        via rss? and mailing list?
+    [x] Create Mockup -- http://p.zsw.ca/TW.png
     [ ] On Indicia - Add Link For Next Book
+
+[ ] Reader notifications for new material
+    [x] Create Mockup -- http://p.zsw.ca/TW.png
     [ ] On Indicia - Add Reader Notifications
-        [$1.00] (contribute) | Next Book By Cartoonist Name
-                             | Book Name 03 (of 04)
-
-                Follow Cartoonist Name
-                on zco.mx  [ ] [ ]          ## ML and RSS
-                or on    [ ] [ ] [ ]        ## twitter, tumblr & fb
-
-[ ] Announce on instagram
-    SB 2015-05-06 18:49  Emailed u/p to jimk
 
 [S] Redesign Cartoonist Page
     [S] Mock Up
-    * handle portrait and landscape photos better
+    * handle portrait, landscape and square photos better
     [S] Book Page -> Photos
             "Photo Courtesy of [Photographer's Name]    [  {link back}  ]"
             If blank, write nothing
@@ -98,12 +42,11 @@ VERSION 3
     tmux+ncdc
     rtxmlrpc
 
-[S] Setup hypermail for real-only mailing lists in login area ?
-
 
 VERSION 4
 [ ] Search Auto-Completion on 'cartoonist name' and 'title'
 [S] news.zco.mx
+[S] Setup hypermail for real-only mailing lists in login area ?
 [ ] Web images are too small on mac laptops
 [S] Separate '001' and '01 (of 02)' from the title ?
 [S] Change bg to #fafafa ?
@@ -190,10 +133,9 @@ VERSION 5
 IDEAS
 [S] Setup wikipedia page for David
 [ ] Rethink Crowdfunding Idea
-    see emails with blumenstein
-    discuss on feedback ml
+    * see emails with blumenstein
+    * discuss on feedback ml
 [ ] resize.sh - convert tiff's to png's ?
-    https://www.wosign.com/english/
 [ ] Is re-releasing released books a problem?
     * use the upload modal with any read-only fields
     * update a version number on the indicia?
@@ -210,16 +152,10 @@ IDEAS
 [ ] bio and book description - wikipedia api?
     https://github.com/goldsmith/Wikipedia          ## wikipedia api
 [ ] user comments? - disqus api? reddit api?
-    * cartoonist chooses comments to form a digital letters page?
+    * cartoonist chooses comments to form a digital letters page ?
 [ ] RDFa-html meta
     https://wiki.creativecommons.org/Frequently_Asked_Questions#What_does_it_mean_that_Creative_Commons_licenses_are_.22machine-readable.22.3F
     http://www.w3.org/TR/html-rdfa/
-[ ] RiP!: remix torrent ?
-[ ] Social media links other than on the indicia ??
-[ ] Read Page
-    Navigate with mouse scroll as well ?
-    http://geekwagon.net/projects/xkcd1190/
-    h-scroll - http://danielschafferbrooklyncomics.com/books/uncategorized/all-you-need/
-    2-page slider ?
+[ ] Social media links other than on the indicia ?
 ``
 # vim:set ft=dm:

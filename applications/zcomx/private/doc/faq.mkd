@@ -35,14 +35,14 @@ To start, due to scalability, the site will be curated.
 
 [[frontpage]]
 #### What do the sections on the front page mean?
+**completed** - This is a list of titles that are complete works.  They are
+able to be downloaded as cbz files. The newest releases are listed first.
+
 **ongoing** - This is a list of titles that are either currently in
 progress (that is, that the cartoonist is currently working on) or that
 have not been released as cbz files, which would contain hi-res images
 suitable for tablets. This section is organized by title, with the most
 recently uploaded image listed first.
-
-**releases** - This is a list of titles that have been released as cbz
-files. The newest releases are listed first.
 
 **cartoonist** - This is an alphabetical list, by first name, of every
 cartoonist on the site.
