@@ -18,10 +18,10 @@ from applications.zcomx.modules.cbz import \
     CBZCreateError, \
     CBZCreator, \
     archive
-from applications.zcomx.modules.images import \
-    UploadImage, \
-    store
 from applications.zcomx.modules.indicias import cc_licence_by_code
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     NotFoundError, \
@@ -32,113 +32,78 @@ from applications.zcomx.modules.utils import \
 # pylint: disable=C0111,R0904
 
 
-class ImageTestCase(LocalTestCase):
+class WithObjectsTestCase(LocalTestCase):
     """ Base class for Image test cases. Sets up test data."""
 
     _book = None
     _book_page = None
+    _book_page_2 = None
     _creator = None
-    _image_dir = '/tmp/test_cbz'
-    _image_original = os.path.join(_image_dir, 'original')
-    _test_data_dir = None
 
-    _objects = []
+    def _set_images(self):
+        """Set image fields on records.
 
-    @classmethod
-    def _prep_image(cls, img, working_directory=None, to_name=None):
-        """Prepare an image for testing.
-        Copy an image from private/test/data to a working directory.
-
-        Args:
-            img: string, name of source image, eg file.jpg
-                must be in cls._test_data_dir
-            working_directory: string, path of working directory to copy to.
-                If None, uses cls._image_dir
-            to_name: string, optional, name of image to copy file to.
-                If None, img is used.
+        This step is slow and used be called directly only by the
+        tests that need it.
         """
-        src_filename = os.path.join(
-            os.path.abspath(cls._test_data_dir),
-            img
+        filename = self._prep_image('file.jpg', to_name='file_1.jpg')
+        self._set_image(
+            db.book_page.image,
+            self._book_page,
+            filename,
+            resizer=ResizerQuick
         )
 
-        if working_directory is None:
-            working_directory = os.path.abspath(cls._image_dir)
+        filename = self._prep_image('file.jpg', to_name='file_2.jpg')
+        self._set_image(
+            db.book_page.image,
+            self._book_page_2,
+            filename,
+            resizer=ResizerQuick
+        )
 
-        if to_name is None:
-            to_name = img
-
-        filename = os.path.join(working_directory, to_name)
-        shutil.copy(src_filename, filename)
-        return filename
-
-    @classmethod
-    def _set_image(cls, field, record, img):
-        """Set the image for a record field.
-
-        Args:
-            field: gluon.dal.Field instance
-            record: Row instance.
-            img: string, path/to/name of image.
-        """
-        # Delete images if record field is set.
-        if record[field.name]:
-            up_image = UploadImage(field, record[field.name])
-            up_image.delete_all()
-        stored_filename = store(field, img)
-        data = {field.name: stored_filename}
-        record.update_record(**data)
-        db.commit()
+        filename = self._prep_image('cbz.jpg')
+        self._set_image(
+            db.creator.indicia_image,
+            self._creator,
+            filename,
+            resizer=ResizerQuick
+        )
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        if cls._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
-
+    def setUp(self):
         email = web.username
-        cls._user = db(db.auth_user.email == email).select().first()
-        if not cls._user:
+        self._user = db(db.auth_user.email == email).select().first()
+        if not self._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
-        query = db.creator.auth_user_id == cls._user.id
-        cls._creator = db(query).select().first()
-        if not cls._creator:
+        query = db.creator.auth_user_id == self._user.id
+        self._creator = db(query).select().first()
+        if not self._creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
-
-        if not os.path.exists(cls._image_original):
-            os.makedirs(cls._image_original)
 
         query = (db.book_type.name == DEFAULT_BOOK_TYPE)
         book_type_id = db(query).select().first().id
-        cls._book = cls.add(db.book, dict(
+        self._book = self.add(db.book, dict(
             name='My CBZ Test',
-            creator_id=cls._creator.id,
+            creator_id=self._creator.id,
             book_type_id=book_type_id,
             cc_licence_id=cc_licence_by_code('CC BY-ND', want='id', default=0),
         ))
 
-        cls._book_page = cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self._book_page = self.add(db.book_page, dict(
+            book_id=self._book.id,
             page_no=1,
         ))
-        filename = cls._prep_image('cbz_plus.jpg', to_name='file_1.jpg')
-        cls._set_image(db.book_page.image, cls._book_page, filename)
 
         # Create a second page to test with.
-        book_page_2 = cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self._book_page_2 = self.add(db.book_page, dict(
+            book_id=self._book.id,
             page_no=2,
         ))
-        filename = cls._prep_image('file.jpg', to_name='file_2.jpg')
-        cls._set_image(db.book_page.image, book_page_2, filename)
 
-    @classmethod
-    def tearDown(cls):
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
+        super(WithObjectsTestCase, self).setUp()
 
 
 class TestCBZCreateError(LocalTestCase):
@@ -152,11 +117,9 @@ class TestCBZCreateError(LocalTestCase):
             self.fail('CBZCreateError not raised')
 
 
-class TestCBZCreator(ImageTestCase):
+class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
 
     def test____init__(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         # book as Row instance
         creator = CBZCreator(self._book)
         self.assertTrue(creator)
@@ -168,9 +131,6 @@ class TestCBZCreator(ImageTestCase):
         self.assertEqual(creator.book.name, self._book.name)
 
     def test__cbz_filename(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
         data = dict(
             name='My Book',
             publication_year=1998,
@@ -188,8 +148,6 @@ class TestCBZCreator(ImageTestCase):
     def test__get_img_filename_fmt(self):
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         creator = CBZCreator(self._book)
 
         tests = [
@@ -227,8 +185,6 @@ class TestCBZCreator(ImageTestCase):
     def test__get_max_page_no(self):
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         creator = CBZCreator(self._book)
 
         def set_page_no(page, page_no):
@@ -260,9 +216,6 @@ class TestCBZCreator(ImageTestCase):
     def test__image_filename(self):
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
-
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         creator = CBZCreator(self._book)
 
         tests = [
@@ -287,6 +240,7 @@ class TestCBZCreator(ImageTestCase):
     def test__run(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
+        self._set_images()
         creator = CBZCreator(self._book)
         zip_file = creator.run()
         self.assertTrue(os.path.exists(zip_file))
@@ -319,8 +273,6 @@ class TestCBZCreator(ImageTestCase):
         self.assertEqual(os.path.basename(work_dir), self._book.name)
 
     def test__zip(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         creator = CBZCreator(self._book)
         zip_file = creator.zip()
         self.assertTrue(os.path.exists(zip_file))
@@ -337,7 +289,7 @@ class TestCBZCreator(ImageTestCase):
         self.assertEqual(p_stderr, '')
 
 
-class TestFunctions(ImageTestCase):
+class TestFunctions(WithObjectsTestCase, ImageTestCase):
     _base_path = '/tmp/cbz_archive'
 
     # C0103: *Invalid name "%s" (should match %s)*
@@ -346,15 +298,19 @@ class TestFunctions(ImageTestCase):
     def setUpClass(cls):
         if not os.path.exists(cls._base_path):
             os.makedirs(cls._base_path)
+        super(TestFunctions, cls).setUpClass()
 
     @classmethod
     def tearDownClass(cls):
         if os.path.exists(cls._base_path):
             shutil.rmtree(cls._base_path)
+        super(TestFunctions, cls).tearDownClass()
 
     def test__archive(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
+
+        self._set_images()
 
         cbz_filename = archive(self._book, base_path=self._base_path)
 

@@ -19,8 +19,9 @@ from applications.zcomx.modules.downloaders import \
     TorrentDownloader
 from applications.zcomx.modules.images import \
     UploadImage, \
-    filename_for_size, \
-    store
+    filename_for_size
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase
 
@@ -31,101 +32,35 @@ from applications.zcomx.modules.tests.runner import \
 # pylint: disable=W0212
 
 
-class ImageTestCase(LocalTestCase):
-    """ Base class for Image test cases. Sets up test data."""
+class WithObjectsTestCase(LocalTestCase):
+    """ Base class for test cases. Sets up test data."""
 
     _auth_user = None
     _creator = None
-    _image_dir = '/tmp/image_resizer'
-    _image_original = os.path.join(_image_dir, 'original')
-    _image_name = 'file.jpg'
-    _test_data_dir = None
-
-    @classmethod
-    def _prep_image(cls, img, working_directory=None, to_name=None):
-        """Prepare an image for testing.
-        Copy an image from private/test/data to a working directory.
-
-        Args:
-            img: string, name of source image, eg file.jpg
-                must be in cls._test_data_dir
-            working_directory: string, path of working directory to copy to.
-                If None, uses cls._image_dir
-            to_name: string, optional, name of image to copy file to.
-                If None, img is used.
-        """
-        src_filename = os.path.join(
-            os.path.abspath(cls._test_data_dir),
-            img
-        )
-
-        if working_directory is None:
-            working_directory = os.path.abspath(cls._image_dir)
-
-        if to_name is None:
-            to_name = img
-
-        filename = os.path.join(working_directory, to_name)
-        shutil.copy(src_filename, filename)
-        return filename
-
-    @classmethod
-    def _set_image(cls, field, record, img):
-        """Set the image for a record field.
-
-        Args:
-            field: gluon.dal.Field instance
-            record: Row instance.
-            img: string, path/to/name of image.
-        """
-        # Delete images if record field is set.
-        if record[field.name]:
-            up_image = UploadImage(field, record[field.name])
-            up_image.delete_all()
-        stored_filename = store(field, img)
-        data = {field.name: stored_filename}
-        record.update_record(**data)
-        db.commit()
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
-
-        if not os.path.exists(cls._image_original):
-            os.makedirs(cls._image_original)
-
-        src_filename = os.path.join(cls._test_data_dir, 'tbn_plus.jpg')
-        image_filename = os.path.join(cls._image_dir, cls._image_name)
-        shutil.copy(src_filename, image_filename)
-
-        # Store the image in the uploads/original directory
-        stored_filename = store(db.creator.image, image_filename)
-
-        # Create a creator and set the image
+    def setUp(self):
         email = 'up_image@example.com'
-        cls._auth_user = cls.add(db.auth_user, dict(
-            name='Image UploadImage',
+        self._auth_user = self.add(db.auth_user, dict(
+            name='test_downloaders',
             email=email,
         ))
 
-        cls._creator = cls.add(db.creator, dict(
-            auth_user_id=cls._auth_user.id,
+        self._creator = self.add(db.creator, dict(
+            auth_user_id=self._auth_user.id,
             email=email,
-            image=stored_filename,
         ))
+        super(WithObjectsTestCase, self).setUp()
 
-    @classmethod
-    def tearDown(cls):
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
-        if cls._creator.image:
-            up_image = UploadImage(db.creator.image, cls._creator.image)
+    def tearDown(self):
+        if self._creator.image:
+            up_image = UploadImage(db.creator.image, self._creator.image)
             up_image.delete_all()
+        super(WithObjectsTestCase, self).tearDown()
 
 
-class TestImageDownloader(ImageTestCase):
+class TestImageDownloader(WithObjectsTestCase, ImageTestCase):
 
     def test__download(self):
         if self._opts.quick:
@@ -184,19 +119,6 @@ class TestImageDownloader(ImageTestCase):
 
 
 class TestTorrentDownloader(LocalTestCase):
-    _base_path = '/tmp/torrent_downloader'
-
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
-    @classmethod
-    def setUpClass(cls):
-        if not os.path.exists(cls._base_path):
-            os.makedirs(cls._base_path)
-
-    @classmethod
-    def tearDownClass(cls):
-        if os.path.exists(cls._base_path):
-            shutil.rmtree(cls._base_path)
 
     def test__download(self):
         downloader = TorrentDownloader()

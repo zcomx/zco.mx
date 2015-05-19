@@ -15,6 +15,7 @@ from gluon.rewrite import filter_url
 from gluon.storage import \
     List, \
     Storage
+from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.books import book_name
 from applications.zcomx.modules.creators import creator_name
 from applications.zcomx.modules.routing import Router
@@ -51,22 +52,18 @@ class TestRouter(LocalTestCase):
     _page_2_name = None
     _page_name = None
     _request = None
-    _type_id_by_name = {}
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        for t in db(db.book_type).select():
-            cls._type_id_by_name[t.name] = t.id
-        cls._request = Storage()
-        cls._request.env = Storage()
-        cls._request.env.wsgi_url_scheme = 'http'
-        cls._request.env.http_host = 'www.domain.com'
-        cls._request.env.web2py_original_uri = '/path/to/page'
-        cls._request.env.request_uri = '/request/uri/path'
-        cls._request.args = List()
-        cls._request.vars = Storage()
+    def setUp(self):
+        self._request = Storage()
+        self._request.env = Storage()
+        self._request.env.wsgi_url_scheme = 'http'
+        self._request.env.http_host = 'www.domain.com'
+        self._request.env.web2py_original_uri = '/path/to/page'
+        self._request.env.request_uri = '/request/uri/path'
+        self._request.args = List()
+        self._request.vars = Storage()
 
         first = db().select(
             db.book_page.id,
@@ -92,7 +89,7 @@ class TestRouter(LocalTestCase):
         first_creator_page_name = '{p:03d}'.format(
             p=first_creator_book_page.page_no)
 
-        cls._first_creator_links = Storage({
+        self._first_creator_links = Storage({
             'creator': 'http://127.0.0.1:8000/{c}'.format(
                 c=urllib.quote(first_creator_name)
             ),
@@ -107,78 +104,79 @@ class TestRouter(LocalTestCase):
             ),
         })
 
-        cls._auth_user = cls.add(db.auth_user, dict(
+        self._auth_user = self.add(db.auth_user, dict(
             name='First Last',
             email='test__auth_user@test.com',
         ))
 
-        cls._creator = cls.add(db.creator, dict(
-            auth_user_id=cls._auth_user.id,
+        self._creator = self.add(db.creator, dict(
+            auth_user_id=self._auth_user.id,
             email='test__creator@test.com',
             name_for_url='FirstLast',
         ))
 
-        cls._creator_2 = cls.add(db.creator, dict(
-            auth_user_id=cls._auth_user.id,
+        self._creator_2 = self.add(db.creator, dict(
+            auth_user_id=self._auth_user.id,
             email='test__creator_2@test.com',
             name_for_url='JohnHancock',
         ))
 
-        cls._book = cls.add(db.book, dict(
+        self._book = self.add(db.book, dict(
             name='My Book',
             publication_year=1999,
-            book_type_id=cls._type_id_by_name['one-shot'],
+            book_type_id=book_type_by_name('one-shot').id,
             number=1,
             of_number=999,
-            creator_id=cls._creator.id,
+            creator_id=self._creator.id,
             reader='slider',
             name_for_url='MyBook',
             status=BOOK_STATUS_ACTIVE,
         ))
 
-        cls._book_2 = cls.add(db.book, dict(
+        self._book_2 = self.add(db.book, dict(
             name='My Second Book',
             publication_year=2002,
-            book_type_id=cls._type_id_by_name['one-shot'],
+            book_type_id=book_type_by_name('one-shot').id,
             number=1,
             of_number=999,
-            creator_id=cls._creator_2.id,
+            creator_id=self._creator_2.id,
             reader='slider',
             name_for_url='MySecondBook',
             status=BOOK_STATUS_ACTIVE,
         ))
 
-        cls._book_page = cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self._book_page = self.add(db.book_page, dict(
+            book_id=self._book.id,
             image='book_page.image.000.aaa.png',
             page_no=1,
         ))
 
-        cls._book_page_2 = cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self._book_page_2 = self.add(db.book_page, dict(
+            book_id=self._book.id,
             page_no=2,
         ))
 
-        cls._book_2_page = cls.add(db.book_page, dict(
-            book_id=cls._book_2.id,
+        self._book_2_page = self.add(db.book_page, dict(
+            book_id=self._book_2.id,
             page_no=1,
         ))
 
-        cls._book_2_page_2 = cls.add(db.book_page, dict(
-            book_id=cls._book_2.id,
+        self._book_2_page_2 = self.add(db.book_page, dict(
+            book_id=self._book_2.id,
             page_no=2,
         ))
 
-        cls._creator_name = creator_name(cls._creator, use='url')
-        cls._creator_2_name = creator_name(cls._creator_2, use='url')
-        cls._book_name = book_name(cls._book, use='url')
-        cls._book_2_name = book_name(cls._book_2, use='url')
-        cls._page_name = '{p:03d}'.format(p=cls._book_page.page_no)
-        cls._page_2_name = '{p:03d}'.format(p=cls._book_page_2.page_no)
-        cls._book_2_page_name = '{p:03d}'.format(p=cls._book_2_page.page_no)
-        cls._book_2page_2_name = '{p:03d}'.format(p=cls._book_2_page_2.page_no)
+        self._creator_name = creator_name(self._creator, use='url')
+        self._creator_2_name = creator_name(self._creator_2, use='url')
+        self._book_name = book_name(self._book, use='url')
+        self._book_2_name = book_name(self._book_2, use='url')
+        self._page_name = '{p:03d}'.format(p=self._book_page.page_no)
+        self._page_2_name = '{p:03d}'.format(p=self._book_page_2.page_no)
+        self._book_2_page_name = '{p:03d}'.format(p=self._book_2_page.page_no)
+        self._book_2page_2_name = '{p:03d}'.format(
+            p=self._book_2_page_2.page_no)
 
-        cls._keys_for_view = {
+        self._keys_for_view = {
             'creator': [
                 'completed_grid',
                 'creator',
@@ -993,23 +991,19 @@ class TestRouter(LocalTestCase):
 
 
 class TestFunctions(LocalTestCase):
-    _type_id_by_name = {}
     _request = None
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        for t in db(db.book_type).select():
-            cls._type_id_by_name[t.name] = t.id
-        cls._request = Storage()
-        cls._request.env = Storage()
-        cls._request.env.wsgi_url_scheme = 'http'
-        cls._request.env.http_host = 'www.domain.com'
-        cls._request.env.web2py_original_uri = '/path/to/page'
-        cls._request.env.request_uri = '/request/uri/path'
-        cls._request.args = List()
-        cls._request.vars = Storage()
+    def setUp(self):
+        self._request = Storage()
+        self._request.env = Storage()
+        self._request.env.wsgi_url_scheme = 'http'
+        self._request.env.http_host = 'www.domain.com'
+        self._request.env.web2py_original_uri = '/path/to/page'
+        self._request.env.request_uri = '/request/uri/path'
+        self._request.args = List()
+        self._request.vars = Storage()
 
     def test_routes(self):
         """This tests the ~/routes.py settings."""

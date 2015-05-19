@@ -30,8 +30,7 @@ class TestFunctions(LocalTestCase):
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
+    def setUp(self):
         # Prevent 'Changed session ID' warnings.
         web.sessions = {}
 
@@ -53,9 +52,9 @@ class TestFunctions(LocalTestCase):
             ('https://101.zco.mx', False, 'creator'),
             ('https://zco.mx', True, 'index'),
             ('https://dev.zco.mx', True, 'index'),
-            ('https://www.zco.mx', True, SSLError),
-            ('https://fake.zco.mx', True, SSLError),
-            ('https://101.zco.mx', True, SSLError),
+            ('https://www.zco.mx', True, 'index'),
+            ('https://fake.zco.mx', True, 'index'),
+            ('https://101.zco.mx', True, 'index'),
         ]
 
         is_iterable = lambda obj: isinstance(obj, basestring) \

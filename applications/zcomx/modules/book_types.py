@@ -136,6 +136,32 @@ CLASS_BY_NAME = collections.defaultdict(
 )
 
 
+def by_name(type_name, default='one-shot'):
+    """Factory to return Row instance representing book_type record with the
+    given name.
+
+    Args:
+        type_name: string, name of book_type
+        default: default book_type name if book_type record not found.
+            If None and book_type record not found, raises NotFoundError.
+    Returns:
+        Row instance representing a book_type record
+    """
+    db = current.app.db
+    query = (db.book_type.name == type_name)
+    book_type = db(query).select().first()
+    if not book_type and default is None:
+        raise NotFoundError('Book type not found, name: {n}'.format(
+            n=type_name))
+    if not book_type:
+        query = (db.book_type.name == default)
+        book_type = db(query).select().first()
+        if not book_type:
+            raise NotFoundError('Book type not found, name: {n}'.format(
+                n=default))
+    return book_type
+
+
 def from_id(book_type_id, default='one-shot'):
     """Factory to return a subclass instance associated with the book type id.
 

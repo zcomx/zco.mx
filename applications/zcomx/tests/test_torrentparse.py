@@ -38,14 +38,12 @@ class TestParsingError(LocalTestCase):
 class TestTorrentParser(LocalTestCase):
     _test_data_dir = None
 
-    @classmethod
-    def setUp(cls):
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+    def setUp(self):
+        self._test_data_dir = os.path.join(request.folder, 'private/test/data/')
 
-    @classmethod
-    def _torrent_path(cls, tor_type='book'):
+    def _torrent_path(self, tor_type='book'):
         name = '{t}.torrent'.format(t=tor_type)
-        return os.path.join(cls._test_data_dir, 'torrents', name)
+        return os.path.join(self._test_data_dir, 'torrents', name)
 
     def test____init__(self):
         parser = TorrentParser(self._torrent_path('book'))

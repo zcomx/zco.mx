@@ -7,7 +7,11 @@ Test suite for zcomx/modules/tests/helpers.py
 
 """
 import unittest
-from applications.zcomx.modules.tests.helpers import ZcoTestCase
+from applications.zcomx.modules.tests.helpers import \
+    FileTestCase, \
+    ImageTestCase, \
+    ResizerQuick, \
+    WithTestDataDirTestCase
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -16,17 +20,8 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # W0212 (protected-access): *Access to a protected member
 # pylint: disable=W0212
 
-
-class SubZcoTestCase(ZcoTestCase):
-    want = {'aaa': 111, 'bbb': 222}
-
-
-class TestZcoTestCase(LocalTestCase):
-
-    def test____init__(self):
-        # print 'FIXME self.want: {var}'.format(var=self.want)
-        # print 'FIXME self.test_data: {var}'.format(var=self.test_data)
-        pass
+class TestFileTestCase(LocalTestCase):
+    pass
 
 
 def setUpModule():

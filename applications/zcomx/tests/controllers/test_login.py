@@ -307,9 +307,16 @@ class TestFunctions(LocalTestCase):
         result = loads(web.text)
         self.assertEqual(result['status'], 'ok')
 
-        time.sleep(2)                  # Wait for job to complete.
-        book = get_book(book_id)
+        # The job to delete the book, may take a few seconds to complete
+        tries = 10
+        while tries:
+            book = get_book(book_id)
+            if not book:
+                break
+            tries -= 1
+            time.sleep(1)
         self.assertFalse(book)
+
 
     def test__book_delete(self):
         # No book id, redirect to books
@@ -466,6 +473,15 @@ class TestFunctions(LocalTestCase):
         )
 
         # Valid book_id, no book pages returns success
+
+        # Protect existing book_page records so they don't get deleted.
+        def set_book_page_book_ids(from_book_id, to_book_id):
+            query = (db.book_page.book_id == from_book_id)
+            db(query).update(book_id=to_book_id)
+            db.commit()
+
+        set_book_page_book_ids(self._book.id, (-1 * self._book.id))
+
         self._book.update_record(status=BOOK_STATUS_DRAFT)
         db.commit()
         self.assertTrue(
@@ -477,11 +493,12 @@ class TestFunctions(LocalTestCase):
                 self.titles['book_post_upload_session']
             )
         )
-        # book has pages, so it should reset the status
+        # book has no pages, so it should status should be set accordingly
         book = db(db.book.id == self._book.id).select().first()
-        self.assertEqual(book.status, BOOK_STATUS_ACTIVE)
+        self.assertEqual(book.status, BOOK_STATUS_DRAFT)
 
         # Valid
+        set_book_page_book_ids((-1 * self._book.id), self._book.id)
         query = (db.book_page.book_id == self._book.id)
         book_page_ids = [x.id for x in db(query).select(db.book_page.id)]
         bp_ids = ['book_page_ids[]={pid}'.format(pid=x) for x in book_page_ids]
@@ -494,6 +511,9 @@ class TestFunctions(LocalTestCase):
                 self.titles['book_post_upload_session']
             )
         )
+        # book has no pages, so it should status should be set accordingly
+        book = db(db.book.id == self._book.id).select().first()
+        self.assertEqual(book.status, BOOK_STATUS_ACTIVE)
 
     def test__book_release(self):
         # No book_id, redirects to books page

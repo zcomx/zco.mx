@@ -46,12 +46,11 @@ class TestFunctions(LocalTestCase):
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
+    def setUp(self):
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
         # Get a book from a creator with a paypal_email.
-        cls._book = db(db.creator.paypal_email != '').select(
+        self._book = db(db.creator.paypal_email != '').select(
             db.book.ALL,
             left=[
                 db.creator.on(db.book.creator_id == db.creator.id),
@@ -59,18 +58,18 @@ class TestFunctions(LocalTestCase):
             ],
         ).first()
 
-        if not cls._book:
+        if not self._book:
             raise SyntaxError('Unable to get book.')
 
         max_book_id = db.book.id.max()
         rows = db().select(max_book_id)
         if rows:
-            cls._invalid_book_id = rows[0][max_book_id] + 1
+            self._invalid_book_id = rows[0][max_book_id] + 1
         else:
-            cls._invalid_book_id = 1
+            self._invalid_book_id = 1
 
-        cls._creator = db(db.creator.paypal_email != '').select().first()
-        if not cls._creator:
+        self._creator = db(db.creator.paypal_email != '').select().first()
+        if not self._creator:
             raise SyntaxError('Unable to get creator.')
 
     def test__index(self):

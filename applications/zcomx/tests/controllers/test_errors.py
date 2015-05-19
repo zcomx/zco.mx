@@ -26,8 +26,7 @@ class TestFunctions(LocalTestCase):
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
+    def setUp(self):
         # Prevent 'Changed session ID' warnings.
         web.sessions = {}
 

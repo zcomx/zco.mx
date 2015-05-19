@@ -31,13 +31,11 @@ class TestFunctions(LocalTestCase):
     }
     url = '/zcomx/torrents'
 
-    @classmethod
-    def setUp(cls):
+    def setUp(self):
         # Prevent 'Changed session ID' warnings.
         web.sessions = {}
 
-    @classmethod
-    def tearDown(cls):
+    def tearDown(self):
         server_ip = web.server_ip()
         db(db.download_click.ip_address == server_ip).delete()
         db.commit()

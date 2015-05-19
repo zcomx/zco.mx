@@ -14,6 +14,7 @@ from applications.zcomx.modules.book_types import \
     MiniSeriesType, \
     OneShotType, \
     OngoingType, \
+    by_name, \
     from_id
 
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -25,7 +26,16 @@ from applications.zcomx.modules.utils import NotFoundError
 
 
 class DubBookType(BaseBookType):
-    pass
+    def formatted_number(self, number, of_number):
+        return '{num:02d} (of {of:02d})'.format(num=number, of=of_number)
+
+    @staticmethod
+    def number_field_statuses():
+        """Return the use statuses of number related fields."""
+        return {
+            'number': True,
+            'of_number': True,
+        }
 
 
 class TestBaseBookType(LocalTestCase):
@@ -41,10 +51,10 @@ class TestBaseBookType(LocalTestCase):
 
     def test__is_series(self):
         book_type = DubBookType('name', 'description', 1)
-        book_type.number_field_statuses = lambda: {'number': True }
+        book_type.number_field_statuses = lambda: {'number': True}
         self.assertTrue(book_type.is_series())
 
-        book_type.number_field_statuses = lambda: {'number': False }
+        book_type.number_field_statuses = lambda: {'number': False}
         self.assertFalse(book_type.is_series())
 
     def test__number_field_statuses(self):
@@ -110,6 +120,22 @@ class TestConstants(LocalTestCase):
 
 
 class TestFunctions(LocalTestCase):
+
+    def test__by_name(self):
+        got = by_name('one-shot')
+        self.assertEqual(got.name, 'one-shot')
+        self.assertEqual(got.sequence, 3)
+        self.assertTrue('One-shot' in got.description)
+
+        got = by_name('ongoing')
+        self.assertEqual(got.name, 'ongoing')
+        self.assertEqual(got.sequence, 1)
+        self.assertTrue('001' in got.description)
+
+        got = by_name('mini-series')
+        self.assertEqual(got.name, 'mini-series')
+        self.assertEqual(got.sequence, 2)
+        self.assertTrue('01 of 04' in got.description)
 
     def test__from_id(self):
         types_by_name = {}

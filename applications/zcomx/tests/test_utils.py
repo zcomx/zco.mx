@@ -108,7 +108,6 @@ class TestFunctions(LocalTestCase):
         )
 
         db.test__reorder.truncate()
-        cls._reset()
 
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
@@ -127,22 +126,23 @@ class TestFunctions(LocalTestCase):
                 'tmp'
             )
 
-    @classmethod
-    def tearDown(cls):
-        if cls._tmp_backup and os.path.exists(cls._tmp_backup):
-            if os.path.exists(cls._tmp_dir):
-                shutil.rmtree(cls._tmp_dir)
-            os.rename(cls._tmp_backup, cls._tmp_dir)
+    def setUp(self):
+        self._reset()
+
+    def tearDown(self):
+        if self._tmp_backup and os.path.exists(self._tmp_backup):
+            if os.path.exists(self._tmp_dir):
+                shutil.rmtree(self._tmp_dir)
+            os.rename(self._tmp_backup, self._tmp_dir)
         db.test__reorder.truncate()
         db.commit()
 
-    @classmethod
-    def _reset(cls):
+    def _reset(self):
         names = [
             x.name for x
             in db(db.test__reorder).select(db.test__reorder.name)
         ]
-        for f in cls._fields:
+        for f in self._fields:
             if f not in names:
                 data = dict(
                     name=f,
@@ -150,12 +150,12 @@ class TestFunctions(LocalTestCase):
                 )
                 record_id = db.test__reorder.insert(**data)
                 db.commit()
-                cls._by_name[f] = record_id
+                self._by_name[f] = record_id
 
         record_ids = [
-            cls._by_name['a'],
-            cls._by_name['b'],
-            cls._by_name['c'],
+            self._by_name['a'],
+            self._by_name['b'],
+            self._by_name['c'],
         ]
         reorder(db.test__reorder.order_no, record_ids=record_ids)
 
@@ -302,7 +302,6 @@ class TestFunctions(LocalTestCase):
         self.assertTrue('#### What is zco.mx?' in faq)
 
     def test__move_record(self):
-        self._reset()
         reorder(db.test__reorder.order_no)
         self.assertEqual(self._ordered_values(), ['a', 'b', 'c'])
 
@@ -344,8 +343,6 @@ class TestFunctions(LocalTestCase):
         test_move('a', 'down', ['b', 'a', 'c'], query=query)
 
     def test__reorder(self):
-        self._reset()
-
         reorder(db.test__reorder.order_no)
         self.assertEqual(self._ordered_values(), ['a', 'b', 'c'])
 

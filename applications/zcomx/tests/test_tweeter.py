@@ -11,6 +11,7 @@ import string
 import unittest
 import uuid
 from twitter import TwitterHTTPError
+from applications.zcomx.modules.images import ImageDescriptor, UploadImage
 from applications.zcomx.modules.tweeter import \
     Authenticator, \
     POST_IN_PROGRESS, \
@@ -46,6 +47,45 @@ class DubClient(object):
         self.statuses = DubStatuses()
 
 
+class WithMediaTestCase(LocalTestCase):
+    """Pre-define an test_image for tweet media."""
+    _test_image = None
+    _test_image_bytes = 0
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    @classmethod
+    def setUpClass(cls):
+        # Use an existing image to test with.
+        email = web.username
+        user = db(db.auth_user.email == email).select().first()
+        if not user:
+            raise SyntaxError('No user with email: {e}'.format(e=email))
+
+        query = db.creator.auth_user_id == user.id
+        creator = db(query).select().first()
+        if not creator:
+            raise SyntaxError('No creator with email: {e}'.format(e=email))
+
+        query = (db.book.release_date != None) & \
+                (db.book.creator_id == creator.id) & \
+                (db.book_page.page_no == 1)
+        rows = db(query).select(
+            db.book_page.image,
+            left=[
+                db.book.on(db.book_page.book_id == db.book.id),
+            ],
+            limitby=(0, 1),
+        )
+        if not rows:
+            cls.fail('Unable to get image to test with.')
+        cls._test_image = rows[0]['image']
+
+        upload_img = UploadImage(db.book_page.image, cls._test_image)
+        fullname = upload_img.fullname(size='web')
+        cls._test_image_bytes = ImageDescriptor(fullname).size_bytes()
+
+
 class TestConstants(LocalTestCase):
     def test_constants(self):
         self.assertEqual(POST_IN_PROGRESS, '__in_progress__')
@@ -78,33 +118,16 @@ class TestAuthenticator(LocalTestCase):
             self.fail('TwitterHTTPError not raised.')
 
 
-class TestPhotoDataPreparer(LocalTestCase):
+class TestPhotoDataPreparer(WithMediaTestCase):
 
     def test____init__(self):
         preparer = PhotoDataPreparer({})
         self.assertTrue(preparer)
 
     def test__data(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
-        # Use an existing image to test with.
-        query = (db.book.release_date != None) & \
-                (db.book_page.page_no == 1)
-        rows = db(query).select(
-            db.book_page.image,
-            left=[
-                db.book.on(db.book_page.book_id == db.book.id),
-            ],
-            limitby=(0, 1),
-        )
-        if not rows:
-            self.fail('Unable to get image to test with.')
-        test_image = rows[0]['image']
-
         data = {
             'book': {
-                'cover_image_name': test_image,
+                'cover_image_name': self._test_image,
                 'formatted_name_no_year': 'My Book 001',
                 'short_url': 'http://101.zco.mx/MyBook-001',
             },
@@ -121,38 +144,23 @@ class TestPhotoDataPreparer(LocalTestCase):
         preparer = PhotoDataPreparer(data)
         got = preparer.data()
         self.assertEqual(sorted(got.keys()), ['media[]', 'status'])
-        # The media[] is binary so difficult to test.
-        self.assertTrue(len(got['media[]']) > 1000)
+        self.assertEqual(len(got['media[]']), self._test_image_bytes)
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         self.assertEqual(
             got['status'],
             'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx #comics #FirstLast'
         )
 
     def test__media(self):
-        # Use an existing image to test with.
-        query = (db.book.release_date != None) & \
-                (db.book_page.page_no == 1)
-        rows = db(query).select(
-            db.book_page.image,
-            left=[
-                db.book.on(db.book_page.book_id == db.book.id),
-            ],
-            limitby=(0, 1),
-        )
-        if not rows:
-            self.fail('Unable to get image to test with.')
-        test_image = rows[0]['image']
-
         data = {
             'book': {
-                'cover_image_name': test_image,
+                'cover_image_name': self._test_image,
             },
         }
         preparer = PhotoDataPreparer(data)
         got = preparer.media()
-
-        # The media[] is binary so difficult to test.
-        self.assertTrue(len(got) > 1000)
+        self.assertEqual(len(got), self._test_image_bytes)
 
     def test__status(self):
         data = {

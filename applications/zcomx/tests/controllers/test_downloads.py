@@ -33,30 +33,29 @@ class TestFunctions(LocalTestCase):
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
+    def setUp(self):
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
         # Get a book from a creator with a paypal_email.
         email = web.username
-        cls._creator = db(db.creator.email == email).select().first()
-        if not cls._creator:
+        self._creator = db(db.creator.email == email).select().first()
+        if not self._creator:
             raise SyntaxError('Unable to get creator.')
 
-        cls._book = db(db.book.creator_id == cls._creator.id).select(
+        self._book = db(db.book.creator_id == self._creator.id).select(
             db.book.ALL,
             orderby=db.book.id,
         ).first()
 
-        if not cls._book:
+        if not self._book:
             raise SyntaxError('Unable to get book.')
 
         max_book_id = db.book.id.max()
         rows = db().select(max_book_id)
         if rows:
-            cls._invalid_book_id = rows[0][max_book_id] + 1
+            self._invalid_book_id = rows[0][max_book_id] + 1
         else:
-            cls._invalid_book_id = 1
+            self._invalid_book_id = 1
 
     def test__download_click_handler(self):
         # Prevent 'Changed session ID' warnings.

@@ -24,6 +24,9 @@ from applications.zcomx.modules.book_upload import \
     UploadedUnsupported, \
     classify_uploaded_file, \
     create_book_page
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    WithTestDataDirTestCase
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 
@@ -32,55 +35,7 @@ from applications.zcomx.modules.utils import entity_to_row
 # pylint: disable=C0111,R0904
 
 
-class BaseTestCase(LocalTestCase):
-    _test_data_dir = None
-    _image_dir = '/tmp/test_book_upload'
-
-    @classmethod
-    def _prep_image(cls, img, working_directory=None, to_name=None):
-        """Prepare an image for testing.
-        Copy an image from private/test/data to a working directory.
-
-        Args:
-            img: string, name of source image, eg file.jpg
-                must be in cls._test_data_dir
-            working_directory: string, path of working directory to copy to.
-                If None, uses cls._image_dir
-            to_name: string, optional, name of image to copy file to.
-                If None, img is used.
-        """
-        src_filename = os.path.join(
-            os.path.abspath(cls._test_data_dir),
-            img
-        )
-
-        if working_directory is None:
-            working_directory = os.path.abspath(cls._image_dir)
-
-        if to_name is None:
-            to_name = img
-
-        filename = os.path.join(working_directory, to_name)
-        shutil.copy(src_filename, filename)
-        return filename
-
-    @classmethod
-    def setUp(cls):
-        # C0103 (invalid-name): *Invalid name "%%s" for type %%s
-        # pylint: disable=C0103
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
-        if not os.path.exists(cls._image_dir):
-            os.makedirs(cls._image_dir)
-
-    @classmethod
-    def tearDown(cls):
-        # C0103 (invalid-name): *Invalid name "%%s" for type %%s
-        # pylint: disable=C0103
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
-
-
-class TestBookPageUploader(BaseTestCase):
+class TestBookPageUploader(ImageTestCase):
 
     def test____init__(self):
         sample_file = os.path.join(self._test_data_dir, 'file.jpg')
@@ -134,7 +89,7 @@ class TestFileTypeError(LocalTestCase):
             self.fail('FileTypeError not raised')
 
 
-class TestFileTyper(BaseTestCase):
+class TestFileTyper(WithTestDataDirTestCase):
 
     def test____init__(self):
         filename = os.path.join(self._test_data_dir, 'sampler.cbz')
@@ -144,7 +99,7 @@ class TestFileTyper(BaseTestCase):
     def test__type(self):
 
         tests = [
-            #(filename, expect)
+            # (filename, expect)
             ('file.jpg', 'image'),
             ('file.png', 'image'),
             ('sampler.cbr', 'rar'),
@@ -171,7 +126,7 @@ class TestUnpackError(LocalTestCase):
             self.fail('UnpackError not raised')
 
 
-class TestUnpacker(BaseTestCase):
+class TestUnpacker(WithTestDataDirTestCase):
 
     def test____init__(self):
         filename = os.path.join(self._test_data_dir, 'sampler.cbz')
@@ -202,7 +157,7 @@ class TestUnpacker(BaseTestCase):
         unpacker.cleanup()
 
 
-class TestUnpackerRAR(BaseTestCase):
+class TestUnpackerRAR(WithTestDataDirTestCase):
     def test____init__(self):
         filename = os.path.join(self._test_data_dir, 'sampler.cbr')
         unpacker = UnpackerRAR(filename)
@@ -227,7 +182,7 @@ class TestUnpackerRAR(BaseTestCase):
         unpacker.cleanup()
 
 
-class TestUnpackerZip(BaseTestCase):
+class TestUnpackerZip(WithTestDataDirTestCase):
     def test____init__(self):
         filename = os.path.join(self._test_data_dir, 'sampler.cbz')
         unpacker = UnpackerZip(filename)
@@ -242,7 +197,7 @@ class TestUnpackerZip(BaseTestCase):
         unpacker.cleanup()
 
 
-class TestUploadedFile(BaseTestCase):
+class TestUploadedFile(ImageTestCase):
     def test____init__(self):
         filename = os.path.join(self._test_data_dir, 'file.jpg')
         uploaded = UploadedFile(filename)
@@ -292,7 +247,7 @@ class TestUploadedFile(BaseTestCase):
         self.assertRaises(NotImplementedError, uploaded.unpack)
 
 
-class TestUploadedArchive(BaseTestCase):
+class TestUploadedArchive(WithTestDataDirTestCase):
 
     def test____init__(self):
         filename = os.path.join(self._test_data_dir, 'sampler.cbr')
@@ -317,7 +272,7 @@ class TestUploadedArchive(BaseTestCase):
         uploaded.unpacker.cleanup()
 
 
-class TestUploadedImage(BaseTestCase):
+class TestUploadedImage(ImageTestCase):
 
     def test____init__(self):
         filename = self._prep_image('file.jpg')
@@ -350,7 +305,7 @@ class TestUploadedImage(BaseTestCase):
         self.assertEqual(len(uploaded.image_filenames), 1)
 
 
-class TestUploadedUnsupported(BaseTestCase):
+class TestUploadedUnsupported(ImageTestCase):
 
     def test____init__(self):
         filename = self._prep_image('file.jpg')
@@ -384,16 +339,20 @@ class TestUploadedUnsupported(BaseTestCase):
         uploaded.unpack()
 
 
-class TestFunctions(BaseTestCase):
+class TestFunctions(ImageTestCase):
 
     def test__classify_uploaded_file(self):
         tests = [
-            #(filename, expect, unpacker, errors)
+            # (filename, expect, unpacker, errors)
             ('file.jpg', UploadedImage, None, []),
             ('sampler.cbz', UploadedArchive, UnpackerZip, []),
             ('sampler.cbr', UploadedArchive, UnpackerRAR, []),
-            ('sampler.text', UploadedUnsupported, None,
-                ['Unsupported file type.']),
+            (
+                'sampler.text',
+                UploadedUnsupported,
+                None,
+                ['Unsupported file type.']
+            ),
         ]
         for t in tests:
             sample_file = os.path.join(self._test_data_dir, t[0])

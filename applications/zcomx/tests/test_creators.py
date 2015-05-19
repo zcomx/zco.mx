@@ -7,7 +7,6 @@ Test suite for zcomx/modules/creators.py
 
 """
 import os
-import shutil
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
@@ -34,6 +33,9 @@ from applications.zcomx.modules.creators import \
     tumblr_data, \
     url
 from applications.zcomx.modules.images import store
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     NotFoundError, \
@@ -44,63 +46,7 @@ from applications.zcomx.modules.utils import \
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
-    _image_dir = '/tmp/image_for_creators'
-    _image_original = os.path.join(_image_dir, 'original')
-    _test_data_dir = None
-    _uploadfolders = {}
-
-    @classmethod
-    def _prep_image(cls, img, working_directory=None, to_name=None):
-        """Prepare an image for testing.
-        Copy an image from private/test/data to a working directory.
-
-        Args:
-            img: string, name of source image, eg file.jpg
-                must be in cls._test_data_dir
-            working_directory: string, path of working directory to copy to.
-                If None, uses cls._image_dir
-            to_name: string, optional, name of image to copy file to.
-                If None, img is used.
-        """
-        src_filename = os.path.join(
-            os.path.abspath(cls._test_data_dir),
-            img
-        )
-
-        if working_directory is None:
-            working_directory = os.path.abspath(cls._image_dir)
-
-        if to_name is None:
-            to_name = img
-
-        filename = os.path.join(working_directory, to_name)
-        shutil.copy(src_filename, filename)
-        return filename
-
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
-    @classmethod
-    def setUpClass(cls):
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
-
-        if not os.path.exists(cls._image_original):
-            os.makedirs(cls._image_original)
-
-        # Store images in tmp directory
-        for field in db.creator.fields:
-            if db.creator[field].type == 'upload':
-                cls._uploadfolders[field] = db.creator[field].uploadfolder
-                db.creator[field].uploadfolder = cls._image_original
-
-    @classmethod
-    def tearDownClass(cls):
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
-
-        for field in db.creator.fields:
-            if db.creator[field].type == 'upload':
-                db.creator[field].uploadfolder = cls._uploadfolders[field]
+class TestFunctions(ImageTestCase):
 
     def test__add_creator(self):
         email = 'test__add_creator@example.com'
@@ -412,10 +358,6 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__image_as_json(self):
-        db.creator.image.uploadfolder = self._uploadfolders['image']
-        db.creator.indicia_image.uploadfolder = \
-            self._uploadfolders['indicia_image']
-
         email = web.username
         user = db(db.auth_user.email == email).select().first()
         if not user:
@@ -436,6 +378,7 @@ class TestFunctions(LocalTestCase):
                 stored_filename = store(
                     db.creator[field],
                     self._prep_image('file.jpg'),
+                    resizer=ResizerQuick,
                 )
                 data = {field: stored_filename}
                 creator.update_record(**data)
@@ -494,9 +437,6 @@ class TestFunctions(LocalTestCase):
             expect.delete_url = '/login/creator_img_handler/indicia_image'
 
             do_test(loads(image_json), expect)
-
-        db.creator.image.uploadfolder = self._image_original
-        db.creator.indicia_image.uploadfolder = self._image_original
 
     def test__images(self):
         creator = self.add(db.creator, dict(

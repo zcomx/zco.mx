@@ -6,15 +6,11 @@
 Test suite for zcomx/modules/images.py
 
 """
-import glob
 import grp
-import hashlib
 import inspect
 import os
 import pwd
 import re
-import shutil
-import subprocess
 import unittest
 from BeautifulSoup import BeautifulSoup
 from PIL import Image
@@ -37,11 +33,13 @@ from applications.zcomx.modules.images import \
     optimize, \
     scrub_extension_for_store, \
     store
+from applications.zcomx.modules.tests.helpers import \
+    FileTestCase, \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase
-from applications.zcomx.modules.shell_utils import \
-    imagemagick_version, \
-    TempDirectoryMixin
+from applications.zcomx.modules.shell_utils import imagemagick_version
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -50,218 +48,34 @@ from applications.zcomx.modules.shell_utils import \
 # pylint: disable=W0212
 
 
-class ResizerForTesting(TempDirectoryMixin):
-    """Class representing resizer for testing.
-
-    The file sizes are just copied from test data. <size>.jpg
-    """
-
-    def __init__(self, filename):
-        """Constructor
-
-        Args:
-            filename: string, name of original image file
-        """
-        self.filename = filename
-        self.filenames = {'ori': None, 'cbz': None, 'web': None}
-
-    def run(self, nice=False):
-        """Run the shell script and get the output.
-
-        Args:
-            nice: If True, run resize script with nice.
-        """
-        # Keep this simple and fast.
-        test_data_dir = os.path.join(request.folder, 'private/test/data/')
-        os.nice(nice and 10 or 0)
-        for k in self.filenames.keys():
-            if k == 'ori':
-                src = self.filename
-            else:
-                src = os.path.join(test_data_dir, '{k}.jpg'.format(k=k))
-            dst = os.path.join(
-                self.temp_directory(), '{k}-test.jpg'.format(k=k))
-            shutil.copy(src, dst)
-
-        for prefix in self.filenames.keys():
-            path = os.path.join(
-                self.temp_directory(),
-                '{pfx}-*'.format(pfx=prefix)
-            )
-            matches = glob.glob(path)
-            if matches:
-                self.filenames[prefix] = matches[0]
-
-
-class ResizerUseOri(TempDirectoryMixin):
-    """Class representing resizer for testing.
-
-    The file sizes are just duplicates of the original file.
-    """
-
-    def __init__(self, filename):
-        """Constructor
-
-        Args:
-            filename: string, name of original image file
-        """
-        self.filename = filename
-        self.filenames = {'ori': None, 'cbz': None, 'web': None}
-
-    def run(self, nice=False):
-        """Run the shell script and get the output.
-
-        Args:
-            nice: If True, run resize script with nice.
-        """
-        # Keep this simple and fast.
-        # Copy files from test data. <size>.jpg
-        os.nice(nice and 10 or 0)
-        for k in self.filenames.keys():
-            src = self.filename
-            dst = os.path.join(
-                self.temp_directory(), '{k}-test.jpg'.format(k=k))
-            shutil.copy(src, dst)
-
-        for prefix in self.filenames.keys():
-            path = os.path.join(
-                self.temp_directory(),
-                '{pfx}-*'.format(pfx=prefix)
-            )
-            matches = glob.glob(path)
-            if matches:
-                self.filenames[prefix] = matches[0]
-
-
-class ImageTestCase(LocalTestCase):
-    """ Base class for Image test cases. Sets up test data."""
+class WithObjectsTestCase(LocalTestCase):
+    """ Base class for test cases. Sets up test data."""
 
     _auth_user = None
     _creator = None
-    _image_dir = '/tmp/image_resizer'
-    _image_original = os.path.join(_image_dir, 'original')
-    _image_name = 'file.jpg'
-    _test_data_dir = None
     _uuid_key = None
-
-    _objects = []
-
-    @classmethod
-    def _md5sum(cls, file_obj):
-        """Return md5sum of a file.
-
-        Args:
-            file_obj: file or file like object.
-        """
-        file_to_hash = file_obj
-        if isinstance(file_obj, str) and file_obj.endswith('.png'):
-            # Remove the date metadata from png files as this will
-            # be unique everytime the file is converted.
-            outfile = file_obj + '.tmp'
-
-            # convert infile.png +set date:modify +set date:create outfile.png
-            args = [
-                'convert',
-                file_obj,
-                '+set',
-                'date:modify',
-                '+set',
-                'date:create',
-                outfile
-            ]
-            p = subprocess.Popen(
-                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p_stdout, p_stderr = p.communicate()
-            if p_stdout:
-                print 'FIXME p_stdout: {var}'.format(var=p_stdout)
-            if p_stderr:
-                print 'FIXME p_stderr: {var}'.format(var=p_stderr)
-            file_to_hash = outfile
-
-        return hashlib.md5(open(file_to_hash, 'rb').read()).hexdigest()
-
-    @classmethod
-    def _prep_image(cls, img, working_directory=None, to_name=None):
-        """Prepare an image for testing.
-        Copy an image from private/test/data to a working directory.
-
-        Args:
-            img: string, name of source image, eg file.jpg
-                must be in cls._test_data_dir
-            working_directory: string, path of working directory to copy to.
-                If None, uses cls._image_dir
-            to_name: string, optional, name of image to copy file to.
-                If None, img is used.
-        """
-        src_filename = os.path.join(
-            os.path.abspath(cls._test_data_dir),
-            img
-        )
-
-        if working_directory is None:
-            working_directory = os.path.abspath(cls._image_dir)
-
-        if to_name is None:
-            to_name = img
-
-        filename = os.path.join(working_directory, to_name)
-        shutil.copy(src_filename, filename)
-        return filename
-
-    @classmethod
-    def _set_image(cls, field, record, img):
-        """Set the image for a record field.
-
-        Args:
-            field: gluon.dal.Field instance
-            record: Row instance.
-            img: string, path/to/name of image.
-        """
-        # Delete images if record field is set.
-        if record[field.name]:
-            up_image = UploadImage(field, record[field.name])
-            up_image.delete_all()
-        stored_filename = store(field, img)
-        data = {field.name: stored_filename}
-        record.update_record(**data)
-        db.commit()
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
-
-        if not os.path.exists(cls._image_original):
-            os.makedirs(cls._image_original)
-
-        src_filename = os.path.join(cls._test_data_dir, 'tbn_plus.jpg')
-        image_filename = os.path.join(cls._image_dir, cls._image_name)
-        shutil.copy(src_filename, image_filename)
-
-        # Store the image in the uploads/original directory
-        stored_filename = store(db.creator.image, image_filename)
-
+    def setUp(self):
         # Create a creator and set the image
         email = 'up_image@example.com'
-        cls._auth_user = cls.add(db.auth_user, dict(
+        self._auth_user = self.add(db.auth_user, dict(
             name='Image UploadImage',
             email=email,
         ))
 
-        cls._creator = cls.add(db.creator, dict(
-            auth_user_id=cls._auth_user.id,
+        self._creator = self.add(db.creator, dict(
+            auth_user_id=self._auth_user.id,
             email=email,
-            image=stored_filename,
         ))
+        super(WithObjectsTestCase, self).setUp()
 
-    @classmethod
-    def tearDown(cls):
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
-        if cls._creator.image:
-            up_image = UploadImage(db.creator.image, cls._creator.image)
+    def tearDown(self):
+        if self._creator.image:
+            up_image = UploadImage(db.creator.image, self._creator.image)
             up_image.delete_all()
+        super(WithObjectsTestCase, self).tearDown()
 
 
 class TestCachedImgTag(LocalTestCase):
@@ -280,7 +94,7 @@ class TestCachedImgTag(LocalTestCase):
         )
 
 
-class TestCreatorImgTag(ImageTestCase):
+class TestCreatorImgTag(WithObjectsTestCase):
 
     def test_parent__init__(self):
         img_tag = CreatorImgTag('')
@@ -318,7 +132,7 @@ class TestCreatorImgTag(ImageTestCase):
             {'_class': 'img_class preview placeholder_torso', '_id': 'img_id'})
 
 
-class TestImageDescriptor(ImageTestCase):
+class TestImageDescriptor(WithObjectsTestCase, ImageTestCase):
 
     def test____init__(self):
         descriptor = ImageDescriptor('/path/to/file')
@@ -402,7 +216,7 @@ class TestImageOptimizeError(LocalTestCase):
             self.fail('ImageOptimizeError not raised')
 
 
-class TestImgTag(ImageTestCase):
+class TestImgTag(WithObjectsTestCase, ImageTestCase):
 
     def test____init__(self):
         img_tag = ImgTag('')
@@ -421,6 +235,13 @@ class TestImgTag(ImageTestCase):
         self.assertEqual(img_tag.size, 'original')
 
     def test____call__(self):
+        filename = self._prep_image(self._image_name)
+        self._set_image(
+            db.creator.image,
+            self._creator,
+            filename,
+            resizer=ResizerQuick
+        )
 
         def get_tag(tag, tag_type):
             soup = BeautifulSoup(str(tag))
@@ -514,7 +335,7 @@ class TestImgTag(ImageTestCase):
         self.assertEqual(img_tag.url_vars(), {'size': '_fake_'})
 
 
-class TestResizeImg(ImageTestCase):
+class TestResizeImg(ImageTestCase, WithObjectsTestCase, FileTestCase):
 
     def test____init__(self):
         filename = os.path.join(self._test_data_dir, 'file.jpg')
@@ -591,75 +412,44 @@ class TestResizeImg(ImageTestCase):
         md5s = {
             '6.7.0-8': {
                 'cbz-256+colour.jpg': '0e11a2cf49d1c1c4166969f463744bc2',
-                'cbz-256colour-gif.png': 'f2f7d46dc03973e4d101c81edcb40d28',
                 'cbz-256colour-jpg.jpg': '1bf61782de787ba0e4982f87a6617d3e',
-                'cbz-256colour-png.png': '003b83e169361b3bf8acc9f625fac93c',
                 'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
-                'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
-                'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
-                'web-256colour-gif.png': '5467c6943af05ced624f04c60ebe7c2c',
                 'web-256colour-jpg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
-                'web-256colour-png.png': '9842a943933ae8ad642bb17b9bdbbd47',
             },
             '6.8.8-7': {
                 'cbz-256+colour.jpg': '0e11a2cf49d1c1c4166969f463744bc2',
-                'cbz-256colour-gif.png': 'f60e388aa3cf74f81a436b5bdae610cb',
                 'cbz-256colour-jpg.jpg': '1bf61782de787ba0e4982f87a6617d3e',
-                'cbz-256colour-png.png': '9b2e81c0cf9e27f591d9bd24310fbece',
                 'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
-                'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
-                'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
-                'web-256colour-gif.png': 'babcef0095c0082c7b9ffbea2b4bc89c',
                 'web-256colour-jpg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
-                'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
             },
             '6.9.0-0': {
                 'cbz-256+colour.jpg': '0e11a2cf49d1c1c4166969f463744bc2',
-                'cbz-256colour-gif.png': 'a98552ba461b7a71e4afbc99d6f7fa81',
-                'cbz-256colour-jpeg.jpg': '1bf61782de787ba0e4982f87a6617d3e',
                 'cbz-256colour-jpg.jpg': 'e248e32cc276d7e7ec02de22ad98e702',
-                'cbz-256colour-png.png': '9b2e81c0cf9e27f591d9bd24310fbece',
                 'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
-                'ori-256colour-gif.gif': 'e5be67271b109de2d8b0cb8a7e7643cf',
-                'ori-256colour-gif.png': '6c91f0802c68b9f4699d51688db530c5',
-                'ori-256colour-jpeg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
-                # 'ori-256colour-png.png': 'f6fed54a1715af0551bdef77f7bc7ff6',
-                'ori-256colour-png.png': '68d8435b225949d36b428b380dd493ac',
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
-                # 'web-256colour-gif.png': '9951bff8ec37124ac7989e0fc465880e',
-                'web-256colour-gif.png': 'bc300c3181e8a99e6d7562bc99beead0',
-                'web-256colour-jpeg.jpg': '9fe865e5a7ba404e4221779e1cdce336',
                 'web-256colour-jpg.jpg': 'd4643040166b53463d04947677b72c74',
-                # 'web-256colour-png.png': '436c4a952f333d61cdd8a8f61b6538ad',
-                'web-256colour-png.png': '629453bf2ff2c60119c87e74cc8a1b21',
             },
         }
 
-        imgs = [
-            '256colour-jpg.jpg',
-            '256colour-jpeg.jpeg',
-            '256colour-png.png',
-            '256colour-gif.gif',
-        ]
+        # Test 256 colour jpg.
+        # JPG images need special consideration regarding color conversions.
+        # After conversion image should have no more than 256, and possibly
+        # a few less. If a lot less, could be a sign of a problem.
 
-        for img in imgs:
-            dest = img.replace('.gif', '.png').replace('.jpeg', '.jpg')
-            fmt = '{{typ}}-{dest}'.format(dest=dest)
-            test_it(
-                img,
-                {
-                    fmt: ['ori', 'cbz', 'web'],
-                },
-                md5s=md5s[imagemagick_ver],
-                # The number of colours may be reduced for png files. The
-                # exact value is not critical, as long as it is 256 or less.
-                colors=[255, 256],
-            )
+        #
+        test_it(
+            '256colour-jpg.jpg',
+            {
+                '{typ}-256colour-jpg.jpg': ['ori', 'cbz', 'web'],
+            },
+            md5s=md5s[imagemagick_ver],
+            colors=[256 - x for x in range(0, 2)]
+        )
 
         # Test: more than 256 colours
         test_it(
@@ -672,9 +462,9 @@ class TestResizeImg(ImageTestCase):
 
         # Test: standard jpg
         test_it(
-            'cbz_plus.jpg',
+            'file.jpg',
             {
-                '{typ}-cbz_plus.jpg': ['ori', 'cbz', 'web'],
+                '{typ}-file.jpg': ['ori', 'web'],
             }
         )
 
@@ -684,6 +474,14 @@ class TestResizeImg(ImageTestCase):
             {
                 # Image is not big enough to produce a cbz file.
                 '{typ}-image_with_no_ext.jpg': ['ori', 'web'],
+            }
+        )
+
+        # Test: jpeg extension
+        test_it(
+            'file.jpeg',
+            {
+                '{typ}-file.jpg': ['ori', 'web'],
             }
         )
 
@@ -727,7 +525,7 @@ class TestResizeImg(ImageTestCase):
         # The resize should handle files whose original names have formats
         # similar to those of the temporary files created by the resize
         # script.
-        for dest in ['ori-file.png', 'web-file.png', 'tbn-file.png']:
+        for dest in ['ori-file.png', 'web-file.png']:
             fmt = '{{typ}}-{dest}'.format(dest=dest)
             test_it(
                 'file.png',
@@ -788,7 +586,7 @@ class TestResizeImg(ImageTestCase):
             self.fail('ResizeImgError not raised.')
 
 
-class TestResizeImgIndicia(ImageTestCase):
+class TestResizeImgIndicia(WithObjectsTestCase, ImageTestCase, FileTestCase):
 
     def test____init__(self):
         filename = os.path.join(self._test_data_dir, 'file.jpg')
@@ -827,7 +625,7 @@ class TestResizeImgIndicia(ImageTestCase):
         )
 
 
-class TestUploadImage(ImageTestCase):
+class TestUploadImage(WithObjectsTestCase, ImageTestCase):
 
     def _exist(self, have=None, have_not=None):
         """Test if image files exist"""
@@ -847,6 +645,13 @@ class TestUploadImage(ImageTestCase):
                 original_fullname, size)))
 
     def test____init__(self):
+        filename = self._prep_image(self._image_name)
+        self._set_image(
+            db.creator.image,
+            self._creator,
+            filename,
+            resizer=ResizerQuick
+        )
         up_image = UploadImage(db.creator.image, self._image_name)
         self.assertTrue(up_image)
         file_name, unused_fullname = db.creator.image.retrieve(
@@ -861,7 +666,8 @@ class TestUploadImage(ImageTestCase):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
+        self._set_image(
+            db.creator.image, self._creator, filename, resizer=ResizerQuick)
 
         up_image = UploadImage(db.creator.image, self._creator.image)
 
@@ -878,7 +684,8 @@ class TestUploadImage(ImageTestCase):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
+        self._set_image(
+            db.creator.image, self._creator, filename, resizer=ResizerQuick)
 
         up_image = UploadImage(db.creator.image, self._creator.image)
 
@@ -892,14 +699,18 @@ class TestUploadImage(ImageTestCase):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
+        self._set_image(
+            db.creator.image, self._creator, filename, resizer=ResizerQuick)
         uuid_key = self._creator.image.split('.')[2][:2]
 
         up_image = UploadImage(db.creator.image, self._creator.image)
-        fmt = 'applications/zcomx/uploads/{s}/creator.image/{u}/{i}'
+        original_folder = db.creator.image.uploadfolder
+        parent_folder = os.path.dirname(original_folder)
+        fmt = '{p}/{s}/creator.image/{u}/{i}'
         self.assertEqual(
             up_image.fullname(),
             fmt.format(
+                p=parent_folder,
                 s='original',
                 u=uuid_key,
                 i=self._creator.image,
@@ -908,6 +719,7 @@ class TestUploadImage(ImageTestCase):
         self.assertEqual(
             up_image.fullname(size='web'),
             fmt.format(
+                p=parent_folder,
                 s='web',
                 u=uuid_key,
                 i=self._creator.image,
@@ -916,6 +728,7 @@ class TestUploadImage(ImageTestCase):
         self.assertEqual(
             up_image.fullname(size='_fake_'),
             fmt.format(
+                p=parent_folder,
                 s='_fake_',
                 u=uuid_key,
                 i=self._creator.image,
@@ -926,7 +739,8 @@ class TestUploadImage(ImageTestCase):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='abc.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
+        self._set_image(
+            db.creator.image, self._creator, filename, resizer=ResizerQuick)
 
         up_image = UploadImage(db.creator.image, self._creator.image)
         self.assertEqual(up_image.original_name(), 'abc.jpg')
@@ -935,16 +749,18 @@ class TestUploadImage(ImageTestCase):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
-        self._set_image(db.creator.image, self._creator, filename)
+        self._set_image(
+            db.creator.image, self._creator, filename, resizer=ResizerQuick)
         uuid_key = self._creator.image.split('.')[2][:2]
 
         up_image = UploadImage(db.creator.image, self._creator.image)
-        fmt = 'applications/zcomx/uploads/original/creator.image/{u}/{i}'
+        up_folder = db.creator.image.uploadfolder
+        fmt = '{f}/creator.image/{u}/{i}'
         self.assertEqual(
             up_image.retrieve(),
             (
                 'file.jpg',
-                fmt.format(u=uuid_key, i=self._creator.image)
+                fmt.format(f=up_folder, u=uuid_key, i=self._creator.image)
             )
         )
 
@@ -954,7 +770,7 @@ class TestUploadImage(ImageTestCase):
         self.assertEqual(up_image.retrieve(), ('_original_', '_full_'))
 
 
-class TestFunctions(ImageTestCase):
+class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__filename_for_size(self):
         tests = [
@@ -1078,7 +894,7 @@ class TestFunctions(ImageTestCase):
 
         # Prove original filename is preserved.
         working_image = self._prep_image('image_with_no_ext')
-        got = store(db.book_page.image, working_image)
+        got = store(db.book_page.image, working_image, resizer=ResizerQuick)
         original_filename, _ = db.book_page.image.retrieve(got, nameonly=True)
         self.assertEqual(original_filename, 'image_with_no_ext')
         up_image = UploadImage(db.book_page.image, got)
@@ -1102,8 +918,7 @@ class TestFunctions(ImageTestCase):
 
         # Test resizer param
         working_image = self._prep_image('cbz_plus.jpg')
-        got = store(
-            db.book_page.image, working_image, resizer=ResizerForTesting)
+        got = store(db.book_page.image, working_image, resizer=ResizerQuick)
         self.assertTrue(re_store.match(got))
 
 

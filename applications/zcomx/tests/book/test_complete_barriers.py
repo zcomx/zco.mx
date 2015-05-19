@@ -11,7 +11,6 @@ import os
 import datetime
 import shutil
 import unittest
-from PIL import Image
 from gluon import *
 from applications.zcomx.modules.book.complete_barriers import \
     AllRightsReservedBarrier, \
@@ -29,7 +28,11 @@ from applications.zcomx.modules.book.complete_barriers import \
     complete_barriers, \
     has_complete_barriers
 from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.indicias import cc_licence_by_code
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -37,89 +40,15 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class ImageTestCase(LocalTestCase):
-    """ Base class for Image test cases. Sets up test data."""
-
-    _image_dir = '/tmp/image_for_books'
-    _image_name = 'file.jpg'
-    _image_name_2 = 'file_2.jpg'
-    _image_original = os.path.join(_image_dir, 'original')
-    _test_data_dir = None
-    _type_id_by_name = {}
-
-    _objects = []
-
-    @classmethod
-    def _create_cbz(cls, book_page):
-        # Quick and dirty method for created a cbz size. Just copy the original
-        upload_img = BookPage(book_page).upload_image()
-        original = upload_img.fullname(size='original')
-        cbz = upload_img.fullname(size='cbz')
-        shutil.copy(original, cbz)
-
-    @classmethod
-    def _create_image(cls, image_name, dimensions=None):
-        image_filename = os.path.join(cls._image_dir, image_name)
-        if not dimensions:
-            dimensions = (1200, 1200)
-
-        # Create an image to test with.
-        im = Image.new('RGB', dimensions)
-        with open(image_filename, 'wb') as f:
-            im.save(f)
-        return image_filename
-
-    @classmethod
-    def _store_image(cls, field, image_filename):
-        stored_filename = None
-        with open(image_filename, 'rb') as f:
-            stored_filename = field.store(f)
-        return stored_filename
-
-    @classmethod
-    def _prep_image(cls, img, working_directory=None, to_name=None):
-        """Prepare an image for testing.
-        Copy an image from private/test/data to a working directory.
-
-        Args:
-            img: string, name of source image, eg file.jpg
-                must be in cls._test_data_dir
-            working_directory: string, path of working directory to copy to.
-                If None, uses cls._image_dir
-            to_name: string, optional, name of image to copy file to.
-                If None, img is used.
-        """
-        src_filename = os.path.join(
-            os.path.abspath(cls._test_data_dir),
-            img
-        )
-
-        if working_directory is None:
-            working_directory = os.path.abspath(cls._image_dir)
-
-        if to_name is None:
-            to_name = img
-
-        filename = os.path.join(working_directory, to_name)
-        shutil.copy(src_filename, filename)
-        return filename
-
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
-
-        if not os.path.exists(cls._image_original):
-            os.makedirs(cls._image_original)
-
-        for t in db(db.book_type).select():
-            cls._type_id_by_name[t.name] = t.id
-
-    @classmethod
-    def tearDown(cls):
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
+def _create_cbz(book_page):
+    # Quick and dirty method for created a cbz size. Just copy the original
+    upload_img = BookPage(book_page).upload_image()
+    original = upload_img.fullname(size='original')
+    cbz = upload_img.fullname(size='cbz')
+    cbz_dirname = os.path.dirname(cbz)
+    if not os.path.exists(cbz_dirname):
+        os.makedirs(cbz_dirname)
+    shutil.copy(original, cbz)
 
 
 class TestAllRightsReservedBarrier(LocalTestCase):
@@ -468,29 +397,35 @@ class TestNoCBZImageBarrier(ImageTestCase):
         landscape_page = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
-            image=self._store_image(
-                db.book_page.image,
-                self._create_image('landscape.png', (370, 170)),
-            )
         ))
+        self._set_image(
+            db.book_page.image,
+            landscape_page,
+            self._create_image('landscape.png', (370, 170)),
+            resizer=ResizerQuick
+        )
 
         portrait_page = self.add(db.book_page, dict(
             book_id=book.id,
-            page_no=1,
-            image=self._store_image(
-                db.book_page.image,
-                self._create_image('portrait.png', (140, 168)),
-            )
+            page_no=2,
         ))
+        self._set_image(
+            db.book_page.image,
+            portrait_page,
+            self._create_image('portrait.png', (140, 168)),
+            resizer=ResizerQuick
+        )
 
         square_page = self.add(db.book_page, dict(
             book_id=book.id,
-            page_no=1,
-            image=self._store_image(
-                db.book_page.image,
-                self._create_image('square.png', (200, 200)),
-            )
+            page_no=3,
         ))
+        self._set_image(
+            db.book_page.image,
+            square_page,
+            self._create_image('square.png', (200, 200)),
+            resizer=ResizerQuick
+        )
 
         barrier = NoCBZImageBarrier(book)
         self.assertEqual(barrier._no_cbz_images, None)
@@ -513,7 +448,7 @@ class TestNoCBZImageBarrier(ImageTestCase):
 
         # One images has cbz size, others should be in violation
         barrier._no_cbz_images = None       # clear cache
-        self._create_cbz(landscape_page)
+        _create_cbz(landscape_page)
         self.assertTrue(has_size(landscape_page, 'cbz'))
         self.assertFalse(has_size(portrait_page, 'cbz'))
         self.assertFalse(has_size(square_page, 'cbz'))
@@ -528,8 +463,8 @@ class TestNoCBZImageBarrier(ImageTestCase):
 
         # All images have cbz size, none should be in violation
         barrier._no_cbz_images = None       # clear cache
-        self._create_cbz(portrait_page)
-        self._create_cbz(square_page)
+        _create_cbz(portrait_page)
+        _create_cbz(square_page)
         self.assertTrue(has_size(landscape_page, 'cbz'))
         self.assertTrue(has_size(portrait_page, 'cbz'))
         self.assertTrue(has_size(square_page, 'cbz'))
@@ -712,20 +647,22 @@ class TestFunctions(ImageTestCase):
             name='test__complete_barriers',
             number=999,
             creator_id=creator.id,
-            book_type_id=self._type_id_by_name['ongoing'],
+            book_type_id=book_type_by_name('ongoing').id,
             cc_licence_id=cc0_id,
         ))
 
         book_page = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
-            image=self._store_image(
-                db.book_page.image,
-                self._create_image('file.jpg', (1600, 1600)),
-            ),
         ))
+        self._set_image(
+            db.book_page.image,
+            book_page,
+            self._create_image('file.jpg', (1600, 1600)),
+            resizer=ResizerQuick
+        )
 
-        self._create_cbz(book_page)
+        _create_cbz(book_page)
 
         self.add(db.publication_metadata, dict(
             book_id=book.id,
@@ -746,20 +683,22 @@ class TestFunctions(ImageTestCase):
             name='test__complete_barriers',
             number=999,
             creator_id=creator.id,
-            book_type_id=self._type_id_by_name['ongoing'],
+            book_type_id=book_type_by_name('ongoing').id,
             cc_licence_id=cc0_id,
         ))
 
         book_page = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=1,
-            image=self._store_image(
-                db.book_page.image,
-                self._create_image('file.jpg', (1600, 1600)),
-            ),
         ))
+        self._set_image(
+            db.book_page.image,
+            book_page,
+            self._create_image('file.jpg', (1600, 1600)),
+            resizer=ResizerQuick
+        )
 
-        self._create_cbz(book_page)
+        _create_cbz(book_page)
 
         self.add(db.publication_metadata, dict(
             book_id=book.id,

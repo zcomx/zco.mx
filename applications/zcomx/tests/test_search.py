@@ -1281,34 +1281,32 @@ class TestFunctions(LocalTestCase):
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        cls._auth_user = cls.add(db.auth_user, dict(
+    def setUp(self):
+        self._auth_user = self.add(db.auth_user, dict(
             name='First Last',
         ))
-        cls._creator = cls.add(db.creator, dict(
-            auth_user_id=cls._auth_user.id,
+        self._creator = self.add(db.creator, dict(
+            auth_user_id=self._auth_user.id,
             name_for_url='FirstLast',
         ))
         name = '_My Functions Book_'
         book_type_id = db(db.book_type).select().first().id
-        cls._book = cls.add(db.book, dict(
+        self._book = self.add(db.book, dict(
             name=name,
-            creator_id=cls._creator.id,
+            creator_id=self._creator.id,
             book_type_id=book_type_id,
             cbz='_fake_cbz_',
             torrent='_fake_torrent_',
             name_for_url='MyFunctionsBook',
         ))
 
-        cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self.add(db.book_page, dict(
+            book_id=self._book.id,
             page_no=1,
         ))
 
-    @classmethod
-    def _row(cls):
-        return db(db.book.id == cls._book.id).select(
+    def _row(self):
+        return db(db.book.id == self._book.id).select(
             db.book.ALL,
             db.creator.ALL,
             left=[db.creator.on(db.book.creator_id == db.creator.id)],

@@ -8,6 +8,7 @@ Test suite for zcomx/modules/social_media.py
 """
 import time
 import unittest
+from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.social_media import \
     SocialMedia, \
     FacebookSocialMedia, \
@@ -26,39 +27,35 @@ class BaseTestCase(LocalTestCase):
     _auth_user = None
     _book = None
     _creator = None
-    _type_id_by_name = {}
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        for t in db(db.book_type).select():
-            cls._type_id_by_name[t.name] = t.id
+    def setUp(self):
 
-        cls._auth_user = cls.add(db.auth_user, dict(
+        self._auth_user = self.add(db.auth_user, dict(
             name='First Last',
         ))
 
-        cls._creator = cls.add(db.creator, dict(
-            auth_user_id=cls._auth_user.id,
+        self._creator = self.add(db.creator, dict(
+            auth_user_id=self._auth_user.id,
             email='test_social_media@example.com',
         ))
 
-        cls._book = cls.add(db.book, dict(
+        self._book = self.add(db.book, dict(
             name='Test Social Media',
-            creator_id=cls._creator.id,
-            book_type_id=cls._type_id_by_name['one-shot'],
+            creator_id=self._creator.id,
+            book_type_id=book_type_by_name('one-shot').id,
             name_for_url='TestSocialMedia',
         ))
 
-        cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self.add(db.book_page, dict(
+            book_id=self._book.id,
             page_no=1,
             image='book_page.image.000.aaa.png',
         ))
 
-        cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self.add(db.book_page, dict(
+            book_id=self._book.id,
             page_no=2,
             image='book_page.image.001.aab.png',
         ))

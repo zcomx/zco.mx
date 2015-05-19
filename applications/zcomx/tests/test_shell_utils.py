@@ -112,12 +112,11 @@ class TestFunctions(LocalTestCase):
             cls._tmp_dir = os.path.join(
                 db._adapter.folder, '..', 'uploads', 'tmp')
 
-    @classmethod
-    def tearDown(cls):
-        if cls._tmp_backup and os.path.exists(cls._tmp_backup):
-            if os.path.exists(cls._tmp_dir):
-                shutil.rmtree(cls._tmp_dir)
-            os.rename(cls._tmp_backup, cls._tmp_dir)
+    def tearDown(self):
+        if self._tmp_backup and os.path.exists(self._tmp_backup):
+            if os.path.exists(self._tmp_dir):
+                shutil.rmtree(self._tmp_dir)
+            os.rename(self._tmp_backup, self._tmp_dir)
 
     def test__get_owner(self):
         pass        # test__set_owner tests this.

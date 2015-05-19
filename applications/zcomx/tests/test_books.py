@@ -8,15 +8,13 @@ Test suite for zcomx/modules/books.py
 """
 import ast
 import datetime
-import os
-import shutil
 import unittest
 import urlparse
 from BeautifulSoup import BeautifulSoup
-from PIL import Image
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
+from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.books import \
     BaseEvent, \
     BookEvent, \
@@ -73,6 +71,9 @@ from applications.zcomx.modules.books import \
     url
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.indicias import cc_licence_by_code
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
@@ -97,12 +98,11 @@ class EventTestCase(LocalTestCase):
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        cls._book = cls.add(db.book, dict(name='Event Test Case'))
+    def setUp(self):
+        self._book = self.add(db.book, dict(name='Event Test Case'))
         email = web.username
-        cls._user = db(db.auth_user.email == email).select().first()
-        if not cls._user:
+        self._user = db(db.auth_user.email == email).select().first()
+        if not self._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
     def _set_pages(self, db, book_id, num_of_pages):
@@ -345,137 +345,49 @@ class TestZcoContributionEvent(EventTestCase):
         event._post_log()
 
 
-class ImageTestCase(LocalTestCase):
+class WithObjectsTestCase(LocalTestCase):
     """ Base class for Image test cases. Sets up test data."""
 
     _book = None
     _book_page = None
+    _book_page_2 = None
     _creator = None
-    _image_dir = '/tmp/image_for_books'
-    _image_original = os.path.join(_image_dir, 'original')
-    _image_name = 'file.jpg'
-    _image_name_2 = 'file_2.jpg'
-    _test_data_dir = None
-    _type_id_by_name = {}
-    _uploadfolders = {}
-
-    _objects = []
-
-    @classmethod
-    def _create_image(cls, image_name, dimensions=None):
-        image_filename = os.path.join(cls._image_dir, image_name)
-        if not dimensions:
-            dimensions = (1200, 1200)
-
-        # Create an image to test with.
-        im = Image.new('RGB', dimensions)
-        with open(image_filename, 'wb') as f:
-            im.save(f)
-        return image_filename
-
-    @classmethod
-    def _store_image(cls, field, image_filename):
-        stored_filename = None
-        with open(image_filename, 'rb') as f:
-            stored_filename = field.store(f)
-        return stored_filename
-
-    @classmethod
-    def _prep_image(cls, img, working_directory=None, to_name=None):
-        """Prepare an image for testing.
-        Copy an image from private/test/data to a working directory.
-
-        Args:
-            img: string, name of source image, eg file.jpg
-                must be in cls._test_data_dir
-            working_directory: string, path of working directory to copy to.
-                If None, uses cls._image_dir
-            to_name: string, optional, name of image to copy file to.
-                If None, img is used.
-        """
-        src_filename = os.path.join(
-            os.path.abspath(cls._test_data_dir),
-            img
-        )
-
-        if working_directory is None:
-            working_directory = os.path.abspath(cls._image_dir)
-
-        if to_name is None:
-            to_name = img
-
-        filename = os.path.join(working_directory, to_name)
-        shutil.copy(src_filename, filename)
-        return filename
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+    def setUp(self):
 
-        if not os.path.exists(cls._image_original):
-            os.makedirs(cls._image_original)
-
-        # Store images in tmp directory
-        for field in db.book_page.fields:
-            if db.book_page[field].type == 'upload':
-                cls._uploadfolders[field] = db.book_page[field].uploadfolder
-                db.book_page[field].uploadfolder = cls._image_original
-
-        if not os.path.exists(db.book_page.image.uploadfolder):
-            os.makedirs(db.book_page.image.uploadfolder)
-
-        cls._creator = cls.add(db.creator, dict(
+        self._creator = self.add(db.creator, dict(
             email='image_test_case@example.com',
         ))
 
-        cls._book = cls.add(db.book, dict(
+        self._book = self.add(db.book, dict(
             name='Image Test Case',
-            creator_id=cls._creator.id,
+            creator_id=self._creator.id,
         ))
 
-        cls._book_page = cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self._book_page = self.add(db.book_page, dict(
+            book_id=self._book.id,
             page_no=1,
-            image=cls._store_image(
-                db.book_page.image,
-                cls._create_image('file.jpg'),
-            ),
         ))
 
-        # Create a second page to test with.
-        cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self._book_page_2 = self.add(db.book_page, dict(
+            book_id=self._book.id,
             page_no=2,
-            image=cls._store_image(
-                db.book_page.image,
-                cls._create_image('file_2.jpg'),
-            ),
         ))
 
-        for t in db(db.book_type).select():
-            cls._type_id_by_name[t.name] = t.id
-
-    @classmethod
-    def tearDown(cls):
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
-
-        for field in db.book_page.fields:
-            if db.book_page[field].type == 'upload':
-                db.book_page[field].uploadfolder = cls._uploadfolders[field]
+        super(WithObjectsTestCase, self).setUp()
 
     def _set_pages(self, db, book_id, num_of_pages):
         set_pages(self, db, book_id, num_of_pages)
 
 
-class TestFunctions(ImageTestCase):
+class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__book_name(self):
         book = self.add(db.book, dict(
             name='My Book',
-            book_type_id=self._type_id_by_name['mini-series'],
+            book_type_id=book_type_by_name('mini-series').id,
             number=2,
             of_number=19,
             name_for_search='my-search-kw',
@@ -493,10 +405,12 @@ class TestFunctions(ImageTestCase):
             self.assertEqual(book_name(book, use=t[0]), t[1])
 
     def test__book_page_for_json(self):
-
-        filename, unused_original_fullname = db.book_page.image.retrieve(
-            self._book_page.image,
-            nameonly=True,
+        filename = 'file.jpg'
+        self._set_image(
+            db.book_page.image,
+            self._book_page,
+            self._prep_image(filename),
+            resizer=ResizerQuick
         )
 
         down_url = '/images/download/{img}'.format(img=self._book_page.image)
@@ -529,6 +443,22 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(pages[1].book_page.page_no, 2)
 
     def test__book_pages_as_json(self):
+        filename = 'portrait.png'
+        self._set_image(
+            db.book_page.image,
+            self._book_page,
+            self._prep_image(filename),
+            resizer=ResizerQuick
+        )
+
+        filename_2 = 'landscape.png'
+        self._set_image(
+            db.book_page.image,
+            self._book_page_2,
+            self._prep_image(filename_2),
+            resizer=ResizerQuick
+        )
+
         as_json = book_pages_as_json(db, self._book.id)
         data = loads(as_json)
         self.assertTrue('files' in data)
@@ -543,8 +473,8 @@ class TestFunctions(ImageTestCase):
             'thumbnailUrl',
             'url',
         ])
-        self.assertEqual(data['files'][0]['name'], 'file.jpg')
-        self.assertEqual(data['files'][1]['name'], 'file_2.jpg')
+        self.assertEqual(data['files'][0]['name'], 'portrait.png')
+        self.assertEqual(data['files'][1]['name'], 'landscape.png')
 
         # Test book_page_ids param.
         as_json = book_pages_as_json(
@@ -552,7 +482,7 @@ class TestFunctions(ImageTestCase):
         data = loads(as_json)
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 1)
-        self.assertEqual(data['files'][0]['name'], 'file.jpg')
+        self.assertEqual(data['files'][0]['name'], 'portrait.png')
 
     def test__book_pages_years(self):
         book = self.add(db.book, dict(name='test__book_pages_years'))
@@ -679,7 +609,7 @@ class TestFunctions(ImageTestCase):
             of_number=4,
             creator_id=-1,
             publication_year=1999,
-            book_type_id=self._type_id_by_name['mini-series'],
+            book_type_id=book_type_by_name('mini-series').id,
             cc_licence_id=cc_licence_id,
         ))
 
@@ -712,7 +642,7 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(
             name='test__cc_licence_data',
             creator_id=-1,
-            book_type_id=self._type_id_by_name['one-shot'],
+            book_type_id=book_type_by_name('one-shot').id,
             name_for_url='TestCcLicenceData',
         ))
 
@@ -1245,7 +1175,7 @@ class TestFunctions(ImageTestCase):
             data = dict(
                 name=t[0],
                 publication_year=t[1],
-                book_type_id=self._type_id_by_name[t[2]],
+                book_type_id=book_type_by_name(t[2]).id,
                 number=t[3],
                 of_number=t[4],
             )
@@ -1273,7 +1203,7 @@ class TestFunctions(ImageTestCase):
         ]
         for t in tests:
             data = dict(
-                book_type_id=self._type_id_by_name[t[0]],
+                book_type_id=book_type_by_name(t[0]).id,
                 number=t[1],
                 of_number=t[2],
             )
@@ -1339,7 +1269,7 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(
             name='My Book',
             number=2,
-            book_type_id=self._type_id_by_name['ongoing'],
+            book_type_id=book_type_by_name('ongoing').id,
             publication_year=1998,
             creator_id=creator.id,
             description='This is my book!',
@@ -1398,7 +1328,7 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(
             name='My Book',
             number=2,
-            book_type_id=self._type_id_by_name['ongoing'],
+            book_type_id=book_type_by_name('ongoing').id,
             name_for_url='mybook-002',
         ))
 
@@ -1533,7 +1463,7 @@ class TestFunctions(ImageTestCase):
             'name': 'My Book',
             'number': 2,
             'of_number': 9,
-            'book_type_id': self._type_id_by_name['mini-series'],
+            'book_type_id': book_type_by_name('mini-series').id,
         }
 
         # No fields
@@ -1573,42 +1503,42 @@ class TestFunctions(ImageTestCase):
             name='one_shot',
             creator_id=creator_one,
             number=1,
-            book_type_id=self._type_id_by_name['one-shot'],
+            book_type_id=book_type_by_name('one-shot').id,
         ))
 
         one_shot_2 = self.add(db.book, dict(
             name='one_shot',
             creator_id=creator_one,
             number=2,
-            book_type_id=self._type_id_by_name['one-shot'],
+            book_type_id=book_type_by_name('one-shot').id,
         ))
 
         ongoing_1 = self.add(db.book, dict(
             name='ongoing',
             creator_id=creator_one,
             number=1,
-            book_type_id=self._type_id_by_name['ongoing'],
+            book_type_id=book_type_by_name('ongoing').id,
         ))
 
         ongoing_2 = self.add(db.book, dict(
             name='ongoing',
             creator_id=creator_one,
             number=2,
-            book_type_id=self._type_id_by_name['ongoing'],
+            book_type_id=book_type_by_name('ongoing').id,
         ))
 
         mini_series_1 = self.add(db.book, dict(
             name='mini_series',
             creator_id=creator_one,
             number=1,
-            book_type_id=self._type_id_by_name['mini-series'],
+            book_type_id=book_type_by_name('mini-series').id,
         ))
 
         mini_series_2 = self.add(db.book, dict(
             name='mini_series',
             creator_id=creator_one,
             number=2,
-            book_type_id=self._type_id_by_name['mini-series'],
+            book_type_id=book_type_by_name('mini-series').id,
         ))
 
         tests = [
@@ -1629,7 +1559,7 @@ class TestFunctions(ImageTestCase):
             name='mini_series',
             creator_id=creator_two,
             number=3,
-            book_type_id=self._type_id_by_name['mini-series'],
+            book_type_id=book_type_by_name('mini-series').id,
         ))
         self.assertEqual(next_book_in_series(mini_series_2), None)
 
@@ -1638,7 +1568,7 @@ class TestFunctions(ImageTestCase):
             name='mini_series_ZZZ',
             creator_id=creator_one,
             number=3,
-            book_type_id=self._type_id_by_name['mini-series'],
+            book_type_id=book_type_by_name('mini-series').id,
         ))
         self.assertEqual(next_book_in_series(mini_series_2), None)
 
@@ -1647,14 +1577,11 @@ class TestFunctions(ImageTestCase):
             name='mini_series',
             creator_id=creator_one,
             number=999,
-            book_type_id=self._type_id_by_name['mini-series'],
+            book_type_id=book_type_by_name('mini-series').id,
         ))
         self.assertEqual(next_book_in_series(mini_series_2), mini_series_3)
 
     def test__orientation(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
         # Test invalid book entity
         self.assertRaises(NotFoundError, orientation, -1)
 
@@ -1667,7 +1594,8 @@ class TestFunctions(ImageTestCase):
         for t in ['portrait', 'landscape', 'square']:
             img = '{n}.png'.format(n=t)
             filename = self._prep_image(img)
-            stored_filename = store(db.book_page.image, filename)
+            stored_filename = store(
+                db.book_page.image, filename, resizer=ResizerQuick)
 
             book_page = self.add(db.book_page, dict(
                 image=stored_filename,
@@ -1747,7 +1675,7 @@ class TestFunctions(ImageTestCase):
             publication_year=1999,
             creator_id=creator.id,
             reader='slider',
-            book_type_id=self._type_id_by_name['one-shot'],
+            book_type_id=book_type_by_name('one-shot').id,
             name_for_url='TestReadLink',
         ))
 
@@ -1918,7 +1846,7 @@ class TestFunctions(ImageTestCase):
             name='My Book',
             number=2,
             of_number=4,
-            book_type_id=self._type_id_by_name['mini-series'],
+            book_type_id=book_type_by_name('mini-series').id,
             creator_id=creator.id,
             description='This is my book!',
             name_for_url='MyBook',
@@ -2030,7 +1958,7 @@ class TestFunctions(ImageTestCase):
             number=2,
             creator_id=creator.id,
             publication_year=1999,
-            book_type_id=self._type_id_by_name['ongoing'],
+            book_type_id=book_type_by_name('ongoing').id,
         ))
 
         self.assertEqual(
@@ -2041,7 +1969,7 @@ class TestFunctions(ImageTestCase):
         data = dict(
             number=2,
             of_number=4,
-            book_type_id=self._type_id_by_name['mini-series'],
+            book_type_id=book_type_by_name('mini-series').id,
         )
         book.update_record(**data)
         db.commit()

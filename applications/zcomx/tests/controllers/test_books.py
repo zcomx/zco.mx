@@ -31,8 +31,7 @@ class TestFunctions(LocalTestCase):
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
+    def setUp(self):
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
         # Get a book with pages.
@@ -44,16 +43,16 @@ class TestFunctions(LocalTestCase):
             orderby=~count
         ).first()
         query = (db.book.id == book_page.book_page.book_id)
-        cls._book = db(query).select(db.book.ALL).first()
-        if not cls._book:
+        self._book = db(query).select(db.book.ALL).first()
+        if not self._book:
             raise SyntaxError('Unable to get book.')
 
         max_book_id = db.book.id.max()
         rows = db().select(max_book_id)
         if rows:
-            cls._invalid_book_id = rows[0][max_book_id] + 1
+            self._invalid_book_id = rows[0][max_book_id] + 1
         else:
-            cls._invalid_book_id = 1
+            self._invalid_book_id = 1
 
     def test__book(self):
         with self.assertRaises(urllib2.HTTPError) as cm:

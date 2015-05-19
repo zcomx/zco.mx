@@ -8,7 +8,6 @@ Test suite for zcomx/modules/indicias.py
 """
 import datetime
 import os
-import shutil
 import time
 import unittest
 from BeautifulSoup import BeautifulSoup
@@ -17,6 +16,7 @@ from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from gluon.validators import IS_INT_IN_RANGE
+from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.books import short_url as book_short_url
 from applications.zcomx.modules.creators import short_url as creator_short_url
 from applications.zcomx.modules.images import \
@@ -35,6 +35,9 @@ from applications.zcomx.modules.indicias import \
     cc_licences, \
     create_creator_indicia, \
     render_cc_licence
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
@@ -52,131 +55,72 @@ from applications.zcomx.modules.utils import \
 # pylint: disable=C0302
 
 
-class ImageTestCase(LocalTestCase):
-    """ Base class for Image test cases. Sets up test data."""
+class WithObjectsTestCase(LocalTestCase):
+    """ Base class for test cases. Sets up test data."""
 
     _auth_user = None
     _book = None
     _book_page = None
     _creator = None
-    _image_dir = '/tmp/test_indicias'
-    _image_name = 'file.jpg'
-    _test_data_dir = None
-    _type_id_by_name = {}
-
-    _objects = []
-
-    @classmethod
-    def _prep_image(cls, img, working_directory=None, to_name=None):
-        """Prepare an image for testing.
-        Copy an image from private/test/data to a working directory.
-
-        Args:
-            img: string, name of source image, eg file.jpg
-                must be in cls._test_data_dir
-            working_directory: string, path of working directory to copy to.
-                If None, uses cls._image_dir
-            to_name: string, optional, name of image to copy file to.
-                If None, img is used.
-        """
-        src_filename = os.path.join(
-            os.path.abspath(cls._test_data_dir),
-            img
-        )
-
-        if working_directory is None:
-            working_directory = os.path.abspath(cls._image_dir)
-
-        if to_name is None:
-            to_name = img
-
-        filename = os.path.join(working_directory, to_name)
-        shutil.copy(src_filename, filename)
-        return filename
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
-    @classmethod
-    def setUp(cls):
-        cls._test_data_dir = os.path.join(request.folder, 'private/test/data/')
+    def setUp(self):
 
-        if not os.path.exists(cls._image_dir):
-            os.makedirs(cls._image_dir)
-
-        def create_image(image_name):
-            image_filename = os.path.join(cls._image_dir, image_name)
-
-            # Create an image to test with.
-            im = Image.new('RGB', (1200, 1200))
-            with open(image_filename, 'wb') as f:
-                im.save(f)
-
-            # Store the image in the uploads/original directory
-            stored_filename = None
-            with open(image_filename, 'rb') as f:
-                stored_filename = db.book_page.image.store(f)
-            return stored_filename
-
-        for t in db(db.book_type).select():
-            cls._type_id_by_name[t.name] = t.id
-
-        cls._auth_user = cls.add(db.auth_user, dict(
+        self._auth_user = self.add(db.auth_user, dict(
             name='First Last'
         ))
 
-        cls._creator = cls.add(db.creator, dict(
-            auth_user_id=cls._auth_user.id,
+        self._creator = self.add(db.creator, dict(
+            auth_user_id=self._auth_user.id,
             email='image_test_case@example.com',
             paypal_email='image_test_case@example.com',
         ))
 
-        cls._book = cls.add(db.book, dict(
+        self._book = self.add(db.book, dict(
             name='Image Test Case',
             number=1,
-            book_type_id=cls._type_id_by_name['ongoing'],
-            creator_id=cls._creator.id,
+            book_type_id=book_type_by_name('ongoing').id,
+            creator_id=self._creator.id,
             name_for_url='ImageTestCase-001',
         ))
 
-        cls._book_page = cls.add(db.book_page, dict(
-            book_id=cls._book.id,
+        self._book_page = self.add(db.book_page, dict(
+            book_id=self._book.id,
             page_no=1,
-            image=create_image('file.jpg'),
+            image='book_page.image.aaa.000.jpg',
         ))
 
-        link = cls.add(db.link, dict(
+        link = self.add(db.link, dict(
             url='http://www.test.com',
             name='test',
             title='Test',
         ))
 
-        cls.add(db.book_to_link, dict(
+        self.add(db.book_to_link, dict(
             link_id=link.id,
-            book_id=cls._book.id,
+            book_id=self._book.id,
             order_no=1,
         ))
 
         # Next book in series
-        next_book = cls.add(db.book, dict(
-            name=cls._book.name,
-            number=cls._book.number + 1,
-            book_type_id=cls._book.book_type_id,
-            creator_id=cls._book.creator_id,
+        next_book = self.add(db.book, dict(
+            name=self._book.name,
+            number=self._book.number + 1,
+            book_type_id=self._book.book_type_id,
+            creator_id=self._book.creator_id,
             name_for_url='ImageTestCase-002',
         ))
 
-        cls.add(db.book_page, dict(
+        self.add(db.book_page, dict(
             book_id=next_book.id,
             page_no=1,
         ))
 
-    @classmethod
-    def tearDown(cls):
-        if os.path.exists(cls._image_dir):
-            shutil.rmtree(cls._image_dir)
+        super(WithObjectsTestCase, self).setUp()
 
 
-class TestBookIndiciaPage(ImageTestCase):
+class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
 
     def test____init__(self):
         indicia = BookIndiciaPage(self._book)
@@ -196,7 +140,7 @@ class TestBookIndiciaPage(ImageTestCase):
         v = int(time.mktime(request.now.timetuple()))
         self.assertEqual(
             xml.xml(),
-            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase%2F001.jpg&amp;clickthru=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase%2F001&amp;v={v}" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
+            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001.jpg&amp;clickthru=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001&amp;v={v}" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
         )
 
     def test__follow_icons(self):
@@ -258,7 +202,8 @@ class TestBookIndiciaPage(ImageTestCase):
         for t in ['portrait', 'landscape', 'square']:
             img = '{n}.png'.format(n=t)
             filename = self._prep_image(img)
-            stored_filename = store(db.book_page.image, filename)
+            stored_filename = store(
+                db.book_page.image, filename, resizer=ResizerQuick)
             self._book_page.update_record(image=stored_filename)
             db.commit()
 
@@ -312,7 +257,10 @@ class TestBookIndiciaPage(ImageTestCase):
             raise unittest.SkipTest('Remove --quick option to run test.')
 
         portrait_filename = store(
-            db.book_page.image, self._prep_image('portrait.png'))
+            db.book_page.image,
+            self._prep_image('portrait.png'),
+            resizer=ResizerQuick
+        )
 
         self._book_page.update_record(image=portrait_filename)
         db.commit()
@@ -392,7 +340,10 @@ class TestBookIndiciaPage(ImageTestCase):
         self.assertTrue('ALL RIGHTS RESERVED' in div_2f.contents[3])
 
         landscape_filename = store(
-            db.book_page.image, self._prep_image('landscape.png'))
+            db.book_page.image,
+            self._prep_image('landscape.png'),
+            resizer=ResizerQuick
+        )
         self._book_page.update_record(image=landscape_filename)
         db.commit()
 
@@ -405,7 +356,7 @@ class TestBookIndiciaPage(ImageTestCase):
         self.assertEqual(div['class'], 'indicia_preview_section landscape')
 
 
-class TestBookIndiciaPagePng(ImageTestCase):
+class TestBookIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
     def test____init__(self):
         png_page = BookIndiciaPagePng(self._book)
         self.assertTrue(png_page)
@@ -419,6 +370,13 @@ class TestBookIndiciaPagePng(ImageTestCase):
         )
 
     def test__create(self):
+        filename = self._prep_image('portrait.png')
+        stored_filename = store(
+            db.book_page.image, filename, resizer=ResizerQuick)
+
+        self._book_page.update_record(image=stored_filename)
+        db.commit()
+
         png_page = BookIndiciaPagePng(self._book)
         png = png_page.create()
 
@@ -427,7 +385,7 @@ class TestBookIndiciaPagePng(ImageTestCase):
         self.assertEqual(error, '')
 
 
-class TestCreatorIndiciaPagePng(ImageTestCase):
+class TestCreatorIndiciaPagePng(WithObjectsTestCase):
     def test____init__(self):
         png_page = CreatorIndiciaPagePng(self._creator)
         self.assertTrue(png_page)
@@ -508,7 +466,7 @@ class TestIndiciaPage(LocalTestCase):
         )
 
 
-class TestIndiciaPagePng(ImageTestCase):
+class TestIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
 
     # Use BookIndiciaPagePng (which subclasses IndiciaPagePng) to test.
     def test__create_metatext_file(self):
@@ -542,7 +500,8 @@ class TestIndiciaPagePng(ImageTestCase):
 
         # Add creator indicia_image
         filename = self._prep_image('file.png', to_name='indicia.png')
-        stored_filename = store(db.creator.indicia_image, filename)
+        stored_filename = store(
+            db.creator.indicia_image, filename, resizer=ResizerQuick)
         png_page.creator.update_record(indicia_image=stored_filename)
         db.commit()
 
@@ -559,7 +518,7 @@ class TestIndiciaPagePng(ImageTestCase):
         )
 
 
-class TestIndiciaSh(ImageTestCase):
+class TestIndiciaSh(WithObjectsTestCase, ImageTestCase):
 
     def test____init__(self):
         indicia_sh = IndiciaSh(101, '', '')
@@ -1820,7 +1779,7 @@ class TestPublicationMetadata(LocalTestCase):
         self.assertEqual(meta.year_range(), (888, 999))
 
 
-class TestFunctions(ImageTestCase):
+class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__cc_licence_by_code(self):
         cc_licence = self.add(db.cc_licence, dict(
@@ -1855,7 +1814,7 @@ class TestFunctions(ImageTestCase):
         book = self.add(db.book, dict(
             name='test__cc_licences',
             creator_id=creator.id,
-            book_type_id=self._type_id_by_name['one-shot'],
+            book_type_id=book_type_by_name('one-shot').id,
         ))
 
         # Add a cc_licence with quotes in the template. Should be handled.
@@ -1902,7 +1861,8 @@ class TestFunctions(ImageTestCase):
             self.assertEqual(creator[f], None)
 
         filename = self._prep_image('cbz_plus.png')
-        indicia_image = store(db.creator.indicia_image, filename)
+        indicia_image = store(
+            db.creator.indicia_image, filename, resizer=ResizerQuick)
         self._creator.update_record(indicia_image=indicia_image)
         db.commit()
 
