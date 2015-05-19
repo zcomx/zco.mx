@@ -7,6 +7,7 @@ Test suite for zcomx/modules/book_lists.py
 
 """
 import unittest
+from BeautifulSoup import BeautifulSoup
 from gluon import *
 from applications.zcomx.modules.book_lists import \
     BaseBookList, \
@@ -89,6 +90,10 @@ class TestBaseBookList(LocalTestCase):
     def test__filters(self):
         book_list = BaseBookList({})
         self.assertEqual(book_list.filters(), [])
+
+    def test__headers(self):
+        book_list = BaseBookList({})
+        self.assertEqual(book_list.headers(), None)
 
     def test__include_complete_checkbox(self):
         book_list = BaseBookList({})
@@ -232,6 +237,20 @@ class TestOngoingBookList(LocalTestCase):
         self.assertEqual(str(filters[0]), "(book.status = 'a')")
         self.assertEqual(str(filters[1]), "(book.release_date IS NULL)")
 
+    def test__headers(self):
+        book_list = OngoingBookList({})
+        headers = book_list.headers()
+        for k, v in headers.iteritems():
+            if k == 'complete_checkbox':
+                continue
+            self.assertEqual(v, None)
+
+        soup = BeautifulSoup(str(headers['complete_checkbox']))
+        # <div class="set_as_completed text-muted">Set as completed</div>
+        div = soup.find('div')
+        self.assertEqual(div.string, 'Set as completed')
+        self.assertEqual(div['class'], 'set_as_completed text-muted')
+
     def test__include_complete_checkbox(self):
         book_list = OngoingBookList({})
         self.assertTrue(book_list.include_complete_checkbox)
@@ -251,10 +270,6 @@ class TestOngoingBookList(LocalTestCase):
     def test__no_records_found_msg(self):
         book_list = OngoingBookList({})
         self.assertEqual(book_list.no_records_found_msg, 'No ongoing series')
-
-    def test__subtitle(self):
-        book_list = OngoingBookList({})
-        self.assertTrue('Set as completed' in book_list.subtitle)
 
 
 class TestFunctions(LocalTestCase):
