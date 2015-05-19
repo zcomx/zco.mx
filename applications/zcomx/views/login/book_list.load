@@ -8,7 +8,31 @@
     {{=lister.subtitle}}
 </div>
 <div id="{{=lister.code}}_container">
-    <table class="table table-condensed table-hover">
+    {{headers = lister.headers()}}
+    <table class="table table-condensed table-hover {{if headers:}}with_header{{pass}}">
+        {{blank = XML('&nbsp;')}}
+        {{if headers:}}
+            <thead>
+            <tr>
+                <th>{{=headers['name'] or blank}}</th>
+                {{if lister.include_publication_year:}}
+                    <th>{{=headers['publication_year'] or blank}}</th>
+                {{pass}}
+                {{if lister.include_read:}}
+                    <th>{{=headers['read'] or blank}}</th>
+                {{pass}}
+                {{if lister.include_upload:}}
+                    <th>{{=headers['upload'] or blank}}</th>
+                {{pass}}
+                <th>{{=headers['edit'] or blank}}</th>
+                <th>{{=headers['delete'] or blank}}</th>
+                {{if lister.include_complete_checkbox:}}
+                    <th>{{=headers['complete_checkbox'] or blank}}</th>
+                {{pass}}
+
+            </tr>
+            </thead>
+        {{pass}}
         {{for book in lister.books():}}
         {{book_name = formatted_name(db, book, include_publication_year=False)}}
         <tr>

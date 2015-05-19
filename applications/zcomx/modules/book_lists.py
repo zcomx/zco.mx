@@ -67,6 +67,14 @@ class BaseBookList(object):
         """
         return []
 
+    def headers(self):
+        """Return dict representing column headers.
+
+        Returns:
+            dict of column headers. If None, no headers are displayed.
+        """
+        return
+
     @property
     def include_complete_checkbox(self):
         """Return whether to include the complete checkbox."""
@@ -232,6 +240,19 @@ class OngoingBookList(BaseBookList):
         queries.append((db.book.release_date == None))
         return queries
 
+    def headers(self):
+        return {
+            'name': None,
+            'read': None,
+            'upload': None,
+            'edit': None,
+            'delete': None,
+            'complete_checkbox': DIV(
+                'Set as completed',
+                _class="set_as_completed text-muted",
+            ),
+        }
+
     @property
     def include_complete_checkbox(self):
         return True
@@ -251,13 +272,6 @@ class OngoingBookList(BaseBookList):
     @property
     def no_records_found_msg(self):
         return 'No ongoing series'
-
-    @property
-    def subtitle(self):
-        return DIV(
-            'Set as completed',
-            _class="set_as_completed",
-        )
 
 
 def class_from_code(code):
