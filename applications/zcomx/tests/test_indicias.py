@@ -127,12 +127,15 @@ class ImageTestCase(LocalTestCase):
         cls._creator = cls.add(db.creator, dict(
             auth_user_id=cls._auth_user.id,
             email='image_test_case@example.com',
+            paypal_email='image_test_case@example.com',
         ))
 
         cls._book = cls.add(db.book, dict(
             name='Image Test Case',
+            number=1,
+            book_type_id=cls._type_id_by_name['ongoing'],
             creator_id=cls._creator.id,
-            name_for_url='ImageTestCase',
+            name_for_url='ImageTestCase-001',
         ))
 
         cls._book_page = cls.add(db.book_page, dict(
@@ -151,6 +154,20 @@ class ImageTestCase(LocalTestCase):
             link_id=link.id,
             book_id=cls._book.id,
             order_no=1,
+        ))
+
+        # Next book in series
+        next_book = cls.add(db.book, dict(
+            name=cls._book.name,
+            number=cls._book.number + 1,
+            book_type_id=cls._book.book_type_id,
+            creator_id=cls._book.creator_id,
+            name_for_url='ImageTestCase-002',
+        ))
+
+        cls.add(db.book_page, dict(
+            book_id=next_book.id,
+            page_no=1,
         ))
 
     @classmethod
@@ -333,10 +350,11 @@ class TestBookIndiciaPage(ImageTestCase):
         div_2bii = div_2bi.nextSibling
         div_2c = div_2b.nextSibling
         div_2d = div_2c.nextSibling
-        div_2e = div_2d.nextSibling
         div_2di = div_2d.div
         div_2dii = div_2di.nextSibling
         div_2diii = div_2dii.nextSibling
+        div_2e = div_2d.nextSibling
+        div_2f = div_2e.nextSibling
 
         self.assertEqual(div_1['class'], 'indicia_image_container')
         self.assertEqual(div_2['class'], 'indicia_text_container')
@@ -346,19 +364,18 @@ class TestBookIndiciaPage(ImageTestCase):
         self.assertEqual(div_2bii['class'], 'book_links_container col-xs-12 col-sm-6 col-sm-offset-0')
         self.assertEqual(div_2c['class'], 'follow_creator')
         self.assertEqual(div_2d['class'], 'follow_icons')
-        self.assertEqual(div_2e['class'], 'copyright_licence')
         self.assertEqual(div_2di['class'], 'follow_icon')
         self.assertEqual(div_2dii['class'], 'follow_icon')
         self.assertEqual(div_2diii['class'], 'follow_icon')
+        self.assertEqual(div_2e['class'], 'read_next_link')
+        self.assertEqual(div_2f['class'], 'copyright_licence')
 
         self.assertEqual(
             div_1.img['src'], '/zcomx/static/images/indicia_image.png')
         self.assertTrue(div_2a.contents[0].startswith('IF YOU ENJOYED '))
         self.assertTrue('Contribute' in div_2bi.contents[0])
         self.assertTrue('Buy this book' in div_2bii.contents[0])
-        self.assertEqual(div_2c.contents[0], 'FOLLOW')
         self.assertEqual(div_2c.a.string, 'First Last')
-        self.assertTrue('ALL RIGHTS RESERVED' in div_2e.contents[3])
 
         self.assertEqual(div_2di.a['href'], 'https://www.tumblr.com')
         self.assertEqual(div_2di.img['src'], '/zcomx/static/images/tumblr_logo.svg')
@@ -366,6 +383,13 @@ class TestBookIndiciaPage(ImageTestCase):
         self.assertEqual(div_2dii.img['src'], '/zcomx/static/images/twitter_logo.svg')
         self.assertEqual(div_2diii.a['href'], 'http://www.facebook.com')
         self.assertEqual(div_2diii.img['src'], '/zcomx/static/images/facebook_logo.svg')
+
+        anchor = div_2e.find('a')
+        self.assertEqual(anchor.contents[0], 'Read Next')
+        icon = anchor.find('i')
+        self.assertEqual(icon['class'], 'glyphicon glyphicon-play')
+
+        self.assertTrue('ALL RIGHTS RESERVED' in div_2f.contents[3])
 
         landscape_filename = store(
             db.book_page.image, self._prep_image('landscape.png'))

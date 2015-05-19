@@ -1351,6 +1351,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
     list-style-type: none;
 }
 
+#reader_section .indicia_preview_section .read_next_link {
+    font-size: 12pt;
+    text-transform: uppercase;
+}
+
+#reader_section .indicia_preview_section .read_next_link .glyphicon {
+    padding-left: 0.4em;
+}
+
 #reader_section img.book_page_img,
 .indicia_image_container img {
     width: auto;
@@ -2128,7 +2137,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .indicia_text_container .follow_icons {
-    margin: 0 0 3em;
+    margin: 0 0 0.4em;
 }
 
 .indicia_text_container .follow_icons div {
@@ -2147,6 +2156,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-left: auto;
     margin-right: auto;
     padding-bottom: 1em;
+    padding-top: 2em;
     text-transform: uppercase;
 }
 

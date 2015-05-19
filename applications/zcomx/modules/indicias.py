@@ -16,8 +16,10 @@ from gluon import *
 from applications.zcomx.modules.books import \
     cc_licence_data, \
     get_page, \
+    next_book_in_series, \
     orientation as page_orientation, \
-    publication_year_range
+    publication_year_range, \
+    read_link
 from applications.zcomx.modules.creators import \
     can_receive_contributions, \
     formatted_name as creator_formatted_name, \
@@ -345,7 +347,6 @@ class BookIndiciaPage(IndiciaPage):
                         _href=creator_href,
                     )
                 text_divs.append(DIV(
-                    'FOLLOW',
                     follow_text,
                     _class='follow_creator',
                 ))
@@ -361,6 +362,19 @@ class BookIndiciaPage(IndiciaPage):
             text_divs.append(DIV(
                 icon_divs,
                 _class='follow_icons',
+            ))
+
+        next_book = next_book_in_series(self.book)
+        if next_book:
+            components = [
+                'Read Next',
+                TAG.i(_class='glyphicon glyphicon-play'),
+            ]
+
+            read_next = read_link(db, next_book, components=components)
+            text_divs.append(DIV(
+                read_next,
+                _class='read_next_link',
             ))
 
         text_divs.append(

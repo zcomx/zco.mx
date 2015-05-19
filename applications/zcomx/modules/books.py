@@ -1065,6 +1065,30 @@ def names(book, fields=None):
     )
 
 
+def next_book_in_series(book_entity):
+    """Return the next book in the series.
+
+    Args:
+        book_entity: Row instance or integer representing a book.
+
+    Returns:
+        Row instance representing next book.
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+
+    book_type = book_type_from_id(book_record.book_type_id)
+    if not book_type.is_series():
+        return
+
+    query = (db.book.creator_id == book_record.creator_id) & \
+        (db.book.name == book_record.name) & \
+        (db.book.number > book_record.number)
+    return db(query).select(orderby=db.book.number).first()
+
+
 def orientation(book_page_entity):
     """Return the orientation of the book page.
 
