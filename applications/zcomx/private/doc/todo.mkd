@@ -5,17 +5,17 @@
     [x] Create Mockup -- http://p.zsw.ca/TW.png
     [x] Add book_to_link links to html indicia page
     [x] On Indicia - Add Link For Next Book
-
-VERSION 3
-[ ] Checkbox for 'Set as completed' isn't aligning properly
+[x] Checkbox for 'Set as completed' isn't aligning properly
     http://p.zsw.ca/JI.png
 
+VERSION 3
 [S] Promote
     [S] mail promo cards
     [S] emails
 
-[ ] Reader notifications for new material
-    [x] Create Mockup -- http://p.zsw.ca/TW.png
+[S] Reader notifications for new material
+    [x] Create Mockup for indicia page -- http://p.zsw.ca/TW.png
+    [S] Create Mockup for Reader Notifications modal
     [ ] On Indicia - Add Reader Notifications
 
 [S] Redesign Cartoonist Page
@@ -24,8 +24,11 @@ VERSION 3
     [S] Book Page -> Photos
             "Photo Courtesy of [Photographer's Name]    [  {link back}  ]"
             If blank, write nothing
+
 [S] Cartoonist Page -> Links to Cartoonist Articles/interviews?
+
 [S] Book page -> Links to Book Reviews ?
+
 [S] Reader Page -> Notify users that left/right arrow keys turn page
     * one time modal via a cookie?
     * fancy js that appears in bottom right corner for 10 seconds and
@@ -41,9 +44,19 @@ VERSION 3
     tmux+ncdc
     rtxmlrpc
 
+[ ] Upload Modal
+    What if in: applications/zcomx/views/login/book_pages.html
+
+    we change:
+    Images must be a minimum width of 2560px to be used in Completed books.
+
+    to something like:
+    In order to set a book as 'Completed' be sure to upload images with a
+    minimum width of 1600px (portrait) and 2560px (landscape).
+
+[ ] Search Auto-Completion on 'cartoonist name' and 'title'
 
 VERSION 4
-[ ] Search Auto-Completion on 'cartoonist name' and 'title'
 [S] news.zco.mx
 [S] Setup hypermail for real-only mailing lists in login area ?
 [ ] Web images are too small on mac laptops
