@@ -151,7 +151,7 @@ def book_crud():
 
     # W0212 (protected-access): *Access to a protected member
     # pylint: disable=W0212
-    actions = ['create', 'delete', 'release', 'update']
+    actions = ['complete', 'create', 'delete', 'update']
     if not request.vars._action or request.vars._action not in actions:
         return do_error('Invalid data provided')
     action = request.vars._action
@@ -166,6 +166,25 @@ def book_crud():
         if not book_record or (
                 book_record and book_record.creator_id != creator_record.id):
             return do_error('Invalid data provided')
+
+    if action == 'complete':
+        if has_complete_barriers(book_record):
+            return do_error('This book cannot be released.')
+
+        book_record.update_record(releasing=True)
+        db.commit()
+        job = ReleaseBookQueuer(
+            db.job,
+            cli_args=[str(book_record.id)],
+        ).queue()
+        if not job:
+            msg = (
+                'Complete process failed. '
+                'The book cannot be set as completed at this time.'
+            )
+            return do_error(msg)
+
+        return {'status': 'ok'}
 
     if action == 'create':
         data = {}
@@ -219,22 +238,6 @@ def book_crud():
         ).queue()
         if not job:
             return do_error(err_msg)
-
-        return {'status': 'ok'}
-
-    if action == 'release':
-        if has_complete_barriers(book_record):
-            return do_error('This book cannot be released.')
-
-        book_record.update_record(releasing=True)
-        db.commit()
-        job = ReleaseBookQueuer(
-            db.job,
-            cli_args=[str(book_record.id)],
-        ).queue()
-        if not job:
-            return do_error(
-                'Release failed. The book cannot be released at this time.')
 
         return {'status': 'ok'}
 
@@ -356,7 +359,8 @@ def book_edit():
 def book_list():
     """Book list component controller.
 
-    request.args(0): string, optional, one of 'completed', 'ongoing', 'disabled'
+    request.args(0): string, optional,
+        one of 'completed', 'ongoing', 'disabled'
     """
     # Verify user is legit
     creator_record = db(db.creator.auth_user_id == auth.user_id).select(
@@ -487,8 +491,9 @@ def book_post_upload_session():
     """Callback function for handling processing to run after images have been
         uploaded.
 
-        * set book status
+        * update book.page_added_on if applicable
         * reorder book pages
+        * set book status
         * optimize book page images
 
     request.args(0): integer, id of book.
@@ -520,10 +525,7 @@ def book_post_upload_session():
         else:
             book_page_ids = request.vars['book_page_ids[]']
 
-    # Step 1:  Set book status
-    set_status(book_record, calc_status(book_record))
-
-    # Step 2: Update book page_added_on if applicable.
+    # Step 1: Update book page_added_on if applicable.
     try:
         original_page_count = int(request.vars.original_page_count)
     except (TypeError, ValueError):
@@ -533,7 +535,7 @@ def book_post_upload_session():
         book_record.update_record(page_added_on=request.now)
         db.commit()
 
-    # Step 3: Reorder book pages
+    # Step 2: Reorder book pages
     page_ids = []
     for page_id in book_page_ids:
         try:
@@ -545,6 +547,9 @@ def book_post_upload_session():
 
     delete_pages_not_in_ids(book_record.id, page_ids)
     reset_book_page_nos(page_ids)
+
+    # Step 3:  Set book status
+    set_status(book_record, calc_status(book_record))
 
     # Step 4:  Trigger optimization of book images
     AllSizesImages.from_names(images(book_record)).optimize()
