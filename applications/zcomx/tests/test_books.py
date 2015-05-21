@@ -58,6 +58,7 @@ from applications.zcomx.modules.books import \
     publication_year_range, \
     publication_years, \
     read_link, \
+    rss_url, \
     set_status, \
     short_page_img_url, \
     short_page_url, \
@@ -1749,6 +1750,27 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+
+    def test__rss_url(self):
+        self.assertRaises(NotFoundError, rss_url, -1)
+
+        creator = self.add(db.creator, dict(
+            email='test__torrent_url@example.com',
+            name_for_url='FirstLast',
+        ))
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            creator_id=creator.id,
+            name_for_url='MyBook-002',
+        ))
+
+        self.assertEqual(rss_url(book), '/FirstLast/MyBook-002.rss')
+
+        book.update_record(name_for_url='MyBook-03of09')
+        db.commit()
+        self.assertEqual(
+            rss_url(book), '/FirstLast/MyBook-03of09.rss')
 
     def test__set_status(self):
         book = self.add(db.book, dict(

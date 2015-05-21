@@ -368,6 +368,8 @@ def book_tables():
         'publication_metadata',
         'publication_serial',
         'rating',
+        'rss_log',
+        'rss_pre_log',
     ]
 
 
@@ -1201,6 +1203,40 @@ def read_link(db, book_entity, components=None, **attributes):
     return A(*components, **kwargs)
 
 
+def rss_url(book_entity, **url_kwargs):
+    """Return the url to the rss feed for the book.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+        url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
+    Returns:
+        string, url, eg
+            http://zco.mx/FirstLast/MyBook-001.rss
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise NotFoundError('Creator not found, id: {e}'.format(
+            e=book_entity))
+
+    name_of_creator = creator_name(book_record.creator_id, use='url')
+    if not name_of_creator:
+        return
+
+    name = book_name(book_record, use='url')
+    if not name:
+        return
+
+    kwargs = {}
+    kwargs.update(url_kwargs)
+    return URL(
+        c=name_of_creator,
+        f='{name}.rss'.format(name=name),
+        **kwargs
+    )
+
+
 def set_status(book_entity, status):
     """Set the status of a book.
 
@@ -1367,9 +1403,7 @@ def torrent_url(book_entity, **url_kwargs):
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url, eg
-            http://zco.mx/torrents/route/My Book 001 (123.zco.mx).torrent
-            routes_out should convert it to
-                http://zco.mx/My Book 001 (123.zco.mx).torrent)
+            http://zco.mx/torrents/FirstLast/MyBook-001.torrent
     """
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)

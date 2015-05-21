@@ -26,6 +26,7 @@ from applications.zcomx.modules.creators import \
     on_change_name, \
     profile_onaccept, \
     queue_update_indicia, \
+    rss_url, \
     short_url, \
     torrent_file_name, \
     torrent_link, \
@@ -557,6 +558,14 @@ class TestFunctions(ImageTestCase):
         expect = 'update_creator_indicia.py -o -r {i}'.format(i=creator.id)
         self.assertTrue(expect in job.command)
         self._objects.append(job)
+
+    def test__rss_url(self):
+        self.assertRaises(NotFoundError, rss_url, None)
+
+        creator = self.add(db.creator, dict(
+            name_for_url='FirstLast',
+        ))
+        self.assertEqual(rss_url(creator), '/FirstLast.rss')
 
     def test__short_url(self):
         tests = [

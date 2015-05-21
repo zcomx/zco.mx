@@ -410,6 +410,35 @@ def queue_update_indicia(creator_entity):
     return job
 
 
+def rss_url(creator_entity, **url_kwargs):
+    """Return the url to the rss feed for all of creator's books.
+
+    Args:
+        creator_entity: Row instance or integer, if integer, this is the id of
+            the creator. The creator record is read.
+        url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
+    Returns:
+        string, url, eg
+            http://zco.mx/FirstLast.rss
+    """
+    db = current.app.db
+    creator = entity_to_row(db.creator, creator_entity)
+    if not creator:
+        raise NotFoundError('Creator not found, id: {e}'.format(
+            e=creator_entity))
+
+    controller = '{name}.rss'.format(name=creator_name(creator, use='url'))
+
+    kwargs = {}
+    kwargs.update(url_kwargs)
+    return URL(
+        c=controller,
+        f='index',
+        **kwargs
+    )
+
+
+
 def short_url(creator_entity):
     """Return a shortened url suitable for the creator page.
 
@@ -503,9 +532,7 @@ def torrent_url(creator_entity, **url_kwargs):
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url, eg
-            http://zco.mx/torrents/route/First_Last_(123.zco.mx).torrent
-            routes_out should convert it to
-                http://zco.mx/First_Last_(123.zco.mx).torrent)
+            http://zco.mx/FirstLast_(123.zco.mx).torrent
     """
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)

@@ -43,6 +43,7 @@ CONTROLLERS = '|'.join([
     'errors',
     'images',
     'login',
+    'rss',
     'search',
     'torrents',
     'z',
@@ -89,6 +90,12 @@ routes_in = (
     ('/favicon.ico', '/zcomx/static/images/favicon.ico'),
     ('/robots.txt', '/zcomx/static/robots.txt'),
 
+    # reroute rss feeds, look for .rss extension
+    ('/zcomx/{c}/(?P<rss>.*\.rss)'.format(c=creator_re), '/zcomx/rss/route?creator=\g<creator>&rss=\g<rss>'),
+    ('/zcomx/(?P<rss>.*\.rss)', '/zcomx/rss/route?rss=\g<rss>'),
+    ('/{c}/(?P<rss>.*\.rss)'.format(c=creator_re), '/zcomx/rss/route?creator=\g<creator>&rss=\g<rss>'),
+    ('/(?P<rss>.*\.rss)', '/zcomx/rss/route?rss=\g<rss>'),
+
     # reroute torrents, look for .torrent extension
     ('/zcomx/{c}/(?P<tor>.*\.torrent)'.format(c=creator_re), '/zcomx/torrents/route?creator=\g<creator>&torrent=\g<tor>'),
     ('/zcomx/(?P<tor>.*\.torrent)', '/zcomx/torrents/route?torrent=\g<tor>'),
@@ -132,6 +139,8 @@ routes_out = (
     ('/zcomx/default/user/login', '/login'),
     ('/zcomx/creators/index/$anything', '/$anything'),
     ('/creators/index/$anything', '/$anything'),
+    ('/zcomx/(?P<rss>.*\.rss)/index', '/\g<rss>'),
+    ('/zcomx/$anything/(?P<rss>.*\.rss)', '/$anything/\g<rss>'),
     ('/zcomx/(?P<tor>.*\.torrent)/index', '/\g<tor>'),
     ('/zcomx/$anything/(?P<tor>.*\.torrent)', '/$anything/\g<tor>'),
     ('/zcomx/default/(?P<function>{funcs})'.format(funcs=DEFAULT_FUNCTIONS), '/\g<function>'),

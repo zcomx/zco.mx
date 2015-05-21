@@ -1,65 +1,62 @@
 # -*- coding: utf-8 -*-
-"""Torrent controller functions"""
+"""RSS controller functions"""
 import cgi
 import logging
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
-    torrent_url as book_torrent_url
+    rss_url as book_rss_url
 from applications.zcomx.modules.creators import \
-    torrent_url as creator_torrent_url, \
+    rss_url as creator_rss_url, \
     url as creator_url
-from applications.zcomx.modules.downloaders import TorrentDownloader
-from applications.zcomx.modules.events import log_download_click
+from applications.zcomx.modules.rss import \
+    AllRSSChannel, \
+    channel_from_args
 from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
 
 
-def download():
-    """Download torrent
+def feed():
+    """Controller for rss feed.
 
-    request.args(0): one of 'all', 'book', 'creator',
-    request.args(1): integer, id of record
-        if request.args(0) is 'book' or 'creator'.
-        Not used if request.args(0) is 'all'.
-    request.vars.no_queue: boolean, if set, don't queue a logs_download job
+    request.args(0): string, channel type, one of 'all', 'book', 'creator'
+    request.args(1): integer, record id
     """
-    if request.args:
-        record_table = request.args(0)
-        record_id = request.args(1) or 0
-        queue_log_downloads = True if not request.vars.no_queue else False
-        log_download_click(
-            record_table,
-            record_id,
-            queue_log_downloads=queue_log_downloads,
-        )
-
-    return TorrentDownloader().download(request, db)
+    channel_type = None
+    record_id = None
+    if request.args(0):
+        channel_type = request.args(0)
+    if request.args(1):
+        record_id = request.args(1)
+    try:
+        rss_channel = channel_from_args(channel_type, record_id=record_id)
+    except SyntaxError as err:
+        LOG.error(err)
+        rss_channel = AllRSSChannel()
+    return rss_channel.feed()
 
 
 def route():
-    """Parse and route torrent urls.
+    """Parse and route rss urls.
 
     Format #1:
-        request.vars.torrent: string name of torrent file.
+        request.vars.rss: string name of rss file.
         Examples:
 
-            All:     ?torrent=zco.mx.torrent
-            Creator: ?torrent=First_Last_(101.zco.mx).torrent
+            All:     ?rss=zco.mx.rss
+            Creator: ?rss=FirstLast.rss
 
     Format #2
         request.vars.creator: integer (creator id) or string (creator name)
-        request.vars.torrent: string name of torrent file (book).
+        request.vars.rss: string 'name for url' of book.
 
         Examples:
-            Book:    ?creator=123&torrent=My_Book_01_(of 01).torrent
-            Book:    ?creator=First_Last&torrent=My_Book_01_(of 01).torrent
+            Book:    ?creator=123&rss=MyBook-01of01.rss
+            Book:    ?creator=FirstLast&rss=MyBook-01of01.rss
 
         If request.vars.creator is an integer (creator id) the page is
             redirected to the string (creator name) page.
-
-    request.vars.no_queue: boolean, if set, don't queue a logs_download job
     """
     # Note: there is a bug in web2py Ver 2.9.11-stable where request.vars
     # is not set by routes.
@@ -88,38 +85,37 @@ def route():
 
         urls.suggestions = [
             {
-                'label': 'All torrent:',
-                'url': URL(host=True, **(Zco().all_torrent_url)),
+                'label': 'All zco.mx rss:',
+                'url': URL(host=True, **(Zco().all_rss_url)),
             },
         ]
 
-        creator = db(db.creator.torrent != None).select(
-            orderby='<random>').first()
+        creator = db(db.creator).select(orderby='<random>').first()
         if creator:
             urls.suggestions.append({
-                'label': 'Cartoonist torrent:',
-                'url': creator_torrent_url(creator, host=True),
+                'label': 'Cartoonist rss:',
+                'url': creator_rss_url(creator, host=True),
             })
 
-        book = db(db.book.torrent != None).select(orderby='<random>').first()
+        book = db(db.book).select(orderby='<random>').first()
         if book:
             urls.suggestions.append({
-                'label': 'Book torrent:',
-                'url': book_torrent_url(book, host=True),
+                'label': 'Book rss:',
+                'url': book_rss_url(book, host=True),
             })
 
         response.view = 'errors/page_not_found.html'
-        message = 'The requested torrent was not found on this server.'
+        message = 'The requested rss feed was not found on this server.'
         return dict(urls=urls, message=message)
 
     if not request.vars:
         return page_not_found()
 
-    if not request.vars.torrent:
+    if not request.vars.rss:
         return page_not_found()
 
-    torrent_type = None
-    torrent_name = None
+    rss_type = None
+    rss_name = None
 
     if request.vars.creator:
         creator_record = None
@@ -147,54 +143,49 @@ def route():
         if '{i:03d}'.format(i=creator_record.id) == request.vars.creator:
             # Redirect to name version
             c_url = creator_url(creator_record)
-            redirect_url = '/'.join([c_url, request.vars.torrent])
-            if request.vars.no_queue:
-                redirect_url += '?no_queue=' + str(request.vars.no_queue)
+            redirect_url = '/'.join([c_url, request.vars.rss])
             redirect(redirect_url)
 
-        torrent_type = 'book'
-        torrent_name = request.vars.torrent
+        rss_type = 'book'
+        rss_name = request.vars.rss
     else:
-        if request.vars.torrent == 'zco.mx.torrent':
-            torrent_type = 'all'
+        if request.vars.rss == 'zco.mx.rss':
+            rss_type = 'all'
         else:
-            torrent_type = 'creator'
-            torrent_name = request.vars.torrent
+            rss_type = 'creator'
+            rss_name = request.vars.rss
 
-    download_vars = {'no_queue': request.vars.no_queue} \
-        if request.vars.no_queue else {}
-
-    if torrent_type == 'all':
+    if rss_type == 'all':
         redirect(
-            URL(c='torrents', f='download', args='all', vars=download_vars))
+            URL(c='rss', f='feed.rss', args='all'))
 
-    if torrent_type == 'creator':
-        query = (db.creator.torrent.like('%/{t}'.format(
-            t=torrent_name)))
+    extension = '.rss'
+    if rss_type == 'creator':
+        creator_name = rss_name
+        if rss_name.endswith(extension):
+            creator_name = rss_name[:(-1 * len(extension))]
+        query = (db.creator.name_for_url == creator_name)
         creator = db(query).select().first()
         if not creator:
             return page_not_found()
         redirect(URL(
-            c='torrents',
-            f='download',
+            c='rss',
+            f='feed.rss',
             args=['creator', creator.id],
-            vars=download_vars
         ))
 
-    if torrent_type == 'book':
-        extension = '.torrent'
-        if torrent_name.endswith(extension):
-            book_name = torrent_name[:(-1 * len(extension))]
+    if rss_type == 'book':
+        if rss_name.endswith(extension):
+            book_name = rss_name[:(-1 * len(extension))]
         query = (db.book.creator_id == creator_record.id) & \
             (db.book.name_for_url == book_name)
         book = db(query).select().first()
-        if not book or not book.torrent:
+        if not book:
             return page_not_found()
         redirect(URL(
-            c='torrents',
-            f='download',
+            c='rss',
+            f='feed.rss',
             args=['book', book.id],
-            vars=download_vars
         ))
 
     return page_not_found()

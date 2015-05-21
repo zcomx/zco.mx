@@ -43,6 +43,16 @@ class TestZco(LocalTestCase):
         del Zco().paypal_in_progress
         self.assertEqual(Zco().paypal_in_progress, None)
 
+    def test__all_rss_url(self):
+        self.assertEqual(
+            Zco().all_rss_url,
+            {'c': 'zco.mx.rss', 'f': 'index'}
+        )
+        self.assertEqual(
+            URL(**Zco().all_rss_url),
+            '/zco.mx.rss'
+        )
+
     def test__all_torrent_url(self):
         self.assertEqual(
             Zco().all_torrent_url,

@@ -95,8 +95,13 @@ class Zco(object):
 
     # Global variables
     @property
+    def all_rss_url(self):
+        """Url for all rss feed."""
+        return dict(c='zco.mx.rss', f='index')
+
+    @property
     def all_torrent_url(self):
-        """FIXME"""
+        """Url for all-torrent."""
         return dict(c='zco.mx.torrent', f='index')
 
 

@@ -1046,6 +1046,14 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/default/user/login', "/zcomx/default/user ['login']"),
             ('http://my.domain.com/default/user/logout', "/zcomx/default/user ['logout']"),
 
+            # Test rss
+            ('http://my.domain.com/abc.rss', "/zcomx/rss/route ?rss=abc.rss"),
+            ('http://my.domain.com/zcomx/abc.rss', "/zcomx/rss/route ?rss=abc.rss"),
+            ('http://my.domain.com/zco.mx.rss', "/zcomx/rss/route ?rss=zco.mx.rss"),
+            ('http://my.domain.com/FirstLast(101.zco.mx).rss', "/zcomx/rss/route ?rss=FirstLast(101.zco.mx).rss"),
+            ('http://my.domain.com/123/MyBook-001.rss', "/zcomx/rss/route ?creator=123&rss=MyBook-001.rss"),
+            ('http://my.domain.com/FirstLast/MyBook-001.rss', "/zcomx/rss/route ?creator=FirstLast&rss=MyBook-001.rss"),
+
             # Test torrents
             ('http://my.domain.com/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
             ('http://my.domain.com/zcomx/abc.torrent', "/zcomx/torrents/route ?torrent=abc.torrent"),
@@ -1164,6 +1172,12 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/creators/index/FirstLast', '/FirstLast'),
             ('http://my.domain.com/zcomx/creators/index/FirstLast', '/FirstLast'),
             ("http://my.domain.com/zcomx/creators/index/First_O'Last", "/First_O'Last"),
+
+            # Test rss
+            ('http://my.domain.com/zcomx/abc.rss/index', "/abc.rss"),
+            ('http://my.domain.com/zcomx/zco.mx.rss/index', "/zco.mx.rss"),
+            ('http://my.domain.com/zcomx/FirstLast(101.zco.mx).rss/index', "/FirstLast(101.zco.mx).rss"),
+            ('http://my.domain.com/zcomx/FirstLast/MyBook-001.rss', "/FirstLast/MyBook-001.rss"),
 
             # Test torrents
             ('http://my.domain.com/zcomx/abc.torrent/index', "/abc.torrent"),
