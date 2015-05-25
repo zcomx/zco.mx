@@ -118,12 +118,14 @@
             data.book_reader.align_vertically();
             e.preventDefault();
         });
+        $('.rss_button').rss_button();
     });
 //]]>
 </script>
 {{block post_bootstrap_js}}
     <script src="{{=URL(c='static', f='js/jquery_ui_position.js')}}"> </script>
     <script src="{{=URL(c='static', f='js/book_reader.js')}}"> </script>
+    <script src="{{=URL(c='static', f='js/rss.js')}}"> </script>
     {{if DEBUG:}}
         <script src="{{=URL(c='static', f='imagesloaded/imagesloaded.pkgd.js')}}"> </script>
     {{else:}}

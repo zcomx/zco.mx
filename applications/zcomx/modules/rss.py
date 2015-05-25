@@ -25,6 +25,8 @@ from applications.zcomx.modules.zco import \
 
 LOG = logging.getLogger('app')
 
+MINIMUM_AGE_TO_LOG_IN_SECONDS = 4 * 60 * 60       # 4 hours
+
 
 class BaseRSSChannel(object):
     """Class representing a BaseRSSChannel"""
@@ -97,6 +99,8 @@ class BaseRSSChannel(object):
         Returns
             rss2.Image instance.
         """
+        # R0201: *Method could be a function*
+        # pylint: disable=R0201
         return rss2.Image(
             URL(c='static', f='images/zco.mx-logo-small.png', host=True),
             SITE_NAME,
@@ -227,16 +231,20 @@ class BaseRSSEntry(object):
 
     description_fmt = 'Entry for the book {b} by {c}.'
 
-    def __init__(self, book_entity, time_stamp):
+    def __init__(self, book_page_entity, time_stamp):
         """Initializer
 
         Args:
             arg: string, first arg
         """
-        self.book_entity = book_entity
+        self.book_page_entity = book_page_entity
         self.time_stamp = time_stamp
         db = current.app.db
-        self.book = entity_to_row(db.book, self.book_entity)
+        self.book_page = entity_to_row(db.book_page, self.book_page_entity)
+        if not self.book_page:
+            raise NotFoundError('Book page not found: {e}'.format(
+                e=self.book_page_entity))
+        self.book = entity_to_row(db.book, self.book_page.book_id)
         if not self.book:
             raise NotFoundError('Book not found: {e}'.format(
                 e=self.book_entity))
@@ -284,11 +292,7 @@ class BaseRSSEntry(object):
         Returns:
             string, entry link.
         """
-        try:
-            first_page = get_page(self.book, page_no='first')
-        except NotFoundError:
-            return URL(**Zco().all_rss_url)
-        return page_url(first_page, extension=False, host=True)
+        return page_url(self.book_page, extension=False, host=True)
 
     def title(self):
         """Return the title for the entry.
@@ -317,6 +321,213 @@ class PageAddedRSSEntry(BaseRSSEntry):
 class PagesAddedRSSEntry(BaseRSSEntry):
     """Class representing a 'pages added' RSS entry"""
     description_fmt = 'Several pages were added to the book {b} by {c}.'
+
+
+class BaseRSSLog(object):
+    """Class representing a BaseRSSLog"""
+
+    def __init__(self, record):
+        """Initializer
+
+        Args:
+            record: dict,
+                {
+                    'id': <id>,
+                    'book_id': <book_id>,
+                    'book_page_id': <book_page_id>,
+                    'action': <action>,
+                    'time_stamp': <time_stamp>,
+                }
+        """
+        self.record = record
+
+    def age(self, as_of=None):
+        """Return the age of the record in seconds.
+
+        Args:
+            as_of: datetime.datetime instance, the time to determine the age
+                 of. Default: datetime.datetime.now()
+
+        Returns:
+            datetime.timedelta instance representing the age.
+        """
+        if as_of is None:
+            as_of = datetime.datetime.now()
+        if not self.record or 'time_stamp' not in self.record:
+            raise SyntaxError('rss log has no timestamp, age indeterminate')
+        return as_of - self.record['time_stamp']
+
+    def delete(self):
+        """Delete the record from the db"""
+        raise NotImplementedError()
+
+    def save(self):
+        """Save the record to the db."""
+        raise NotImplementedError()
+
+
+class RSSLog(BaseRSSLog):
+    """Class representing a rss_log record"""
+
+    def delete(self):
+        db = current.app.db
+        db(db.rss_log.id == self.record['id']).delete()
+        db.commit()
+
+    def save(self):
+        db = current.app.db
+        record_id = db.rss_log.insert(**self.record)
+        db.commit()
+        return record_id
+
+
+class RSSPreLog(BaseRSSLog):
+    """Class representing a rss_pre_log record"""
+
+    def delete(self):
+        db = current.app.db
+        db(db.rss_pre_log.id == self.record['id']).delete()
+        db.commit()
+
+    def save(self):
+        db = current.app.db
+        record_id = db.rss_pre_log.insert(**self.record)
+        db.commit()
+        return record_id
+
+
+class BaseRSSPreLogSet(object):
+    """Base class representing a set of RSSPreLog instances"""
+
+    def __init__(self, rss_pre_logs):
+        """Initializer
+
+        Args:
+            rss_pre_logs: list of RSSPreLog instances
+        """
+        self.rss_pre_logs = rss_pre_logs
+
+    def as_rss_log(self, rss_log_class=RSSLog):
+        """Return an RSSLog instance representing the rss_pre_log records.
+
+        Args:
+            rss_log_class: class used to create instance returned.
+
+        Returns:
+            RssLog instance
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def load(cls, filters=None, rss_pre_log_class=RSSPreLog):
+        """Load rss_pre_log records into set.
+
+        Args:
+            filters: dict of rss_pre_log fields and values to filter on.
+                Example {'book_id': 123, 'action': 'page added'}
+            rss_pre_log_class: class used to create log instances stored in
+                    self.rss_pre_logs
+        Returns:
+            BaseRssPreLogSet (or subclass) instance
+        """
+        db = current.app.db
+        rss_pre_logs = []
+        queries = []
+        if filters:
+            for field, value in filters.iteritems():
+                if field not in db.rss_pre_log.fields:
+                    continue
+                queries.append((db.rss_pre_log[field] == value))
+        query = reduce(lambda x, y: x & y, queries) if queries else None
+        rows = db(query).select()
+        for r in rows:
+            rss_pre_logs.append(rss_pre_log_class(r.as_dict()))
+        return cls(rss_pre_logs)
+
+    def youngest(self):
+        """Return the youngest rss_pre_log record in the set.
+
+        Returns:
+            RSSPreLog instance representing the youngest.
+        """
+        if not self.rss_pre_logs:
+            return
+
+        by_age = sorted(
+            self.rss_pre_logs,
+            key=lambda k: k.record['time_stamp'],
+            reverse=True
+        )
+        return by_age[0]
+
+
+class RSSPreLogSet(BaseRSSPreLogSet):
+    """Class representing a set of RSSPreLog instances, all actions"""
+
+    def as_rss_log(self, rss_log_class=RSSLog):
+        # This method doesn't apply.
+        return
+
+
+class CompletedRSSPreLogSet(BaseRSSPreLogSet):
+    """Class representing a set of RSSPreLog instances, action=completed"""
+    def as_rss_log(self, rss_log_class=RSSLog):
+
+        youngest_log = self.youngest()
+        if not youngest_log:
+            return
+
+        record = dict(
+            book_id=youngest_log.record['book_id'],
+            book_page_id=youngest_log.record['book_page_id'],
+            action='completed',
+            time_stamp=youngest_log.record['time_stamp'],
+        )
+
+        return rss_log_class(record)
+
+    @classmethod
+    def load(cls, filters=None, rss_pre_log_class=RSSPreLog):
+        super_filters = dict(filters) if filters else {}
+        if 'action' not in super_filters:
+            super_filters['action'] = 'completed'
+        return super(CompletedRSSPreLogSet, cls).load(
+            filters=super_filters, rss_pre_log_class=rss_pre_log_class)
+
+
+class PageAddedRSSPreLogSet(BaseRSSPreLogSet):
+    """Class representing a set of RSSPreLog instances, action=page added"""
+    def as_rss_log(self, rss_log_class=RSSLog):
+        youngest_log = self.youngest()
+        if not youngest_log:
+            return
+
+        record = dict(
+            book_id=youngest_log.record['book_id'],
+            book_page_id=youngest_log.record['book_page_id'],
+            action=self.rss_log_action(),
+            time_stamp=youngest_log.record['time_stamp'],
+        )
+
+        return rss_log_class(record)
+
+    @classmethod
+    def load(cls, filters=None, rss_pre_log_class=RSSPreLog):
+        super_filters = dict(filters) if filters else {}
+        if 'action' not in super_filters:
+            super_filters['action'] = 'page added'
+        return super(PageAddedRSSPreLogSet, cls).load(
+            filters=super_filters, rss_pre_log_class=rss_pre_log_class)
+
+    def rss_log_action(self):
+        """Return the action to be used in the rss_log record.
+
+        Returns:
+            string, one of 'page added' or 'pages added'
+        """
+        if len(self.rss_pre_logs) > 1:
+            return 'pages added'
+        return 'page added'
 
 
 def channel_from_args(channel_type, record_id=None):
@@ -370,7 +581,7 @@ def rss_log_as_entry(rss_log_entity):
         raise NotFoundError('rss_log not found, {e}'.format(e=rss_log_entity))
 
     entry_class = entry_class_from_action(rss_log.action)
-    return entry_class(rss_log.book_id, rss_log.time_stamp)
+    return entry_class(rss_log.book_page_id, rss_log.time_stamp)
 
 
 def rss_serializer_with_image(feed):
@@ -379,23 +590,23 @@ def rss_serializer_with_image(feed):
     if 'entries' not in feed and 'items' in feed:
         feed['entries'] = feed['items']
 
-    def safestr(obj, key, default=''):
+    def _safestr(obj, key, default=''):
         """Encode string for safety."""
-        return str(obj[key]).encode('utf-8', 'replace') \
+        return str(obj[key]).decode('utf-8').encode('utf-8', 'replace') \
             if key in obj else default
 
     now = datetime.datetime.now()
     rss = rss2.RSS2(
-        title=safestr(feed, 'title'),
-        link=safestr(feed, 'link'),
-        description=safestr(feed, 'description'),
+        title=_safestr(feed, 'title'),
+        link=_safestr(feed, 'link'),
+        description=_safestr(feed, 'description'),
         lastBuildDate=feed.get('created_on', now),
         image=feed.get('image', None),                  # <--- customization
         items=[
             rss2.RSSItem(
-                title=safestr(entry, 'title', '(notitle)'),
-                link=safestr(entry, 'link'),
-                description=safestr(entry, 'description'),
+                title=_safestr(entry, 'title', '(notitle)'),
+                link=_safestr(entry, 'link'),
+                description=_safestr(entry, 'description'),
                 pubDate=entry.get('created_on', now)
             ) for entry in feed.get('entries', [])
         ]

@@ -755,6 +755,10 @@ db.define_table('rss_log',
         'book_id',
         'integer',
     ),
+    Field(
+        'book_page_id',
+        'integer',
+    ),
     Field('action'),
     Field('time_stamp', 'datetime'),
 )
@@ -762,6 +766,10 @@ db.define_table('rss_log',
 db.define_table('rss_pre_log',
     Field(
         'book_id',
+        'integer',
+    ),
+    Field(
+        'book_page_id',
         'integer',
     ),
     Field('action'),

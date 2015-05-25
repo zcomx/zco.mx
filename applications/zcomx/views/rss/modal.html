@@ -1,0 +1,13 @@
+<div id="rss_modal">
+
+<div id="rss_notifications"></div>
+
+</div>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        var url = "{{=URL(c='rss', f='widget.load', args=request.args)}}";
+        web2py_component(url, 'rss_notifications');
+    });
+//]]>
+</script>

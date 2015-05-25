@@ -187,6 +187,11 @@ class BookIndiciaPage(IndiciaPage):
                 {'social media': A()}
         """
         icons = {}
+        icons['rss'] = A(
+            IMG(_src=URL(c='static', f='images/rss_28x28.png')),
+            _href=URL(c='rss', f='modal', args=[self.creator.id]),
+            _class='rss_button',
+        )
         for name, obj_class in SOCIAL_MEDIA_CLASSES.items():
             media = obj_class(self.book, creator_entity=self.creator)
             if not media:

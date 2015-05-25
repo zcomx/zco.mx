@@ -967,6 +967,35 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+.rss_widget_body dt {
+    font-weight: inherit;
+    margin-top: 1em;
+}
+
+.rss_widget_body dd {
+    margin-left: 2em;
+}
+
+.rss_widget_body ul {
+    display: table;
+    margin-left: 0;
+}
+
+.rss_widget_body li {
+    display: table-row;
+}
+
+.rss_widget_body span.table_cell {
+    display: table-cell;
+    padding-right: 0.8em;
+}
+
+.rss_widget_body select.form-control {
+    display: inline-block;
+    margin: 0 0.6em;
+    width: auto;
+}
+
 
 #creator_page #name h1 {
     margin: 0;

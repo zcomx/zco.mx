@@ -138,6 +138,11 @@ def overview():
     return markmin('overview')
 
 
+def rss():
+    """RSS page (reader notifications)"""
+    return dict()
+
+
 def search():
     """Front page 'search' input post controller."""
     return _search_results(request, response, 'search')
