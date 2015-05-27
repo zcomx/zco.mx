@@ -191,13 +191,16 @@ def widget():
         book_list = OngoingBookList(creator_record)
         book_records = book_list.books()
 
-    creators = db(db.creator.id != None).select(
+    query = (db.book.id != None)     # Creators must have at least one book.
+    creators = db(query).select(
         db.creator.id,
         db.auth_user.name,
         left=[
-            db.auth_user.on(db.auth_user.id == db.creator.auth_user_id)
+            db.auth_user.on(db.auth_user.id == db.creator.auth_user_id),
+            db.book.on(db.book.creator_id == db.creator.id),
         ],
-        orderby=db.auth_user.name
+        groupby=db.creator.id,
+        orderby=db.auth_user.name,
     )
 
     names = [x.creator.id for x in creators]
