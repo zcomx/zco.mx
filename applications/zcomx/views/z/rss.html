@@ -1,0 +1,16 @@
+{{extend 'layout_main.html'}}
+{{=LOAD(c='z', f='top', args='about', extension='load', ajax=False, content='')}}
+<div id="rss_page">
+
+<h1>Reader Notifications</h1>
+<div id="rss_notifications"></div>
+
+</div>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        var url = "{{=URL(c='rss', f='widget.load')}}";
+        web2py_component(url, 'rss_notifications');
+    });
+//]]>
+</script>

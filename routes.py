@@ -62,6 +62,7 @@ DEFAULT_FUNCTIONS = '|'.join([
     'modal_error',
     'monies',
     'overview',
+    'rss',
     'terms',
     'todo',
 ])

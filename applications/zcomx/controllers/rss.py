@@ -3,38 +3,25 @@
 import cgi
 import logging
 from gluon.storage import Storage
+from applications.zcomx.modules.book_lists import OngoingBookList
 from applications.zcomx.modules.books import \
     rss_url as book_rss_url
 from applications.zcomx.modules.creators import \
     rss_url as creator_rss_url, \
     url as creator_url
-from applications.zcomx.modules.rss import \
-    AllRSSChannel, \
-    channel_from_args
+from applications.zcomx.modules.rss import channel_from_args
 from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
 
 
-def feed():
-    """Controller for rss feed.
+def modal():
+    """Controller for rss modal.
 
-    request.args(0): string, channel type, one of 'all', 'book', 'creator'
-    request.args(1): integer, record id
+    request.args(0): integer, optional, id of creator.
     """
-    channel_type = None
-    record_id = None
-    if request.args(0):
-        channel_type = request.args(0)
-    if request.args(1):
-        record_id = request.args(1)
-    try:
-        rss_channel = channel_from_args(channel_type, record_id=record_id)
-    except SyntaxError as err:
-        LOG.error(err)
-        rss_channel = AllRSSChannel()
-    return rss_channel.feed()
+    return dict()
 
 
 def route():
@@ -156,8 +143,9 @@ def route():
             rss_name = request.vars.rss
 
     if rss_type == 'all':
-        redirect(
-            URL(c='rss', f='feed.rss', args='all'))
+        rss_channel = channel_from_args('all')
+        response.view = 'rss/feed.rss'
+        return rss_channel.feed()
 
     extension = '.rss'
     if rss_type == 'creator':
@@ -168,11 +156,10 @@ def route():
         creator = db(query).select().first()
         if not creator:
             return page_not_found()
-        redirect(URL(
-            c='rss',
-            f='feed.rss',
-            args=['creator', creator.id],
-        ))
+
+        rss_channel = channel_from_args('creator', record_id=creator.id)
+        response.view = 'rss/feed.rss'
+        return rss_channel.feed()
 
     if rss_type == 'book':
         if rss_name.endswith(extension):
@@ -182,10 +169,67 @@ def route():
         book = db(query).select().first()
         if not book:
             return page_not_found()
-        redirect(URL(
-            c='rss',
-            f='feed.rss',
-            args=['book', book.id],
-        ))
+
+        rss_channel = channel_from_args('book', record_id=book.id)
+        response.view = 'rss/feed.rss'
+        return rss_channel.feed()
 
     return page_not_found()
+
+
+def widget():
+    """Controller for rss widget (reader notifications)
+
+    request.args(0): integer, optional, id of creator.
+    """
+    creator_record = None
+    if request.args(0):
+        creator_record = entity_to_row(db.creator, request.args(0))
+
+    book_records = None
+    if creator_record:
+        book_list = OngoingBookList(creator_record)
+        book_records = book_list.books()
+
+    creators = db(db.creator.id != None).select(
+        db.creator.id,
+        db.auth_user.name,
+        left=[
+            db.auth_user.on(db.auth_user.id == db.creator.auth_user_id)
+        ],
+        orderby=db.auth_user.name
+    )
+
+    names = [x.creator.id for x in creators]
+    labels = [x.auth_user.name for x in creators]
+
+    fields = [
+        Field(
+            'creator_id',
+            type='integer',
+            default=creator_record.id if creator_record else 0,
+            requires=IS_EMPTY_OR(
+                IS_IN_SET(
+                    names,
+                    labels=labels,
+                    zero='-',
+                )
+            )
+        ),
+    ]
+
+    form = SQLFORM.factory(
+        *fields,
+        submit_button='Submit'
+    )
+
+    form.custom.widget.creator_id['_class'] += ' form-control'
+
+    if form.process(keepvalues=True, message_onsuccess='').accepted:
+        redirect(URL(r=request, args=form.vars.creator_id))
+
+    return dict(
+        books=book_records,
+        creator=creator_record,
+        form=form
+    )

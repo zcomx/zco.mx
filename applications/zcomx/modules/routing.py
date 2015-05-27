@@ -544,6 +544,11 @@ class Router(object):
             **slider_data
         )
 
+        # Add css for RSS modal
+        current.response.files.append(
+            URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
+        )
+
         self.view_dict = dict(
             book=book_record,
             creator=creator_record,

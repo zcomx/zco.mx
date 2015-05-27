@@ -1,0 +1,60 @@
+{{from applications.zcomx.modules.books import formatted_name as book_formatted_name, rss_url as book_rss_url}}
+{{from applications.zcomx.modules.creators import formatted_name as creator_formatted_name, rss_url as creator_rss_url}}
+{{from applications.zcomx.modules.zco import Zco}}
+<div class="rss_widget_body">
+
+{{=form.custom.begin}}
+Follow {{=form.custom.widget.creator_id}} on zco.mx:
+{{=form.custom.end}}
+
+{{if creator:}}
+{{creator_name = creator_formatted_name(creator)}}
+<dl>
+    <dt>Follow all works by {{=creator_name}}:</dt>
+    <dd>
+        <a href="{{=creator_rss_url(creator, extension=False)}}" target="_blank">
+            {{=creator_rss_url(creator, host=True, extension=False)}}
+        </a>
+    </dd>
+
+{{if books:}}
+<dt>Follow specific ongoing comics by {{=creator_name}}:</dt>
+<dd>
+<ul>
+    {{for book in books:}}
+    <li>
+        <span class="table_cell">
+            {{=book_formatted_name(db, book, include_publication_year=False)}}
+        </span>
+        <a href="{{=book_rss_url(book, extension=False)}}" target="_blank">
+            {{=book_rss_url(book, host=True, extension=False)}}
+        </a>
+    </li>
+    {{pass}}
+</ul>
+</dd>
+{{pass}}
+
+</dl>
+{{pass}}
+
+<dl>
+    <dt>Follow everything on zco.mx:</dt>
+    <dd>
+    <a href="{{=URL(extension=False, **Zco().all_rss_url)}}" target="_blank">
+        {{=URL(host=True, extension=False, **Zco().all_rss_url)}}
+    </a>
+    </dd>
+</dl>
+
+</div>
+
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('#no_table_creator_id').on('change', function() {
+            $(this).closest('form').trigger('submit');
+        });
+    });
+//]]>
+</script>

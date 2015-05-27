@@ -11,6 +11,7 @@ import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
+    get_page, \
     images as book_images
 from applications.zcomx.modules.creators import \
     images as creator_images
@@ -82,14 +83,6 @@ class Releaser(object):
 class ReleaseBook(Releaser):
     """Class representing a ReleaseBook"""
 
-    def __init__(self, book_id):
-        """Constructor
-
-        Args:
-            book_id: string, first arg
-        """
-        super(ReleaseBook, self).__init__(book_id)
-
     def run(self):
 
         book_image_set = CBZImagesForRelease.from_names(book_images(self.book))
@@ -160,17 +153,23 @@ class ReleaseBook(Releaser):
         self.book.update_record(**data)
         db.commit()
 
+        # Log for rss feed.
+        try:
+            first_page = get_page(self.book, page_no='first')
+        except NotFoundError:
+            LOG.error('First page not found: %s', self.book.name)
+        else:
+            db.rss_pre_log.insert(
+                book_id=self.book.id,
+                book_page_id=first_page.id,
+                action='completed',
+                time_stamp=datetime.datetime.now(),
+            )
+            db.commit()
+
 
 class UnreleaseBook(Releaser):
     """Class representing a releaser that reverses the release."""
-
-    def __init__(self, book_id):
-        """Constructor
-
-        Args:
-            book_id: string, first arg
-        """
-        super(UnreleaseBook, self).__init__(book_id)
 
     def requeue_cli_options(self, requeues, max_requeues):
         """Return dict of cli options on requeue."""

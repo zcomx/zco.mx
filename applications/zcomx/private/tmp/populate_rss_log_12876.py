@@ -14,7 +14,10 @@ import traceback
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.books import get_page
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -31,18 +34,24 @@ def log_completed():
     ids = [x.id for x in db(query).select(db.book.id)]
     for book_id in ids:
         book = entity_to_row(db.book, book_id)
-
         # Check if log exists
         query = (db.rss_log.action == 'completed') & \
                 (db.rss_log.book_id == book.id)
         count = db(query).count()
         if not count:
             LOG.debug('Logging completed: %s', book.name)
+            try:
+                first_page = get_page(book, page_no='first')
+            except NotFoundError:
+                LOG.error('First page not found: %s', book.name)
+                continue
+
             db.rss_log.insert(
                 book_id=book.id,
+                book_page_id=first_page.id,
                 action='completed',
                 time_stamp=datetime.datetime.combine(
-                    book.release_date, datetime.datetime.min.time())
+                    book.release_date, datetime.datetime.max.time())
             )
             db.commit()
 
@@ -71,9 +80,19 @@ def log_page_added():
                 (db.rss_log.book_id == book.id)
         count = db(query).count()
         if not count:
+            page_query = (db.book_page.book_id == book.id) & \
+                (db.book_page.created_on.like(created_on_grp + '%'))
+            first_page = db(page_query).select(
+                orderby=db.book_page.page_no
+            ).first()
+            if not first_page:
+                LOG.error('First page not found: %s', book.name)
+                continue
+
             LOG.debug('Logging %s: %s', action, book.name)
             db.rss_log.insert(
                 book_id=book.id,
+                book_page_id=first_page.id,
                 action=action,
                 time_stamp=time_stamp
             )

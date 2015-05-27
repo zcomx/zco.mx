@@ -5,7 +5,7 @@ import logging
 import os
 import shutil
 from PIL import Image
-from gluon.contrib.simplejson import dumps
+from gluon.contrib.simplejson import dumps, loads
 from applications.zcomx.modules.access import requires_agreed_to_terms
 from applications.zcomx.modules.book_lists import \
     class_from_code as book_list_class_from_code
@@ -119,14 +119,14 @@ def book_crud():
 
     request.vars._action: string, 'create', 'update', etc
 
+    complete:
+    request.vars.pk: integer, id of book record
+
     create:
     request.vars.name: string, book table field name ('name')
     request.vars.value: string, value of book table field.
 
     delete:
-    request.vars.pk: integer, id of book record
-
-    release:
     request.vars.pk: integer, id of book record
 
     update:
@@ -459,14 +459,26 @@ def book_pages_handler():
         # Catching too general exception (W0703)
         # pylint: disable=W0703
         try:
-            result = BookPageUploader(book_record.id, files).upload()
+            result_json = BookPageUploader(book_record.id, files).upload()
         except Exception as err:
             LOG.error('Upload failed, err: %s', str(err))
             return do_error(
                 'The upload was not successful.',
                 files=[x.filename for x in files]
             )
-        return result
+
+        result = loads(result_json)
+        if 'files' in result:
+            for result_file in result['files']:
+                if 'book_page_id' in result_file:
+                    db.rss_pre_log.insert(
+                        book_id=book_record.id,
+                        book_page_id=result_file['book_page_id'],
+                        action='page added',
+                        time_stamp=request.now,
+                    )
+                    db.commit()
+        return result_json
     elif request.env.request_method == 'DELETE':
         book_page = entity_to_row(db.book_page, request.vars.book_page_id)
         if not book_page:
