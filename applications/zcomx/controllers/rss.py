@@ -9,7 +9,7 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import \
     rss_url as creator_rss_url, \
     url as creator_url
-from applications.zcomx.modules.rss import channel_from_args
+from applications.zcomx.modules.rss import channel_from_type
 from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import Zco
 
@@ -143,7 +143,7 @@ def route():
             rss_name = request.vars.rss
 
     if rss_type == 'all':
-        rss_channel = channel_from_args('all')
+        rss_channel = channel_from_type('all')
         response.view = 'rss/feed.rss'
         return rss_channel.feed()
 
@@ -157,7 +157,7 @@ def route():
         if not creator:
             return page_not_found()
 
-        rss_channel = channel_from_args('creator', record_id=creator.id)
+        rss_channel = channel_from_type('creator', record_id=creator.id)
         response.view = 'rss/feed.rss'
         return rss_channel.feed()
 
@@ -170,7 +170,7 @@ def route():
         if not book:
             return page_not_found()
 
-        rss_channel = channel_from_args('book', record_id=book.id)
+        rss_channel = channel_from_type('book', record_id=book.id)
         response.view = 'rss/feed.rss'
         return rss_channel.feed()
 
