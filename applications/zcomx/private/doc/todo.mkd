@@ -9,40 +9,15 @@
     http://p.zsw.ca/JI.png
 
 VERSION 3
+[ ] Reader notifications for new material via RSS
+    http://p.zsw.ca/FD
+        [S] On Indicia - Add Reader Notifications Icon -- http://p.zsw.ca/TW.png
+        [S] Invert Twitter Icon
+
 [S] Promote
-    [S] mail promo cards
+    [x] mail promo cards
+        [x] email CAKE cartoonists
     [S] emails
-
-[S] Reader notifications for new material
-    [x] Create Mockup for indicia page -- http://p.zsw.ca/TW.png
-    [S] Create Mockup for Reader Notifications modal
-    [ ] On Indicia - Add Reader Notifications
-
-[S] Redesign Cartoonist Page
-    [S] Mock Up
-    * handle portrait, landscape and square photos better
-    [S] Book Page -> Photos
-            "Photo Courtesy of [Photographer's Name]    [  {link back}  ]"
-            If blank, write nothing
-
-[S] Cartoonist Page -> Links to Cartoonist Articles/interviews?
-
-[S] Book page -> Links to Book Reviews ?
-
-[S] Reader Page -> Notify users that left/right arrow keys turn page
-    * one time modal via a cookie?
-    * fancy js that appears in bottom right corner for 10 seconds and
-      then never again?
-
-[S] Integrity Check For Torrents
-    https://code.google.com/p/pyroscope/wiki/RtControlExamples
-    $ rtcontrol -q -oname name=* alias=zco.mx
-    $ for i in /srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/**; do [[ $i == *.torrent.loaded* ]] && echo "$i"; done
-
-[S] Setup On jimk.zsw.ca
-    rtorrent
-    tmux+ncdc
-    rtxmlrpc
 
 [ ] Upload Modal
     What if in: applications/zcomx/views/login/book_pages.html
@@ -54,14 +29,65 @@ VERSION 3
     In order to set a book as 'Completed' be sure to upload images with a
     minimum width of 1600px (portrait) and 2560px (landscape).
 
+[ ] login/books
+    When there are no books in the 'ONGOING' section, the 'Set as
+    completed' floats to the middle.
+
+[ ] Indicia Image
+    Increase the size of Marc's signature on the default indicia image
+    http://p.zsw.ca/OU.png
+
+[ ] login/books -> edit
+    When editing a book descriptoion, characters like single quotes are
+    being displayed as &#x27;
+
+[ ] Book Page
+    Change 'links' to 'buy this book'
+    [ ] login/books -> edit -> book links
+        change placeholder from 'title-of-book' to 'name-of-link' ?
+
+[ ] Redesign Cartoonist Page
+    [ ] Mock Up
+        http://p.zsw.ca/5V.png
+    [ ] /login/profile
+            "Photo Courtesy of [Photographer's Name]    [  {url for link back}  ]"
+            If blank, write nothing
+
+[S] Cartoonist Page -> Links to Cartoonist Articles/interviews?
+    [S] Mockup
+
+[S] Book page -> Links to Book Reviews ?
+    [S] Mockup
+
+[S] Reader Page -> Notify users that left/right arrow keys turn page
+    * one time modal via a cookie?
+    * fancy js that appears in bottom right corner for 10 seconds and
+      then never again?
+
+[S] Integrity Check For Torrents
+    https://code.google.com/p/pyroscope/wiki/RtControlExamples
+    $ rtcontrol -q -oname name=* alias=zco.mx
+    $ for i in /srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/**; do [[ $i == *.torrent.loaded* ]] && echo "$i"; done
+
 [ ] Search Auto-Completion on 'cartoonist name' and 'title'
+
+[S] Add More to kb
+
+[S] Update Jordan's indicia image
+    [ ] release uptight 001?
+
+[S] Indicia Page
+    Formatting of 'Buy This Book' - needs a bit more work
+
+[S] Roger's Poster
+    giclee 8 colour inkjet printer
 
 VERSION 4
 [S] news.zco.mx
 [S] Setup hypermail for real-only mailing lists in login area ?
 [ ] Web images are too small on mac laptops
 [S] Separate '001' and '01 (of 02)' from the title ?
-[S] Change bg to #fafafa ?
+[S] Change bg to #fafafa ?, #e1dcca/#df7700 ?
     Not on the reader page
 [ ] comic name? and page numbers (ie 05/22) in the Window Title?
 [ ] Obfuscate Email Addresses
@@ -88,7 +114,7 @@ VERSION 4
 
     SB 2015-02-09 19:09  It does this with middle click
 [ ] Terms and Conditions - Pop-up Modal for Reader
-[ ] Terms Page
+[ ] github
     Change https://github.com/zcomx/zcomix.com to
     https://github.com/zcomx/zcomx or
     https://github.com/zcomx/website ?
@@ -98,6 +124,8 @@ VERSION 4
 
 
 VERSION 5
+[S] Reader notifications for new material via Email
+    https://developers.google.com/admin-sdk/groups-settings/manage?csw=1
 [ ] Replace bootstrap with http://purecss.io/ ?
 [ ] How to find all comics in a specific language?
 [ ] All Ages Modal via cookie ?
@@ -137,12 +165,18 @@ VERSION 5
     [ERROR queue_check.py 86] Multiple pending jobs in queue.
     * could be many jobs in the queue
     * could have 'd' jobs -- output of these would be nice
+[S] Setup On jimk.zsw.ca
+    rtorrent
+    tmux+ncdc
+    rtxmlrpc
 [ ] Optimize Pages -- especially the front page
     [ ] CDN
     [ ] Minify
 
 
 IDEAS
+[ ] Queuing Feature
+    The ability to release pages daily or weekly
 [S] Setup wikipedia page for David
 [ ] Rethink Crowdfunding Idea
     * see emails with blumenstein
