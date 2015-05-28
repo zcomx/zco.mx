@@ -13,7 +13,7 @@ VERSION 3
     http://p.zsw.ca/FD
         [ ] On Indicia - Add Reader Notifications Icon -- http://p.zsw.ca/TW.png
         [x] Invert Twitter Icon
-        [S] Link to howto for 'rss to email'
+        [S] Link to a howto on 'rss to email'
 
 [S] Promote
     [x] mail promo cards

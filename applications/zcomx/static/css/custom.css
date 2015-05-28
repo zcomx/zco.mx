@@ -1344,18 +1344,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #reader_section .indicia_preview_section .contribute_and_links_container {
-    margin-bottom: 3em;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 2em auto;
     position: relative;
-    height: 0px;
 }
 
 #reader_section .indicia_preview_section .contribute_and_links_container.non_empty {
     border: 1px solid #aaaaaa;
     height: inherit;
-    margin-top: 3em;
-    width: 100%;
 }
 
 
@@ -2159,9 +2154,9 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .indicia_text_container .contribute_widget {
     font-family: robotoregular;
-    margin-bottom: 0.8em;
+    margin-bottom: 1.4em;
     margin-left: 0.4em;
-    margin-top: 2em;
+    margin-top: 1.4em;
 }
 
 .indicia_text_container .follow_creator {
