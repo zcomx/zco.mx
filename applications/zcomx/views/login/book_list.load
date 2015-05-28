@@ -9,9 +9,10 @@
 </div>
 <div id="{{=lister.code}}_container">
     {{headers = lister.headers()}}
-    <table class="table table-condensed table-hover {{if headers:}}with_header{{pass}}">
+    {{do_headers = headers and (lister.books() or lister.display_headers_if_none)}}
+    <table class="table table-condensed table-hover {{if do_headers:}}with_header{{pass}}">
         {{blank = XML('&nbsp;')}}
-        {{if headers:}}
+        {{if do_headers:}}
             <thead>
             <tr>
                 <th>{{=headers['name'] or blank}}</th>
