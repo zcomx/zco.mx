@@ -7,6 +7,15 @@
     [x] On Indicia - Add Link For Next Book
 [x] Checkbox for 'Set as completed' isn't aligning properly
     http://p.zsw.ca/JI.png
+[x] Upload Modal
+    What if in: applications/zcomx/views/login/book_pages.html
+
+    we change:
+    Images must be a minimum width of 2560px to be used in Completed books.
+
+    to something like:
+    In order to set a book as 'Completed' be sure to upload images with a
+    minimum width of 1600px (portrait) and 2560px (landscape).
 
 VERSION 3
 [ ] Reader notifications for new material via RSS
@@ -19,16 +28,6 @@ VERSION 3
     [x] mail promo cards
         [x] email CAKE cartoonists
     [S] emails
-
-[ ] Upload Modal
-    What if in: applications/zcomx/views/login/book_pages.html
-
-    we change:
-    Images must be a minimum width of 2560px to be used in Completed books.
-
-    to something like:
-    In order to set a book as 'Completed' be sure to upload images with a
-    minimum width of 1600px (portrait) and 2560px (landscape).
 
 [ ] login/books
     When there are no books in the 'ONGOING' section, the 'Set as
