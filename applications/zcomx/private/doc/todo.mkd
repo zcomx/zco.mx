@@ -11,8 +11,8 @@
 VERSION 3
 [ ] Reader notifications for new material via RSS
     http://p.zsw.ca/FD
-        [S] On Indicia - Add Reader Notifications Icon -- http://p.zsw.ca/TW.png
-        [S] Invert Twitter Icon
+        [ ] On Indicia - Add Reader Notifications Icon -- http://p.zsw.ca/TW.png
+        [x] Invert Twitter Icon
         [S] Link to howto for 'rss to email'
 
 [S] Promote
