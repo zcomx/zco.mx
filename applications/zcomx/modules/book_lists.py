@@ -55,6 +55,11 @@ class BaseBookList(object):
         raise NotImplementedError
 
     @property
+    def display_headers_if_none(self):
+        """Return whether to display the headers if there are no books."""
+        return True
+
+    @property
     def display_if_none(self):
         """Return whether to display the list if there are no books."""
         return False
@@ -228,6 +233,10 @@ class OngoingBookList(BaseBookList):
     @property
     def code(self):
         return 'ongoing'
+
+    @property
+    def display_headers_if_none(self):
+        return False
 
     @property
     def display_if_none(self):

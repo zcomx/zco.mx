@@ -83,6 +83,10 @@ class TestBaseBookList(LocalTestCase):
         else:
             self.fail('NotImplementedError not raised.')
 
+    def test__display_headers_if_none(self):
+        book_list = BaseBookList({})
+        self.assertTrue(book_list.display_headers_if_none)
+
     def test__display_if_none(self):
         book_list = BaseBookList({})
         self.assertFalse(book_list.display_if_none)
@@ -225,6 +229,10 @@ class TestOngoingBookList(LocalTestCase):
     def test__code(self):
         book_list = OngoingBookList({})
         self.assertEqual(book_list.code, 'ongoing')
+
+    def test__display_headers_if_none(self):
+        book_list = OngoingBookList({})
+        self.assertFalse(book_list.display_headers_if_none)
 
     def test__display_if_none(self):
         book_list = OngoingBookList({})
