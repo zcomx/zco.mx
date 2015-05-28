@@ -406,9 +406,19 @@
             UploadModalize.superclass.onhidden.call(this, dialog);
         },
 
+        onshow: function(dialog) {
+            /* Disable buttons while loading */
+            dialog.enableButtons(false);
+        },
+
         onshown: function(dialog) {
-            var page_ids = this.get_page_ids(dialog);
-            this.$page_count = page_ids.length;
+            var that = this;
+            /* Delay or quick close gets invalid page_count */
+            setTimeout( function() {
+                var page_ids = that.get_page_ids(dialog);
+                that.$page_count = page_ids.length;
+                dialog.enableButtons(true);
+            }, 1000);
         },
 
         post_image_upload: function(dialog) {
