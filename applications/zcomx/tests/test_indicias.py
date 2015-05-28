@@ -267,8 +267,6 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__render(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
 
         portrait_filename = store(
             db.book_page.image,
@@ -315,6 +313,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         div_2di = div_2d.div
         div_2dii = div_2di.nextSibling
         div_2diii = div_2dii.nextSibling
+        div_2diiii = div_2diii.nextSibling
         div_2e = div_2d.nextSibling
         div_2f = div_2e.nextSibling
 
@@ -329,6 +328,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(div_2di['class'], 'follow_icon')
         self.assertEqual(div_2dii['class'], 'follow_icon')
         self.assertEqual(div_2diii['class'], 'follow_icon')
+        self.assertEqual(div_2diiii['class'], 'follow_icon')
         self.assertEqual(div_2e['class'], 'read_next_link')
         self.assertEqual(div_2f['class'], 'copyright_licence')
 
@@ -339,12 +339,14 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertTrue('Buy this book' in div_2bii.contents[0])
         self.assertEqual(div_2c.a.string, 'First Last')
 
-        self.assertEqual(div_2di.a['href'], 'https://www.tumblr.com')
-        self.assertEqual(div_2di.img['src'], '/zcomx/static/images/tumblr_logo.svg')
-        self.assertEqual(div_2dii.a['href'], 'https://twitter.com')
-        self.assertEqual(div_2dii.img['src'], '/zcomx/static/images/twitter_logo.svg')
-        self.assertEqual(div_2diii.a['href'], 'http://www.facebook.com')
-        self.assertEqual(div_2diii.img['src'], '/zcomx/static/images/facebook_logo.svg')
+        self.assertEqual(div_2di.a['href'], '/rss/modal/{cid}'.format(cid=self._creator.id))
+        self.assertEqual(div_2di.img['src'], '/zcomx/static/images/follow_logo.svg')
+        self.assertEqual(div_2dii.a['href'], 'https://www.tumblr.com')
+        self.assertEqual(div_2dii.img['src'], '/zcomx/static/images/tumblr_logo.svg')
+        self.assertEqual(div_2diii.a['href'], 'https://twitter.com')
+        self.assertEqual(div_2diii.img['src'], '/zcomx/static/images/twitter_logo.svg')
+        self.assertEqual(div_2diiii.a['href'], 'http://www.facebook.com')
+        self.assertEqual(div_2diiii.img['src'], '/zcomx/static/images/facebook_logo.svg')
 
         anchor = div_2e.find('a')
         self.assertEqual(anchor.contents[0], 'Read Next')
