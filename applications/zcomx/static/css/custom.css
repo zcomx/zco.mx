@@ -1349,12 +1349,18 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #reader_section .indicia_preview_section .contribute_and_links_container.non_empty {
-    border: 1px solid #aaaaaa;
     height: inherit;
 }
 
+#reader_section .indicia_preview_section .contribute_and_links_container.bordered {
+    border: 1px solid #AAAAAA;
+}
 
-#reader_section .indicia_preview_section .contribute_and_links_container > div:last-child {
+#reader_section .indicia_preview_section .contribute_and_links_container.borderless > div{
+    border: 1px solid #AAAAAA;
+}
+
+#reader_section .indicia_preview_section .contribute_and_links_container.bordered > div:last-child {
     border-left: 1px solid #AAAAAA;
 }
 

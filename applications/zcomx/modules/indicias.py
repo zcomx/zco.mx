@@ -194,7 +194,7 @@ class BookIndiciaPage(IndiciaPage):
                 _target='_blank',
             )
         )
-        for name, obj_class in SOCIAL_MEDIA_CLASSES.items():
+        for obj_class in SOCIAL_MEDIA_CLASSES.values():
             media = obj_class(self.book, creator_entity=self.creator)
             if not media:
                 continue
@@ -328,13 +328,17 @@ class BookIndiciaPage(IndiciaPage):
 
         col_sm = 6
         col_sm_offset = 0
-        container_class = 'empty'
+        empty_class = 'empty'
+        border_class = 'bordered'
         if contribute_and_links_divs:
             col_sm_offset = int(
                 (12 - (len(contribute_and_links_divs) * col_sm)) / 2)
             if col_sm_offset < 0:
                 col_sm_offset = 0
-            container_class = 'non_empty'
+            empty_class = 'non_empty'
+        if len(contribute_and_links_divs) <= 1:
+            border_class = 'borderless'
+
         col_class = ' col-sm-{s} col-sm-offset-{o}'.format(
             s=col_sm, o=col_sm_offset)
         for div in contribute_and_links_divs:
@@ -343,8 +347,8 @@ class BookIndiciaPage(IndiciaPage):
         text_divs.append(
             DIV(
                 contribute_and_links_divs,
-                _class='row contribute_and_links_container {c}'.format(
-                    c=container_class),
+                _class='row contribute_and_links_container {e} {b}'.format(
+                    e=empty_class, b=border_class).strip(),
             )
         )
 
