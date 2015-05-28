@@ -19,11 +19,18 @@
 [x] login/books
     When there are no books in the 'ONGOING' section, the 'Set as
     completed' floats to the middle.
+[x] login/books -> edit
+    When editing a book descriptoion, characters like single quotes are
+    being displayed as &#x27;
+[x] Book Page
+    Change 'links' to 'buy this book'
+    [ ] login/books -> edit -> book links
+        change placeholder from 'title-of-book' to 'name-of-link'
 
 VERSION 3
 [ ] Reader notifications for new material via RSS
     http://p.zsw.ca/FD
-        [ ] On Indicia - Add Reader Notifications Icon -- http://p.zsw.ca/TW.png
+        [x] On Indicia - Add Reader Notifications Icon -- http://p.zsw.ca/TW.png
         [x] Invert Twitter Icon
         [S] Link to a howto on 'rss to email'
 
@@ -37,18 +44,16 @@ VERSION 3
     http://p.zsw.ca/OU.png
     [S] Talk to Jim about indicia height
 
-[ ] login/books -> edit
-    When editing a book descriptoion, characters like single quotes are
-    being displayed as &#x27;
-
-[ ] Book Page
-    Change 'links' to 'buy this book'
-    [ ] login/books -> edit -> book links
-        change placeholder from 'title-of-book' to 'name-of-link'
-
 [ ] Daily Summary of 'ongoing' pages
-    Post a daily report (list of links) summarizing the pages what were
-    uploaded for that day to twitter and tumblr.
+    Post a daily report (list of links) summarizing the pages that were
+    uploaded for that day to tumblr first (as a blog post?) and then
+    that url posted to twitter (zcomx_bot).
+
+    eg:
+        List of Updated <Ongoing Books> for Thu, May 28, 2015:
+            * Name of Book by <tumblr_nick> - page <15>, <16>, <17>
+            * Book Title by <tumblr_nick> - page <57>
+            * Eavesdropper 001 by <andreatsurumi> - page <14>
 
 [ ] Redesign Cartoonist Page
     [ ] Mock Up
