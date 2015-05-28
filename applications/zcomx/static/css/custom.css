@@ -1354,7 +1354,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #reader_section .indicia_preview_section .contribute_and_links_container.non_empty {
     border: 1px solid #aaaaaa;
     height: inherit;
-    margin-top: 2em;
+    margin-top: 3em;
     width: 100%;
 }
 
@@ -1387,7 +1387,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-size: 14pt;
     list-style-type: none;
     margin: 10px auto 5px;
-    text-align: center;
 }
 
 #reader_section .indicia_preview_section .read_next_link {
@@ -2136,7 +2135,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     white-space: normal;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 1em;
     min-height: 5em;
 }
 

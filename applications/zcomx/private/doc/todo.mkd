@@ -37,6 +37,7 @@ VERSION 3
 [ ] Indicia Image
     Increase the size of Marc's signature on the default indicia image
     http://p.zsw.ca/OU.png
+    [S] Talk to Jim about indicia height
 
 [ ] login/books -> edit
     When editing a book descriptoion, characters like single quotes are
