@@ -6,45 +6,42 @@
 
 {{=LOAD(c='z', f='top', args='creator', vars={'creator_id': creator.id}, extension='load', ajax=False, content='')}}
 
-<div class="row" id="bio_section">
-    <div class="col-sm-7" id="name_bio">
-        <div class="row" id="name">
-            <h1>{{=formatted_name(creator)}}</h1>
-        </div>
-        <div class="row">
-        {{=ItemDescription(creator.bio).as_html(**dict(_id='bio'))}}
-        </div>
-    </div>
-</div>
-
 <div class="row" id="creator_id_section">
     <div class="col-sm-12" >
         <div class="row">
-            <div class="creator_img_container">
+            <div class="creator_img_container col-xs-12 col-sm-5">
                 {{=CreatorImgTag(creator.image, size='web', attributes={'_alt': '', '_class': 'img-responsive'})()}}
             </div>
-            <div class="creator_links_container">
-                <dl class="dl-horizontal">
-                    <dt>short url</dt>
-                    <dd><span class="shortened_url">{{=short_url(creator)}}</span></dd>
-                {{for f in ['website', 'twitter', 'email']:}}
-                    {{try:}}
-                    {{if creator[f]:}}
-                        <dt>{{=f}}</dt>
-                        <dd>{{=db.creator[f].represent(creator[f], creator)}}</dd>
+            <div class="col-xs-12 col-sm-7" id="name_bio">
+                <div id="name">
+                    <h1>{{=formatted_name(creator)}}</h1>
+                </div>
+                <div>
+                {{=ItemDescription(creator.bio).as_html(**dict(_id='bio'))}}
+                </div>
+                <div class="creator_links_container">
+                    <dl class="dl-horizontal">
+                        <dt>short url</dt>
+                        <dd><span class="shortened_url">{{=short_url(creator)}}</span></dd>
+                    {{for f in ['website', 'twitter', 'email']:}}
+                        {{try:}}
+                        {{if creator[f]:}}
+                            <dt>{{=f}}</dt>
+                            <dd>{{=db.creator[f].represent(creator[f], creator)}}</dd>
+                        {{pass}}
+                        {{except:}}
+                        {{pass}}
                     {{pass}}
-                    {{except:}}
+                    {{if links:}}
+                        <dt>links</dt>
+                        <dd>{{=links}}</dd>
                     {{pass}}
-                {{pass}}
-                {{if links:}}
-                    <dt>links</dt>
-                    <dd>{{=links}}</dd>
-                {{pass}}
-                {{if creator.torrent:}}
-                    <dt>torrent </dt>
-                    <dd>{{=torrent_link(creator)}}</dd>
-                {{pass}}
-                </dl>
+                    {{if creator.torrent:}}
+                        <dt>torrent </dt>
+                        <dd>{{=torrent_link(creator)}}</dd>
+                    {{pass}}
+                    </dl>
+                </div>
             </div>
         </div>
     </div>
