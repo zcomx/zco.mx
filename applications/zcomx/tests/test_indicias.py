@@ -320,7 +320,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(div_1['class'], 'indicia_image_container')
         self.assertEqual(div_2['class'], 'indicia_text_container')
         self.assertEqual(div_2a['class'], 'call_to_action')
-        self.assertEqual(div_2b['class'], 'row contribute_and_links_container non_empty')
+        self.assertEqual(div_2b['class'], 'row contribute_and_links_container non_empty bordered')
         self.assertEqual(div_2bi['class'], 'contribute_widget_container col-xs-12 col-sm-6 col-sm-offset-0')
         self.assertEqual(div_2bii['class'], 'book_links_container col-xs-12 col-sm-6 col-sm-offset-0')
         self.assertEqual(div_2c['class'], 'follow_creator')
