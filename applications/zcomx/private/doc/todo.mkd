@@ -16,6 +16,9 @@
     to something like:
     In order to set a book as 'Completed' be sure to upload images with a
     minimum width of 1600px (portrait) and 2560px (landscape).
+[x] login/books
+    When there are no books in the 'ONGOING' section, the 'Set as
+    completed' floats to the middle.
 
 VERSION 3
 [ ] Reader notifications for new material via RSS
@@ -28,10 +31,6 @@ VERSION 3
     [x] mail promo cards
         [x] email CAKE cartoonists
     [S] emails
-
-[ ] login/books
-    When there are no books in the 'ONGOING' section, the 'Set as
-    completed' floats to the middle.
 
 [ ] Indicia Image
     Increase the size of Marc's signature on the default indicia image
