@@ -98,6 +98,7 @@
                 'label': '{{=db.book.description.label}}',
                 'value': '{{=dumps(book.description or "").strip('"')}}',
                 'x_editable_settings': {
+                    'escape': false,
                     'inputclass': 'inplace_crud book_description_input',
                     'type': 'textarea',
                 },
