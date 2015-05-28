@@ -13,6 +13,7 @@ VERSION 3
     http://p.zsw.ca/FD
         [S] On Indicia - Add Reader Notifications Icon -- http://p.zsw.ca/TW.png
         [S] Invert Twitter Icon
+        [S] Link to howto for 'rss to email'
 
 [S] Promote
     [x] mail promo cards
@@ -44,7 +45,11 @@ VERSION 3
 [ ] Book Page
     Change 'links' to 'buy this book'
     [ ] login/books -> edit -> book links
-        change placeholder from 'title-of-book' to 'name-of-link' ?
+        change placeholder from 'title-of-book' to 'name-of-link'
+
+[ ] Daily Summary of 'ongoing' pages
+    Post a daily report (list of links) summarizing the pages what were
+    uploaded for that day to twitter and tumblr.
 
 [ ] Redesign Cartoonist Page
     [ ] Mock Up

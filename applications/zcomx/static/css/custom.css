@@ -1384,8 +1384,9 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #reader_section .indicia_preview_section .contribute_and_links_container .book_links_content .custom_links {
     font-size: 14pt;
-    margin: 0;
     list-style-type: none;
+    margin: 0;
+    text-align: center;
 }
 
 #reader_section .indicia_preview_section .read_next_link {
