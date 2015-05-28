@@ -7,7 +7,6 @@ Test suite for zcomx/controllers/default.py
 
 """
 import unittest
-import urllib2
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -41,6 +40,7 @@ class TestFunctions(LocalTestCase):
         'ongoing': '<div id="front_page">',
         'overview': '<h1>Overview</h1>',
         'page_not_found': '<h3>Page not found</h3>',
+        'rss': '<h1>Reader Notifications</h1>',
         'search': '<div id="front_page">',
         'terms': '<h1>Terms and Conditions</h1>',
         'todo': '<h1>TODO</h1>',
@@ -150,6 +150,12 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(web.test(
             '{url}/overview'.format(url=self.url),
             self.titles['overview']
+        ))
+
+    def test__rss(self):
+        self.assertTrue(web.test(
+            '{url}/rss'.format(url=self.url),
+            self.titles['rss']
         ))
 
     def test__search(self):

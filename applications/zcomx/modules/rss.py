@@ -67,7 +67,13 @@ class BaseRSSChannel(object):
         )
         for r in rows:
             rss_log = entity_to_row(db.rss_log, r.id)
-            items.append(rss_log_as_entry(rss_log).feed_item())
+            try:
+                entry = rss_log_as_entry(rss_log).feed_item()
+            except NotFoundError as err:
+                # This may happen if a book deletion is in progress
+                LOG.error(err)
+            else:
+                items.append(entry)
         return items
 
     def feed(self):
@@ -326,6 +332,8 @@ class PagesAddedRSSEntry(BaseRSSEntry):
 class BaseRSSLog(object):
     """Class representing a BaseRSSLog"""
 
+    db_table = 'rss_log'
+
     def __init__(self, record):
         """Initializer
 
@@ -359,41 +367,26 @@ class BaseRSSLog(object):
 
     def delete(self):
         """Delete the record from the db"""
-        raise NotImplementedError()
+        db = current.app.db
+        db(db[self.db_table].id == self.record['id']).delete()
+        db.commit()
 
     def save(self):
         """Save the record to the db."""
-        raise NotImplementedError()
+        db = current.app.db
+        record_id = db[self.db_table].insert(**self.record)
+        db.commit()
+        return record_id
 
 
 class RSSLog(BaseRSSLog):
     """Class representing a rss_log record"""
-
-    def delete(self):
-        db = current.app.db
-        db(db.rss_log.id == self.record['id']).delete()
-        db.commit()
-
-    def save(self):
-        db = current.app.db
-        record_id = db.rss_log.insert(**self.record)
-        db.commit()
-        return record_id
+    db_table = 'rss_log'
 
 
 class RSSPreLog(BaseRSSLog):
     """Class representing a rss_pre_log record"""
-
-    def delete(self):
-        db = current.app.db
-        db(db.rss_pre_log.id == self.record['id']).delete()
-        db.commit()
-
-    def save(self):
-        db = current.app.db
-        record_id = db.rss_pre_log.insert(**self.record)
-        db.commit()
-        return record_id
+    db_table = 'rss_pre_log'
 
 
 class BaseRSSPreLogSet(object):
@@ -530,7 +523,7 @@ class PageAddedRSSPreLogSet(BaseRSSPreLogSet):
         return 'page added'
 
 
-def channel_from_args(channel_type, record_id=None):
+def channel_from_type(channel_type, record_id=None):
     """Factory for returning a RSSChannel instance from args.
 
     Args:

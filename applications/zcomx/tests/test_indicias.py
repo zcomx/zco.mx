@@ -144,6 +144,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__follow_icons(self):
+
         socials = dict(
             twitter='@tweeter',
             tumblr='http://tmblr.tumblr.com',
@@ -153,10 +154,12 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         db.commit()
         indicia = BookIndiciaPage(self._book)
         icons = indicia.follow_icons()
-        self.assertEqual(sorted(icons.keys()), sorted(socials.keys()))
+
+        icon_keys = ['rss', 'tumblr', 'twitter', 'facebook']
+        self.assertEqual(len(icons), len(icon_keys))
 
         # facebook
-        soup = BeautifulSoup(str(icons['facebook']))
+        soup = BeautifulSoup(str(icons[icon_keys.index('facebook')]))
         # <a href="http://www.facebook.com/facepalm" target="_blank">
         #     <img src="/zcomx/static/images/facebook_logo.svg"/>
         # </a>
@@ -166,8 +169,19 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         img = anchor.img
         self.assertEqual(img['src'], '/zcomx/static/images/facebook_logo.svg')
 
+        # rss
+        soup = BeautifulSoup(str(icons[icon_keys.index('rss')]))
+        # <a class="rss_button" href="/rss/modal/12920" target="_blank">
+        #     <img src="/zcomx/static/images/follow_logo.svg" />
+        # </a>
+        anchor = soup.a
+        self.assertEqual(anchor['href'], '/rss/modal/{i}'.format(i=self._creator.id))
+        self.assertEqual(anchor['target'], '_blank')
+        img = anchor.img
+        self.assertEqual(img['src'], '/zcomx/static/images/follow_logo.svg')
+
         # tumblr
-        soup = BeautifulSoup(str(icons['tumblr']))
+        soup = BeautifulSoup(str(icons[icon_keys.index('tumblr')]))
         # <a href="https://www.tumblr.com/follow/tmblr" target="_blank">
         #     <img src="/zcomx/static/images/tumblr_logo.svg"/>
         # </a>
@@ -178,7 +192,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(img['src'], '/zcomx/static/images/tumblr_logo.svg')
 
         # twitter
-        soup = BeautifulSoup(str(icons['twitter']))
+        soup = BeautifulSoup(str(icons[icon_keys.index('twitter')]))
         # <a href="http://twitter.com/intent/follow?screen_name=@tweeter" target="_blank">
         #     <img src="/zcomx/static/images/twitter_logo.svg"/>
         # </a>
@@ -450,7 +464,7 @@ class TestIndiciaPage(LocalTestCase):
 
     def test__follow_icons(self):
         indicia = IndiciaPage(None)
-        self.assertEqual(indicia.follow_icons(), {})
+        self.assertEqual(indicia.follow_icons(), [])
 
     def test__licence_text(self):
         indicia = IndiciaPage(None)

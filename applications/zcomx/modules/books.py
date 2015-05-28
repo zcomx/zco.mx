@@ -1403,7 +1403,7 @@ def torrent_url(book_entity, **url_kwargs):
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url, eg
-            http://zco.mx/torrents/FirstLast/MyBook-001.torrent
+            http://zco.mx/FirstLast/MyBook-001.torrent
     """
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)

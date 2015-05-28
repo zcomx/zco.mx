@@ -28,7 +28,7 @@ from applications.zcomx.modules.rss import \
     RSSLog, \
     RSSPreLog, \
     RSSPreLogSet, \
-    channel_from_args, \
+    channel_from_type, \
     entry_class_from_action, \
     rss_log_as_entry, \
     rss_serializer_with_image
@@ -320,12 +320,34 @@ class TestBaseRSSLog(LocalTestCase):
         self.assertRaises(SyntaxError, log.age)
 
     def test__delete(self):
-        log = BaseRSSLog({})
-        self.assertRaises(NotImplementedError, log.delete)
+        count = lambda x: db(db.rss_log.id == x).count()
+
+        rss_log_record = self.add(db.rss_log, dict(
+            book_id=-1,
+            action='_test__delete_',
+        ))
+
+        rss_log = BaseRSSLog(rss_log_record.as_dict())
+        self.assertEqual(count(rss_log_record.id), 1)
+
+        rss_log.delete()
+        self.assertEqual(count(rss_log_record.id), 0)
 
     def test__save(self):
-        log = BaseRSSLog({})
-        self.assertRaises(NotImplementedError, log.save)
+
+        rss_log_data = dict(
+            book_id=-1,
+            action='_test__save_',
+        )
+
+        rss_log = BaseRSSLog(rss_log_data)
+        record_id = rss_log.save()
+
+        rss_log_record = db(db.rss_log.id == record_id).select().first()
+        self.assertTrue(rss_log_record)
+        self._objects.append(rss_log_record)
+        self.assertEqual(rss_log_record.book_id, -1)
+        self.assertEqual(rss_log_record.action, '_test__save_')
 
 
 class TestBaseRSSPreLogSet(LocalTestCase):
@@ -726,41 +748,12 @@ class TestPagesAddedRSSEntry(WithObjectsTestCase):
 
 
 class TestRSSLog(LocalTestCase):
-
-    def test__delete(self):
-        count = lambda x: db(db.rss_log.id == x).count()
-
-        rss_log_record = self.add(db.rss_log, dict(
-            book_id=-1,
-            action='_test__delete_',
-        ))
-
-        rss_log = RSSLog(rss_log_record.as_dict())
-        self.assertEqual(count(rss_log_record.id), 1)
-
-        rss_log.delete()
-        self.assertEqual(count(rss_log_record.id), 0)
-
-    def test__save(self):
-
-        rss_log_data = dict(
-            book_id=-1,
-            action='_test__save_',
-        )
-
-        rss_log = RSSLog(rss_log_data)
-        record_id = rss_log.save()
-
-        rss_log_record = db(db.rss_log.id == record_id).select().first()
-        self.assertTrue(rss_log_record)
-        self._objects.append(rss_log_record)
-        self.assertEqual(rss_log_record.book_id, -1)
-        self.assertEqual(rss_log_record.action, '_test__save_')
+    pass            # See BaseRSSLog
 
 
 class TestRSSPreLog(LocalTestCase):
 
-    def test__delete(self):
+    def test_delete(self):
         count = lambda x: db(db.rss_pre_log.id == x).count()
 
         rss_pre_log_record = self.add(db.rss_pre_log, dict(
@@ -774,7 +767,7 @@ class TestRSSPreLog(LocalTestCase):
         rss_pre_log.delete()
         self.assertEqual(count(rss_pre_log_record.id), 0)
 
-    def test__save(self):
+    def test_save(self):
 
         rss_pre_log_data = dict(
             book_id=-1,
@@ -801,23 +794,23 @@ class TestRSSPreLogSet(LocalTestCase):
 
 class TestFunctions(WithObjectsTestCase):
 
-    def test__channel_from_args(self):
+    def test__channel_from_type(self):
         # Invalid channel
-        self.assertRaises(SyntaxError, channel_from_args, '_fake_')
+        self.assertRaises(SyntaxError, channel_from_type, '_fake_')
 
         # No record_id provided
-        self.assertRaises(NotFoundError, channel_from_args, 'creator')
-        self.assertRaises(NotFoundError, channel_from_args, 'book')
+        self.assertRaises(NotFoundError, channel_from_type, 'creator')
+        self.assertRaises(NotFoundError, channel_from_type, 'book')
 
-        got = channel_from_args('all')
+        got = channel_from_type('all')
         self.assertTrue(isinstance(got, AllRSSChannel))
         self.assertEqual(got.entity, None)
 
-        got = channel_from_args('book', self._book.id)
+        got = channel_from_type('book', self._book.id)
         self.assertTrue(isinstance(got, BookRSSChannel))
         self.assertEqual(got.entity, self._book.id)
 
-        got = channel_from_args('creator', self._creator.id)
+        got = channel_from_type('creator', self._creator.id)
         self.assertTrue(isinstance(got, CartoonistRSSChannel))
         self.assertEqual(got.entity, self._creator.id)
 

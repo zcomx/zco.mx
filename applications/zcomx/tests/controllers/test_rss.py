@@ -26,11 +26,13 @@ class TestFunctions(LocalTestCase):
     _rss_log = None
 
     titles = {
+        'modal': '<div id="rss_modal">',
         'page_not_found': '<h3>Page not found</h3>',
         'rss': [
             '<?xml version="1.0"',
             '<rss version="2.0">',
         ],
+        'widget': '<div class="rss_widget_body">',
     }
     url = '/zcomx/rss'
 
@@ -71,6 +73,14 @@ class TestFunctions(LocalTestCase):
             action='page added',
             time_stamp=datetime.datetime.now(),
         ))
+
+    def test__modal(self):
+        self.assertTrue(
+            web.test(
+                '{url}/modal'.format(url=self.url),
+                self.titles['modal']
+            )
+        )
 
     def test__route(self):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
@@ -174,6 +184,28 @@ class TestFunctions(LocalTestCase):
             ),
             self.titles['page_not_found']
         ))
+
+    def test__widget(self):
+        self.assertTrue(
+            web.test(
+                '{url}/widget.load'.format(url=self.url),
+                self.titles['widget']
+            )
+        )
+
+        # With creator
+        expect = []
+        expect.extend(self.titles['widget'])
+        expect.append('Follow all works by First Last')
+        self.assertTrue(
+            web.test(
+                '{url}/widget.load/{cid}'.format(
+                    url=self.url,
+                    cid=self._creator.id,
+                ),
+                expect,
+            )
+        )
 
 
 def setUpModule():

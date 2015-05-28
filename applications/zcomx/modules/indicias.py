@@ -91,13 +91,12 @@ class IndiciaPage(object):
         """Return follow icons.
 
         Returns:
-            dict representing 'follow' social media icons.
-                {'social media': A()}
+            list of 'follow' social media icons.
+                [A(), ...]
         """
         # no-self-use (R0201): *Method could be a function*
         # pylint: disable=R0201
-
-        return {}
+        return []
 
     def licence_text(self, template_field='template_web'):
         """Return the licence record used for the licence text on the indicia
@@ -186,20 +185,25 @@ class BookIndiciaPage(IndiciaPage):
             dict representing 'follow' social media icons.
                 {'social media': A()}
         """
-        icons = {}
-        icons['rss'] = A(
-            IMG(_src=URL(c='static', f='images/rss_28x28.png')),
-            _href=URL(c='rss', f='modal', args=[self.creator.id]),
-            _class='rss_button',
+        icons = []
+        icons.append(
+            A(
+                IMG(_src=URL(c='static', f='images/follow_logo.svg')),
+                _href=URL(c='rss', f='modal', args=[self.creator.id]),
+                _class='rss_button',
+                _target='_blank',
+            )
         )
         for name, obj_class in SOCIAL_MEDIA_CLASSES.items():
             media = obj_class(self.book, creator_entity=self.creator)
             if not media:
                 continue
-            icons[name] = A(
-                IMG(_src=media.icon_url()),
-                _href=media.follow_url() or media.site,
-                _target='_blank',
+            icons.append(
+                A(
+                    IMG(_src=media.icon_url()),
+                    _href=media.follow_url() or media.site,
+                    _target='_blank',
+                )
             )
         return icons
 
@@ -312,7 +316,10 @@ class BookIndiciaPage(IndiciaPage):
                         _class='label',
                     ),
                     DIV(
-                        links,
+                        DIV(
+                            links,
+                            _class='vertical_align_wrapper',
+                        ),
                         _class='book_links_content',
                     ),
                     _class='book_links_container col-xs-12',
@@ -357,7 +364,7 @@ class BookIndiciaPage(IndiciaPage):
                 ))
 
         icon_divs = []
-        for icon in self.follow_icons().values():
+        for icon in self.follow_icons():
             icon_divs.append(DIV(
                 icon,
                 _class='follow_icon',
