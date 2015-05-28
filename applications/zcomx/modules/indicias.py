@@ -316,7 +316,10 @@ class BookIndiciaPage(IndiciaPage):
                         _class='label',
                     ),
                     DIV(
-                        links,
+                        DIV(
+                            links,
+                            _class='vertical_align_wrapper',
+                        ),
                         _class='book_links_content',
                     ),
                     _class='book_links_container col-xs-12',
