@@ -1160,6 +1160,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #creator_id_section .creator_img_container .image_footer {
+    color: #999999;
     font-size: 7pt;
     text-align: right;
 }

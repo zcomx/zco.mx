@@ -28,6 +28,12 @@
         change placeholder from 'title-of-book' to 'name-of-link'
 [x] Indicia Page
     Formatting of 'Buy This Book' - needs a bit more work
+[x] Redesign Cartoonist Page
+    [x] Mock Up
+        http://p.zsw.ca/5V.png
+    [x] /login/profile
+            photo courtesy of   [ John Smith ]
+       photographer's website   [ http://example.com ]
 
 
 VERSION 3
@@ -56,7 +62,7 @@ VERSION 3
 
     eg:
         List of Updated <Ongoing Books> for Thu, May 28, 2015:
-            * Name of Book by <tumblr_nick> - page <15>, <16>, <17>
+            * Name of Book by <tumblr_nick> - <Read newest page(s)>
             * Book Title by <tumblr_nick> - page <57>
             * Eavesdropper 001 by <andreatsurumi> - page <14>
 
@@ -70,13 +76,6 @@ VERSION 3
 
         "New Pages Added by @nick1 @nick2 @nick3 on zco.mx -- <url>"
         "New Pages Added by @nick4 @nick5 @nick6 on zco.mx -- <url>"
-
-[ ] Redesign Cartoonist Page
-    [x] Mock Up
-        http://p.zsw.ca/5V.png
-    [ ] /login/profile
-            photo courtesy of   [ John Smith ]
-       photographer's website   [ http://example.com ]
 
 [S] Cartoonist Page -> Links to Cartoonist Articles/interviews?
     [S] Mockup
