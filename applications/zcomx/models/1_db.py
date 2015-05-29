@@ -116,6 +116,32 @@ auth.signature = db.Table(
 
 db._common_fields = [auth.signature]
 
+db.define_table('activity_log',
+    Field(
+        'book_id',
+        'integer',
+    ),
+    Field(
+        'book_page_id',
+        'integer',
+    ),
+    Field('action'),
+    Field('time_stamp', 'datetime'),
+)
+
+db.define_table('tentative_activity_log',
+    Field(
+        'book_id',
+        'integer',
+    ),
+    Field(
+        'book_page_id',
+        'integer',
+    ),
+    Field('action'),
+    Field('time_stamp', 'datetime'),
+)
+
 db.define_table('book',
     Field(
         'name',
