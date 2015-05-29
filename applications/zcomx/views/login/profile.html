@@ -42,6 +42,7 @@
         </div>
     </div>
 </div>
+<div id="photo_credit_container"></div>
 
 </div>
 <script id="template-upload" type="text/x-tmpl">
@@ -233,6 +234,30 @@
             },
         },
     }
+    var photo_credit_data = {
+        'photo_credit': {
+            'label': '{{=db.creator.photo_credit.label}}',
+            'value': '{{=dumps(creator.photo_credit or "").strip('"')}}',
+            'x_editable_settings': {
+                'title': 'Enter a photo credit. (Optional)',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_photo_credit_input',
+                'emptytext': "Photographer's Name",
+                'placeholder': "Photographer's Name",
+            },
+        },
+        'photo_credit_url': {
+            'label': '{{=db.creator.photo_credit_url.label}}',
+            'value': '{{=dumps(creator.photo_credit_url or "").strip('"')}}',
+            'x_editable_settings': {
+                'title': "Enter the photo credit's url. (Optional)",
+                'escape': true,
+                'inputclass': 'inplace_crud creator_photo_credit_url_input',
+                'emptytext': 'url for link back',
+                'placeholder': 'url for link back',
+            },
+        },
+    }
 //]]>
 </script>
 <script>
@@ -262,6 +287,13 @@
             '{{=creator.id}}',
             { source_data: bio_data }
         );
+
+        $('#photo_credit_container').inplace_crud(
+            '{{=URL(c='login', f='creator_crud.json')}}',
+            '{{=creator.id}}',
+            { source_data: photo_credit_data }
+        );
+
         $('#fileupload').image_upload(
             'creator',
             '/zcomx/login/creator_img_handler/image'

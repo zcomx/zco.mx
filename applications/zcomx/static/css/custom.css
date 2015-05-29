@@ -1159,6 +1159,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+#creator_id_section .creator_img_container .image_footer {
+    font-size: 7pt;
+    text-align: right;
+}
+
+
 #creator_id_section .creator_links_container {
     display: inline-block;
     min-width: 26em;
