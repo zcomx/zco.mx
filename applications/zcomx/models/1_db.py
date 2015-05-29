@@ -414,7 +414,7 @@ db.define_table('creator',
     ),
     Field(
         'photo_credit_url',
-        label='',
+        label="photographer's website",
         comment='Eg. http://photographerspage.com',
         represent=lambda url, row: A(
             re.sub(r'^http[s]*://', '', url),
