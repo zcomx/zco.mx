@@ -138,6 +138,35 @@ def main():
 # """,
 #     )
 
+    # x = client.create_text(
+    #     'zcomx',
+    #     state="private",
+    #     tags=['Uptight', 'JordanCrane', 'zco.mx'],
+    #     format='markdown',
+    #     slug='Jordan Crane Uptight-001',
+    #     title='This Is A Test',
+    #     body="""
+    #      List of Updated <Ongoing Books> for Thu, May 28, 2015:
+    #      <ul>
+    #         <li> Name of Book by <tumblr_nick> - page <15>, <16>, <17></li>
+    #         <li> Book Title by <tumblr_nick> - page <57></li>
+    #         <li> Eavesdropper 001 by <andreatsurumi> - page <14></li>
+    #     </ul>
+    #     """,
+    # )
+    # print 'x: {var}'.format(var=x)
+
+    # x = client.create_quote(
+    #     'zcomx',
+    #     state="private",
+    #     tags=['Uptight', 'JordanCrane', 'zco.mx'],
+    #     format='markdown',
+    #     slug='Jordan Crane Uptight-001',
+    #     quote='This is the quote of the day',
+    #     source='Joe Doe',
+    # )
+    # print 'x: {var}'.format(var=x)
+
     LOG.info('Done.')
 
 
