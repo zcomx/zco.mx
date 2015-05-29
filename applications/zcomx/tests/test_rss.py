@@ -647,8 +647,59 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
 
 class TestPageAddedRSSPreLogSet(LocalTestCase):
 
+    def test__as_book_pages(self):
+        book_id = -2
+
+        book_page_1 = self.add(db.book_page, dict(
+            book_id=book_id,
+            page_no=1,
+        ))
+
+        book_page_2 = self.add(db.book_page, dict(
+            book_id=book_id,
+            page_no=1,
+        ))
+
+        # Empty set
+        log_set = PageAddedRSSPreLogSet([])
+        self.assertEqual(log_set.as_book_pages(), [])
+
+        rss_pre_logs = [
+            RSSPreLog({
+                'book_id': -1,
+                'book_page_id': book_page_1.id,
+                'action': 'page added',
+            }),
+            RSSPreLog({
+                'book_id': -1,
+                'book_page_id': book_page_2.id,
+                'action': 'page added',
+            }),
+        ]
+
+        log_set = PageAddedRSSPreLogSet(rss_pre_logs)
+        got = log_set.as_book_pages()
+        self.assertEqual(got, [book_page_1, book_page_2])
+
     def test__as_rss_log(self):
+
+        book_id = -1
         time_stamp = datetime.datetime(2015, 1, 31, 12, 31, 59)
+
+        book_page_1 = self.add(db.book_page, dict(
+            book_id=book_id,
+            page_no=3,
+        ))
+
+        book_page_2 = self.add(db.book_page, dict(
+            book_id=book_id,
+            page_no=2,
+        ))
+
+        book_page_3 = self.add(db.book_page, dict(
+            book_id=book_id,
+            page_no=1,
+        ))
 
         # Empty set
         log_set = PageAddedRSSPreLogSet([])
@@ -659,7 +710,7 @@ class TestPageAddedRSSPreLogSet(LocalTestCase):
             RSSPreLog({
                 'id': 1,
                 'book_id': -1,
-                'book_page_id': -2,
+                'book_page_id': book_page_1.id,
                 'action': 'page added',
                 'time_stamp': time_stamp,
             }),
@@ -668,7 +719,7 @@ class TestPageAddedRSSPreLogSet(LocalTestCase):
         got = log_set.as_rss_log()
         self.assertTrue(isinstance(got, RSSLog))
         self.assertEqual(got.record['book_id'], -1)
-        self.assertEqual(got.record['book_page_id'], -2)
+        self.assertEqual(got.record['book_page_id'], book_page_1.id)
         self.assertEqual(got.record['action'], 'page added')
         self.assertEqual(got.record['time_stamp'], time_stamp)
 
@@ -677,23 +728,30 @@ class TestPageAddedRSSPreLogSet(LocalTestCase):
             RSSPreLog({
                 'id': 1,
                 'book_id': -1,
-                'book_page_id': -2,
+                'book_page_id': book_page_1.id,
                 'action': 'page added',
                 'time_stamp': time_stamp,
             }),
             RSSPreLog({
                 'id': 2,
-                'book_id': -3,
-                'book_page_id': -4,
+                'book_id': -1,
+                'book_page_id': book_page_2.id,
                 'action': 'page added',
                 'time_stamp': time_stamp + datetime.timedelta(days=1),
+            }),
+            RSSPreLog({
+                'id': 2,
+                'book_id': -1,
+                'book_page_id': book_page_3.id,
+                'action': 'page added',
+                'time_stamp': time_stamp - datetime.timedelta(days=1),
             }),
         ]
         log_set = PageAddedRSSPreLogSet(rss_pre_logs)
         got = log_set.as_rss_log()
         self.assertTrue(isinstance(got, RSSLog))
-        self.assertEqual(got.record['book_id'], -3)
-        self.assertEqual(got.record['book_page_id'], -4)
+        self.assertEqual(got.record['book_id'], -1)
+        self.assertEqual(got.record['book_page_id'], book_page_3.id)
         self.assertEqual(got.record['action'], 'pages added')
         self.assertEqual(
             got.record['time_stamp'], time_stamp + datetime.timedelta(days=1))

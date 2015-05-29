@@ -72,6 +72,22 @@ def delete_pages_not_in_ids(book_id, book_page_ids):
     return deleted_ids
 
 
+def pages_sorted_by_page_no(book_pages, reverse=False):
+    """Return a list of book_page Row instances sorted by page_no.
+
+    Args:
+        list of Row instances representing book_page records.
+
+    Returns:
+        list of Row instances representing book_page records, sorted
+    """
+    return sorted(
+        book_pages,
+        key=lambda k: k.page_no,
+        reverse=reverse,
+    )
+
+
 def reset_book_page_nos(page_ids):
     """Reset the book_page.page_no values according to the
     provided list of book ids.

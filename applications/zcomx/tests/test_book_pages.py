@@ -8,9 +8,11 @@ Test suite for zcomx/modules/book_pages.py
 """
 import unittest
 from gluon import *
+from gluon.dal.objects import Row
 from applications.zcomx.modules.book_pages import \
     BookPage, \
     delete_pages_not_in_ids, \
+    pages_sorted_by_page_no, \
     reset_book_page_nos
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
@@ -95,6 +97,26 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(
             deleted_ids,
             lose_ids
+        )
+
+    def test__pages_sorted_by_page_no(self):
+        book_page_1 = Row({
+            'page_no': 3,
+        })
+        book_page_2 = Row({
+            'page_no': 1,
+        })
+        book_page_3 = Row({
+            'page_no': 2,
+        })
+        self.assertEqual(
+            pages_sorted_by_page_no([book_page_1, book_page_2, book_page_3]),
+            [book_page_2, book_page_3, book_page_1]
+        )
+        self.assertEqual(
+            pages_sorted_by_page_no(
+                [book_page_1, book_page_2, book_page_3], reverse=True),
+            [book_page_1, book_page_3, book_page_2]
         )
 
     def test__reset_book_page_nos(self):

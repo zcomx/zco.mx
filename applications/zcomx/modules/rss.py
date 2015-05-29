@@ -9,6 +9,8 @@ import datetime
 import logging
 import gluon.contrib.rss2 as rss2
 from gluon import *
+from applications.zcomx.modules.book_pages import \
+    pages_sorted_by_page_no
 from applications.zcomx.modules.books import \
     formatted_name as book_formatted_name, \
     get_page, \
@@ -490,14 +492,35 @@ class CompletedRSSPreLogSet(BaseRSSPreLogSet):
 
 class PageAddedRSSPreLogSet(BaseRSSPreLogSet):
     """Class representing a set of RSSPreLog instances, action=page added"""
+
+    def as_book_pages(self):
+        """Return a list of Row instances representing book_page records
+            associated wiht the set rss_pre_log records.
+
+        Returns:
+            list of Rows representing book_page records.
+        """
+        book_pages = []
+        db = current.app.db
+        for rss_pre_log in self.rss_pre_logs:
+            book_page = entity_to_row(
+                db.book_page, rss_pre_log.record['book_page_id'])
+            if book_page:
+                book_pages.append(book_page)
+        return book_pages
+
     def as_rss_log(self, rss_log_class=RSSLog):
         youngest_log = self.youngest()
         if not youngest_log:
             return
 
+        book_pages = pages_sorted_by_page_no(self.as_book_pages())
+        if not book_pages:
+            return
+
         record = dict(
             book_id=youngest_log.record['book_id'],
-            book_page_id=youngest_log.record['book_page_id'],
+            book_page_id=book_pages[0].id,
             action=self.rss_log_action(),
             time_stamp=youngest_log.record['time_stamp'],
         )
