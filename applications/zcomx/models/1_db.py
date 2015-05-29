@@ -409,6 +409,21 @@ db.define_table('creator',
         uploadseparate=True,
     ),
     Field(
+        'photo_credit',
+        label='photo courtesy of',
+    ),
+    Field(
+        'photo_credit_url',
+        label='',
+        comment='Eg. http://photographerspage.com',
+        represent=lambda url, row: A(
+            re.sub(r'^http[s]*://', '', url),
+            _href=url,
+            _target="_blank",
+            ) if url else '',
+        requires=IS_EMPTY_OR(IS_URL(error_message='Enter a valid URL')),
+    ),
+    Field(
         'name_for_search'
     ),
     Field(

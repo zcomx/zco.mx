@@ -10,9 +10,26 @@
     <div class="col-sm-12" >
         <div class="row">
             <div class="creator_img_container col-xs-12 col-sm-5">
+                <div id="creator_img">
                 {{=CreatorImgTag(creator.image, size='web', attributes={'_alt': '', '_class': 'img-responsive'})()}}
+                </div>
+                {{if creator.photo_credit:}}
+                <div>
+                    <div class="image_footer">
+                        Photo courtesy of
+                        {{if creator.photo_credit_url:}}
+                        <a href="{{=creator.photo_credit_url}}" target="_blank">
+                        {{pass}}
+                        {{=creator.photo_credit}}
+                        {{if creator.photo_credit_url:}}
+                        </a>
+                        {{pass}}
+                    </div>
+                </div>
+                {{pass}}
             </div>
-            <div class="col-xs-12 col-sm-7" id="name_bio">
+
+            <div class="col-xs-12 col-sm-7" id="name_bio_links">
                 <div id="name">
                     <h1>{{=formatted_name(creator)}}</h1>
                 </div>
