@@ -241,7 +241,6 @@ div.centered table {
     background-color: #FF6600;
     color: #FFFFFF;
     font-size: 12px;
-    min-width: 35em;
     padding: 0 6px;
 }
 
@@ -1145,8 +1144,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #creator_id_section .creator_img_container {
     display: inline-block;
-    max-width: 12em;
-    padding: 0 0 1em 1em;
+    padding: 0.4em 0.8em 1em 0;
+    width: inherit;
+}
+
+#creator_id_section .creator_img_container .img-responsive {
+    max-height: 24em;
+    max-width: 24em;
 }
 
 @media (max-width: 767px) {
