@@ -66,6 +66,7 @@ VERSION 3
         "zco.mx Ongoing Books Update -- <url>"
         "Updates for Ongoing Books on zco.mx -- <url>"
         "New Pages Added for Ongoing Books on zco.mx -- <url>"
+        "New Pages Uploaded for Ongoing Books on zco.mx -- <url>"
 
         "New Pages Added by @nick1 @nick2 @nick3 on zco.mx -- <url>"
         "New Pages Added by @nick4 @nick5 @nick6 on zco.mx -- <url>"
@@ -74,8 +75,8 @@ VERSION 3
     [x] Mock Up
         http://p.zsw.ca/5V.png
     [ ] /login/profile
-            "Photo Courtesy of [Photographer's Name]    [  {url for link back}  ]"
-            If blank, write nothing
+            photo courtesy of   [ John Smith ]
+       photographer's website   [ http://example.com ]
 
 [S] Cartoonist Page -> Links to Cartoonist Articles/interviews?
     [S] Mockup
@@ -102,6 +103,7 @@ VERSION 3
 
 [S] Roger's Poster
     giclee 8 colour inkjet printer
+
 
 VERSION 4
 [S] news.zco.mx
