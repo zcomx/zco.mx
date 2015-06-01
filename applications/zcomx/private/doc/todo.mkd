@@ -1,52 +1,11 @@
 ``
-[-] Announce on instagram
-    SB 2015-05-06 18:49  Emailed u/p to jimk
-[x] Indicia - html version
-    [x] Create Mockup -- http://p.zsw.ca/TW.png
-    [x] Add book_to_link links to html indicia page
-    [x] On Indicia - Add Link For Next Book
-[x] Checkbox for 'Set as completed' isn't aligning properly
-    http://p.zsw.ca/JI.png
-[x] Upload Modal
-    What if in: applications/zcomx/views/login/book_pages.html
-
-    we change:
-    Images must be a minimum width of 2560px to be used in Completed books.
-
-    to something like:
-    In order to set a book as 'Completed' be sure to upload images with a
-    minimum width of 1600px (portrait) and 2560px (landscape).
-[x] login/books
-    When there are no books in the 'ONGOING' section, the 'Set as
-    completed' floats to the middle.
-[x] login/books -> edit
-    When editing a book descriptoion, characters like single quotes are
-    being displayed as &#x27;
-[x] Book Page
-    Change 'links' to 'buy this book'
-    [x] login/books -> edit -> book links
-        change placeholder from 'title-of-book' to 'name-of-link'
-[x] Indicia Page
-    Formatting of 'Buy This Book' - needs a bit more work
-[x] Redesign Cartoonist Page
-    [x] Mock Up
-        http://p.zsw.ca/5V.png
-    [x] /login/profile
-            photo courtesy of   [ John Smith ]
-       photographer's website   [ http://example.com ]
-
-
 VERSION 3
-[ ] Reader notifications for new material via RSS
-    http://p.zsw.ca/FD
-        [x] On Indicia - Add Reader Notifications Icon
-        [x] Invert Twitter Icon
-        [S] Link to a howto on 'rss to email'
-
 [S] Promote
     [x] mail promo cards
         [x] email CAKE cartoonists
     [S] emails
+
+[S] Link to a howto on 'rss to email'
 
 [ ] Indicia Image
     Increase the size of Marc's signature on the default indicia image
@@ -96,6 +55,7 @@ VERSION 3
 [ ] Search Auto-Completion on 'cartoonist name' and 'title'
 
 [S] Add More to kb
+    [S] Pete Toms' Howto?
 
 [S] Update Jordan's indicia image
     [ ] release uptight 001?
@@ -105,7 +65,10 @@ VERSION 3
 
 
 VERSION 4
-[S] news.zco.mx
+[S] news site
+
+
+VERSION 5
 [S] Setup hypermail for real-only mailing lists in login area ?
 [ ] Web images are too small on mac laptops
 [S] Separate '001' and '01 (of 02)' from the title ?
@@ -145,7 +108,7 @@ VERSION 4
 [ ] 12354 - Test scripts
 
 
-VERSION 5
+VERSION 6
 [S] Reader notifications for new material via Email
     https://developers.google.com/admin-sdk/groups-settings/manage?csw=1
 [ ] Replace bootstrap with http://purecss.io/ ?

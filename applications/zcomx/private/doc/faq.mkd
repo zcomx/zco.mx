@@ -93,9 +93,9 @@ expenses can be found [[here /z/expenses]].
 
 [[design]]
 #### What is up with the design of the site?
-We've tried to keep the look generic and neutral, Wikipedia-like,
-without imposing a brand or image. The goal is to put cartoonists and
-their work front and centre.
+We've tried to keep the look generic and neutral without imposing a
+brand or image. The goal is to put cartoonists and their work front and
+centre.
 
 Most sites use their own comic viewer; some sites use a scroll method,
 others a slider. Many sites use Flash viewers, which do not allow direct
