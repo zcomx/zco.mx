@@ -23,7 +23,6 @@ class TestFunctions(LocalTestCase):
     _creator = None
     _book = None
     _book_page = None
-    _rss_log = None
 
     titles = {
         'modal': '<div id="rss_modal">',
@@ -67,7 +66,7 @@ class TestFunctions(LocalTestCase):
             page_no=2,
         ))
 
-        self.add(db.rss_log, dict(
+        self.add(db.activity_log, dict(
             book_id=self._book.id,
             book_page_id=self._book_page.id,
             action='page added',

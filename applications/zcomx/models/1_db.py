@@ -791,32 +791,6 @@ db.define_table('rating',
     Field('amount', 'double'),
 )
 
-db.define_table('rss_log',
-    Field(
-        'book_id',
-        'integer',
-    ),
-    Field(
-        'book_page_id',
-        'integer',
-    ),
-    Field('action'),
-    Field('time_stamp', 'datetime'),
-)
-
-db.define_table('rss_pre_log',
-    Field(
-        'book_id',
-        'integer',
-    ),
-    Field(
-        'book_page_id',
-        'integer',
-    ),
-    Field('action'),
-    Field('time_stamp', 'datetime'),
-)
-
 db.book.book_type_id.requires = IS_IN_DB(
     db,
     db.book_type.id,
