@@ -153,13 +153,13 @@ class ReleaseBook(Releaser):
         self.book.update_record(**data)
         db.commit()
 
-        # Log for rss feed.
+        # Log activity
         try:
             first_page = get_page(self.book, page_no='first')
         except NotFoundError:
             LOG.error('First page not found: %s', self.book.name)
         else:
-            db.rss_pre_log.insert(
+            db.tentative_activity_log.insert(
                 book_id=self.book.id,
                 book_page_id=first_page.id,
                 action='completed',

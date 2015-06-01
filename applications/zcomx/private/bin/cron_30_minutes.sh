@@ -70,8 +70,8 @@ $py applications/zcomx/private/bin/queue_create_torrents.py
 __v && __md "Start: queue_check"
 $py applications/zcomx/private/bin/queue_check.py --age 30
 
-__v && __md "Start: process_rss_pre_logs"
-$py applications/zcomx/private/bin/process_rss_pre_logs.py
+__v && __md "Start: process_activity_logs"
+$py applications/zcomx/private/bin/process_activity_logs.py
 
 __v && __md "Setting permissions"
 chown -R http:http applications/zcomx/uploads

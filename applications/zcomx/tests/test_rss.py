@@ -28,9 +28,9 @@ from applications.zcomx.modules.rss import \
     RSSLog, \
     RSSPreLog, \
     RSSPreLogSet, \
+    activity_log_as_rss_entry, \
     channel_from_type, \
     entry_class_from_action, \
-    rss_log_as_entry, \
     rss_serializer_with_image
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import NotFoundError
@@ -41,13 +41,13 @@ from applications.zcomx.modules.utils import NotFoundError
 
 
 class WithObjectsTestCase(LocalTestCase):
+    _activity_log = None
+    _activity_log_time_stamp = '1999-12-31 12:30:59'
     _auth_user = None
     _book = None
     _book_page = None
     _book_page_2 = None
     _creator = None
-    _rss_log = None
-    _rss_log_time_stamp = '2015-01-31 12:30:59'
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
@@ -81,12 +81,12 @@ class WithObjectsTestCase(LocalTestCase):
             page_no=2,
         ))
 
-        self._rss_log = self.add(db.rss_log, dict(
+        self._activity_log = self.add(db.activity_log, dict(
             book_id=self._book.id,
             book_page_id=self._book_page.id,
             action='completed',
             time_stamp=datetime.datetime.strptime(
-                self._rss_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
+                self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
         ))
 
 
@@ -115,7 +115,7 @@ class DubRSSEntry(BaseRSSEntry):
     def created_on(self):
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
-        return WithObjectsTestCase._rss_log_time_stamp
+        return WithObjectsTestCase._activity_log_time_stamp
 
     def description(self):
         return 'My dub RSS entry.'
@@ -155,16 +155,16 @@ class TestBaseRSSChannel(WithObjectsTestCase):
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
         channel = DubRSSChannel()
-        channel._filter_query = (db.rss_log.id < 0)
+        channel._filter_query = (db.activity_log.id < 0)
         self.assertEqual(channel.entries(), [])
 
-        channel._filter_query = (db.rss_log.id == self._rss_log.id)
+        channel._filter_query = (db.activity_log.id == self._activity_log.id)
         desc = 'The book My Book 001 by First Last has been set as completed.'
         self.assertEqual(
             channel.entries(),
             [{
                 'created_on': datetime.datetime.strptime(
-                    self._rss_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
+                    self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
                 'description': desc,
                 'link': 'http://127.0.0.1:8000/FirstLast/MyBook-001/001',
                 'title': 'My Book 001 by First Last',
@@ -175,7 +175,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
         channel = DubRSSChannel()
-        channel._filter_query = (db.rss_log.id == self._rss_log.id)
+        channel._filter_query = (db.activity_log.id == self._activity_log.id)
         got = channel.feed()
         self.assertEqual(
             sorted(got.keys()),
@@ -187,7 +187,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
             got['entries'],
             [{
                 'created_on': datetime.datetime.strptime(
-                    self._rss_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
+                    self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
                 'description': desc,
                 'link': 'http://127.0.0.1:8000/FirstLast/MyBook-001/001',
                 'title': 'My Book 001 by First Last',
@@ -202,7 +202,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
         regexp = re.compile(
             r"""
                 \(
-                rss_log.time_stamp
+                activity_log.time_stamp
                 \s
                 >
                 \s
@@ -252,15 +252,15 @@ class TestBaseRSSChannel(WithObjectsTestCase):
 
 class TestBaseRSSEntry(WithObjectsTestCase):
     def test____init__(self):
-        entry = BaseRSSEntry(self._book_page, self._rss_log_time_stamp)
+        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
         self.assertTrue(entry)
 
     def test__created_on(self):
-        entry = BaseRSSEntry(self._book_page, self._rss_log_time_stamp)
-        self.assertEqual(entry.created_on(), self._rss_log_time_stamp)
+        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
+        self.assertEqual(entry.created_on(), self._activity_log_time_stamp)
 
     def test__description(self):
-        entry = BaseRSSEntry(self._book_page, self._rss_log_time_stamp)
+        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
         self.assertEqual(
             entry.description(),
             'Entry for the book My Book 001 by First Last.'
@@ -273,26 +273,26 @@ class TestBaseRSSEntry(WithObjectsTestCase):
             sorted(got.keys()),
             ['created_on', 'description', 'link', 'title']
         )
-        self.assertEqual(got['created_on'], self._rss_log_time_stamp)
+        self.assertEqual(got['created_on'], self._activity_log_time_stamp)
         self.assertEqual(got['description'], 'My dub RSS entry.')
         self.assertEqual(got['link'], '/path/to/entry')
         self.assertEqual(got['title'], 'Dub RSS Entry')
 
     def test__link(self):
-        entry = BaseRSSEntry(self._book_page, self._rss_log_time_stamp)
+        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
         self.assertEqual(
             entry.link(),
             'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
         )
 
-        entry = BaseRSSEntry(self._book_page_2, self._rss_log_time_stamp)
+        entry = BaseRSSEntry(self._book_page_2, self._activity_log_time_stamp)
         self.assertEqual(
             entry.link(),
             'http://127.0.0.1:8000/FirstLast/MyBook-001/002'
         )
 
     def test__title(self):
-        entry = BaseRSSEntry(self._book_page, self._rss_log_time_stamp)
+        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
         self.assertEqual(
             entry.title(),
             'My Book 001 by First Last'
@@ -431,13 +431,13 @@ class TestBookRSSChannel(WithObjectsTestCase):
     def test__filter_query(self):
         channel = BookRSSChannel(self._book)
         got = str(channel.filter_query())
-        # ((rss_log.time_stamp > '2015-04-22 12:46:06')
-        #     AND (rss_log.book_id = 10621))
+        # ((activity_log.time_stamp > '2015-04-22 12:46:06')
+        #     AND (activity_log.book_id = 10621))
         regexp = re.compile(
             r"""
                 \(
                 \(
-                rss_log.time_stamp
+                activity_log.time_stamp
                 \s
                 >
                 \s
@@ -446,7 +446,7 @@ class TestBookRSSChannel(WithObjectsTestCase):
                 \s
                 AND
                 \s
-                \(rss_log.book_id\s=\s\d+\)
+                \(activity_log.book_id\s=\s\d+\)
                 \)
             """,
             re.VERBOSE
@@ -495,13 +495,13 @@ class TestCartoonistRSSChannel(WithObjectsTestCase):
     def test__filter_query(self):
         channel = CartoonistRSSChannel(self._creator)
         got = str(channel.filter_query())
-        # ((rss_log.time_stamp > '2015-04-22 12:46:06')
+        # ((activity_log.time_stamp > '2015-04-22 12:46:06')
         #     AND (book.creator_id = 12345))
         regexp = re.compile(
             r"""
                 \(
                 \(
-                rss_log.time_stamp
+                activity_log.time_stamp
                 \s
                 >
                 \s
@@ -546,7 +546,8 @@ class TestCartoonistRSSChannel(WithObjectsTestCase):
 class TestCompletedRSSEntry(WithObjectsTestCase):
 
     def test_description(self):
-        entry = CompletedRSSEntry(self._book_page, self._rss_log_time_stamp)
+        entry = CompletedRSSEntry(
+            self._book_page, self._activity_log_time_stamp)
         self.assertEqual(
             entry.description(),
             'The book My Book 001 by First Last has been set as completed.'
@@ -638,7 +639,8 @@ class TestCompletedRSSPreLogSet(LocalTestCase):
 class TestPageAddedRSSEntry(WithObjectsTestCase):
 
     def test_description(self):
-        entry = PageAddedRSSEntry(self._book_page, self._rss_log_time_stamp)
+        entry = PageAddedRSSEntry(
+            self._book_page, self._activity_log_time_stamp)
         self.assertEqual(
             entry.description(),
             'A page was added to the book My Book 001 by First Last.'
@@ -798,7 +800,8 @@ class TestPageAddedRSSPreLogSet(LocalTestCase):
 class TestPagesAddedRSSEntry(WithObjectsTestCase):
 
     def test_description(self):
-        entry = PagesAddedRSSEntry(self._book_page, self._rss_log_time_stamp)
+        entry = PagesAddedRSSEntry(
+            self._book_page, self._activity_log_time_stamp)
         self.assertEqual(
             entry.description(),
             'Several pages were added to the book My Book 001 by First Last.'
@@ -852,6 +855,21 @@ class TestRSSPreLogSet(LocalTestCase):
 
 class TestFunctions(WithObjectsTestCase):
 
+    def test__activity_log_as_rss_entry(self):
+        self.assertRaises(NotFoundError, activity_log_as_rss_entry, None)
+        self.assertRaises(NotFoundError, activity_log_as_rss_entry, -1)
+
+        for action in ['completed', 'page added', 'pages added']:
+            self._activity_log.update_record(action=action)
+            db.commit()
+            got = activity_log_as_rss_entry(self._activity_log)
+            self.assertTrue(
+                isinstance(got, entry_class_from_action(action))
+            )
+            self.assertEqual(got.book, self._book)
+            self.assertEqual(
+                str(got.time_stamp), self._activity_log_time_stamp)
+
     def test__channel_from_type(self):
         # Invalid channel
         self.assertRaises(SyntaxError, channel_from_type, '_fake_')
@@ -882,20 +900,6 @@ class TestFunctions(WithObjectsTestCase):
         self.assertRaises(NotFoundError, entry_class_from_action, None)
         self.assertRaises(NotFoundError, entry_class_from_action, '')
         self.assertRaises(NotFoundError, entry_class_from_action, '_fake_')
-
-    def test__rss_log_as_entry(self):
-        self.assertRaises(NotFoundError, rss_log_as_entry, None)
-        self.assertRaises(NotFoundError, rss_log_as_entry, -1)
-
-        for action in ['completed', 'page added', 'pages added']:
-            self._rss_log.update_record(action=action)
-            db.commit()
-            got = rss_log_as_entry(self._rss_log)
-            self.assertTrue(
-                isinstance(got, entry_class_from_action(action))
-            )
-            self.assertEqual(got.book, self._book)
-            self.assertEqual(str(got.time_stamp), self._rss_log_time_stamp)
 
     def test__rss_serializer_with_image(self):
         created_on = datetime.datetime(2015, 1, 31, 23, 30, 59)

@@ -471,7 +471,7 @@ def book_pages_handler():
         if 'files' in result:
             for result_file in result['files']:
                 if 'book_page_id' in result_file:
-                    db.rss_pre_log.insert(
+                    db.tentative_activity_log.insert(
                         book_id=book_record.id,
                         book_page_id=result_file['book_page_id'],
                         action='page added',

@@ -61,16 +61,16 @@ class BaseRSSChannel(object):
         items = []
         query = self.filter_query()
         rows = db(query).select(
-            db.rss_log.id,
+            db.activity_log.id,
             left=[
-                db.book.on(db.book.id == db.rss_log.book_id),
+                db.book.on(db.book.id == db.activity_log.book_id),
             ],
-            orderby=~db.rss_log.time_stamp,
+            orderby=~db.activity_log.time_stamp,
         )
         for r in rows:
-            rss_log = entity_to_row(db.rss_log, r.id)
+            activity_log = entity_to_row(db.activity_log, r.id)
             try:
-                entry = rss_log_as_entry(rss_log).feed_item()
+                entry = activity_log_as_rss_entry(activity_log).feed_item()
             except NotFoundError as err:
                 # This may happen if a book deletion is in progress
                 LOG.error(err)
@@ -90,7 +90,7 @@ class BaseRSSChannel(object):
         )
 
     def filter_query(self):
-        """Define a query to filter rss_log records to include in feed.
+        """Define a query to filter activity_log records to include in feed.
 
         Return
             gluon.dal.objects Query instance.
@@ -99,7 +99,7 @@ class BaseRSSChannel(object):
         now = datetime.datetime.now()
         min_time_stamp = now - \
             datetime.timedelta(days=self.max_entry_age_in_days)
-        return db.rss_log.time_stamp > min_time_stamp
+        return db.activity_log.time_stamp > min_time_stamp
 
     def image(self):
         """Return the RSS image.
@@ -177,7 +177,7 @@ class BookRSSChannel(BaseRSSChannel):
     def filter_query(self):
         db = current.app.db
         return super(BookRSSChannel, self).filter_query() & \
-            (db.rss_log.book_id == self.book.id)
+            (db.activity_log.book_id == self.book.id)
 
     def link(self):
         try:
@@ -546,6 +546,27 @@ class PageAddedRSSPreLogSet(BaseRSSPreLogSet):
         return 'page added'
 
 
+def activity_log_as_rss_entry(activity_log_entity):
+    """Factory to create a BaseRSSEntry subclass instance from an activity_log
+    record.
+
+    Args:
+        activity_log_entity: Row instance or id representing a activity_log
+            record.
+
+    Returns:
+        BaseRSSEntry subclass instance.
+    """
+    db = current.app.db
+    activity_log = entity_to_row(db.activity_log, activity_log_entity)
+    if not activity_log:
+        raise NotFoundError('activity_log not found, {e}'.format(
+            e=activity_log_entity))
+
+    entry_class = entry_class_from_action(activity_log.action)
+    return entry_class(activity_log.book_page_id, activity_log.time_stamp)
+
+
 def channel_from_type(channel_type, record_id=None):
     """Factory for returning a RSSChannel instance from args.
 
@@ -580,24 +601,6 @@ def entry_class_from_action(action):
         return PagesAddedRSSEntry
     else:
         raise NotFoundError('Invalid RSS entry action: {a}'.format(a=action))
-
-
-def rss_log_as_entry(rss_log_entity):
-    """Factory to create a BaseRSSEntry subclass instance from an rss_log.
-
-    Args:
-        rss_log_entity: Row instance or id representing a rss_log record.
-
-    Returns:
-        BaseRSSEntry subclass instance.
-    """
-    db = current.app.db
-    rss_log = entity_to_row(db.rss_log, rss_log_entity)
-    if not rss_log:
-        raise NotFoundError('rss_log not found, {e}'.format(e=rss_log_entity))
-
-    entry_class = entry_class_from_action(rss_log.action)
-    return entry_class(rss_log.book_page_id, rss_log.time_stamp)
 
 
 def rss_serializer_with_image(feed):
