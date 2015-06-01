@@ -13,6 +13,7 @@ import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DRAFT
@@ -317,7 +318,6 @@ class TestFunctions(LocalTestCase):
             time.sleep(1)
         self.assertFalse(book)
 
-
     def test__book_delete(self):
         # No book id, redirect to books
         self.assertTrue(
@@ -415,7 +415,13 @@ class TestFunctions(LocalTestCase):
             query = (db.book_page.book_id == book_id)
             return [x.id for x in db(query).select(db.book_page.id)]
 
+        def get_activity_log_ids(book_id):
+            query = (db.tentative_activity_log.book_id == book_id)
+            return [
+                x.id for x in db(query).select(db.tentative_activity_log.id)]
+
         before_ids = get_book_page_ids(self._book.id)
+        before_activity_ids = get_activity_log_ids(self._book.id)
 
         # Test add file.
         sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')
@@ -431,6 +437,18 @@ class TestFunctions(LocalTestCase):
         after_ids = get_book_page_ids(self._book.id)
         self.assertEqual(len(before_ids) + 1, len(after_ids))
         new_id = list(set(after_ids).difference(set(before_ids)))[0]
+
+        # Check for tentative_activity_log record
+        after_activity_ids = get_activity_log_ids(self._book.id)
+        self.assertEqual(len(before_activity_ids) + 1, len(after_activity_ids))
+        new_activity_id = list(set(after_activity_ids).difference(
+            set(before_activity_ids)))[0]
+        tentative_log = entity_to_row(
+            db.tentative_activity_log, new_activity_id)
+        self.assertEqual(tentative_log.book_id, self._book.id)
+        self.assertEqual(tentative_log.book_page_id, new_id)
+        self.assertEqual(tentative_log.action, 'page added')
+        self._objects.append(tentative_log)
 
         # Test delete file
         book_page = db(db.book_page.id == new_id).select().first()

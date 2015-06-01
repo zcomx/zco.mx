@@ -370,8 +370,6 @@ def book_tables():
         'publication_metadata',
         'publication_serial',
         'rating',
-        'rss_log',
-        'rss_pre_log',
     ]
 
 
