@@ -34,12 +34,16 @@ OPTIONS
     --man
         Print man page-like help.
 
+    -m, --minimum-age
+        Tentative activity log records must have this minimum age in order
+        to be processed. Age is in seconds. Default: {m}
+
     -v, --verbose
         Print information messages to stdout.
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """.format(m=MINIMUM_AGE_TO_LOG_IN_SECONDS)
 
 
 def main():
@@ -52,6 +56,11 @@ def main():
         '--man',
         action='store_true', dest='man', default=False,
         help='Display manual page-like help and exit.',
+    )
+    parser.add_option(
+        '-m', '--minimum-age', type='int',
+        dest='minimum_age', default=MINIMUM_AGE_TO_LOG_IN_SECONDS,
+        help='Minimum age of tentative log to process.',
     )
     parser.add_option(
         '-v', '--verbose',
@@ -88,7 +97,7 @@ def main():
         log_set = TentativeLogSet.load(filters=filters)
         youngest_log = log_set.youngest()
         age = youngest_log.age()
-        if age.total_seconds() < MINIMUM_AGE_TO_LOG_IN_SECONDS:
+        if age.total_seconds() < options.minimum_age:
             LOG.debug(
                 'Tentative log records too young, book_id: %s', log.book_id)
             continue

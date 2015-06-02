@@ -1,4 +1,4 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 #########################################################################
 ## This scaffolding model makes your app work on Google App Engine too
@@ -124,6 +124,10 @@ db.define_table('activity_log',
     Field(
         'book_page_id',
         'integer',
+    ),
+    Field(
+        'book_page_ids',
+        'list:reference book_page',
     ),
     Field('action'),
     Field('time_stamp', 'datetime'),

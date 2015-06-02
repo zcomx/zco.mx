@@ -235,28 +235,29 @@ class CartoonistRSSChannel(BaseRSSChannel):
 class BaseRSSEntry(object):
     """Class representing a BaseRSSEntry"""
 
-    description_fmt = 'Entry for the book {b} by {c}.'
-
-    def __init__(self, book_page_entity, time_stamp):
+    def __init__(self, book_page_ids, time_stamp):
         """Initializer
 
         Args:
             arg: string, first arg
         """
-        self.book_page_entity = book_page_entity
+        self.book_page_ids = book_page_ids
         self.time_stamp = time_stamp
         db = current.app.db
-        self.book_page = entity_to_row(db.book_page, self.book_page_entity)
-        if not self.book_page:
-            raise NotFoundError('Book page not found: {e}'.format(
-                e=self.book_page_entity))
-        self.book = entity_to_row(db.book, self.book_page.book_id)
+        if not book_page_ids:
+            raise SyntaxError('No book page ids provided')
+        self.first_page = self.first_of_pages()
+        if not self.first_page:
+            raise NotFoundError('First page not found within: {e}'.format(
+                e=self.book_page_ids))
+        self.book = entity_to_row(db.book, self.first_page.book_id)
         if not self.book:
             raise NotFoundError('Book not found: {e}'.format(
                 e=self.book_entity))
         self.creator = entity_to_row(db.creator, self.book.creator_id)
         if not self.creator:
-            raise NotFoundError('Creator not found: {e}'.format(e=self.entity))
+            raise NotFoundError('Creator not found, book: {e}'.format(
+                e=self.book.id))
 
     def created_on(self):
         """Return the created_on value for the entry.
@@ -273,11 +274,20 @@ class BaseRSSEntry(object):
             string, entry description.
         """
         db = current.app.db
-        return self.description_fmt.format(
+        return self.description_fmt().format(
             b=book_formatted_name(
                 db, self.book, include_publication_year=False),
             c=creator_formatted_name(self.creator),
         )
+
+    def description_fmt(self):
+        """Return a format string with suitable convertion flags for
+        the description.
+
+        Returns:
+            string
+        """
+        raise NotImplementedError()
 
     def feed_item(self):
         """Return a dict representing an RSS feed item.
@@ -292,13 +302,34 @@ class BaseRSSEntry(object):
             created_on=self.created_on(),
         )
 
+    def first_of_pages(self):
+        """Return a Row instance representing the book_page record that
+        is the first of the pages with activity. 'first' is the one with
+        the minimum page_no value.
+
+        Returns:
+            Row instance representing a book_page record.
+        """
+        db = current.app.db
+        rows = db(db.book_page.id.belongs(self.book_page_ids)).select(
+            db.book_page.ALL,
+            orderby=db.book_page.page_no,
+            limitby=(0, 1),
+        )
+        if not rows:
+            return
+        if rows:
+            return rows[0]
+
     def link(self):
         """Return the link for the entry.
 
         Returns:
             string, entry link.
         """
-        return page_url(self.book_page, extension=False, host=True)
+        if not self.first_page:
+            return
+        return page_url(self.first_page, extension=False, host=True)
 
     def title(self):
         """Return the title for the entry.
@@ -316,17 +347,19 @@ class BaseRSSEntry(object):
 
 class CompletedRSSEntry(BaseRSSEntry):
     """Class representing a 'completed' RSS entry"""
-    description_fmt = 'The book {b} by {c} has been set as completed.'
+
+    def description_fmt(self):
+        return 'The book {b} by {c} has been set as completed.'
 
 
 class PageAddedRSSEntry(BaseRSSEntry):
     """Class representing a 'page added' RSS entry"""
-    description_fmt = 'A page was added to the book {b} by {c}.'
 
-
-class PagesAddedRSSEntry(BaseRSSEntry):
-    """Class representing a 'pages added' RSS entry"""
-    description_fmt = 'Several pages were added to the book {b} by {c}.'
+    def description_fmt(self):
+        if len(self.book_page_ids) > 1:
+            return 'Several pages were added to the book {b} by {c}.'
+        else:
+            return 'A page was added to the book {b} by {c}.'
 
 
 def activity_log_as_rss_entry(activity_log_entity):
@@ -345,9 +378,12 @@ def activity_log_as_rss_entry(activity_log_entity):
     if not activity_log:
         raise NotFoundError('activity_log not found, {e}'.format(
             e=activity_log_entity))
+    if not activity_log.book_page_ids:
+        raise NotFoundError('activity_log has no book page ids, {e}'.format(
+            e=activity_log_entity))
 
     entry_class = entry_class_from_action(activity_log.action)
-    return entry_class(activity_log.book_page_id, activity_log.time_stamp)
+    return entry_class(activity_log.book_page_ids, activity_log.time_stamp)
 
 
 def channel_from_type(channel_type, record_id=None):
@@ -380,8 +416,6 @@ def entry_class_from_action(action):
         return CompletedRSSEntry
     elif action == 'page added':
         return PageAddedRSSEntry
-    elif action == 'pages added':
-        return PagesAddedRSSEntry
     else:
         raise NotFoundError('Invalid RSS entry action: {a}'.format(a=action))
 
