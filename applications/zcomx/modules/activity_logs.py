@@ -200,11 +200,12 @@ class PageAddedTentativeLogSet(BaseTentativeLogSet):
         book_pages = pages_sorted_by_page_no(self.as_book_pages())
         if not book_pages:
             return
+        book_page_ids = [x.id for x in book_pages]
 
         record = dict(
             book_id=youngest_log.record['book_id'],
-            book_page_id=book_pages[0].id,
-            action=self.activity_log_action(),
+            book_page_ids=book_page_ids,
+            action='page added',
             time_stamp=youngest_log.record['time_stamp'],
         )
 
@@ -217,16 +218,6 @@ class PageAddedTentativeLogSet(BaseTentativeLogSet):
             super_filters['action'] = 'page added'
         return super(PageAddedTentativeLogSet, cls).load(
             filters=super_filters, tentative_log_class=tentative_log_class)
-
-    def activity_log_action(self):
-        """Return the action to be used in the activity_log record.
-
-        Returns:
-            string, one of 'page added' or 'pages added'
-        """
-        if len(self.tentative_records) > 1:
-            return 'pages added'
-        return 'page added'
 
 
 class TentativeLogSet(BaseTentativeLogSet):

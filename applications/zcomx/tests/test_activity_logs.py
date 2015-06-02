@@ -303,7 +303,7 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
         self.assertEqual(got.record['book_id'], -1)
-        self.assertEqual(got.record['book_page_id'], book_page_1.id)
+        self.assertEqual(got.record['book_page_ids'], [book_page_1.id])
         self.assertEqual(got.record['action'], 'page added')
         self.assertEqual(got.record['time_stamp'], time_stamp)
 
@@ -324,7 +324,7 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
                 'time_stamp': time_stamp + datetime.timedelta(days=1),
             }),
             TentativeActivityLog({
-                'id': 2,
+                'id': 3,
                 'book_id': -1,
                 'book_page_id': book_page_3.id,
                 'action': 'page added',
@@ -335,8 +335,11 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
         self.assertEqual(got.record['book_id'], -1)
-        self.assertEqual(got.record['book_page_id'], book_page_3.id)
-        self.assertEqual(got.record['action'], 'pages added')
+        self.assertEqual(
+            got.record['book_page_ids'],
+            [book_page_3.id, book_page_2.id, book_page_1.id]
+        )
+        self.assertEqual(got.record['action'], 'page added')
         self.assertEqual(
             got.record['time_stamp'], time_stamp + datetime.timedelta(days=1))
 
@@ -367,16 +370,6 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         self.assertEqual(pre_log.record['id'], completed_log.id)
         self.assertEqual(pre_log.record['book_id'], completed_log.book_id)
         self.assertEqual(pre_log.record['action'], completed_log.action)
-
-    def test__activity_log_action(self):
-        log_set = PageAddedTentativeLogSet([])
-        self.assertEqual(log_set.activity_log_action(), 'page added')
-
-        log_set = PageAddedTentativeLogSet([{}])
-        self.assertEqual(log_set.activity_log_action(), 'page added')
-
-        log_set = PageAddedTentativeLogSet([{}, {}])
-        self.assertEqual(log_set.activity_log_action(), 'pages added')
 
 
 class TestTentativeActivityLog(LocalTestCase):

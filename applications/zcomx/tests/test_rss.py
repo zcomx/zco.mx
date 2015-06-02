@@ -20,7 +20,6 @@ from applications.zcomx.modules.rss import \
     CartoonistRSSChannel, \
     CompletedRSSEntry, \
     PageAddedRSSEntry, \
-    PagesAddedRSSEntry, \
     activity_log_as_rss_entry, \
     channel_from_type, \
     entry_class_from_action, \
@@ -76,7 +75,7 @@ class WithObjectsTestCase(LocalTestCase):
 
         self._activity_log = self.add(db.activity_log, dict(
             book_id=self._book.id,
-            book_page_id=self._book_page.id,
+            book_page_ids=[self._book_page.id],
             action='completed',
             time_stamp=datetime.datetime.strptime(
                 self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
@@ -110,8 +109,8 @@ class DubRSSEntry(BaseRSSEntry):
         # pylint: disable=W0212
         return WithObjectsTestCase._activity_log_time_stamp
 
-    def description(self):
-        return 'My dub RSS entry.'
+    def description_fmt(self):
+        return 'A book {b} by {c}.'
 
     def link(self):
         return '/path/to/entry'
@@ -245,47 +244,90 @@ class TestBaseRSSChannel(WithObjectsTestCase):
 
 class TestBaseRSSEntry(WithObjectsTestCase):
     def test____init__(self):
-        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
+        entry = BaseRSSEntry([self._book_page.id], self._activity_log_time_stamp)
         self.assertTrue(entry)
 
     def test__created_on(self):
-        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
+        entry = BaseRSSEntry([self._book_page.id], self._activity_log_time_stamp)
         self.assertEqual(entry.created_on(), self._activity_log_time_stamp)
 
     def test__description(self):
-        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
+        entry = DubRSSEntry([self._book_page.id], self._activity_log_time_stamp)
         self.assertEqual(
             entry.description(),
-            'Entry for the book My Book 001 by First Last.'
+            'A book My Book 001 by First Last.'
         )
 
+    def test__description_fmt(self):
+        entry = BaseRSSEntry(
+            [self._book_page.id], self._activity_log_time_stamp)
+        self.assertRaises(NotImplementedError, entry.description_fmt)
+
     def test__feed_item(self):
-        entry = DubRSSEntry(self._book_page, datetime.datetime.now())
+        entry = DubRSSEntry([self._book_page.id], datetime.datetime.now())
         got = entry.feed_item()
         self.assertEqual(
             sorted(got.keys()),
             ['created_on', 'description', 'link', 'title']
         )
         self.assertEqual(got['created_on'], self._activity_log_time_stamp)
-        self.assertEqual(got['description'], 'My dub RSS entry.')
+        self.assertEqual(
+            got['description'],
+            'A book My Book 001 by First Last.'
+        )
         self.assertEqual(got['link'], '/path/to/entry')
         self.assertEqual(got['title'], 'Dub RSS Entry')
 
+    def test__first_of_pages(self):
+
+        book = self.add(db.book, dict(
+            name='test__first_of_pages',
+            creator_id=self._creator.id,
+        ))
+
+        # Test single page
+        book_page = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=999,
+        ))
+
+        entry = BaseRSSEntry([book_page.id], self._activity_log_time_stamp)
+        self.assertEqual(entry.first_of_pages(), book_page)
+
+        # Test multiple pages
+        book_page_2 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=666,
+        ))
+
+        book_page_3 = self.add(db.book_page, dict(
+            book_id=book.id,
+            page_no=777,
+        ))
+
+        page_ids = [
+            book_page.id,
+            book_page_2.id,
+            book_page_3.id,
+        ]
+        entry = BaseRSSEntry(page_ids, self._activity_log_time_stamp)
+        self.assertEqual(entry.first_of_pages(), book_page_2)
+
     def test__link(self):
-        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
+        entry = BaseRSSEntry([self._book_page.id], self._activity_log_time_stamp)
         self.assertEqual(
             entry.link(),
             'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
         )
 
-        entry = BaseRSSEntry(self._book_page_2, self._activity_log_time_stamp)
+        entry = BaseRSSEntry([self._book_page_2.id], self._activity_log_time_stamp)
         self.assertEqual(
             entry.link(),
             'http://127.0.0.1:8000/FirstLast/MyBook-001/002'
         )
 
     def test__title(self):
-        entry = BaseRSSEntry(self._book_page, self._activity_log_time_stamp)
+        entry = BaseRSSEntry([self._book_page.id], self._activity_log_time_stamp)
         self.assertEqual(
             entry.title(),
             'My Book 001 by First Last'
@@ -424,32 +466,58 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
 
     def test_description(self):
         entry = CompletedRSSEntry(
-            self._book_page, self._activity_log_time_stamp)
+            [self._book_page.id], self._activity_log_time_stamp)
         self.assertEqual(
             entry.description(),
             'The book My Book 001 by First Last has been set as completed.'
+        )
+
+    def test__description_fmt(self):
+        entry = CompletedRSSEntry(
+            [self._book_page.id], self._activity_log_time_stamp)
+        self.assertEqual(
+            entry.description_fmt(),
+            'The book {b} by {c} has been set as completed.'
         )
 
 
 class TestPageAddedRSSEntry(WithObjectsTestCase):
 
     def test_description(self):
+
+        # Single page
         entry = PageAddedRSSEntry(
-            self._book_page, self._activity_log_time_stamp)
+            [self._book_page.id], self._activity_log_time_stamp)
         self.assertEqual(
             entry.description(),
             'A page was added to the book My Book 001 by First Last.'
         )
 
-
-class TestPagesAddedRSSEntry(WithObjectsTestCase):
-
-    def test_description(self):
-        entry = PagesAddedRSSEntry(
-            self._book_page, self._activity_log_time_stamp)
+        # Multiple pages
+        entry = PageAddedRSSEntry(
+            [self._book_page.id, self._book_page_2.id],
+            self._activity_log_time_stamp
+        )
         self.assertEqual(
             entry.description(),
             'Several pages were added to the book My Book 001 by First Last.'
+        )
+
+    def test__description_fmt(self):
+        entry = PageAddedRSSEntry(
+            [self._book_page.id], self._activity_log_time_stamp)
+        self.assertEqual(
+            entry.description_fmt(),
+            'A page was added to the book {b} by {c}.'
+        )
+
+        entry = PageAddedRSSEntry(
+            [self._book_page.id, self._book_page_2.id],
+            self._activity_log_time_stamp
+        )
+        self.assertEqual(
+            entry.description_fmt(),
+            'Several pages were added to the book {b} by {c}.'
         )
 
 
@@ -459,7 +527,7 @@ class TestFunctions(WithObjectsTestCase):
         self.assertRaises(NotFoundError, activity_log_as_rss_entry, None)
         self.assertRaises(NotFoundError, activity_log_as_rss_entry, -1)
 
-        for action in ['completed', 'page added', 'pages added']:
+        for action in ['completed', 'page added']:
             self._activity_log.update_record(action=action)
             db.commit()
             got = activity_log_as_rss_entry(self._activity_log)
@@ -495,8 +563,6 @@ class TestFunctions(WithObjectsTestCase):
             entry_class_from_action('completed'), CompletedRSSEntry)
         self.assertEqual(
             entry_class_from_action('page added'), PageAddedRSSEntry)
-        self.assertEqual(
-            entry_class_from_action('pages added'), PagesAddedRSSEntry)
         self.assertRaises(NotFoundError, entry_class_from_action, None)
         self.assertRaises(NotFoundError, entry_class_from_action, '')
         self.assertRaises(NotFoundError, entry_class_from_action, '_fake_')

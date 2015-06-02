@@ -68,7 +68,7 @@ class TestFunctions(LocalTestCase):
 
         self.add(db.activity_log, dict(
             book_id=self._book.id,
-            book_page_id=self._book_page.id,
+            book_page_ids=[self._book_page.id],
             action='page added',
             time_stamp=datetime.datetime.now(),
         ))

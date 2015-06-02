@@ -48,7 +48,7 @@ def log_completed():
 
             db.activity_log.insert(
                 book_id=book.id,
-                book_page_id=first_page.id,
+                book_page_ids=[first_page.id],
                 action='completed',
                 time_stamp=datetime.datetime.combine(
                     book.release_date, datetime.datetime.max.time())
@@ -68,7 +68,7 @@ def log_page_added():
     for row in db.executesql(sql):
         book_id, created_on_grp, count = row
         book = entity_to_row(db.book, book_id)
-        action = 'pages added' if count > 1 else 'page added'
+        action = 'page added'
         time_stamp = datetime.datetime.strptime(
             created_on_grp + ':00:00',
             "%Y-%m-%d %H:%M:%S"
@@ -82,17 +82,19 @@ def log_page_added():
         if not count:
             page_query = (db.book_page.book_id == book.id) & \
                 (db.book_page.created_on.like(created_on_grp + '%'))
-            first_page = db(page_query).select(
+            page_id_rows = db(page_query).select(
+                db.book_page.id,
                 orderby=db.book_page.page_no
-            ).first()
-            if not first_page:
-                LOG.error('First page not found: %s', book.name)
+            )
+            page_ids = [x.id for x in page_id_rows]
+            if not page_ids:
+                LOG.error('No pages found: %s', book.name)
                 continue
 
             LOG.debug('Logging %s: %s', action, book.name)
             db.activity_log.insert(
                 book_id=book.id,
-                book_page_id=first_page.id,
+                book_page_ids=page_ids,
                 action=action,
                 time_stamp=time_stamp
             )
