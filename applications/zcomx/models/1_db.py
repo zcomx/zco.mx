@@ -127,6 +127,10 @@ db.define_table('activity_log',
     ),
     Field('action'),
     Field('time_stamp', 'datetime'),
+    Field(
+        'ongoing_post_id',
+        'integer',
+    ),
 )
 
 db.define_table('tentative_activity_log',
@@ -597,6 +601,16 @@ db.define_table('link',
     ),
     Field('title'),
     format='%(name)s',
+)
+
+db.define_table('ongoing_post',
+    Field(
+        'post_date',
+        'date',
+        default=None,
+    ),
+    Field('tumblr_post_id'),
+    Field('twitter_post_id'),
 )
 
 db.define_table('optimize_img_log',

@@ -17,6 +17,7 @@ from gluon.storage import Storage
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
     ItemDescription, \
+    abridged_list, \
     default_record, \
     entity_to_row, \
     faq_tabs, \
@@ -168,6 +169,20 @@ class TestFunctions(LocalTestCase):
             orderby=[db.test__reorder.order_no, db.test__reorder.id],
         )
         return [x[field] for x in values]
+
+    def test__abridged_list(self):
+        tests = [
+            # (list, expect)
+            ([], []),
+            ([1], [1]),
+            ([1, 2], [1, 2]),
+            ([1, 2, 3], [1, 2, 3]),
+            ([1, 2, 3, 4], [1, 2, 3, 4]),
+            ([1, 2, 3, 4, 5], [1, 2, '...', 5]),
+            ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, '...', 10]),
+        ]
+        for t in tests:
+            self.assertEqual(abridged_list(t[0]), t[1])
 
     def test__default_record(self):
         record = default_record(db.book)

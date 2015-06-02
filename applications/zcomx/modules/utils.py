@@ -86,6 +86,21 @@ class ItemDescription(object):
         return DIV(*divs, **kwargs)
 
 
+def abridged_list(items):
+    """Return the list of items abridged.
+    Example
+        given:  [1, 2, 3, 4, 5]
+        return: [1, 2, '...', 5]
+    """
+    if len(items) <= 4:
+        return items
+
+    snipped = items[0:2]
+    snipped.append('...')
+    snipped.append(items[-1])
+    return snipped
+
+
 def default_record(table, ignore_fields=None):
     """Return a dict represent a record from the table with all fields set to
     their default values.
