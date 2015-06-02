@@ -122,10 +122,6 @@ db.define_table('activity_log',
         'integer',
     ),
     Field(
-        'book_page_id',
-        'integer',
-    ),
-    Field(
         'book_page_ids',
         'list:reference book_page',
     ),
