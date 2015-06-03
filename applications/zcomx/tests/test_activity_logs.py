@@ -170,7 +170,7 @@ class TestCompletedTentativeLogSet(LocalTestCase):
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
         self.assertEqual(got.record['book_id'], -1)
-        self.assertEqual(got.record['book_page_id'], -2)
+        self.assertEqual(got.record['book_page_ids'], [-2])
         self.assertEqual(got.record['action'], 'completed')
         self.assertEqual(got.record['time_stamp'], time_stamp)
 
@@ -195,7 +195,7 @@ class TestCompletedTentativeLogSet(LocalTestCase):
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
         self.assertEqual(got.record['book_id'], -3)
-        self.assertEqual(got.record['book_page_id'], -4)
+        self.assertEqual(got.record['book_page_ids'], [-4])
         self.assertEqual(got.record['action'], 'completed')
         self.assertEqual(
             got.record['time_stamp'], time_stamp + datetime.timedelta(days=1))
