@@ -7,9 +7,12 @@ Classes and functions related to activity logs
 import datetime
 import logging
 from gluon import *
+from applications.zcomx.modules.books import get_page
 from applications.zcomx.modules.book_pages import \
     pages_sorted_by_page_no
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.utils import \
+    NotFoundError, \
+    entity_to_row
 
 LOG = logging.getLogger('app')
 
@@ -152,10 +155,19 @@ class CompletedTentativeLogSet(BaseTentativeLogSet):
         youngest_log = self.youngest()
         if not youngest_log:
             return
+        try:
+            first_page = get_page(
+                youngest_log.record['book_id'], page_no='first')
+        except NotFoundError:
+            first_page = None
+
+        book_page_ids = [first_page.id] \
+            if first_page else \
+            [youngest_log.record['book_page_id']]
 
         record = dict(
             book_id=youngest_log.record['book_id'],
-            book_page_id=youngest_log.record['book_page_id'],
+            book_page_ids=book_page_ids,
             action='completed',
             time_stamp=youngest_log.record['time_stamp'],
         )
