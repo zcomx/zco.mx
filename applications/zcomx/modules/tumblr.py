@@ -18,7 +18,6 @@ from applications.zcomx.modules.utils import \
     NotFoundError, \
     abridged_list, \
     entity_to_row
-
 from applications.zcomx.modules.zco import SITE_NAME
 
 
@@ -348,7 +347,7 @@ class BookListingPage(object):
         """
         return A(
             '{p:02d}'.format(p=self.book_page.page_no),
-            _href=page_url(self.book_page, extension=False, host=True)
+            _href=page_url(self.book_page, extension=False, host=SITE_NAME)
         )
 
 
@@ -372,7 +371,7 @@ def ongoing_books_link():
     """
     return str(A(
         'Ongoing Books',
-        _href=URL(c='z', f='ongoing', host=True),
+        _href=URL(c='z', f='ongoing', host=SITE_NAME),
     ))
 
 
