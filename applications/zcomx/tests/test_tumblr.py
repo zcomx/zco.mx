@@ -186,12 +186,12 @@ class TestBookListingPage(WithObjectsTestCase):
         listing_page = BookListingPage(self._book_page)
         link = listing_page.link()
         soup = BeautifulSoup(str(link))
-        # <a href="http://127.0.0.1:8000/FirstLast/MyBook-001/001">01</a>
+        # <a href="http://zco.mx/FirstLast/MyBook-001/001">01</a>
         anchor = soup.find('a')
         self.assertEqual(anchor.string, '01')
         self.assertEqual(
             anchor['href'],
-            'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
+            'http://zco.mx/FirstLast/MyBook-001/001'
         )
 
 
@@ -222,17 +222,17 @@ class TestOngoingBookListing(WithObjectsTestCase):
         self.assertEqual(anchor['href'], 'http://firstlast.tumblr.com')
 
         soup = BeautifulSoup(str(got[4]))
-        # <a href="http://127.0.0.1:8000/FirstLast/MyBook-001/001">01</a>
+        # <a href="http://zco.mx/FirstLast/MyBook-001/001">01</a>
         anchor = soup.find('a')
         self.assertEqual(anchor.string, '01')
         self.assertEqual(
             anchor['href'],
-            'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
+            'http://zco.mx/FirstLast/MyBook-001/001'
         )
 
         # Test abridged list
         pages = []
-        for page in range(0, 10):
+        for _ in range(0, 10):
             pages.append(self._book_page)
         listing = OngoingBookListing(self._book, pages, self._creator)
         got = listing.components()
@@ -324,7 +324,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         self.assertEqual(li_1_anchors[1].string, '02')
         self.assertEqual(
             li_1_anchors[1]['href'],
-            'http://127.0.0.1:8000/FirstLast/MyBook-001/002'
+            'http://zco.mx/FirstLast/MyBook-001/002'
         )
         self.assertEqual(len(li_1.contents), 4)
         self.assertEqual(li_1.contents[0], 'My Book 001 by ')
@@ -339,12 +339,12 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         self.assertEqual(li_2_anchors[1].string, '01')
         self.assertEqual(
             li_2_anchors[1]['href'],
-            'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
+            'http://zco.mx/FirstLast/MyBook-001/001'
         )
         self.assertEqual(li_2_anchors[2].string, '02')
         self.assertEqual(
             li_2_anchors[2]['href'],
-            'http://127.0.0.1:8000/FirstLast/MyBook-001/002'
+            'http://zco.mx/FirstLast/MyBook-001/002'
         )
         self.assertEqual(len(li_2.contents), 6)
         self.assertEqual(li_2.contents[0], 'My Book 001 by ')
@@ -390,12 +390,12 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         self.assertEqual(
             preparer.data(),
             {
-                'body': '<ul><li>My Book 001 by <a href="http://firstlast.tumblr.com">First Last</a> - page <a href="http://127.0.0.1:8000/FirstLast/MyBook-001/001">01</a></li><li>My Book 001 by <a href="http://firstlast.tumblr.com">First Last</a> - page <a href="http://127.0.0.1:8000/FirstLast/MyBook-001/002">02</a></li></ul>',
+                'body': '<ul><li>My Book 001 by <a href="http://firstlast.tumblr.com">First Last</a> - page <a href="http://zco.mx/FirstLast/MyBook-001/001">01</a></li><li>My Book 001 by <a href="http://firstlast.tumblr.com">First Last</a> - page <a href="http://zco.mx/FirstLast/MyBook-001/002">02</a></li></ul>',
                 'format': 'html',
                 'slug': 'ongoing-books-update-1999-12-31',
                 'state': 'published',
                 'tags': ['comics', 'zco.mx'],
-                'title': 'List of Updated <a href="http://127.0.0.1:8000/z/ongoing">Ongoing Books</a> for Fri, Dec 31, 1999'
+                'title': 'List of Updated <a href="http://zco.mx/z/ongoing">Ongoing Books</a> for Fri, Dec 31, 1999'
             }
         )
 
@@ -424,7 +424,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         preparer = TextDataPreparer(date, generator)
         self.assertEqual(
             preparer.title(),
-            'List of Updated <a href="http://127.0.0.1:8000/z/ongoing">Ongoing Books</a> for Fri, Dec 31, 1999'
+            'List of Updated <a href="http://zco.mx/z/ongoing">Ongoing Books</a> for Fri, Dec 31, 1999'
         )
 
 
@@ -601,7 +601,7 @@ class TestFunctions(WithObjectsTestCase, WithDateTestCase):
     def test__ongoing_books_link(self):
         self.assertEqual(
             ongoing_books_link(),
-            '<a href="http://127.0.0.1:8000/z/ongoing">Ongoing Books</a>'
+            '<a href="http://zco.mx/z/ongoing">Ongoing Books</a>'
         )
 
     def test__postable_activity_log_ids(self):
