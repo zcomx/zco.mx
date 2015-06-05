@@ -14,7 +14,7 @@ VERSION 3
         Set the max-height of the indicia image to 500px so more of the
         page is displayed
 
-[ ] Daily Summary of 'ongoing' pages
+[ ] Daily Summary of 'ongoing' pages - tumblr
     Post a daily report (list of links) summarizing the pages that were
     uploaded for that day to tumblr first (as a blog post?) and then
     that url posted to twitter (zcomx_bot).
@@ -25,16 +25,21 @@ VERSION 3
             * Book Title by <tumblr_nick> - page <57>
             * Eavesdropper 001 by <andreatsurumi> - page <14>
 
-        SB 2015-05-28 20:35  If no tumblr_nick, then @twitter_handle?
+    [ ] Make heading smaller
+    [ ] italicize book title
+    [ ] link book title to the zco.mx book page
+    [ ] Change 'List of Updated...' to 'Updated Ongoing...'
+    [ ] Set links to color: #FF6600 and no underline
 
-    [ ] Wording for the tweet
-        "zco.mx Ongoing Books Update -- <url>"
-        "Updates for Ongoing Books on zco.mx -- <url>"
-        "New Pages Added for Ongoing Books on zco.mx -- <url>"
-        "New Pages Uploaded for Ongoing Books on zco.mx -- <url>"
 
-        "New Pages Added by @nick1 @nick2 @nick3 on zco.mx -- <url>"
-        "New Pages Added by @nick4 @nick5 @nick6 on zco.mx -- <url>"
+[ ] Daily Summary of 'ongoing' pages - twitter
+    "zco.mx Ongoing Books Update -- <url>"
+    "Updates for Ongoing Books on zco.mx -- <url>"
+    "New Pages Added for Ongoing Books on zco.mx -- <url>"
+    "New Pages Uploaded for Ongoing Books on zco.mx -- <url>"
+
+    "New Pages Added by @nick1 @nick2 @nick3 on zco.mx -- <url>"
+    "New Pages Added by @nick4 @nick5 @nick6 on zco.mx -- <url>"
 
 [S] Cartoonist Page -> Links to Cartoonist Articles/interviews?
     [S] Mockup
