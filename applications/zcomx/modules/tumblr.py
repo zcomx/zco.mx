@@ -369,6 +369,7 @@ def ongoing_books_link():
     Returns:
         string
     """
+    return 'Ongoing Books'      # Link not allowed in title.
     return str(A(
         'Ongoing Books',
         _href=URL(c='z', f='ongoing', host=SITE_NAME),
