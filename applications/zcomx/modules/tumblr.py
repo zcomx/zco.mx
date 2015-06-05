@@ -10,7 +10,8 @@ import pytumblr
 from gluon import *
 from applications.zcomx.modules.books import \
     formatted_name as book_formatted_name, \
-    page_url
+    page_url, \
+    url as book_url
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
@@ -191,7 +192,6 @@ class TextDataPreparer(object):
         Returns:
             yields OngoingBookListing instance
         """
-        db = current.app.db
         for activity_log in self.activity_log_generator.generator():
             book_listing = OngoingBookListing.from_activity_log(activity_log)
             yield book_listing
@@ -222,9 +222,8 @@ class TextDataPreparer(object):
 
     def title(self):
         """Return the title of the post."""
-        fmt = 'List of Updated {o} for {d}'
+        fmt = 'List of Updated Ongoing Books for {d}'
         return fmt.format(
-            o=ongoing_books_link(),
             d=self.date.strftime('%a, %b %d, %Y')
         )
 
@@ -259,7 +258,11 @@ class OngoingBookListing(object):
         """
         db = current.app.db
         parts = [
-            book_formatted_name(db, self.book, include_publication_year=False),
+            I(A(
+                book_formatted_name(
+                    db, self.book, include_publication_year=False),
+                _href=book_url(self.book, extension=False, host=SITE_NAME),
+            )),
             ' by ',
             book_listing_creator(self.creator).link(),
             ' - page ',
@@ -361,19 +364,6 @@ def book_listing_creator(creator):
         if creator.tumblr is not None \
         else BookListingCreator
     return listing_class(creator)
-
-
-def ongoing_books_link():
-    """Return a string representing a link to the ongoing books page.
-
-    Returns:
-        string
-    """
-    return 'Ongoing Books'      # Link not allowed in title.
-    return str(A(
-        'Ongoing Books',
-        _href=URL(c='z', f='ongoing', host=SITE_NAME),
-    ))
 
 
 def postable_activity_log_ids():
