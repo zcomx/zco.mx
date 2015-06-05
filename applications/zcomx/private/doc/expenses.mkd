@@ -22,8 +22,9 @@ EXPENSES
     Apr 2015    Contract Work - copy    $165
     May 2015    Server Hosting          $ 40
     May 2015    Advertising - Card      $300
-  TOTAL Expense                                 $1717
+    Jun 2015    Server Hosting          $ 40
+  TOTAL Expense                                 $1757
 
 
-NET TOTAL                                      -$1712
+NET TOTAL                                      -$1752
 ``
