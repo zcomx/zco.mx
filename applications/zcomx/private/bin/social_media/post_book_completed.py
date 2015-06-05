@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-post_book_on_tumblr.py
+post_book_completed.py
 
-Script to post a book on tumblr.
+Script to post a completed book on tumblr.
 """
 import json
 import logging
@@ -142,9 +142,13 @@ def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    post_book_on_tumblr.py [OPTIONS] book_id               # Post book
+    post_book_completed.py [OPTIONS] book_id               # Post book
 
 OPTIONS
+    -f, --force
+        Post regardless if book record indicates a post has already been
+        made (ie book.tumblr_post_id and book.twitter_post_id are set)
+
     -h, --help
         Print a brief help.
 
@@ -171,6 +175,11 @@ def main():
     usage = '%prog [options] book_id'
     parser = OptionParser(usage=usage, version=VERSION)
 
+    parser.add_option(
+        '-f', '--force',
+        action='store_true', dest='force', default=False,
+        help='Post regardles if book post_ids exist.',
+    )
     parser.add_option(
         '--man',
         action='store_true', dest='man', default=False,
@@ -234,15 +243,24 @@ def main():
         services = ['tumblr', 'twitter']
 
     if 'tumblr' in services:
-        tumblr_post_id = post_on_tumblr(book, creator)
-        if tumblr_post_id:
-            book.update_record(tumblr_post_id=tumblr_post_id)
-            db.commit()
+        if book.tumblr_post_id and not options.force:
+            LOG.warn('Book has tumblr_post_id: %s', book.tumblr_post_id)
+            LOG.warn('Refusing to post to tumblr without --force')
+        else:
+            tumblr_post_id = post_on_tumblr(book, creator)
+            if tumblr_post_id:
+                book.update_record(tumblr_post_id=tumblr_post_id)
+                db.commit()
+
     if 'twitter' in services:
-        twitter_post_id = post_on_twitter(book, creator)
-        if twitter_post_id:
-            book.update_record(twitter_post_id=twitter_post_id)
-            db.commit()
+        if book.twitter_post_id and not options.force:
+            LOG.warn('Book has twitter_post_id: %s', book.twitter_post_id)
+            LOG.warn('Refusing to post to twitter without --force')
+        else:
+            twitter_post_id = post_on_twitter(book, creator)
+            if twitter_post_id:
+                book.update_record(twitter_post_id=twitter_post_id)
+                db.commit()
 
     LOG.debug('Done')
 

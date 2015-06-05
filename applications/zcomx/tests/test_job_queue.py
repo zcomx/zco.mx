@@ -644,7 +644,7 @@ class TestPostOnSocialMediaQueuer(LocalTestCase):
         self._objects.append(job)
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/post_on_social_media.py --vv 123'
+            'applications/zcomx/private/bin/social_media/post_book_completed.py --vv 123'
         )
 
 

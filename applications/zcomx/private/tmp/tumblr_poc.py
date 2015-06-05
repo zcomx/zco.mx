@@ -18,6 +18,9 @@ VERSION = 'Version 0.1'
 
 LOG = logging.getLogger('cli')
 
+# C0301 (line-too-long): *Line too long (%%s/%%s)*
+# pylint: disable=C0301
+
 
 def clear(client):
     """Delete existing posts.
@@ -29,6 +32,88 @@ def clear(client):
     for post in posts_response['posts']:
         LOG.debug('Deleting: %s', post['id'])
         client.delete_post('zcomx', post['id'])
+
+
+def create_photo(client):
+    """POC tumblr API create_photo."""
+    photo_data = dict(
+        state="private",
+        tags=['tag1', 'tag2', 'zco.mx'],
+        format='html',
+        slug='unique-slug-002',
+        source='https://zco.mx/images/download/book_page.image.b224f4ba0b8dff48.757074696768742d3030312d30312e706e67.png?size=web',
+        link='https://zco.mx',
+        caption='This is a test',
+    )
+
+    # photo['source'] = 'https://zco.mx/zcomx/static/images/zco.mx-logo-small.png'
+    photo_data['caption'] = """
+<h3><a href="https://zco.mx/JordanCrane/Uptight-001">Uptight 001 (2006)</a></h3><p>Test 001</p><p>by <a class="orange" id="test" href="https://zco.mx/JordanCrane">https://zco.mx/JordanCrane</a> |<a href="http://whatthingsdo.com">website</a> | <a href="https://twitter.com/Jordan_Crane">twitter</a> | <a href="https://whatthingsdo.tumblr.com">tumblr</a></p>
+"""
+    # """       # fixes vim syntax highlighting.
+    result = client.create_photo('zcomx', **photo_data)
+    print 'create_photo: {id}'.format(id=result)
+
+
+def create_quote(client):
+    """POC tumblr API create_quote."""
+    quote_data = dict(
+        state="private",
+        tags=['Uptight', 'JordanCrane', 'zco.mx'],
+        format='html',
+        slug='Jordan Crane Uptight-001',
+        quote='This is the quote of the day',
+        source='Joe Doe',
+    )
+    result = client.create_quote('zcomx', **quote_data)
+    print 'create_quote: {q}'.format(q=result)
+
+
+def create_text(client):
+    """POC tumblr API create_text."""
+    text_data = dict(
+        state="private",
+        tags=['Uptight', 'JordanCrane', 'zco.mx'],
+        format='html',
+        slug='Jordan Crane Uptight-001',
+        title='<span style="font-size: 18px;">List of Updated Ongoing Books for Thu, May 28, 2015</span>',
+        body="""
+         <ul>
+            <li> Name of Book by <tumblr_nick> - page <15>, <16>, <17></li>
+            <li> Book Title by <tumblr_nick> - page <57></li>
+            <li> Eavesdropper 001 by <andreatsurumi> - page <14></li>
+        </ul>
+        """,
+    )
+    result = client.create_text('zcomx', **text_data)
+    print 'create_text: {r}'.format(r=result)
+
+
+def delete_post(client, post_id):
+    """POC tumblr API delete_post."""
+    result = client.delete_post('zcomx', post_id)
+    print 'client.delete_post: {r}'.format(r=result)
+
+
+def info(client):
+    """Get client info results."""
+    print 'client.info: {i}'.format(i=client.info())
+
+
+def posts(client, hostname='zcomx'):
+    """Get client posts results."""
+    print 'client.posts: {p}'.format(p=client.posts(hostname))
+
+
+def posts_summary(client, hostname='zcomx'):
+    """Get client posts results."""
+    results = client.posts(hostname)
+    if 'posts' not in results:
+        LOG.error('posts not found in results')
+        return
+
+    for post in results['posts']:
+        print '{id} {slug}'.format(id=post['id'], slug=post['slug'])
 
 
 def man_page():
@@ -59,7 +144,7 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
+    usage = '%prog [options] [post_id]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -83,7 +168,7 @@ def main():
         help='More verbose.',
     )
 
-    (options, unused_args) = parser.parse_args()
+    (options, args) = parser.parse_args()
 
     if options.man:
         man_page()
@@ -96,7 +181,11 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
+    if args:
+        post_id = args[0]
+
     LOG.info('Started.')
+    LOG.debug('post_id: %s', post_id)
 
     # Authenticate via OAuth
     settings = current.app.local_settings
@@ -112,61 +201,14 @@ def main():
         clear(client)
         return
 
-    # Make the request
-    x = client.info()
-    print 'x: {var}'.format(var=x)
-    # x = client.posts('zcomx')
-    # x = client.delete_post('zcomx', '116050875376')
-#     client.create_photo(
-#         'zcomx',
-#         state="private",
-#         tags=['Uptight', 'JordanCrane', 'zco.mx'],
-#         tweet='Uptight 001|Jordan Crane|https://zco.mx/JordanCrane/Uptight-001',
-#         format='markdown',
-#         slug='Jordan Crane Uptight-001',
-#         source='https://zco.mx/images/download/book_page.image.b224f4ba0b8dff48.757074696768742d3030312d30312e706e67.png?size=web',
-#         link="https://zco.mx/JordanCrane/Uptight-001",
-#         caption="""
-# ###<a href="https://zco.mx/JordanCrane/Uptight-001">Uptight 001 (2006)</a>###
-#
-# Test 001
-#
-# by <a class="orange" id="test" href="https://zco.mx/JordanCrane">https://zco.mx/JordanCrane</a>
-# | <a href="http://whatthingsdo.com">website</a>
-# | <a href="https://twitter.com/Jordan_Crane">twitter</a>
-# | <a href="https://whatthingsdo.tumblr.com">tumblr</a>
-# """,
-#     )
-
-    # x = client.create_text(
-    #     'zcomx',
-    #     state="private",
-    #     tags=['Uptight', 'JordanCrane', 'zco.mx'],
-    #     format='markdown',
-    #     slug='Jordan Crane Uptight-001',
-    #     title='This Is A Test',
-    #     body="""
-    #      List of Updated <Ongoing Books> for Thu, May 28, 2015:
-    #      <ul>
-    #         <li> Name of Book by <tumblr_nick> - page <15>, <16>, <17></li>
-    #         <li> Book Title by <tumblr_nick> - page <57></li>
-    #         <li> Eavesdropper 001 by <andreatsurumi> - page <14></li>
-    #     </ul>
-    #     """,
-    # )
-    # print 'x: {var}'.format(var=x)
-
-    # x = client.create_quote(
-    #     'zcomx',
-    #     state="private",
-    #     tags=['Uptight', 'JordanCrane', 'zco.mx'],
-    #     format='markdown',
-    #     slug='Jordan Crane Uptight-001',
-    #     quote='This is the quote of the day',
-    #     source='Joe Doe',
-    # )
-    # print 'x: {var}'.format(var=x)
-
+    info(client)
+    # posts(client)
+    # posts(client, hostname='charlesforsman')
+    # posts_summary(client)
+    # delete_post(client, post_id)
+    # create_photo(client)
+    # create_quote(client)
+    # create_text(client)
     LOG.info('Done.')
 
 
