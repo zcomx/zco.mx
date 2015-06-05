@@ -45,13 +45,6 @@ class Authenticator(object):
 class PhotoDataPreparer(object):
     """Class representing a preparer of data for twitter photo posting."""
 
-    tweet_formats = {
-        # Twitter appends a photo url (a t.co link) to the end.
-        # Append url for length calculations.
-        'normal': '{name} by {creator} | {url} | {tags}',
-        'length': '{name} by {creator} | {url} | {tags} {url}',
-    }
-
     def __init__(self, twitter_data):
         """Constructor
 
@@ -91,7 +84,37 @@ class PhotoDataPreparer(object):
 
         In twitter land, the status is the 140 character tweet.
         """
-        tweet = Tweet.from_data(self.twitter_data)
+        tweet = CompletedBookTweet.from_data(self.twitter_data)
+        return tweet.status()
+
+
+class TextDataPreparer(object):
+    """Class representing a preparer of data for twitter text posting."""
+
+    def __init__(self, twitter_data):
+        """Constructor
+
+        Args:
+            twitter_data: dict like
+                {
+                    'ongoing_post': {...},      # ongoing_post attributes
+                    'site': {...},              # site attributes
+                }
+        """
+        self.twitter_data = twitter_data
+
+    def data(self):
+        """Return the data for the text tweet."""
+        return {
+            'status': self.status(),
+        }
+
+    def status(self):
+        """Return the status.
+
+        In twitter land, the status is the 140 character tweet.
+        """
+        tweet = OngoingUpdateTweet.from_data(self.twitter_data)
         return tweet.status()
 
 
@@ -122,11 +145,31 @@ class Poster(object):
         """
         return self.client.statuses.update_with_media(**photo_data)
 
+    def post_text(self, text_data):
+        """Post a text tweet.
 
-class Tweet(object):
-    """Class representing a tweet"""
+        Args:
+            text_data: dict of data required for twitter text post.
+        """
+        return self.client.statuses.update(**text_data)
+
+
+class BaseTweet(object):
+    """Base class representing a tweet."""
     TWEET_MAX_CHARS = 140
     SAMPLE_TCO_LINK = 'http://t.co/1234567890'
+
+    def __init__(self, twitter_data):
+        """Initializer
+
+        Args:
+            twitter_data: dict of data for tweet.
+        """
+        self.twitter_data = twitter_data
+
+
+class CompletedBookTweet(BaseTweet):
+    """Class representing a tweet annoucing a completed book."""
 
     tweet_formats = {
         # Twitter appends a photo url (a t.co link) to the end.
@@ -134,14 +177,6 @@ class Tweet(object):
         'normal': '{name} by {creator} | {url} | {tags}',
         'length': '{name} by {creator} | {url} | {tags} {url}',
     }
-
-    def __init__(self, twitter_data):
-        """Initializer
-
-        Args:
-            data: string, first arg
-        """
-        self.twitter_data = twitter_data
 
     def creator(self):
         """Return the creator as used in the tweet.
@@ -151,14 +186,6 @@ class Tweet(object):
         """
         return self.twitter_data['creator']['twitter'] or \
             self.twitter_data['creator']['name']
-
-    @classmethod
-    def from_data(cls, twitter_data):
-        """Return a Tweet instance appropriate for the provided data."""
-        tweet = cls(twitter_data)
-        if len(tweet.for_length_calculation()) > cls.TWEET_MAX_CHARS:
-            tweet = TruncatedTweet(twitter_data)
-        return tweet
 
     def for_length_calculation(self):
         """Return the tweet as used for calculating the length.
@@ -176,6 +203,16 @@ class Tweet(object):
         }
 
         return self.tweet_formats['length'].format(**data)
+
+    @classmethod
+    def from_data(cls, twitter_data):
+        """Return a CompletedBookTweet instance appropriate for the provided
+        data.
+        """
+        tweet = cls(twitter_data)
+        if len(tweet.for_length_calculation()) > cls.TWEET_MAX_CHARS:
+            tweet = TruncatedCompletedBookTweet(twitter_data)
+        return tweet
 
     def hash_tag_values(self):
         """Return a list of hash tag values.
@@ -206,11 +243,142 @@ class Tweet(object):
         return self.tweet_formats['normal'].format(**data)
 
 
-class TruncatedTweet(Tweet):
-    """Class representing a truncated"""
+class TruncatedCompletedBookTweet(CompletedBookTweet):
+    """Class representing a truncated completed book tweet."""
 
     def hash_tag_values(self):
         return [self.twitter_data['site']['name']]
+
+
+class OngoingUpdateTweet(BaseTweet):
+    """Class representing a tweet annoucing a ongoing book updates."""
+
+    tweet_formats = {
+        'normal': 'New pages added by {creators} on {site} | {url} | {tags}',
+        'length': 'New pages added by {creators} on {site} | {url} | {tags}',
+    }
+
+    def creators(self):
+        """Return the list of creators in the post.
+
+        Returns:
+            string
+        """
+        names = []
+        for creator_data in self.twitter_data['ongoing_post']['creators']:
+            names.append(
+                creator_data['twitter'] or creator_data['name']
+            )
+        return ', '.join(names)
+
+    def for_length_calculation(self):
+        """Return the tweet as used for calculating the length.
+
+        Returns:
+            string
+        """
+        tags = formatted_tags(self.hash_tag_values())
+
+        data = {
+            'creators': self.creators(),
+            'site': self.twitter_data['site']['name'],
+            'tags': tags,
+            'url': self.SAMPLE_TCO_LINK,
+        }
+
+        return self.tweet_formats['length'].format(**data)
+
+    @classmethod
+    def from_data(cls, twitter_data):
+        """Return a CompletedBookTweet instance appropriate for the provided
+        data.
+        """
+        tweet = cls(twitter_data)
+        if len(tweet.for_length_calculation()) > cls.TWEET_MAX_CHARS:
+            tweet = TruncatedOngoingUpdateTweet(twitter_data)
+        return tweet
+
+    def hash_tag_values(self):
+        """Return a list of hash tag values.
+
+        Returns:
+            list of strings used for hash tags.
+        """
+        return [
+            self.twitter_data['site']['name'],
+            'comics',
+        ]
+
+    def status(self):
+        """Return the status.
+
+        In twitter land, the status is the 140 character tweet.
+        """
+        tags = self.hash_tag_values()
+
+        data = {
+            'creators': self.creators(),
+            'site': self.twitter_data['site']['name'],
+            'tags': formatted_tags(tags),
+            'url': self.tumblr_url(),
+        }
+
+        return self.tweet_formats['normal'].format(**data)
+
+    def tumblr_url(self):
+        """Return the tumblr url.
+
+        Returns string.
+        """
+        return 'http://zcomx.tumblr.com/post/{post_id}'.format(
+            post_id=self.twitter_data['ongoing_post']['tumblr_post_id']
+        )
+
+
+class TruncatedOngoingUpdateTweet(OngoingUpdateTweet):
+    """Class representing a truncated ongoing book updates tweet."""
+
+    num_of_creators = 3
+
+    def creators(self):
+        if len(self.twitter_data['ongoing_post']['creators']) \
+                <= self.num_of_creators:
+            return super(TruncatedOngoingUpdateTweet, self).creators()
+
+        truncated = self.twitter_data['ongoing_post']['creators'][:self.num_of_creators - 1]
+        names = []
+        for creator_data in truncated:
+            names.append(
+                creator_data['twitter'] or creator_data['name']
+            )
+        return ', '.join(names) + ' and others'
+
+    def hash_tag_values(self):
+        return [self.twitter_data['site']['name']]
+
+
+def creators_in_ongoing_post(ongoing_post):
+    """Return the ids of creators involved in an ongoing post.
+
+    Args:
+        ongoing_post: Row representing an ongoing_post record.
+
+    Returns:
+        list of integers, creator record ids
+    """
+    db = current.app.db
+    query = (db.activity_log.ongoing_post_id == ongoing_post.id)
+    rows = db(query).select(
+        db.creator.id,
+        left=[
+            db.book.on(db.activity_log.book_id == db.book.id),
+            db.creator.on(db.book.creator_id == db.creator.id),
+        ],
+        distinct=True,
+        orderby=db.creator.id,
+    )
+
+    return [x.id for x in rows]
 
 
 def formatted_tags(tags):

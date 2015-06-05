@@ -6,6 +6,8 @@
 Test suite for zcomx/modules/social_media.py
 
 """
+import copy
+import datetime
 import json
 import string
 import unittest
@@ -14,11 +16,16 @@ from twitter import TwitterHTTPError
 from applications.zcomx.modules.images import ImageDescriptor, UploadImage
 from applications.zcomx.modules.tweeter import \
     Authenticator, \
+    BaseTweet, \
+    CompletedBookTweet, \
+    OngoingUpdateTweet, \
     POST_IN_PROGRESS, \
     PhotoDataPreparer, \
     Poster, \
-    TruncatedTweet, \
-    Tweet, \
+    TextDataPreparer, \
+    TruncatedCompletedBookTweet, \
+    TruncatedOngoingUpdateTweet, \
+    creators_in_ongoing_post, \
     formatted_tags
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -33,11 +40,23 @@ class DubStatuses(object):
         self.posts = {}
 
     def destroy(self, post_id):
-        del self.posts[post_id]
+        if 'destroy' not in self.posts:
+            self.posts['destroy'] = {}
+        self.posts['destroy'][post_id] = 'destroyed'
+        return post_id
+
+    def update(self, **kwargs):
+        if 'update' not in self.posts:
+            self.posts['update'] = {}
+        post_id = uuid.uuid4()
+        self.posts['update'][post_id] = kwargs
+        return post_id
 
     def update_with_media(self, **kwargs):
+        if 'update_with_media' not in self.posts:
+            self.posts['update_with_media'] = {}
         post_id = uuid.uuid4()
-        self.posts[post_id] = kwargs
+        self.posts['update_with_media'][post_id] = kwargs
         return post_id
 
 
@@ -86,6 +105,32 @@ class WithMediaTestCase(LocalTestCase):
         cls._test_image_bytes = ImageDescriptor(fullname).size_bytes()
 
 
+class WithOngoingPostTestCase(LocalTestCase):
+
+    _expect_status = None
+    _twitter_data = None
+
+    def setUp(self):
+        self._twitter_data = {
+            'ongoing_post': {
+                'creators': [
+                    {'name': 'Joe Smoe', 'twitter': '@joesmoe'},
+                    {'name': 'My Name', 'twitter': '@myname'},
+                ],
+                'tumblr_post_id': '123456789012',
+            },
+            'site': {
+                'name': 'zco.mx',
+            },
+        }
+
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self._expect_status = 'New pages added by @joesmoe, @myname on zco.mx | http://zcomx.tumblr.com/post/123456789012 | #zcomx #comics'
+
+        super(WithOngoingPostTestCase, self).setUp()
+
+
 class TestConstants(LocalTestCase):
     def test_constants(self):
         self.assertEqual(POST_IN_PROGRESS, '__in_progress__')
@@ -116,6 +161,228 @@ class TestAuthenticator(LocalTestCase):
             self.assertEqual(errors[0]['code'], 215)
         else:
             self.fail('TwitterHTTPError not raised.')
+
+
+class TestBaseTweet(LocalTestCase):
+
+    def test____init__(self):
+        tweet = BaseTweet({})
+        self.assertTrue(tweet)
+        self.assertEqual(tweet.TWEET_MAX_CHARS, 140)
+        self.assertEqual(tweet.SAMPLE_TCO_LINK, 'http://t.co/1234567890')
+
+
+class TestCompletedBookTweet(LocalTestCase):
+
+    def test__creator(self):
+        data = {
+            'creator': {
+                'name': 'First Last',
+                'twitter': '@First_Last',
+            },
+        }
+
+        tweet = CompletedBookTweet(data)
+        self.assertEqual(tweet.creator(), '@First_Last')
+        data['creator']['twitter'] = None
+        tweet = CompletedBookTweet(data)
+        self.assertEqual(tweet.creator(), 'First Last')
+
+    def test__for_length_calculation(self):
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        data = {
+            'book': {
+                'formatted_name_no_year': 'My Book 001',
+            },
+            'creator': {
+                'name': 'First Last',
+                'name_for_url': 'FirstLast',
+                'twitter': '@First_Last',
+            },
+            'site': {
+                'name': 'zco.mx',
+            },
+        }
+        tweet = CompletedBookTweet(data)
+        self.assertEqual(
+            tweet.for_length_calculation(),
+            'My Book 001 by @First_Last | http://t.co/1234567890 | #zcomx #comics #FirstLast http://t.co/1234567890'
+        )
+
+        # No twitter handle
+        data['creator']['twitter'] = None
+        tweet = CompletedBookTweet(data)
+        self.assertEqual(
+            tweet.for_length_calculation(),
+            'My Book 001 by First Last | http://t.co/1234567890 | #zcomx #comics #FirstLast http://t.co/1234567890'
+        )
+
+    def test__from_data(self):
+        data = {
+            'book': {
+                'formatted_name_no_year': 'My Book 001',
+            },
+            'creator': {
+                'name': 'First Last',
+                'name_for_url': 'FirstLast',
+                'twitter': '@First_Last',
+            },
+            'site': {
+                'name': 'zco.mx',
+            },
+        }
+        tweet = CompletedBookTweet.from_data(data)
+        self.assertTrue(isinstance(tweet, CompletedBookTweet))
+        self.assertEqual(tweet.twitter_data, data)
+        self.assertTrue(len(tweet.for_length_calculation()) <= 140)
+
+        # Exactly 140 characters
+        name = '1234567890123456789012345678901234567890123456789'
+        data['book']['formatted_name_no_year'] = name
+        tweet = CompletedBookTweet.from_data(data)
+        self.assertTrue(isinstance(tweet, CompletedBookTweet))
+        self.assertEqual(len(tweet.for_length_calculation()), 140)
+
+        # Long name requires truncation
+        name = '1234567890123456789012345678901234567890123456789012345678'
+        data['book']['formatted_name_no_year'] = name
+        tweet = CompletedBookTweet.from_data(data)
+        self.assertTrue(isinstance(tweet, TruncatedCompletedBookTweet))
+        self.assertTrue(len(tweet.for_length_calculation()) <= 140)
+
+    def test__hash_tag_values(self):
+        data = {
+            'creator': {
+                'name_for_url': 'FirstLast',
+            },
+            'site': {
+                'name': 'zco.mx',
+            },
+        }
+        tweet = CompletedBookTweet(data)
+
+        self.assertEqual(
+            tweet.hash_tag_values(),
+            ['zco.mx', 'comics', 'FirstLast']
+        )
+
+    def test__status(self):
+        data = {
+            'book': {
+                'formatted_name_no_year': 'My Book 001',
+                'short_url': 'http://101.zco.mx/MyBook-001',
+            },
+            'creator': {
+                'name': 'First Last',
+                'name_for_url': 'FirstLast',
+                'twitter': '@First_Last',
+                'short_url': 'http://101.zco.mx',
+            },
+            'site': {
+                'name': 'zco.mx',
+            },
+        }
+        tweet = CompletedBookTweet(data)
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            tweet.status(),
+            'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx #comics #FirstLast'
+        )
+
+
+class TestOngoingUpdateTweet(WithOngoingPostTestCase):
+
+    def test__creators(self):
+        data = copy.deepcopy(self._twitter_data)
+
+        tweet = OngoingUpdateTweet(data)
+        self.assertEqual(
+            tweet.creators(),
+            '@joesmoe, @myname'
+        )
+
+        data['ongoing_post']['creators'][0]['twitter'] = None
+        tweet = OngoingUpdateTweet(data)
+        self.assertEqual(
+            tweet.creators(),
+            'Joe Smoe, @myname'
+        )
+
+        data['ongoing_post']['creators'][1]['twitter'] = None
+        tweet = OngoingUpdateTweet(data)
+        self.assertEqual(
+            tweet.creators(),
+            'Joe Smoe, My Name'
+        )
+
+    def test__for_length_calculation(self):
+        data = copy.deepcopy(self._twitter_data)
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        tweet = OngoingUpdateTweet(data)
+        self.assertEqual(
+            tweet.for_length_calculation(),
+            'New pages added by @joesmoe, @myname on zco.mx | http://t.co/1234567890 | #zcomx #comics'
+        )
+
+        # No twitter handle
+        data['ongoing_post']['creators'][0]['twitter'] = None
+        data['ongoing_post']['creators'][1]['twitter'] = None
+        tweet = OngoingUpdateTweet(data)
+        self.assertEqual(
+            tweet.for_length_calculation(),
+            'New pages added by Joe Smoe, My Name on zco.mx | http://t.co/1234567890 | #zcomx #comics'
+        )
+
+    def test__from_data(self):
+        data = copy.deepcopy(self._twitter_data)
+        tweet = OngoingUpdateTweet.from_data(data)
+        self.assertTrue(isinstance(tweet, OngoingUpdateTweet))
+        self.assertEqual(tweet.twitter_data, data)
+        self.assertTrue(len(tweet.for_length_calculation()) <= 140)
+
+        # Exactly 140 characters
+        twit = '123456789012345678901234567890123456789012345678901234567890'
+        data['ongoing_post']['creators'][0]['twitter'] = twit
+        tweet = OngoingUpdateTweet.from_data(data)
+        self.assertTrue(isinstance(tweet, OngoingUpdateTweet))
+        self.assertEqual(len(tweet.for_length_calculation()), 140)
+
+        # Long name requires truncation
+        twit = '1234567890123456789012345678901234567890123456789012345678901'
+        data['ongoing_post']['creators'][0]['twitter'] = twit
+        tweet = OngoingUpdateTweet.from_data(data)
+        self.assertTrue(isinstance(tweet, TruncatedOngoingUpdateTweet))
+        self.assertTrue(len(tweet.for_length_calculation()) <= 140)
+
+    def test__hash_tag_values(self):
+        data = copy.deepcopy(self._twitter_data)
+        tweet = OngoingUpdateTweet(data)
+
+        self.assertEqual(
+            tweet.hash_tag_values(),
+            ['zco.mx', 'comics']
+        )
+
+    def test__status(self):
+        data = copy.deepcopy(self._twitter_data)
+        tweet = OngoingUpdateTweet(data)
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            tweet.status(),
+            self._expect_status
+        )
+
+    def test__tumblr_url(self):
+        data = copy.deepcopy(self._twitter_data)
+        tweet = OngoingUpdateTweet(data)
+        self.assertEqual(
+            tweet.tumblr_url(),
+            'http://zcomx.tumblr.com/post/123456789012'
+        )
 
 
 class TestPhotoDataPreparer(WithMediaTestCase):
@@ -199,14 +466,16 @@ class TestPoster(LocalTestCase):
         self.assertEqual(client.statuses.posts, {})
 
         poster = Poster(client)
-        post_id = poster.post_photo({})
+        post_id = '123456'
+        poster.delete_post(post_id)
         self.assertEqual(
             client.statuses.posts,
-            {post_id: {}}
+            {
+                'destroy': {
+                    '123456': 'destroyed',
+                }
+            }
         )
-
-        poster.delete_post(post_id)
-        self.assertEqual(client.statuses.posts, {})
 
     def test__post_photo(self):
         client = DubClient()
@@ -215,140 +484,48 @@ class TestPoster(LocalTestCase):
         self.assertEqual(
             client.statuses.posts,
             {
-                post_id: {
-                    'aaa': 'bbb',
+                'update_with_media': {
+                    post_id: {'aaa': 'bbb'}
+                }
+            }
+        )
+
+    def test__post_text(self):
+        client = DubClient()
+        poster = Poster(client)
+        post_id = poster.post_text({'aaa': 'bbb'})
+        self.assertEqual(
+            client.statuses.posts,
+            {
+                'update': {
+                    post_id: {'aaa': 'bbb'}
                 }
             }
         )
 
 
-class TestTweet(LocalTestCase):
+class TestTextDataPreparer(WithOngoingPostTestCase):
 
     def test____init__(self):
-        tweet = Tweet({})
-        self.assertTrue(tweet)
-        self.assertEqual(tweet.TWEET_MAX_CHARS, 140)
-        self.assertEqual(tweet.SAMPLE_TCO_LINK, 'http://t.co/1234567890')
+        preparer = TextDataPreparer({})
+        self.assertTrue(preparer)
 
-    def test__creator(self):
-        data = {
-            'creator': {
-                'name': 'First Last',
-                'twitter': '@First_Last',
-            },
-        }
-
-        tweet = Tweet(data)
-        self.assertEqual(tweet.creator(), '@First_Last')
-        data['creator']['twitter'] = None
-        tweet = Tweet(data)
-        self.assertEqual(tweet.creator(), 'First Last')
-
-    def test__for_length_calculation(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-        data = {
-            'book': {
-                'formatted_name_no_year': 'My Book 001',
-            },
-            'creator': {
-                'name': 'First Last',
-                'name_for_url': 'FirstLast',
-                'twitter': '@First_Last',
-            },
-            'site': {
-                'name': 'zco.mx',
-            },
-        }
-        tweet = Tweet(data)
+    def test__data(self):
+        preparer = TextDataPreparer(self._twitter_data)
         self.assertEqual(
-            tweet.for_length_calculation(),
-            'My Book 001 by @First_Last | http://t.co/1234567890 | #zcomx #comics #FirstLast http://t.co/1234567890'
-        )
-
-        # No twitter handle
-        data['creator']['twitter'] = None
-        tweet = Tweet(data)
-        self.assertEqual(
-            tweet.for_length_calculation(),
-            'My Book 001 by First Last | http://t.co/1234567890 | #zcomx #comics #FirstLast http://t.co/1234567890'
-        )
-
-    def test__from_data(self):
-        data = {
-            'book': {
-                'formatted_name_no_year': 'My Book 001',
-            },
-            'creator': {
-                'name': 'First Last',
-                'name_for_url': 'FirstLast',
-                'twitter': '@First_Last',
-            },
-            'site': {
-                'name': 'zco.mx',
-            },
-        }
-        tweet = Tweet.from_data(data)
-        self.assertTrue(isinstance(tweet, Tweet))
-        self.assertEqual(tweet.twitter_data, data)
-        self.assertTrue(len(tweet.for_length_calculation()) <= 140)
-
-        # Exactly 140 characters
-        name = '1234567890123456789012345678901234567890123456789'
-        data['book']['formatted_name_no_year'] = name
-        tweet = Tweet.from_data(data)
-        self.assertTrue(isinstance(tweet, Tweet))
-        self.assertEqual(len(tweet.for_length_calculation()), 140)
-
-        # Long name requires truncation
-        name = '1234567890123456789012345678901234567890123456789012345678'
-        data['book']['formatted_name_no_year'] = name
-        tweet = Tweet.from_data(data)
-        self.assertTrue(isinstance(tweet, TruncatedTweet))
-        self.assertTrue(len(tweet.for_length_calculation()) <= 140)
-
-    def test__hash_tag_values(self):
-        data = {
-            'creator': {
-                'name_for_url': 'FirstLast',
-            },
-            'site': {
-                'name': 'zco.mx',
-            },
-        }
-        tweet = Tweet(data)
-
-        self.assertEqual(
-            tweet.hash_tag_values(),
-            ['zco.mx', 'comics', 'FirstLast']
+            preparer.data(),
+            {'status': self._expect_status}
         )
 
     def test__status(self):
-        data = {
-            'book': {
-                'formatted_name_no_year': 'My Book 001',
-                'short_url': 'http://101.zco.mx/MyBook-001',
-            },
-            'creator': {
-                'name': 'First Last',
-                'name_for_url': 'FirstLast',
-                'twitter': '@First_Last',
-                'short_url': 'http://101.zco.mx',
-            },
-            'site': {
-                'name': 'zco.mx',
-            },
-        }
-        tweet = Tweet(data)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        preparer = TextDataPreparer(self._twitter_data)
         self.assertEqual(
-            tweet.status(),
-            'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx #comics #FirstLast'
+            preparer.status(),
+            self._expect_status
         )
 
 
-class TestTruncatedTweet(LocalTestCase):
+class TestTruncatedCompletedBookTweet(LocalTestCase):
 
     def test__hash_tag_values(self):
         data = {
@@ -356,7 +533,7 @@ class TestTruncatedTweet(LocalTestCase):
                 'name': 'zco.mx',
             },
         }
-        tweet = TruncatedTweet(data)
+        tweet = TruncatedCompletedBookTweet(data)
 
         self.assertEqual(
             tweet.hash_tag_values(),
@@ -379,7 +556,7 @@ class TestTruncatedTweet(LocalTestCase):
                 'name': 'zco.mx',
             },
         }
-        tweet = TruncatedTweet(data)
+        tweet = TruncatedCompletedBookTweet(data)
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         self.assertEqual(
@@ -388,7 +565,110 @@ class TestTruncatedTweet(LocalTestCase):
         )
 
 
+class TestTruncatedOngoingUpdateTweet(WithOngoingPostTestCase):
+
+    def test__creators(self):
+        data = copy.deepcopy(self._twitter_data)
+
+        creators = [
+            {'name': 'One One', 'twitter': '@one'},
+            {'name': 'Two Two', 'twitter': '@two'},
+            {'name': 'Three Three', 'twitter': '@three'},
+            {'name': 'Four Four', 'twitter': '@four'},
+        ]
+
+        tests = [
+            # ( slice number, expect)
+            (0, ''),
+            (1, '@one'),
+            (2, '@one, @two'),
+            (3, '@one, @two, @three'),
+            (4, '@one, @two and others'),
+        ]
+
+        for t in tests:
+            data['ongoing_post']['creators'] = creators[:t[0]]
+            tweet = TruncatedOngoingUpdateTweet(data)
+            self.assertEqual(tweet.creators(), t[1])
+
+    def test__hash_tag_values(self):
+        data = copy.deepcopy(self._twitter_data)
+        tweet = TruncatedOngoingUpdateTweet(data)
+
+        self.assertEqual(
+            tweet.hash_tag_values(),
+            ['zco.mx']
+        )
+
+    def test_parent_status(self):
+        data = copy.deepcopy(self._twitter_data)
+        tweet = TruncatedOngoingUpdateTweet(data)
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            tweet.status(),
+            'New pages added by @joesmoe, @myname on zco.mx | http://zcomx.tumblr.com/post/123456789012 | #zcomx'
+        )
+
+
 class TestFunctions(LocalTestCase):
+
+    def test__creators_in_ongoing_post(self):
+        ongoing_post = self.add(db.ongoing_post, dict(
+            post_date=datetime.date.today(),
+        ))
+
+        creator_1 = self.add(db.creator, dict(
+            name_for_url='Creator One',
+        ))
+
+        creator_2 = self.add(db.creator, dict(
+            name_for_url='Creator Two',
+        ))
+
+        book_1 = self.add(db.book, dict(
+            name='Book One',
+            creator_id=creator_1.id,
+        ))
+
+        book_2 = self.add(db.book, dict(
+            name='Book Two',
+            creator_id=creator_2.id,
+        ))
+
+        activity_log_1 = self.add(db.activity_log, dict(
+            book_id=book_1.id,
+            ongoing_post_id=None,
+        ))
+
+        activity_log_2 = self.add(db.activity_log, dict(
+            book_id=book_2.id,
+            ongoing_post_id=None,
+        ))
+
+        # No activity logs associated with ongoing post.
+        self.assertEqual(
+            creators_in_ongoing_post(ongoing_post),
+            []
+        )
+
+        # Single activity log associated with ongoing post.
+        activity_log_1.update_record(ongoing_post_id=ongoing_post.id)
+        db.commit()
+
+        self.assertEqual(
+            creators_in_ongoing_post(ongoing_post),
+            [creator_1.id]
+        )
+
+        # Multiple activity logs associated with ongoing post.
+        activity_log_2.update_record(ongoing_post_id=ongoing_post.id)
+        db.commit()
+
+        self.assertEqual(
+            creators_in_ongoing_post(ongoing_post),
+            [creator_1.id, creator_2.id]
+        )
 
     def test__formatted_tags(self):
         tests = [

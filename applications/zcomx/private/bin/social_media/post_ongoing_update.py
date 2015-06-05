@@ -9,19 +9,24 @@ Script to post an ongoing books update on tumblr.
 import datetime
 import json
 import logging
+import random
 from gluon import *
 from optparse import OptionParser
 from twitter import TwitterHTTPError
+from applications.zcomx.modules.creators import \
+    formatted_name as creator_formatted_name
 from applications.zcomx.modules.stickon.dal import RecordGenerator
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
+    POST_IN_PROGRESS, \
     Poster, \
     TextDataPreparer, \
     postable_activity_log_ids
 from applications.zcomx.modules.tweeter import \
     Authenticator as TwAuthenticator, \
-    PhotoDataPreparer as TwPhotoDataPreparer, \
-    Poster as TwPoster
+    TextDataPreparer as TwTextDataPreparer, \
+    Poster as TwPoster, \
+    creators_in_ongoing_post
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -83,16 +88,18 @@ def post_on_tumblr(ongoing_post):
     return post_id
 
 
-def post_on_twitter(date):
+def post_on_twitter(ongoing_post):
     """Post on twitter
 
     Args:
-        date: datetime.date instance representing date to post for.
+        ongoing_post: Row instance representing ongoing_post record.
 
     Returns:
         str, twitter posting id
     """
-    LOG.debug('Creating twitter posting for date: %s', date)
+    LOG.debug(
+        'Creating twitter posting for date: %s', str(ongoing_post.post_date))
+
     settings = current.app.local_settings
     credentials = {
         'consumer_key': settings.twitter_consumer_key,
@@ -102,33 +109,49 @@ def post_on_twitter(date):
     }
     client = TwAuthenticator(credentials).authenticate()
     poster = TwPoster(client)
-    result = {'id': 'FIXME'}
-    # twitter_data = {
-    #     'book': book_tumblr_data(book),
-    #     'creator': creator_tumblr_data(creator),
-    #     'site': {'name': SITE_NAME},
-    # }
 
-    # photo_data = TwPhotoDataPreparer(twitter_data).data()
+    creators = []   # [{'name': 'Joe Smoe', 'twitter': '@joesmoe'},...]
+    for creator_id in creators_in_ongoing_post(ongoing_post):
+        creator = entity_to_row(db.creator, creator_id)
+        if not creator:
+            LOG.error('Creator not found, id: %s', creator_id)
+            continue
+        creators.append({
+            'name': creator_formatted_name(creator),
+            'twitter': creator.twitter,
+        })
 
-    # error = None
-    # try:
-    #     result = poster.post_photo(photo_data)
-    # except TwitterHTTPError as err:
-    #     error = err
-    #     result = {}
+    # Shuffle creators so there is no alphabetical bias
+    random.shuffle(creators)
 
-    # if 'id' not in result:
-    #     LOG.error(
-    #         'Twitter post failed for book: %s - %s', book.id, book.name
-    #     )
-    #     if error:
-    #         response_data = json.loads(error.response_data)
-    #         if 'errors' in response_data and response_data['errors']:
-    #             code = response_data['errors'][0]['code']
-    #             msg = response_data['errors'][0]['message']
-    #             LOG.error('Code: %s, msg: %s', code, msg)
-    #     return
+    twitter_data = {
+        'ongoing_post': {
+            'creators': creators,
+            'tumblr_post_id': ongoing_post.tumblr_post_id,
+        },
+        'site': {'name': SITE_NAME},
+    }
+
+    text_data = TwTextDataPreparer(twitter_data).data()
+
+    error = None
+    try:
+        result = poster.post_text(text_data)
+    except TwitterHTTPError as err:
+        error = err
+        result = {}
+
+    if 'id' not in result:
+        LOG.error(
+            'Twitter post failed for ongoing_post: %s', ongoing_post.id
+        )
+        if error:
+            response_data = json.loads(error.response_data)
+            if 'errors' in response_data and response_data['errors']:
+                code = response_data['errors'][0]['code']
+                msg = response_data['errors'][0]['message']
+                LOG.error('Code: %s, msg: %s', code, msg)
+        return
 
     post_id = result['id']
     LOG.debug('post_id: %s', post_id)
@@ -272,7 +295,9 @@ def main():
         services = ['tumblr', 'twitter']
 
     if 'tumblr' in services:
-        if ongoing_post.tumblr_post_id and not options.force:
+        if ongoing_post.tumblr_post_id \
+                and ongoing_post.tumblr_post_id != POST_IN_PROGRESS \
+                and not options.force:
             LOG.warn(
                 'Ongoing_post has tumblr_post_id: %s',
                 ongoing_post.tumblr_post_id
@@ -284,18 +309,20 @@ def main():
                 ongoing_post.update_record(tumblr_post_id=tumblr_post_id)
                 db.commit()
 
-    # if 'twitter' in services:
-    #     if ongoing_post.twitter_post_id and not options.force:
-    #         LOG.warn(
-    #             'Ongoing_post has twitter_post_id: %s',
-    #             ongoing_post.twitter_post_id
-    #         )
-    #         LOG.warn('Refusing to post to twitter without --force')
-    #     else:
-    #         twitter_post_id = post_on_twitter(date)
-    #         if twitter_post_id:
-    #             ongoing_post.update_record(twitter_post_id=twitter_post_id)
-    #             db.commit()
+    if 'twitter' in services:
+        if ongoing_post.twitter_post_id \
+                and ongoing_post.twitter_post_id != POST_IN_PROGRESS \
+                and not options.force:
+            LOG.warn(
+                'Ongoing_post has twitter_post_id: %s',
+                ongoing_post.twitter_post_id
+            )
+            LOG.warn('Refusing to post to twitter without --force')
+        else:
+            twitter_post_id = post_on_twitter(ongoing_post)
+            if twitter_post_id:
+                ongoing_post.update_record(twitter_post_id=twitter_post_id)
+                db.commit()
 
     LOG.debug('Done')
 
