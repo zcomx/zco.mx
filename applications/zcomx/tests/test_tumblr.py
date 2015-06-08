@@ -413,7 +413,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
                 'slug': 'ongoing-books-update-1999-12-31',
                 'state': 'published',
                 'tags': ['comics', 'zco.mx'],
-                'title': 'List of Updated Ongoing Books for Fri, Dec 31, 1999'
+                'title': 'Updated Ongoing Books for Fri, Dec 31, 1999'
             }
         )
 
@@ -442,7 +442,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         preparer = TextDataPreparer(date, generator)
         self.assertEqual(
             preparer.title(),
-            'List of Updated Ongoing Books for Fri, Dec 31, 1999'
+            'Updated Ongoing Books for Fri, Dec 31, 1999'
         )
 
 

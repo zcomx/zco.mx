@@ -214,6 +214,8 @@ class TextDataPreparer(object):
 
     def tags(self):
         """Return the tags."""
+        # R0201: *Method could be a function*
+        # pylint: disable=R0201
         return [
             'comics',
             SITE_NAME,
@@ -221,7 +223,7 @@ class TextDataPreparer(object):
 
     def title(self):
         """Return the title of the post."""
-        fmt = 'List of Updated Ongoing Books for {d}'
+        fmt = 'Updated Ongoing Books for {d}'
         return fmt.format(
             d=self.date.strftime('%a, %b %d, %Y')
         )
