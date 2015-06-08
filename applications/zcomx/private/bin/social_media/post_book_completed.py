@@ -17,6 +17,7 @@ from applications.zcomx.modules.creators import \
     tumblr_data as creator_tumblr_data
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
+    POST_IN_PROGRESS, \
     PhotoDataPreparer, \
     Poster
 from applications.zcomx.modules.tweeter import \
@@ -243,7 +244,9 @@ def main():
         services = ['tumblr', 'twitter']
 
     if 'tumblr' in services:
-        if book.tumblr_post_id and not options.force:
+        if book.tumblr_post_id \
+                and book.tumblr_post_id != POST_IN_PROGRESS \
+                and not options.force:
             LOG.warn('Book has tumblr_post_id: %s', book.tumblr_post_id)
             LOG.warn('Refusing to post to tumblr without --force')
         else:
@@ -253,7 +256,9 @@ def main():
                 db.commit()
 
     if 'twitter' in services:
-        if book.twitter_post_id and not options.force:
+        if book.twitter_post_id \
+                and book.twitter_post_id != POST_IN_PROGRESS \
+                and not options.force:
             LOG.warn('Book has twitter_post_id: %s', book.twitter_post_id)
             LOG.warn('Refusing to post to twitter without --force')
         else:
