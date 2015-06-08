@@ -315,7 +315,11 @@
 
             /* Set heights of indicia page containers. */
             var indicia_text_container_h = 300;
+            var max_indicia_img_h = 500;
             var indicia_img_h = (section_h - buffer - indicia_text_container_h);
+            if (indicia_img_h > max_indicia_img_h) {
+                indicia_img_h = max_indicia_img_h;
+            }
             this.$reader_section.find('.indicia_image_container').first().find('img').css('max-height', indicia_img_h);
 
             this.$reader_section.find('#img-' + num).css( "display", "inline-block")
