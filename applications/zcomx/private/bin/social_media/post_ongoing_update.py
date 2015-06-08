@@ -200,6 +200,13 @@ OPTIONS
     --man
         Print man page-like help.
 
+    -p --process-activity-logs
+        By default posts are made for existing ongoing_post records only
+        (matched on date) and no activity_log records are processed.
+        With this option an ongoing_post is created for the date if necessary,
+        and all activity_log records not yet associated with an ongoing_post
+        are associated with the new ongoing_post.
+
     --tumblr
         Post only on tumblr.
 
@@ -229,6 +236,11 @@ def main():
         '--man',
         action='store_true', dest='man', default=False,
         help='Display manual page-like help and exit.',
+    )
+    parser.add_option(
+        '-p', '--process-activity-logs',
+        action='store_true', dest='process_activity_logs', default=False,
+        help='Process activity_log records.',
     )
     parser.add_option(
         '--tumblr',
@@ -275,16 +287,23 @@ def main():
         LOG.error('Invalid date: %s, %s', args[0], err)
         exit(1)
 
-    activity_log_ids = postable_activity_log_ids()
-    if not activity_log_ids:
-        LOG.info('There are no postable activity_log records')
-        LOG.info('Nothing to do. Aborting')
-        exit(0)
+    if options.process_activity_logs:
+        activity_log_ids = postable_activity_log_ids()
+        if not activity_log_ids:
+            LOG.info('There are no postable activity_log records')
+            LOG.info('Nothing to do. Aborting')
+            exit(0)
 
-    ongoing_post = get_ongoing_post(date)
-    for activity_log_id in activity_log_ids:
-        query = (db.activity_log.id == activity_log_id)
-        db(query).update(ongoing_post_id=ongoing_post.id)
+        ongoing_post = get_ongoing_post(date)
+        for activity_log_id in activity_log_ids:
+            query = (db.activity_log.id == activity_log_id)
+            db(query).update(ongoing_post_id=ongoing_post.id)
+    else:
+        ongoing_post = get_ongoing_post(date, create=False)
+
+    if not ongoing_post:
+        LOG.error('Ongoing post not found, date: %s', str(date))
+        exit(1)
 
     services = []
     if options.tumblr:

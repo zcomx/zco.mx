@@ -65,7 +65,7 @@ py=$web2py_root/applications/zcomx/private/bin/python_web2py.sh
 
 __v && __md "Start: post_ongoing_update.py"
 yesterday=$(date -d yesterday "+%Y-%m-%d")
-$py applications/zcomx/private/bin/social_media/post_ongoing_update.py "$yesterday"
+$py applications/zcomx/private/bin/social_media/post_ongoing_update.py -p "$yesterday"
 
 __v && __md "Start: tally_book_ratings.py"
 $py applications/zcomx/private/bin/tally_book_ratings.py
