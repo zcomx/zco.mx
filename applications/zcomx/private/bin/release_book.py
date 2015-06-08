@@ -25,9 +25,9 @@ from applications.zcomx.modules.job_queue import \
     NotifyP2PQueuer, \
     PostOnSocialMediaQueuer, \
     ReleaseBookQueuer
-from applications.zcomx.modules.tumblr import POST_IN_PROGRESS
 from applications.zcomx.modules.utils import \
     NotFoundError
+from applications.zcomx.modules.zco import POST_IN_PROGRESS
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')

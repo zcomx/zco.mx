@@ -18,7 +18,6 @@ from applications.zcomx.modules.tumblr import \
     BookListingCreatorWithTumblr, \
     BookListingPage, \
     OngoingBookListing, \
-    POST_IN_PROGRESS, \
     PhotoDataPreparer, \
     Poster, \
     TextDataPreparer, \
@@ -118,11 +117,6 @@ class DubClient(object):
 
     def delete_post(self, post_id):
         del self.posts[post_id]
-
-
-class TestConstants(LocalTestCase):
-    def test_constants(self):
-        self.assertEqual(POST_IN_PROGRESS, '__in_progress__')
 
 
 class TestAuthenticator(LocalTestCase):

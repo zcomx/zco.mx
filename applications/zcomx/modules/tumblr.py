@@ -23,7 +23,6 @@ from applications.zcomx.modules.zco import SITE_NAME
 
 
 LOG = logging.getLogger('app')
-POST_IN_PROGRESS = '__in_progress__'
 
 
 class Authenticator(object):

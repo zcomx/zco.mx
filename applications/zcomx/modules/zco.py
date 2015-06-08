@@ -31,7 +31,10 @@ NICES = {
     'optimize': 19,         # max
 }
 
+POST_IN_PROGRESS = '__in_progress__'
 SITE_NAME = 'zco.mx'
+TUMBLR_USERNAME = 'zcomx'
+TWITTER_BOT_HANDLE = '@zcomx_bot'
 
 
 class Zco(object):
@@ -124,6 +127,6 @@ def html_metadata():
             host=True,
         ),
         'type': '',
-        'twitter': '@zcomx_bot',
+        'twitter': TWITTER_BOT_HANDLE,
         'url': URL(host=True),
     }

@@ -10,6 +10,15 @@ import unittest
 from gluon import *
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
+    BOOK_STATUSES, \
+    BOOK_STATUS_ACTIVE, \
+    BOOK_STATUS_DISABLED, \
+    BOOK_STATUS_DRAFT, \
+    NICES, \
+    POST_IN_PROGRESS, \
+    SITE_NAME, \
+    TUMBLR_USERNAME, \
+    TWITTER_BOT_HANDLE, \
     Zco, \
     html_metadata
 
@@ -62,6 +71,37 @@ class TestZco(LocalTestCase):
             URL(**Zco().all_torrent_url),
             '/zco.mx.torrent'
         )
+
+
+class TestConstants(LocalTestCase):
+    def test_constants(self):
+        self.assertEqual(BOOK_STATUS_ACTIVE, 'a')
+        self.assertEqual(BOOK_STATUS_DISABLED, 'x')
+        self.assertEqual(BOOK_STATUS_DRAFT, 'd')
+        self.assertEqual(
+            sorted(BOOK_STATUSES),
+            ['a', 'd', 'x']
+        )
+
+        self.assertEqual(
+            sorted(NICES.keys()),
+            [
+                'indicia',
+                'mktorrent',
+                'optimize',
+                'resize',
+                'zc-p2p',
+                'zip',
+            ]
+        )
+        for v in NICES.values():
+            self.assertTrue(v <= 19)
+            self.assertTrue(v >= 10)
+
+        self.assertEqual(POST_IN_PROGRESS, '__in_progress__')
+        self.assertEqual(SITE_NAME, 'zco.mx')
+        self.assertEqual(TUMBLR_USERNAME, 'zcomx')
+        self.assertEqual(TWITTER_BOT_HANDLE, '@zcomx_bot')
 
 
 class TestFunctions(LocalTestCase):

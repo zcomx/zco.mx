@@ -11,10 +11,9 @@ from gluon import *
 from twitter import Twitter
 from twitter.oauth import OAuth
 from applications.zcomx.modules.images import UploadImage
+from applications.zcomx.modules.zco import TUMBLR_USERNAME
 
 LOG = logging.getLogger('app')
-POST_IN_PROGRESS = '__in_progress__'
-# Twitter t.co links: https://dev.twitter.com/overview/t.co
 
 
 class Authenticator(object):
@@ -157,6 +156,7 @@ class Poster(object):
 class BaseTweet(object):
     """Base class representing a tweet."""
     TWEET_MAX_CHARS = 140
+    # Twitter t.co links: https://dev.twitter.com/overview/t.co
     SAMPLE_TCO_LINK = 'http://t.co/1234567890'
 
     def __init__(self, twitter_data):
@@ -193,12 +193,10 @@ class CompletedBookTweet(BaseTweet):
         Returns:
             string
         """
-        tags = formatted_tags(self.hash_tag_values())
-
         data = {
             'name': self.twitter_data['book']['formatted_name_no_year'],
             'creator': self.creator(),
-            'tags': tags,
+            'tags': formatted_tags(self.hash_tag_values()),
             'url': self.SAMPLE_TCO_LINK,
         }
 
@@ -258,18 +256,26 @@ class OngoingUpdateTweet(BaseTweet):
         'length': 'New pages added by {creators} on {site} | {url} | {tags}',
     }
 
-    def creators(self):
-        """Return the list of creators in the post.
+    def creators_in_text_form(self):
+        """Return the list of creators in text form for post.
 
         Returns:
             string
         """
         names = []
-        for creator_data in self.twitter_data['ongoing_post']['creators']:
+        for creator_data in self.creators_for_post():
             names.append(
                 creator_data['twitter'] or creator_data['name']
             )
         return ', '.join(names)
+
+    def creators_for_post(self):
+        """Return a list of creators to be included in post.
+
+        Returns:
+            list of strings.
+        """
+        return self.twitter_data['ongoing_post']['creators']
 
     def for_length_calculation(self):
         """Return the tweet as used for calculating the length.
@@ -277,12 +283,10 @@ class OngoingUpdateTweet(BaseTweet):
         Returns:
             string
         """
-        tags = formatted_tags(self.hash_tag_values())
-
         data = {
-            'creators': self.creators(),
+            'creators': self.creators_in_text_form(),
             'site': self.twitter_data['site']['name'],
-            'tags': tags,
+            'tags': formatted_tags(self.hash_tag_values()),
             'url': self.SAMPLE_TCO_LINK,
         }
 
@@ -295,7 +299,11 @@ class OngoingUpdateTweet(BaseTweet):
         """
         tweet = cls(twitter_data)
         if len(tweet.for_length_calculation()) > cls.TWEET_MAX_CHARS:
-            tweet = TruncatedOngoingUpdateTweet(twitter_data)
+            minimum = ManyCreatorsOngoingUpdateTweet.minimum_number_of_creators
+            if len(twitter_data['ongoing_post']['creators']) >= minimum:
+                tweet = ManyCreatorsOngoingUpdateTweet(twitter_data)
+            else:
+                tweet = TruncatedOngoingUpdateTweet(twitter_data)
         return tweet
 
     def hash_tag_values(self):
@@ -317,7 +325,7 @@ class OngoingUpdateTweet(BaseTweet):
         tags = self.hash_tag_values()
 
         data = {
-            'creators': self.creators(),
+            'creators': self.creators_in_text_form(),
             'site': self.twitter_data['site']['name'],
             'tags': formatted_tags(tags),
             'url': self.tumblr_url(),
@@ -330,7 +338,8 @@ class OngoingUpdateTweet(BaseTweet):
 
         Returns string.
         """
-        return 'http://zcomx.tumblr.com/post/{post_id}'.format(
+        return 'http://{user}.tumblr.com/post/{post_id}'.format(
+            user=TUMBLR_USERNAME,
             post_id=self.twitter_data['ongoing_post']['tumblr_post_id']
         )
 
@@ -338,23 +347,28 @@ class OngoingUpdateTweet(BaseTweet):
 class TruncatedOngoingUpdateTweet(OngoingUpdateTweet):
     """Class representing a truncated ongoing book updates tweet."""
 
-    num_of_creators = 3
-
-    def creators(self):
-        if len(self.twitter_data['ongoing_post']['creators']) \
-                <= self.num_of_creators:
-            return super(TruncatedOngoingUpdateTweet, self).creators()
-
-        truncated = self.twitter_data['ongoing_post']['creators'][:self.num_of_creators - 1]
-        names = []
-        for creator_data in truncated:
-            names.append(
-                creator_data['twitter'] or creator_data['name']
-            )
-        return ', '.join(names) + ' and others'
-
     def hash_tag_values(self):
         return [self.twitter_data['site']['name']]
+
+
+class ManyCreatorsOngoingUpdateTweet(TruncatedOngoingUpdateTweet):
+    """Class representing a truncated ongoing book updates tweet that includes
+    many creators.
+
+    The number of creators can make the tweet too long. This class includes
+    functionality for truncating the list of creators.
+    """
+    minimum_number_of_creators = 4
+    num_creators_to_post = 2
+
+    def creators_in_text_form(self):
+        text = super(
+            ManyCreatorsOngoingUpdateTweet, self).creators_in_text_form()
+        return text + ' and others'
+
+    def creators_for_post(self):
+        creators = self.twitter_data['ongoing_post']['creators']
+        return creators[:self.num_creators_to_post]
 
 
 def creators_in_ongoing_post(ongoing_post):

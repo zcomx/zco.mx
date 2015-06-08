@@ -17,7 +17,6 @@ from applications.zcomx.modules.creators import \
     tumblr_data as creator_tumblr_data
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
-    POST_IN_PROGRESS, \
     PhotoDataPreparer, \
     Poster
 from applications.zcomx.modules.tweeter import \
@@ -27,7 +26,9 @@ from applications.zcomx.modules.tweeter import \
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
-from applications.zcomx.modules.zco import SITE_NAME
+from applications.zcomx.modules.zco import \
+    POST_IN_PROGRESS, \
+    SITE_NAME
 
 
 VERSION = 'Version 0.1'

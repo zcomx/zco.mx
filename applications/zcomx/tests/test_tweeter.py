@@ -18,8 +18,8 @@ from applications.zcomx.modules.tweeter import \
     Authenticator, \
     BaseTweet, \
     CompletedBookTweet, \
+    ManyCreatorsOngoingUpdateTweet, \
     OngoingUpdateTweet, \
-    POST_IN_PROGRESS, \
     PhotoDataPreparer, \
     Poster, \
     TextDataPreparer, \
@@ -129,11 +129,6 @@ class WithOngoingPostTestCase(LocalTestCase):
         self._expect_status = 'New pages added by @joesmoe, @myname on zco.mx | http://zcomx.tumblr.com/post/123456789012 | #zcomx #comics'
 
         super(WithOngoingPostTestCase, self).setUp()
-
-
-class TestConstants(LocalTestCase):
-    def test_constants(self):
-        self.assertEqual(POST_IN_PROGRESS, '__in_progress__')
 
 
 class TestAuthenticator(LocalTestCase):
@@ -292,29 +287,82 @@ class TestCompletedBookTweet(LocalTestCase):
         )
 
 
+class TestManyCreatorsOngoingUpdateTweet(WithOngoingPostTestCase):
+
+    _creators = [
+        {'name': 'One One', 'twitter': '@one'},
+        {'name': 'Two Two', 'twitter': '@two'},
+        {'name': 'Three Three', 'twitter': '@three'},
+        {'name': 'Four Four', 'twitter': '@four'},
+    ]
+
+    def test__creators_in_text_form(self):
+        data = copy.deepcopy(self._twitter_data)
+        data['ongoing_post']['creators'] = self._creators
+        tweet = ManyCreatorsOngoingUpdateTweet(data)
+        self.assertEqual(
+            tweet.creators_in_text_form(),
+            '@one, @two and others'
+        )
+
+    def test__creators_for_post(self):
+        data = copy.deepcopy(self._twitter_data)
+        data['ongoing_post']['creators'] = self._creators
+        tweet = ManyCreatorsOngoingUpdateTweet(data)
+        self.assertEqual(
+            tweet.creators_for_post(),
+            [
+                {'name': 'One One', 'twitter': '@one'},
+                {'name': 'Two Two', 'twitter': '@two'},
+            ]
+        )
+
+    def test_parent_status(self):
+        data = copy.deepcopy(self._twitter_data)
+        data['ongoing_post']['creators'] = self._creators
+        tweet = ManyCreatorsOngoingUpdateTweet(data)
+        # C0301 (line-too-long): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            tweet.status(),
+            'New pages added by @one, @two and others on zco.mx | http://zcomx.tumblr.com/post/123456789012 | #zcomx'
+        )
+
+
 class TestOngoingUpdateTweet(WithOngoingPostTestCase):
 
-    def test__creators(self):
+    def test__creators_in_text_form(self):
         data = copy.deepcopy(self._twitter_data)
 
         tweet = OngoingUpdateTweet(data)
         self.assertEqual(
-            tweet.creators(),
+            tweet.creators_in_text_form(),
             '@joesmoe, @myname'
         )
 
         data['ongoing_post']['creators'][0]['twitter'] = None
         tweet = OngoingUpdateTweet(data)
         self.assertEqual(
-            tweet.creators(),
+            tweet.creators_in_text_form(),
             'Joe Smoe, @myname'
         )
 
         data['ongoing_post']['creators'][1]['twitter'] = None
         tweet = OngoingUpdateTweet(data)
         self.assertEqual(
-            tweet.creators(),
+            tweet.creators_in_text_form(),
             'Joe Smoe, My Name'
+        )
+
+    def test__creators_for_post(self):
+        data = copy.deepcopy(self._twitter_data)
+        tweet = ManyCreatorsOngoingUpdateTweet(data)
+        self.assertEqual(
+            tweet.creators_for_post(),
+            [
+                {'name': 'Joe Smoe', 'twitter': '@joesmoe'},
+                {'name': 'My Name', 'twitter': '@myname'},
+            ]
         )
 
     def test__for_length_calculation(self):
@@ -350,11 +398,22 @@ class TestOngoingUpdateTweet(WithOngoingPostTestCase):
         self.assertTrue(isinstance(tweet, OngoingUpdateTweet))
         self.assertEqual(len(tweet.for_length_calculation()), 140)
 
-        # Long name requires truncation
+        # Single creator, long name requires truncation
         twit = '1234567890123456789012345678901234567890123456789012345678901'
         data['ongoing_post']['creators'][0]['twitter'] = twit
         tweet = OngoingUpdateTweet.from_data(data)
         self.assertTrue(isinstance(tweet, TruncatedOngoingUpdateTweet))
+        self.assertTrue(len(tweet.for_length_calculation()) <= 140)
+
+        # Many creators, long name requires special class
+        data['ongoing_post']['creators'] = [
+            {'name': 'Very Long', 'twitter': '@very_long_handle'},
+            {'name': 'Another Long', 'twitter': '@another_very_long_handle'},
+            {'name': 'Yet Long', 'twitter': '@yet_another_very_long_handle'},
+            {'name': 'More Long', 'twitter': '@more_another_very_long_handle'},
+        ]
+        tweet = OngoingUpdateTweet.from_data(data)
+        self.assertTrue(isinstance(tweet, ManyCreatorsOngoingUpdateTweet))
         self.assertTrue(len(tweet.for_length_calculation()) <= 140)
 
     def test__hash_tag_values(self):
@@ -566,30 +625,6 @@ class TestTruncatedCompletedBookTweet(LocalTestCase):
 
 
 class TestTruncatedOngoingUpdateTweet(WithOngoingPostTestCase):
-
-    def test__creators(self):
-        data = copy.deepcopy(self._twitter_data)
-
-        creators = [
-            {'name': 'One One', 'twitter': '@one'},
-            {'name': 'Two Two', 'twitter': '@two'},
-            {'name': 'Three Three', 'twitter': '@three'},
-            {'name': 'Four Four', 'twitter': '@four'},
-        ]
-
-        tests = [
-            # ( slice number, expect)
-            (0, ''),
-            (1, '@one'),
-            (2, '@one, @two'),
-            (3, '@one, @two, @three'),
-            (4, '@one, @two and others'),
-        ]
-
-        for t in tests:
-            data['ongoing_post']['creators'] = creators[:t[0]]
-            tweet = TruncatedOngoingUpdateTweet(data)
-            self.assertEqual(tweet.creators(), t[1])
 
     def test__hash_tag_values(self):
         data = copy.deepcopy(self._twitter_data)

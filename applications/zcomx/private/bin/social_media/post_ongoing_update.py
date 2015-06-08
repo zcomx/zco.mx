@@ -18,7 +18,6 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.stickon.dal import RecordGenerator
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
-    POST_IN_PROGRESS, \
     Poster, \
     TextDataPreparer, \
     postable_activity_log_ids
@@ -30,7 +29,9 @@ from applications.zcomx.modules.tweeter import \
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
-from applications.zcomx.modules.zco import SITE_NAME
+from applications.zcomx.modules.zco import \
+    POST_IN_PROGRESS, \
+    SITE_NAME
 
 
 VERSION = 'Version 0.1'
