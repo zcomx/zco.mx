@@ -31,6 +31,7 @@ class TestFunctions(LocalTestCase):
     _book_page = None
     _book_to_link = None
     _creator = None
+    _creator_as_dict = {}
     _creator_to_link = None
     _user = None
     _test_data_dir = None
@@ -105,6 +106,8 @@ class TestFunctions(LocalTestCase):
         if not cls._creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
+        cls._creator_as_dict = cls._creator.as_dict()
+
         query = (db.book.creator_id == cls._creator.id) & \
                 (db.book.name_for_url == 'TestDoNotDelete')
         cls._book = db(query).select().first()
@@ -153,6 +156,9 @@ class TestFunctions(LocalTestCase):
             query = (db.optimize_img_log.id > cls._max_optimize_img_log_id)
             db(query).delete()
             db.commit()
+
+        cls._creator.update_record(**cls._creator_as_dict)
+        db.commit()
 
     def test__account(self):
 
