@@ -112,6 +112,9 @@ class DubRSSEntry(BaseRSSEntry):
     def description_fmt(self):
         return 'A book {b} by {c}.'
 
+    def guid(self):
+        return 'guid-001'
+
     def link(self):
         return '/path/to/entry'
 
@@ -151,17 +154,34 @@ class TestBaseRSSChannel(WithObjectsTestCase):
         self.assertEqual(channel.entries(), [])
 
         channel._filter_query = (db.activity_log.id == self._activity_log.id)
-        desc = 'The book My Book 001 by First Last has been set as completed.'
+        got = channel.entries()
+        self.assertEqual(len(got), 1)
+
+        entry = got[0]
         self.assertEqual(
-            channel.entries(),
-            [{
-                'created_on': datetime.datetime.strptime(
-                    self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
-                'description': desc,
-                'link': 'http://127.0.0.1:8000/FirstLast/MyBook-001/001',
-                'title': 'My Book 001 by First Last',
-            }]
+            sorted(entry.keys()),
+            ['created_on', 'description', 'guid', 'link', 'title']
         )
+
+        self.assertEqual(
+            entry['created_on'],
+            datetime.datetime.strptime(
+                self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'
+            )
+        )
+
+        desc = 'The book My Book 001 by First Last has been set as completed.'
+        self.assertEqual(entry['description'], desc)
+
+        self.assertTrue(isinstance(entry['guid'], rss2.Guid))
+        self.assertEqual(entry['guid'].guid, str(self._activity_log.id))
+        self.assertFalse(entry['guid'].isPermaLink)
+
+        self.assertEqual(
+            entry['link'],
+            'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
+        )
+        self.assertEqual(entry['title'], 'My Book 001 by First Last')
 
     def test__feed(self):
         # W0212 (protected-access): *Access to a protected member
@@ -174,19 +194,34 @@ class TestBaseRSSChannel(WithObjectsTestCase):
             ['created_on', 'description', 'entries', 'image', 'link', 'title']
         )
         self.assertEqual(got['description'], 'My dub RSS channel.')
-        desc = 'The book My Book 001 by First Last has been set as completed.'
+
+        self.assertEqual(len(got['entries']), 1)
+
+        entry = got['entries'][0]
         self.assertEqual(
-            got['entries'],
-            [{
-                'created_on': datetime.datetime.strptime(
-                    self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
-                'description': desc,
-                'link': 'http://127.0.0.1:8000/FirstLast/MyBook-001/001',
-                'title': 'My Book 001 by First Last',
-            }]
+            sorted(entry.keys()),
+            ['created_on', 'description', 'guid', 'link', 'title']
         )
-        self.assertEqual(got['link'], '/path/to/channel')
-        self.assertEqual(got['title'], 'Dub RSS Channel')
+
+        self.assertEqual(
+            entry['created_on'],
+            datetime.datetime.strptime(
+                self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'
+            )
+        )
+
+        desc = 'The book My Book 001 by First Last has been set as completed.'
+        self.assertEqual(entry['description'], desc)
+
+        self.assertTrue(isinstance(entry['guid'], rss2.Guid))
+        self.assertEqual(entry['guid'].guid, str(self._activity_log.id))
+        self.assertFalse(entry['guid'].isPermaLink)
+
+        self.assertEqual(
+            entry['link'],
+            'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
+        )
+        self.assertEqual(entry['title'], 'My Book 001 by First Last')
 
     def test__filter_query(self):
         channel = BaseRSSChannel()
@@ -244,15 +279,27 @@ class TestBaseRSSChannel(WithObjectsTestCase):
 
 class TestBaseRSSEntry(WithObjectsTestCase):
     def test____init__(self):
-        entry = BaseRSSEntry([self._book_page.id], self._activity_log_time_stamp)
+        entry = BaseRSSEntry(
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertTrue(entry)
 
     def test__created_on(self):
-        entry = BaseRSSEntry([self._book_page.id], self._activity_log_time_stamp)
+        entry = BaseRSSEntry(
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(entry.created_on(), self._activity_log_time_stamp)
 
     def test__description(self):
-        entry = DubRSSEntry([self._book_page.id], self._activity_log_time_stamp)
+        entry = DubRSSEntry(
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(
             entry.description(),
             'A book My Book 001 by First Last.'
@@ -260,23 +307,32 @@ class TestBaseRSSEntry(WithObjectsTestCase):
 
     def test__description_fmt(self):
         entry = BaseRSSEntry(
-            [self._book_page.id], self._activity_log_time_stamp)
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertRaises(NotImplementedError, entry.description_fmt)
 
     def test__feed_item(self):
-        entry = DubRSSEntry([self._book_page.id], datetime.datetime.now())
+        # The time_stamp and activity_log_id args to DubRSSEntry are irrelevant
+        # for this test as the overriden methods determine the feed_item
+        # values.
+        entry = DubRSSEntry([self._book_page.id], '', 0)
         got = entry.feed_item()
         self.assertEqual(
             sorted(got.keys()),
-            ['created_on', 'description', 'link', 'title']
+            ['created_on', 'description', 'guid', 'link', 'title']
         )
-        self.assertEqual(got['created_on'], self._activity_log_time_stamp)
         self.assertEqual(
-            got['description'],
-            'A book My Book 001 by First Last.'
+            got,
+            {
+                'created_on': self._activity_log_time_stamp,
+                'description': 'A book My Book 001 by First Last.',
+                'guid': 'guid-001',
+                'link': '/path/to/entry',
+                'title': 'Dub RSS Entry',
+            }
         )
-        self.assertEqual(got['link'], '/path/to/entry')
-        self.assertEqual(got['title'], 'Dub RSS Entry')
 
     def test__first_of_pages(self):
 
@@ -291,7 +347,11 @@ class TestBaseRSSEntry(WithObjectsTestCase):
             page_no=999,
         ))
 
-        entry = BaseRSSEntry([book_page.id], self._activity_log_time_stamp)
+        entry = BaseRSSEntry(
+            [book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(entry.first_of_pages(), book_page)
 
         # Test multiple pages
@@ -310,24 +370,51 @@ class TestBaseRSSEntry(WithObjectsTestCase):
             book_page_2.id,
             book_page_3.id,
         ]
-        entry = BaseRSSEntry(page_ids, self._activity_log_time_stamp)
+        entry = BaseRSSEntry(
+            page_ids,
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(entry.first_of_pages(), book_page_2)
 
+    def test__guid(self):
+        entry = BaseRSSEntry(
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            123,
+        )
+        guid = entry.guid()
+        self.assertTrue(isinstance(guid, rss2.Guid))
+        self.assertEqual(guid.guid, '123')
+        self.assertFalse(guid.isPermaLink)
+
     def test__link(self):
-        entry = BaseRSSEntry([self._book_page.id], self._activity_log_time_stamp)
+        entry = BaseRSSEntry(
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(
             entry.link(),
             'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
         )
 
-        entry = BaseRSSEntry([self._book_page_2.id], self._activity_log_time_stamp)
+        entry = BaseRSSEntry(
+            [self._book_page_2.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(
             entry.link(),
             'http://127.0.0.1:8000/FirstLast/MyBook-001/002'
         )
 
     def test__title(self):
-        entry = BaseRSSEntry([self._book_page.id], self._activity_log_time_stamp)
+        entry = BaseRSSEntry(
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(
             entry.title(),
             'My Book 001 by First Last'
@@ -466,7 +553,10 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
 
     def test_description(self):
         entry = CompletedRSSEntry(
-            [self._book_page.id], self._activity_log_time_stamp)
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(
             entry.description(),
             'The book My Book 001 by First Last has been set as completed.'
@@ -474,7 +564,10 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
 
     def test__description_fmt(self):
         entry = CompletedRSSEntry(
-            [self._book_page.id], self._activity_log_time_stamp)
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(
             entry.description_fmt(),
             'The book {b} by {c} has been set as completed.'
@@ -487,7 +580,10 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
 
         # Single page
         entry = PageAddedRSSEntry(
-            [self._book_page.id], self._activity_log_time_stamp)
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(
             entry.description(),
             'A page was added to the book My Book 001 by First Last.'
@@ -496,7 +592,8 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         # Multiple pages
         entry = PageAddedRSSEntry(
             [self._book_page.id, self._book_page_2.id],
-            self._activity_log_time_stamp
+            self._activity_log_time_stamp,
+            self._activity_log.id
         )
         self.assertEqual(
             entry.description(),
@@ -505,7 +602,10 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
 
     def test__description_fmt(self):
         entry = PageAddedRSSEntry(
-            [self._book_page.id], self._activity_log_time_stamp)
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
         self.assertEqual(
             entry.description_fmt(),
             'A page was added to the book {b} by {c}.'
@@ -513,7 +613,8 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
 
         entry = PageAddedRSSEntry(
             [self._book_page.id, self._book_page_2.id],
-            self._activity_log_time_stamp
+            self._activity_log_time_stamp,
+            self._activity_log.id
         )
         self.assertEqual(
             entry.description_fmt(),
@@ -537,6 +638,7 @@ class TestFunctions(WithObjectsTestCase):
             self.assertEqual(got.book, self._book)
             self.assertEqual(
                 str(got.time_stamp), self._activity_log_time_stamp)
+            self.assertEqual(got.activity_log_id, self._activity_log.id)
 
     def test__channel_from_type(self):
         # Invalid channel
@@ -580,15 +682,47 @@ class TestFunctions(WithObjectsTestCase):
             'description': 'My description',
             'image': image,
             'created_on': created_on,
-            'entries': []
+            'entries': [
+                {
+                    'title': 'My Title',
+                    'link': 'http://my_link.com',
+                    'description': 'The description',
+                    'guid': 'guid-999',
+                    'created_on': '1999-12-31 12:30:59',
+                }
+            ]
         }
         got = rss_serializer_with_image(feed)
+        # <?xml version="1.0" encoding="utf-8"?>
+        #   <rss version="2.0">
+        #     <channel>
+        #       <title>test__rss_serializer_with_image</title>
+        #       <link>http://www.test.com</link>
+        #       <description>My description</description>
+        #       <lastBuildDate>Sat, 31 Jan 2015 23:30:59 GMT</lastBuildDate>
+        #       <generator>PyRSS2Gen-1.1.0</generator>
+        #       <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+        #       <image>
+        #         <url>http://page.com</url>
+        #         <title>My Image</title>
+        #         <link>http://image.com</link>
+        #       </image>
+        #       <item>
+        #         <title>My Title</title>
+        #         <link>http://my_link.com</link>
+        #         <description>The description</description>
+        #         <guid>guid-999</guid>
+        #         <pubDate>1999-12-31 12:30:59</pubDate>
+        #       </item>
+        #     </channel>
+        #   </rss>
+
         tag = TAG(got)
         self.assertEqual(
             tag.element('channel').element('title').components[0],
             feed['title']
         )
-        # The link is formatted oddly. No idea why.
+        # The link is formatted oddly by TAG. No idea why.
         # Should be
         #     <link>http://www.test.com</link>
         # Have
@@ -607,19 +741,41 @@ class TestFunctions(WithObjectsTestCase):
             tag.element('channel').element('lastbuilddate').components[0],
             rss2._format_date(created_on)
         )
+
+        image = tag.element('channel').element('image')
         self.assertEqual(
-            tag.element('channel')
-            .element('image').element('url').components[0],
+            image.element('url').components[0],
             'http://page.com'
         )
         self.assertEqual(
-            tag.element('channel')
-            .element('image').element('title').components[0],
+            image.element('title').components[0],
             'My Image'
         )
         self.assertEqual(
-            str(tag.element('channel').element('image').element('link')),
+            str(image.element('link')),
             '<link />'
+        )
+
+        item = tag.element('channel').element('item')
+        self.assertEqual(
+            item.element('title').components[0],
+            'My Title'
+        )
+        self.assertEqual(
+            str(image.element('link')),
+            '<link />'
+        )
+        self.assertEqual(
+            item.element('description').components[0],
+            'The description'
+        )
+        self.assertEqual(
+            item.element('guid').components[0],
+            'guid-999'
+        )
+        self.assertEqual(
+            item.element('pubdate').components[0],
+            '1999-12-31 12:30:59'
         )
 
 

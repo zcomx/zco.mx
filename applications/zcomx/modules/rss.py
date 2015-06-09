@@ -235,7 +235,7 @@ class CartoonistRSSChannel(BaseRSSChannel):
 class BaseRSSEntry(object):
     """Class representing a BaseRSSEntry"""
 
-    def __init__(self, book_page_ids, time_stamp):
+    def __init__(self, book_page_ids, time_stamp, activity_log_id):
         """Initializer
 
         Args:
@@ -243,6 +243,7 @@ class BaseRSSEntry(object):
         """
         self.book_page_ids = book_page_ids
         self.time_stamp = time_stamp
+        self.activity_log_id = activity_log_id
         db = current.app.db
         if not book_page_ids:
             raise SyntaxError('No book page ids provided')
@@ -299,6 +300,7 @@ class BaseRSSEntry(object):
             title=self.title(),
             link=self.link(),
             description=self.description(),
+            guid=self.guid(),
             created_on=self.created_on(),
         )
 
@@ -320,6 +322,14 @@ class BaseRSSEntry(object):
             return
         if rows:
             return rows[0]
+
+    def guid(self):
+        """Return a guid for the entry.
+
+        Returns:
+            string, entry guid.
+        """
+        return rss2.Guid(str(self.activity_log_id), isPermaLink=False)
 
     def link(self):
         """Return the link for the entry.
@@ -383,7 +393,11 @@ def activity_log_as_rss_entry(activity_log_entity):
             e=activity_log_entity))
 
     entry_class = entry_class_from_action(activity_log.action)
-    return entry_class(activity_log.book_page_ids, activity_log.time_stamp)
+    return entry_class(
+        activity_log.book_page_ids,
+        activity_log.time_stamp,
+        activity_log.id
+    )
 
 
 def channel_from_type(channel_type, record_id=None):
@@ -421,7 +435,12 @@ def entry_class_from_action(action):
 
 
 def rss_serializer_with_image(feed):
-    """RSS serializer adapted from gluon/serializers def rss()."""
+    """RSS serializer adapted from gluon/serializers def rss().
+
+    Customizations:
+        rss2.RSS2(..., image=...)
+        rss2.RSSItem(..., guid=...)
+    """
 
     if 'entries' not in feed and 'items' in feed:
         feed['entries'] = feed['items']
@@ -443,6 +462,7 @@ def rss_serializer_with_image(feed):
                 title=_safestr(entry, 'title', '(notitle)'),
                 link=_safestr(entry, 'link'),
                 description=_safestr(entry, 'description'),
+                guid=entry.get('guid', None),
                 pubDate=entry.get('created_on', now)
             ) for entry in feed.get('entries', [])
         ]
