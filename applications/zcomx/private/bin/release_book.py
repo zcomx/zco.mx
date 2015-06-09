@@ -27,7 +27,7 @@ from applications.zcomx.modules.job_queue import \
     ReleaseBookQueuer
 from applications.zcomx.modules.utils import \
     NotFoundError
-from applications.zcomx.modules.zco import POST_IN_PROGRESS
+from applications.zcomx.modules.zco import IN_PROGRESS
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -136,8 +136,8 @@ class ReleaseBook(Releaser):
             # Set the tumblr post id to a dummy value to prevent this step
             # from running over and over.
             data = dict(
-                tumblr_post_id=POST_IN_PROGRESS,
-                twitter_post_id=POST_IN_PROGRESS
+                tumblr_post_id=IN_PROGRESS,
+                twitter_post_id=IN_PROGRESS
             )
             self.book.update_record(**data)
             db.commit()
@@ -211,9 +211,9 @@ class UnreleaseBook(Releaser):
             releasing=False,
         )
 
-        if self.book.tumblr_post_id == POST_IN_PROGRESS:
+        if self.book.tumblr_post_id == IN_PROGRESS:
             data['tumblr_post_id'] = None
-        if self.book.twitter_post_id == POST_IN_PROGRESS:
+        if self.book.twitter_post_id == IN_PROGRESS:
             data['twitter_post_id'] = None
 
         self.book.update_record(**data)

@@ -30,7 +30,7 @@ from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import \
-    POST_IN_PROGRESS, \
+    IN_PROGRESS, \
     SITE_NAME
 
 
@@ -316,7 +316,7 @@ def main():
 
     if 'tumblr' in services:
         if ongoing_post.tumblr_post_id \
-                and ongoing_post.tumblr_post_id != POST_IN_PROGRESS \
+                and ongoing_post.tumblr_post_id != IN_PROGRESS \
                 and not options.force:
             LOG.warn(
                 'Ongoing_post has tumblr_post_id: %s',
@@ -331,7 +331,7 @@ def main():
 
     if 'twitter' in services:
         if ongoing_post.twitter_post_id \
-                and ongoing_post.twitter_post_id != POST_IN_PROGRESS \
+                and ongoing_post.twitter_post_id != IN_PROGRESS \
                 and not options.force:
             LOG.warn(
                 'Ongoing_post has twitter_post_id: %s',

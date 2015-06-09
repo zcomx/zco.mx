@@ -31,7 +31,7 @@ NICES = {
     'optimize': 19,         # max
 }
 
-POST_IN_PROGRESS = '__in_progress__'
+IN_PROGRESS = '__in_progress__'
 SITE_NAME = 'zco.mx'
 TUMBLR_USERNAME = 'zcomx'
 TWITTER_BOT_HANDLE = '@zcomx_bot'

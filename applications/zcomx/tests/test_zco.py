@@ -15,7 +15,7 @@ from applications.zcomx.modules.zco import \
     BOOK_STATUS_DISABLED, \
     BOOK_STATUS_DRAFT, \
     NICES, \
-    POST_IN_PROGRESS, \
+    IN_PROGRESS, \
     SITE_NAME, \
     TUMBLR_USERNAME, \
     TWITTER_BOT_HANDLE, \
@@ -98,7 +98,7 @@ class TestConstants(LocalTestCase):
             self.assertTrue(v <= 19)
             self.assertTrue(v >= 10)
 
-        self.assertEqual(POST_IN_PROGRESS, '__in_progress__')
+        self.assertEqual(IN_PROGRESS, '__in_progress__')
         self.assertEqual(SITE_NAME, 'zco.mx')
         self.assertEqual(TUMBLR_USERNAME, 'zcomx')
         self.assertEqual(TWITTER_BOT_HANDLE, '@zcomx_bot')
