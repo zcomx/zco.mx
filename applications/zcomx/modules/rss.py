@@ -91,7 +91,7 @@ class BaseRSSChannel(object):
         """Define a query to filter activity_log records to include in feed.
 
         Return
-            gluon.dal.objects Query instance.
+            gluon.pydal.objects Query instance.
         """
         db = current.app.db
         now = datetime.datetime.now()

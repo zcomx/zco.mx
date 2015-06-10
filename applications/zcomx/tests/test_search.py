@@ -11,7 +11,7 @@ import unittest
 import urllib
 from BeautifulSoup import BeautifulSoup
 from gluon import *
-from gluon.dal.objects import Row
+from pydal.objects import Row
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
     book_name, \

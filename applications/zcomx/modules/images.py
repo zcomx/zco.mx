@@ -13,7 +13,7 @@ import shutil
 import subprocess
 from PIL import Image
 from gluon import *
-from gluon.dal.helpers.regex import REGEX_STORE_PATTERN
+from pydal.helpers.regex import REGEX_STORE_PATTERN
 from applications.zcomx.modules.job_queue import \
     DeleteImgQueuer
 from applications.zcomx.modules.shell_utils import \

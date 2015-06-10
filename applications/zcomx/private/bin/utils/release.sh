@@ -106,6 +106,10 @@ cd $web2py_root || exit 1
 __v && __mi "Migrating database"
 _migrate
 
+__v && __mi "Clearing cache"
+cache_dir="applications/zcomx/cache"
+[[ -d $cache_dir ]] && rm -r "$cache_dir"/*
+
 __v && __mi "Updating response.static_version"
 _update_static_version "$SETTINGS_CONF"
 

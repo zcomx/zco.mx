@@ -7,7 +7,7 @@ Test suite for zcomx/modules/stickon/dal.py
 
 """
 import unittest
-from gluon.dal.objects import Row
+from pydal.objects import Row
 from applications.zcomx.modules.stickon.dal import RecordGenerator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
