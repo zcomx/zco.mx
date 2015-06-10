@@ -8,7 +8,7 @@ Utilty classes and functions.
 import os
 import re
 from gluon import *
-from gluon.dal.objects import Row
+from pydal.objects import Row
 from gluon.html import XmlComponent
 from gluon.languages import lazyT
 from applications.zcomx.modules.zco import Zco

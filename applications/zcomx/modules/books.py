@@ -10,7 +10,7 @@ import logging
 import os
 import urlparse
 from gluon import *
-from gluon.dal.objects import REGEX_STORE_PATTERN
+from pydal.helpers.regex import REGEX_STORE_PATTERN
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import \

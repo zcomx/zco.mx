@@ -8,7 +8,7 @@ Test suite for zcomx/modules/book_pages.py
 """
 import unittest
 from gluon import *
-from gluon.dal.objects import Row
+from pydal.objects import Row
 from applications.zcomx.modules.book_pages import \
     BookPage, \
     delete_pages_not_in_ids, \

@@ -10,7 +10,7 @@ import datetime
 import unittest
 import uuid
 from BeautifulSoup import BeautifulSoup
-from gluon.dal.objects import Row
+from pydal.objects import Row
 from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.tumblr import \
     Authenticator, \

@@ -13,7 +13,7 @@ import subprocess
 import time
 from gluon import *
 from gluon.shell import env
-from gluon.dal.objects import REGEX_UPLOAD_PATTERN
+from pydal.helpers.regex import REGEX_STORE_PATTERN
 from optparse import OptionParser
 from applications.zcomx.modules.images import \
     SIZES, \
