@@ -110,6 +110,9 @@ __v && __mi "Clearing cache"
 cache_dir="applications/zcomx/cache"
 [[ -d $cache_dir ]] && rm -r "$cache_dir"/*
 
+__v && __mi "Removing *.pyc"
+find . -name "*.pyc" -exec rm -f {} \;
+
 __v && __mi "Updating response.static_version"
 _update_static_version "$SETTINGS_CONF"
 
