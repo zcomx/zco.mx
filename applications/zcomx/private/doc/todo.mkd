@@ -3,18 +3,13 @@
     [x] mail promo cards
         [x] email CAKE cartoonists
     [x] emails
-
-VERSION 3
-[S] Link to a howto on 'rss to email'
-
-[ ] Indicia Image
+[x] Indicia Image
     Increase the size of Marc's signature on the default indicia image
     http://p.zsw.ca/OU.png
-    [ ] Set max-height of Indicia Image (html)
+    [x] Set max-height of Indicia Image (html)
         Set the max-height of the indicia image to 500px so more of the
         page is displayed
-
-[ ] Daily Summary of 'ongoing' pages - tumblr
+[x] Daily Summary of 'ongoing' pages - tumblr
     Post a daily report (list of links) summarizing the pages that were
     uploaded for that day to tumblr first (as a blog post?) and then
     that url posted to twitter (zcomx_bot).
@@ -24,15 +19,16 @@ VERSION 3
             * Name of Book by <tumblr_nick> - <Read newest page(s)>
             * Book Title by <tumblr_nick> - page <57>
             * Eavesdropper 001 by <andreatsurumi> - page <14>
+    [x] Make heading smaller
+    [x] italicize book title
+    [x] link book title to the zco.mx book page
+    [x] Change 'List of Updated...' to 'Updated Ongoing...'
+    [-] Set links to color: #FF6600 and no underline
 
-    [ ] Make heading smaller
-    [ ] italicize book title
-    [ ] link book title to the zco.mx book page
-    [ ] Change 'List of Updated...' to 'Updated Ongoing...'
-    [ ] Set links to color: #FF6600 and no underline
+VERSION 3
+[S] Link to a howto on 'rss to email'
 
-
-[ ] Daily Summary of 'ongoing' pages - twitter
+[/] Daily Summary of 'ongoing' pages - twitter
     "zco.mx Ongoing Books Update -- <url>"
     "Updates for Ongoing Books on zco.mx -- <url>"
     "New Pages Added for Ongoing Books on zco.mx -- <url>"
@@ -40,6 +36,13 @@ VERSION 3
 
     "New Pages Added by @nick1 @nick2 @nick3 on zco.mx -- <url>"
     "New Pages Added by @nick4 @nick5 @nick6 on zco.mx -- <url>"
+
+    [ ] In the search these tweets look weird
+        SB 2015-06-09 17:11  Talk to me about this
+
+[ ] Small Upload Bug
+    SB 2015-06-09 16:58  Talk to me about this
+    [ ] Comic can look like it's in the 'Disabled' area
 
 [S] Cartoonist Page -> Links to Cartoonist Articles/interviews?
     [S] Mockup
@@ -67,6 +70,9 @@ VERSION 3
 
 [S] Roger's Poster
     giclee 8 colour inkjet printer
+
+[ ] reddit
+    https://www.reddit.com/r/altcomix/
 
 
 VERSION 4

@@ -21,9 +21,10 @@ EXPENSES
     Apr 2015    Server Hosting          $ 40
     Apr 2015    Contract Work - copy    $165
     May 2015    Server Hosting          $ 40
-    May 2015    Advertising - Card      $300
+    May 2015    Advertising - Cards     $300
     Jun 2015    Server Hosting          $ 40
-  TOTAL Expense                                 $1757
+    Jun 2015    Domain Registration     $ 45
+  TOTAL Expense                                 $1802
 
 
 NET TOTAL                                      -$1752
