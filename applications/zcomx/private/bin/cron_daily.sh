@@ -76,5 +76,8 @@ $py applications/zcomx/private/bin/queue_job.py --queuer PurgeTorrentsQueuer
 __v && __md "Start: integrity"
 $py applications/zcomx/private/bin/integrity.py
 
+__v && __md "Start: clean sessions"
+$py applications/zcomx/../../scripts/sessions2trash.py --once
+
 __v && __md "Done ${0##*/}"
 exit 0
