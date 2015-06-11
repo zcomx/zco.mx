@@ -179,9 +179,9 @@ class TestBookListingPage(WithObjectsTestCase):
         listing_page = BookListingPage(self._book_page)
         link = listing_page.link()
         soup = BeautifulSoup(str(link))
-        # <a href="http://zco.mx/FirstLast/MyBook-001/001">01</a>
+        # <a href="http://zco.mx/FirstLast/MyBook-001/001">p01</a>
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, '01')
+        self.assertEqual(anchor.string, 'p01')
         self.assertEqual(
             anchor['href'],
             'http://zco.mx/FirstLast/MyBook-001/001'
@@ -204,8 +204,8 @@ class TestOngoingBookListing(WithObjectsTestCase):
         got = listing.components()
         self.assertEqual(len(got), 7)
         self.assertEqual(got[1], ' by ')
-        self.assertEqual(got[3], ' - page ')
-        self.assertEqual(got[5], ', ')
+        self.assertEqual(got[3], ' - ')
+        self.assertEqual(got[5], ' ')
 
         soup = BeautifulSoup(str(got[0]))
         # <a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a>
@@ -222,7 +222,7 @@ class TestOngoingBookListing(WithObjectsTestCase):
         soup = BeautifulSoup(str(got[4]))
         # <a href="http://zco.mx/FirstLast/MyBook-001/001">01</a>
         anchor = soup.find('a')
-        self.assertEqual(anchor.string, '01')
+        self.assertEqual(anchor.string, 'p01')
         self.assertEqual(
             anchor['href'],
             'http://zco.mx/FirstLast/MyBook-001/001'
@@ -236,11 +236,11 @@ class TestOngoingBookListing(WithObjectsTestCase):
         got = listing.components()
         self.assertEqual(len(got), 11)
         self.assertEqual(got[1], ' by ')
-        self.assertEqual(got[3], ' - page ')
-        self.assertEqual(got[5], ', ')
-        self.assertEqual(got[7], ', ')
+        self.assertEqual(got[3], ' - ')
+        self.assertEqual(got[5], ' ')
+        self.assertEqual(got[7], ' ')
         self.assertEqual(got[8], '...')
-        self.assertEqual(got[9], ', ')
+        self.assertEqual(got[9], ' ')
 
     def test__from_activity_log(self):
         activity_log = Row(dict(
@@ -292,7 +292,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         #   <a href="http://firstlast.tumblr.com">
         #    First Last
         #   </a>
-        #   - page
+        #   -
         #   <a href="http://zco.mx/FirstLast/MyBook-001/002">
         #    02
         #   </a>
@@ -307,7 +307,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         #   <a href="http://firstlast.tumblr.com">
         #    First Last
         #   </a>
-        #   - page
+        #   -
         #   <a href="http://zco.mx/FirstLast/MyBook-001/001">
         #    01
         #   </a>
@@ -334,14 +334,14 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         self.assertEqual(li_1_anchors[1].string, 'First Last')
         self.assertEqual(
             li_1_anchors[1]['href'], 'http://firstlast.tumblr.com')
-        self.assertEqual(li_1_anchors[2].string, '02')
+        self.assertEqual(li_1_anchors[2].string, 'p02')
         self.assertEqual(
             li_1_anchors[2]['href'],
             'http://zco.mx/FirstLast/MyBook-001/002'
         )
         self.assertEqual(len(li_1.contents), 5)
         self.assertEqual(li_1.contents[1], ' by ')
-        self.assertEqual(li_1.contents[3], ' - page ')
+        self.assertEqual(li_1.contents[3], ' - ')
 
         li_2 = lis[1]
         li_2_i = li_1.findAll('i')
@@ -354,20 +354,20 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         self.assertEqual(li_2_anchors[1].string, 'First Last')
         self.assertEqual(
             li_2_anchors[1]['href'], 'http://firstlast.tumblr.com')
-        self.assertEqual(li_2_anchors[2].string, '01')
+        self.assertEqual(li_2_anchors[2].string, 'p01')
         self.assertEqual(
             li_2_anchors[2]['href'],
             'http://zco.mx/FirstLast/MyBook-001/001'
         )
-        self.assertEqual(li_2_anchors[3].string, '02')
+        self.assertEqual(li_2_anchors[3].string, 'p02')
         self.assertEqual(
             li_2_anchors[3]['href'],
             'http://zco.mx/FirstLast/MyBook-001/002'
         )
         self.assertEqual(len(li_2.contents), 7)
         self.assertEqual(li_2.contents[1], ' by ')
-        self.assertEqual(li_2.contents[3], ' - page ')
-        self.assertEqual(li_2.contents[5], ', ')
+        self.assertEqual(li_2.contents[3], ' - ')
+        self.assertEqual(li_2.contents[5], ' ')
 
     def test__book_listing_generator(self):
 
@@ -408,7 +408,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         self.assertEqual(
             preparer.data(),
             {
-                'body': '<ul><li><i><a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a></i> by <a href="http://firstlast.tumblr.com">First Last</a> - page <a href="http://zco.mx/FirstLast/MyBook-001/001">01</a></li><li><i><a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a></i> by <a href="http://firstlast.tumblr.com">First Last</a> - page <a href="http://zco.mx/FirstLast/MyBook-001/002">02</a></li></ul>',
+                'body': '<ul><li><i><a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a></i> by <a href="http://firstlast.tumblr.com">First Last</a> - <a href="http://zco.mx/FirstLast/MyBook-001/001">p01</a></li><li><i><a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a></i> by <a href="http://firstlast.tumblr.com">First Last</a> - <a href="http://zco.mx/FirstLast/MyBook-001/002">p02</a></li></ul>',
                 'format': 'html',
                 'slug': 'ongoing-books-update-1999-12-31',
                 'state': 'published',

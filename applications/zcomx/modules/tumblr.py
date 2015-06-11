@@ -266,7 +266,7 @@ class OngoingBookListing(object):
             )),
             ' by ',
             book_listing_creator(self.creator).link(),
-            ' - page ',
+            ' - ',
         ]
 
         items = abridged_list(self.book_pages)
@@ -277,7 +277,7 @@ class OngoingBookListing(object):
                 listing_page = BookListingPage(item)
                 parts.append(listing_page.link())
             if count < len(items) - 1:
-                parts.append(', ')
+                parts.append(' ')
         return parts
 
     @classmethod
@@ -350,7 +350,7 @@ class BookListingPage(object):
             string
         """
         return A(
-            '{p:02d}'.format(p=self.book_page.page_no),
+            'p{p:02d}'.format(p=self.book_page.page_no),
             _href=page_url(self.book_page, extension=False, host=SITE_NAME)
         )
 
