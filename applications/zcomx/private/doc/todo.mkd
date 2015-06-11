@@ -27,6 +27,9 @@
 
 VERSION 3
 [S] Link to a howto on 'rss to email'
+    * https://blogtrottr.com/
+    * thunderbird
+    * outlook
 
 [/] Daily Summary of 'ongoing' pages - twitter
     "zco.mx Ongoing Books Update -- <url>"
@@ -37,14 +40,32 @@ VERSION 3
     "New Pages Added by @nick1 @nick2 @nick3 on zco.mx -- <url>"
     "New Pages Added by @nick4 @nick5 @nick6 on zco.mx -- <url>"
 
-    [ ] In the search these tweets look weird
-        SB 2015-06-09 17:11  Talk to me about this
+    [ ] Formating - body
+        Change:
+            New pages added by Tony Zuvela, @cyberpunkdan on zco.mx | http://zcomx.tumblr.com/post/121082852211 … | #zcomx #comics
+        to:
+            <New pages added> by Tony Zuvela, @cyberpunkdan on <zco.mx>  #zcomx #comics
+        where:
+            "<New pages added>" is a link to http://zcomx.tumblr.com/post/121082852211
+            "<zco.mx>" is a link to https://zco.mx
+
+        Change:
+            page 01, 02, ..., 27
+        To:
+            p01 p02 ... p27
+            p01 p02 p03
+
+
+    [ ] In the search these 'ongoing' tweets look weird
+        Twitter is prefetching info from tumblr.  Can we customize this?
 
 [ ] Small Upload Bug
     SB 2015-06-09 16:58  Talk to me about this
-    [ ] Comic can look like it's in the 'Disabled' area
 
-[S] Cartoonist Page -> Links to Cartoonist Articles/interviews?
+[S] login/books -> upload
+    Comic can look like it's in the 'Disabled' area
+
+[S] Cartoonist Page -> Links to Cartoonist Articles/Interviews?
     [S] Mockup
 
 [S] Book page -> Links to Book Reviews ?
@@ -60,6 +81,26 @@ VERSION 3
     $ rtcontrol -q -oname name=* alias=zco.mx
     $ for i in /srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/**; do [[ $i == *.torrent.loaded* ]] && echo "$i"; done
 
+[ ] RSS - from
+    Change From: "Roger Langridge on zco.mx" to From: "zco.mx: Roger Langridge"
+
+[ ] RSS - subject
+    Change:
+        The Iron Duchess by Roger Langridge
+    To:
+        'The Iron Duchess' p01
+        'The Iron Duchess' p01 p02 p03
+        'The Iron Duchess' p01 p02 ... p27
+
+[ ] RSS - body
+    Change:
+        A page was...
+    To:
+        Posted: Jun 08, 2015 - A page was...
+
+[ ] reddit
+    https://www.reddit.com/r/altcomix/
+
 [ ] Search Auto-Completion on 'cartoonist name' and 'title'
 
 [S] Add More to kb
@@ -70,9 +111,6 @@ VERSION 3
 
 [S] Roger's Poster
     giclee 8 colour inkjet printer
-
-[ ] reddit
-    https://www.reddit.com/r/altcomix/
 
 
 VERSION 4
