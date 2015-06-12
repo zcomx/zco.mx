@@ -409,6 +409,7 @@
         onshow: function(dialog) {
             /* Disable buttons while loading */
             dialog.enableButtons(false);
+            UploadModalize.superclass.onshow.call(this, dialog);
         },
 
         onshown: function(dialog) {
