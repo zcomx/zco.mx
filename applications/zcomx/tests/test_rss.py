@@ -181,7 +181,10 @@ class TestBaseRSSChannel(WithObjectsTestCase):
             entry['link'],
             'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
         )
-        self.assertEqual(entry['title'], 'My Book 001 by First Last')
+        self.assertEqual(
+            entry['title'],
+            "'My Book 001' p01 by First Last"
+        )
 
     def test__feed(self):
         # W0212 (protected-access): *Access to a protected member
@@ -221,7 +224,10 @@ class TestBaseRSSChannel(WithObjectsTestCase):
             entry['link'],
             'http://127.0.0.1:8000/FirstLast/MyBook-001/001'
         )
-        self.assertEqual(entry['title'], 'My Book 001 by First Last')
+        self.assertEqual(
+            entry['title'],
+            "'My Book 001' p01 by First Last"
+        )
 
     def test__filter_query(self):
         channel = BaseRSSChannel()
@@ -411,13 +417,13 @@ class TestBaseRSSEntry(WithObjectsTestCase):
 
     def test__title(self):
         entry = BaseRSSEntry(
-            [self._book_page.id],
+            [self._book_page.id, self._book_page_2.id],
             self._activity_log_time_stamp,
             self._activity_log.id
         )
         self.assertEqual(
             entry.title(),
-            'My Book 001 by First Last'
+            "'My Book 001' p01 p02 by First Last"
         )
 
 

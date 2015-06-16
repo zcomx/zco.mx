@@ -9,6 +9,8 @@ import datetime
 import logging
 import gluon.contrib.rss2 as rss2
 from gluon import *
+from applications.zcomx.modules.book_pages import \
+    AbridgedBookPageNumbers
 from applications.zcomx.modules.books import \
     formatted_name as book_formatted_name, \
     get_page, \
@@ -348,9 +350,11 @@ class BaseRSSEntry(object):
             string, entry title.
         """
         db = current.app.db
-        return '{b} by {c}'.format(
+        pages = [entity_to_row(db.book_page, x) for x in self.book_page_ids]
+        return "'{b}' {p} by {c}".format(
             b=book_formatted_name(
                 db, self.book, include_publication_year=False),
+            p=' '.join(AbridgedBookPageNumbers(pages).numbers()),
             c=creator_formatted_name(self.creator),
         )
 

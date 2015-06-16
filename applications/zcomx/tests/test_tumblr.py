@@ -16,7 +16,6 @@ from applications.zcomx.modules.tumblr import \
     Authenticator, \
     BookListingCreator, \
     BookListingCreatorWithTumblr, \
-    BookListingPage, \
     OngoingBookListing, \
     PhotoDataPreparer, \
     Poster, \
@@ -167,25 +166,6 @@ class TestBookListingCreatorWithTumblr(WithObjectsTestCase):
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'First Last')
         self.assertEqual(anchor['href'], 'http://firstlast.tumblr.com')
-
-
-class TestBookListingPage(WithObjectsTestCase):
-
-    def test____init__(self):
-        listing_page = BookListingPage(self._book_page)
-        self.assertTrue(listing_page)
-
-    def test__link(self):
-        listing_page = BookListingPage(self._book_page)
-        link = listing_page.link()
-        soup = BeautifulSoup(str(link))
-        # <a href="http://zco.mx/FirstLast/MyBook-001/001">p01</a>
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'p01')
-        self.assertEqual(
-            anchor['href'],
-            'http://zco.mx/FirstLast/MyBook-001/001'
-        )
 
 
 class TestOngoingBookListing(WithObjectsTestCase):

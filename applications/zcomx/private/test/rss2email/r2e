@@ -1,0 +1,5 @@
+#!/bin/sh
+dir=${BASH_SOURCE%/*}
+feeds="$dir/feeds.dat"
+export PYTHONPATH=$PYTHONPATH:gluon/contrib   # feedparser is in gluon/contrib.
+python "$dir/rss2email.py" "$feeds" $*

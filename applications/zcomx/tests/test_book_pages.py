@@ -7,10 +7,14 @@ Test suite for zcomx/modules/book_pages.py
 
 """
 import unittest
+from BeautifulSoup import BeautifulSoup
 from gluon import *
 from pydal.objects import Row
 from applications.zcomx.modules.book_pages import \
+    AbridgedBookPageNumbers, \
     BookPage, \
+    BookPageNumber, \
+    BookPageNumbers, \
     delete_pages_not_in_ids, \
     pages_sorted_by_page_no, \
     reset_book_page_nos
@@ -21,6 +25,75 @@ from applications.zcomx.modules.utils import \
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
+
+def url_func(book_page, extension=False, host=None):
+    # W0613: *Unused argument %%r*
+    # pylint: disable=W0613
+    return 'http://page/{p:03d}'.format(p=book_page.page_no)
+
+
+class WithPagesTestCase(LocalTestCase):
+    """Class representing a WithPagesTestCase"""
+
+    _book_pages = None
+
+    def setUp(self):
+        book_page_1 = Row({
+            'page_no': 1,
+        })
+        book_page_2 = Row({
+            'page_no': 2,
+        })
+        book_page_3 = Row({
+            'page_no': 3,
+        })
+        book_page_4 = Row({
+            'page_no': 4,
+        })
+        book_page_5 = Row({
+            'page_no': 5,
+        })
+
+        self._book_pages = [
+            book_page_1,
+            book_page_2,
+            book_page_3,
+            book_page_4,
+            book_page_5,
+        ]
+
+        super(WithPagesTestCase, self).setUp()
+
+
+class TestAbridgedBookPageNumbers(WithPagesTestCase):
+
+    def test__links(self):
+        # Four pages, not abridged
+        numbers = AbridgedBookPageNumbers(self._book_pages[:4])
+        got = numbers.links(url_func)
+        self.assertEqual(len(got), 4)
+        for link in got:
+            self.assertTrue(isinstance(link, A))
+
+        # Five pages, abridged
+        numbers = AbridgedBookPageNumbers(self._book_pages[:5])
+        got = numbers.links(url_func)
+        self.assertEqual(len(got), 4)
+        for count, link in enumerate(got):
+            if count == 2:
+                self.assertEqual(link, '...')
+            else:
+                self.assertTrue(isinstance(link, A))
+
+    def test__numbers(self):
+        # Four pages, not abridged
+        numbers = AbridgedBookPageNumbers(self._book_pages[:4])
+        self.assertEqual(numbers.numbers(), ['p01', 'p02', 'p03', 'p04'])
+
+        # Five pages, abridged
+        numbers = AbridgedBookPageNumbers(self._book_pages[:5])
+        self.assertEqual(numbers.numbers(), ['p01', 'p02', '...', 'p05'])
 
 
 class TestBookPage(LocalTestCase):
@@ -49,6 +122,56 @@ class TestBookPage(LocalTestCase):
         # Test cache
         page._upload_image = '_cache_'
         self.assertEqual(page.upload_image(), '_cache_')
+
+
+class TestBookPageNumber(WithPagesTestCase):
+
+    def test____init__(self):
+        number = BookPageNumber({})
+        self.assertTrue(number)
+
+    def test__formatted(self):
+        number = BookPageNumber(self._book_pages[2])
+        self.assertEqual(number.formatted(), 'p03')
+
+    def test__link(self):
+        number = BookPageNumber(self._book_pages[2])
+        got = number.link(url_func)
+        soup = BeautifulSoup(str(got))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'p03')
+        self.assertEqual(anchor['href'], 'http://page/003')
+
+
+class TestBookPageNumbers(WithPagesTestCase):
+
+    def test____init__(self):
+        numbers = BookPageNumbers([])
+        self.assertTrue(numbers)
+
+    def test__links(self):
+        numbers = BookPageNumbers(self._book_pages[:3])
+        got = numbers.links(url_func)
+        self.assertEqual(len(got), 3)
+
+        soup = BeautifulSoup(str(got[0]))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'p01')
+        self.assertEqual(anchor['href'], 'http://page/001')
+
+        soup = BeautifulSoup(str(got[1]))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'p02')
+        self.assertEqual(anchor['href'], 'http://page/002')
+
+        soup = BeautifulSoup(str(got[2]))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'p03')
+        self.assertEqual(anchor['href'], 'http://page/003')
+
+    def test__numbers(self):
+        numbers = BookPageNumbers(self._book_pages[:3])
+        self.assertEqual(numbers.numbers(), ['p01', 'p02', 'p03'])
 
 
 class TestFunctions(LocalTestCase):

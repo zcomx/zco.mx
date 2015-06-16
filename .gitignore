@@ -57,4 +57,5 @@ applications/*/static/sphinx
 applications/*/static/files/*
 !applications/*/static/files/.gitignore
 applications/*/cron/cron.master
+applications/*/private/test/rss2email/feeds.dat
 logs/
