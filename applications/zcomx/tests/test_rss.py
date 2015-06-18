@@ -481,7 +481,7 @@ class TestBookRSSChannel(WithObjectsTestCase):
         channel = BookRSSChannel(self._book)
         self.assertEqual(
             channel.title(),
-            'My Book 001 by First Last on zco.mx'
+            'zco.mx: My Book 001 by First Last'
         )
 
 
@@ -545,7 +545,7 @@ class TestCartoonistRSSChannel(WithObjectsTestCase):
         channel = CartoonistRSSChannel(self._creator)
         self.assertEqual(
             channel.title(),
-            'First Last on zco.mx'
+            'zco.mx: First Last'
         )
 
 

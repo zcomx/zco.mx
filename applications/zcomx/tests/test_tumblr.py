@@ -298,6 +298,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         #   </a>
         #  </li>
         #  <li>
+        #   <span class="hidden"> --- </span>
         #   <i>
         #   <a href="http://zco.mx/FirstLast/MyBook-001">
         #    My Book 001
@@ -323,7 +324,6 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         self.assertEqual(len(lis), 2)
 
         li_1 = lis[0]
-
         li_1_i = li_1.findAll('i')
         self.assertEqual(len(li_1_i), 1)
         li_1_anchors = li_1.findAll('a')
@@ -344,7 +344,10 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         self.assertEqual(li_1.contents[3], ' - ')
 
         li_2 = lis[1]
-        li_2_i = li_1.findAll('i')
+        li_2_spans = li_2.findAll('span')
+        self.assertEqual(len(li_2_spans), 1)
+        self.assertEqual(li_2_spans[0].string, ' --- ')
+        li_2_i = li_2.findAll('i')
         self.assertEqual(len(li_2_i), 1)
         li_2_anchors = li_2.findAll('a')
         self.assertEqual(len(li_2_anchors), 4)
@@ -364,10 +367,10 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
             li_2_anchors[3]['href'],
             'http://zco.mx/FirstLast/MyBook-001/002'
         )
-        self.assertEqual(len(li_2.contents), 7)
-        self.assertEqual(li_2.contents[1], ' by ')
-        self.assertEqual(li_2.contents[3], ' - ')
-        self.assertEqual(li_2.contents[5], ' ')
+        self.assertEqual(len(li_2.contents), 8)
+        self.assertEqual(li_2.contents[2], ' by ')
+        self.assertEqual(li_2.contents[4], ' - ')
+        self.assertEqual(li_2.contents[6], ' ')
 
     def test__book_listing_generator(self):
 
@@ -408,7 +411,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         self.assertEqual(
             preparer.data(),
             {
-                'body': '<ul><li><i><a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a></i> by <a href="http://firstlast.tumblr.com">First Last</a> - <a href="http://zco.mx/FirstLast/MyBook-001/001">p01</a></li><li><i><a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a></i> by <a href="http://firstlast.tumblr.com">First Last</a> - <a href="http://zco.mx/FirstLast/MyBook-001/002">p02</a></li></ul>',
+                'body': '<ul><li><i><a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a></i> by <a href="http://firstlast.tumblr.com">First Last</a> - <a href="http://zco.mx/FirstLast/MyBook-001/001">p01</a></li><li><span class="hidden"> --- </span><i><a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a></i> by <a href="http://firstlast.tumblr.com">First Last</a> - <a href="http://zco.mx/FirstLast/MyBook-001/002">p02</a></li></ul>',
                 'format': 'html',
                 'slug': 'ongoing-books-update-1999-12-31',
                 'state': 'published',

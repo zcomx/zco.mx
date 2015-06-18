@@ -186,11 +186,11 @@ class BookRSSChannel(BaseRSSChannel):
 
     def title(self):
         db = current.app.db
-        return '{b} by {c} on {s}'.format(
+        return '{s}: {b} by {c}'.format(
+            s=SITE_NAME,
             b=book_formatted_name(
                 db, self.book, include_publication_year=False),
             c=creator_formatted_name(self.creator),
-            s=SITE_NAME
         )
 
 
@@ -226,9 +226,9 @@ class CartoonistRSSChannel(BaseRSSChannel):
         return creator_url(self.creator, extension=False, host=True)
 
     def title(self):
-        return '{c} on {s}'.format(
+        return '{s}: {c}'.format(
+            s=SITE_NAME,
             c=creator_formatted_name(self.creator),
-            s=SITE_NAME
         )
 
 
