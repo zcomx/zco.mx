@@ -34,7 +34,9 @@ from applications.zcomx.modules.utils import NotFoundError
 
 class WithObjectsTestCase(LocalTestCase):
     _activity_log = None
-    _activity_log_time_stamp = '1999-12-31 12:30:59'
+    _activity_log_time_stamp = datetime.datetime(1999, 12, 31, 12, 30, 59)
+    _activity_log_time_stamp_str = datetime.datetime.strftime(
+        _activity_log_time_stamp, '%Y-%m-%d %H:%M:%S')
     _auth_user = None
     _book = None
     _book_page = None
@@ -77,8 +79,7 @@ class WithObjectsTestCase(LocalTestCase):
             book_id=self._book.id,
             book_page_ids=[self._book_page.id],
             action='completed',
-            time_stamp=datetime.datetime.strptime(
-                self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'),
+            time_stamp=self._activity_log_time_stamp,
         ))
 
 
@@ -110,7 +111,7 @@ class DubRSSEntry(BaseRSSEntry):
         return WithObjectsTestCase._activity_log_time_stamp
 
     def description_fmt(self):
-        return 'A book {b} by {c}.'
+        return 'A book {b} by {c} posted {d}.'
 
     def guid(self):
         return 'guid-001'
@@ -165,12 +166,12 @@ class TestBaseRSSChannel(WithObjectsTestCase):
 
         self.assertEqual(
             entry['created_on'],
-            datetime.datetime.strptime(
-                self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'
-            )
+            self._activity_log_time_stamp
         )
 
-        desc = 'The book My Book 001 by First Last has been set as completed.'
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        desc = 'Posted: Dec 31, 1999 - The book My Book 001 by First Last has been set as completed.'
         self.assertEqual(entry['description'], desc)
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
@@ -208,12 +209,12 @@ class TestBaseRSSChannel(WithObjectsTestCase):
 
         self.assertEqual(
             entry['created_on'],
-            datetime.datetime.strptime(
-                self._activity_log_time_stamp, '%Y-%m-%d %H:%M:%S'
-            )
+            self._activity_log_time_stamp
         )
 
-        desc = 'The book My Book 001 by First Last has been set as completed.'
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        desc = 'Posted: Dec 31, 1999 - The book My Book 001 by First Last has been set as completed.'
         self.assertEqual(entry['description'], desc)
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
@@ -308,7 +309,7 @@ class TestBaseRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description(),
-            'A book My Book 001 by First Last.'
+            'A book My Book 001 by First Last posted Dec 31, 1999.'
         )
 
     def test__description_fmt(self):
@@ -323,7 +324,11 @@ class TestBaseRSSEntry(WithObjectsTestCase):
         # The time_stamp and activity_log_id args to DubRSSEntry are irrelevant
         # for this test as the overriden methods determine the feed_item
         # values.
-        entry = DubRSSEntry([self._book_page.id], '', 0)
+        entry = DubRSSEntry(
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            0
+        )
         got = entry.feed_item()
         self.assertEqual(
             sorted(got.keys()),
@@ -333,7 +338,8 @@ class TestBaseRSSEntry(WithObjectsTestCase):
             got,
             {
                 'created_on': self._activity_log_time_stamp,
-                'description': 'A book My Book 001 by First Last.',
+                'description':
+                    'A book My Book 001 by First Last posted Dec 31, 1999.',
                 'guid': 'guid-001',
                 'link': '/path/to/entry',
                 'title': 'Dub RSS Entry',
@@ -563,9 +569,11 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
             self._activity_log_time_stamp,
             self._activity_log.id
         )
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         self.assertEqual(
             entry.description(),
-            'The book My Book 001 by First Last has been set as completed.'
+            'Posted: Dec 31, 1999 - The book My Book 001 by First Last has been set as completed.'
         )
 
     def test__description_fmt(self):
@@ -576,13 +584,15 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description_fmt(),
-            'The book {b} by {c} has been set as completed.'
+            'Posted: {d} - The book {b} by {c} has been set as completed.'
         )
 
 
 class TestPageAddedRSSEntry(WithObjectsTestCase):
 
     def test_description(self):
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
 
         # Single page
         entry = PageAddedRSSEntry(
@@ -592,7 +602,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description(),
-            'A page was added to the book My Book 001 by First Last.'
+            'Posted: Dec 31, 1999 - A page was added to the book My Book 001 by First Last.'
         )
 
         # Multiple pages
@@ -603,7 +613,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description(),
-            'Several pages were added to the book My Book 001 by First Last.'
+            'Posted: Dec 31, 1999 - Several pages were added to the book My Book 001 by First Last.'
         )
 
     def test__description_fmt(self):
@@ -614,7 +624,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description_fmt(),
-            'A page was added to the book {b} by {c}.'
+            'Posted: {d} - A page was added to the book {b} by {c}.'
         )
 
         entry = PageAddedRSSEntry(
@@ -624,7 +634,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description_fmt(),
-            'Several pages were added to the book {b} by {c}.'
+            'Posted: {d} - Several pages were added to the book {b} by {c}.'
         )
 
 
@@ -643,7 +653,7 @@ class TestFunctions(WithObjectsTestCase):
             )
             self.assertEqual(got.book, self._book)
             self.assertEqual(
-                str(got.time_stamp), self._activity_log_time_stamp)
+                str(got.time_stamp), self._activity_log_time_stamp_str)
             self.assertEqual(got.activity_log_id, self._activity_log.id)
 
     def test__channel_from_type(self):
