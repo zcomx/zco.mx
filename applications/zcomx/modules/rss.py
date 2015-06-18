@@ -241,7 +241,11 @@ class BaseRSSEntry(object):
         """Initializer
 
         Args:
-            arg: string, first arg
+            book_page_ids: list of integers, ids of book_page records
+            time_stamp: datetime.datetime instance representing the time the
+                activity took place.
+            activity_log_id: integer, id of activity_log record the entry
+                is about.
         """
         self.book_page_ids = book_page_ids
         self.time_stamp = time_stamp
@@ -281,6 +285,7 @@ class BaseRSSEntry(object):
             b=book_formatted_name(
                 db, self.book, include_publication_year=False),
             c=creator_formatted_name(self.creator),
+            d=datetime.datetime.strftime(self.time_stamp, '%b %d, %Y')
         )
 
     def description_fmt(self):
@@ -363,7 +368,7 @@ class CompletedRSSEntry(BaseRSSEntry):
     """Class representing a 'completed' RSS entry"""
 
     def description_fmt(self):
-        return 'The book {b} by {c} has been set as completed.'
+        return 'Posted: {d} - The book {b} by {c} has been set as completed.'
 
 
 class PageAddedRSSEntry(BaseRSSEntry):
@@ -371,9 +376,11 @@ class PageAddedRSSEntry(BaseRSSEntry):
 
     def description_fmt(self):
         if len(self.book_page_ids) > 1:
-            return 'Several pages were added to the book {b} by {c}.'
+            # line-too-long (C0301): *Line too long (%%s/%%s)*
+            # pylint: disable=C0301
+            return 'Posted: {d} - Several pages were added to the book {b} by {c}.'
         else:
-            return 'A page was added to the book {b} by {c}.'
+            return 'Posted: {d} - A page was added to the book {b} by {c}.'
 
 
 def activity_log_as_rss_entry(activity_log_entity):
