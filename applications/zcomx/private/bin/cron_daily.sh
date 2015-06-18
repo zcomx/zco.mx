@@ -70,6 +70,9 @@ $py applications/zcomx/private/bin/social_media/post_ongoing_update.py -p "$yest
 __v && __md "Start: tally_book_ratings.py"
 $py applications/zcomx/private/bin/tally_book_ratings.py
 
+__v && __md "Start: search_prefetch"
+$py applications/zcomx/private/bin/queue_job.py --queuer SearchPrefetchQueuer
+
 __v && __md "Start: purge_torrents"
 $py applications/zcomx/private/bin/queue_job.py --queuer PurgeTorrentsQueuer
 

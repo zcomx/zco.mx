@@ -83,33 +83,17 @@ def main():
 
     LOG.info('Started.')
 
-    query = (db.book)
-    num_of_pages = db.book_page.id.count()
-    # drive_target = 10 * db.book_page.id.count()
-    min_page_query = (10 * db.book_page.id.count() - db.book.contributions > 0)
-
-
+    kw = 'test'
+    query = (db.book.name_for_search.contains(kw))
     rows = db(query).select(
         db.book.id,
-        db.book.name,
-        db.book.contributions,
-        num_of_pages,
-        left=[
-            db.book_page.on(db.book_page.book_id == db.book.id)
-        ],
-        groupby=db.book.id,
-        having=min_page_query,
-        orderby=num_of_pages,
+        orderby=db.book.name
     )
 
+    print 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
+    print 'FIXME len(rows): {var}'.format(var=len(rows))
     for r in rows:
-        print '{id:2d} {name:>45s} {num:3d} {cont:3.02f} {tar:3.02f}'.format(
-            id=r['book'].id,
-            name=r['book'].name,
-            num=r[num_of_pages],
-            cont=r['book'].contributions,
-            tar=1,
-        )
+        print 'FIXME r: {var}'.format(var=r)
 
     LOG.info('Done.')
 

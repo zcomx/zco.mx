@@ -1,5 +1,7 @@
 <div id="search">
     <form action="/z/search" method="POST" class="search_form">
-    <input type="text" name="kw" class="input-block-level" placeholder="search:  cartoonist / title" title="Enter a book title or cartoonist name in whole or part">
+        <input id="form_kw_input" name="kw" type="hidden" />
     </form>
+    <input id="search_kw_input" type="text" class="input-block-level typeahead" placeholder="search:  cartoonist / title" title="Enter a book title or cartoonist name in whole or part">
 </div>
+<script src="{{=URL(c='static', f='js/search.js')}}"> </script>
