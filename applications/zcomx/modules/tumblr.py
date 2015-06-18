@@ -180,8 +180,12 @@ class TextDataPreparer(object):
     def body(self):
         """Return the body of the post."""
         lis = []
-        for book_listing in self.book_listing_generator():
-            lis.append(LI(book_listing.components()))
+        for count, book_listing in enumerate(self.book_listing_generator()):
+            components = []
+            if count:
+                components.append(SPAN(' --- ', _class='hidden'))
+            components.extend(book_listing.components())
+            lis.append(LI(components))
         return str(UL(lis))
 
     def book_listing_generator(self):
