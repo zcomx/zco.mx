@@ -1,4 +1,4 @@
-# coding: utf8
+# -*- coding: utf-8 -*-
 {
 '!langcode!': 'cs-cz',
 '!langname!': 'čeština',
@@ -15,6 +15,7 @@
 '(requires internet access, experimental)': '(requires internet access, experimental)',
 '(something like "it-it")': '(například "cs-cs")',
 '@markmin\x01(file **gluon/contrib/plural_rules/%s.py** is not found)': '(soubor **gluon/contrib/plural_rules/%s.py** nenalezen)',
+'@markmin\x01An error occured, please [[reload %s]] the page': 'An error occured, please [[reload %s]] the page',
 '@markmin\x01Searching: **%s** %%{file}': 'Hledání: **%s** %%{soubor}',
 'About': 'O programu',
 'About application': 'O aplikaci',
@@ -155,6 +156,10 @@
 'Email and SMS': 'Email a SMS',
 'Enable': 'Odblokovat',
 'enter a number between %(min)g and %(max)g': 'zadejte číslo mezi %(min)g a %(max)g',
+'Enter a number between %(min)g and %(max)g': 'Enter a number between %(min)g and %(max)g',
+'Enter a valid year': 'Enter a valid year',
+'Enter an integer': 'Enter an integer',
+'Enter an integer between %(min)g and %(max)g': 'Enter an integer between %(min)g and %(max)g',
 'enter an integer between %(min)g and %(max)g': 'zadejte celé číslo mezi %(min)g a %(max)g',
 'Error': 'Chyba',
 'Error logs for "%(app)s"': 'Seznam výskytu chyb pro aplikaci "%(app)s"',
@@ -470,6 +475,7 @@
 'Welcome to web2py': 'Vitejte ve web2py',
 'Welcome to web2py!': 'Vítejte ve web2py!',
 'Which called the function %s located in the file %s': 'která zavolala funkci %s v souboru (kontroléru) %s.',
+'Working...': 'Working...',
 'You are successfully running web2py': 'Úspěšně jste spustili web2py.',
 'You can also set and remove breakpoint in the edit window, using the Toggle Breakpoint button': 'Nastavovat a mazat body přerušení je též možno v rámci editování zdrojového souboru přes tlačítko Vyp./Zap. bod přerušení',
 'You can modify this application and adapt it to your needs': 'Tuto aplikaci si můžete upravit a přizpůsobit ji svým potřebám.',

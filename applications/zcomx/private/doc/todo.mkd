@@ -24,8 +24,21 @@
     [x] link book title to the zco.mx book page
     [x] Change 'List of Updated...' to 'Updated Ongoing...'
     [-] Set links to color: #FF6600 and no underline
+[x] Small Upload Bug
+    SB 2015-06-09 16:58  Talk to me about this
+    While images are loading, the rows of existing images may get wider.
+    The delete icons are pushed beyond the border of the modal.
+
 
 VERSION 3
+[S] Share zco.mx comics on all the DC hubs
+
+[S] Small Bug - DC Announcer
+    OK  Daryl Seitchik | Sub (2013) | http://134.zco.mx
+    BUG Daniel McCloskey | Top of the Line 03 (of 08) | http://2014) (138.zco.mx
+
+[S] Add RSS/zc-share button to cartoonist and book pages
+
 [S] Link to a howto on 'rss to email'
     * https://blogtrottr.com/
     * thunderbird
@@ -40,7 +53,7 @@ VERSION 3
     "New Pages Added by @nick1 @nick2 @nick3 on zco.mx -- <url>"
     "New Pages Added by @nick4 @nick5 @nick6 on zco.mx -- <url>"
 
-    [ ] Formating - body
+    [-] Formating - body
         Change:
             New pages added by Tony Zuvela, @cyberpunkdan on zco.mx | http://zcomx.tumblr.com/post/121082852211 … | #zcomx #comics
         to:
@@ -49,21 +62,15 @@ VERSION 3
             "<New pages added>" is a link to http://zcomx.tumblr.com/post/121082852211
             "<zco.mx>" is a link to https://zco.mx
 
+    [x] Formating - body
         Change:
             page 01, 02, ..., 27
         To:
             p01 p02 ... p27
             p01 p02 p03
 
-
     [ ] In the search these 'ongoing' tweets look weird
         Twitter is prefetching info from tumblr.  Can we customize this?
-
-[ ] Small Upload Bug
-    SB 2015-06-09 16:58  Talk to me about this
-
-[S] login/books -> upload
-    Comic can look like it's in the 'Disabled' area
 
 [S] Cartoonist Page -> Links to Cartoonist Articles/Interviews?
     [S] Mockup
@@ -112,6 +119,10 @@ VERSION 3
 [S] Roger's Poster
     giclee 8 colour inkjet printer
 
+[ ] login/books -> upload
+    Comic can look like it's in the 'DRAFTS' area
+    SB 2015-06-11 21:22  testing
+    SB 2015-06-12 17:05  It is still doing it -- http://p.zsw.ca/IT.png
 
 VERSION 4
 [S] news site

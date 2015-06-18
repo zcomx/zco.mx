@@ -106,6 +106,7 @@
 'Layout Plugins': 'Layout Plugins',
 'Layouts': 'Layouts',
 'Live Chat': 'Live Chat',
+'Log In': 'Log In',
 'Logged in': 'Вход выполнен',
 'Logged out': 'Выход выполнен',
 'login': 'вход',
