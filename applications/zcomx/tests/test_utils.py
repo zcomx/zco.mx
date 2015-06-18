@@ -21,6 +21,7 @@ from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
     faq_tabs, \
+    joined_list, \
     markmin, \
     markmin_content, \
     move_record, \
@@ -292,6 +293,10 @@ class TestFunctions(LocalTestCase):
         anchor_2 = li_2.a
         self.assertEqual(anchor_2['href'], '/z/faqc')
         self.assertEqual(anchor_2.string, 'cartoonist')
+
+    def test__joined_list(self):
+        items = ['a', 'b', 'c']
+        self.assertEqual(joined_list(items, '#'), ['a', '#', 'b', '#', 'c'])
 
     def test__markmin(self):
         got = markmin('faq')

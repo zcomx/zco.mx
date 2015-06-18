@@ -8,6 +8,8 @@ Classes and functions related to tumblr posts.
 import logging
 import pytumblr
 from gluon import *
+from applications.zcomx.modules.book_pages import \
+    AbridgedBookPageNumbers
 from applications.zcomx.modules.books import \
     formatted_name as book_formatted_name, \
     page_url, \
@@ -17,8 +19,8 @@ from applications.zcomx.modules.creators import \
     short_url as creator_short_url
 from applications.zcomx.modules.utils import \
     NotFoundError, \
-    abridged_list, \
-    entity_to_row
+    entity_to_row, \
+    joined_list
 from applications.zcomx.modules.zco import SITE_NAME
 
 
@@ -273,15 +275,9 @@ class OngoingBookListing(object):
             ' - ',
         ]
 
-        items = abridged_list(self.book_pages)
-        for count, item in enumerate(items):
-            if item == '...':
-                parts.append(item)
-            else:
-                listing_page = BookListingPage(item)
-                parts.append(listing_page.link())
-            if count < len(items) - 1:
-                parts.append(' ')
+        page_links = AbridgedBookPageNumbers(self.book_pages).links(
+            url_func=page_url)
+        parts.extend(joined_list(page_links, ' '))
         return parts
 
     @classmethod
@@ -333,29 +329,6 @@ class BookListingCreatorWithTumblr(BookListingCreator):
         return A(
             creator_formatted_name(self.creator),
             _href=self.creator.tumblr,
-        )
-
-
-class BookListingPage(object):
-    """Class representing a BookListingPage"""
-
-    def __init__(self, book_page):
-        """Initializer
-
-        Args:
-            book_page: Row instance representing a book_page record
-        """
-        self.book_page = book_page
-
-    def link(self):
-        """Return the book_page link.
-
-        Returns:
-            string
-        """
-        return A(
-            'p{p:02d}'.format(p=self.book_page.page_no),
-            _href=page_url(self.book_page, extension=False, host=SITE_NAME)
         )
 
 

@@ -191,6 +191,24 @@ def faq_tabs(active='faq'):
     )
 
 
+def joined_list(items, element):
+    """Return a list with element added between each item.
+
+    Similar to str.join() except returns a list.
+
+        >>>joined_list(['a', 'b', 'c'], '@')
+        ['a', '@', 'b', '@', 'c']
+
+    Args:
+        items: list
+        element: anything that can be an element of a list,
+    """
+    work_items = list(items)
+    for x in sorted(range(0, len(work_items) - 1), reverse=True):
+        work_items[x + 1:x + 1] = element
+    return work_items
+
+
 def markmin(controller, extra=None):
     """Return data for a controller displaying a markmin doc."""
 

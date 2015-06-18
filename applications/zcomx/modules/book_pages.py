@@ -10,7 +10,9 @@ from gluon import *
 from applications.zcomx.modules.images import UploadImage
 from applications.zcomx.modules.utils import \
     NotFoundError, \
+    abridged_list, \
     entity_to_row
+from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = logging.getLogger('app')
 
@@ -49,6 +51,87 @@ class BookPage(object):
                 self.book_page.image
             )
         return self._upload_image
+
+
+class BookPageNumber(object):
+    """Class representing a set of book page number."""
+
+    def __init__(self, book_page):
+        """Constructor
+
+        Args:
+            book_page: Row instance representing book_page
+        """
+        self.book_page = book_page
+
+    def formatted(self):
+        """Return the book page number formatted
+
+        Returns:
+            string
+        """
+        return 'p{p:02d}'.format(p=self.book_page.page_no)
+
+    def link(self, url_func):
+        """Return the book page number formatted as a link
+
+        Args:
+            url_func: function to format url, eg modules/books def page_url
+
+        Returns:
+            A instance
+        """
+        return A(
+            self.formatted(),
+            _href=url_func(self.book_page, extension=False, host=SITE_NAME)
+        )
+
+
+class BookPageNumbers(object):
+    """Class representing a set of book page numbers."""
+
+    def __init__(self, book_pages):
+        """Constructor
+
+        Args:
+            book_pages: list of Row instances representing book_pages
+        """
+        self.book_pages = book_pages
+
+    def links(self, url_func):
+        """Return a list of links
+
+        Args:
+            url_func: function used to convert page numbers into links.
+        """
+        return [BookPageNumber(x).link(url_func) for x in self.book_pages]
+
+    def numbers(self):
+        """Return a list of numbers """
+        return [BookPageNumber(x).formatted() for x in self.book_pages]
+
+
+class AbridgedBookPageNumbers(BookPageNumbers):
+    """Class representing an abridged set of book page numbers."""
+
+    def links(self, url_func):
+        page_links = []
+        for item in abridged_list(self.book_pages):
+            if item == '...':
+                page_links.append(item)
+            else:
+                page_links.append(BookPageNumber(item).link(url_func))
+        return page_links
+
+    def numbers(self):
+        """Return a list of numbers """
+        page_links = []
+        for item in abridged_list(self.book_pages):
+            if item == '...':
+                page_links.append(item)
+            else:
+                page_links.append(BookPageNumber(item).formatted())
+        return page_links
 
 
 def delete_pages_not_in_ids(book_id, book_page_ids):
