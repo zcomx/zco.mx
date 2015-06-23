@@ -790,3 +790,16 @@ class UpdateIndiciaQueuer(JobQueuer):
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal
+
+
+def queue_search_prefetch():
+    """Convenience function. Queues a search prefetch job.
+
+    Since the job is generally not critical, apart from a log,
+    failures are ignored.
+    """
+    db = current.app.db
+    job = SearchPrefetchQueuer(db.job).queue()
+    if not job:
+        LOG.error('Failed to create search prefetch job')
+    return job

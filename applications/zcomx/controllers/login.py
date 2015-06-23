@@ -45,7 +45,8 @@ from applications.zcomx.modules.indicias import \
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
     ReleaseBookQueuer, \
-    ReverseReleaseBookQueuer
+    ReverseReleaseBookQueuer, \
+    queue_search_prefetch
 from applications.zcomx.modules.links import CustomLinks
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
@@ -53,7 +54,9 @@ from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
     reorder
-from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
+from applications.zcomx.modules.zco import \
+    BOOK_STATUS_ACTIVE, \
+    BOOK_STATUS_DRAFT
 
 LOG = logging.getLogger('app')
 
@@ -279,6 +282,8 @@ def book_crud():
                         for k, v in ret.errors.items()
                     ])
                 }
+
+        queue_search_prefetch()
 
         numbers = type_from_id(request.vars.value).number_field_statuses() \
             if request.vars.name == 'book_type_id' else None
@@ -506,6 +511,7 @@ def book_post_upload_session():
         * update book.page_added_on if applicable
         * reorder book pages
         * set book status
+        * trigger queue search prefetch
         * optimize book page images
 
     request.args(0): integer, id of book.
@@ -563,7 +569,15 @@ def book_post_upload_session():
     # Step 3:  Set book status
     set_status(book_record, calc_status(book_record))
 
-    # Step 4:  Trigger optimization of book images
+    # Step 4:  Trigger search prefetch
+    # A book with no pages is not in search results. Adding pages makes it
+    # searchable. A book is disabled while pages are are added. Disabled books
+    # are taken out of search results. Ending the Upload session may make the
+    # book active and thus searchable. A search prefetch will make the book
+    # searchable if applicable.
+    queue_search_prefetch()
+
+    # Step 5:  Trigger optimization of book images
     AllSizesImages.from_names(images(book_record)).optimize()
 
     return dumps({'success': True})

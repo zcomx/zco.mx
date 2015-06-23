@@ -9,6 +9,7 @@ Script to delete a book.
 import logging
 from optparse import OptionParser
 from applications.zcomx.modules.books import book_tables
+from applications.zcomx.modules.job_queue import queue_search_prefetch
 from applications.zcomx.modules.utils import \
     NotFoundError, \
     entity_to_row
@@ -111,6 +112,7 @@ def main():
         raise NotFoundError('Book not found, id: %s', book_id)
 
     delete_records(book)
+    queue_search_prefetch()
 
     LOG.debug('Done')
 

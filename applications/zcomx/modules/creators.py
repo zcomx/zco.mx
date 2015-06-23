@@ -11,7 +11,8 @@ from gluon import *
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.files import for_file
 from applications.zcomx.modules.job_queue import \
-    UpdateIndiciaQueuer
+    UpdateIndiciaQueuer, \
+    queue_search_prefetch
 from applications.zcomx.modules.names import \
     CreatorName, \
     names
@@ -63,8 +64,8 @@ def add_creator(form):
         db.commit()
         on_change_name(creator_id)
 
-        # Create the default indicia for the creator
-        queue_update_indicia(creator_id)
+        queue_update_indicia(creator_id)     # Create default indicia
+        queue_search_prefetch()
 
 
 def book_for_contributions(db, creator_entity):
@@ -360,6 +361,7 @@ def on_change_name(creator_entity):
     if update_data:
         db(db.creator.id == creator.id).update(**update_data)
         db.commit()
+    queue_search_prefetch()
 
 
 def profile_onaccept(form):
@@ -436,7 +438,6 @@ def rss_url(creator_entity, **url_kwargs):
         f='index',
         **kwargs
     )
-
 
 
 def short_url(creator_entity):

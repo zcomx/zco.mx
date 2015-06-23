@@ -93,6 +93,12 @@ class TestFunctions(ImageTestCase):
         jobs[0].delete_record()
         db.commit()
 
+        query = (db.job.command.like('%search_prefetch.py'))
+        jobs = db(query).select()
+        self.assertEqual(len(jobs), 1)
+        jobs[0].delete_record()
+        db.commit()
+
         before = db(db.creator).count()
         add_creator(form)
         after = db(db.creator).count()
@@ -486,6 +492,14 @@ class TestFunctions(ImageTestCase):
             email='test_on_change_name@example.com'
         ))
 
+        def test_prefetch_job():
+            query = (db.job.command.like('%search_prefetch.py'))
+            jobs = db(query).select()
+            self.assertTrue(len(jobs) > 0)
+            for job in jobs:
+                job.delete_record()
+            db.commit()
+
         self.assertEqual(creator.name_for_search, None)
         self.assertEqual(creator.name_for_url, None)
         on_change_name(creator)
@@ -497,6 +511,7 @@ class TestFunctions(ImageTestCase):
         creator.update_record(auth_user_id=auth_user.id)
         db.commit()
         on_change_name(creator)
+        test_prefetch_job()
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.name_for_search, 'test-on-change-name')
         self.assertEqual(creator.name_for_url, 'TestOnChangeName')
@@ -509,6 +524,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(creator.name_for_search, None)
         self.assertEqual(creator.name_for_url, None)
         on_change_name(creator.id)
+        test_prefetch_job()
         creator = entity_to_row(db.creator, creator.id)
         self.assertEqual(creator.name_for_search, 'test-on-change-name')
         self.assertEqual(creator.name_for_url, 'TestOnChangeName')
