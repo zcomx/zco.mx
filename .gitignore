@@ -58,7 +58,7 @@ applications/*/static/data/*
 !applications/*/static/data/.gitignore
 applications/*/static/files/*
 !applications/*/static/files/.gitignore
+!applications/*/static/typeahead-v0.11.1
 applications/*/cron/cron.master
 applications/*/private/test/rss2email/feeds.dat
-!applications/*/static/typeahead-v0.11.1
 logs/

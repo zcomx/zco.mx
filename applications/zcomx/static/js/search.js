@@ -7,6 +7,7 @@
         var books = new Bloodhound({
           datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
           queryTokenizer: Bloodhound.tokenizers.whitespace,
+          identify: function(obj) { return obj.id; },
           prefetch: {
             url: '/zcomx/static/data/books.json',
           },
@@ -22,12 +23,13 @@
           },
         });
 
+
         var creators = new Bloodhound({
           datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
           queryTokenizer: Bloodhound.tokenizers.whitespace,
+          identify: function(obj) { return obj.id; },
           prefetch: {
-
-            url: '/zcomx/static/data/creators.json',
+             url: '/zcomx/static/data/creators.json',
           },
           remote: {
             url: '/search/autocomplete_creators.json?q=%Q%',

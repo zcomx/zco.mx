@@ -45,7 +45,8 @@ from applications.zcomx.modules.job_queue import \
     ReleaseBookQueuer, \
     ReverseReleaseBookQueuer, \
     SearchPrefetchQueuer, \
-    UpdateIndiciaQueuer
+    UpdateIndiciaQueuer, \
+    queue_search_prefetch
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     TableTracker
@@ -1137,6 +1138,22 @@ class TestUpdateIndiciaQueuer(LocalTestCase):
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/update_creator_indicia.py -o -r 123'
+        )
+
+
+class TestFunctions(LocalTestCase):
+
+    def test__queue_search_prefetch(self):
+        tracker = TableTracker(db.job)
+        job = queue_search_prefetch()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/search_prefetch.py'
         )
 
 

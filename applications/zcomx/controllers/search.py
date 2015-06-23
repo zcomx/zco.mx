@@ -9,42 +9,31 @@ from applications.zcomx.modules.creators import \
     formatted_name as formatted_creator_name, \
     url as creator_url
 from applications.zcomx.modules.search import classified
-from applications.zcomx.modules.services import ServiceErrorHandler
 from applications.zcomx.modules.zco import \
-    BOOK_STATUS_DISABLED, \
+    BOOK_STATUS_ACTIVE, \
     Zco
 
 import logging
 LOG = logging.getLogger('app')
 
 
-def box():
-    """Controller for search box component"""
-    return dict()
-
-
 def autocomplete_books():
     """Return autocomplete results of books for search input.
 
     request.vars.q: string, the query keywords.
+        Returns all books if q is blank.
+
     """
-    LOG.debug('FIXME request.args: %s', request.args)
-    LOG.debug('FIXME request.vars: %s', request.vars)
-    if not request.vars.q:
-        return dict(results=[], error=None)
-
-    do_error = ServiceErrorHandler(
-        message='Unable to get search data.',
-        return_data={'results': {}}
-    )
-
     response.generic_patterns = ['json']
 
-    kw = urlify(request.vars.q)
     items = []
 
-    query = (db.book.name_for_search.contains(kw)) & \
-        (db.book.status != BOOK_STATUS_DISABLED)
+    queries = []
+    queries.append((db.book.status == BOOK_STATUS_ACTIVE))
+    if request.vars.q:
+        kw = urlify(request.vars.q)
+        queries.append((db.book.name_for_search.contains(kw)))
+    query = reduce(lambda x, y: x & y, queries) if queries else None
     rows = db(query).select(
         db.book.id,
         orderby=db.book.name,
@@ -69,24 +58,17 @@ def autocomplete_creators():
 
     request.vars.q: string, the query keywords.
     """
-    LOG.debug('FIXME request.args: %s', request.args)
-    LOG.debug('FIXME request.vars: %s', request.vars)
-    if not request.vars.q:
-        return dict(results=[], error=None)
-
-    do_error = ServiceErrorHandler(
-        message='Unable to get search data.',
-        return_data={'results': {}}
-    )
-
     response.generic_patterns = ['json']
 
-    kw = urlify(request.vars.q)
     items = []
 
+    queries = []
     # Creators must have at least one book
-    query = (db.creator.name_for_search.contains(kw)) & \
-        (db.book.id != None)
+    queries.append((db.book.id != None))
+    if request.vars.q:
+        kw = urlify(request.vars.q)
+        queries.append((db.creator.name_for_search.contains(kw)))
+    query = reduce(lambda x, y: x & y, queries) if queries else None
     rows = db(query).select(
         db.creator.id,
         left=[
@@ -138,6 +120,11 @@ def autocomplete_selected():
         page_not_found()
 
     redirect(url)
+
+
+def box():
+    """Controller for search box component"""
+    return dict()
 
 
 @requires_login_if_configured(local_settings)

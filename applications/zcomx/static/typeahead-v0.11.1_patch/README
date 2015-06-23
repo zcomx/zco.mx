@@ -1,0 +1,5 @@
+Manually patched typeahead as per:
+
+https://github.com/twitter/typeahead.js/issues/1218
+http://stackoverflow.com/questions/30370496/typeahead-js-bloodhound-display-just-one-result
+http://stackoverflow.com/questions/30125410/typeahead-js-and-bloodhound-showing-an-odd-number-of-results
