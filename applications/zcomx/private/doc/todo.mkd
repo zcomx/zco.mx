@@ -106,6 +106,7 @@ VERSION 3
     https://www.reddit.com/r/altcomix/
 
 [ ] Search Auto-Completion on 'cartoonist name' and 'title'
+    [S] Tighten Up css
 
 [S] Add More to kb
     [S] Pete Toms' Howto?

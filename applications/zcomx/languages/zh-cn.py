@@ -17,6 +17,7 @@
 '1 day ago': '1 day ago',
 '1 month ago': '1 month ago',
 '1 week ago': '1 week ago',
+'1 year ago': '1 year ago',
 '@markmin\x01An error occured, please [[reload %s]] the page': 'An error occured, please [[reload %s]] the page',
 'A new version of web2py is available': '新版 web2py 已推出',
 'A new version of web2py is available: %s': '新版 web2py 已推出: %s',
