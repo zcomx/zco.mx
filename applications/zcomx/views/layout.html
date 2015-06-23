@@ -187,6 +187,11 @@
   {{pass}}
   {{block post_bootstrap_js}}
   {{end}}
+  {{if DEBUG:}}
+    <script src="{{=URL(c='static', f='typeahead/typeahead.bundle.js')}}"> </script>
+  {{else:}}
+    <script src="{{=URL(c='static', f='typeahead/typeahead.bundle.min.js')}}"> </script>
+  {{pass}}
   {{if response.google_analytics_id:}}
   <script src="{{=URL('static','js/analytics.min.js')}}"></script>
   <script type="text/javascript">

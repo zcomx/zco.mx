@@ -45,6 +45,7 @@ PRIORITIES = list(reversed([
     'delete_img',
     'log_downloads',
     'optimize_original_img',
+    'search_prefetch',
     'purge_torrents',
     # Lowest
 ]))
@@ -757,6 +758,21 @@ class ReverseReleaseBookQueuer(ReleaseBookQueuer):
     default_cli_options = {'--reverse': True}
     valid_cli_options = list(ReleaseBookQueuer.valid_cli_options)
     valid_cli_options.append('--reverse')
+
+
+class SearchPrefetchQueuer(JobQueuer):
+    """Class representing a queuer for search_prefetch jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'search_prefetch.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('search_prefetch'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-o', '--output',
+        '-t', '--table',
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
 
 
 class UpdateIndiciaQueuer(JobQueuer):

@@ -44,6 +44,7 @@ from applications.zcomx.modules.job_queue import \
     QueueWithSignal, \
     ReleaseBookQueuer, \
     ReverseReleaseBookQueuer, \
+    SearchPrefetchQueuer, \
     UpdateIndiciaQueuer
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
@@ -1092,6 +1093,28 @@ class TestReverseReleaseBookQueuer(LocalTestCase):
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/release_book.py --requeues 4 --reverse -m 10 123'
+        )
+
+
+class TestSearchPrefetchQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = SearchPrefetchQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'-t': 'book'},
+            cli_args=[],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/search_prefetch.py -t book'
         )
 
 
