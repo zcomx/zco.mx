@@ -1,4 +1,4 @@
-# coding: utf8
+# -*- coding: utf-8 -*-
 {
 '!langcode!': 'pl',
 '!langname!': 'Polska',
@@ -8,6 +8,7 @@
 '%s selected': '%s wybranych',
 '%Y-%m-%d': '%Y-%m-%d',
 '%Y-%m-%d %H:%M:%S': '%Y-%m-%d %H:%M:%S',
+'@markmin\x01An error occured, please [[reload %s]] the page': 'An error occured, please [[reload %s]] the page',
 'About': 'About',
 'Access Control': 'Access Control',
 'Administrative Interface': 'Administrative Interface',
@@ -62,6 +63,10 @@
 'Edit Profile': 'Edytuj profil',
 'Edit This App': 'Edytuj tę aplikację',
 'Email and SMS': 'Email and SMS',
+'Enter a number between %(min)g and %(max)g': 'Enter a number between %(min)g and %(max)g',
+'Enter a valid year': 'Enter a valid year',
+'Enter an integer': 'Enter an integer',
+'Enter an integer between %(min)g and %(max)g': 'Enter an integer between %(min)g and %(max)g',
 'Errors': 'Errors',
 'export as csv file': 'eksportuj jako plik csv',
 'FAQ': 'FAQ',
@@ -165,6 +170,7 @@
 'Welcome to web2py': 'Witaj w web2py',
 'Welcome to web2py!': 'Welcome to web2py!',
 'Which called the function %s located in the file %s': 'Which called the function %s located in the file %s',
+'Working...': 'Working...',
 'You are successfully running web2py': 'You are successfully running web2py',
 'You can modify this application and adapt it to your needs': 'You can modify this application and adapt it to your needs',
 'You visited the url %s': 'You visited the url %s',

@@ -28,6 +28,20 @@
     SB 2015-06-09 16:58  Talk to me about this
     While images are loading, the rows of existing images may get wider.
     The delete icons are pushed beyond the border of the modal.
+[x] RSS - from
+    Change From: "Roger Langridge on zco.mx" to From: "zco.mx: Roger Langridge"
+[x] RSS - subject
+    Change:
+        The Iron Duchess by Roger Langridge
+    To:
+        'The Iron Duchess' p01
+        'The Iron Duchess' p01 p02 p03
+        'The Iron Duchess' p01 p02 ... p27
+[x] RSS - body
+    Change:
+        A page was...
+    To:
+        Posted: Jun 08, 2015 - A page was...
 
 
 VERSION 3
@@ -88,23 +102,6 @@ VERSION 3
     $ rtcontrol -q -oname name=* alias=zco.mx
     $ for i in /srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/**; do [[ $i == *.torrent.loaded* ]] && echo "$i"; done
 
-[ ] RSS - from
-    Change From: "Roger Langridge on zco.mx" to From: "zco.mx: Roger Langridge"
-
-[ ] RSS - subject
-    Change:
-        The Iron Duchess by Roger Langridge
-    To:
-        'The Iron Duchess' p01
-        'The Iron Duchess' p01 p02 p03
-        'The Iron Duchess' p01 p02 ... p27
-
-[ ] RSS - body
-    Change:
-        A page was...
-    To:
-        Posted: Jun 08, 2015 - A page was...
-
 [ ] reddit
     https://www.reddit.com/r/altcomix/
 
@@ -123,6 +120,9 @@ VERSION 3
     Comic can look like it's in the 'DRAFTS' area
     SB 2015-06-11 21:22  testing
     SB 2015-06-12 17:05  It is still doing it -- http://p.zsw.ca/IT.png
+
+[ ] Screen Too Small For Slider
+    http://www.forbiddenplanet.co.uk/blog/2015/zco-mx/#comment-87570
 
 VERSION 4
 [S] news site

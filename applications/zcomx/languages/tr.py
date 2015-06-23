@@ -1,4 +1,4 @@
-# coding: utf8
+# -*- coding: utf-8 -*-
 {
 '!langcode!': 'tr',
 '!langname!': 'Türkçe',
@@ -10,6 +10,7 @@
 '%Y-%m-%d': '%Y-%m-%d',
 '%Y-%m-%d %H:%M:%S': '%Y-%m-%d %H:%M:%S',
 '@markmin\x01**Hello World**': '**Merhaba Dünya**',
+'@markmin\x01An error occured, please [[reload %s]] the page': 'An error occured, please [[reload %s]] the page',
 'About': 'Hakkında',
 'Access Control': 'Erişim Denetimi',
 'Administrative Interface': 'Yönetim Arayüzü',
@@ -37,6 +38,10 @@
 'Download': 'İndir',
 'E-mail': 'E-posta',
 'Email and SMS': 'E-posta ve kısa mesaj (SMS)',
+'Enter a number between %(min)g and %(max)g': 'Enter a number between %(min)g and %(max)g',
+'Enter a valid year': 'Enter a valid year',
+'Enter an integer': 'Enter an integer',
+'Enter an integer between %(min)g and %(max)g': 'Enter an integer between %(min)g and %(max)g',
 'enter an integer between %(min)g and %(max)g': '%(min)g ve %(max)g arasında bir sayı girin',
 'enter date and time as %(format)s': 'tarih ve saati %(format)s biçiminde girin',
 'Errors': 'Hatalar',
@@ -123,6 +128,7 @@
 'Welcome': 'Hoşgeldin',
 'Welcome to web2py!': 'Welcome to web2py!',
 'Which called the function %s located in the file %s': 'Bu ziyaretle %s fonksiyonunu %s dosyasından çağırmış oldun ',
+'Working...': 'Working...',
 'You are successfully running web2py': 'web2py çatısını çalıştırmayı başardın',
 'You can modify this application and adapt it to your needs': 'Artık uygulamayı kafana göre düzenleyebilirsin!',
 'You visited the url %s': '%s adresini ziyaret ettin',
