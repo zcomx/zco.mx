@@ -49,6 +49,8 @@
   response.files.insert(3,URL('static','css/web2py.css'))
   response.files.insert(4,URL('static','bootstrap/css/bootstrap.min.css'))
   response.files.insert(5,URL('static','css/web2py_bootstrap.css'))
+  response.files.insert(5,URL('static','css/web2py_bootstrap.css'))
+  response.files.insert(6,URL('static', 'x-editable/bootstrap3-editable/css/bootstrap-editable.css'))
   }}
 
   {{include 'web2py_ajax.html'}}
@@ -176,6 +178,13 @@
 
   <script src="{{=URL('static','js/web2py_bootstrap.js')}}"></script>
   <script src="{{=URL('static','js/zco.mx.js')}}"></script>
+  {{if DEBUG:}}
+    <script src="{{=URL(c='static', f='typeahead/typeahead.bundle.js')}}"> </script>
+  {{else:}}
+    <script src="{{=URL(c='static', f='typeahead/typeahead.bundle.min.js')}}"> </script>
+  {{pass}}
+  <script src="{{=URL('static','js/search.js')}}"></script>
+  <script src="{{=URL('static','js/input_clear.js')}}"></script>
   <!--[if lt IE 7 ]>
       <script src="{{=URL('static','js/dd_belatedpng.js')}}"></script>
       <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
@@ -187,11 +196,6 @@
   {{pass}}
   {{block post_bootstrap_js}}
   {{end}}
-  {{if DEBUG:}}
-    <script src="{{=URL(c='static', f='typeahead/typeahead.bundle.js')}}"> </script>
-  {{else:}}
-    <script src="{{=URL(c='static', f='typeahead/typeahead.bundle.min.js')}}"> </script>
-  {{pass}}
   {{if response.google_analytics_id:}}
   <script src="{{=URL('static','js/analytics.min.js')}}"></script>
   <script type="text/javascript">

@@ -270,7 +270,7 @@ div.centered table {
 
 #search input {
     background-color: #FFFFFF;
-    color: #666666;
+    color: #333333;
     font-size: 9.5pt;
     height: 2.1em;
     border: 1px solid #FF6600;
@@ -299,36 +299,48 @@ div.centered table {
           box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 }
 
-
 .tt-hint {
   color: #f6f6f6;
 }
 
 .tt-menu {
   width: 100%;
-  margin: 12px 0;
-  padding: 8px 0;
+  margin: 0 0 12px;
   background-color: #fff;
   border: 1px solid #ccc;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  -webkit-border-radius: 8px;
-     -moz-border-radius: 8px;
-          border-radius: 8px;
   -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
      -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
           box-shadow: 0 5px 10px rgba(0,0,0,.2);
+  border-top: 0;
+}
+
+.tt-dataset-creators, .tt-dataset-books {
+  margin-bottom: 8px;
+}
+
+.tt-dataset-creators:empty {
+  margin-bottom: 0;
 }
 
 .tt-header {
-  padding: 3px 10px;
+  background-color: #DDDDDD;
+  color: #FFFFFF;
   font-size: 10pt;
+  line-height: 1.8em;
+  margin-bottom: 3px;
+  padding: 1px 10px;
+  vertical-align: middle;
 }
 
 .tt-suggestion {
   padding: 3px 20px;
   background-color: #FFFFFF;
-  color: #666666;
+  color: #999999;
   font-size: 9.5pt;
+}
+
+.tt-suggestion strong {
+    color: #333333;
 }
 
 .tt-suggestion:hover {

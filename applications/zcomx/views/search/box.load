@@ -4,4 +4,13 @@
     </form>
     <input id="search_kw_input" type="text" class="input-block-level typeahead" placeholder="search:  cartoonist / title" title="Enter a book title or cartoonist name in whole or part">
 </div>
-<script src="{{=URL(c='static', f='js/search.js')}}"> </script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('#search_kw_input').search_autocomplete(
+            {form_input_selector: '#form_kw_input'}
+        );
+        $('#search_kw_input').input_clear_button();
+    });
+//]]>
+</script>
