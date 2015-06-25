@@ -3,7 +3,7 @@
 
 """
 
-Test suite for igeejo/modules/stickon/sqlhtml.py
+Test suite for modules/stickon/sqlhtml.py
 
 """
 import unittest

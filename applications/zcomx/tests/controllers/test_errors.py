@@ -49,6 +49,12 @@ class TestFunctions(LocalTestCase):
             self.titles['page_not_found']
         ))
 
+    def test__test_exception(self):
+        self.assertTrue(web.test(
+            '{url}/test_exception'.format(url=self.url),
+            self.titles['index']
+        ))
+
 
 def setUpModule():
     """Set up web2py environment."""

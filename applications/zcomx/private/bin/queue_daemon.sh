@@ -1,9 +1,10 @@
 #!/bin/bash
+__loaded_logger 2>/dev/null || source ${BASH_SOURCE%/*}/lib/logger.sh
 
 PID_PATH=/tmp/zco_queued
 PID_FILE=$PID_PATH/pid
 
-script=${0##*/}
+script=${BASH_SOURCE##*/}
 _u() { cat << EOF
 usage: $script [OPTIONS]
 
@@ -21,22 +22,6 @@ SIGNALS:
    SIGUSR2: Wakes up daemon, checks queue once.
 EOF
 }
-
-_log() {
-    local level line_no msg
-    level=$1
-    msg=$2
-
-    # Typical message
-    # Apr 17 17:27:34 input root [DEBUG queue_daemon.sh 157] File not found.
-    logger -p local7.$level -- "[${level^^} $script ${BASH_LINENO[0]}] $msg"
-}
-
-__me() { _log "error" "$*" ;}
-__mw() { _log "warn"  "$*" ;}
-__mi() { _log "info"  "$*" ;}
-__md() { _log "debug" "$*" ;}
-__v()  { ${verbose-false} ;}
 
 _options() {
     # set defaults

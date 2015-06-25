@@ -331,19 +331,19 @@ class Grid(object):
             divs = []
             tiles = []
             rows = self.rows()
-            for row in rows:
-                value = self.tile_value(row)
-                tile_class = BookTile
-                if self.request.vars:
-                    if self.request.vars.o \
-                            and self.request.vars.o == 'creators':
-                        tile_class = CartoonistTile
-                    elif self.request.vars.monies:
-                        tile_class = MoniesBookTile
-                tile = tile_class(db, value, row)
-                tiles.append(tile.render())
-
             if rows:
+                for row in rows:
+                    value = self.tile_value(row)
+                    tile_class = BookTile
+                    if self.request.vars:
+                        if self.request.vars.o \
+                                and self.request.vars.o == 'creators':
+                            tile_class = CartoonistTile
+                        elif self.request.vars.monies:
+                            tile_class = MoniesBookTile
+                    tile = tile_class(db, value, row)
+                    tiles.append(tile.render())
+
                 divs.append(DIV(
                     tiles,
                     _class='row tile_view'

@@ -2,6 +2,7 @@
 """Torrent controller functions"""
 import cgi
 import logging
+import traceback
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
     torrent_url as book_torrent_url
@@ -78,7 +79,21 @@ def route():
     request.vars.update(parse_get_vars())
 
     def page_not_found():
-        """Handle page not found."""
+        """Handle page not found.
+
+        Ensures that during the page_not_found formatting if any
+        exceptions happen they are logged, and a 404 is returned.
+        (Then search bots, for example, see they have an invalid page)
+        """
+        try:
+            return formatted_page_not_found()
+        except Exception:
+            for line in traceback.format_exc().split("\n"):
+                LOG.error(line)
+            raise HTTP(404, "Page not found")
+
+    def formatted_page_not_found():
+        """Page not found formatter."""
         urls = Storage({})
         urls.invalid = '{scheme}://{host}{uri}'.format(
             scheme=request.env.wsgi_url_scheme or 'https',
