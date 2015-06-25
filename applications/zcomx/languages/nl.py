@@ -15,6 +15,7 @@
 '%Y-%m-%d %H:%M:%S': '%Y-%m-%d %H:%M:%S',
 '(something like "it-it")': '(zoiets als "nl-nl")',
 '1 day ago': '1 dag geleden',
+'1 minute ago': '1 minute ago',
 '1 month ago': '1 month ago',
 '1 week ago': '1 week gelden',
 '<': '<',

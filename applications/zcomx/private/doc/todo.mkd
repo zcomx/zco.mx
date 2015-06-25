@@ -12,6 +12,7 @@
 ``
 VERSION 3
 [S] Share zco.mx comics on all the DC hubs
+    As oogabooga, only/mainly share zco.mx files
 
 [S] Add RSS/zc-share button to cartoonist and book pages
 
