@@ -87,14 +87,15 @@ _announce() {
     _v && _mi "Announce dc"
     #   cbz="/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx/J/JordanCrane/Uptight 001 (2006) (103.zco.mx).cbz"
     read -r tth _ < <(tthsum -- "$cbz")
-    fs=$(stat -c '%s' "$cbz")        ## file size
+    fs=$(stat -c '%s' "$cbz")           ## file size
     fn=${cbz##*/}                       ## filename, eg Uptight 001 (2006) (103.zco.mx).cbz
 
-    msg1=${cbz##*zco.mx/[A-Z0-9]/}
-    msg1=${msg1%).*}
-    msg1=$(sed -r 's/([a-z]+)([A-Z][a-z]+)/\1 \2/g' <<< "$msg1")
-    msg1=${msg1/\// | }
-    msg1=${msg1/) (/) | http://}  ## output: Jordan Crane | Uptight 001 (2006) | http://103.zco.mx
+    msg1=${cbz##*zco.mx/[A-Z0-9]/}      ## output: JordanCrane/Uptight 001 (2006) (103.zco.mx).cbz
+    msg1=${msg1%).*}                    ## output: JordanCrane/Uptight 001 (2006) (103.zco.mx
+    msg1=$(sed -r 's/([a-z]+)([A-Z][a-z]+)/\1 \2/g' <<< "$msg1")    ## output: Jordan Crane/Uptight 001 (2006) (103.zco.mx
+    msg1=${msg1/\// | }                 ## output: Jordan Crane | Uptight 001 (2006) (103.zco.mx
+    end=${msg1##*(}
+    msg1="${msg1%)*}) | http://$end"    ## output: Jordan Crane | Uptight 001 (2006) | http://103.zco.mx
     msg2="magnet:?xt=urn:tree:tiger:$tth&xl=$fs&dn=${fn// /+}"  ## magnet:?xt=urn:tree:tiger:IENTQM74OF2UH7DMMNHKLBU6HGW2ZO4DUGAQATY&xl=44519398&dn=Gutter+Magic+001+(2013)+(Digital)+(Darkness-Empire).cbr
 
     tmux send-keys -t ncdc M-2 Enter     && sleep 0.2
