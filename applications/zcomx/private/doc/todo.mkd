@@ -1,6 +1,13 @@
 [x] Small Bug - DC Announcer
     OK  Daryl Seitchik | Sub (2013) | http://134.zco.mx
     BUG Daniel McCloskey | Top of the Line 03 (of 08) | http://2014) (138.zco.mx
+[x] Search Auto-Completion on 'cartoonist name' and 'title'
+    [x] Tighten Up css
+        [x] Creator div
+            If only books are returned, then don't display this div:
+            <div class="tt-dataset tt-dataset-creators"></div>
+[-] reddit
+    https://www.reddit.com/r/altcomix/
 
 ``
 VERSION 3
@@ -56,15 +63,6 @@ VERSION 3
     https://code.google.com/p/pyroscope/wiki/RtControlExamples
     $ rtcontrol -q -oname name=* alias=zco.mx
     $ for i in /srv/http/zco.mx/web2py/applications/zcomx/private/var/tor/**; do [[ $i == *.torrent.loaded* ]] && echo "$i"; done
-
-[ ] reddit
-    https://www.reddit.com/r/altcomix/
-
-[ ] Search Auto-Completion on 'cartoonist name' and 'title'
-    [S] Tighten Up css
-        [ ] Creator div
-            If only books are returned, then don't display this div:
-            <div class="tt-dataset tt-dataset-creators"></div>
 
 [S] Add More to kb
     [S] Pete Toms' Howto?
