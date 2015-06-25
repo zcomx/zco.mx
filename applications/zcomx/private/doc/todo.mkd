@@ -1,49 +1,4 @@
 ``
-[x] Promote
-    [x] mail promo cards
-        [x] email CAKE cartoonists
-    [x] emails
-[x] Indicia Image
-    Increase the size of Marc's signature on the default indicia image
-    http://p.zsw.ca/OU.png
-    [x] Set max-height of Indicia Image (html)
-        Set the max-height of the indicia image to 500px so more of the
-        page is displayed
-[x] Daily Summary of 'ongoing' pages - tumblr
-    Post a daily report (list of links) summarizing the pages that were
-    uploaded for that day to tumblr first (as a blog post?) and then
-    that url posted to twitter (zcomx_bot).
-
-    eg:
-        List of Updated <Ongoing Books> for Thu, May 28, 2015:
-            * Name of Book by <tumblr_nick> - <Read newest page(s)>
-            * Book Title by <tumblr_nick> - page <57>
-            * Eavesdropper 001 by <andreatsurumi> - page <14>
-    [x] Make heading smaller
-    [x] italicize book title
-    [x] link book title to the zco.mx book page
-    [x] Change 'List of Updated...' to 'Updated Ongoing...'
-    [-] Set links to color: #FF6600 and no underline
-[x] Small Upload Bug
-    SB 2015-06-09 16:58  Talk to me about this
-    While images are loading, the rows of existing images may get wider.
-    The delete icons are pushed beyond the border of the modal.
-[x] RSS - from
-    Change From: "Roger Langridge on zco.mx" to From: "zco.mx: Roger Langridge"
-[x] RSS - subject
-    Change:
-        The Iron Duchess by Roger Langridge
-    To:
-        'The Iron Duchess' p01
-        'The Iron Duchess' p01 p02 p03
-        'The Iron Duchess' p01 p02 ... p27
-[x] RSS - body
-    Change:
-        A page was...
-    To:
-        Posted: Jun 08, 2015 - A page was...
-
-
 VERSION 3
 [S] Share zco.mx comics on all the DC hubs
 
@@ -107,6 +62,9 @@ VERSION 3
 
 [ ] Search Auto-Completion on 'cartoonist name' and 'title'
     [S] Tighten Up css
+        [ ] Creator div
+            If only books are returned, then don't display this div:
+            <div class="tt-dataset tt-dataset-creators"></div>
 
 [S] Add More to kb
     [S] Pete Toms' Howto?
@@ -125,8 +83,10 @@ VERSION 3
 [ ] Screen Too Small For Slider
     http://www.forbiddenplanet.co.uk/blog/2015/zco-mx/#comment-87570
 
+
 VERSION 4
-[S] news site
+[S] zwi.re
+    Comics News site
 
 
 VERSION 5

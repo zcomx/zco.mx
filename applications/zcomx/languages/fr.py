@@ -10,6 +10,7 @@
 '%s selected': '%s sélectionné',
 '%Y-%m-%d': '%Y-%m-%d',
 '%Y-%m-%d %H:%M:%S': '%Y-%m-%d %H:%M:%S',
+'1 day ago': '1 day ago',
 '1 month ago': '1 month ago',
 '@markmin\x01An error occured, please [[reload %s]] the page': 'An error occured, please [[reload %s]] the page',
 'About': 'À propos',
