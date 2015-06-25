@@ -1,10 +1,10 @@
+[x] Small Bug - DC Announcer
+    OK  Daryl Seitchik | Sub (2013) | http://134.zco.mx
+    BUG Daniel McCloskey | Top of the Line 03 (of 08) | http://2014) (138.zco.mx
+
 ``
 VERSION 3
 [S] Share zco.mx comics on all the DC hubs
-
-[S] Small Bug - DC Announcer
-    OK  Daryl Seitchik | Sub (2013) | http://134.zco.mx
-    BUG Daniel McCloskey | Top of the Line 03 (of 08) | http://2014) (138.zco.mx
 
 [S] Add RSS/zc-share button to cartoonist and book pages
 
