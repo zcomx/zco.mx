@@ -79,13 +79,13 @@ def main():
         if package:
             files = [package]
             if '/controllers/' in package:
-                # pkge: applications/igeejo/tests/controllers/test_employees.py
-                # file: applications/igeejo/controllers/employees.py
+                # pkge: applications/app/tests/controllers/test_employees.py
+                # file: applications/app/controllers/employees.py
                 files.append(
                         package.replace('/tests', '').replace('/test_', '/'))
             else:
-                # pkge: applications/igeejo/tests/test_employees.py
-                # file: applications/igeejo/modules/employees.py
+                # pkge: applications/app/tests/test_employees.py
+                # file: applications/app/modules/employees.py
                 files.append(
                         package.replace('/tests', '/modules')
                         .replace('/test_', '/'))

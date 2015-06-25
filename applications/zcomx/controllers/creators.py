@@ -2,10 +2,14 @@
 """Creator controller functions"""
 
 import cgi
+import logging
+import traceback
 from gluon.storage import Storage
 from applications.zcomx.modules.access import requires_login_if_configured
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.zco import Zco
+
+LOG = logging.getLogger('app')
 
 
 def creator():
@@ -37,7 +41,17 @@ def index():
     request.vars.update(parse_get_vars())
 
     router = Router(db, request, auth)
-    router.route()
+
+    try:
+        router.route()
+    except Exception:
+        # Ensures that during the page_not_found formatting if any
+        # exceptions happen they are logged, and a 404 is returned.
+        # (Then search bots, for example, see they have an invalid page)
+        for line in traceback.format_exc().split("\n"):
+            LOG.error(line)
+        raise HTTP(404, "Page not found")
+
     if router.redirect:
         redirect(router.redirect)
     if router.view:

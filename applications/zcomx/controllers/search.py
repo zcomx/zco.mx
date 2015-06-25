@@ -35,7 +35,7 @@ def autocomplete_selected():
     """
     def page_not_found():
         """Handle page not found."""
-        redirect(URL(c='errors', f='page_not_found'))
+        raise HTTP(404, "Page not found")
 
     if not request.args(0) or not request.args(1):
         page_not_found()

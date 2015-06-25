@@ -69,8 +69,6 @@ def main():
         try:
             queue.run_job(job)
         except subprocess.CalledProcessError as err:
-            # This command reveals location of log file:
-            # $ grep -P '^LOG_FILE|^DAEMON' /etc/rc.d/igeejo_queued
             LOG.error("Job exited with error.")
             LOG.error("job: %s, exit: %s", job.command, err.returncode)
             for line in err.output.split("\n"):

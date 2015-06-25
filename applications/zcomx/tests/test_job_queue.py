@@ -242,12 +242,12 @@ class TestCreateTorrentQueuer(LocalTestCase):
 
 
 class TestDaemon(LocalTestCase):
-    name = 'igeejo_queued'
+    name = 'zco_queued'
     pid_filename = '/tmp/test_suite/job_queue/pid'
 
     def test____init__(self):
         daemon = Daemon(self.name)
-        self.assertEqual(daemon.pid_filename, '/tmp/igeejo_queued/pid')
+        self.assertEqual(daemon.pid_filename, '/tmp/zco_queued/pid')
 
         daemon = Daemon(self.name, pid_filename='/tmp/testing')
         self.assertEqual(daemon.pid_filename, '/tmp/testing')

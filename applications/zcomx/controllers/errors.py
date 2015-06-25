@@ -4,6 +4,7 @@ Controller for error handling.
 """
 import logging
 from gluon.storage import Storage
+from applications.zcomx.modules.stickon.restricted import log_ticket
 
 LOG = logging.getLogger('app')
 
@@ -21,6 +22,7 @@ def handler():
     The redirect with client_side handles errors occuring within components
     without repeated page reloads.
     """
+    log_ticket(request.vars.ticket)
     redirect(URL('index'), client_side=True)
 
 
@@ -64,3 +66,8 @@ def page_not_found():
     title = 'Page not found'
     message = 'The server was not able to display the requested page.'
     return dict(urls=urls, message=message, title=title)
+
+
+def test_exception():
+    """Controller for testing exception handling."""
+    raise SyntaxError('Exception raised from test_exception.')

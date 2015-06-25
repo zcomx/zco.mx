@@ -637,8 +637,8 @@ class LocalWebClient(WebClient):
             # * Get the url function and args
             # * Join with underscores.
             # Example:
-            # url = /igeejo/misc/price_stickers/123?client_id=123
-            # filename = price_stickers_123
+            # url = /app/controller/function/123?record_id=123
+            # filename = function_123
             try:
                 filename = '_'.join(
                     url.lstrip('/').split('?')[0].split('/')[2:])
