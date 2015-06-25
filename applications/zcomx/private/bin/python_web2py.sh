@@ -1,6 +1,7 @@
 #!/bin/bash
+__loaded_logger 2>/dev/null || source ${BASH_SOURCE%/*}/lib/logger.sh
 
-script=${0##*/}
+script=${BASH_SOURCE##*/}
 _u() { cat << EOF
 usage: $script [options] path/to/script [args]
 
@@ -25,10 +26,6 @@ EXAMPLES:
     $script --profile -- applications/myapp/private/bin/script.py -v
 EOF
 }
-
-__mi() { __v && echo -e "===: $*" ;}
-__me() { echo -e "===> ERROR: $*" >&2; exit 1 ;}
-__v()  { ${verbose-false} ;}
 
 _options() {
     # set defaults
@@ -64,7 +61,10 @@ else
 fi
 
 # Validate script_to_run
-[[ ! -e "$script_to_run" ]] && __me "Invalid script. File not found: $script_to_run"
+if [[ ! -e "$script_to_run" ]]; then
+    __me "Invalid script. File not found: $script_to_run"
+    exit 1
+fi
 
 # Extract the app.
 if [[ ! $app ]]; then

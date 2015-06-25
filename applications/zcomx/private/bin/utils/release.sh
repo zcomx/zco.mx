@@ -1,20 +1,10 @@
 #!/bin/bash
+__loaded_logger 2>/dev/null || source ${BASH_SOURCE%/*}/../lib/logger.sh
+
 PY_SCRIPT="applications/zcomx/private/bin/python_web2py.sh"
 SETTINGS_CONF="applications/zcomx/private/settings.conf"
 
-
-DEBUG=10
-INFO=20
-WARN=30
-ERROR=40
-LEVEL_NAMES=(
-    [DEBUG]=debug
-    [INFO]=info
-    [WARN]=warn
-    [ERROR]=error
-)
-
-script=${0##*/}
+script=${BASH_SOURCE##*/}
 _u() { cat << EOF
 usage: $script [options]
 
@@ -24,25 +14,6 @@ This script should be run when updates are installed on the production server.
 
 EOF
 }
-
-_log() {
-    local level line_no msg
-    level_value=$1
-    msg=$2
-
-    level=${LEVEL_NAMES[$level_value]}
-
-    # Typical message
-    # Apr 17 17:27:34 input root [DEBUG queue_daemon.sh 157] File not found.
-    logger -p local7.$level -- "[${level^^} $script ${BASH_LINENO[0]}] $msg"
-    [[ __v ]] || (($level >= $level_warn )) && echo -e "===: ${level^^} $msg"
-}
-
-__me() { _log "$ERROR" "$*" ;}
-__mw() { _log "$WARN"  "$*" ;}
-__mi() { _log "$INFO"  "$*" ;}
-__md() { _log "$DEBUG" "$*" ;}
-__v()  { ${verbose-false} ;}
 
 _migrate() {
     echo 'MIGRATE = True' > applications/zcomx/models/0_migrate.py
@@ -121,7 +92,6 @@ systemctl restart emperor.uwsgi.service
 
 __v && __mi "SQL integrity"
 $PY_SCRIPT applications/zcomx/private/bin/utils/sql_integrity.py
-
 
 __v && __mi "Done"
 
