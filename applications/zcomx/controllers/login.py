@@ -54,9 +54,7 @@ from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
     reorder
-from applications.zcomx.modules.zco import \
-    BOOK_STATUS_ACTIVE, \
-    BOOK_STATUS_DRAFT
+from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
 
 LOG = logging.getLogger('app')
 
@@ -634,12 +632,6 @@ def books():
         URL(
             'static',
             'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
-        )
-    )
-    response.files.append(
-        URL(
-            'static',
-            'x-editable/bootstrap3-editable/css/bootstrap-editable.css'
         )
     )
 
@@ -1414,12 +1406,6 @@ def profile():
         URL(
             'static',
             'blueimp/jQuery-File-Upload/css/jquery.fileupload-ui.css'
-        )
-    )
-    response.files.append(
-        URL(
-            'static',
-            'x-editable/bootstrap3-editable/css/bootstrap-editable.css'
         )
     )
 

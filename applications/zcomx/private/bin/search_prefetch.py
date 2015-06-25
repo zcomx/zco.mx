@@ -8,15 +8,8 @@ Script to build search autocomplete prefetch json files.
 """
 import logging
 import os
-import shutil
-from gluon.contrib.simplejson import dumps
 from optparse import OptionParser
-from applications.zcomx.modules.books import \
-    formatted_name as formatted_book_name
-from applications.zcomx.modules.creators import \
-    formatted_name as formatted_creator_name
-from applications.zcomx.modules.shell_utils import TemporaryDirectory
-from applications.zcomx.modules.zco import BOOK_STATUS_DISABLED
+from applications.zcomx.modules.autocomplete import autocompleter_class
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -27,74 +20,6 @@ DEFAULT_OUTPUT = os.path.join(
     'data',
     '<table>s.json'
 )
-
-
-def dump_books(output):
-    """Dump books into output file.
-
-    Args:
-        output: string, name of output file.
-    """
-    LOG.debug('Dumping books into: %s', output)
-
-    items = []
-    query = (db.book.status != BOOK_STATUS_DISABLED)
-    rows = db(query).select(
-        db.book.id,
-        orderby=db.book.name,
-        distinct=True,
-    )
-
-    for r in rows:
-        items.append(
-            {
-                'id': r.id,
-                'table': 'book',
-                'value': formatted_book_name(
-                    db, r.id, include_publication_year=False)
-            }
-        )
-
-    with TemporaryDirectory() as tmp_dir:
-        out_file = os.path.join(tmp_dir, 'output.json')
-        with open(out_file, 'w') as outfile:
-            outfile.write(dumps(items))
-        shutil.move(out_file, output)
-
-
-def dump_creators(output):
-    """Dump creators into output file.
-
-    Args:
-        output: string, name of output file.
-    """
-    LOG.debug('Dumping creators into: %s', output)
-
-    items = []
-    query = (db.book.id != None)
-    rows = db(query).select(
-        db.creator.id,
-        left=[
-            db.book.on(db.book.creator_id == db.creator.id)
-        ],
-        orderby=db.creator.name_for_search,
-        distinct=True,
-    )
-
-    for r in rows:
-        items.append(
-            {
-                'id': r.id,
-                'table': 'creator',
-                'value': formatted_creator_name(r.id),
-            }
-        )
-
-    with TemporaryDirectory() as tmp_dir:
-        out_file = os.path.join(tmp_dir, 'output.json')
-        with open(out_file, 'w') as outfile:
-            outfile.write(dumps(items))
-        shutil.move(out_file, output)
 
 
 def man_page():
@@ -182,14 +107,12 @@ def main():
 
     tables = [options.table] if options.table is not None else TABLES
 
-    if 'book' in tables:
-        output = options.output.replace('<table>', 'book')
-        dump_books(output)
-
-    if 'creator' in tables:
-        output = options.output.replace('<table>', 'creator')
-        dump_creators(output)
-
+    for table in tables:
+        output = options.output.replace('<table>', table)
+        LOG.debug('Dumping table %s into: %s', table, output)
+        completer_class = autocompleter_class(table)
+        completer = completer_class()
+        completer.dump(output)
     LOG.debug('Done')
 
 

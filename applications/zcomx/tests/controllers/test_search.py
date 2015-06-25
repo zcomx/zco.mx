@@ -53,17 +53,16 @@ class TestFunctions(WithObjectsTestCase):
     }
     url = '/zcomx/search'
 
-    def test__autocomplete_books(self):
-
-        count = db(db.book.status == BOOK_STATUS_ACTIVE).count()
-
+    def test__autocomplete(self):
         web.login()
 
+        # Books
         # No query should return all books
-        url = '{url}/autocomplete_books.json'.format(url=self.url)
+        url = '{url}/autocomplete.json/book'.format(url=self.url)
         web.post(url)
         result = loads(web.text)
         self.assertTrue('results' in result)
+        count = db(db.book.status == BOOK_STATUS_ACTIVE).count()
         self.assertEqual(len(result['results']), count)
         self.assertEqual(
             sorted(result['results'][0].keys()),
@@ -72,7 +71,7 @@ class TestFunctions(WithObjectsTestCase):
 
         # With query
         search_term = 'not'
-        url = '{url}/autocomplete_books.json?q={q}'.format(
+        url = '{url}/autocomplete.json/book?q={q}'.format(
             url=self.url, q=search_term)
         web.post(url)
         result = loads(web.text)
@@ -81,7 +80,13 @@ class TestFunctions(WithObjectsTestCase):
         for item in result['results']:
             self.assertTrue(search_term.lower() in item['value'].lower())
 
-    def test__autocomplete_creators(self):
+        # Creators
+        # No query should return all creators
+        url = '{url}/autocomplete.json/creator'.format(url=self.url)
+        web.post(url)
+        result = loads(web.text)
+        self.assertTrue('results' in result)
+
         query = (db.book.id != None)
         rows = db(query).select(
             db.creator.id,
@@ -92,13 +97,6 @@ class TestFunctions(WithObjectsTestCase):
         )
         count = len(rows)
 
-        web.login()
-
-        # No query should return all creators
-        url = '{url}/autocomplete_creators.json'.format(url=self.url)
-        web.post(url)
-        result = loads(web.text)
-        self.assertTrue('results' in result)
         self.assertEqual(len(result['results']), count)
         self.assertEqual(
             sorted(result['results'][0].keys()),
@@ -107,7 +105,7 @@ class TestFunctions(WithObjectsTestCase):
 
         # With query
         search_term = 'kar'
-        url = '{url}/autocomplete_creators.json?q={q}'.format(
+        url = '{url}/autocomplete.json/creator?q={q}'.format(
             url=self.url, q=search_term)
         web.post(url)
         result = loads(web.text)
@@ -115,6 +113,20 @@ class TestFunctions(WithObjectsTestCase):
         self.assertTrue(len(result['results']) < 10)
         for item in result['results']:
             self.assertTrue(search_term.lower() in item['value'].lower())
+
+        # No table
+        url = '{url}/autocomplete.json'.format(url=self.url)
+        web.post(url)
+        result = loads(web.text)
+        self.assertTrue('results' in result)
+        self.assertEqual(result['results'], [])
+
+        # Invalid table
+        url = '{url}/autocomplete.json/_fake_'.format(url=self.url)
+        web.post(url)
+        result = loads(web.text)
+        self.assertTrue('results' in result)
+        self.assertEqual(result['results'], [])
 
     def test__autocomplete_selected(self):
         # No args, redirects to page not found
