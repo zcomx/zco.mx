@@ -136,6 +136,8 @@ class TestFunctions(LocalTestCase):
         )
         test_invalid(url)
 
+        web.sessions = {}
+
     def test__index(self):
         self.assertTrue(
             web.test(

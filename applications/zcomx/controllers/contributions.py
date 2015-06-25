@@ -32,15 +32,21 @@ def modal():
     request.vars.book_id takes precendence over request.vars.creator_id.
     """
     book_record = None
+    creator_record = None
+
     if request.vars.book_id:
         book_record = entity_to_row(db.book, request.vars.book_id)
+        if not book_record:
+            raise LookupError('Book not found, id %s', request.vars.book_id)
+    elif request.vars.creator_id:
+        creator_record = entity_to_row(db.creator, request.vars.creator_id)
+        if not creator_record:
+            raise LookupError(
+                'Creator not found, id %s', request.vars.creator_id)
 
-    creator_record = None
     if book_record:
         creator_record = entity_to_row(db.creator, book_record.creator_id)
 
-    if not book_record and request.vars.creator_id:
-        creator_record = entity_to_row(db.creator, request.vars.creator_id)
     return dict(
         book=book_record,
         creator=creator_record,
@@ -164,7 +170,10 @@ def paypal():
 
 
 def paypal_notify():
-    """Controller for paypal notifications (return_url)"""
+    """Controller for paypal notifications (return_url)
+
+    request.vars: these are provided by paypal
+    """
     if request.vars.payment_status == 'Completed':
         valid = True
         if request.vars.item_number:
@@ -195,7 +204,7 @@ def paypal_notify():
         if f in request.vars:
             paypal_log[f] = request.vars[f]
     if paypal_log:
-        db.paypal_log.insert(**paypal_log)
+        db.paypal_log.validate_and_insert(**paypal_log)
         db.commit()
 
     if request.vars.custom:
@@ -228,12 +237,16 @@ def widget():
     creator_record = None
     if request.vars.book_id:
         book_record = entity_to_row(db.book, request.vars.book_id)
+        if not book_record:
+            raise LookupError('Book not found, id %s', request.vars.book_id)
+    elif request.vars.creator_id:
+        creator_record = entity_to_row(db.creator, request.vars.creator_id)
+        if not creator_record:
+            raise LookupError(
+                'Creator not found, id %s', request.vars.creator_id)
 
     if book_record:
         creator_record = entity_to_row(db.creator, book_record.creator_id)
-
-    if not creator_record and request.vars.creator_id:
-        creator_record = entity_to_row(db.creator, request.vars.creator_id)
 
     amount = default_contribute_amount(db, book_record) if book_record \
         else 1.00
@@ -244,8 +257,12 @@ def widget():
     elif creator_record:
         paypal_vars['creator_id'] = creator_record.id
 
+    link_types = ['link', 'button']
+    link_type = request.vars.link_type if request.vars.link in link_types \
+        else link_types[0]
+
     return dict(
         amount='{a:0.2f}'.format(a=amount),
         paypal_vars=paypal_vars,
-        link_type=request.vars.link_type or 'link',
+        link_type=link_type,
     )

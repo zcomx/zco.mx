@@ -7,6 +7,7 @@ Test suite for zcomx/controllers/search.py
 
 """
 import unittest
+import urllib2
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -48,7 +49,6 @@ class TestFunctions(WithObjectsTestCase):
         'index': '<div id="front_page">',
         'list_grid': '<div class="web2py_grid grid_view_list ',
         'list_grid_tile': '<div class="web2py_grid grid_view_tile ',
-        'page_not_found': '<h3>Page not found</h3>',
         'tile_grid': '<div class="row tile_view">',
     }
     url = '/zcomx/search'
@@ -129,23 +129,26 @@ class TestFunctions(WithObjectsTestCase):
         self.assertEqual(result['results'], [])
 
     def test__autocomplete_selected(self):
+        def is_page_not_found(url):
+            with self.assertRaises(urllib2.HTTPError) as cm:
+                web.test(url, None)
+            self.assertEqual(cm.exception.code, 404)
+            self.assertEqual(cm.exception.msg, 'NOT FOUND')
+
         # No args, redirects to page not found
-        self.assertTrue(web.test(
-            '{url}/autocomplete_selected'.format(url=self.url),
-            self.titles['page_not_found']
-        ))
+        is_page_not_found(
+            '{url}/autocomplete_selected'.format(url=self.url)
+        )
 
         # Invalid table, redirects to page not found
-        self.assertTrue(web.test(
-            '{url}/autocomplete_selected/_fake_'.format(url=self.url),
-            self.titles['page_not_found']
-        ))
+        is_page_not_found(
+            '{url}/autocomplete_selected/_fake_'.format(url=self.url)
+        )
 
         # Invalid record id, redirects to page not found
-        self.assertTrue(web.test(
-            '{url}/autocomplete_selected/book/0'.format(url=self.url),
-            self.titles['page_not_found']
-        ))
+        is_page_not_found(
+            '{url}/autocomplete_selected/book/0'.format(url=self.url)
+        )
 
         # Valid book
         self.assertTrue(web.test(

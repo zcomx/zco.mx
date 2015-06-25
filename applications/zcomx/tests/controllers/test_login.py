@@ -109,7 +109,7 @@ class TestFunctions(LocalTestCase):
         cls._creator_as_dict = cls._creator.as_dict()
 
         query = (db.book.creator_id == cls._creator.id) & \
-                (db.book.name_for_url == 'TestDoNotDelete')
+                (db.book.name_for_url == 'TestDoNotDelete-001')
         cls._book = db(query).select().first()
         if not cls._book:
             raise SyntaxError(

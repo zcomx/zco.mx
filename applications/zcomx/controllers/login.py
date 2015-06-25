@@ -335,6 +335,8 @@ def book_edit():
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
+        if not book_record:
+            MODAL_ERROR('Invalid data provided')
 
     book_type_id = book_record.book_type_id if book_record else 0
 
@@ -854,11 +856,6 @@ def creator_img_handler():
 @auth.requires_login()
 def index():
     """Default login controller."""
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
-        redirect(URL(c='default', f='index'))
     redirect(URL(c='login', f='books'))
 
 
@@ -993,7 +990,8 @@ def link_crud():
         to_link_join_field = db.creator_to_link.creator_id
         record = creator_record
 
-    action = request.vars.action if request.vars.action else 'get'
+    actions = ['get', 'update', 'create', 'delete', 'move']
+    action = request.vars.action if request.vars.action in actions else 'get'
 
     link_id = None
     link_record = None
@@ -1075,7 +1073,7 @@ def link_crud():
                 data['book_id'] = book_record.id
             else:
                 data['creator_id'] = creator_record.id
-            to_link_table.insert(**data)
+            to_link_table.validate_and_insert(**data)
             db.commit()
             do_reorder = True
         record_id = ret.id
@@ -1093,11 +1091,13 @@ def link_crud():
         else:
             return do_error('Invalid data provided')
     elif action == 'move':
+        dirs = ['down', 'up']
+        direction = request.vars.dir if request.vars.dir in dirs else 'down'
         if link_id:
             to_link_record = db(to_link_table.link_id == link_id).select(
                 to_link_table.ALL).first()
             links = CustomLinks(entity_table, record.id)
-            links.move_link(to_link_record.id, direction=request.vars.dir)
+            links.move_link(to_link_record.id, direction=direction)
             record_id = link_id
         else:
             return do_error('Invalid data provided')

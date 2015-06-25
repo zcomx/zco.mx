@@ -178,7 +178,7 @@ class TestFunctions(LocalTestCase):
         ))
 
     def test_routes(self):
-        """Test various urls and make sure they behave."""
+        # Test various urls and make sure they behave.
         tests = [
             # (url, expect)
             ('/', 'index'),

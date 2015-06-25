@@ -237,6 +237,7 @@ class TestFunctions(LocalTestCase):
 
         # Test contribution to zco.mx
         txn_id = '_test_paypal_notify_zco'
+        delete_paypal_log(txn_id)
         notify_vars['txn_id'] = txn_id
         del notify_vars['item_number']
         before_zco_contributions = get_zco_contributions()
@@ -256,10 +257,13 @@ class TestFunctions(LocalTestCase):
             len(before_zco_contributions) + 1,
             len(after_zco_contributions)
         )
-        new_contribs = set(after_zco_contributions).difference(
-            set(before_zco_contributions))
-        self.assertEqual(len(new_contribs), 1)
-        new_contrib = list(new_contribs)[0]
+        before_ids = [x.id for x in before_zco_contributions]
+        after_ids = [x.id for x in after_zco_contributions]
+        new_contrib_ids = set(after_ids).difference(
+            set(before_ids))
+        self.assertEqual(len(new_contrib_ids), 1)
+        new_contrib_id = list(new_contrib_ids)[0]
+        new_contrib = db(db.contribution.id == new_contrib_id).select().first()
         self._objects.append(new_contrib)
 
         logs = get_paypal_log(txn_id)

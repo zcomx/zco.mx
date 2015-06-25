@@ -30,9 +30,6 @@ def page_not_found():
     """Page not found. Used if an invalid url is provided.
 
     request.vars.invalid_url: string, optional, url user used.
-    request.vars.creator_id: integer, optional, id of creator to use in
-        examples. This is ignored if request.vars.book_id is set.
-    request.vars.book_id: integer, optional, id of book to use in examples.
     """
     deprecated_default_functions = [
         'about',

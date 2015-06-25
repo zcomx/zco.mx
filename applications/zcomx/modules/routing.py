@@ -179,7 +179,8 @@ class Router(object):
         if self.book_record and self.book_record.status in unreadable_statuses:
             return 'draft'
         request = self.request
-        if request.vars.reader:
+        if request.vars.reader \
+                and request.vars.reader in ['scroller', 'slider']:
             return request.vars.reader
         if self.book_record:
             return self.book_record.reader
@@ -242,7 +243,11 @@ class Router(object):
                     db.book.on(db.book_page.book_id == db.book.id),
                     db.creator.on(db.book.creator_id == db.creator.id),
                 ],
-                orderby=[db.creator.name_for_url, ~db.book.release_date, db.book_page.page_no],
+                orderby=[
+                    db.creator.name_for_url,
+                    ~db.book.release_date,
+                    db.book_page.page_no
+                ],
                 limitby=(0, 1),
             )
             if rows:
