@@ -99,12 +99,16 @@ class TestFunctions(LocalTestCase):
         email = web.username
         cls._user = db(db.auth_user.email == email).select().first()
         if not cls._user:
-            raise SyntaxError('No user with email: {e}'.format(e=email))
+            msg = 'No user with email: {e}'.format(e=email)
+            print msg
+            raise SyntaxError(msg)
 
         query = db.creator.auth_user_id == cls._user.id
         cls._creator = db(query).select().first()
         if not cls._creator:
-            raise SyntaxError('No creator with email: {e}'.format(e=email))
+            msg = 'No creator with email: {e}'.format(e=email)
+            print msg
+            raise SyntaxError(msg)
 
         cls._creator_as_dict = cls._creator.as_dict()
 
@@ -112,34 +116,34 @@ class TestFunctions(LocalTestCase):
                 (db.book.name_for_url == 'TestDoNotDelete-001')
         cls._book = db(query).select().first()
         if not cls._book:
-            raise SyntaxError(
-                'No books for creator with email: {e}'.format(e=email)
-            )
+            msg = 'No books for creator with email: {e}'.format(e=email)
+            print msg
+            raise SyntaxError(msg)
 
         query = (db.book_page.book_id == cls._book.id) & \
                 (db.book_page.page_no == 1)
         cls._book_page = db(query).select().first()
         if not cls._book_page:
-            raise SyntaxError(
-                'Unable to get book_page for: {e}'.format(e=email)
-            )
+            msg = 'Unable to get book_page for: {e}'.format(e=email)
+            print msg
+            raise SyntaxError(msg)
 
         query = (db.creator_to_link.creator_id == cls._creator.id)
         cls._creator_to_link = db(query).select(
             orderby=db.creator_to_link.order_no
         ).first()
         if not cls._creator_to_link:
-            raise SyntaxError(
-                'No creator_to_link with email: {e}'.format(e=email)
-            )
+            msg = 'No creator_to_link with email: {e}'.format(e=email)
+            print msg
+            raise SyntaxError(msg)
 
         query = (db.book_to_link.book_id == cls._book.id)
         cls._book_to_link = db(query).select(
             orderby=db.book_to_link.order_no).first()
         if not cls._book_to_link:
-            raise SyntaxError(
-                'No book_to_link with email: {e}'.format(e=email)
-            )
+            msg = 'No book_to_link with email: {e}'.format(e=email)
+            print msg
+            raise SyntaxError(msg)
 
         id_max = db.optimize_img_log.id.max()
         cls._max_optimize_img_log_id = \
