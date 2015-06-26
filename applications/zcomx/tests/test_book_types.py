@@ -18,7 +18,6 @@ from applications.zcomx.modules.book_types import \
     from_id
 
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import NotFoundError
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -166,14 +165,14 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(isinstance(got, OneShotType))
 
         # Test invalid id, default is None
-        self.assertRaises(NotFoundError, from_id, -1, default=None)
+        self.assertRaises(LookupError, from_id, -1, default=None)
 
         # Test invalid id, default
         got = from_id(-1, default='mini-series')
         self.assertTrue(isinstance(got, MiniSeriesType))
 
         # Test invalid default
-        self.assertRaises(NotFoundError, from_id, -1, default='_invalid_')
+        self.assertRaises(LookupError, from_id, -1, default='_invalid_')
 
 
 def setUpModule():

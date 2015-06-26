@@ -24,7 +24,6 @@ from applications.zcomx.modules.tweeter import \
     PhotoDataPreparer as TwPhotoDataPreparer, \
     Poster as TwPoster
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import \
     IN_PROGRESS, \
@@ -230,11 +229,11 @@ def main():
 
     book = entity_to_row(db.book, book_id)
     if not book:
-        raise NotFoundError('Book not found, id: %s', book_id)
+        raise LookupError('Book not found, id: %s', book_id)
 
     creator = entity_to_row(db.creator, book.creator_id)
     if not creator:
-        raise NotFoundError('Creator not found, id: %s', book.creator_id)
+        raise LookupError('Creator not found, id: %s', book.creator_id)
 
     services = []
     if options.tumblr:

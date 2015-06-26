@@ -9,7 +9,6 @@ import logging
 from gluon import *
 from applications.zcomx.modules.images import UploadImage
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     abridged_list, \
     entity_to_row
 from applications.zcomx.modules.zco import SITE_NAME
@@ -34,7 +33,7 @@ class BookPage(object):
         self.book_page_entity = book_page_entity
         self.book_page = entity_to_row(db.book_page, book_page_entity)
         if not self.book_page:
-            raise NotFoundError('Book page not found, {e}'.format(
+            raise LookupError('Book page not found, {e}'.format(
                 e=book_page_entity))
         self._upload_image = None
 

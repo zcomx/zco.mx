@@ -20,7 +20,6 @@ from applications.zcomx.modules.torrents import \
     P2PNotifyError, \
     TorrentCreateError
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import NotFoundError
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -212,7 +211,7 @@ class TestBookTorrentCreator(TorrentTestCase):
 
     def test____init__(self):
         # No book entity
-        self.assertRaises(NotFoundError, BookTorrentCreator)
+        self.assertRaises(LookupError, BookTorrentCreator)
 
         book = self.add(db.book, dict(
             name='Test Book Torrent Creator'
@@ -268,7 +267,7 @@ class TestBookTorrentCreator(TorrentTestCase):
         # Test invalid creator
         book.update_record(creator_id=-1)
         db.commit()
-        self.assertRaises(NotFoundError, tor_creator.get_destination)
+        self.assertRaises(LookupError, tor_creator.get_destination)
 
     def test__get_target(self):
         book = self.add(db.book, dict(
@@ -286,7 +285,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
 
     def test____init__(self):
         # No creator entity
-        self.assertRaises(NotFoundError, CreatorTorrentCreator)
+        self.assertRaises(LookupError, CreatorTorrentCreator)
 
         creator = self.add(db.creator, dict(
             email='test____init__@gmail.com'
@@ -300,7 +299,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
 
         tor_creator = CreatorTorrentCreator(creator)
         # The target cbz directory won't exist
-        self.assertRaises(NotFoundError, tor_creator.archive)
+        self.assertRaises(LookupError, tor_creator.archive)
 
         tor_creator = CreatorTorrentCreator(creator)
         tor_creator.set_cbz_base_path(self._tmp_dir)

@@ -23,7 +23,6 @@ from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import NICES
 
@@ -68,7 +67,7 @@ class CBZCreator(TempDirectoryMixin):
         if self._img_filename_fmt is None:
             try:
                 max_page_no = self.get_max_page_no()
-            except NotFoundError:
+            except LookupError:
                 max_page_no = 0
 
             # Add 1 for indicia page.
@@ -92,7 +91,7 @@ class CBZCreator(TempDirectoryMixin):
             max_page_no = db.book_page.page_no.max()
             page_no = db(query).select(max_page_no).first()[max_page_no]
             if not page_no:
-                raise NotFoundError('Book has no pages, id: {i}'.format(
+                raise LookupError('Book has no pages, id: {i}'.format(
                     i=self.book.id))
             self._max_page_no = page_no
         return self._max_page_no
@@ -134,7 +133,7 @@ class CBZCreator(TempDirectoryMixin):
             if not os.path.exists(src_filename):
                 src_filename = filename_for_size(fullname, 'original')
             if not os.path.exists(src_filename):
-                raise NotFoundError(
+                raise LookupError(
                     'Image for book page not found, {s}'.format(
                         s=src_filename))
 
@@ -222,11 +221,11 @@ def archive(book_entity, base_path='applications/zcomx/private/var'):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     creator_record = entity_to_row(db.creator, book_record.creator_id)
     if not creator_record:
-        raise NotFoundError('Creator not found, id:{i}'.format(
+        raise LookupError('Creator not found, id:{i}'.format(
             i=book_record.creator_id))
 
     cbz_creator = CBZCreator(book_record)

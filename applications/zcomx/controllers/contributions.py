@@ -11,7 +11,6 @@ from applications.zcomx.modules.creators import \
     book_for_contributions, \
     formatted_name
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import Zco
 
@@ -83,16 +82,16 @@ def paypal():
         except (TypeError, ValueError):
             book_id = None
         if not book_id:
-            raise NotFoundError('Invalid book id: {i}'.format(i=book_id_str))
+            raise LookupError('Invalid book id: {i}'.format(i=book_id_str))
         book_record = entity_to_row(db.book, book_id)
         if not book_record:
-            raise NotFoundError('Book not found, id: {i}'.format(i=book_id))
+            raise LookupError('Book not found, id: {i}'.format(i=book_id))
         creator_record = entity_to_row(db.creator, book_record.creator_id)
         if not creator_record:
-            raise NotFoundError('Creator not found, id: {i}'.format(
+            raise LookupError('Creator not found, id: {i}'.format(
                 i=book_record.creator_id))
         if not creator_record.paypal_email:
-            raise NotFoundError('Creator has no paypal email, id: {i}'.format(
+            raise LookupError('Creator has no paypal email, id: {i}'.format(
                 i=book_record.creator_id))
         data = Storage({})
         data.business = creator_record.paypal_email
@@ -108,18 +107,18 @@ def paypal():
         except (TypeError, ValueError):
             creator_id = None
         if not creator_id:
-            raise NotFoundError('Invalid creator id: {i}'.format(
+            raise LookupError('Invalid creator id: {i}'.format(
                 i=creator_id_str))
         creator_record = entity_to_row(db.creator, creator_id)
         if not creator_record:
-            raise NotFoundError('Creator not found, id: {i}'.format(
+            raise LookupError('Creator not found, id: {i}'.format(
                 i=creator_id))
         if not creator_record.paypal_email:
-            raise NotFoundError('Creator has no paypal email, id: {i}'.format(
+            raise LookupError('Creator has no paypal email, id: {i}'.format(
                 i=creator_id))
         book_record = book_for_contributions(db, creator_record)
         if not book_record:
-            raise NotFoundError(
+            raise LookupError(
                 'Creator has no book for contributions, id: {i}'.format(
                     i=creator_id
                 )
@@ -134,12 +133,12 @@ def paypal():
     if request.vars.book_id:
         try:
             data = book_data(request.vars.book_id)
-        except NotFoundError as err:
+        except LookupError as err:
             LOG.error(err)
     elif request.vars.creator_id:
         try:
             data = creator_data(request.vars.creator_id)
-        except NotFoundError as err:
+        except LookupError as err:
             LOG.error(err)
 
     if not data:

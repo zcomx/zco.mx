@@ -390,10 +390,10 @@ class TestRouter(LocalTestCase):
         db.commit()
         router.book_record = None
         router.request.vars.reader = '_reader_'
-        self.assertEqual(router.get_reader(), '_reader_')
+        self.assertEqual(router.get_reader(), None)
 
         router.book_record = self._book
-        self.assertEqual(router.get_reader(), '_reader_')
+        self.assertEqual(router.get_reader(), 'slider')
 
         del router.request.vars.reader
         self.assertEqual(router.get_reader(), 'slider')

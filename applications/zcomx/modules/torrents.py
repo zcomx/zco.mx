@@ -21,7 +21,6 @@ from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import NICES
 
@@ -73,7 +72,7 @@ class BaseTorrentCreator(TempDirectoryMixin):
             raise TorrentCreateError('Unable to get torrent target.')
 
         if not os.path.exists(target):
-            raise NotFoundError('Torrent target not found: {t}'.format(
+            raise LookupError('Torrent target not found: {t}'.format(
                 t=target))
 
         output_file = os.path.join(self.temp_directory(), 'file.torrent')
@@ -166,7 +165,7 @@ class BookTorrentCreator(BaseTorrentCreator):
         db = current.app.db
         self.book = entity_to_row(db.book, self.entity)
         if not self.book:
-            raise NotFoundError('Book not found: {e}'.format(e=self.entity))
+            raise LookupError('Book not found: {e}'.format(e=self.entity))
 
     def archive(self, base_path=None):
         """Archive the torrent.
@@ -190,7 +189,7 @@ class BookTorrentCreator(BaseTorrentCreator):
         db = current.app.db
         creator_record = entity_to_row(db.creator, self.book.creator_id)
         if not creator_record:
-            raise NotFoundError('Creator not found, id:{i}'.format(
+            raise LookupError('Creator not found, id:{i}'.format(
                 i=self.book.creator_id))
 
         tor_subdir = TorrentArchive.get_subdir_path(
@@ -221,7 +220,7 @@ class CreatorTorrentCreator(BaseTorrentCreator):
         db = current.app.db
         self.creator = entity_to_row(db.creator, self.entity)
         if not self.creator:
-            raise NotFoundError('Creator not found: {e}'.format(e=self.entity))
+            raise LookupError('Creator not found: {e}'.format(e=self.entity))
         self._cbz_base_path = None
 
     def archive(self, base_path=None):

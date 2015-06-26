@@ -39,7 +39,6 @@ from applications.zcomx.modules.tests.helpers import \
     ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 # C0111: Missing docstring
@@ -563,7 +562,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(creator.name_for_url, 'TestProfileOnaccept')
 
     def test__queue_update_indicia(self):
-        self.assertRaises(NotFoundError, queue_update_indicia, -1)
+        self.assertRaises(LookupError, queue_update_indicia, -1)
 
         creator = self.add(db.creator, dict(
             email='test__queue_update_indicia@example.com',
@@ -576,7 +575,7 @@ class TestFunctions(ImageTestCase):
         self._objects.append(job)
 
     def test__rss_url(self):
-        self.assertRaises(NotFoundError, rss_url, None)
+        self.assertRaises(LookupError, rss_url, None)
 
         creator = self.add(db.creator, dict(
             name_for_url='FirstLast',
@@ -643,7 +642,7 @@ class TestFunctions(ImageTestCase):
         )
 
         # Invalid id
-        self.assertRaises(NotFoundError, torrent_link, -1)
+        self.assertRaises(LookupError, torrent_link, -1)
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -674,7 +673,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__torrent_url(self):
-        self.assertRaises(NotFoundError, torrent_url, None)
+        self.assertRaises(LookupError, torrent_url, None)
 
         auth_user = self.add(db.auth_user, dict(name='First Last'))
         creator = self.add(db.creator, dict(auth_user_id=auth_user.id))

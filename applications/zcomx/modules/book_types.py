@@ -8,7 +8,6 @@ Classes and functions related to book types.
 import collections
 from gluon import *
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 
@@ -143,7 +142,7 @@ def by_name(type_name, default='one-shot'):
     Args:
         type_name: string, name of book_type
         default: default book_type name if book_type record not found.
-            If None and book_type record not found, raises NotFoundError.
+            If None and book_type record not found, raises LookupError.
     Returns:
         Row instance representing a book_type record
     """
@@ -151,13 +150,13 @@ def by_name(type_name, default='one-shot'):
     query = (db.book_type.name == type_name)
     book_type = db(query).select().first()
     if not book_type and default is None:
-        raise NotFoundError('Book type not found, name: {n}'.format(
+        raise LookupError('Book type not found, name: {n}'.format(
             n=type_name))
     if not book_type:
         query = (db.book_type.name == default)
         book_type = db(query).select().first()
         if not book_type:
-            raise NotFoundError('Book type not found, name: {n}'.format(
+            raise LookupError('Book type not found, name: {n}'.format(
                 n=default))
     return book_type
 
@@ -168,20 +167,20 @@ def from_id(book_type_id, default='one-shot'):
     Args:
         book_type_id: integer, id of book_type record
         default: default book_type name if book_type record not found.
-            If None and book_type record not found, raises NotFoundError.
+            If None and book_type record not found, raises LookupError.
     Returns:
         BaseBookType subclass instance
     """
     db = current.app.db
     book_type = entity_to_row(db.book_type, book_type_id)
     if not book_type and default is None:
-        raise NotFoundError('Book type not found, id: {i}'.format(
+        raise LookupError('Book type not found, id: {i}'.format(
             i=book_type_id))
     if not book_type:
         query = (db.book_type.name == default)
         book_type = db(query).select().first()
         if not book_type:
-            raise NotFoundError('Book type not found, name: {n}'.format(
+            raise LookupError('Book type not found, name: {n}'.format(
                 n=default))
     return CLASS_BY_NAME[book_type.name](
         book_type.name,

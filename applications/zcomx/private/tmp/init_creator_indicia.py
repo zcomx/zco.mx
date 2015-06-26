@@ -24,7 +24,6 @@ from optparse import OptionParser
 from applications.zcomx.modules.creators import \
     queue_update_indicia
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -99,7 +98,7 @@ def main():
     for creator_id in ids:
         creator = entity_to_row(db.creator, creator_id)
         if not creator:
-            raise NotFoundError('Creator not found, id: {i}'.format(
+            raise LookupError('Creator not found, id: {i}'.format(
                 i=creator_id))
         if not creator.indicia_portrait or not creator.indicia_landscape:
             LOG.debug('Queueing creator: %s', creator.name_for_url)

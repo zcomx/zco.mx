@@ -13,7 +13,6 @@ import os
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
-from applications.zcomx.modules.utils import NotFoundError
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -218,7 +217,7 @@ def main():
                 db.commit()
                 cc_licence = db(db.cc_licence.code == template.code).select().first()
         if not cc_licence:
-            raise NotFoundError('cc_licence not found, code: {code}'.format(
+            raise LookupError('cc_licence not found, code: {code}'.format(
                 code=template.code))
         if not options.dry_run:
             data = dict(

@@ -10,7 +10,6 @@ from gluon import *
 from applications.zcomx.modules.job_queue import \
     LogDownloadsQueuer
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 LOG = logging.getLogger('app')
@@ -37,7 +36,7 @@ def is_loggable(download_click_entity, interval_seconds=1800):
     db = current.app.db
     click = entity_to_row(db.download_click, download_click_entity)
     if not click:
-        raise NotFoundError('Download click not found, {e}'.format(
+        raise LookupError('Download click not found, {e}'.format(
             e=download_click_entity))
 
     click_as_epoch = click.time_stamp.strftime('%s')

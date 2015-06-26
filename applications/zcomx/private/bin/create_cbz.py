@@ -13,7 +13,6 @@ from optparse import OptionParser
 from applications.zcomx.modules.cbz import \
     CBZCreateError, \
     archive
-from applications.zcomx.modules.utils import NotFoundError
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -89,7 +88,7 @@ def main():
         LOG.debug('Creating cbz for: %s', book.name)
         try:
             archive(book)
-        except (CBZCreateError, NotFoundError) as err:
+        except (CBZCreateError, LookupError) as err:
             LOG.error('%s, %s', err, book.name)
             exit_status = 1
     if exit_status:

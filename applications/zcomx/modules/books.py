@@ -29,7 +29,6 @@ from applications.zcomx.modules.names import \
     names as name_values
 from applications.zcomx.modules.shell_utils import tthsum
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
@@ -217,7 +216,7 @@ def book_name(book_entity, use='file'):
     db = current.app.db
     book = entity_to_row(db.book, book_entity)
     if not book:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
     if use == 'file':
         return names(book.as_dict())['name_for_file']
     elif use == 'search':
@@ -247,7 +246,7 @@ def book_page_for_json(db, book_page_id):
     """
     try:
         page = BookPage(book_page_id)
-    except NotFoundError:
+    except LookupError:
         return
 
     filename = page.upload_image().original_name()
@@ -296,7 +295,7 @@ def book_pages(book_entity):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     pages = []
     query = (db.book_page.book_id == book_record.id)
@@ -344,7 +343,7 @@ def book_pages_years(book_entity):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     query = (db.book_page.book_id == book_record.id)
     return sorted(set(
@@ -436,7 +435,7 @@ def calc_status(book_entity):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     if book_record.status == BOOK_STATUS_DISABLED:
         return BOOK_STATUS_DISABLED
@@ -459,16 +458,16 @@ def cbz_comment(book_entity):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     creator_record = entity_to_row(db.creator, book_record.creator_id)
     if not creator_record:
-        raise NotFoundError('Creator not found, {e}'.format(
+        raise LookupError('Creator not found, {e}'.format(
             e=book_record.creator_id))
 
     cc_licence = entity_to_row(db.cc_licence, book_record.cc_licence_id)
     if not cc_licence:
-        raise NotFoundError('Cc licence not found, {e}'.format(
+        raise LookupError('Cc licence not found, {e}'.format(
             e=book_record.cc_licence_id))
 
     fields = []
@@ -491,11 +490,11 @@ def cc_licence_data(book_entity):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     creator_record = entity_to_row(db.creator, book_record.creator_id)
     if not creator_record:
-        raise NotFoundError('Creator not found, {e}'.format(
+        raise LookupError('Creator not found, {e}'.format(
             e=book_record.creator_id))
 
     year_list = book_pages_years(book_record)
@@ -658,7 +657,7 @@ def cover_image(db, book_entity, size='original', img_attributes=None):
     """
     try:
         first_page = get_page(book_entity, page_no='first')
-    except NotFoundError:
+    except LookupError:
         first_page = None
 
     image = first_page.image if first_page else None
@@ -833,13 +832,13 @@ def get_page(book_entity, page_no=1):
     Returns:
         Row instance representing a book_page.
     Raises:
-        NotFoundError, if book_entity doesn't match a book, or book doesn't
+        LookupError, if book_entity doesn't match a book, or book doesn't
             have a page associated with the provided page_no value.
     """
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     want_page_no = None
     if page_no == 'first':
@@ -854,14 +853,14 @@ def get_page(book_entity, page_no=1):
         except (TypeError, ValueError):
             want_page_no = None
     if want_page_no is None:
-        raise NotFoundError('Book id {b}, page not found, {p}'.format(
+        raise LookupError('Book id {b}, page not found, {p}'.format(
             b=book_record.id, p=page_no))
 
     query = (db.book_page.book_id == book_record.id) & \
             (db.book_page.page_no == want_page_no)
     book_page = db(query).select(db.book_page.ALL, limitby=(0, 1)).first()
     if not book_page:
-        raise NotFoundError('Book id {b}, page not found, {p}'.format(
+        raise LookupError('Book id {b}, page not found, {p}'.format(
             b=book_record.id, p=page_no))
 
     if page_no == 'indicia':
@@ -887,16 +886,16 @@ def html_metadata(book_entity):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     creator_record = entity_to_row(db.creator, book_record.creator_id)
     if not creator_record:
-        raise NotFoundError('Creator not found, {e}'.format(
+        raise LookupError('Creator not found, {e}'.format(
             e=book_record.creator_id))
 
     try:
         first_page = get_page(book_entity, page_no='first')
-    except NotFoundError:
+    except LookupError:
         first_page = None
 
     image_url = None
@@ -936,7 +935,7 @@ def images(book_entity):
     db = current.app.db
     book = entity_to_row(db.book, book_entity)
     if not book:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     image_names = []
 
@@ -974,7 +973,7 @@ def magnet_link(book_entity, components=None, **attributes):
     db = current.app.db
     book = entity_to_row(db.book, book_entity)
     if not book:
-        raise NotFoundError('Book not found, id: {e}'.format(
+        raise LookupError('Book not found, id: {e}'.format(
             e=book_entity))
 
     link_url = magnet_uri(book)
@@ -1079,7 +1078,7 @@ def next_book_in_series(book_entity):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     book_type = book_type_from_id(book_record.book_type_id)
     if not book_type.is_series():
@@ -1100,7 +1099,7 @@ def orientation(book_page_entity):
     """
     page = BookPage(book_page_entity)
     if not page.book_page.image:
-        raise NotFoundError('Book page has no image, book_page.id {i}'.format(
+        raise LookupError('Book page has no image, book_page.id {i}'.format(
             i=page.book_page.id))
 
     return ImageDescriptor(page.upload_image().fullname()).orientation()
@@ -1188,7 +1187,7 @@ def read_link(db, book_entity, components=None, **attributes):
 
     try:
         first_page = get_page(book, page_no='first')
-    except NotFoundError:
+    except LookupError:
         return empty
 
     if not components:
@@ -1217,7 +1216,7 @@ def rss_url(book_entity, **url_kwargs):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Creator not found, id: {e}'.format(
+        raise LookupError('Creator not found, id: {e}'.format(
             e=book_entity))
 
     name_of_creator = creator_name(book_record.creator_id, use='url')
@@ -1245,13 +1244,13 @@ def set_status(book_entity, status):
         status: string, the status of a book.
 
     Raises:
-        NotFoundError, if book_entity doesn't represent a book on file.
+        LookupError, if book_entity doesn't represent a book on file.
         ValueError, if the status is invalid.
     """
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     if status not in BOOK_STATUSES:
         raise ValueError('Invalid status {s}'.format(s=status))
@@ -1345,7 +1344,7 @@ def torrent_file_name(book_entity):
 
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Creator not found, id: {e}'.format(
+        raise LookupError('Creator not found, id: {e}'.format(
             e=book_entity))
 
     fmt = '{name} ({year}) ({cid}.zco.mx).cbz.torrent'
@@ -1372,7 +1371,7 @@ def torrent_link(book_entity, components=None, **attributes):
     db = current.app.db
     book = entity_to_row(db.book, book_entity)
     if not book:
-        raise NotFoundError('Book not found, id: {e}'.format(
+        raise LookupError('Book not found, id: {e}'.format(
             e=book_entity))
 
     link_url = torrent_url(book)
@@ -1408,7 +1407,7 @@ def torrent_url(book_entity, **url_kwargs):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Creator not found, id: {e}'.format(
+        raise LookupError('Creator not found, id: {e}'.format(
             e=book_entity))
 
     name_of_creator = creator_name(book_record.creator_id, use='url')
@@ -1443,11 +1442,11 @@ def tumblr_data(book_entity):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     try:
         first_page = get_page(book_entity, page_no='first')
-    except NotFoundError:
+    except LookupError:
         first_page = None
 
     first_page_image = first_page.image if first_page else None

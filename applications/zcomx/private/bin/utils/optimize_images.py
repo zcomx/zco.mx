@@ -15,7 +15,6 @@ from applications.zcomx.modules.creators import images as creator_images
 from applications.zcomx.modules.images_optimize import \
     AllSizesImages
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -40,7 +39,7 @@ def optimize_book_images(book_id, debug=False, force=False):
     """Optimize all images associated with a book."""
     book = entity_to_row(db.book, book_id)
     if not book:
-        raise NotFoundError('Book not found, id: {i}'.format(i=book_id))
+        raise LookupError('Book not found, id: {i}'.format(i=book_id))
 
     LOG.debug('Optimizing images for book: %s', book.name)
     if not debug:
@@ -57,7 +56,7 @@ def optimize_creator_images(creator_id, debug=False, force=False):
     """Optimize all images associated with a creator."""
     creator = entity_to_row(db.creator, creator_id)
     if not creator:
-        raise NotFoundError('Creator not found, id: {i}'.format(
+        raise LookupError('Creator not found, id: {i}'.format(
             i=creator_id))
 
     LOG.debug('Optimizing images for creator: %s', creator.name_for_url)

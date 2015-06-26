@@ -14,7 +14,6 @@ from applications.zcomx.modules.books import DownloadEvent
 from applications.zcomx.modules.job_queue import \
     LogDownloadsQueuer
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -30,12 +29,12 @@ def log(download_click_id, book_id):
     """
     click = entity_to_row(db.download_click, download_click_id)
     if not click:
-        raise NotFoundError('download_click not found, id: {i}'.format(
+        raise LookupError('download_click not found, id: {i}'.format(
             i=download_click_id))
 
     book = entity_to_row(db.book, book_id)
     if not book:
-        raise NotFoundError('book not found, id: {i}'.format(
+        raise LookupError('book not found, id: {i}'.format(
             i=book_id))
     return DownloadEvent(book, click.auth_user_id).log(value=click)
 
@@ -57,7 +56,7 @@ def unlogged_generator(limit=None):
 
         click = entity_to_row(db.download_click, download_click_id)
         if not click:
-            raise NotFoundError('download_click not found, id: {i}'.format(
+            raise LookupError('download_click not found, id: {i}'.format(
                 i=download_click_id))
 
         queries = []

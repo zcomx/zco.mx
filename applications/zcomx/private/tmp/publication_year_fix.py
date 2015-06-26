@@ -16,7 +16,6 @@ from optparse import OptionParser
 from applications.zcomx.modules.indicias import \
     PublicationMetadata
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -90,7 +89,7 @@ def main():
     for book_id in ids:
         book_record = entity_to_row(db.book, book_id)
         if not book_record:
-            raise NotFoundError('Book not found, id: {i}'.format(i=book_id))
+            raise LookupError('Book not found, id: {i}'.format(i=book_id))
         meta = PublicationMetadata(book_record)
         meta.load()
         try:

@@ -50,9 +50,6 @@ from applications.zcomx.modules.job_queue import \
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     TableTracker
-from applications.zcomx.modules.utils import \
-    NotFoundError
-
 
 # C0111: *Missing docstring*
 # R0904: *Too many public methods (%s/%s)*
@@ -644,6 +641,8 @@ class TestPostOnSocialMediaQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/social_media/post_book_completed.py --vv 123'
@@ -753,7 +752,7 @@ class TestQueue(LocalTestCase):
         for i in job_ids:
             try:
                 queue.remove_job(i)
-            except NotFoundError:
+            except LookupError:
                 pass
         self.assertEqual(queue.stats(), {})
 
@@ -911,8 +910,8 @@ class TestQueue(LocalTestCase):
         self.assertFalse(tracker.has(job_3))
 
         # Test remove of non-existent record
-        self.assertRaises(NotFoundError, queue.remove_job, -1)
-        self.assertRaises(NotFoundError, queue.remove_job, job_1.id)
+        self.assertRaises(LookupError, queue.remove_job, -1)
+        self.assertRaises(LookupError, queue.remove_job, job_1.id)
 
     def test__run_job(self):
 
@@ -993,7 +992,7 @@ if __name__ == '__main__':
             self.assertEqual(new_job.status, status)
 
         # Invalid job id
-        self.assertRaises(NotFoundError, queue.set_job_status, -1, 'a')
+        self.assertRaises(LookupError, queue.set_job_status, -1, 'a')
 
         # Invalid status
         self.assertRaises(InvalidStatusError, queue.set_job_status, job, 'z')

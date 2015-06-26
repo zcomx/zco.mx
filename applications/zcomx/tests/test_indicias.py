@@ -43,7 +43,6 @@ from applications.zcomx.modules.tests.runner import \
     _mock_date as mock_date
 from applications.zcomx.modules.shell_utils import UnixFile
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 # C0111: Missing docstring
@@ -1956,7 +1955,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 t[2]
             )
 
-        self.assertRaises(NotFoundError, render_cc_licence, {}, -1)
+        self.assertRaises(LookupError, render_cc_licence, {}, -1)
 
 
 def setUpModule():

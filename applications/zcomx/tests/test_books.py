@@ -79,7 +79,6 @@ from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
@@ -600,7 +599,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__cbz_comment(self):
 
-        self.assertRaises(NotFoundError, cbz_comment, -1)
+        self.assertRaises(LookupError, cbz_comment, -1)
 
         cc_licence_id = cc_licence_by_code('CC BY-ND', want='id', default=0)
 
@@ -615,7 +614,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         # Creator record not found
-        self.assertRaises(NotFoundError, cbz_comment, book)
+        self.assertRaises(LookupError, cbz_comment, book)
 
         auth_user = self.add(db.auth_user, dict(name='Test CBZ Comment'))
         creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
@@ -638,7 +637,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # date.today overridden
         self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
 
-        self.assertRaises(NotFoundError, cc_licence_data, -1)
+        self.assertRaises(LookupError, cc_licence_data, -1)
 
         book = self.add(db.book, dict(
             name='test__cc_licence_data',
@@ -654,7 +653,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         # no creator
-        self.assertRaises(NotFoundError, cc_licence_data, book)
+        self.assertRaises(LookupError, cc_licence_data, book)
 
         auth_user = self.add(db.auth_user, dict(name='Test CC Licence Data'))
         creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
@@ -1224,7 +1223,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 book_page = get_page(book, **kwargs)
                 self.assertEqual(book_page.id, expect.id)
             else:
-                self.assertRaises(NotFoundError, get_page, book, **kwargs)
+                self.assertRaises(LookupError, get_page, book, **kwargs)
 
         for page_no in ['first', 'last', 'indicia', 1, 2, None]:
             do_test(page_no, None)
@@ -1384,7 +1383,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['data-record_id'], str(book.id))
 
         # Invalid id
-        self.assertRaises(NotFoundError, magnet_link, -1)
+        self.assertRaises(LookupError, magnet_link, -1)
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -1584,13 +1583,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__orientation(self):
         # Test invalid book entity
-        self.assertRaises(NotFoundError, orientation, -1)
+        self.assertRaises(LookupError, orientation, -1)
 
         # Test book without an image.
         book_page = self.add(db.book_page, dict(
             image=None,
         ))
-        self.assertRaises(NotFoundError, orientation, book_page)
+        self.assertRaises(LookupError, orientation, book_page)
 
         for t in ['portrait', 'landscape', 'square']:
             img = '{n}.png'.format(n=t)
@@ -1752,7 +1751,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__rss_url(self):
-        self.assertRaises(NotFoundError, rss_url, -1)
+        self.assertRaises(LookupError, rss_url, -1)
 
         creator = self.add(db.creator, dict(
             email='test__torrent_url@example.com',
@@ -1777,7 +1776,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name='test__set_status',
         ))
 
-        self.assertRaises(NotFoundError, set_status, -1, BOOK_STATUS_ACTIVE)
+        self.assertRaises(LookupError, set_status, -1, BOOK_STATUS_ACTIVE)
         self.assertRaises(ValueError, set_status, book, '_fake_')
 
         for s in BOOK_STATUSES:
@@ -1969,7 +1968,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertAlmostEqual(creator_contributions(creator), 99.01)
 
     def test__torrent_file_name(self):
-        self.assertRaises(NotFoundError, torrent_file_name, -1)
+        self.assertRaises(LookupError, torrent_file_name, -1)
 
         creator = self.add(db.creator, dict(
             email='test__torrent_file_name@example.com',
@@ -2037,7 +2036,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
         # Invalid id
-        self.assertRaises(NotFoundError, torrent_link, -1)
+        self.assertRaises(LookupError, torrent_link, -1)
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -2068,7 +2067,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__torrent_url(self):
-        self.assertRaises(NotFoundError, torrent_url, -1)
+        self.assertRaises(LookupError, torrent_url, -1)
 
         creator = self.add(db.creator, dict(
             email='test__torrent_url@example.com',

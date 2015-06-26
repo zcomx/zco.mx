@@ -19,7 +19,6 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     url as creator_url
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import \
     SITE_NAME, \
@@ -71,7 +70,7 @@ class BaseRSSChannel(object):
             activity_log = entity_to_row(db.activity_log, r.id)
             try:
                 entry = activity_log_as_rss_entry(activity_log).feed_item()
-            except NotFoundError as err:
+            except LookupError as err:
                 # This may happen if a book deletion is in progress
                 LOG.error(err)
             else:
@@ -160,10 +159,10 @@ class BookRSSChannel(BaseRSSChannel):
         db = current.app.db
         self.book = entity_to_row(db.book, self.entity)
         if not self.book:
-            raise NotFoundError('Book not found: {e}'.format(e=self.entity))
+            raise LookupError('Book not found: {e}'.format(e=self.entity))
         self.creator = entity_to_row(db.creator, self.book.creator_id)
         if not self.creator:
-            raise NotFoundError('Creator not found: {e}'.format(e=self.entity))
+            raise LookupError('Creator not found: {e}'.format(e=self.entity))
 
     def description(self):
         db = current.app.db
@@ -182,7 +181,7 @@ class BookRSSChannel(BaseRSSChannel):
     def link(self):
         try:
             first_page = get_page(self.book, page_no='first')
-        except NotFoundError:
+        except LookupError:
             return URL(**Zco().all_rss_url)
         return page_url(first_page, extension=False, host=True)
 
@@ -211,7 +210,7 @@ class CartoonistRSSChannel(BaseRSSChannel):
         db = current.app.db
         self.creator = entity_to_row(db.creator, self.entity)
         if not self.creator:
-            raise NotFoundError('Creator not found: {e}'.format(e=self.entity))
+            raise LookupError('Creator not found: {e}'.format(e=self.entity))
 
     def description(self):
         return 'Recent activity of {c} on {s}.'.format(
@@ -255,15 +254,15 @@ class BaseRSSEntry(object):
             raise SyntaxError('No book page ids provided')
         self.first_page = self.first_of_pages()
         if not self.first_page:
-            raise NotFoundError('First page not found within: {e}'.format(
+            raise LookupError('First page not found within: {e}'.format(
                 e=self.book_page_ids))
         self.book = entity_to_row(db.book, self.first_page.book_id)
         if not self.book:
-            raise NotFoundError('Book not found: {e}'.format(
+            raise LookupError('Book not found: {e}'.format(
                 e=self.book_entity))
         self.creator = entity_to_row(db.creator, self.book.creator_id)
         if not self.creator:
-            raise NotFoundError('Creator not found, book: {e}'.format(
+            raise LookupError('Creator not found, book: {e}'.format(
                 e=self.book.id))
 
     def created_on(self):
@@ -397,10 +396,10 @@ def activity_log_as_rss_entry(activity_log_entity):
     db = current.app.db
     activity_log = entity_to_row(db.activity_log, activity_log_entity)
     if not activity_log:
-        raise NotFoundError('activity_log not found, {e}'.format(
+        raise LookupError('activity_log not found, {e}'.format(
             e=activity_log_entity))
     if not activity_log.book_page_ids:
-        raise NotFoundError('activity_log has no book page ids, {e}'.format(
+        raise LookupError('activity_log has no book page ids, {e}'.format(
             e=activity_log_entity))
 
     entry_class = entry_class_from_action(activity_log.action)
@@ -442,7 +441,7 @@ def entry_class_from_action(action):
     elif action == 'page added':
         return PageAddedRSSEntry
     else:
-        raise NotFoundError('Invalid RSS entry action: {a}'.format(a=action))
+        raise LookupError('Invalid RSS entry action: {a}'.format(a=action))
 
 
 def rss_serializer_with_image(feed):

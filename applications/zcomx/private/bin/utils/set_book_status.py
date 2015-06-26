@@ -14,7 +14,6 @@ from applications.zcomx.modules.books import \
     calc_status, \
     set_status
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import BOOK_STATUS_DISABLED
 
@@ -36,7 +35,7 @@ def book_generator(query):
     for book_id in ids:
         book = entity_to_row(db.book, book_id)
         if not book:
-            raise NotFoundError('Book not found, id: {i}'.format(i=book_id))
+            raise LookupError('Book not found, id: {i}'.format(i=book_id))
         yield book
 
 

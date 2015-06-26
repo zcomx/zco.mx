@@ -24,7 +24,6 @@ from applications.zcomx.modules.tests.helpers import \
     ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 # C0111: Missing docstring
@@ -211,7 +210,7 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
             name='TestGetMaxPageNo'
         ))
         creator = CBZCreator(book)
-        self.assertRaises(NotFoundError, creator.get_max_page_no)
+        self.assertRaises(LookupError, creator.get_max_page_no)
 
     def test__image_filename(self):
         # protected-access (W0212): *Access to a protected member %%s
