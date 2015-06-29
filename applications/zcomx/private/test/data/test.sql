@@ -1,5 +1,5 @@
 /* SQL queries used to set up for unittests. */
-
+DELETE FROM job;
 CREATE TABLE test__reorder(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name CHAR(512),
