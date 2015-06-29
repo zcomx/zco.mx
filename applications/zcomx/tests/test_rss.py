@@ -168,7 +168,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
-        desc = 'Posted: Dec 31, 1999 - The book My Book 001 by First Last has been set as completed.'
+        desc = "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
         self.assertEqual(entry['description'], desc)
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
@@ -211,7 +211,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
-        desc = 'Posted: Dec 31, 1999 - The book My Book 001 by First Last has been set as completed.'
+        desc = "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
         self.assertEqual(entry['description'], desc)
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
@@ -570,7 +570,7 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             entry.description(),
-            'Posted: Dec 31, 1999 - The book My Book 001 by First Last has been set as completed.'
+            "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
         )
 
     def test__description_fmt(self):
@@ -581,7 +581,7 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description_fmt(),
-            'Posted: {d} - The book {b} by {c} has been set as completed.'
+            "Posted: {d} - The book '{b}' by {c} has been set as completed."
         )
 
 
@@ -599,7 +599,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description(),
-            'Posted: Dec 31, 1999 - A page was added to the book My Book 001 by First Last.'
+            "Posted: Dec 31, 1999 - A page was added to the book 'My Book 001' by First Last."
         )
 
         # Multiple pages
@@ -610,7 +610,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description(),
-            'Posted: Dec 31, 1999 - Several pages were added to the book My Book 001 by First Last.'
+            "Posted: Dec 31, 1999 - Several pages were added to the book 'My Book 001' by First Last."
         )
 
     def test__description_fmt(self):
@@ -621,7 +621,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description_fmt(),
-            'Posted: {d} - A page was added to the book {b} by {c}.'
+            "Posted: {d} - A page was added to the book '{b}' by {c}."
         )
 
         entry = PageAddedRSSEntry(
@@ -631,7 +631,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description_fmt(),
-            'Posted: {d} - Several pages were added to the book {b} by {c}.'
+            "Posted: {d} - Several pages were added to the book '{b}' by {c}."
         )
 
 

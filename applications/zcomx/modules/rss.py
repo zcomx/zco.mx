@@ -367,7 +367,7 @@ class CompletedRSSEntry(BaseRSSEntry):
     """Class representing a 'completed' RSS entry"""
 
     def description_fmt(self):
-        return 'Posted: {d} - The book {b} by {c} has been set as completed.'
+        return "Posted: {d} - The book '{b}' by {c} has been set as completed."
 
 
 class PageAddedRSSEntry(BaseRSSEntry):
@@ -377,9 +377,9 @@ class PageAddedRSSEntry(BaseRSSEntry):
         if len(self.book_page_ids) > 1:
             # line-too-long (C0301): *Line too long (%%s/%%s)*
             # pylint: disable=C0301
-            return 'Posted: {d} - Several pages were added to the book {b} by {c}.'
+            return "Posted: {d} - Several pages were added to the book '{b}' by {c}."
         else:
-            return 'Posted: {d} - A page was added to the book {b} by {c}.'
+            return "Posted: {d} - A page was added to the book '{b}' by {c}."
 
 
 def activity_log_as_rss_entry(activity_log_entity):

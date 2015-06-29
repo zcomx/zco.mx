@@ -94,7 +94,7 @@ class TestFunctions(LocalTestCase):
         expect.append('<title>zco.mx: First Last</title>')
         expect.append('<description>Recent activity of First Last on zco.mx.</description>')
         expect.append("<title>'Test RSS' p01 by First Last</title>")
-        expect.append('<description>Posted: {d} - A page was added to the book Test RSS by First Last.</description>'.format(
+        expect.append("<description>Posted: {d} - A page was added to the book 'Test RSS' by First Last.</description>".format(
             d=self._activity_log_time_stamp_str))
         self.assertTrue(web.test(
             '{url}/route?&rss={rss}'.format(
@@ -111,7 +111,7 @@ class TestFunctions(LocalTestCase):
         expect.append('<title>zco.mx: Test RSS by First Last</title>')
         expect.append('<description>Recent activity of Test RSS by First Last on zco.mx.</description>')
         expect.append("<title>'Test RSS' p01 by First Last</title>")
-        expect.append('<description>Posted: {d} - A page was added to the book Test RSS by First Last.</description>'.format(
+        expect.append("<description>Posted: {d} - A page was added to the book 'Test RSS' by First Last.</description>".format(
             d=self._activity_log_time_stamp_str))
         self.assertTrue(web.test(
             '{url}/route?&creator={cid:03d}&rss={rss}'.format(
@@ -129,7 +129,7 @@ class TestFunctions(LocalTestCase):
         expect.append('<title>zco.mx: Test RSS by First Last</title>')
         expect.append('<description>Recent activity of Test RSS by First Last on zco.mx.</description>')
         expect.append("<title>'Test RSS' p01 by First Last</title>")
-        expect.append('<description>Posted: {d} - A page was added to the book Test RSS by First Last.</description>'.format(
+        expect.append("<description>Posted: {d} - A page was added to the book 'Test RSS' by First Last.</description>".format(
             d=self._activity_log_time_stamp_str))
         self.assertTrue(web.test(
             '{url}/route?&creator={name}&rss={rss}'.format(
@@ -146,7 +146,7 @@ class TestFunctions(LocalTestCase):
         expect.append('<title>zco.mx</title>')
         expect.append('<description>Recent activity on zco.mx.</description>')
         expect.append("<title>'Test RSS' p01 by First Last</title>")
-        expect.append('<description>Posted: {d} - A page was added to the book Test RSS by First Last.</description>'.format(
+        expect.append("<description>Posted: {d} - A page was added to the book 'Test RSS' by First Last.</description>".format(
             d=self._activity_log_time_stamp_str))
         self.assertTrue(web.test(
             '{url}/route?&rss=zco.mx.rss'.format(
