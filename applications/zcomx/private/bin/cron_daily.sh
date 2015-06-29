@@ -63,6 +63,7 @@ __v && __md "Start: integrity"
 $py applications/zcomx/private/bin/integrity.py
 
 __v && __md "Start: clean sessions"
+touch applications/zcomx/sessions/.gitignore        # Prevents delete
 $py applications/zcomx/../../scripts/sessions2trash.py --once
 
 __v && __md "Done ${0##*/}"
