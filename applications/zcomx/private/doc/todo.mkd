@@ -8,18 +8,27 @@
             <div class="tt-dataset tt-dataset-creators"></div>
 [-] reddit
     https://www.reddit.com/r/altcomix/
+[x] Share zco.mx comics on all the DC hubs
+    [x] As oogabooga, only/mainly share zco.mx files
+    [x] rsync zco.mx files to fs
+        $ rsync -azvP --delete /source/dir/  desthost:/dest/dir
+        $ rsync -azvP --delete -e "ssh -i /root/.ssh/id_rsa-syncbackup" zco.mx:/srv/http/zco.mx/web2py/applications/zcomx/private/var/cbz/zco.mx/ /mnt/raid/media/ebooks/tbr/zco.mx
 
 ``
 VERSION 3
-[S] Share zco.mx comics on all the DC hubs
-    As oogabooga, only/mainly share zco.mx files
+[S] Tighten Up css on RSS page
+    https://zco.mx/z/rss
+    ~/rss.png
+    [S] Link to a howto on 'rss to email'
+        * https://blogtrottr.com/
+        * thunderbird
+        * outlook
 
 [S] Add RSS/zc-share button to cartoonist and book pages
-
-[S] Link to a howto on 'rss to email'
-    * https://blogtrottr.com/
-    * thunderbird
-    * outlook
+    [ ] ongoing section
+    [ ] section section
+    [ ] cartoonist page
+    [ ] book page
 
 [/] Daily Summary of 'ongoing' pages - twitter
     "zco.mx Ongoing Books Update -- <url>"
@@ -47,6 +56,7 @@ VERSION 3
             p01 p02 p03
 
     [ ] In the search these 'ongoing' tweets look weird
+        http://p.zsw.ca/WR.png
         Twitter is prefetching info from tumblr.  Can we customize this?
 
 [S] Cartoonist Page -> Links to Cartoonist Articles/Interviews?
@@ -57,8 +67,7 @@ VERSION 3
 
 [S] Reader Page -> Notify users that left/right arrow keys turn page
     * one time modal via a cookie?
-    * fancy js that appears in bottom right corner for 10 seconds and
-      then never again?
+    * fancy js that appears in bottom right corner for 10 seconds and then never again?
 
 [S] Integrity Check For Torrents
     https://code.google.com/p/pyroscope/wiki/RtControlExamples
@@ -81,6 +90,7 @@ VERSION 3
 
 [ ] Screen Too Small For Slider
     http://www.forbiddenplanet.co.uk/blog/2015/zco-mx/#comment-87570
+[ ] Web images are too small on mac laptops
 
 
 VERSION 4
@@ -90,7 +100,6 @@ VERSION 4
 
 VERSION 5
 [S] Setup hypermail for real-only mailing lists in login area ?
-[ ] Web images are too small on mac laptops
 [S] Separate '001' and '01 (of 02)' from the title ?
 [S] Change bg to #fafafa ?, #e1dcca/#df7700 ?
     Not on the reader page
@@ -145,7 +154,6 @@ VERSION 6
     12459 - how to paginate long gn's -- modulo 30?
 [ ] login -> books page
     paginate 'released' and 'ongoing' books
-
 [ ] Tags (kids, by genre ??)
 [ ] Front Page -> 12560 - store attributes in session and reuse
 [ ] 12539 - Create aliases when users change their name
