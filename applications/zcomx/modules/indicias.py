@@ -34,7 +34,6 @@ from applications.zcomx.modules.shell_utils import \
     os_nice
 from applications.zcomx.modules.social_media import SOCIAL_MEDIA_CLASSES
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     default_record, \
     entity_to_row, \
     vars_to_records
@@ -83,7 +82,7 @@ class IndiciaPage(object):
         cc_licence_entity = cc_licence_by_code(
             self.default_licence_code, default=None)
         if cc_licence_entity is None:
-            raise NotFoundError('CC licence not found: {code}'.format(
+            raise LookupError('CC licence not found: {code}'.format(
                 code=self.default_licence_code))
         return cc_licence_entity
 
@@ -214,7 +213,7 @@ class BookIndiciaPage(IndiciaPage):
             try:
                 orientation = page_orientation(
                     get_page(self.book, page_no='last'))
-            except NotFoundError:
+            except LookupError:
                 orientation = 'portrait'
             if orientation != 'landscape':
                 orientation = 'portrait'
@@ -237,7 +236,7 @@ class BookIndiciaPage(IndiciaPage):
             query = (db.cc_licence.id == self.book.cc_licence_id)
             cc_licence_entity = db(query).select().first()
             if not cc_licence_entity:
-                raise NotFoundError('CC licence not found: {code}'.format(
+                raise LookupError('CC licence not found: {code}'.format(
                     code=self.default_licence_code))
 
         if not cc_licence_entity:
@@ -642,7 +641,7 @@ class PublicationMetadata(object):
         db = current.app.db
         book_record = entity_to_row(db.book, book_entity)
         if not book_record:
-            raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+            raise LookupError('Book not found, {e}'.format(e=book_entity))
         self.book = book_record
         self.metadata = metadata if metadata is not None else {}
         self.serials = serials if serials is not None else []
@@ -756,7 +755,7 @@ class PublicationMetadata(object):
         metadatas = vars_to_records(
             request_vars, 'publication_metadata', multiple=False)
         if not metadatas:
-            raise NotFoundError('Unable to convert vars to metadata.')
+            raise LookupError('Unable to convert vars to metadata.')
         self.metadata = metadatas[0]
         if self.metadata['republished'] \
                 and self.metadata['published_type'] == 'serial':
@@ -767,7 +766,7 @@ class PublicationMetadata(object):
             derivatives = vars_to_records(
                 request_vars, 'derivative', multiple=False)
             if not derivatives:
-                raise NotFoundError('Unable to convert vars to derivative.')
+                raise LookupError('Unable to convert vars to derivative.')
             self.derivative = derivatives[0]
         else:
             self.derivative = {}
@@ -967,7 +966,7 @@ class PublicationMetadata(object):
         ).first()
 
         if not publication_metadata:
-            raise NotFoundError('publication_metadata record not found')
+            raise LookupError('publication_metadata record not found')
 
         default = default_record(
             db.publication_metadata, ignore_fields='common')
@@ -1008,7 +1007,7 @@ class PublicationMetadata(object):
         )
 
         if len(self.serials) != len(existing):
-            raise NotFoundError('publication_serial do not match')
+            raise LookupError('publication_serial do not match')
 
         default = default_record(db.publication_serial, ignore_fields='common')
         default.update({
@@ -1040,7 +1039,7 @@ class PublicationMetadata(object):
             derivative = db(query).select(orderby=[db.derivative.id]).first()
 
             if not derivative:
-                raise NotFoundError('derivative record not found')
+                raise LookupError('derivative record not found')
 
             cc_licence_id = cc_licence_by_code(
                 IndiciaPage.default_licence_code,
@@ -1465,7 +1464,7 @@ def cc_licences(book_entity):
     db = current.app.db
     book_record = entity_to_row(db.book, book_entity)
     if not book_record:
-        raise NotFoundError('Book not found, {e}'.format(e=book_entity))
+        raise LookupError('Book not found, {e}'.format(e=book_entity))
 
     # {'value': record_id, 'text': description}, ...
     licences = db(db.cc_licence).select(
@@ -1533,7 +1532,7 @@ def render_cc_licence(
     db = current.app.db
     cc_licence_record = entity_to_row(db.cc_licence, cc_licence_entity)
     if not cc_licence_record:
-        raise NotFoundError('CC licence not found, {e}'.format(
+        raise LookupError('CC licence not found, {e}'.format(
             e=cc_licence_entity))
 
     default_url = URL(c='search', f='index')

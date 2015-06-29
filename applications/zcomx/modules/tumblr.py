@@ -18,7 +18,6 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row, \
     joined_list
 from applications.zcomx.modules.zco import SITE_NAME
@@ -254,7 +253,7 @@ class OngoingBookListing(object):
         if self.creator is None:
             self.creator = entity_to_row(db.creator, self.book.creator_id)
             if not self.creator:
-                raise NotFoundError(
+                raise LookupError(
                     'Creator not found, id: {c}', c=self.book.creator_id)
 
     def components(self):

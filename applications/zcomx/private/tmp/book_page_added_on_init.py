@@ -12,7 +12,6 @@ import traceback
 from gluon import *
 from optparse import OptionParser
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -28,7 +27,7 @@ def set_page_added_on(book_id):
     """
     book = entity_to_row(db.book, book_id)
     if not book:
-        raise NotFoundError('Book not found, id {b}'.format(b=book_id))
+        raise LookupError('Book not found, id {b}'.format(b=book_id))
     LOG.debug('Checking book: %s', book.name)
 
     max_created_on = db.book_page.created_on.max()

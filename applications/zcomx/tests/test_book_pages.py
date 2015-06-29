@@ -19,8 +19,6 @@ from applications.zcomx.modules.book_pages import \
     pages_sorted_by_page_no, \
     reset_book_page_nos
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import \
-    NotFoundError
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -103,7 +101,7 @@ class TestBookPage(LocalTestCase):
             image=None
         ))
         page = BookPage(book_page)
-        self.assertRaises(NotFoundError, BookPage, -1)
+        self.assertRaises(LookupError, BookPage, -1)
         self.assertEqual(page.min_cbz_width, 1600)
         self.assertEqual(page.min_cbz_height_to_exempt, 2560)
 

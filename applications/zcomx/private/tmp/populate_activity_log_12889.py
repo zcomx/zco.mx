@@ -16,7 +16,6 @@ from gluon.shell import env
 from optparse import OptionParser
 from applications.zcomx.modules.books import get_page
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -42,7 +41,7 @@ def log_completed():
             LOG.debug('Logging completed: %s', book.name)
             try:
                 first_page = get_page(book, page_no='first')
-            except NotFoundError:
+            except LookupError:
                 LOG.error('First page not found: %s', book.name)
                 continue
 

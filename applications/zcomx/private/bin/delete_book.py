@@ -11,7 +11,6 @@ from optparse import OptionParser
 from applications.zcomx.modules.books import book_tables
 from applications.zcomx.modules.job_queue import queue_search_prefetch
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -109,7 +108,7 @@ def main():
     book_id = args[0]
     book = entity_to_row(db.book, book_id)
     if not book:
-        raise NotFoundError('Book not found, id: %s', book_id)
+        raise LookupError('Book not found, id: %s', book_id)
 
     delete_records(book)
     queue_search_prefetch()

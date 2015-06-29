@@ -25,8 +25,6 @@ from applications.zcomx.modules.job_queue import \
     NotifyP2PQueuer, \
     PostOnSocialMediaQueuer, \
     ReleaseBookQueuer
-from applications.zcomx.modules.utils import \
-    NotFoundError
 from applications.zcomx.modules.zco import IN_PROGRESS
 
 VERSION = 'Version 0.1'
@@ -45,12 +43,12 @@ class Releaser(object):
         self.book_id = book_id
         self.book = db(db.book.id == book_id).select().first()
         if not self.book:
-            raise NotFoundError('Book not found, id: %s', book_id)
+            raise LookupError('Book not found, id: %s', book_id)
 
         query = (db.creator.id == self.book.creator_id)
         self.creator = db(query).select().first()
         if not self.creator:
-            raise NotFoundError(
+            raise LookupError(
                 'Creator not found, id: %s', self.book.creator_id)
         self.needs_requeue = False
 
@@ -156,7 +154,7 @@ class ReleaseBook(Releaser):
         # Log activity
         try:
             first_page = get_page(self.book, page_no='first')
-        except NotFoundError:
+        except LookupError:
             LOG.error('First page not found: %s', self.book.name)
         else:
             db.tentative_activity_log.insert(

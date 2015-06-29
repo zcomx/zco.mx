@@ -27,7 +27,6 @@ from applications.zcomx.modules.tweeter import \
     Poster as TwPoster, \
     creators_in_ongoing_post
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import \
     IN_PROGRESS, \
@@ -176,7 +175,7 @@ def get_ongoing_post(date, create=True):
         query = (db.ongoing_post.id == ongoing_post_id)
         ongoing_post = db(query).select().first()
         if not ongoing_post:
-            raise NotFoundError(
+            raise LookupError(
                 'Fail: get or create ongoing_post record for date {d}'.format(
                     d=str(date))
             )

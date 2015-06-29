@@ -16,7 +16,6 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     optimize
 from applications.zcomx.modules.images_optimize import AllSizesImages
-from applications.zcomx.modules.utils import NotFoundError
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -33,9 +32,9 @@ def run_delete(image, options):
     try:
         table, field, _ = image.split('.', 2)
     except ValueError:
-        raise NotFoundError('Invalid image {i}'.format(i=image))
+        raise LookupError('Invalid image {i}'.format(i=image))
     if table not in db.tables or field not in db[table]:
-        raise NotFoundError('Invalid image {i}'.format(i=image))
+        raise LookupError('Invalid image {i}'.format(i=image))
 
     LOG.debug('Deleting: %s', image)
 
@@ -63,9 +62,9 @@ def run_optimize(image, options):
     try:
         table, field, _ = image.split('.', 2)
     except ValueError:
-        raise NotFoundError('Invalid image {i}'.format(i=image))
+        raise LookupError('Invalid image {i}'.format(i=image))
     if table not in db.tables or field not in db[table]:
-        raise NotFoundError('Invalid image {i}'.format(i=image))
+        raise LookupError('Invalid image {i}'.format(i=image))
 
     upload_image = UploadImage(db[table][field], image)
     up_folder = db[table][field].uploadfolder.rstrip('/').rstrip('original')

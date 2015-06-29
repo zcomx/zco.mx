@@ -29,7 +29,6 @@ from applications.zcomx.modules.search import \
     CreatorMoniesGrid, \
     OngoingGrid
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_DISABLED, \
@@ -137,7 +136,7 @@ class Router(object):
         record = None
         try:
             record = get_page(book_record, page_no=page_no)
-        except NotFoundError:
+        except LookupError:
             pass
         if record:
             return record
@@ -147,7 +146,7 @@ class Router(object):
         try:
             last_page = get_page(
                 book_record, page_no='last')
-        except NotFoundError:
+        except LookupError:
             pass
 
         if not last_page or page_no != last_page.page_no + 1:
@@ -155,7 +154,7 @@ class Router(object):
 
         try:
             record = get_page(book_record, page_no='indicia')
-        except NotFoundError:
+        except LookupError:
             record = None
         return record
 
@@ -501,7 +500,7 @@ class Router(object):
         indicia = BookIndiciaPage(book_record)
         try:
             content = indicia.render()
-        except NotFoundError:
+        except LookupError:
             content = ''
 
         if content:
@@ -520,7 +519,7 @@ class Router(object):
 
         try:
             first_page = get_page(book_record, page_no='first')
-        except NotFoundError:
+        except LookupError:
             first_page = None
 
         scroll_link = A(

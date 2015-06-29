@@ -21,7 +21,6 @@ from applications.zcomx.modules.strings import \
     replace_punctuation, \
     squeeze_whitespace
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 from applications.zcomx.modules.zco import SITE_NAME
 
@@ -65,7 +64,6 @@ def add_creator(form):
         on_change_name(creator_id)
 
         queue_update_indicia(creator_id)     # Create default indicia
-        queue_search_prefetch()
 
 
 def book_for_contributions(db, creator_entity):
@@ -162,7 +160,7 @@ def creator_name(creator_entity, use='file'):
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)
     if not creator:
-        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
+        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
     if use == 'file':
         return CreatorName(formatted_name(creator)).for_file()
     elif use == 'search':
@@ -229,7 +227,7 @@ def html_metadata(creator_entity):
     db = current.app.db
     creator_record = entity_to_row(db.creator, creator_entity)
     if not creator_record:
-        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
+        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
 
     image_url = None
     if creator_record.image:
@@ -328,7 +326,7 @@ def images(creator_entity):
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)
     if not creator:
-        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
+        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
 
     image_names = []
     for field in db.creator.fields:
@@ -394,7 +392,7 @@ def queue_update_indicia(creator_entity):
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)
     if not creator:
-        raise NotFoundError('Creator not found, id: {e}'.format(
+        raise LookupError('Creator not found, id: {e}'.format(
             e=creator_entity))
 
     job = UpdateIndiciaQueuer(
@@ -426,7 +424,7 @@ def rss_url(creator_entity, **url_kwargs):
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)
     if not creator:
-        raise NotFoundError('Creator not found, id: {e}'.format(
+        raise LookupError('Creator not found, id: {e}'.format(
             e=creator_entity))
 
     controller = '{name}.rss'.format(name=creator_name(creator, use='url'))
@@ -478,7 +476,7 @@ def torrent_file_name(creator_entity):
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)
     if not creator:
-        raise NotFoundError('Creator not found, id: {e}'.format(
+        raise LookupError('Creator not found, id: {e}'.format(
             e=creator_entity))
 
     fmt = '{name} ({url}).torrent'
@@ -504,7 +502,7 @@ def torrent_link(creator_entity, components=None, **attributes):
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)
     if not creator:
-        raise NotFoundError('Creator not found, id: {e}'.format(
+        raise LookupError('Creator not found, id: {e}'.format(
             e=creator_entity))
 
     link_url = torrent_url(creator)
@@ -538,7 +536,7 @@ def torrent_url(creator_entity, **url_kwargs):
     db = current.app.db
     creator = entity_to_row(db.creator, creator_entity)
     if not creator:
-        raise NotFoundError('Creator not found, id: {e}'.format(
+        raise LookupError('Creator not found, id: {e}'.format(
             e=creator_entity))
 
     controller = '{name} ({i}.zco.mx).torrent'.format(
@@ -570,7 +568,7 @@ def tumblr_data(creator_entity):
     db = current.app.db
     creator_record = entity_to_row(db.creator, creator_entity)
     if not creator_record:
-        raise NotFoundError('Creator not found, {e}'.format(e=creator_entity))
+        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
 
     social_media = []           # (field, url) tuples
     social_media_fields = [

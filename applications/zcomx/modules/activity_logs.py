@@ -11,7 +11,6 @@ from applications.zcomx.modules.books import get_page
 from applications.zcomx.modules.book_pages import \
     pages_sorted_by_page_no
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 LOG = logging.getLogger('app')
@@ -158,7 +157,7 @@ class CompletedTentativeLogSet(BaseTentativeLogSet):
         try:
             first_page = get_page(
                 youngest_log.record['book_id'], page_no='first')
-        except NotFoundError:
+        except LookupError:
             first_page = None
 
         book_page_ids = [first_page.id] \

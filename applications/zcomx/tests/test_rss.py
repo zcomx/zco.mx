@@ -25,7 +25,6 @@ from applications.zcomx.modules.rss import \
     entry_class_from_action, \
     rss_serializer_with_image
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import NotFoundError
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -35,8 +34,6 @@ from applications.zcomx.modules.utils import NotFoundError
 class WithObjectsTestCase(LocalTestCase):
     _activity_log = None
     _activity_log_time_stamp = datetime.datetime(1999, 12, 31, 12, 30, 59)
-    _activity_log_time_stamp_str = datetime.datetime.strftime(
-        _activity_log_time_stamp, '%Y-%m-%d %H:%M:%S')
     _auth_user = None
     _book = None
     _book_page = None
@@ -171,7 +168,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
-        desc = 'Posted: Dec 31, 1999 - The book My Book 001 by First Last has been set as completed.'
+        desc = "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
         self.assertEqual(entry['description'], desc)
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
@@ -214,7 +211,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
-        desc = 'Posted: Dec 31, 1999 - The book My Book 001 by First Last has been set as completed.'
+        desc = "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
         self.assertEqual(entry['description'], desc)
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
@@ -573,7 +570,7 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             entry.description(),
-            'Posted: Dec 31, 1999 - The book My Book 001 by First Last has been set as completed.'
+            "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
         )
 
     def test__description_fmt(self):
@@ -584,7 +581,7 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description_fmt(),
-            'Posted: {d} - The book {b} by {c} has been set as completed.'
+            "Posted: {d} - The book '{b}' by {c} has been set as completed."
         )
 
 
@@ -602,7 +599,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description(),
-            'Posted: Dec 31, 1999 - A page was added to the book My Book 001 by First Last.'
+            "Posted: Dec 31, 1999 - A page was added to the book 'My Book 001' by First Last."
         )
 
         # Multiple pages
@@ -613,7 +610,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description(),
-            'Posted: Dec 31, 1999 - Several pages were added to the book My Book 001 by First Last.'
+            "Posted: Dec 31, 1999 - Several pages were added to the book 'My Book 001' by First Last."
         )
 
     def test__description_fmt(self):
@@ -624,7 +621,7 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description_fmt(),
-            'Posted: {d} - A page was added to the book {b} by {c}.'
+            "Posted: {d} - A page was added to the book '{b}' by {c}."
         )
 
         entry = PageAddedRSSEntry(
@@ -634,15 +631,15 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         )
         self.assertEqual(
             entry.description_fmt(),
-            'Posted: {d} - Several pages were added to the book {b} by {c}.'
+            "Posted: {d} - Several pages were added to the book '{b}' by {c}."
         )
 
 
 class TestFunctions(WithObjectsTestCase):
 
     def test__activity_log_as_rss_entry(self):
-        self.assertRaises(NotFoundError, activity_log_as_rss_entry, None)
-        self.assertRaises(NotFoundError, activity_log_as_rss_entry, -1)
+        self.assertRaises(LookupError, activity_log_as_rss_entry, None)
+        self.assertRaises(LookupError, activity_log_as_rss_entry, -1)
 
         for action in ['completed', 'page added']:
             self._activity_log.update_record(action=action)
@@ -653,7 +650,7 @@ class TestFunctions(WithObjectsTestCase):
             )
             self.assertEqual(got.book, self._book)
             self.assertEqual(
-                str(got.time_stamp), self._activity_log_time_stamp_str)
+                got.time_stamp, self._activity_log_time_stamp)
             self.assertEqual(got.activity_log_id, self._activity_log.id)
 
     def test__channel_from_type(self):
@@ -661,8 +658,8 @@ class TestFunctions(WithObjectsTestCase):
         self.assertRaises(SyntaxError, channel_from_type, '_fake_')
 
         # No record_id provided
-        self.assertRaises(NotFoundError, channel_from_type, 'creator')
-        self.assertRaises(NotFoundError, channel_from_type, 'book')
+        self.assertRaises(LookupError, channel_from_type, 'creator')
+        self.assertRaises(LookupError, channel_from_type, 'book')
 
         got = channel_from_type('all')
         self.assertTrue(isinstance(got, AllRSSChannel))
@@ -681,9 +678,9 @@ class TestFunctions(WithObjectsTestCase):
             entry_class_from_action('completed'), CompletedRSSEntry)
         self.assertEqual(
             entry_class_from_action('page added'), PageAddedRSSEntry)
-        self.assertRaises(NotFoundError, entry_class_from_action, None)
-        self.assertRaises(NotFoundError, entry_class_from_action, '')
-        self.assertRaises(NotFoundError, entry_class_from_action, '_fake_')
+        self.assertRaises(LookupError, entry_class_from_action, None)
+        self.assertRaises(LookupError, entry_class_from_action, '')
+        self.assertRaises(LookupError, entry_class_from_action, '_fake_')
 
     def test__rss_serializer_with_image(self):
         created_on = datetime.datetime(2015, 1, 31, 23, 30, 59)

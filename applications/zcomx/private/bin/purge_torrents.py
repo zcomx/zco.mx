@@ -13,7 +13,6 @@ from optparse import OptionParser
 from applications.zcomx.modules.archives import TorrentArchive
 from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -37,7 +36,7 @@ def creators_needing_purge():
             continue
         creator = entity_to_row(db.creator, creator_id)
         if not creator:
-            raise NotFoundError('Creator not found, id: {i}'.format(
+            raise LookupError('Creator not found, id: {i}'.format(
                 i=creator_id))
         yield creator
 

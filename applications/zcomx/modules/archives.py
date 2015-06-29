@@ -9,7 +9,6 @@ import os
 import shutil
 from gluon import *
 from applications.zcomx.modules.shell_utils import set_owner
-from applications.zcomx.modules.utils import NotFoundError
 
 
 class BaseArchive(object):
@@ -54,11 +53,11 @@ class BaseArchive(object):
                 mv src base_path/category/name/dst
         """
         if not os.path.exists(self.base_path):
-            raise NotFoundError('Base path not found: {f}'.format(
+            raise LookupError('Base path not found: {f}'.format(
                 f=self.base_path))
 
         if not os.path.exists(src):
-            raise NotFoundError('File not found: {f}'.format(f=src))
+            raise LookupError('File not found: {f}'.format(f=src))
 
         dst_filename = os.path.join(
             self.base_path,
@@ -119,7 +118,7 @@ class BaseArchive(object):
             filename
         )
         if not os.path.exists(full_filename):
-            raise NotFoundError('File not found: {f}'.format(f=full_filename))
+            raise LookupError('File not found: {f}'.format(f=full_filename))
         os.unlink(full_filename)
 
 

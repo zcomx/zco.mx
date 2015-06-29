@@ -19,7 +19,6 @@ import time
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     default_record, \
     entity_to_row
 
@@ -433,7 +432,7 @@ class Queue(object):
         # pylint: disable=E1101
         job_record = entity_to_row(self.tbl, job_entity)
         if not job_record:
-            raise NotFoundError('Job not found: {j}'.format(j=job_entity))
+            raise LookupError('Job not found: {j}'.format(j=job_entity))
         if not job_record.command:
             return
         if job_record.command.startswith('applications/'):
@@ -458,7 +457,7 @@ class Queue(object):
         """
         job_record = entity_to_row(self.tbl, job_entity)
         if not job_record:
-            raise NotFoundError('Job not found: {j}'.format(j=job_entity))
+            raise LookupError('Job not found: {j}'.format(j=job_entity))
         job_record.delete_record()
         self.db.commit()
 
@@ -472,7 +471,7 @@ class Queue(object):
         """
         job_record = entity_to_row(self.tbl, job_entity)
         if not job_record:
-            raise NotFoundError('Job not found: {j}'.format(j=job_entity))
+            raise LookupError('Job not found: {j}'.format(j=job_entity))
         if status not in self.job_statuses:
             raise InvalidStatusError(
                 'Invalid status: {s}'.format(s=status))

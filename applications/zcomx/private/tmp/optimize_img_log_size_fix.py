@@ -18,7 +18,6 @@ from gluon.shell import env
 from optparse import OptionParser
 from applications.zcomx.modules.images import SIZES
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -115,7 +114,7 @@ def main():
     for log_id in ids:
         log = entity_to_row(db.optimize_img_log, log_id)
         if not log:
-            raise NotFoundError('Log not found, id: %s', log_id)
+            raise LookupError('Log not found, id: %s', log_id)
         add_sizes(log)
     LOG.info('Done.')
 

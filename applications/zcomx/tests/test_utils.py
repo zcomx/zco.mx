@@ -102,12 +102,13 @@ class TestFunctions(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUpClass(cls):
+        # Duplicate changes here in private/data/test.sql
         db.define_table(
             'test__reorder',
             Field('name'),
             Field('order_no', 'integer'),
-            migrate=True,
         )
+        db.commit()
 
         db.test__reorder.truncate()
 

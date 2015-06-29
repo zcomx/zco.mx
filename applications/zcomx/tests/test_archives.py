@@ -16,7 +16,6 @@ from applications.zcomx.modules.archives import \
     TorrentArchive, \
     ZcoMxArchive
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import NotFoundError
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -77,14 +76,14 @@ class TestBaseArchive(LocalTestCase):
 
         # Test: src does not exist
         self.assertRaises(
-            NotFoundError, archive.add_file, '/tmp/_fake_', 'F/First Last')
+            LookupError, archive.add_file, '/tmp/_fake_', 'F/First Last')
 
         # Test: base_path does not exist
         archive = BaseArchive('/tmp/_invalid_')
         with open(filename, 'w') as f:
             f.write('Testing')
         self.assertRaises(
-            NotFoundError, archive.add_file, filename, 'F/First Last')
+            LookupError, archive.add_file, filename, 'F/First Last')
 
     def test__get_subdir_path(self):
         archive = BaseArchive(self._base_path)

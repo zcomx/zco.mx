@@ -15,7 +15,6 @@ from applications.zcomx.modules.torrents import \
     BookTorrentCreator, \
     CreatorTorrentCreator
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row
 
 VERSION = 'Version 0.1'
@@ -32,14 +31,14 @@ def book_torrent(book_id):
     """Create a torrent for a book."""
     book = entity_to_row(db.book, book_id)
     if not book:
-        raise NotFoundError('Book not found, id: {i}'.format(i=book_id))
+        raise LookupError('Book not found, id: {i}'.format(i=book_id))
 
     result = BookTorrentCreator(book).archive()
     LOG.debug('Created: %s', result)
 
     creator = entity_to_row(db.creator, book.creator_id)
     if not creator:
-        raise NotFoundError('Creator not found, id: {i}'.format(
+        raise LookupError('Creator not found, id: {i}'.format(
             i=book.creator_id))
 
     if not creator.rebuild_torrent:
@@ -52,7 +51,7 @@ def creator_torrent(creator_id):
 
     creator = entity_to_row(db.creator, creator_id)
     if not creator:
-        raise NotFoundError('Creator not found, id: {i}'.format(
+        raise LookupError('Creator not found, id: {i}'.format(
             i=creator_id))
 
     result = CreatorTorrentCreator(creator).archive()

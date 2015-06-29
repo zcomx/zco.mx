@@ -23,6 +23,9 @@ class TestFunctions(LocalTestCase):
     _creator = None
     _book = None
     _book_page = None
+    _activity_log_time_stamp = datetime.datetime.now()
+    _activity_log_time_stamp_str = datetime.datetime.strftime(
+        _activity_log_time_stamp, '%b %d, %Y')
 
     titles = {
         'modal': '<div id="rss_modal">',
@@ -70,7 +73,7 @@ class TestFunctions(LocalTestCase):
             book_id=self._book.id,
             book_page_ids=[self._book_page.id],
             action='page added',
-            time_stamp=datetime.datetime.now(),
+            time_stamp=self._activity_log_time_stamp,
         ))
 
     def test__modal(self):
@@ -88,10 +91,11 @@ class TestFunctions(LocalTestCase):
         # Test cartoonist rss
         expect = []
         expect.extend(self.titles['rss'])
-        expect.append('<title>First Last on zco.mx</title>')
+        expect.append('<title>zco.mx: First Last</title>')
         expect.append('<description>Recent activity of First Last on zco.mx.</description>')
-        expect.append('<title>Test RSS by First Last</title>')
-        expect.append('<description>A page was added to the book Test RSS by First Last.</description>')
+        expect.append("<title>'Test RSS' p01 by First Last</title>")
+        expect.append("<description>Posted: {d} - A page was added to the book 'Test RSS' by First Last.</description>".format(
+            d=self._activity_log_time_stamp_str))
         self.assertTrue(web.test(
             '{url}/route?&rss={rss}'.format(
                 url=self.url,
@@ -104,10 +108,11 @@ class TestFunctions(LocalTestCase):
         expect = []
         expect.extend(self.titles['rss'])
         expect.append(self._book.name)
-        expect.append('<title>Test RSS by First Last on zco.mx</title>')
+        expect.append('<title>zco.mx: Test RSS by First Last</title>')
         expect.append('<description>Recent activity of Test RSS by First Last on zco.mx.</description>')
-        expect.append('<title>Test RSS by First Last</title>')
-        expect.append('<description>A page was added to the book Test RSS by First Last.</description>')
+        expect.append("<title>'Test RSS' p01 by First Last</title>")
+        expect.append("<description>Posted: {d} - A page was added to the book 'Test RSS' by First Last.</description>".format(
+            d=self._activity_log_time_stamp_str))
         self.assertTrue(web.test(
             '{url}/route?&creator={cid:03d}&rss={rss}'.format(
                 url=self.url,
@@ -121,10 +126,11 @@ class TestFunctions(LocalTestCase):
         expect = []
         expect.extend(self.titles['rss'])
         expect.append(self._book.name)
-        expect.append('<title>Test RSS by First Last on zco.mx</title>')
+        expect.append('<title>zco.mx: Test RSS by First Last</title>')
         expect.append('<description>Recent activity of Test RSS by First Last on zco.mx.</description>')
-        expect.append('<title>Test RSS by First Last</title>')
-        expect.append('<description>A page was added to the book Test RSS by First Last.</description>')
+        expect.append("<title>'Test RSS' p01 by First Last</title>")
+        expect.append("<description>Posted: {d} - A page was added to the book 'Test RSS' by First Last.</description>".format(
+            d=self._activity_log_time_stamp_str))
         self.assertTrue(web.test(
             '{url}/route?&creator={name}&rss={rss}'.format(
                 url=self.url,
@@ -139,8 +145,9 @@ class TestFunctions(LocalTestCase):
         expect.extend(self.titles['rss'])
         expect.append('<title>zco.mx</title>')
         expect.append('<description>Recent activity on zco.mx.</description>')
-        expect.append('<title>Test RSS by First Last</title>')
-        expect.append('<description>A page was added to the book Test RSS by First Last.</description>')
+        expect.append("<title>'Test RSS' p01 by First Last</title>")
+        expect.append("<description>Posted: {d} - A page was added to the book 'Test RSS' by First Last.</description>".format(
+            d=self._activity_log_time_stamp_str))
         self.assertTrue(web.test(
             '{url}/route?&rss=zco.mx.rss'.format(
                 url=self.url),

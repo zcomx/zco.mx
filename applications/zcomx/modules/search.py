@@ -27,7 +27,6 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
 from applications.zcomx.modules.utils import \
-    NotFoundError, \
     entity_to_row, \
     replace_in_elements
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
@@ -659,7 +658,7 @@ class CreatorMoniesGrid(Grid):
         if creator_entity is not None:
             self.creator = entity_to_row(db.creator, creator_entity)
             if not self.creator:
-                raise NotFoundError('Creator not found: {e}'.format(
+                raise LookupError('Creator not found: {e}'.format(
                     e=creator_entity))
 
         Grid.__init__(
