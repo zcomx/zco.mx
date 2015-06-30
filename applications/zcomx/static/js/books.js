@@ -225,7 +225,6 @@
         },
 
         update: function() {
-            console.log('update called');
             var that = this;
             var url = '/zcomx/login/book_crud.json';
 
@@ -374,20 +373,7 @@
                 label: 'Close',
                 cssClass: 'btn_upload_close',
                 action : function(dialog){
-                    var close = true;
-                    var activeUploads = $('#fileupload').fileupload('active');
-                    if (activeUploads > 0) {
-                        if (!confirm('Active uploads will be aborted.')) {
-                            return false;
-                        }
-                        dialog.getModalBody().find('.template-upload').each(function() {
-                            var data = $(this).data('data') || {};
-                            if (data.jqXHR) {
-                                data.jqXHR.abort();
-                            }
-                        });
-                    }
-                    dialog.close();
+                    that.post_on_web(dialog);
                 }
             });
             return btns;
@@ -399,11 +385,6 @@
                 page_ids.push($(elem).data('book_page_id'));
             });
             return page_ids;
-        },
-
-        onhidden: function(dialog) {
-            this.post_image_upload(dialog);
-            UploadModalize.superclass.onhidden.call(this, dialog);
         },
 
         onshow: function(dialog) {
@@ -422,12 +403,27 @@
             }, 1000);
         },
 
-        post_image_upload: function(dialog) {
+        post_on_web: function(dialog) {
+            $('#fileupload').addClass('fileupload-processing');
+            $('.btn_upload_close').addClass('disabled');
+
+            var activeUploads = $('#fileupload').fileupload('active');
+            if (activeUploads > 0) {
+                if (!confirm('Active uploads will be aborted.')) {
+                    $('#fileupload').removeClass('fileupload-processing');
+                    $('.btn_upload_close').removeClass('disabled');
+                    return false;
+                }
+                dialog.getModalBody().find('.template-upload').each(function() {
+                    var data = $(this).data('data') || {};
+                    if (data.jqXHR) {
+                        data.jqXHR.abort();
+                    }
+                });
+            }
 
             var url = '/zcomx/login/book_post_upload_session'
             url = url + '/' + this.$book_id;
-
-            $('#fileupload').addClass('fileupload-processing');
 
             $.ajax({
                 url: url,
@@ -438,9 +434,9 @@
                     original_page_count: this.$page_count,
                 },
             }).always(function () {
+                $('.btn_upload_close').removeClass('disabled');
                 $('#fileupload').removeClass('fileupload-processing');
-            // }).done(function (result) {
-                // Reordering not critical, ignore results
+                dialog.close();
             })
         }
     });

@@ -24,7 +24,8 @@ from applications.zcomx.modules.job_queue import \
     CreateCreatorTorrentQueuer, \
     NotifyP2PQueuer, \
     PostOnSocialMediaQueuer, \
-    ReleaseBookQueuer
+    ReleaseBookQueuer, \
+    UpdateIndiciaForReleaseQueuer
 from applications.zcomx.modules.zco import IN_PROGRESS
 
 VERSION = 'Version 0.1'
@@ -86,6 +87,15 @@ class ReleaseBook(Releaser):
         book_image_set = CBZImagesForRelease.from_names(book_images(self.book))
         if book_image_set.has_unoptimized():
             book_image_set.optimize()
+            self.needs_requeue = True
+            return
+
+        if not self.creator.indicia_portrait or \
+                not self.creator.indicia_landscape:
+            UpdateIndiciaForReleaseQueuer(
+                db.job,
+                cli_args=[str(self.creator.id)],
+            ).queue()
             self.needs_requeue = True
             return
 

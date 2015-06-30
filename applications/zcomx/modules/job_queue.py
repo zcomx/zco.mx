@@ -28,6 +28,7 @@ PRIORITIES = list(reversed([
     # Highest
     'optimize_cbz_img_for_release',
     'optimize_img_for_release',
+    'update_creator_indicia_for_release',
     'create_cbz',
     'create_book_torrent',
     'post_book_completed',
@@ -789,6 +790,13 @@ class UpdateIndiciaQueuer(JobQueuer):
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal
+
+
+class UpdateIndiciaForReleaseQueuer(UpdateIndiciaQueuer):
+    """Class representing a queuer for update_creator_indicia for release jobs."""
+    default_job_options = dict(UpdateIndiciaQueuer.default_job_options)
+    default_job_options['priority'] = PRIORITIES.index(
+        'update_creator_indicia_for_release')
 
 
 def queue_search_prefetch():
