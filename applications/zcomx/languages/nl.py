@@ -239,6 +239,7 @@
 'new record inserted': 'nieuw record ingevoegd',
 'next 100 rows': 'volgende 100 rijen',
 'NO': 'NEE',
+'No completed books': 'No completed books',
 'No databases in this application': 'Geen database in deze applicatie',
 'No ongoing series': 'No ongoing series',
 'No records found': 'No records found',
