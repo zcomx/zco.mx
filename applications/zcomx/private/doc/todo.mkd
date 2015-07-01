@@ -21,8 +21,8 @@ VERSION 3
     [S] Mockup
 
 [S] Reader Page -> Notify users that left/right arrow keys turn page
-    * one time modal via a cookie?
     * fancy js that appears in bottom right corner for 10 seconds and then never again?
+    * one time modal via a cookie?
 
 [S] Integrity Check For Torrents
     https://code.google.com/p/pyroscope/wiki/RtControlExamples
