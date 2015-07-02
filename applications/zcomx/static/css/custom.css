@@ -1046,9 +1046,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+.rss_widget_body {
+    font-size: 12pt;
+    margin-top: 0.4em;
+}
+
 .rss_widget_body dt {
     font-weight: inherit;
-    margin-top: 1em;
+    margin-top: 1.4em;
 }
 
 .rss_widget_body dd {
@@ -1075,6 +1080,29 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: auto;
 }
 
+.rss_widget_ddm {
+    font-size: 18pt;
+    margin-bottom: 1.2em;
+}
+
+@media (max-width: 992px){
+    .rss_widget_ddm {
+        margin-top: 1.2em;
+    }
+}
+
+.rss_widget_ddm select {
+    background-color: #F3F3F3;
+    border: none;
+    border-radius: 0;
+    color: #333333;
+    font-size: 18pt;
+    padding: 0 5px;
+}
+
+.rss_disclaim {
+    margin-top: 4em;
+}
 
 #creator_page #name h1 {
     margin: 0;
