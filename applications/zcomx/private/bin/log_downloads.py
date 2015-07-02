@@ -10,7 +10,9 @@ Script to log download clicks.
 # pylint: disable=W0404
 import logging
 from optparse import OptionParser
-from applications.zcomx.modules.books import DownloadEvent
+from applications.zcomx.modules.books import \
+    Book, \
+    DownloadEvent
 from applications.zcomx.modules.job_queue import \
     LogDownloadsQueuer
 from applications.zcomx.modules.utils import \
@@ -32,10 +34,7 @@ def log(download_click_id, book_id):
         raise LookupError('download_click not found, id: {i}'.format(
             i=download_click_id))
 
-    book = entity_to_row(db.book, book_id)
-    if not book:
-        raise LookupError('book not found, id: {i}'.format(
-            i=book_id))
+    book = Book.from_id(book_id)
     return DownloadEvent(book, click.auth_user_id).log(value=click)
 
 

@@ -11,6 +11,7 @@ import os
 import urlparse
 from gluon import *
 from pydal.helpers.regex import REGEX_STORE_PATTERN
+from pydal.objects import Row
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import \
@@ -42,6 +43,18 @@ DEFAULT_BOOK_TYPE = 'one-shot'
 LOG = logging.getLogger('app')
 
 
+class Book(Row):
+    """Class representing a book record."""
+
+    @classmethod
+    def from_id(cls, record_id):
+        db = current.app.db
+        book = db(db.book.id == record_id).select().first()
+        if not book:
+            raise LookupError('Book not found, id {i}'.format(i=record_id))
+        return book
+
+
 class BaseEvent(object):
     """Base class representing a loggable event"""
 
@@ -71,18 +84,16 @@ class BaseEvent(object):
 class BookEvent(BaseEvent):
     """Class representing a loggable book event"""
 
-    def __init__(self, book_entity, user_id):
+    def __init__(self, book, user_id):
         """Constructor
 
         Args:
-            book_entity: Row instance or integer, if integer, this is the id of
-                the book. The book record is read.
+            book: Book instance
             user_id: integer, id of user triggering event.
         """
         super(BookEvent, self).__init__(user_id)
         db = current.app.db
-        self.book_entity = book_entity
-        self.book = entity_to_row(db.book, book_entity)
+        self.book = book
 
     def _log(self, value=None):
         raise NotImplementedError
