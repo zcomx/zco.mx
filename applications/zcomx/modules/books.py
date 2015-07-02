@@ -48,6 +48,11 @@ class Book(Row):
 
     @classmethod
     def from_id(cls, record_id):
+        """Create instance from record id.
+
+        Args:
+            record_id: integer, id of record
+        """
         db = current.app.db
         book = db(db.book.id == record_id).select().first()
         if not book:
