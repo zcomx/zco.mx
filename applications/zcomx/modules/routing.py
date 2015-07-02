@@ -553,6 +553,12 @@ class Router(object):
             URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
         )
 
+        use_scroller_if_short_view = False
+        if 'reader' not in request.vars \
+                and reader != 'scroller' \
+                and indicia.get_orientation() != 'landscape':
+            use_scroller_if_short_view = True
+
         self.view_dict = dict(
             book=book_record,
             creator=creator_record,
@@ -561,6 +567,7 @@ class Router(object):
             reader=reader,
             size='web',
             start_page_no=book_page_record.page_no,
+            use_scroller_if_short_view=use_scroller_if_short_view,
         )
 
         self.view = 'books/{reader}.html'.format(reader=reader)
