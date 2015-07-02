@@ -1,18 +1,23 @@
 ``
-VERSION 3
-[S] Tighten Up css on RSS page
+[x] Tighten Up css on RSS page
     https://zco.mx/z/rss
     ~/rss.png
-    [S] Link to a howto on 'rss to email'
+    [x] Link to a howto on 'rss to email'
         * https://blogtrottr.com/
         * thunderbird
         * outlook
+[x] Screen Too Small For Slider
+    http://www.forbiddenplanet.co.uk/blog/2015/zco-mx/#comment-87570
 
+VERSION 3
 [S] Add RSS/zc-share button to cartoonist and book pages
-    [ ] ongoing section
-    [ ] section section
+    [ ] ongoing section - tile
+    [ ] ongoing section - list
+    [ ] cartoonist section - tile
+    [ ] cartoonist section - list
     [ ] cartoonist page
     [ ] book page
+    [ ] comic page ?
 
 [S] Cartoonist Page -> Links to Cartoonist Articles/Interviews?
     [S] Mockup
@@ -38,9 +43,8 @@ VERSION 3
 [S] Roger's Poster
     giclee 8 colour inkjet printer
 
-[ ] Screen Too Small For Slider
-    http://www.forbiddenplanet.co.uk/blog/2015/zco-mx/#comment-87570
-[ ] Web images are too small on mac laptops
+[ ] Web images are too small on hi-res screens
+    If the portview has a height > 1200px, then cbz image
 
 
 VERSION 4
