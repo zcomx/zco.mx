@@ -18,6 +18,10 @@
                 $.fn.book_reader.defaults,
                 options
             );
+            this.size = 'web';
+            if (this.options.max_h_for_web && $(window).height() > this.options.max_h_for_web) {
+                this.size = 'cbz';
+            }
             this.$reader_section = $('#reader_section');
             this.init_listeners();
             if (this.options.img_container_class) {
@@ -33,7 +37,9 @@
             if (div_img.find('img').length > 0) {
                 return;
             }
-            var src = '/images/download/' + div_img.data("image") + '?size=web';
+
+            var src = '/images/download/' + div_img.data("image") + '?size=' + this.size;
+
             $('<img />').attr('src', src)
                 .addClass('book_page_img')
                 .appendTo(div_img);
@@ -393,6 +399,7 @@
     $.fn.book_reader.defaults = {
         start_page_no: 1,
         img_container_class: null,
+        max_h_for_web: 1200,
     };
 
 }(window.jQuery));
