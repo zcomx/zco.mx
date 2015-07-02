@@ -40,7 +40,7 @@ class TestFunctions(LocalTestCase):
         'ongoing': '<div id="front_page">',
         'overview': '<h1>Overview</h1>',
         'page_not_found': '<h3>Page not found</h3>',
-        'rss': '<h1>Reader Notifications</h1>',
+        'rss': '<div id="rss_page">',
         'search': '<div id="front_page">',
         'terms': '<h1>Terms and Conditions</h1>',
         'todo': '<h1>TODO</h1>',
