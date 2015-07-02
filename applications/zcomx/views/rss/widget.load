@@ -4,7 +4,9 @@
 <div class="rss_widget_body">
 
 {{=form.custom.begin}}
-Follow {{=form.custom.widget.creator_id}} on zco.mx:
+<div class="rss_widget_ddm">
+Follow {{=form.custom.widget.creator_id}}
+</div>
 {{=form.custom.end}}
 
 {{if creator:}}

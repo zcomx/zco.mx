@@ -230,7 +230,7 @@ def widget():
                 IS_IN_SET(
                     names,
                     labels=labels,
-                    zero='-',
+                    zero='- - -',
                 )
             )
         ),

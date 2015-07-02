@@ -1,11 +1,13 @@
 {{extend 'layout_main.html'}}
 {{=LOAD(c='z', f='top', args='about', extension='load', ajax=False, content='')}}
+
 <div id="rss_page">
-
-<h1>Reader Notifications</h1>
-<div id="rss_notifications"></div>
-
+    <div id="rss_notifications"></div>
+    <div class="rss_disclaim">
+        See <a href="https://kb.zco.mx/howto-rss">this link</a> for more information on how to use RSS.
+    </div>
 </div>
+
 <script>
 //<![CDATA[
     $(document).ready(function(){
