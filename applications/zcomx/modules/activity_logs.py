@@ -10,6 +10,7 @@ from gluon import *
 from applications.zcomx.modules.books import get_page
 from applications.zcomx.modules.book_pages import \
     pages_sorted_by_page_no
+from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.utils import \
     entity_to_row
 
@@ -18,25 +19,8 @@ LOG = logging.getLogger('app')
 MINIMUM_AGE_TO_LOG_IN_SECONDS = 4 * 60 * 60       # 4 hours
 
 
-class BaseActivityLog(object):
-    """Class representing a BaseActivityLog"""
-
-    db_table = 'activity_log'
-
-    def __init__(self, record):
-        """Initializer
-
-        Args:
-            record: dict,
-                {
-                    'id': <id>,
-                    'book_id': <book_id>,
-                    'book_page_id': <book_page_id>,
-                    'action': <action>,
-                    'time_stamp': <time_stamp>,
-                }
-        """
-        self.record = record
+class ActivityLogMixin(object):
+    """Mixin class for activity log classes."""
 
     def age(self, as_of=None):
         """Return the age of the record in seconds.
@@ -50,31 +34,18 @@ class BaseActivityLog(object):
         """
         if as_of is None:
             as_of = datetime.datetime.now()
-        if not self.record or 'time_stamp' not in self.record:
+        if 'time_stamp' not in self.keys() or not self.time_stamp:
             raise SyntaxError(
                 'Activity log has no timestamp, age indeterminate')
-        return as_of - self.record['time_stamp']
-
-    def delete(self):
-        """Delete the record from the db"""
-        db = current.app.db
-        db(db[self.db_table].id == self.record['id']).delete()
-        db.commit()
-
-    def save(self):
-        """Save the record to the db."""
-        db = current.app.db
-        record_id = db[self.db_table].insert(**self.record)
-        db.commit()
-        return record_id
+        return as_of - self.time_stamp
 
 
-class ActivityLog(BaseActivityLog):
+class ActivityLog(Record, ActivityLogMixin):
     """Class representing a activity_log record"""
     db_table = 'activity_log'
 
 
-class TentativeActivityLog(BaseActivityLog):
+class TentativeActivityLog(Record, ActivityLogMixin):
     """Class representing a tentative_activity_log record"""
     db_table = 'tentative_activity_log'
 
@@ -139,7 +110,7 @@ class BaseTentativeLogSet(object):
 
         by_age = sorted(
             self.tentative_records,
-            key=lambda k: k.record['time_stamp'],
+            key=lambda k: k.time_stamp,
             reverse=True
         )
         return by_age[0]
@@ -156,22 +127,22 @@ class CompletedTentativeLogSet(BaseTentativeLogSet):
             return
         try:
             first_page = get_page(
-                youngest_log.record['book_id'], page_no='first')
+                youngest_log.book_id, page_no='first')
         except LookupError:
             first_page = None
 
         book_page_ids = [first_page.id] \
             if first_page else \
-            [youngest_log.record['book_page_id']]
+            [youngest_log.book_page_id]
 
         record = dict(
-            book_id=youngest_log.record['book_id'],
+            book_id=youngest_log.book_id,
             book_page_ids=book_page_ids,
             action='completed',
-            time_stamp=youngest_log.record['time_stamp'],
+            time_stamp=youngest_log.time_stamp,
         )
 
-        return activity_log_class(record)
+        return activity_log_class(**record)
 
     @classmethod
     def load(cls, filters=None, tentative_log_class=TentativeActivityLog):
@@ -198,7 +169,7 @@ class PageAddedTentativeLogSet(BaseTentativeLogSet):
         db = current.app.db
         for tentative_activity_log in self.tentative_records:
             book_page = entity_to_row(
-                db.book_page, tentative_activity_log.record['book_page_id'])
+                db.book_page, tentative_activity_log.book_page_id)
             if book_page:
                 book_pages.append(book_page)
         return book_pages
@@ -214,13 +185,13 @@ class PageAddedTentativeLogSet(BaseTentativeLogSet):
         book_page_ids = [x.id for x in book_pages]
 
         record = dict(
-            book_id=youngest_log.record['book_id'],
+            book_id=youngest_log.book_id,
             book_page_ids=book_page_ids,
             action='page added',
-            time_stamp=youngest_log.record['time_stamp'],
+            time_stamp=youngest_log.time_stamp,
         )
 
-        return activity_log_class(record)
+        return activity_log_class(**record)
 
     @classmethod
     def load(cls, filters=None, tentative_log_class=TentativeActivityLog):
