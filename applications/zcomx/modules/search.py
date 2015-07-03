@@ -15,12 +15,16 @@ from applications.zcomx.modules.books import \
     contribute_link as book_contribute_link, \
     cover_image, \
     download_link as book_download_link, \
+    follow_link as book_follow_link, \
     formatted_name, \
+    is_downloadable, \
+    is_followable, \
     read_link as book_read_link, \
     url as book_url
 from applications.zcomx.modules.creators import \
     can_receive_contributions, \
     contribute_link as creator_contribute_link, \
+    follow_link as creator_follow_link, \
     torrent_link as creator_torrent_link, \
     torrent_url as creator_torrent_url, \
     url as creator_url
@@ -52,11 +56,7 @@ class Grid(object):
         'order_dir': 'ASC',             # Sort order direction. 'ASC' or 'DESC'
     }
 
-    _buttons = [
-        'book_contribute',
-        'download',
-        'read',
-    ]
+    _buttons = []
 
     _not_found_msg = None
 
@@ -182,6 +182,12 @@ class Grid(object):
 
         if 'download' in self._buttons:
             add_link(download_link)
+
+        if 'creator_follow' in self._buttons:
+            add_link(link_for_creator_follow)
+
+        if 'book_follow' in self._buttons:
+            add_link(follow_link)
 
         if 'book_contribute' in self._buttons:
             add_link(book_contribute_button)
@@ -475,6 +481,7 @@ class CartoonistsGrid(Grid):
 
     _buttons = [
         'creator_contribute',
+        'creator_follow',
         'creator_torrent',
     ]
 
@@ -536,6 +543,12 @@ class CompletedGrid(Grid):
         'order_dir': 'DESC',
     }
 
+    _buttons = [
+        'book_contribute',
+        'download',
+        'read',
+    ]
+
     _not_found_msg = 'No completed books'
 
     def __init__(
@@ -579,60 +592,6 @@ class CompletedGrid(Grid):
         ]
 
 
-class ContributionsGrid(Grid):
-    """Class representing a grid for search results: contributions"""
-
-    _attributes = {
-        'table': 'book',
-        'field': 'contributions_remaining',
-        'label': 'remaining',
-        'tab_label': 'contributions',
-        'class': 'orderby_contributions',
-        'order_dir': 'ASC',
-    }
-
-    _not_found_msg = 'No books found'
-
-    def __init__(
-            self,
-            form_grid_args=None,
-            queries=None,
-            default_viewby='tile'):
-        """Constructor"""
-        Grid.__init__(
-            self,
-            form_grid_args=form_grid_args,
-            queries=queries,
-            default_viewby=default_viewby
-        )
-
-    def filters(self):
-        """Define query filters.
-
-        Returns:
-            list of gluon.dal.Expression instances
-        """
-        db = self.db
-        queries = []
-        queries.append(db.book.contributions_remaining > 0)
-        queries.append(db.creator.paypal_email != '')
-        return queries
-
-    def visible_fields(self):
-        """Return list of visisble fields.
-
-        Returns:
-            list of gluon.dal.Field instances
-        """
-        db = self.db
-        return [
-            db.book.name,
-            db.book.publication_year,
-            db.book.contributions_remaining,
-            db.auth_user.name,
-        ]
-
-
 class CreatorMoniesGrid(Grid):
     """Class representing a grid for search results: creator_monies"""
 
@@ -667,6 +626,7 @@ class CreatorMoniesGrid(Grid):
             queries=queries,
             default_viewby=default_viewby
         )
+        self.viewby = 'tile'        # This grid is tile only.
 
     def filters(self):
         """Define query filters.
@@ -693,6 +653,12 @@ class OngoingGrid(Grid):
         'class': 'orderby_ongoing',
         'order_dir': 'DESC',
     }
+
+    _buttons = [
+        'book_contribute',
+        'book_follow',
+        'read',
+    ]
 
     _not_found_msg = 'No ongoing series'
 
@@ -748,6 +714,13 @@ class SearchGrid(Grid):
         'order_dir': 'DESC',
     }
 
+    _buttons = [
+        'book_contribute',
+        'download',
+        'book_follow',
+        'read',
+    ]
+
     _not_found_msg = 'No matches found'
 
     def __init__(
@@ -799,7 +772,6 @@ class SearchGrid(Grid):
 GRID_CLASSES = collections.OrderedDict()
 GRID_CLASSES['completed'] = CompletedGrid
 GRID_CLASSES['ongoing'] = OngoingGrid
-# GRID_CLASSES['contributions'] = ContributionsGrid
 GRID_CLASSES['creators'] = CartoonistsGrid
 GRID_CLASSES['search'] = SearchGrid
 
@@ -833,6 +805,12 @@ class Tile(object):
         # pylint: disable=R0201
         return
 
+    def follow_link(self):
+        """Return the tile download link."""
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+        return
+
     def footer(self):
         """Return a div for the tile footer."""
 
@@ -860,7 +838,11 @@ class Tile(object):
 
         dl_link = self.download_link()
         if dl_link and str(dl_link) != str(SPAN('')):
-            append_li(self.download_link())
+            append_li(dl_link)
+
+        follow = self.follow_link()
+        if follow and str(follow) != str(SPAN('')):
+            append_li(follow)
 
         return UL(
             breadcrumb_lis,
@@ -934,11 +916,32 @@ class BookTile(Tile):
         """Return the tile download link."""
         db = self.db
         row = self.row
+
+        book = entity_to_row(db.book, row.book.id)
+        if not is_downloadable(book):
+            return SPAN('')
+
         return book_download_link(
             db,
-            row.book.id,
+            book,
             components=['download'],
             **dict(_class='download_button no_rclick_menu')
+        )
+
+    def follow_link(self):
+        """Return the tile download link."""
+        db = self.db
+        row = self.row
+
+        book = entity_to_row(db.book, row.book.id)
+        if not is_followable(book):
+            return SPAN('')
+
+        creator = entity_to_row(db.creator, row.creator.id)
+        return creator_follow_link(
+            creator,
+            components=['follow'],
+            **dict(_class='rss_button no_rclick_menu')
         )
 
     def image(self):
@@ -1028,6 +1031,15 @@ class CartoonistTile(Tile):
             _href=url
         )
 
+    def follow_link(self):
+        """Return the tile follow link."""
+        row = self.row
+        return creator_follow_link(
+            row.creator,
+            components=['follow'],
+            **dict(_class='rss_button no_rclick_menu')
+        )
+
     def footer(self):
         """Return a div for the tile footer."""
         # When crowdfunding feature is restored, this method isn't necessary,
@@ -1097,6 +1109,10 @@ class MoniesBookTile(BookTile):
         return
 
     def download_link(self):
+        """Return the tile download link."""
+        return
+
+    def follow_link(self):
         """Return the tile download link."""
         return
 
@@ -1218,10 +1234,36 @@ def download_link(row):
         return ''
 
     db = current.app.db
+
+    book = entity_to_row(db.book, book_id)
+    if not is_downloadable(book):
+        return ''
+
     return book_download_link(
         db,
-        book_id,
+        book,
         **dict(_class='btn btn-default download_button no_rclick_menu')
+    )
+
+
+def follow_link(row):
+    """Return a 'Follow' link suitable for grid row."""
+
+    if not row:
+        return ''
+    book_id = link_book_id(row)
+    if not book_id:
+        return ''
+
+    db = current.app.db
+
+    book = entity_to_row(db.book, book_id)
+    if not is_followable(book):
+        return ''
+
+    return book_follow_link(
+        book,
+        **dict(_class='btn btn-default rss_button no_rclick_menu')
     )
 
 
@@ -1232,6 +1274,21 @@ def link_book_id(row):
     except (KeyError, TypeError):
         book_id = 0
     return book_id
+
+
+def link_for_creator_follow(row):
+    """Return a 'Follow' link suitable for grid row."""
+    if not row:
+        return ''
+    if 'creator' not in row or not row.creator.id:
+        return ''
+    db = current.app.db
+
+    creator = entity_to_row(db.creator, row.creator.id)
+    return creator_follow_link(
+        creator,
+        **dict(_class='btn btn-default rss_button no_rclick_menu')
+    )
 
 
 def link_for_creator_torrent(row):

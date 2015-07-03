@@ -170,6 +170,31 @@ def creator_name(creator_entity, use='file'):
     return
 
 
+def follow_link(creator, components=None, **attributes):
+    """Return html code suitable for a 'Follow' link.
+
+    Args:
+        creator: Row instance representing the creator
+        components: list, passed to A(*components),  default ['Download']
+        attributes: dict of attributes for A()
+    """
+    if not components:
+        components = ['Follow']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='rss',
+            f='modal',
+            args=[creator.id],
+            extension=False
+        )
+
+    return A(*components, **kwargs)
+
+
 def for_path(name):
     """Scrub name so it is suitable for use in a file path or url.
 

@@ -14,6 +14,7 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
+from pydal.objects import Row
 from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.books import \
     BaseEvent, \
@@ -43,11 +44,15 @@ from applications.zcomx.modules.books import \
     default_contribute_amount, \
     defaults, \
     download_link, \
+    follow_link, \
     formatted_name, \
     formatted_number, \
     get_page, \
     html_metadata, \
     images, \
+    is_downloadable, \
+    is_followable, \
+    is_released, \
     magnet_link, \
     magnet_uri, \
     name_fields, \
@@ -1102,22 +1107,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         link = download_link(db, -1)
         self.assertEqual(str(link), empty)
 
-        # No cbz
-        book.update_record(cbz=None, torrent='_test_torrent_')
-        db.commit()
-        link = download_link(db, book)
-        self.assertEqual(str(link), empty)
-
-        # No torrent
-        book.update_record(cbz='_test_cbz_', torrent=None)
-        db.commit()
-        link = download_link(db, book)
-        self.assertEqual(str(link), empty)
-
-        # reset
-        book.update_record(cbz='_test_cbz_', torrent='_test_torrent_')
-        db.commit()
-
         # Test components param
         components = ['aaa', 'bbb']
         link = download_link(db, book, components=components)
@@ -1142,6 +1131,48 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Download')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
+
+
+    def test__follow_link(self):
+        book = Row(dict(
+            name='test__follow_link',
+            creator_id=123,
+        ))
+
+        link = follow_link(book)
+        # Eg  <a href="/rss/modal/4547">Follow</a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Follow')
+        self.assertEqual(anchor['href'], '/rss/modal/123')
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = follow_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = follow_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = follow_link(book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Follow')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
@@ -1323,6 +1354,63 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         book_page_2.update_record(image='b.2.jpg')
         db.commit()
         self.assertEqual(sorted(images(book)), ['a.1.jpg', 'b.2.jpg'])
+
+    def test__is_downloadable(self):
+        tests = [
+            # (status, cbz, torrent, expect)
+            ('a', '_cbz_', '_tor_', True),
+            ('d', '_cbz_', '_tor_', False),
+            ('x', '_cbz_', '_tor_', False),
+            ('a', None, '_tor_', False),
+            ('a', '_cbz_', None, False),
+        ]
+        for t in tests:
+            book = Row(dict(
+                name='test_is_downloadable',
+                status=t[0],
+                cbz=t[1],
+                torrent=t[2],
+            ))
+            self.assertEqual(is_downloadable(book), t[3])
+
+    def test__is_followable(self):
+        now = datetime.datetime.now()
+        tests = [
+            # (status, releasing, release_date, expect)
+            ('a', False, None, True),
+            ('d', False, None, False),
+            ('x', False, None, False),
+            ('a', True, None, True),
+            ('a', True, now, True),
+            ('a', False, now, False),
+        ]
+        for t in tests:
+            book = Row(dict(
+                name='test_is_followable',
+                status=t[0],
+                releasing=t[1],
+                release_date=t[2],
+            ))
+            self.assertEqual(is_followable(book), t[3])
+
+    def test__is_released(self):
+        now = datetime.datetime.now()
+        tests = [
+            # (status, releasing, release_date, expect)
+            ('a', False, now, True),
+            ('d', False, now, False),
+            ('x', False, now, False),
+            ('a', True, now, False),
+            ('a', False, None, False),
+        ]
+        for t in tests:
+            book = Row(dict(
+                name='test_is_released',
+                status=t[0],
+                releasing=t[1],
+                release_date=t[2],
+            ))
+            self.assertEqual(is_released(book), t[3])
 
     def test__magnet_link(self):
         book = self.add(db.book, dict(

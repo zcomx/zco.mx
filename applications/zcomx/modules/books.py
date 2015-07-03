@@ -748,8 +748,6 @@ def download_link(db, book_entity, components=None, **attributes):
     book = entity_to_row(db.book, book_entity)
     if not book:
         return empty
-    if not book.cbz or not book.torrent:
-        return empty
 
     if not components:
         components = ['Download']
@@ -762,6 +760,31 @@ def download_link(db, book_entity, components=None, **attributes):
             c='downloads',
             f='modal',
             args=[book.id],
+            extension=False
+        )
+
+    return A(*components, **kwargs)
+
+
+def follow_link(book, components=None, **attributes):
+    """Return html code suitable for a 'Follow' link.
+
+    Args:
+        book: Row instance representing the book
+        components: list, passed to A(*components),  default ['Download']
+        attributes: dict of attributes for A()
+    """
+    if not components:
+        components = ['Follow']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='rss',
+            f='modal',
+            args=[book.creator_id],
             extension=False
         )
 
@@ -955,6 +978,41 @@ def images(book_entity):
             image_names.append(page.book_page[field])
 
     return image_names
+
+
+def is_downloadable(book):
+    """Determine if the book can be downloaded.
+
+    Args:
+        book: Row instance representing a book.
+    """
+    return True if book.status == BOOK_STATUS_ACTIVE \
+        and book.cbz \
+        and book.torrent \
+        else False
+
+
+def is_followable(book):
+    """Determine if the book can be followed.
+
+    Args:
+        book: Row instance representing a book.
+    """
+    return True if book.status == BOOK_STATUS_ACTIVE \
+        and not is_released(book) \
+        else False
+
+
+def is_released(book):
+    """Determine if the book is released.
+
+    Args:
+        book: Row instance representing a book.
+    """
+    return True if book.status == BOOK_STATUS_ACTIVE \
+        and not book.releasing \
+        and book.release_date \
+        else False
 
 
 def magnet_link(book_entity, components=None, **attributes):
