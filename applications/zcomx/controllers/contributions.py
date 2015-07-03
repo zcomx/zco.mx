@@ -4,6 +4,7 @@ Controllers for contributions.
 """
 import logging
 from applications.zcomx.modules.books import \
+    Book, \
     ContributionEvent, \
     ZcoContributionEvent, \
     default_contribute_amount
@@ -194,7 +195,8 @@ def paypal_notify():
             # Log the event
             auth_user_id = 0      # there is no user is this context
             if book_id:
-                ContributionEvent(book_id, auth_user_id).log(amount)
+                book = Book.from_id(book_id)
+                ContributionEvent(book, auth_user_id).log(amount)
             else:
                 ZcoContributionEvent(auth_user_id).log(amount)
 

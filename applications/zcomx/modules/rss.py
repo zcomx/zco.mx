@@ -9,6 +9,7 @@ import datetime
 import logging
 import gluon.contrib.rss2 as rss2
 from gluon import *
+from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import \
     AbridgedBookPageNumbers
 from applications.zcomx.modules.books import \
@@ -67,7 +68,7 @@ class BaseRSSChannel(object):
             orderby=~db.activity_log.time_stamp,
         )
         for r in rows:
-            activity_log = entity_to_row(db.activity_log, r.id)
+            activity_log = ActivityLog.from_id(r.id)
             try:
                 entry = activity_log_as_rss_entry(activity_log).feed_item()
             except LookupError as err:
@@ -382,25 +383,19 @@ class PageAddedRSSEntry(BaseRSSEntry):
             return "Posted: {d} - A page was added to the book '{b}' by {c}."
 
 
-def activity_log_as_rss_entry(activity_log_entity):
+def activity_log_as_rss_entry(activity_log):
     """Factory to create a BaseRSSEntry subclass instance from an activity_log
     record.
 
     Args:
-        activity_log_entity: Row instance or id representing a activity_log
-            record.
+        activity_log: ActivityLog instance
 
     Returns:
         BaseRSSEntry subclass instance.
     """
-    db = current.app.db
-    activity_log = entity_to_row(db.activity_log, activity_log_entity)
-    if not activity_log:
-        raise LookupError('activity_log not found, {e}'.format(
-            e=activity_log_entity))
     if not activity_log.book_page_ids:
-        raise LookupError('activity_log has no book page ids, {e}'.format(
-            e=activity_log_entity))
+        raise LookupError('activity_log has no book page ids, id {i}'.format(
+            i=activity_log.id))
 
     entry_class = entry_class_from_action(activity_log.action)
     return entry_class(

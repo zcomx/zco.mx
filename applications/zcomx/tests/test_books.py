@@ -18,6 +18,7 @@ from pydal.objects import Row
 from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.books import \
     BaseEvent, \
+    Book, \
     BookEvent, \
     ContributionEvent, \
     DEFAULT_BOOK_TYPE, \
@@ -104,7 +105,8 @@ class EventTestCase(LocalTestCase):
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     def setUp(self):
-        self._book = self.add(db.book, dict(name='Event Test Case'))
+        book_row = self.add(db.book, dict(name='Event Test Case'))
+        self._book = Book.from_id(book_row.id)
         email = web.username
         self._user = db(db.auth_user.email == email).select().first()
         if not self._user:
@@ -148,6 +150,15 @@ class TestBaseEvent(EventTestCase):
         # pylint: disable=W0212
         event = BaseEvent(self._user.id)
         self.assertRaises(NotImplementedError, event._post_log)
+
+
+class TestBook(LocalTestCase):
+
+    def test__from_id(self):
+        book = db(db.book).select(orderby='<random>', limitby=(0, 1)).first()
+        got = Book.from_id(book.id)
+        for f in db.book.fields:
+            self.assertEqual(got[f], book[f])
 
 
 class TestBookEvent(EventTestCase):
