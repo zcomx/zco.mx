@@ -638,9 +638,6 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
 class TestFunctions(WithObjectsTestCase):
 
     def test__activity_log_as_rss_entry(self):
-        self.assertRaises(LookupError, activity_log_as_rss_entry, None)
-        self.assertRaises(LookupError, activity_log_as_rss_entry, -1)
-
         for action in ['completed', 'page added']:
             self._activity_log.update_record(action=action)
             db.commit()
