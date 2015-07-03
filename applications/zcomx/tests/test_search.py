@@ -26,7 +26,6 @@ from applications.zcomx.modules.search import \
     CartoonistTile, \
     CartoonistsGrid, \
     CompletedGrid, \
-    ContributionsGrid, \
     CreatorMoniesGrid, \
     GRID_CLASSES, \
     Grid, \
@@ -38,7 +37,9 @@ from applications.zcomx.modules.search import \
     creator_contribute_button, \
     classified, \
     download_link, \
+    follow_link, \
     link_book_id, \
+    link_for_creator_follow, \
     link_for_creator_torrent, \
     read_link
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -427,7 +428,7 @@ class TestCartoonistsGrid(LocalTestCase):
         self.assertEqual(grid._attributes['field'], 'contributions_remaining')
         self.assertEqual(
             grid._buttons,
-            ['creator_contribute', 'creator_torrent']
+            ['creator_contribute', 'creator_follow', 'creator_torrent']
         )
 
     def test__groupby(self):
@@ -478,33 +479,6 @@ class TestCompletedGrid(LocalTestCase):
         )
 
 
-class TestContributionsGrid(LocalTestCase):
-
-    def test____init__(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-        grid = ContributionsGrid()
-        self.assertTrue(grid)
-        self.assertEqual(grid._attributes['table'], 'book')
-        self.assertEqual(grid._attributes['field'], 'contributions_remaining')
-
-    def test__filters(self):
-        grid = ContributionsGrid()
-        self.assertEqual(len(grid.filters()), 2)
-
-    def test__visible_fields(self):
-        grid = ContributionsGrid()
-        self.assertEqual(
-            grid.visible_fields(),
-            [
-                db.book.name,
-                db.book.publication_year,
-                db.book.contributions_remaining,
-                db.auth_user.name,
-            ]
-        )
-
-
 class TestCreatorMoniesGrid(LocalTestCase):
 
     def test____init__(self):
@@ -539,6 +513,10 @@ class TestMoniesBookTile(TileTestCase):
     def test__download_link(self):
         tile = MoniesBookTile(db, self._value, self._row)
         self.assertEqual(tile.contribute_link(), None)
+
+    def test__follow_link(self):
+        tile = MoniesBookTile(db, self._value, self._row)
+        self.assertEqual(tile.follow_link(), None)
 
     def test__footer(self):
         save_paypal = self._row.creator.paypal_email
@@ -743,6 +721,10 @@ class TestTile(TileTestCase):
         tile = Tile(db, self._value, self._row)
         self.assertEqual(tile.download_link(), None)
 
+    def test__follow_link(self):
+        tile = Tile(db, self._value, self._row)
+        self.assertEqual(tile.follow_link(), None)
+
     def test__footer(self):
         tile = Tile(db, self._value, self._row)
         footer = tile.footer()
@@ -868,6 +850,37 @@ class TestBookTile(TileTestCase):
         link = tile.download_link()
         soup = BeautifulSoup(str(link))
         self.assertEqual(str(soup), '<span></span>')
+
+        # Reset
+        self._row.book.id = save_book_id
+
+    def test__follow_link(self):
+        save_book_id = self._row.book.id
+
+        # Released book (not followable)
+        released_book = db(db.book.release_date != None).select().first()
+        self._row.book.id = released_book.id
+        tile = BookTile(db, self._value, self._row)
+        link = tile.follow_link()
+        soup = BeautifulSoup(str(link))
+        # <span></span>
+        span = soup.span
+        self.assertEqual(span.string, None)
+
+        # Ongoing book (followable)
+        released_book = db(db.book.release_date == None).select().first()
+        self._row.book.id = released_book.id
+        tile = BookTile(db, self._value, self._row)
+        link = tile.follow_link()
+        soup = BeautifulSoup(str(link))
+        # <a class="rss_button no_rclick_menu" href="/rss/modal/98">
+        # follow
+        # </a>
+        anchor = soup.a
+        self.assertEqual(anchor['class'], 'rss_button no_rclick_menu')
+        self.assertEqual(anchor['href'], '/rss/modal/{i}'.format(
+            i=self._row.creator.id))
+        self.assertEqual(anchor.string, 'follow')
 
         # Reset
         self._row.book.id = save_book_id
@@ -1075,6 +1088,21 @@ class TestCartoonistTile(TileTestCase):
             )
         )
 
+    def test__follow_link(self):
+        tile = CartoonistTile(db, self._value, self._row)
+        link = tile.follow_link()
+        soup = BeautifulSoup(str(link))
+        # <a class="rss_button no_rclick_menu" href="/rss/modal/98">
+        #  follow
+        # </a>
+        anchor = soup.a
+        self.assertEqual(anchor['class'], 'rss_button no_rclick_menu')
+        self.assertEqual(
+            anchor['href'],
+            '/rss/modal/{cid}'.format(cid=self._row.creator.id)
+        )
+        self.assertEqual(anchor.string, 'follow')
+
     def test__footer(self):
         self._row.creator.paypal_email = 'paypal@gmail.com'
         self._row.creator.torrent = '_test_torrent_'
@@ -1082,22 +1110,36 @@ class TestCartoonistTile(TileTestCase):
         tile = CartoonistTile(db, self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer))
+
         # <div class="col-sm-12">
-        #   <ul class="breadcrumb pipe_delimiter">
-        #     <li><a class="contribute_button"
-        #       href="/contributions/modal?creator_id=101">contribute</a></li>
-        #     <li><a href="/Jim_Karsten">download</a></li>
-        #   </ul>
+        #  <ul class="breadcrumb pipe_delimiter">
+        #   <li>
+        #    <a class="contribute_button no_rclick_menu"
+        #       href="/contributions/modal?creator_id=98">
+        #     contribute
+        #    </a>
+        #   </li>
+        #   <li>
+        #    <a href="/JimKarsten_(98.zco.mx).torrent">download</a>
+        #   </li>
+        #   <li>
+        #    <a class="rss_button no_rclick_menu" href="/rss/modal/98">
+        #     follow
+        #    </a>
+        #   </li>
+        #  </ul>
         #   <div class="orderby_field_value">1 week ago</div>
         # </div>
+
         div = soup.div
         self.assertEqual(div['class'], 'col-sm-12')
 
         ul = div.ul
         self.assertEqual(ul['class'], 'breadcrumb pipe_delimiter')
-        lis = ul.findAll('li')
 
-        self.assertEqual(len(lis), 2)
+        lis = ul.findAll('li')
+        self.assertEqual(len(lis), 3)
+
         li = lis[0]
         anchor = li.a
         self.assertEqual(
@@ -1108,8 +1150,8 @@ class TestCartoonistTile(TileTestCase):
                 id=self._row.creator.id)
         )
         self.assertEqual(anchor.string, 'contribute')
-        dl_li = li.nextSibling
 
+        dl_li = li.nextSibling
         anchor = dl_li.a
         self.assertEqual(
             anchor['href'],
@@ -1119,6 +1161,14 @@ class TestCartoonistTile(TileTestCase):
             )
         )
         self.assertEqual(anchor.string, 'download')
+
+        rss_li = dl_li.nextSibling
+        anchor = rss_li.a
+        self.assertEqual(
+            anchor['href'],
+            '/rss/modal/{cid}'.format(cid=self._row.creator.id)
+        )
+        self.assertEqual(anchor.string, 'follow')
 
         div_2 = div.div
         self.assertEqual(div_2['class'], 'orderby_field_value')
@@ -1132,9 +1182,9 @@ class TestCartoonistTile(TileTestCase):
         # Variations on footer links.
         tests = [
             # (paypal_email, torrent, expect)
-            (None, None, []),
-            ('_paypal_', None, ['contribute']),
-            (None, '_torrent_', ['download']),
+            (None, None, ['follow']),
+            ('_paypal_', None, ['contribute', 'follow']),
+            (None, '_torrent_', ['download', 'follow']),
         ]
         for t in tests:
             self._row.creator.paypal_email = t[0]
@@ -1278,6 +1328,8 @@ class TestFunctions(LocalTestCase):
     _auth_user = None
     _book = None
     _creator = None
+    _released_book = None
+    _ongoing_book = None
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
@@ -1291,13 +1343,29 @@ class TestFunctions(LocalTestCase):
         ))
         name = '_My Functions Book_'
         book_type_id = db(db.book_type).select().first().id
+        now = datetime.datetime.now()
         self._book = self.add(db.book, dict(
             name=name,
             creator_id=self._creator.id,
             book_type_id=book_type_id,
+            release_date=now,
             cbz='_fake_cbz_',
             torrent='_fake_torrent_',
             name_for_url='MyFunctionsBook',
+            releasing=False,
+            status='a',
+        ))
+
+        self._released_book = self._book
+
+        self._ongoing_book = self.add(db.book, dict(
+            name=name,
+            creator_id=self._creator.id,
+            book_type_id=book_type_id,
+            release_date=None,
+            name_for_url='MyFunctionsBook',
+            releasing=False,
+            status='a',
         ))
 
         self.add(db.book_page, dict(
@@ -1305,8 +1373,11 @@ class TestFunctions(LocalTestCase):
             page_no=1,
         ))
 
-    def _row(self):
-        return db(db.book.id == self._book.id).select(
+
+    def _row(self, book_id=None):
+        if not book_id:
+            book_id = self._book.id
+        return db(db.book.id == book_id).select(
             db.book.ALL,
             db.creator.ALL,
             left=[db.creator.on(db.book.creator_id == db.creator.id)],
@@ -1366,7 +1437,6 @@ class TestFunctions(LocalTestCase):
             ('_fake_', CompletedGrid),
             ('completed', CompletedGrid),
             ('ongoing', OngoingGrid),
-            # ('contributions', ContributionsGrid),
             ('creators', CartoonistsGrid),
         ]
         for t in tests:
@@ -1400,6 +1470,22 @@ class TestFunctions(LocalTestCase):
             'btn btn-default download_button no_rclick_menu'
         )
 
+    def test__follow_link(self):
+        self.assertEqual(follow_link({}), '')
+        row = self._row(book_id=self._released_book.id)
+        data = self._parse_link(follow_link(row))
+        self.assertEqual(data, {})
+
+        row = self._row(book_id=self._ongoing_book.id)
+        data = self._parse_link(follow_link(row))
+        self.assertEqual(data['string'], 'Follow')
+        self.assertEqual(data['href'], '/rss/modal/{i}'.format(
+            i=self._ongoing_book.creator_id))
+        self.assertEqual(
+            data['class'],
+            'btn btn-default rss_button no_rclick_menu'
+        )
+
     def test__link_book_id(self):
         self.assertEqual(link_book_id({}), 0)
 
@@ -1407,6 +1493,17 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(link_book_id(row), self._book.id)
         row.book = None
         self.assertEqual(link_book_id(row), 0)
+
+    def test__link_for_creator_follow(self):
+        self.assertEqual(link_for_creator_follow({}), '')
+        data = self._parse_link(link_for_creator_follow(self._row()))
+        self.assertEqual(data['string'], 'Follow')
+        self.assertEqual(data['href'], '/rss/modal/{i}'.format(
+            i=self._book.creator_id))
+        self.assertEqual(
+            data['class'],
+            'btn btn-default rss_button no_rclick_menu'
+        )
 
     def test__link_for_creator_torrent(self):
         self.assertEqual(link_for_creator_torrent({}), '')

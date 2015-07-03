@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import download_link, formatted_name as formatted_book_name, get_page, url as book_url}}
+{{from applications.zcomx.modules.books import download_link, formatted_name as formatted_book_name, get_page, is_downloadable, url as book_url}}
 {{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name as formatted_creator_name, url as creator_url}}
 {{creator_name = formatted_creator_name(creator)}}
 {{extend 'layout.html'}}
@@ -84,7 +84,7 @@
                             </div>
                         </li>
                         {{pass}}
-                        {{if book.cbz and book.torrent:}}
+                        {{if is_downloadable(book):}}
                         <li>
                             {{=download_link(db, book, components=['download'], **dict(_class='breadcrumb download_button no_rclick_menu'))}}
                         </li>
@@ -137,14 +137,12 @@
             data.book_reader.align_vertically();
             e.preventDefault();
         });
-        $('.rss_button').rss_button();
     });
 //]]>
 </script>
 {{block post_bootstrap_js}}
     <script src="{{=URL(c='static', f='js/jquery_ui_position.js')}}"> </script>
     <script src="{{=URL(c='static', f='js/book_reader.js')}}"> </script>
-    <script src="{{=URL(c='static', f='js/rss.js')}}"> </script>
     {{if DEBUG:}}
         <script src="{{=URL(c='static', f='imagesloaded/imagesloaded.pkgd.js')}}"> </script>
     {{else:}}

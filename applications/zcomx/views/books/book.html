@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import contribute_link, download_link, formatted_name as formatted_book_name, read_link}}
+{{from applications.zcomx.modules.books import contribute_link, download_link, follow_link, formatted_name as formatted_book_name, is_downloadable, is_followable, read_link}}
 {{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name as formatted_creator_name, torrent_link, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
@@ -24,10 +24,14 @@
                         {{=contribute_link(db, book.id, components=['contribute'], **dict(_class='contribute_button no_rclick_menu'))}}
                     </li>
                     {{pass}}
-                    {{dl_link = download_link(db, book.id, components=['download'], **dict(_class='download_button no_rclick_menu'))}}
-                    {{if dl_link and str(dl_link) != str(SPAN('')):}}
+                    {{if is_downloadable(book):}}
                     <li>
-                        {{=dl_link}}
+                        {{=download_link(db, book, components=['download'], **dict(_class='download_button no_rclick_menu'))}}
+                    </li>
+                    {{pass}}
+                    {{if is_followable(book):}}
+                    <li>
+                        {{=follow_link(book, components=['follow'], **dict(_class='rss_button no_rclick_menu'))}}
                     </li>
                     {{pass}}
                 </ul>

@@ -9,6 +9,7 @@
         setTimeout(function() {
             $('.contribute_button').contribute_button();
             $('.download_button').download_button();
+            $('.rss_button').rss_button();
             $('.log_download_link').log_download_link();
             $(document).on('mousedown', '.no_rclick_menu', function(e) {
                 if(e.which == 3) {

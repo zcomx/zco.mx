@@ -12,12 +12,14 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
+from pydal.objects import Row
 from applications.zcomx.modules.creators import \
     add_creator, \
     book_for_contributions, \
     can_receive_contributions, \
     contribute_link, \
     creator_name, \
+    follow_link, \
     for_path, \
     formatted_name, \
     html_metadata, \
@@ -248,6 +250,49 @@ class TestFunctions(ImageTestCase):
 
         for t in tests:
             self.assertEqual(creator_name(creator, use=t[0]), t[1])
+
+    def test__follow_link(self):
+        creator = Row(dict(
+            id=123,
+            email='test__follow_link@email.com',
+        ))
+
+        link = follow_link(creator)
+        soup = BeautifulSoup(str(link))
+        # Eg   <a href="/rss/paypal?creator_id=3713" target="_blank">
+        #       Follow
+        #      </a>
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Follow')
+        self.assertEqual(anchor['href'], '/rss/modal/123')
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = follow_link(creator, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = follow_link(creator, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = follow_link(creator, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Follow')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
 
     def test__for_path(self):
 

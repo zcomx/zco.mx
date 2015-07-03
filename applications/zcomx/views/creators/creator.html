@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.creators import formatted_name, torrent_link, short_url}}
+{{from applications.zcomx.modules.creators import follow_link, formatted_name, torrent_link, short_url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
@@ -13,20 +13,27 @@
                 <div id="creator_img">
                 {{=CreatorImgTag(creator.image, size='web', attributes={'_alt': '', '_class': 'img-responsive'})()}}
                 </div>
-                {{if creator.photo_credit:}}
-                <div>
-                    <div class="image_footer">
-                        Photo courtesy of
-                        {{if creator.photo_credit_url:}}
-                        <a href="{{=creator.photo_credit_url}}" target="_blank">
-                        {{pass}}
-                        {{=creator.photo_credit}}
-                        {{if creator.photo_credit_url:}}
-                        </a>
+                <div class="row">
+                    <div class="col-sm-12 image_footer">
+                        <ul class="breadcrumb pipe_delimiter">
+                            <li>
+                                {{=follow_link(creator, components=['follow'], **dict(_class='rss_button no_rclick_menu'))}}
+                            </li>
+                        </ul>
+                        {{if creator.photo_credit:}}
+                        <div class="photo_credit_section">
+                            Photo courtesy of
+                            {{if creator.photo_credit_url:}}
+                            <a href="{{=creator.photo_credit_url}}" target="_blank">
+                            {{pass}}
+                            {{=creator.photo_credit}}
+                            {{if creator.photo_credit_url:}}
+                            </a>
+                            {{pass}}
+                        </div>
                         {{pass}}
                     </div>
                 </div>
-                {{pass}}
             </div>
 
             <div class="col-xs-12 col-sm-7" id="name_bio_links">
