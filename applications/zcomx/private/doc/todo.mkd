@@ -8,22 +8,31 @@
         * outlook
 [x] Screen Too Small For Slider
     http://www.forbiddenplanet.co.uk/blog/2015/zco-mx/#comment-87570
+[x] Web images are too small on hi-res screens
+    If the portview has a height > 1200px, then cbz image
 
 VERSION 3
-[S] Add RSS/zc-share button to cartoonist and book pages
+[ ] Add RSS/zc-share button to cartoonist and book pages
+    Use RSS modal
+
     [ ] ongoing section - tile
+        link
     [ ] ongoing section - list
+        button
     [ ] cartoonist section - tile
+        link
     [ ] cartoonist section - list
-    [ ] cartoonist page
+        button
     [ ] book page
-    [ ] comic page ?
+        link
+    [ ] comic page
+        link
 
-[S] Cartoonist Page -> Links to Cartoonist Articles/Interviews?
-    [S] Mockup
+[ ] Cartoonist Page -> Links to Cartoonist Articles/Interviews?
+        http://p.zsw.ca/IJ.png      ## mockup
 
-[S] Book page -> Links to Book Reviews ?
-    [S] Mockup
+[ ] Book page -> Links to Book Reviews ?
+        http://p.zsw.ca/IJ.png      ## mockup
 
 [S] Reader Page -> Notify users that left/right arrow keys turn page
     * fancy js that appears in bottom right corner for 10 seconds and then never again?
@@ -40,11 +49,7 @@ VERSION 3
 [S] Update Jordan's indicia image
     [ ] release uptight 001?
 
-[S] Roger's Poster
-    giclee 8 colour inkjet printer
-
-[ ] Web images are too small on hi-res screens
-    If the portview has a height > 1200px, then cbz image
+[ ] Make CBZ's available via HTTP?
 
 
 VERSION 4
