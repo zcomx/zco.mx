@@ -1,5 +1,5 @@
 {{from applications.zcomx.modules.books import download_link, formatted_name as formatted_book_name, get_page, is_downloadable, url as book_url}}
-{{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name as formatted_creator_name, url as creator_url}}
+{{from applications.zcomx.modules.creators import can_receive_contributions, follow_link, formatted_name as formatted_creator_name, url as creator_url}}
 {{creator_name = formatted_creator_name(creator)}}
 {{extend 'layout.html'}}
 <div class="container">
@@ -89,6 +89,9 @@
                             {{=download_link(db, book, components=['download'], **dict(_class='breadcrumb download_button no_rclick_menu'))}}
                         </li>
                         {{pass}}
+                        <li>
+                            {{=follow_link(creator, components=['follow'], **dict(_class='breadcrumb rss_button no_rclick_menu'))}}
+                        </li>
                     </ul>
                 </div>
             </div>
