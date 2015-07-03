@@ -108,7 +108,7 @@ def main():
         if activity_log:
             LOG.debug(
                 'Creating activity_log action: %s',
-                activity_log.record['action']
+                activity_log.action
             )
             activity_log.save()
 
@@ -117,7 +117,7 @@ def main():
         if activity_log:
             LOG.debug(
                 'Creating activity_log action: %s',
-                activity_log.record['action']
+                activity_log.action
             )
             activity_log.save()
 

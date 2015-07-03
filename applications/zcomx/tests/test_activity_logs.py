@@ -11,12 +11,13 @@ import unittest
 from gluon import *
 from applications.zcomx.modules.activity_logs import \
     ActivityLog, \
-    BaseActivityLog, \
+    ActivityLogMixin, \
     BaseTentativeLogSet, \
     CompletedTentativeLogSet, \
     PageAddedTentativeLogSet, \
     TentativeActivityLog, \
     TentativeLogSet
+from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -24,60 +25,29 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
+class DubActivityLog(Record, ActivityLogMixin):
+    db_table = 'activity_log'
+
+
 class TestActivityLog(LocalTestCase):
-    pass            # See BaseActivityLog
+    pass            # Record subclass
 
 
-class TestBaseActivityLog(LocalTestCase):
+class TestActivityLogMixin(LocalTestCase):
 
-    def test____init__(self):
-        log = BaseActivityLog({})
-        self.assertTrue(log)
+    time_stamp = datetime.datetime(2015, 1, 31, 12, 31, 59)
 
     def test__age(self):
-        time_stamp = datetime.datetime(2015, 1, 31, 12, 31, 59)
+        record = {'time_stamp': self.time_stamp}
 
-        record = {'time_stamp': time_stamp}
+        as_of = self.time_stamp + datetime.timedelta(seconds=1)
 
-        as_of = time_stamp + datetime.timedelta(seconds=1)
-
-        log = BaseActivityLog(record)
+        log = DubActivityLog(**record)
         got = log.age(as_of=as_of)
         self.assertEqual(got.total_seconds(), 1)
 
-        log = BaseActivityLog({})
+        log = DubActivityLog({})
         self.assertRaises(SyntaxError, log.age)
-
-    def test__delete(self):
-        count = lambda x: db(db.activity_log.id == x).count()
-
-        activity_log_record = self.add(db.activity_log, dict(
-            book_id=-1,
-            action='_test__delete_',
-        ))
-
-        activity_log = BaseActivityLog(activity_log_record.as_dict())
-        self.assertEqual(count(activity_log_record.id), 1)
-
-        activity_log.delete()
-        self.assertEqual(count(activity_log_record.id), 0)
-
-    def test__save(self):
-
-        activity_log_data = dict(
-            book_id=-1,
-            action='_test__save_',
-        )
-
-        activity_log = BaseActivityLog(activity_log_data)
-        record_id = activity_log.save()
-
-        query = (db.activity_log.id == record_id)
-        activity_log_record = db(query).select().first()
-        self.assertTrue(activity_log_record)
-        self._objects.append(activity_log_record)
-        self.assertEqual(activity_log_record.book_id, -1)
-        self.assertEqual(activity_log_record.action, '_test__save_')
 
 
 class TestBaseTentativeLogSet(LocalTestCase):
@@ -100,17 +70,17 @@ class TestBaseTentativeLogSet(LocalTestCase):
         log_set = BaseTentativeLogSet.load(filters=filters)
         self.assertEqual(len(log_set.tentative_records), 1)
         pre_log = log_set.tentative_records[0]
-        self.assertEqual(pre_log.record['id'], tentative_activity_log.id)
+        self.assertEqual(pre_log.id, tentative_activity_log.id)
         self.assertEqual(
-            pre_log.record['book_id'], tentative_activity_log.book_id)
+            pre_log.book_id, tentative_activity_log.book_id)
         self.assertEqual(
-            pre_log.record['action'], tentative_activity_log.action)
+            pre_log.action, tentative_activity_log.action)
 
         filters = {'book_id': -1, 'action': '_test__load_'}
         log_set = BaseTentativeLogSet.load(filters=filters)
         self.assertEqual(len(log_set.tentative_records), 1)
         pre_log = log_set.tentative_records[0]
-        self.assertEqual(pre_log.record['id'], tentative_activity_log.id)
+        self.assertEqual(pre_log.id, tentative_activity_log.id)
 
         filters = {'book_id': -2}
         log_set = BaseTentativeLogSet.load(filters=filters)
@@ -144,7 +114,7 @@ class TestBaseTentativeLogSet(LocalTestCase):
         ]
         log_set = BaseTentativeLogSet(tentative_records)
         got = log_set.youngest()
-        self.assertEqual(got.record['id'], 2)
+        self.assertEqual(got.id, 2)
 
 
 class TestCompletedTentativeLogSet(LocalTestCase):
@@ -169,10 +139,10 @@ class TestCompletedTentativeLogSet(LocalTestCase):
         log_set = CompletedTentativeLogSet(tentative_records)
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
-        self.assertEqual(got.record['book_id'], -1)
-        self.assertEqual(got.record['book_page_ids'], [-2])
-        self.assertEqual(got.record['action'], 'completed')
-        self.assertEqual(got.record['time_stamp'], time_stamp)
+        self.assertEqual(got.book_id, -1)
+        self.assertEqual(got.book_page_ids, [-2])
+        self.assertEqual(got.action, 'completed')
+        self.assertEqual(got.time_stamp, time_stamp)
 
         # Set with multiple completed records.
         tentative_records = [
@@ -194,11 +164,11 @@ class TestCompletedTentativeLogSet(LocalTestCase):
         log_set = CompletedTentativeLogSet(tentative_records)
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
-        self.assertEqual(got.record['book_id'], -3)
-        self.assertEqual(got.record['book_page_ids'], [-4])
-        self.assertEqual(got.record['action'], 'completed')
+        self.assertEqual(got.book_id, -3)
+        self.assertEqual(got.book_page_ids, [-4])
+        self.assertEqual(got.action, 'completed')
         self.assertEqual(
-            got.record['time_stamp'], time_stamp + datetime.timedelta(days=1))
+            got.time_stamp, time_stamp + datetime.timedelta(days=1))
 
     def test__load(self):
         completed_log = self.add(db.tentative_activity_log, dict(
@@ -215,18 +185,18 @@ class TestCompletedTentativeLogSet(LocalTestCase):
         log_set = CompletedTentativeLogSet.load(filters=filters)
         self.assertEqual(len(log_set.tentative_records), 1)
         pre_log = log_set.tentative_records[0]
-        self.assertEqual(pre_log.record['id'], completed_log.id)
-        self.assertEqual(pre_log.record['book_id'], completed_log.book_id)
-        self.assertEqual(pre_log.record['action'], completed_log.action)
+        self.assertEqual(pre_log.id, completed_log.id)
+        self.assertEqual(pre_log.book_id, completed_log.book_id)
+        self.assertEqual(pre_log.action, completed_log.action)
 
         # Test: override action filter
         filters = {'book_id': -1, 'action': 'page added'}
         log_set = CompletedTentativeLogSet.load(filters=filters)
         self.assertEqual(len(log_set.tentative_records), 1)
         pre_log = log_set.tentative_records[0]
-        self.assertEqual(pre_log.record['id'], page_added_log.id)
-        self.assertEqual(pre_log.record['book_id'], page_added_log.book_id)
-        self.assertEqual(pre_log.record['action'], page_added_log.action)
+        self.assertEqual(pre_log.id, page_added_log.id)
+        self.assertEqual(pre_log.book_id, page_added_log.book_id)
+        self.assertEqual(pre_log.action, page_added_log.action)
 
 
 class TestPageAddedTentativeLogSet(LocalTestCase):
@@ -302,10 +272,10 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         log_set = PageAddedTentativeLogSet(tentative_records)
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
-        self.assertEqual(got.record['book_id'], -1)
-        self.assertEqual(got.record['book_page_ids'], [book_page_1.id])
-        self.assertEqual(got.record['action'], 'page added')
-        self.assertEqual(got.record['time_stamp'], time_stamp)
+        self.assertEqual(got.book_id, -1)
+        self.assertEqual(got.book_page_ids, [book_page_1.id])
+        self.assertEqual(got.action, 'page added')
+        self.assertEqual(got.time_stamp, time_stamp)
 
         # Set with multiple page added records.
         tentative_records = [
@@ -334,14 +304,14 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         log_set = PageAddedTentativeLogSet(tentative_records)
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
-        self.assertEqual(got.record['book_id'], -1)
+        self.assertEqual(got.book_id, -1)
         self.assertEqual(
-            got.record['book_page_ids'],
+            got.book_page_ids,
             [book_page_3.id, book_page_2.id, book_page_1.id]
         )
-        self.assertEqual(got.record['action'], 'page added')
+        self.assertEqual(got.action, 'page added')
         self.assertEqual(
-            got.record['time_stamp'], time_stamp + datetime.timedelta(days=1))
+            got.time_stamp, time_stamp + datetime.timedelta(days=1))
 
     def test__load(self):
         completed_log = self.add(db.tentative_activity_log, dict(
@@ -358,18 +328,18 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         log_set = PageAddedTentativeLogSet.load(filters=filters)
         self.assertEqual(len(log_set.tentative_records), 1)
         pre_log = log_set.tentative_records[0]
-        self.assertEqual(pre_log.record['id'], page_added_log.id)
-        self.assertEqual(pre_log.record['book_id'], page_added_log.book_id)
-        self.assertEqual(pre_log.record['action'], page_added_log.action)
+        self.assertEqual(pre_log.id, page_added_log.id)
+        self.assertEqual(pre_log.book_id, page_added_log.book_id)
+        self.assertEqual(pre_log.action, page_added_log.action)
 
         # Test: override action filter
         filters = {'book_id': -1, 'action': 'completed'}
         log_set = PageAddedTentativeLogSet.load(filters=filters)
         self.assertEqual(len(log_set.tentative_records), 1)
         pre_log = log_set.tentative_records[0]
-        self.assertEqual(pre_log.record['id'], completed_log.id)
-        self.assertEqual(pre_log.record['book_id'], completed_log.book_id)
-        self.assertEqual(pre_log.record['action'], completed_log.action)
+        self.assertEqual(pre_log.id, completed_log.id)
+        self.assertEqual(pre_log.book_id, completed_log.book_id)
+        self.assertEqual(pre_log.action, completed_log.action)
 
 
 class TestTentativeActivityLog(LocalTestCase):
