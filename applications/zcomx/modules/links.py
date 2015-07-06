@@ -11,110 +11,54 @@ from applications.zcomx.modules.utils import \
     reorder
 
 
-class CustomLinks(object):
-    """Class representing a set of custom links.
+class LinkSet(object):
+    """Class representing a LinkSet"""
 
-    For example, creators can have a set of custom links pointing to their
-    services/memberships, etc.
-    """
-    def __init__(self, table, record_id):
-        """Constructor
+    def __init__(self, link_set_key):
+        """Initializer
 
         Args:
-            table: gluon.dal.Table instance, the table the links are associated
-                    with. Eg db.creator or db.book
-            record_id: integer, the id of the record in table the links are
-                    associated with. Eg value of db.creator.id or db.book.id
+            link_set_key: LinkSetKey instance
         """
-        self.table = table
-        self.record_id = record_id
+        self.link_set_key = link_set_key
 
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        db = self.table._db
-        self.to_link_tablename = '{tbl}_to_link'.format(tbl=self.table)
-        self.to_link_table = db[self.to_link_tablename]
-        self.join_to_link_fieldname = '{tbl}_id'.format(tbl=self.table)
-        self.join_to_link_field = \
-            self.to_link_table[self.join_to_link_fieldname]
+    def filter_query(self):
+        """Return a query to filter records for the link set.
 
-    def attach(self, form, attach_to_id, edit_url=None):
-        """Attach the representation of the links to a form
-
-        Args:
-            form: gluon.slqhtml.SQLFORM instance.
-            attach_to_id: string, id of element in form to which the links are
-                attached. A table row (tr) is appended to the table after the
-                row containing the element with this id.
-            edit_url: string, URL for the edit button. If None, no edit button
-                is added.
+        Returns:
+            gluon.packages.dal.pydal.objects Expression instance
         """
-        links_list = self.links()
-        if edit_url:
-            edit_button = A(
-                'Edit', SPAN('', _class='glyphicon glyphicon-new-window'),
-                _href=edit_url,
-                _class='btn btn-default',
-                _target='_blank',
-            )
-            links_list.append(edit_button)
-        links_span = [SPAN(x, _class="custom_link") for x in links_list]
-        for count, x in enumerate(form[0]):
-            if x.attributes['_id'] == attach_to_id:
-                form[0][count].append(
-                    TR(
-                        [
-                            TD('Custom links:', _class='w2p_fl'),
-                            TD(links_span, _class='w2p_fw'),
-                            TD('', _class='w2p_fc'),
-                        ],
-                        _id='creator_custom_links__row',
-                    ))
+        db = current.app.db
+        return (db.link.link_type_id == self.link_set_key.link_type_id) & \
+            (db.link.record_table == self.link_set_key.record_table) & \
+            (db.link.record_id == self.link_set_key.record_id)
 
     def links(self):
-        """Return a list of links."""
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        db = self.table._db
+        """Return a list of links associated with the set."""
         links = []
-        query = (db.link.id > 0) & \
-                (self.to_link_table.id != None) & \
-                (self.table.id == self.record_id)
-        left = [
-            self.to_link_table.on(
-                (self.to_link_table.link_id == db.link.id)
-            ),
-            self.table.on(self.join_to_link_field == self.table.id),
-        ]
-        orderby = [self.to_link_table.order_no, self.to_link_table.id]
-        rows = db(query).select(db.link.ALL, left=left, orderby=orderby)
+        db = current.app.db
+        query = self.filter_query()
+        orderby = [db.link.order_no, db.link.id]
+        rows = db(query).select(db.link.ALL, orderby=orderby)
         for r in rows:
             links.append(
-                A(r.name, _href=r.url, _title=r.title, _target='_blank'))
+                A(r.name, _href=r.url, _target='_blank'))
         return links
 
-    def move_link(self, to_link_table_id, direction='up'):
+    def move_link(self, link_id, direction='up'):
         """Move a link in the order (as indicated by order_no) one spot in
         the specified direction.
 
         Args:
-            to_link_table_id: integer, id of record in to_link_table
+            link_id: integer, id of link record to move
             direction: string, 'up' or 'down'
         """
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
-        db = self.table._db
-        record = db(self.to_link_table.id == to_link_table_id).select(
-            self.to_link_table.ALL
-        ).first()
-
-        query = \
-            (self.join_to_link_field == record[self.join_to_link_fieldname])
+        db = current.app.db
         move_record(
-            self.to_link_table.order_no,
-            record.id,
+            db.link.order_no,
+            link_id,
             direction=direction,
-            query=query,
+            query=self.filter_query()
         )
 
     def reorder(self, link_ids=None):
@@ -128,11 +72,11 @@ class CustomLinks(object):
                 the records in table are reordered in the order prescribed
                 by link_ids.
         """
-        filter_query = (self.join_to_link_field == self.record_id)
+        db = current.app.db
         return reorder(
-            self.to_link_table.order_no,
+            db.link.order_no,
             record_ids=link_ids,
-            query=filter_query
+            query=self.filter_query()
         )
 
     def represent(
@@ -161,3 +105,31 @@ class CustomLinks(object):
             [LI(x) for x in links],
             _class=ul_class,
         )
+
+
+class LinkSetKey(object):
+    """Class representing a LinkSetKey"""
+
+    def __init__(self, link_type_id, record_table, record_id):
+        """Initializer
+
+        Args:
+            link_type_id: integer, id of link_type record.
+            record_table: string, table name
+            record_id: integer, if of record in table_name
+        """
+        self.link_type_id = link_type_id
+        self.record_table = record_table
+        self.record_id = record_id
+
+    @classmethod
+    def from_link(cls, link):
+        """Create a LinkSetKey instance from a link.
+
+        Args:
+            link: Row representing a link record.
+
+        Returns:
+            LinkSetKey instance
+        """
+        return cls(link.link_type_id, link.record_table, link.record_id)

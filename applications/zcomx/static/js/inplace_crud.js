@@ -41,7 +41,7 @@
         );
 
         var methods = {
-            _add_input_onblur: function(elem) {
+            _add_input_onblur: function(elem, container_div) {
                 /* don't submit if one of the inputs has focus */
                 var with_focus = $('#' + settings.add_container_id + ' input:focus').length;
                 if (with_focus === 0) {
@@ -55,6 +55,7 @@
                             data: {
                                 'action': 'create',
                                 'link_id': 0,
+                                'link_type_code': $(container_div).data('link_type_code'),
                                 'name': name,
                                 'url': url,
                             },
@@ -129,7 +130,7 @@
 
                 $('#' + settings.add_container_id + ' input').blur(function(e){
                     setTimeout(function() {
-                        methods._add_input_onblur($(this));
+                        methods._add_input_onblur($(this), elem);
                     }.bind(this), 100);
                 }).keyup(function(event){
                     if (event.which == 13) {
@@ -306,6 +307,7 @@
                     data: {
                         'action': 'get',
                         'link_id': link_id,
+                        'link_type_code': $(elem).data('link_type_code'),
                     },
                     error: methods._ajax_error,
                     success: function (data) {

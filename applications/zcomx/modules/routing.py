@@ -23,7 +23,10 @@ from applications.zcomx.modules.html.meta import \
     MetadataFactory, \
     html_metadata_from_records
 from applications.zcomx.modules.indicias import BookIndiciaPage
-from applications.zcomx.modules.links import CustomLinks
+from applications.zcomx.modules.link_types import LinkType
+from applications.zcomx.modules.links import \
+    LinkSet, \
+    LinkSetKey
 from applications.zcomx.modules.search import \
     CompletedGrid, \
     CreatorMoniesGrid, \
@@ -409,13 +412,29 @@ class Router(object):
                 }
             )
 
+        book_link_set = LinkSet(
+            LinkSetKey(
+                LinkType.by_code('buy_book').id,
+                'book',
+                book_record.id
+            )
+        )
+
+        creator_link_set = LinkSet(
+            LinkSetKey(
+                LinkType.by_code('creator_link').id,
+                'creator',
+                creator_record.id
+            )
+        )
+
         self.view_dict = dict(
             book=book_record,
             cover_image=cover,
             creator=creator_record,
-            creator_links=CustomLinks(db.creator, creator_record.id).represent(
+            creator_links=creator_link_set.represent(
                 pre_links=self.preset_links()),
-            links=CustomLinks(db.book, book_record.id).represent(),
+            links=book_link_set.represent(),
             page_count=page_count,
         )
 
@@ -454,14 +473,18 @@ class Router(object):
         LOG.debug('queries: %s', queries)
         ongoing_grid = OngoingGrid(queries=queries, default_viewby='list')
 
+        creator_link_set = LinkSet(
+            LinkSetKey(
+                LinkType.by_code('creator_link').id,
+                'creator',
+                creator_record.id
+            )
+        )
+
         self.view_dict = dict(
             creator=creator_record,
             grid=completed_grid,
-            links=CustomLinks(
-                db.creator, creator_record.id
-            ).represent(
-                pre_links=self.preset_links()
-            ),
+            links=creator_link_set.represent(pre_links=self.preset_links()),
             ongoing_grid=ongoing_grid.render(),
             completed_grid=completed_grid.render()
         )

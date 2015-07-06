@@ -35,6 +35,7 @@ from applications.zcomx.modules.indicias import \
     cc_licences, \
     create_creator_indicia, \
     render_cc_licence
+from applications.zcomx.modules.link_types import LinkType
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -91,15 +92,11 @@ class WithObjectsTestCase(LocalTestCase):
         ))
 
         link = self.add(db.link, dict(
+            link_type_id=LinkType.by_code('buy_book').id,
+            record_table='book',
+            record_id=self._book.id,
             url='http://www.test.com',
             name='test',
-            title='Test',
-        ))
-
-        self.add(db.book_to_link, dict(
-            link_id=link.id,
-            book_id=self._book.id,
-            order_no=1,
         ))
 
         # Next book in series

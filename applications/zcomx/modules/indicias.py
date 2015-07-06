@@ -28,7 +28,10 @@ from applications.zcomx.modules.images import \
     on_delete_image, \
     store
 from applications.zcomx.modules.images_optimize import AllSizesImages
-from applications.zcomx.modules.links import CustomLinks
+from applications.zcomx.modules.link_types import LinkType
+from applications.zcomx.modules.links import \
+    LinkSet, \
+    LinkSetKey
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
@@ -304,9 +307,14 @@ class BookIndiciaPage(IndiciaPage):
                 )
             )
 
-        links = CustomLinks(db.book, self.book.id).represent(
-            ul_class='custom_links'
-        )
+        links = LinkSet(
+            LinkSetKey(
+                LinkType.by_code('buy_book').id,
+                'book',
+                self.book.id
+            )
+        ).represent(ul_class='custom_links')
+
         if links:
             contribute_and_links_divs.append(
                 DIV(
