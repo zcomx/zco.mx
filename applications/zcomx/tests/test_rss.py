@@ -11,6 +11,7 @@ import re
 import unittest
 import gluon.contrib.rss2 as rss2
 from gluon import *
+from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.rss import \
     AllRSSChannel, \
@@ -641,7 +642,9 @@ class TestFunctions(WithObjectsTestCase):
         for action in ['completed', 'page added']:
             self._activity_log.update_record(action=action)
             db.commit()
-            got = activity_log_as_rss_entry(self._activity_log)
+
+            got = activity_log_as_rss_entry(ActivityLog(self._activity_log.as_dict()))
+
             self.assertTrue(
                 isinstance(got, entry_class_from_action(action))
             )
@@ -649,6 +652,16 @@ class TestFunctions(WithObjectsTestCase):
             self.assertEqual(
                 got.time_stamp, self._activity_log_time_stamp)
             self.assertEqual(got.activity_log_id, self._activity_log.id)
+
+        # Test handling of non-existent book_page ids.
+        old_book_page_ids = self._activity_log.book_page_ids
+        new_book_page_ids = self._activity_log.book_page_ids + [-1]
+        self._activity_log.update_record(book_page_ids=new_book_page_ids)
+        db.commit()
+
+        got = activity_log_as_rss_entry(ActivityLog(self._activity_log.as_dict()))
+
+        self.assertEqual(got.book_page_ids, old_book_page_ids)
 
     def test__channel_from_type(self):
         # Invalid channel
