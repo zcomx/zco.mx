@@ -47,7 +47,10 @@ from applications.zcomx.modules.job_queue import \
     ReleaseBookQueuer, \
     ReverseReleaseBookQueuer, \
     queue_search_prefetch
-from applications.zcomx.modules.links import CustomLinks
+from applications.zcomx.modules.link_types import LinkType
+from applications.zcomx.modules.links import \
+    LinkSet, \
+    LinkSetKey
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
 from applications.zcomx.modules.utils import \
@@ -933,12 +936,12 @@ def indicia_preview_urls():
 @auth.requires_login()
 def link_crud():
     """Handler for ajax link CRUD calls.
-    request.args(0): integer, optional, if provided, id of book record. All
-        actions are done on book links. If not provided, actions are done on
-        creator links.
+    request.args(0): record_table, one of 'creator' or 'book'
+    request.args(1): record_id, integer, id of record
 
     request.vars.action: string, one of
         'get', 'create', 'update', 'delete', 'move'
+    request.vars.link_type_code: string, link_type.code value.
 
     # action = 'update', 'delete', 'move'
     request.vars.link_id: integer, id of link record
@@ -966,28 +969,36 @@ def link_crud():
         db.creator.ALL
     ).first()
     if not creator_record:
+        LOG.debug('FIXME not creator_record')
         return do_error('Permission denied')
+
+    record_table = request.args(0)
+    if record_table not in ['book', 'creator']:
+        return do_error('Invalid data provided')
 
     record_id = 0
     rows = []
     errors = {}     # Row() or dict
     new_value = None
 
-    book_record = None
-    if request.args(0):
-        book_record = entity_to_row(db.book, request.args(0))
+    if record_table == 'creator':
+        try:
+            request_args_1 = int(request.args(1))
+        except (TypeError, ValueError):
+            return do_error('Permission denied')
+        if request_args_1 != creator_record.id:
+            return do_error('Permission denied')
+
+    if record_table == 'book':
+        book_record = entity_to_row(db.book, request.args(1))
         if not book_record:
             return do_error('Invalid data provided')
+        if book_record.creator_id != creator_record.id:
+            return do_error('Permission denied')
 
-    if book_record:
-        entity_table = db.book
-        to_link_table = db.book_to_link
-        to_link_join_field = db.book_to_link.book_id
+    if record_table == 'book':
         record = book_record
     else:
-        entity_table = db.creator
-        to_link_table = db.creator_to_link
-        to_link_join_field = db.creator_to_link.creator_id
         record = creator_record
 
     actions = ['get', 'update', 'create', 'delete', 'move']
@@ -995,6 +1006,7 @@ def link_crud():
 
     link_id = None
     link_record = None
+    link_type = None
     if request.vars.link_id:
         try:
             link_id = int(request.vars.link_id)
@@ -1005,20 +1017,29 @@ def link_crud():
         link_record = entity_to_row(db.link, link_id)
         if not link_record:
             return do_error('Invalid data provided')
+        link_type = LinkType.from_id(link_record.link_type_id)
+
+    if not request.vars.link_type_code:
+        return do_error('Invalid data provided')
+
+    if not link_type:
+        try:
+            link_type = LinkType.by_code(request.vars.link_type_code)
+        except LookupError:
+            link_type = None
+        if not link_type:
+            return do_error('Invalid data provided')
 
     do_reorder = False
     if action == 'get':
-        query = (to_link_join_field == record.id)
         if link_id:
-            query = query & (db.link.id == link_id)
+            query = (db.link.id == link_id)
+        else:
+            query = (db.link.record_table == record_table) & \
+                    (db.link.record_id == record.id)
         rows = db(query=query).select(
             db.link.ALL,
-            left=[
-                to_link_table.on(
-                    (to_link_table.link_id == db.link.id)
-                )
-            ],
-            orderby=[to_link_table.order_no, to_link_table.id],
+            orderby=[db.link.order_no, db.link.id],
         ).as_list()
     elif action == 'update':
         if link_id:
@@ -1058,31 +1079,22 @@ def link_crud():
     elif action == 'create':
         url = request.vars.url.rstrip('/')
         ret = db.link.validate_and_insert(
+            link_type_id=link_type.id,
+            record_table=record_table,
+            record_id=record.id,
+            order_no=99999,
             url=url,
             name=request.vars.name,
         )
         db.commit()
         if url != request.vars.url:
             new_value = url
-        if ret.id:
-            data = dict(
-                link_id=ret.id,
-                order_no=99999,
-            )
-            if book_record:
-                data['book_id'] = book_record.id
-            else:
-                data['creator_id'] = creator_record.id
-            to_link_table.validate_and_insert(**data)
-            db.commit()
-            do_reorder = True
+        do_reorder = True
         record_id = ret.id
         if ret.errors:
             return {'status': 'error', 'msg': ret.errors}
     elif action == 'delete':
         if link_id:
-            query = (to_link_table.link_id == link_id)
-            db(query).delete()
             query = (db.link.id == link_id)
             db(query).delete()
             db.commit()
@@ -1094,17 +1106,18 @@ def link_crud():
         dirs = ['down', 'up']
         direction = request.vars.dir if request.vars.dir in dirs else 'down'
         if link_id:
-            to_link_record = db(to_link_table.link_id == link_id).select(
-                to_link_table.ALL).first()
-            links = CustomLinks(entity_table, record.id)
-            links.move_link(to_link_record.id, direction=direction)
+            link_set = LinkSet(
+                LinkSetKey(link_type.id, record_table, record.id))
+            link_set.move_link(link_id, direction=direction)
             record_id = link_id
         else:
             return do_error('Invalid data provided')
     if do_reorder:
-        reorder_query = (to_link_join_field == record.id)
+        reorder_query = (db.link.record_table == record_table) & \
+            (db.link.record_id == record.id) & \
+            (db.link.link_type_id == link_type.id)
         reorder(
-            to_link_table.order_no,
+            db.link.order_no,
             query=reorder_query,
         )
     result = {

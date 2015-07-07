@@ -20,7 +20,7 @@
 <div id="editable_fields_container"></div>
 <div id="metadata_fields_container" class="hidden"></div>
 <div id="links_container">
-    <div id="edit_links_container"></div>
+    <div id="edit_links_container" data-link_type_code="buy_book"></div>
 </div>
 
 </div>
@@ -390,7 +390,7 @@
         );
         {{if book and book.id:}}
         $('#edit_links_container').inplace_link_crud(
-            '{{=URL(c='login', f='link_crud.json', args=book.id)}}',
+            '{{=URL(c='login', f='link_crud.json', args=['book', book.id])}}',
             '{{=book.id}}',
             {
                 placeholders: {

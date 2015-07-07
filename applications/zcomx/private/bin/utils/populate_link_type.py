@@ -2,16 +2,15 @@
 # -*- coding: utf-8 -*-
 
 """
-populate_book_type.py
+populate_link_type.py
 
-Script to populate the book_type table.
+Script to populate the link_type table.
 """
 import logging
 import os
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
-from applications.zcomx.modules.books import DEFAULT_BOOK_TYPE
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -22,68 +21,79 @@ db = APP_ENV['db']
 LOG = logging.getLogger('cli')
 
 TYPES = [
-    # (sequence, name, description)
-    (1, 'ongoing', 'Ongoing (eg 001, 002, 003, etc)'),
-    (2, 'mini-series', 'Mini-series (eg 01 of 04)'),
-    (3, 'one-shot', 'One-shot/Graphic Novel'),
+    {
+        'code': 'buy_book',
+        'label': 'buy this book',
+        'name_placeholder': 'Name-of-link',
+        'url_placeholder': 'http://etsy.com/title-of-book',
+    },
+    {
+        'code': 'creator_link',
+        'label': 'links',
+        'name_placeholder': 'eg. patreon',
+        'url_placeholder': 'http://patreon.com/name',
+    },
+    {
+        'code': 'book_review',
+        'label': 'reviews',
+        'name_placeholder': 'Name-of-reviewer',
+        'url_placeholder': 'http://reviewer.com/review-link',
+    },
+    {
+        'code': 'creator_article',
+        'label': 'articles',
+        'name_placeholder': 'Name-of-writer',
+        'url_placeholder': 'http://writer.com/article-link',
+    },
 ]
 
 
 def create_records(dry_run=False):
     """Create records."""
-    fields = ['sequence', 'name', 'description']
     for record in TYPES:
-        book_type = dict(zip(fields, record))
-        LOG.debug('book_type: {var}'.format(var=book_type))
-        query = (db.book_type.name == book_type['name'])
-        row = db(query).select(db.book_type.ALL).first()
-        if not row:
-            LOG.info('{dry}Creating record: {var}'.format(
-                dry='!! DRY RUN !! ' if dry_run else '',
-                var=book_type['name']))
+        query = (db.link_type.code == record['code'])
+        link_type = db(query).select().first()
+        if not link_type:
+            LOG.info(
+                '%sCreating record: %s',
+                '!! DRY RUN !! ' if dry_run else '',
+                record['code']
+            )
             if not dry_run:
-                db.book_type.insert(name=book_type['name'])
+                db.link_type.insert(code=record['code'])
                 db.commit()
-        LOG.info('{dry}Updating record: {var}'.format(
-            dry='!! DRY RUN !! ' if dry_run else '',
-            var=book_type['name']))
+        LOG.info(
+            '%sUpdating record: %s',
+            '!! DRY RUN !! ' if dry_run else '',
+            record['code']
+        )
         if not dry_run:
-            db(query).update(**book_type)
+            db(query).update(**record)
             db.commit()
 
 
 def list_records():
     """List records."""
-    rows = db().select(db.book_type.ALL)
+    rows = db().select(db.link_type.ALL)
     for r in rows:
         print '{rid} {name:20s} {seq}'.format(
             rid=r.id, name=r.name, seq=r.sequence)
-
-
-def update_books(dry_run=False):
-    """Update the book_type field on book records."""
-    query = (db.book_type.name == DEFAULT_BOOK_TYPE)
-    book_type = db(query).select(db.book_type.ALL).first()
-    query = (db.book.book_type_id == None)
-    if not dry_run:
-        db(query).update(book_type_id=book_type.id)
-        db.commit()
 
 
 def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    populate_book_type.py [OPTIONS]
+    populate_link_type.py [OPTIONS]
 
     This script is safe to be rerun without the -c, --clear option.
     The -c, --clear option is *not* safe. It may corrupt references to
-    the book_type table.
+    the link_type table.
 
 
 OPTIONS
     -c, --clear
-        Truncate the book_type table and exit.
+        Truncate the link_type table and exit.
 
     -d, --dry-run
         Do not create records, only report what would be done.
@@ -92,7 +102,7 @@ OPTIONS
         Print a brief help.
 
     -l, --list
-        List existing book_types.
+        List existing list_types.
 
     -v, --verbose
         Print information messages to stdout.
@@ -158,8 +168,8 @@ def main():
         quit(0)
 
     if options.clear:
-        LOG.info('Truncating book_type table')
-        db.book_type.truncate()
+        LOG.info('Truncating link_type table')
+        db.link_type.truncate()
         db.commit()
         quit(0)
 
@@ -169,7 +179,6 @@ def main():
 
     LOG.info('Started.')
     create_records(dry_run=options.dry_run)
-    update_books(dry_run=options.dry_run)
     LOG.info('Done.')
 
 

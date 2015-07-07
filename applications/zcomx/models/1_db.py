@@ -133,19 +133,6 @@ db.define_table('activity_log',
     ),
 )
 
-db.define_table('tentative_activity_log',
-    Field(
-        'book_id',
-        'integer',
-    ),
-    Field(
-        'book_page_id',
-        'integer',
-    ),
-    Field('action'),
-    Field('time_stamp', 'datetime'),
-)
-
 db.define_table('book',
     Field(
         'name',
@@ -586,6 +573,10 @@ db.define_table('job',
 )
 
 db.define_table('link',
+    Field('link_type_id', 'integer'),
+    Field('record_table'),
+    Field('record_id', 'integer'),
+    Field('order_no', 'integer'),
     Field('url',
         requires=IS_URL(error_message='Enter a valid URL'),
         widget=lambda field, value: SQLFORM.widgets.string.widget(field,
@@ -599,8 +590,15 @@ db.define_table('link',
             error_message='Enter %(min)g to %(max)g characters'
         ),
     ),
-    Field('title'),
     format='%(name)s',
+)
+
+db.define_table('link_type',
+    Field('code'),
+    Field('label'),
+    Field('name_placeholder'),
+    Field('url_placeholder'),
+    format='%(code)s',
 )
 
 db.define_table('ongoing_post',
@@ -803,6 +801,19 @@ db.define_table('rating',
     ),
     Field('time_stamp', 'datetime'),
     Field('amount', 'double'),
+)
+
+db.define_table('tentative_activity_log',
+    Field(
+        'book_id',
+        'integer',
+    ),
+    Field(
+        'book_page_id',
+        'integer',
+    ),
+    Field('action'),
+    Field('time_stamp', 'datetime'),
 )
 
 db.book.book_type_id.requires = IS_IN_DB(
