@@ -31,12 +31,12 @@
 }(jQuery));
 
 (function( $ ) {
-    $.fn.inplace_link_crud = function (url, record_id, options) {
+    $.fn.inplace_link_crud = function (url, link_type_code, record_id, options) {
         var settings = $.extend(
             true,
             {},
             $.fn.inplace_link_crud.defaults,
-            {url: url, record_id: record_id},
+            {url: url, link_type_code: link_type_code, record_id: record_id},
             options
         );
 
@@ -54,8 +54,8 @@
                             type: 'POST',
                             data: {
                                 'action': 'create',
+                                'link_type_code': settings.link_type_code,
                                 'link_id': 0,
-                                'link_type_code': $(container_div).data('link_type_code'),
                                 'name': name,
                                 'url': url,
                             },
@@ -189,6 +189,7 @@
                         inputclass: 'inplace_crud link_' + field + '_input',
                         params: {
                             'action': 'update',
+                            'link_type_code': settings.link_type_code,
                             'link_id': row.id,
                             'field': field,
                         },
@@ -240,6 +241,7 @@
                     type: 'POST',
                     data: {
                         'action': 'delete',
+                        'link_type_code': settings.link_type_code,
                         'link_id': $(this).data('record_id'),
                     },
                     error: methods._ajax_error,
@@ -306,8 +308,8 @@
                     type: 'POST',
                     data: {
                         'action': 'get',
+                        'link_type_code': settings.link_type_code,
                         'link_id': link_id,
-                        'link_type_code': $(elem).data('link_type_code'),
                     },
                     error: methods._ajax_error,
                     success: function (data) {
@@ -339,6 +341,7 @@
                    type: 'POST',
                    data: {
                        'action': 'move',
+                       'link_type_code': settings.link_type_code,
                        'link_id': $(this).data('record_id'),
                        'dir': $(this).data('dir'),
                    },

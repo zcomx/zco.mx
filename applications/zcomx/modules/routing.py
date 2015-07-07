@@ -412,7 +412,7 @@ class Router(object):
                 }
             )
 
-        book_link_set = LinkSet(
+        book_link_set = LinkSet.from_link_set_key(
             LinkSetKey(
                 LinkType.by_code('buy_book').id,
                 'book',
@@ -420,7 +420,7 @@ class Router(object):
             )
         )
 
-        creator_link_set = LinkSet(
+        creator_link_set = LinkSet.from_link_set_key(
             LinkSetKey(
                 LinkType.by_code('creator_link').id,
                 'creator',
@@ -473,7 +473,7 @@ class Router(object):
         LOG.debug('queries: %s', queries)
         ongoing_grid = OngoingGrid(queries=queries, default_viewby='list')
 
-        creator_link_set = LinkSet(
+        creator_link_set = LinkSet.from_link_set_key(
             LinkSetKey(
                 LinkType.by_code('creator_link').id,
                 'creator',

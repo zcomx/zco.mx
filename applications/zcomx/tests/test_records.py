@@ -44,8 +44,10 @@ class TestRecord(LocalTestCase):
         book = DubRecord.from_id(saved_book.id)
         self.assertEqual(book.id, saved_book.id)
         self.assertEqual(book.name, '_test__from_id_')
+        ignore = ['delete_record', 'update_record']
+        book_keys = [x for x in sorted(book.keys()) if x not in ignore]
         self.assertEqual(
-            sorted(book.keys()),
+            book_keys,
             sorted(db.book.fields)
         )
 

@@ -10,7 +10,7 @@ from applications.zcomx.modules.records import Record
 
 
 class LinkType(Record):
-    """Class representing a activity_log record"""
+    """Class representing a link_type record"""
     db_table = 'link_type'
 
     @classmethod

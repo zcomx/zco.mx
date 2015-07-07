@@ -307,7 +307,7 @@ class BookIndiciaPage(IndiciaPage):
                 )
             )
 
-        links = LinkSet(
+        links = LinkSet.from_link_set_key(
             LinkSetKey(
                 LinkType.by_code('buy_book').id,
                 'book',

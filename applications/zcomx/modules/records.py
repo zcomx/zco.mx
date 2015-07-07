@@ -7,6 +7,9 @@ Class and functions relatedo database records.
 """
 from gluon import *
 from pydal.objects import Row
+from pydal.helpers.classes import \
+    RecordDeleter, \
+    RecordUpdater
 
 
 class Record(Row):
@@ -17,6 +20,11 @@ class Record(Row):
     def __init__(self, *args, **kwargs):
         """Initializer"""
         Row.__init__(self, *args, **kwargs)
+        record_id = self.__dict__['id'] if 'id' in self.__dict__ else None
+        db = current.app.db
+        if record_id:
+            self.update_record = RecordUpdater(self.as_dict(), db[self.db_table], record_id)
+            self.delete_record = RecordDeleter(db[self.db_table], record_id)
 
     def delete(self):
         """Delete the record from the db"""

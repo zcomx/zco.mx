@@ -4,7 +4,7 @@
 
 <div id="editable_fields_container"></div>
 <div id="links_container">
-    <div id="edit_links_container" data-link_type_code="creator_link"></div>
+    <div id="edit_links_container"></div>
 </div>
 <div id="bio_container"></div>
 <div id="mug_shot">
@@ -273,6 +273,7 @@
 
         $('#edit_links_container').inplace_link_crud(
             '{{=URL(c='login', f='link_crud.json', args=['creator', creator.id])}}',
+            'creator_link',
             '',
             {
                 placeholders: {
