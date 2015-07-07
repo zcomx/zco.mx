@@ -399,7 +399,7 @@ def activity_log_as_rss_entry(activity_log):
 
     entry_class = entry_class_from_action(activity_log.action)
     return entry_class(
-        activity_log.book_page_ids,
+        activity_log.verified_book_page_ids(),
         activity_log.time_stamp,
         activity_log.id
     )

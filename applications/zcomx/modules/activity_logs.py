@@ -39,6 +39,21 @@ class ActivityLogMixin(object):
                 'Activity log has no timestamp, age indeterminate')
         return as_of - self.time_stamp
 
+    def verified_book_page_ids(self):
+        """Return a list of verified book page ids.
+
+        Pages of books can be deleted after the activity log record is
+        created. This method filters out the ids of deleted pages and
+        returns only those that exist.
+        """
+        verified = []
+        db = current.app.db
+        for book_page_id in self.book_page_ids:
+            query = (db.book_page.id == book_page_id)
+            if db(query).select(db.book_page.id).first():
+                verified.append(book_page_id)
+        return verified
+
 
 class ActivityLog(Record, ActivityLogMixin):
     """Class representing a activity_log record"""

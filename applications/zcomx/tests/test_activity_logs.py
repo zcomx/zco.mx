@@ -49,6 +49,38 @@ class TestActivityLogMixin(LocalTestCase):
         log = DubActivityLog({})
         self.assertRaises(SyntaxError, log.age)
 
+    def test__verified_book_page_ids(self):
+        book_id = -9
+
+        book_page_1 = self.add(db.book_page, dict(
+            book_id=book_id,
+            page_no=1,
+        ))
+
+        book_page_2 = self.add(db.book_page, dict(
+            book_id=book_id,
+            page_no=2,
+        ))
+
+        original_ids = [book_page_1.id, book_page_2.id]
+        reversed_ids = [book_page_2.id, book_page_1.id]
+        tarnished_ids = [book_page_1.id, -3, book_page_2.id]
+
+        tests = [
+            # (book_page_ids, expect)
+            (original_ids, original_ids),
+            (reversed_ids, reversed_ids),
+            (tarnished_ids, original_ids),
+        ]
+
+        for t in tests:
+            record = {'book_page_ids': t[0]}
+            log = DubActivityLog(**record)
+            self.assertEqual(
+                log.verified_book_page_ids(),
+                t[1]
+            )
+
 
 class TestBaseTentativeLogSet(LocalTestCase):
 
