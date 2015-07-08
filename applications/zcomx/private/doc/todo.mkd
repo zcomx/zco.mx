@@ -33,10 +33,6 @@ VERSION 3
 [ ] Book page -> Links to Book Reviews
         http://p.zsw.ca/IJ.png      ## mockup
 
-[S] Reader Page -> Notify users that left/right arrow keys turn page
-    * fancy js that appears in bottom right corner for 10 seconds and then never again?
-    * one time modal via a cookie?
-
 [S] Integrity Check For Torrents
     https://code.google.com/p/pyroscope/wiki/RtControlExamples
     $ rtcontrol -q -oname name=* alias=zco.mx
@@ -52,6 +48,13 @@ VERSION 3
 
 [ ] Make CBZ's available via HTTP?
 
+[ ] login/books
+    After choosing 'Set as completed' we leave the cartoonist at "(in
+    progress)".  It's leaves them in a bit of limbo.  What if we put the
+    book under "Completed" and a comment "(this can take up to an hour
+    to complete)".  Once the book as been released, then we remove the
+    comment.
+
 
 VERSION 4
 [S] zwire
@@ -59,6 +62,9 @@ VERSION 4
 
 
 VERSION 5
+[S] Reader Page -> Notify users that left/right arrow keys turn page
+    * fancy js that appears in bottom right corner for 10 seconds and then never again?
+    * one time modal via a cookie?
 [S] Setup hypermail for real-only mailing lists in login area ?
 [S] Separate '001' and '01 (of 02)' from the title ?
 [S] Change bg to #fafafa ?, #e1dcca/#df7700 ?
