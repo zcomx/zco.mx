@@ -82,7 +82,8 @@ cache_dir="applications/zcomx/cache"
 [[ -d $cache_dir ]] && rm -r "$cache_dir"/*
 
 __v && __mi "Removing *.pyc"
-find . -name "*.pyc" -exec rm -f {} \;
+find . -path ./applications/zcomx/sessions -prune -o -type f -name "*.pyc" -exec rm -f {} \;
+
 
 __v && __mi "Updating response.static_version"
 _update_static_version "$SETTINGS_CONF"
