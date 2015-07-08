@@ -31,12 +31,12 @@
 }(jQuery));
 
 (function( $ ) {
-    $.fn.inplace_link_crud = function (url, link_type_code, record_id, options) {
+    $.fn.inplace_link_crud = function (url, link_type_code, options) {
         var settings = $.extend(
             true,
             {},
             $.fn.inplace_link_crud.defaults,
-            {url: url, link_type_code: link_type_code, record_id: record_id},
+            {url: url, link_type_code: link_type_code},
             options
         );
 
@@ -55,7 +55,7 @@
                             data: {
                                 'action': 'create',
                                 'link_type_code': settings.link_type_code,
-                                'link_id': 0,
+                                'pk': 0,
                                 'name': name,
                                 'url': url,
                             },
@@ -190,15 +190,15 @@
                         params: {
                             'action': 'update',
                             'link_type_code': settings.link_type_code,
-                            'link_id': row.id,
                             'field': field,
                         },
+                        pk: row.id,
                     };
 
                     $.fn.inplace_crud_utils.set_editable(
                         editable_elem,
                         settings.auto_open,
-                        {url: settings.url, pk: settings.record_id},
+                        {url: settings.url},
                         settings.x_editable_settings,
                         x_editable_settings
                     );
@@ -228,7 +228,7 @@
                 else {
                     edit_container_id = $('#' + settings.add_container_id).data('edit_container_id');
                     edit_container = $('#' + edit_container_id);
-                    methods._load_links(edit_container, data.id);
+                    methods._load_links_callback(edit_container, data);
                     methods._clear_add_inputs();
                 }
             },
@@ -242,7 +242,7 @@
                     data: {
                         'action': 'delete',
                         'link_type_code': settings.link_type_code,
-                        'link_id': $(this).data('record_id'),
+                        'pk': $(this).data('record_id'),
                     },
                     error: methods._ajax_error,
                     success: function (data) {
@@ -259,8 +259,7 @@
                         data.msg || 'Server request failed',
                         'text-danger'
                     );
-                }
-                if (data.id) {
+                } else {
                     var row = $(button).closest('.row_container');
                     var edit_link_container = $(row).parent('div');
                     row.remove();
@@ -309,7 +308,7 @@
                     data: {
                         'action': 'get',
                         'link_type_code': settings.link_type_code,
-                        'link_id': link_id,
+                        'pk': link_id,
                     },
                     error: methods._ajax_error,
                     success: function (data) {
@@ -342,7 +341,7 @@
                    data: {
                        'action': 'move',
                        'link_type_code': settings.link_type_code,
-                       'link_id': $(this).data('record_id'),
+                       'pk': $(this).data('record_id'),
                        'dir': $(this).data('dir'),
                    },
                    error: methods._ajax_error,
@@ -360,8 +359,7 @@
                         data.msg || 'Server request failed',
                         'text-danger'
                     );
-                }
-                if (data.id) {
+                } else {
                     var row = $(button).closest('.row_container');
                     row.fadeOut(400, function() {
                         if (button.data('dir') === 'down') {

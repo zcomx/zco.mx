@@ -289,12 +289,6 @@ db.define_table('book_page',
     format='%(page_no)s',
 )
 
-db.define_table('book_to_link',
-    Field('book_id', 'integer'),
-    Field('link_id', 'integer'),
-    Field('order_no', 'integer'),
-)
-
 db.define_table('book_type',
     Field('name'),
     Field('description'),
@@ -484,12 +478,6 @@ db.define_table('creator',
         'boolean',
         default=None,
     ),
-)
-
-db.define_table('creator_to_link',
-    Field('creator_id', 'integer'),
-    Field('link_id', 'integer'),
-    Field('order_no', 'integer'),
 )
 
 db.define_table('derivative',

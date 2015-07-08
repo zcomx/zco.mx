@@ -943,7 +943,7 @@ def link_crud():
     request.vars.link_type_code: string, link_type.code value.
 
     # action = 'update', 'delete', 'move'
-    request.vars.link_id: integer, id of link record
+    request.vars.pk: integer, id of link record
 
     # action = 'update'
     request.vars.field: string, link table field name
@@ -956,6 +956,8 @@ def link_crud():
     # action = 'move'
     request.vars.dir: string, 'up' or 'down'
     """
+    LOG.debug('FIXME request.args: %s', request.args)
+    LOG.debug('FIXME request.vars: %s', request.vars)
     # too-many-return-statements (R0911): *Too many return statements*
     # pylint: disable=R0911
     response.generic_patterns = ['json']
@@ -974,10 +976,10 @@ def link_crud():
     if record_table not in ['book', 'creator']:
         return do_error('Invalid data provided')
 
-    record_id = 0
     rows = []
     errors = {}     # Row() or dict
     new_value = None
+    record = None
 
     if record_table == 'creator':
         try:
@@ -986,6 +988,7 @@ def link_crud():
             return do_error('Permission denied')
         if request_args_1 != creator_record.id:
             return do_error('Permission denied')
+        record = creator_record
 
     if record_table == 'book':
         book_record = entity_to_row(db.book, request.args(1))
@@ -993,11 +996,7 @@ def link_crud():
             return do_error('Invalid data provided')
         if book_record.creator_id != creator_record.id:
             return do_error('Permission denied')
-
-    if record_table == 'book':
         record = book_record
-    else:
-        record = creator_record
 
     actions = ['get', 'update', 'create', 'delete', 'move']
     action = request.vars.action if request.vars.action in actions else 'get'
@@ -1005,9 +1004,9 @@ def link_crud():
     link_id = None
     link_record = None
     link_type = None
-    if request.vars.link_id:
+    if request.vars.pk:
         try:
-            link_id = int(request.vars.link_id)
+            link_id = int(request.vars.pk)
         except (TypeError, ValueError):
             link_id = None
 
@@ -1058,7 +1057,6 @@ def link_crud():
                 query = (db.link.id == link_id)
                 ret = db(query).validate_and_update(**data)
                 db.commit()
-                record_id = link_id
                 if ret.errors:
                     if request.vars.field in ret.errors:
                         return {
@@ -1087,18 +1085,17 @@ def link_crud():
             name=request.vars.name,
         )
         db.commit()
+        if ret.errors:
+            return {'status': 'error', 'msg': ret.errors}
+        rows = db(db.link.id == ret.id).select().as_list()
         if url != request.vars.url:
             new_value = url
         do_reorder = True
-        record_id = ret.id
-        if ret.errors:
-            return {'status': 'error', 'msg': ret.errors}
     elif action == 'delete':
         if link_id:
             query = (db.link.id == link_id)
             db(query).delete()
             db.commit()
-            record_id = link_id
             do_reorder = True
         else:
             return do_error('Invalid data provided')
@@ -1112,7 +1109,6 @@ def link_crud():
                 direction=direction,
                 query=link_set_key.filter_query(db.link)
             )
-            record_id = link_id
         else:
             return do_error('Invalid data provided')
     if do_reorder:
@@ -1121,7 +1117,6 @@ def link_crud():
             query=link_set_key.filter_query(db.link)
         )
     result = {
-        'id': record_id,
         'rows': rows,
         'errors': errors,
     }
