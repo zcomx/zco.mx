@@ -11,6 +11,7 @@ from gluon import *
 from BeautifulSoup import BeautifulSoup
 from applications.zcomx.modules.link_types import LinkType
 from applications.zcomx.modules.links import \
+    Link, \
     LinkSet, \
     LinkSetKey
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -18,6 +19,14 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
+
+class TestLink(LocalTestCase):
+
+    def test_parent__init__(self):
+        link = Link({'link_type_id': 1})
+        self.assertEqual(link.link_type_id, 1)
+        self.assertEqual(link.db_table, 'link')
 
 
 class TestLinkSet(LocalTestCase):
@@ -28,7 +37,8 @@ class TestLinkSet(LocalTestCase):
     _link_2 = None
     _link_3 = None
     _link_set_key = None
-    _links = [
+    _links = []
+    _links_data = [
         {'name': 'First Site', 'url': 'http://site1.com'},
         {'name': 'Second Site', 'url': 'http://site2.com'},
         {'name': 'Third Site', 'url': 'http://site3.com'},
@@ -46,167 +56,58 @@ class TestLinkSet(LocalTestCase):
             email='testcustomlinks_2@example.com'
         ))
 
-        self._link = self.add(db.link, dict(
-            link_type_id=LinkType.by_code('creator_link').id,
-            record_table='creator',
-            record_id=self._creator.id,
-            name=self._links[0]['name'],
-            url=self._links[0]['url'],
-            order_no=1,
-        ))
+        if not self._links:
+            for count, link_data in enumerate(self._links_data):
+                link = Link(dict(
+                    link_type_id=LinkType.by_code('creator_link').id,
+                    record_table='creator',
+                    record_id=self._creator.id,
+                    name=link_data['name'],
+                    url=link_data['url'],
+                    order_no=count,
+                ))
+                self._links.append(link)
 
-        self._link_2 = self.add(db.link, dict(
-            link_type_id=LinkType.by_code('creator_link').id,
-            record_table='creator',
-            record_id=self._creator.id,
-            name=self._links[1]['name'],
-            url=self._links[1]['url'],
-            order_no=2,
-        ))
-
-        self._link_3 = self.add(db.link, dict(
-            link_type_id=LinkType.by_code('creator_link').id,
-            record_table='creator',
-            record_id=self._creator.id,
-            name=self._links[2]['name'],
-            url=self._links[2]['url'],
-            order_no=2,
-        ))
-
-        self._link_set_key = LinkSetKey.from_link(self._link)
-
-    def _ordered_records(self):
-        query = \
-            (db.link.link_type_id == LinkType.by_code('creator_link').id) & \
-            (db.link.record_table == 'creator') &\
-            (db.link.record_id == self._creator['id'])
-        return db(query).select(
-            db.link.ALL,
-            orderby=db.link.order_no
-        )
-
-    def _ordered_ids(self):
-        return [x['id'] for x in self._ordered_records()]
-
-    def _order_nos(self):
-        return [x['order_no'] for x in self._ordered_records()]
+        self._link_set_key = LinkSetKey.from_link(self._links[0])
 
     def test____init__(self):
-        link_set = LinkSet(self._link_set_key)
+        link_set = LinkSet(self._links)
         self.assertTrue(link_set)
 
-    def test__filter_query(self):
-        link_set = LinkSet(self._link_set_key)
-        query = link_set.filter_query()
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-        self.assertEqual(
-            str(query),
-            "(((link.link_type_id = {lid}) AND (link.record_table = 'creator')) AND (link.record_id = {bid}))".format(
-                lid=self._link_set_key.link_type_id,
-                bid=self._creator.id
-            )
-        )
-
-    def test__links(self):
-        link_set = LinkSet(self._link_set_key)
-        got = link_set.links()
+    def test__as_links(self):
+        link_set = LinkSet(self._links)
+        got = link_set.as_links()
         self.assertEqual(len(got), 3)
-
         for count, element in enumerate(got):
             soup = BeautifulSoup(str(element))
             anchor = soup.find('a')
-            self.assertEqual(anchor.string, self._links[count]['name'])
-            self.assertEqual(anchor['href'], self._links[count]['url'])
+            self.assertEqual(anchor.string, self._links[count].name)
+            self.assertEqual(anchor['href'], self._links[count].url)
             self.assertEqual(anchor['target'], '_blank')
 
-        soup = BeautifulSoup(str(got[0]))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'First Site')
-        self.assertEqual(anchor['href'], 'http://site1.com')
-        self.assertEqual(anchor['target'], '_blank')
+    def test__from_link_set_key(self):
+        links = []
+        for link in self._links:
+            link_data = link.as_dict()
+            link_data['id'] = link.save()
+            links.append(Link(link_data))
 
-        soup = BeautifulSoup(str(got[1]))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Second Site')
-        self.assertEqual(anchor['href'], 'http://site2.com')
-        self.assertEqual(anchor['target'], '_blank')
+        for link in links:
+            self._objects.append(link)
 
-        soup = BeautifulSoup(str(got[2]))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Third Site')
-        self.assertEqual(anchor['href'], 'http://site3.com')
-        self.assertEqual(anchor['target'], '_blank')
+        link_set = LinkSet.from_link_set_key(self._link_set_key)
+        self.assertEqual(len(link_set.links), len(links))
 
-    def test__move_link(self):
-        link_set = LinkSet(self._link_set_key)
-
-        # Set up data
-        original = self._ordered_ids()
-        link_ids = [original[0], original[1], original[2]]
-        link_set.reorder(link_ids=link_ids)
-        got = self._ordered_ids()
-        self.assertEqual(got, original)
-
-        # Move top link up, should not change
-        link_set.move_link(original[0], direction='up')
-        got = self._ordered_ids()
-        self.assertEqual(got, original)
-
-        # Move bottom link down, should not change
-        link_set.move_link(original[2], direction='down')
-        got = self._ordered_ids()
-        self.assertEqual(got, original)
-
-        # Move top link down
-        link_set.move_link(original[0], direction='down')
-        got = self._ordered_ids()
-        self.assertEqual(got, [original[1], original[0], original[2]])
-
-        # Move top link down again
-        link_set.move_link(original[0], direction='down')
-        got = self._ordered_ids()
-        self.assertEqual(got, [original[1], original[2], original[0]])
-
-        # Move top link up
-        link_set.move_link(original[0], direction='up')
-        got = self._ordered_ids()
-        self.assertEqual(got, [original[1], original[0], original[2]])
-
-        # Move top link up again, back to start
-        link_set.move_link(original[0], direction='up')
-        got = self._ordered_ids()
-        self.assertEqual(got, original)
-
-    def test__reorder(self):
-        link_set = LinkSet(self._link_set_key)
-
-        original = self._ordered_ids()
-
-        link_set.reorder()
-        got = self._ordered_ids()
-        self.assertEqual(got, original)
-        self.assertEqual(self._order_nos(), [1, 2, 3])
-
-        link_ids = [original[2], original[1], original[0]]
-        link_set.reorder(link_ids=link_ids)
-        got = self._ordered_ids()
-        self.assertEqual(got, link_ids)
-        self.assertEqual(self._order_nos(), [1, 2, 3])
-
-        # Test that holes are closed.
-        link_ids = [original[0], original[1], original[2]]
-        link_set.reorder(link_ids=link_ids)
-
-        for x in self._ordered_records():
-            x.update_record(order_no=db.link.order_no * 2)
-        db.commit()
-        self.assertEqual(self._order_nos(), [2, 4, 6])
-        link_set.reorder(link_ids=link_ids)
-        self.assertEqual(self._order_nos(), [1, 2, 3])
+        fields = links[0].keys()
+        ignore_fields = ['delete_record', 'update_record']
+        for count, link in enumerate(link_set.links):
+            for f in fields:
+                if f in ignore_fields:
+                    continue
+                self.assertEqual(link[f], links[count][f])
 
     def test__represent(self):
-        link_set = LinkSet(self._link_set_key)
+        link_set = LinkSet(self._links)
 
         got = link_set.represent()
         soup = BeautifulSoup(str(got))
@@ -264,13 +165,7 @@ class TestLinkSet(LocalTestCase):
             self.assertEqual(anchor['title'], 'post_link {c}'.format(c=count))
 
         # Test no links
-        link_set_2 = LinkSet(
-            LinkSetKey(
-                LinkType.by_code('creator_link').id,
-                record_table='creator',
-                record_id=self._creator_2.id
-            )
-        )
+        link_set_2 = LinkSet([])
         self.assertEqual(link_set_2.represent(), None)
 
         # Test ul_class parameter
@@ -285,6 +180,16 @@ class TestLinkSetKey(LocalTestCase):
     def test____init__(self):
         key = LinkSetKey(1, 'table', 1)
         self.assertTrue(key)
+
+    def test__filter_query(self):
+        key = LinkSetKey(111, 'fake_table', 222)
+        query = key.filter_query(db.link)
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            str(query),
+            "(((link.link_type_id = 111) AND (link.record_table = 'fake_table')) AND (link.record_id = 222))"
+        )
 
     def test__from_link(self):
         link = self.add(db.link, dict(

@@ -48,14 +48,13 @@ from applications.zcomx.modules.job_queue import \
     ReverseReleaseBookQueuer, \
     queue_search_prefetch
 from applications.zcomx.modules.link_types import LinkType
-from applications.zcomx.modules.links import \
-    LinkSet, \
-    LinkSetKey
+from applications.zcomx.modules.links import LinkSetKey
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
 from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
+    move_record, \
     reorder
 from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
 
@@ -969,7 +968,6 @@ def link_crud():
         db.creator.ALL
     ).first()
     if not creator_record:
-        LOG.debug('FIXME not creator_record')
         return do_error('Permission denied')
 
     record_table = request.args(0)
@@ -1029,6 +1027,8 @@ def link_crud():
             link_type = None
         if not link_type:
             return do_error('Invalid data provided')
+
+    link_set_key = LinkSetKey(link_type.id, record_table, record.id)
 
     do_reorder = False
     if action == 'get':
@@ -1106,19 +1106,19 @@ def link_crud():
         dirs = ['down', 'up']
         direction = request.vars.dir if request.vars.dir in dirs else 'down'
         if link_id:
-            link_set = LinkSet(
-                LinkSetKey(link_type.id, record_table, record.id))
-            link_set.move_link(link_id, direction=direction)
+            move_record(
+                db.link.order_no,
+                link_id,
+                direction=direction,
+                query=link_set_key.filter_query(db.link)
+            )
             record_id = link_id
         else:
             return do_error('Invalid data provided')
     if do_reorder:
-        reorder_query = (db.link.record_table == record_table) & \
-            (db.link.record_id == record.id) & \
-            (db.link.link_type_id == link_type.id)
         reorder(
             db.link.order_no,
-            query=reorder_query,
+            query=link_set_key.filter_query(db.link)
         )
     result = {
         'id': record_id,
