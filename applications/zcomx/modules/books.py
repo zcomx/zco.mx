@@ -377,7 +377,6 @@ def book_tables():
         'activity_log',
         'tentative_activity_log',
         'book_page',
-        'book_to_link',
         'book_view',
         'contribution',
         'derivative',

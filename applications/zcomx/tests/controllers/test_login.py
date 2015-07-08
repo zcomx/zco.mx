@@ -31,10 +31,8 @@ class TestFunctions(LocalTestCase):
 
     _book = None
     _book_page = None
-    _book_to_link = None
     _creator = None
     _creator_as_dict = {}
-    _creator_to_link = None
     _user = None
     _test_data_dir = None
     _max_optimize_img_log_id = None
@@ -78,16 +76,6 @@ class TestFunctions(LocalTestCase):
             '<div id="profile_page">',
             '<div id="indicia_section">',
         ],
-        'links': [
-            'href="/zcomx/login/links.load/new/link',
-            'Add</span>',
-            'order_no_handler/creator_to_link',
-        ],
-        'links_book': [
-            'href="/zcomx/login/links.load/new/link',
-            'Add</span>',
-            'order_no_handler/book_to_link',
-        ],
         'order_no_handler': '<div id="creator_page">',
         'profile': '<div id="creator_section">',
     }
@@ -127,23 +115,6 @@ class TestFunctions(LocalTestCase):
         cls._book_page = db(query).select().first()
         if not cls._book_page:
             msg = 'Unable to get book_page for: {e}'.format(e=email)
-            print msg
-            raise SyntaxError(msg)
-
-        query = (db.creator_to_link.creator_id == cls._creator.id)
-        cls._creator_to_link = db(query).select(
-            orderby=db.creator_to_link.order_no
-        ).first()
-        if not cls._creator_to_link:
-            msg = 'No creator_to_link with email: {e}'.format(e=email)
-            print msg
-            raise SyntaxError(msg)
-
-        query = (db.book_to_link.book_id == cls._book.id)
-        cls._book_to_link = db(query).select(
-            orderby=db.book_to_link.order_no).first()
-        if not cls._book_to_link:
-            msg = 'No book_to_link with email: {e}'.format(e=email)
             print msg
             raise SyntaxError(msg)
 
@@ -820,7 +791,9 @@ class TestFunctions(LocalTestCase):
                 'name': '_test__link_crud_',
                 'url': 'http://www.linkcrud.com',
             }
-            result = do_test(link_set_key, data, [], {})
+            result = do_test(link_set_key, data, ['_test__link_crud_'], {})
+            link_id = result['rows'][0]['id']
+
             data = {'action': 'get', 'link_type_code': link_type_code}
             got = do_test(
                 link_set_key,
@@ -828,14 +801,12 @@ class TestFunctions(LocalTestCase):
                 ['test_do_not_delete', '_test__link_crud_'],
                 {}
             )
-            self.assertEqual(result['id'], got['rows'][1]['id'])
-            link_id = result['id']
 
-            # Action: get with link_id
+            # Action: get with pk=link_id
             data = {
                 'action': 'get',
                 'link_type_code': link_type_code,
-                'link_id': link_id,
+                'pk': link_id,
             }
             do_test(link_set_key, data, ['_test__link_crud_'], {})
 
@@ -843,7 +814,7 @@ class TestFunctions(LocalTestCase):
             data = {
                 'action': 'update',
                 'link_type_code': link_type_code,
-                'link_id': link_id,
+                'pk': link_id,
                 'field': 'name',
                 'value': '_test__link_crud_2_',
             }
@@ -859,7 +830,7 @@ class TestFunctions(LocalTestCase):
             data = {
                 'action': 'update',
                 'link_type_code': link_type_code,
-                'link_id': link_id,
+                'pk': link_id,
                 'field': 'url',
                 'value': 'http://www.linkcrud2.com',
             }
@@ -877,7 +848,7 @@ class TestFunctions(LocalTestCase):
             data = {
                 'action': 'update',
                 'link_type_code': '_fake_',
-                'link_id': 0,
+                'pk': 0,
                 'field': 'url',
                 'value': 'http://www.linkcrud2.com',
             }
@@ -887,7 +858,7 @@ class TestFunctions(LocalTestCase):
             data = {
                 'action': 'update',
                 'link_type_code': link_type_code,
-                'link_id': 0,
+                'pk': 0,
                 'field': 'url',
                 'value': 'http://www.linkcrud2.com',
             }
@@ -897,7 +868,7 @@ class TestFunctions(LocalTestCase):
             data = {
                 'action': 'update',
                 'link_type_code': link_type_code,
-                'link_id': link_id,
+                'pk': link_id,
                 'field': 'url',
                 'value': '_bad_url_',
             }
@@ -907,7 +878,7 @@ class TestFunctions(LocalTestCase):
             data = {
                 'action': 'update',
                 'link_type_code': link_type_code,
-                'link_id': link_id,
+                'pk': link_id,
                 'field': 'name',
                 'value': '',
             }
@@ -922,7 +893,7 @@ class TestFunctions(LocalTestCase):
             data = {
                 'action': 'move',
                 'link_type_code': link_type_code,
-                'link_id': link_id,
+                'pk': link_id,
                 'dir': 'up',
             }
             do_test(link_set_key, data, [], {})
@@ -938,7 +909,7 @@ class TestFunctions(LocalTestCase):
             data = {
                 'action': 'delete',
                 'link_type_code': link_type_code,
-                'link_id': link_id,
+                'pk': link_id,
             }
             do_test(link_set_key, data, [], {})
             data = {'action': 'get', 'link_type_code': link_type_code}
@@ -948,7 +919,7 @@ class TestFunctions(LocalTestCase):
             data = {
                 'action': 'delete',
                 'link_type_code': link_type_code,
-                'link_id': 0,
+                'pk': 0,
             }
             do_test(link_set_key, data, [], 'Invalid data provided')
 
