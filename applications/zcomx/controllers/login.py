@@ -48,6 +48,8 @@ from applications.zcomx.modules.job_queue import \
     ReverseReleaseBookQueuer, \
     queue_search_prefetch
 from applications.zcomx.modules.links import \
+    Link, \
+    Links, \
     LinksKey, \
     LinkType
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
@@ -356,7 +358,7 @@ def book_edit():
         meta.load()
 
     link_types = []
-    for link_type_code in ['buy_book']:
+    for link_type_code in ['book_review', 'buy_book']:
         link_types.append(LinkType.by_code(link_type_code))
 
     return dict(
@@ -1037,15 +1039,13 @@ def link_crud():
 
     do_reorder = False
     if action == 'get':
+        links = None
         if link_id:
-            query = (db.link.id == link_id)
+            r = db(db.link.id == link_id).select().first()
+            links = Links([Link(r)])
         else:
-            query = (db.link.record_table == record_table) & \
-                    (db.link.record_id == record.id)
-        rows = db(query=query).select(
-            db.link.ALL,
-            orderby=[db.link.order_no, db.link.id],
-        ).as_list()
+            links = Links.from_links_key(links_key)
+        rows = [x for x in links.links]
     elif action == 'update':
         if link_id:
             data = {}
@@ -1424,7 +1424,7 @@ def profile():
     )
 
     link_types = []
-    for link_type_code in ['creator_page']:
+    for link_type_code in ['creator_article', 'creator_page']:
         link_types.append(LinkType.by_code(link_type_code))
 
     return dict(

@@ -56,6 +56,10 @@
                         {{except:}}
                         {{pass}}
                     {{pass}}
+                    {{if len(creator_article_link_set) > 0:}}
+                        <dt>{{=creator_article_link_set.label()}}</dt>
+                        <dd>{{=creator_article_link_set.represent()}}</dd>
+                    {{pass}}
                     {{if len(creator_page_link_set) > 0:}}
                         <dt>{{=creator_page_link_set.label()}}</dt>
                         <dd>{{=creator_page_link_set.represent()}}</dd>

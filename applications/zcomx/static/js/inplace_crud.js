@@ -114,7 +114,7 @@
 
                 var add_container;
                 if ( $('#' + settings.add_container_id).length === 0 ) {
-                    $(elem).after('<div id="' + settings.add_container_id + '"></div>');
+                    $(elem).after('<div id="' + settings.add_container_id + '" class="add_link_container"></div>');
                 }
                 add_container = $('#' + settings.add_container_id).first();
                 var inputs = $(
@@ -150,6 +150,7 @@
                 });
 
                 add_container.data('edit_container_id', $(elem).attr('id'));
+                console.log('add_container.data(): %o', add_container.data());
             },
 
             _create: function(elem, row) {
@@ -226,6 +227,8 @@
                     });
                 }
                 else {
+                    add_container = $('#' + settings.add_container_id).first();
+                    console.log('add_container.data(): %o', add_container.data());
                     edit_container_id = $('#' + settings.add_container_id).data('edit_container_id');
                     edit_container = $('#' + edit_container_id);
                     methods._load_links_callback(edit_container, data);
