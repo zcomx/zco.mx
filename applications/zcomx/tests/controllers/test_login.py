@@ -12,8 +12,9 @@ import time
 import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.indicias import PublicationMetadata
-from applications.zcomx.modules.link_types import LinkType
-from applications.zcomx.modules.links import LinkSetKey
+from applications.zcomx.modules.links import \
+    LinkType, \
+    LinksKey
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
@@ -729,11 +730,11 @@ class TestFunctions(LocalTestCase):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
 
-        def do_test(link_set_key, data, expect_names, expect_errors):
+        def do_test(links_key, data, expect_names, expect_errors):
             url = '{url}/link_crud.json/{t}/{i}'.format(
                 url=self.url,
-                t=link_set_key.record_table,
-                i=link_set_key.record_id,
+                t=links_key.record_table,
+                i=links_key.record_id,
             )
             web.post(url, data=data)
             result = loads(web.text)
@@ -748,10 +749,10 @@ class TestFunctions(LocalTestCase):
                 self.assertEqual(result['msg'], expect_errors)
             return result
 
-        def reset(link_set_key, keep_names):
-            query = (db.link.link_type_id == link_set_key.link_type_id) & \
-                (db.link.record_table == link_set_key.record_table) & \
-                (db.link.record_id == link_set_key.record_id)
+        def reset(links_key, keep_names):
+            query = (db.link.link_type_id == links_key.link_type_id) & \
+                (db.link.record_table == links_key.record_table) & \
+                (db.link.record_id == links_key.record_id)
             rows = db(query).select()
             for r in rows:
                 if r.name in keep_names:
@@ -760,29 +761,29 @@ class TestFunctions(LocalTestCase):
                 db.commit()
 
         web.login()
-        link_set_keys = [
-            LinkSetKey(
-                LinkType.by_code('creator_link').id,
+        links_keys = [
+            LinksKey(
+                LinkType.by_code('creator_page').id,
                 'creator',
                 self._creator.id
             ),
-            LinkSetKey(
+            LinksKey(
                 LinkType.by_code('buy_book').id,
                 'book',
                 self._book.id
             )
         ]
-        for link_set_key in link_set_keys:
-            reset(link_set_key, 'test_do_not_delete')
+        for links_key in links_keys:
+            reset(links_key, 'test_do_not_delete')
 
-            link_type_code = LinkType.from_id(link_set_key.link_type_id).code
+            link_type_code = LinkType.from_id(links_key.link_type_id).code
 
             # Action: get
             data = {
                 'action': 'get',
                 'link_type_code': link_type_code,
             }
-            do_test(link_set_key, data, ['test_do_not_delete'], {})
+            do_test(links_key, data, ['test_do_not_delete'], {})
 
             # Action: create
             data = {
@@ -791,12 +792,12 @@ class TestFunctions(LocalTestCase):
                 'name': '_test__link_crud_',
                 'url': 'http://www.linkcrud.com',
             }
-            result = do_test(link_set_key, data, ['_test__link_crud_'], {})
+            result = do_test(links_key, data, ['_test__link_crud_'], {})
             link_id = result['rows'][0]['id']
 
             data = {'action': 'get', 'link_type_code': link_type_code}
             got = do_test(
-                link_set_key,
+                links_key,
                 data,
                 ['test_do_not_delete', '_test__link_crud_'],
                 {}
@@ -808,7 +809,7 @@ class TestFunctions(LocalTestCase):
                 'link_type_code': link_type_code,
                 'pk': link_id,
             }
-            do_test(link_set_key, data, ['_test__link_crud_'], {})
+            do_test(links_key, data, ['_test__link_crud_'], {})
 
             # Action: update
             data = {
@@ -818,10 +819,10 @@ class TestFunctions(LocalTestCase):
                 'field': 'name',
                 'value': '_test__link_crud_2_',
             }
-            do_test(link_set_key, data, [], {})
+            do_test(links_key, data, [], {})
             data = {'action': 'get', 'link_type_code': link_type_code}
             do_test(
-                link_set_key,
+                links_key,
                 data,
                 ['test_do_not_delete', '_test__link_crud_2_'],
                 {}
@@ -834,10 +835,10 @@ class TestFunctions(LocalTestCase):
                 'field': 'url',
                 'value': 'http://www.linkcrud2.com',
             }
-            do_test(link_set_key, data, [], {})
+            do_test(links_key, data, [], {})
             data = {'action': 'get', 'link_type_code': link_type_code}
             got = do_test(
-                link_set_key,
+                links_key,
                 data,
                 ['test_do_not_delete', '_test__link_crud_2_'],
                 {}
@@ -852,7 +853,7 @@ class TestFunctions(LocalTestCase):
                 'field': 'url',
                 'value': 'http://www.linkcrud2.com',
             }
-            do_test(link_set_key, data, [], 'Invalid data provided')
+            do_test(links_key, data, [], 'Invalid data provided')
 
             # Action: update, Invalid link_id
             data = {
@@ -862,7 +863,7 @@ class TestFunctions(LocalTestCase):
                 'field': 'url',
                 'value': 'http://www.linkcrud2.com',
             }
-            do_test(link_set_key, data, [], 'Invalid data provided')
+            do_test(links_key, data, [], 'Invalid data provided')
 
             # Action: update, Invalid url
             data = {
@@ -872,7 +873,7 @@ class TestFunctions(LocalTestCase):
                 'field': 'url',
                 'value': '_bad_url_',
             }
-            do_test(link_set_key, data, [], 'Enter a valid URL')
+            do_test(links_key, data, [], 'Enter a valid URL')
 
             # Action: update, Invalid name
             data = {
@@ -883,7 +884,7 @@ class TestFunctions(LocalTestCase):
                 'value': '',
             }
             do_test(
-                link_set_key,
+                links_key,
                 data,
                 [],
                 'Enter 1 to 40 characters'
@@ -896,10 +897,10 @@ class TestFunctions(LocalTestCase):
                 'pk': link_id,
                 'dir': 'up',
             }
-            do_test(link_set_key, data, [], {})
+            do_test(links_key, data, [], {})
             data = {'action': 'get', 'link_type_code': link_type_code}
             do_test(
-                link_set_key,
+                links_key,
                 data,
                 ['_test__link_crud_2_', 'test_do_not_delete'],
                 {}
@@ -911,9 +912,9 @@ class TestFunctions(LocalTestCase):
                 'link_type_code': link_type_code,
                 'pk': link_id,
             }
-            do_test(link_set_key, data, [], {})
+            do_test(links_key, data, [], {})
             data = {'action': 'get', 'link_type_code': link_type_code}
-            do_test(link_set_key, data, ['test_do_not_delete'], {})
+            do_test(links_key, data, ['test_do_not_delete'], {})
 
             # Action: delete, Invalid link_id
             data = {
@@ -921,9 +922,9 @@ class TestFunctions(LocalTestCase):
                 'link_type_code': link_type_code,
                 'pk': 0,
             }
-            do_test(link_set_key, data, [], 'Invalid data provided')
+            do_test(links_key, data, [], 'Invalid data provided')
 
-            reset(link_set_key, 'test_do_not_delete')
+            reset(links_key, 'test_do_not_delete')
 
     def test__metadata_crud(self):
 

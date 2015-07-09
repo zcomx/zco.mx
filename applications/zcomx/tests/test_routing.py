@@ -180,8 +180,8 @@ class TestRouter(LocalTestCase):
             'creator': [
                 'completed_grid',
                 'creator',
+                'creator_page_link_set',
                 'grid',
-                'links',
                 'ongoing_grid',
             ],
             'creator_monies': [
@@ -190,10 +190,10 @@ class TestRouter(LocalTestCase):
             ],
             'book': [
                 'book',
+                'buy_book_link_set',
                 'cover_image',
                 'creator',
-                'creator_links',
-                'links',
+                'creator_page_link_set',
                 'page_count',
             ],
             'page_image': [

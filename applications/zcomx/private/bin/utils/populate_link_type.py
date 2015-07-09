@@ -28,7 +28,7 @@ TYPES = [
         'url_placeholder': 'http://etsy.com/title-of-book',
     },
     {
-        'code': 'creator_link',
+        'code': 'creator_page',
         'label': 'links',
         'name_placeholder': 'eg. patreon',
         'url_placeholder': 'http://patreon.com/name',

@@ -2463,7 +2463,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
         max-width: 24.4em;
     }
 
-    #edit_links_container .field_label {
+    .edit_links_container .field_label {
         width: 12em;
     }
 
@@ -2521,7 +2521,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 }
 
-#edit_links_container .field_container {
+.edit_links_container .field_container {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2529,12 +2529,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 24em;
 }
 
-#edit_links_container .field_label {
+.edit_links_container .field_label {
     margin-left: -0.3em;
     width: 12em;
 }
 
-#edit_links_container .field_container a {
+.edit_links_container .field_container a {
     white-space: nowrap;
 }
 
@@ -2715,7 +2715,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: none;
 }
 
-#book_edit_section #edit_links_container {
+#book_edit_section .edit_links_container {
     vertical-align: middle;
 }
 
@@ -2748,12 +2748,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
     #profile_page .creator_bio_input {
         width: 24em;
     }
-    #edit_links_container .field_container {
+    .edit_links_container .field_container {
         line-height: 1.8em;
         vertical-align: middle;
         width: 20em;
     }
-    #edit_links_container .field_label {
+    .edit_links_container .field_label {
         line-height: 1.8em;
         vertical-align: middle;
         width: 12em;

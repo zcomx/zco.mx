@@ -9,16 +9,168 @@ Test suite for zcomx/modules/links.py
 import unittest
 from gluon import *
 from BeautifulSoup import BeautifulSoup
-from applications.zcomx.modules.link_types import LinkType
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.links import \
+    BaseLinkSet, \
     Link, \
-    LinkSet, \
-    LinkSetKey
+    Links, \
+    LinksKey, \
+    LinkType
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
+
+class DubLinkSet(BaseLinkSet):
+    link_type_code = 'dub_link'
+
+    def link_type(self):
+        return LinkType({
+            'code': 'dub_link',
+            'label': 'My Links',
+        })
+
+    def links(self):
+        return Links([
+            Link({
+                'name': 'link 1',
+                'url': 'url 1',
+            }),
+            Link({
+                'name': 'link 2',
+                'url': 'url 2',
+            }),
+        ])
+
+
+class DubLinkSet2(BaseLinkSet):
+    link_type_code = 'buy_book'
+
+
+class TestBaseLinkSet(LocalTestCase):
+
+    def test____init__(self):
+        book = Book({'name': 'My Book'})
+        link_set = DubLinkSet(book)
+        self.assertTrue(link_set)
+
+    def test____len__(self):
+        book = Book({'name': 'My Book'})
+        link_set = DubLinkSet(book)
+        self.assertTrue(len(link_set), 2)
+
+        link_set = DubLinkSet(book, pre_links=[1, 2])
+        self.assertTrue(len(link_set), 4)
+
+        link_set = DubLinkSet(book, post_links=[1, 2, 3])
+        self.assertTrue(len(link_set), 5)
+
+        link_set = DubLinkSet(book, pre_links=[1, 2], post_links=[1, 2, 3])
+        self.assertTrue(len(link_set), 7)
+
+    def test__label(self):
+        book = Book({'name': 'My Book'})
+        link_set = DubLinkSet(book)
+        self.assertTrue(link_set.label(), 'My Links')
+
+    def test__link_type(self):
+        book = Book({'name': 'My Book'})
+        link_set = DubLinkSet2(book)
+        expect = LinkType.by_code(DubLinkSet2.link_type_code)
+        self.assertEqual(link_set.link_type(), expect)
+
+        # Test cache
+        fake_link_type = LinkType({'code': 'fake'})
+        # protected-access (W0212): *Access to a protected member
+        # pylint: disable=W0212
+        link_set._link_type = fake_link_type
+        self.assertEqual(link_set.link_type(), fake_link_type)
+
+    def test__links(self):
+        book_row = self.add(db.book, dict(
+            name='test__links',
+        ))
+
+        book = Book(book_row)
+
+        self.add(db.link, dict(
+            link_type_id=LinkType.by_code(DubLinkSet2.link_type_code).id,
+            record_table='book',
+            record_id=book.id,
+            order_no=1,
+        ))
+
+        link_2 = self.add(db.link, dict(
+            link_type_id=LinkType.by_code(DubLinkSet2.link_type_code).id,
+            record_table='book',
+            record_id=book.id,
+            order_no=2,
+        ))
+
+        link_set = DubLinkSet2(book)
+        got = link_set.links()
+        self.assertTrue(isinstance(got, Links))
+        self.assertEqual(len(got.links), 2)
+
+        # Test cache
+        fake_links = Links([link_2])
+        # protected-access (W0212): *Access to a protected member
+        # pylint: disable=W0212
+        link_set._links = fake_links
+        got = link_set.links()
+        self.assertTrue(isinstance(got, Links))
+        self.assertEqual(len(got.links), 1)
+
+    def test__represent(self):
+        book = Book({'name': 'My Book'})
+        link_set = DubLinkSet(book)
+        got = link_set.represent()
+        soup = BeautifulSoup(str(got))
+        # <ul class="custom_links breadcrumb pipe_delimiter">
+        #  <li>
+        #   <a href="url 1" target="_blank">
+        #    link 1
+        #   </a>
+        #  </li>
+        #  <li>
+        #   <a href="url 2" target="_blank">
+        #    link 2
+        #   </a>
+        #  </li>
+        # </ul>
+
+        ul = soup.find('ul')
+        self.assertEqual(ul['class'], 'custom_links breadcrumb pipe_delimiter')
+        lis = ul.findAll('li')
+        self.assertEqual(len(lis), 2)
+        for count, li in enumerate(lis):
+            anchor = li.find('a')
+            self.assertEqual(anchor.string, 'link {c}'.format(c=count + 1))
+            self.assertEqual(anchor['href'], 'url {c}'.format(c=count + 1))
+            self.assertEqual(anchor['target'], '_blank')
+
+        # Test pre_links and post_links
+        pre_links = [
+            A('1', _href='http://1.com', _title='pre_link 1'),
+            A('2', _href='http://2.com', _title='pre_link 2'),
+        ]
+        post_links = [
+            A('3', _href='http://3.com', _title='post_link 1'),
+            A('4', _href='http://4.com', _title='post_link 2'),
+        ]
+
+        link_set = DubLinkSet(book, pre_links=pre_links, post_links=post_links)
+        got = link_set.represent()
+        soup = BeautifulSoup(str(got))
+        ul = soup.find('ul')
+        lis = ul.findAll('li')
+        self.assertEqual(len(lis), 6)
+        self.assertEqual(
+            [x.find('a').string for x in lis],
+            ['1', '2', 'link 1', 'link 2', '3', '4']
+        )
 
 
 class TestLink(LocalTestCase):
@@ -29,14 +181,14 @@ class TestLink(LocalTestCase):
         self.assertEqual(link.db_table, 'link')
 
 
-class TestLinkSet(LocalTestCase):
+class TestLinks(LocalTestCase):
 
     _creator = None
     _creator_2 = None
     _link = None
     _link_2 = None
     _link_3 = None
-    _link_set_key = None
+    _links_key = None
     _links = []
     _links_data = [
         {'name': 'First Site', 'url': 'http://site1.com'},
@@ -59,7 +211,7 @@ class TestLinkSet(LocalTestCase):
         if not self._links:
             for count, link_data in enumerate(self._links_data):
                 link = Link(dict(
-                    link_type_id=LinkType.by_code('creator_link').id,
+                    link_type_id=LinkType.by_code('creator_page').id,
                     record_table='creator',
                     record_id=self._creator.id,
                     name=link_data['name'],
@@ -68,15 +220,19 @@ class TestLinkSet(LocalTestCase):
                 ))
                 self._links.append(link)
 
-        self._link_set_key = LinkSetKey.from_link(self._links[0])
+        self._links_key = LinksKey.from_link(self._links[0])
 
     def test____init__(self):
-        link_set = LinkSet(self._links)
-        self.assertTrue(link_set)
+        links = Links(self._links)
+        self.assertTrue(links)
+
+    def test____len__(self):
+        links = Links(self._links)
+        self.assertEqual(len(links), len(self._links))
 
     def test__as_links(self):
-        link_set = LinkSet(self._links)
-        got = link_set.as_links()
+        links = Links(self._links)
+        got = links.as_links()
         self.assertEqual(len(got), 3)
         for count, element in enumerate(got):
             soup = BeautifulSoup(str(element))
@@ -85,31 +241,31 @@ class TestLinkSet(LocalTestCase):
             self.assertEqual(anchor['href'], self._links[count].url)
             self.assertEqual(anchor['target'], '_blank')
 
-    def test__from_link_set_key(self):
-        links = []
+    def test__from_links_key(self):
+        link_records = []
         for link in self._links:
             link_data = link.as_dict()
             link_data['id'] = link.save()
-            links.append(Link(link_data))
+            link_records.append(Link(link_data))
 
-        for link in links:
+        for link in link_records:
             self._objects.append(link)
 
-        link_set = LinkSet.from_link_set_key(self._link_set_key)
-        self.assertEqual(len(link_set.links), len(links))
+        links = Links.from_links_key(self._links_key)
+        self.assertEqual(len(links.links), len(link_records))
 
-        fields = links[0].keys()
+        fields = link_records[0].keys()
         ignore_fields = ['delete_record', 'update_record']
-        for count, link in enumerate(link_set.links):
+        for count, link in enumerate(links.links):
             for f in fields:
                 if f in ignore_fields:
                     continue
-                self.assertEqual(link[f], links[count][f])
+                self.assertEqual(link[f], link_records[count][f])
 
     def test__represent(self):
-        link_set = LinkSet(self._links)
+        links = Links(self._links)
 
-        got = link_set.represent()
+        got = links.represent()
         soup = BeautifulSoup(str(got))
         # <ul class="custom_links breadcrumb pipe_delimiter">
         #  <li>
@@ -149,7 +305,7 @@ class TestLinkSet(LocalTestCase):
             A('2', _href='http://2.com', _title='post_link 2'),
         ]
 
-        got = link_set.represent(pre_links=pre_links, post_links=post_links)
+        got = links.represent(pre_links=pre_links, post_links=post_links)
         soup = BeautifulSoup(str(got))
         ul = soup.find('ul')
         lis = ul.findAll('li')
@@ -165,24 +321,24 @@ class TestLinkSet(LocalTestCase):
             self.assertEqual(anchor['title'], 'post_link {c}'.format(c=count))
 
         # Test no links
-        link_set_2 = LinkSet([])
-        self.assertEqual(link_set_2.represent(), None)
+        links_2 = Links([])
+        self.assertEqual(links_2.represent(), None)
 
         # Test ul_class parameter
-        got = link_set.represent(ul_class='class_1 class_2')
+        got = links.represent(ul_class='class_1 class_2')
         soup = BeautifulSoup(str(got))
         ul = soup.find('ul')
         self.assertEqual(ul['class'], 'class_1 class_2')
 
 
-class TestLinkSetKey(LocalTestCase):
+class TestLinksKey(LocalTestCase):
 
     def test____init__(self):
-        key = LinkSetKey(1, 'table', 1)
+        key = LinksKey(1, 'table', 1)
         self.assertTrue(key)
 
     def test__filter_query(self):
-        key = LinkSetKey(111, 'fake_table', 222)
+        key = LinksKey(111, 'fake_table', 222)
         query = key.filter_query(db.link)
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
@@ -197,10 +353,23 @@ class TestLinkSetKey(LocalTestCase):
             record_table='a_table',
             record_id=222,
         ))
-        key = LinkSetKey.from_link(link)
+        key = LinksKey.from_link(link)
         self.assertEqual(key.link_type_id, 111)
         self.assertEqual(key.record_table, 'a_table')
         self.assertEqual(key.record_id, 222)
+
+
+class TestLinkType(LocalTestCase):
+
+    def test_parent__init__(self):
+        link_type = LinkType({'code': 'fake_code'})
+        self.assertEqual(link_type.db_table, 'link_type')
+        self.assertEqual(link_type.code, 'fake_code')
+
+    def test__by_code(self):
+        link_type = LinkType.by_code('buy_book')
+        expect = db(db.link_type.code == 'buy_book').select().first()
+        self.assertEqual(link_type, expect)
 
 
 def setUpModule():

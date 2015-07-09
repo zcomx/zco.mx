@@ -11,6 +11,7 @@ from gluon import *
 from gluon.html import A, SPAN
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
+    Book, \
     ViewEvent, \
     cover_image, \
     get_page, \
@@ -18,15 +19,15 @@ from applications.zcomx.modules.books import \
     read_link, \
     url as book_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     url as creator_url
 from applications.zcomx.modules.html.meta import \
     MetadataFactory, \
     html_metadata_from_records
 from applications.zcomx.modules.indicias import BookIndiciaPage
-from applications.zcomx.modules.link_types import LinkType
 from applications.zcomx.modules.links import \
-    LinkSet, \
-    LinkSetKey
+    BuyBookLinkSet, \
+    CreatorPageLinkSet
 from applications.zcomx.modules.search import \
     CompletedGrid, \
     CreatorMoniesGrid, \
@@ -412,29 +413,15 @@ class Router(object):
                 }
             )
 
-        book_link_set = LinkSet.from_link_set_key(
-            LinkSetKey(
-                LinkType.by_code('buy_book').id,
-                'book',
-                book_record.id
-            )
-        )
-
-        creator_link_set = LinkSet.from_link_set_key(
-            LinkSetKey(
-                LinkType.by_code('creator_link').id,
-                'creator',
-                creator_record.id
-            )
-        )
-
         self.view_dict = dict(
             book=book_record,
             cover_image=cover,
             creator=creator_record,
-            creator_links=creator_link_set.represent(
-                pre_links=self.preset_links()),
-            links=book_link_set.represent(),
+            creator_page_link_set=CreatorPageLinkSet(
+                Creator(creator_record),
+                pre_links=self.preset_links()
+            ),
+            buy_book_link_set=BuyBookLinkSet(Book(book_record)),
             page_count=page_count,
         )
 
@@ -473,18 +460,13 @@ class Router(object):
         LOG.debug('queries: %s', queries)
         ongoing_grid = OngoingGrid(queries=queries, default_viewby='list')
 
-        creator_link_set = LinkSet.from_link_set_key(
-            LinkSetKey(
-                LinkType.by_code('creator_link').id,
-                'creator',
-                creator_record.id
-            )
-        )
-
         self.view_dict = dict(
             creator=creator_record,
             grid=completed_grid,
-            links=creator_link_set.represent(pre_links=self.preset_links()),
+            creator_page_link_set=CreatorPageLinkSet(
+                Creator(creator_record),
+                pre_links=self.preset_links()
+            ),
             ongoing_grid=ongoing_grid.render(),
             completed_grid=completed_grid.render()
         )

@@ -35,7 +35,7 @@ from applications.zcomx.modules.indicias import \
     cc_licences, \
     create_creator_indicia, \
     render_cc_licence
-from applications.zcomx.modules.link_types import LinkType
+from applications.zcomx.modules.links import LinkType
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick

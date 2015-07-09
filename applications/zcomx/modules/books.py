@@ -11,7 +11,6 @@ import os
 import urlparse
 from gluon import *
 from pydal.helpers.regex import REGEX_STORE_PATTERN
-from pydal.objects import Row
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import \
@@ -28,6 +27,7 @@ from applications.zcomx.modules.names import \
     BookNumber, \
     BookTitle, \
     names as name_values
+from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.shell_utils import tthsum
 from applications.zcomx.modules.utils import \
     entity_to_row
@@ -43,21 +43,9 @@ DEFAULT_BOOK_TYPE = 'one-shot'
 LOG = logging.getLogger('app')
 
 
-class Book(Row):
+class Book(Record):
     """Class representing a book record."""
-
-    @classmethod
-    def from_id(cls, record_id):
-        """Create instance from record id.
-
-        Args:
-            record_id: integer, id of record
-        """
-        db = current.app.db
-        book = db(db.book.id == record_id).select().first()
-        if not book:
-            raise LookupError('Book not found, id {i}'.format(i=record_id))
-        return book
+    db_table = 'book'
 
 
 class BaseEvent(object):
