@@ -28,10 +28,10 @@ from applications.zcomx.modules.images import \
     on_delete_image, \
     store
 from applications.zcomx.modules.images_optimize import AllSizesImages
-from applications.zcomx.modules.link_types import LinkType
 from applications.zcomx.modules.links import \
-    LinkSet, \
-    LinkSetKey
+    Links, \
+    LinksKey, \
+    LinkType
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
@@ -307,8 +307,8 @@ class BookIndiciaPage(IndiciaPage):
                 )
             )
 
-        links = LinkSet.from_link_set_key(
-            LinkSetKey(
+        links = Links.from_links_key(
+            LinksKey(
                 LinkType.by_code('buy_book').id,
                 'book',
                 self.book.id

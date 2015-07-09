@@ -47,8 +47,9 @@ from applications.zcomx.modules.job_queue import \
     ReleaseBookQueuer, \
     ReverseReleaseBookQueuer, \
     queue_search_prefetch
-from applications.zcomx.modules.link_types import LinkType
-from applications.zcomx.modules.links import LinkSetKey
+from applications.zcomx.modules.links import \
+    LinksKey, \
+    LinkType
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
 from applications.zcomx.modules.utils import \
@@ -354,8 +355,13 @@ def book_edit():
         meta = PublicationMetadata(book_record)
         meta.load()
 
+    link_types = []
+    for link_type_code in ['buy_book']:
+        link_types.append(LinkType.by_code(link_type_code))
+
     return dict(
         book=book_record,
+        link_types=link_types,
         metadata=str(meta) if meta else '',
         numbers=dumps(numbers),
         show_cc_licence_place=dumps(show_cc_licence_place),
@@ -1027,7 +1033,7 @@ def link_crud():
         if not link_type:
             return do_error('Invalid data provided')
 
-    link_set_key = LinkSetKey(link_type.id, record_table, record.id)
+    links_key = LinksKey(link_type.id, record_table, record.id)
 
     do_reorder = False
     if action == 'get':
@@ -1107,14 +1113,14 @@ def link_crud():
                 db.link.order_no,
                 link_id,
                 direction=direction,
-                query=link_set_key.filter_query(db.link)
+                query=links_key.filter_query(db.link)
             )
         else:
             return do_error('Invalid data provided')
     if do_reorder:
         reorder(
             db.link.order_no,
-            query=link_set_key.filter_query(db.link)
+            query=links_key.filter_query(db.link)
         )
     result = {
         'rows': rows,
@@ -1417,4 +1423,12 @@ def profile():
         )
     )
 
-    return dict(creator=creator_record, short_url=short_url(creator_record))
+    link_types = []
+    for link_type_code in ['creator_page']:
+        link_types.append(LinkType.by_code(link_type_code))
+
+    return dict(
+        creator=creator_record,
+        link_types=link_types,
+        short_url=short_url(creator_record)
+    )

@@ -16,6 +16,7 @@ from applications.zcomx.modules.job_queue import \
 from applications.zcomx.modules.names import \
     CreatorName, \
     names
+from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.strings import \
     camelcase, \
     replace_punctuation, \
@@ -25,6 +26,11 @@ from applications.zcomx.modules.utils import \
 from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = logging.getLogger('app')
+
+
+class Creator(Record):
+    """Class representing a creator record"""
+    db_table = 'creator'
 
 
 def add_creator(form):

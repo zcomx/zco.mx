@@ -19,10 +19,7 @@
 
 <div id="editable_fields_container"></div>
 <div id="metadata_fields_container" class="hidden"></div>
-<div id="links_container">
-    <div id="edit_links_container"></div>
-</div>
-
+<div id="links_container"></div>
 </div>
 <script>
 //<![CDATA[
@@ -389,16 +386,20 @@
             }
         );
         {{if book and book.id:}}
-        $('#edit_links_container').inplace_link_crud(
-            '{{=URL(c='login', f='link_crud.json', args=['book', book.id])}}',
-            'buy_book',
-            {
-                placeholders: {
-                    name: 'Name-of-link',
-                    url: 'http://etsy.com/title-of-book',
+            var links_container = $('#links_container').first();
+            {{for link_type in link_types:}}
+            $('<div class="edit_links_container {{=link_type.code}}_links"></div>').appendTo(links_container);
+            $('.' + '{{=link_type.code}}' + '_links').inplace_link_crud(
+                '{{=URL(c='login', f='link_crud.json', args=['book', book.id])}}',
+                '{{=link_type.code}}',
+                {
+                    placeholders: {
+                        name: '{{=link_type.name_placeholder}}',
+                        url: '{{=link_type.url_placeholder}}',
+                    }
                 }
-            }
-        );
+            );
+            {{pass}}
         {{else:}}
             setTimeout( function() {
                 $('a#name').editable('show');

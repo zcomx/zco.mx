@@ -3,9 +3,7 @@
 <div id="creator_section">
 
 <div id="editable_fields_container"></div>
-<div id="links_container">
-    <div id="edit_links_container"></div>
-</div>
+<div id="links_container"></div>
 <div id="bio_container"></div>
 <div id="mug_shot">
     <div class="row_container">
@@ -271,16 +269,20 @@
             }
         );
 
-        $('#edit_links_container').inplace_link_crud(
-            '{{=URL(c='login', f='link_crud.json', args=['creator', creator.id])}}',
-            'creator_link',
-            {
-                placeholders: {
-                    name: 'eg. patreon',
-                    url: 'http://patreon.com/name',
+        var links_container = $('#links_container').first();
+        {{for link_type in link_types:}}
+            $('<div class="edit_links_container {{=link_type.code}}_links"></div>').appendTo(links_container);
+            $('.' + '{{=link_type.code}}' + '_links').inplace_link_crud(
+                '{{=URL(c='login', f='link_crud.json', args=['creator', creator.id])}}',
+                '{{=link_type.code}}',
+                {
+                    placeholders: {
+                        name: '{{=link_type.name_placeholder}}',
+                        url: '{{=link_type.url_placeholder}}',
+                    }
                 }
-            }
-        );
+            );
+        {{pass}}
 
         $('#bio_container').inplace_crud(
             '{{=URL(c='login', f='creator_crud.json')}}',

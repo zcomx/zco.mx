@@ -154,11 +154,10 @@ class TestBaseEvent(EventTestCase):
 
 class TestBook(LocalTestCase):
 
-    def test__from_id(self):
-        book = db(db.book).select(orderby='<random>', limitby=(0, 1)).first()
-        got = Book.from_id(book.id)
-        for f in db.book.fields:
-            self.assertEqual(got[f], book[f])
+    def test_parent__init__(self):
+        book = Book({'name': '_test_parent__init__'})
+        self.assertEqual(book.name, '_test_parent__init__')
+        self.assertEqual(book.db_table, 'book')
 
 
 class TestBookEvent(EventTestCase):
