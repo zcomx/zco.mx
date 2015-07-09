@@ -182,5 +182,7 @@ IDEAS
     https://wiki.creativecommons.org/Frequently_Asked_Questions#What_does_it_mean_that_Creative_Commons_licenses_are_.22machine-readable.22.3F
     http://www.w3.org/TR/html-rdfa/
 [ ] Social media links other than on the indicia ?
+[ ] embedded sgc
+    http://jessebalmer.com/index.php?/tyranny-1/
 ``
 # vim:set ft=dm:
