@@ -388,17 +388,24 @@
         {{if book and book.id:}}
             var links_container = $('#links_container').first();
             {{for link_type in link_types:}}
-            $('<div class="edit_links_container {{=link_type.code}}_links"></div>').appendTo(links_container);
-            $('.' + '{{=link_type.code}}' + '_links').inplace_link_crud(
-                '{{=URL(c='login', f='link_crud.json', args=['book', book.id])}}',
-                '{{=link_type.code}}',
-                {
-                    placeholders: {
-                        name: '{{=link_type.name_placeholder}}',
-                        url: '{{=link_type.url_placeholder}}',
+                $(
+                      '<fieldset class="link_fieldset">'
+                    + '<legend>{{=link_type.label}}</legend>'
+                    + '<div id="{{=link_type.code}}_links" class="edit_links_container"></div>'
+                    + '</fieldset>'
+                ).appendTo(links_container);
+                $('#' + '{{=link_type.code}}' + '_links').inplace_link_crud(
+                    '{{=URL(c='login', f='link_crud.json', args=['book', book.id])}}',
+                    '{{=link_type.code}}',
+                    {
+
+                        add_container_id: '{{=link_type.code}}' + '_add_container',
+                        placeholders: {
+                            name: '{{=link_type.name_placeholder}}',
+                            url: '{{=link_type.url_placeholder}}',
+                        }
                     }
-                }
-            );
+                );
             {{pass}}
         {{else:}}
             setTimeout( function() {

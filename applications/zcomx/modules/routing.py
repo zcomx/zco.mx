@@ -26,7 +26,9 @@ from applications.zcomx.modules.html.meta import \
     html_metadata_from_records
 from applications.zcomx.modules.indicias import BookIndiciaPage
 from applications.zcomx.modules.links import \
+    BookReviewLinkSet, \
     BuyBookLinkSet, \
+    CreatorArticleLinkSet, \
     CreatorPageLinkSet
 from applications.zcomx.modules.search import \
     CompletedGrid, \
@@ -417,10 +419,14 @@ class Router(object):
             book=book_record,
             cover_image=cover,
             creator=creator_record,
+            creator_article_link_set=CreatorArticleLinkSet(
+                Creator(creator_record)
+            ),
             creator_page_link_set=CreatorPageLinkSet(
                 Creator(creator_record),
                 pre_links=self.preset_links()
             ),
+            book_review_link_set=BookReviewLinkSet(Book(book_record)),
             buy_book_link_set=BuyBookLinkSet(Book(book_record)),
             page_count=page_count,
         )
@@ -463,6 +469,9 @@ class Router(object):
         self.view_dict = dict(
             creator=creator_record,
             grid=completed_grid,
+            creator_article_link_set=CreatorArticleLinkSet(
+                Creator(creator_record)
+            ),
             creator_page_link_set=CreatorPageLinkSet(
                 Creator(creator_record),
                 pre_links=self.preset_links()
