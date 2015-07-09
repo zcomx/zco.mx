@@ -964,8 +964,6 @@ def link_crud():
     # action = 'move'
     request.vars.dir: string, 'up' or 'down'
     """
-    LOG.debug('FIXME request.args: %s', request.args)
-    LOG.debug('FIXME request.vars: %s', request.vars)
     # too-many-return-statements (R0911): *Too many return statements*
     # pylint: disable=R0911
     response.generic_patterns = ['json']
