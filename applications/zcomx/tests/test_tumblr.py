@@ -3,7 +3,7 @@
 
 """
 
-Test suite for zcomx/modules/social_media.py
+Test suite for zcomx/modules/tumblr.py
 
 """
 import datetime

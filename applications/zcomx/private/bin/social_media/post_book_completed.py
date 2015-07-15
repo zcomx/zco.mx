@@ -4,7 +4,8 @@
 """
 post_book_completed.py
 
-Script to post a completed book on social media (eg tumblr and twitter).
+Script to post a completed book on social media (eg facebook, tumblr and
+twitter).
 """
 import logging
 from gluon import *
@@ -30,6 +31,9 @@ OPTIONS
     -f, --force
         Post regardless if book record indicates a post has already been
         made (ie book.tumblr_post_id and book.twitter_post_id are set)
+
+    --facebook
+        Post only on facebook.
 
     -h, --help
         Print a brief help.
@@ -61,6 +65,11 @@ def main():
         '-f', '--force',
         action='store_true', dest='force', default=False,
         help='Post regardles if book post_ids exist.',
+    )
+    parser.add_option(
+        '--facebook',
+        action='store_true', dest='facebook', default=False,
+        help='Post only on facebook.',
     )
     parser.add_option(
         '--man',
@@ -117,14 +126,17 @@ def main():
         raise LookupError('Creator not found, id: %s', book.creator_id)
 
     services = []
+    if options.facebook:
+        services.append('facebook')
     if options.tumblr:
         services.append('tumblr')
     if options.twitter:
         services.append('twitter')
-    if not options.tumblr and not options.twitter:
-        services = ['tumblr', 'twitter']
+    if not options.facebook and not options.tumblr and not options.twitter:
+        services = ['facebook', 'tumblr', 'twitter']
 
     for service in services:
+        LOG.debug('Posting to: %s', service)
         poster_class = POSTER_CLASSES[service]
         try:
             post_id = poster_class().post(book, creator)

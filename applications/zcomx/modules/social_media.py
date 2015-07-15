@@ -21,6 +21,11 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import \
     social_media_data as creator_social_media_data
 from applications.zcomx.modules.creators import formatted_name
+from applications.zcomx.modules.facebook import \
+    Authenticator as FbAuthenticator, \
+    FacebookAPIError, \
+    PhotoDataPreparer as FbPhotoDataPreparer, \
+    Poster as FbPoster
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
     PhotoDataPreparer, \
@@ -266,6 +271,8 @@ class SocialMediaPoster(object):
         Returns:
             dict
         """
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
         return data
 
     def credentials(self):
@@ -277,6 +284,9 @@ class SocialMediaPoster(object):
         raise NotImplementedError
 
     def post(self, book, creator):
+        """Post to social media."""
+        # not-callable (E1102): *%%s is not callable*
+        # pylint: disable=E1102
         client = self.authenticate_class(self.credentials()).authenticate()
         poster = self.poster_class(client)
         return self.post_data(poster, self.prepare_data(book, creator))
@@ -288,8 +298,47 @@ class SocialMediaPoster(object):
             'creator': creator_social_media_data(creator),
             'site': {'name': SITE_NAME},
         }
+        # not-callable (E1102): *%%s is not callable*
+        # pylint: disable=E1102
         photo_data = self.photo_data_preparer_class(social_media_data).data()
         return self.additional_prepare_data(photo_data)
+
+
+class FacebookPoster(SocialMediaPoster):
+    """Class representing a poster for posting material on facebook."""
+
+    authenticate_class = FbAuthenticator
+    poster_class = FbPoster
+    photo_data_preparer_class = FbPhotoDataPreparer
+
+    def credentials(self):
+        settings = current.app.local_settings
+        return {
+            'email': settings.facebook_email,
+            'password': settings.facebook_password,
+            'client_id': settings.facebook_client_id,
+            'redirect_uri': settings.facebook_redirect_uri,
+            'page_name': settings.facebook_page_name
+        }
+
+    def post_data(self, poster, photo_data):
+        """Post the data using the api."""
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+        error = None
+        try:
+            result = poster.post_photo(photo_data)
+        except FacebookAPIError as err:
+            error = str(err)
+            result = {}
+
+        if 'id' not in result:
+            msg = error or 'Facebook post failed'
+            raise SocialMediaPostError(msg)
+
+        post_id = result['id']
+        LOG.debug('post_id: %s', post_id)
+        return post_id
 
 
 class TumblrPoster(SocialMediaPoster):
@@ -316,6 +365,8 @@ class TumblrPoster(SocialMediaPoster):
 
     def post_data(self, poster, photo_data):
         """Post the data using the api."""
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
         settings = current.app.local_settings
         result = poster.post_photo(settings.tumblr_username, photo_data)
         if 'id' not in result:
@@ -355,13 +406,10 @@ class TwitterPoster(SocialMediaPoster):
             'oauth_secret': settings.twitter_oauth_secret,
         }
 
-    def post(self, book, creator):
-        client = self.authenticate_class(self.credentials()).authenticate()
-        poster = self.poster_class(client)
-        return self.post_data(poster, self.prepare_data(book, creator))
-
     def post_data(self, poster, photo_data):
         """Post the data using the api."""
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
         error = None
         try:
             result = poster.post_photo(photo_data)
@@ -386,6 +434,7 @@ class TwitterPoster(SocialMediaPoster):
 
 
 POSTER_CLASSES = {
+    'facebook': FacebookPoster,
     'tumblr': TumblrPoster,
     'twitter': TwitterPoster,
 }

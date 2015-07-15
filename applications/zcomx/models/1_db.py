@@ -256,12 +256,9 @@ db.define_table('book',
         'boolean',
         default=False,
     ),
-    Field(
-        'tumblr_post_id'
-    ),
-    Field(
-        'twitter_post_id'
-    ),
+    Field('facebook_post_id'),
+    Field('tumblr_post_id'),
+    Field('twitter_post_id'),
     Field(
         'status',
         'string',
@@ -595,6 +592,7 @@ db.define_table('ongoing_post',
         'date',
         default=None,
     ),
+    Field('facebook_post_id'),
     Field('tumblr_post_id'),
     Field('twitter_post_id'),
 )

@@ -16,6 +16,11 @@ from twitter import TwitterHTTPError
 from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name
 from applications.zcomx.modules.stickon.dal import RecordGenerator
+from applications.zcomx.modules.facebook import \
+    Authenticator as FbAuthenticator, \
+    FacebookAPIError, \
+    Poster as FbPoster, \
+    TextDataPreparer as FbTextDataPreparer
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
     Poster, \
@@ -23,8 +28,8 @@ from applications.zcomx.modules.tumblr import \
     postable_activity_log_ids
 from applications.zcomx.modules.tweeter import \
     Authenticator as TwAuthenticator, \
-    TextDataPreparer as TwTextDataPreparer, \
     Poster as TwPoster, \
+    TextDataPreparer as TwTextDataPreparer, \
     creators_in_ongoing_post
 from applications.zcomx.modules.utils import \
     entity_to_row
@@ -35,6 +40,52 @@ from applications.zcomx.modules.zco import \
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
+
+
+def post_on_facebook(ongoing_post):
+    """Post on facebook
+
+    Args:
+        ongoing_post: Row instance representing ongoing_post record.
+
+    Returns:
+        str, facebook post id
+    """
+    LOG.debug(
+        'Creating facebook posting for date: %s', str(ongoing_post.post_date))
+
+    settings = current.app.local_settings
+    credentials = {
+        'email': settings.facebook_email,
+        'password': settings.facebook_password,
+        'client_id': settings.facebook_client_id,
+        'redirect_uri': settings.facebook_redirect_uri,
+        'page_name': settings.facebook_page_name
+    }
+    client = FbAuthenticator(credentials).authenticate()
+    poster = FbPoster(client)
+
+    facebook_data = {'tumblr_post_id': ongoing_post.tumblr_post_id}
+    text_data = FbTextDataPreparer(facebook_data).data()
+
+    error = None
+    try:
+        result = poster.post_text(text_data)
+    except FacebookAPIError as err:
+        error = err
+        result = {}
+
+    if 'id' not in result:
+        LOG.error(
+            'Facebook post failed for ongoing_post: %s', ongoing_post.id
+        )
+        if error:
+            LOG.error(err)
+        return
+
+    post_id = result['id']
+    LOG.debug('post_id: %s', post_id)
+    return post_id
 
 
 def post_on_tumblr(ongoing_post):
@@ -194,6 +245,9 @@ OPTIONS
         been made (ie ongoing_post.tumblr_post_id and
         ongoing_post.twitter_post_id are set)
 
+    --facebook
+        Post only on facebook.
+
     -h, --help
         Print a brief help.
 
@@ -231,6 +285,11 @@ def main():
         '-f', '--force',
         action='store_true', dest='force', default=False,
         help='Post regardles if ongoing post_ids exist.',
+    )
+    parser.add_option(
+        '--facebook',
+        action='store_true', dest='facebook', default=False,
+        help='Post only on facebook.',
     )
     parser.add_option(
         '--man',
@@ -306,12 +365,14 @@ def main():
         exit(1)
 
     services = []
+    if options.facebook:
+        services.append('facebook')
     if options.tumblr:
         services.append('tumblr')
     if options.twitter:
         services.append('twitter')
-    if not options.tumblr and not options.twitter:
-        services = ['tumblr', 'twitter']
+    if not options.facebook and not options.tumblr and not options.twitter:
+        services = ['facebook', 'tumblr', 'twitter']
 
     if 'tumblr' in services:
         if ongoing_post.tumblr_post_id \
@@ -341,6 +402,24 @@ def main():
             twitter_post_id = post_on_twitter(ongoing_post)
             if twitter_post_id:
                 ongoing_post.update_record(twitter_post_id=twitter_post_id)
+                db.commit()
+
+    if 'facebook' in services:
+        if not ongoing_post.tumblr_post_id \
+                or ongoing_post.tumblr_post_id == IN_PROGRESS:
+            LOG.error('Unable to post to facebook without a tumblr_post_id')
+        elif ongoing_post.facebook_post_id \
+                and ongoing_post.facebook_post_id != IN_PROGRESS \
+                and not options.force:
+            LOG.warn(
+                'Ongoing_post has facebook_post_id: %s',
+                ongoing_post.facebook_post_id
+            )
+            LOG.warn('Refusing to post to facebook without --force')
+        else:
+            facebook_post_id = post_on_facebook(ongoing_post)
+            if facebook_post_id:
+                ongoing_post.update_record(facebook_post_id=facebook_post_id)
                 db.commit()
 
     LOG.debug('Done')
