@@ -36,6 +36,8 @@ from applications.zcomx.modules.books import \
     calc_contributions_remaining, \
     calc_status, \
     cbz_comment, \
+    cbz_link, \
+    cbz_url, \
     cc_licence_data, \
     complete_link, \
     contribute_link, \
@@ -645,6 +647,93 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             fmt.format(cid=creator.id),
         )
 
+    def test__cbz_link(self):
+        creator = self.add(db.creator, dict(
+            email='test__cbz_link@example.com',
+            name_for_url='FirstLast',
+        ))
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            creator_id=creator.id,
+            name_for_url='MyBook-02of98'
+        ))
+
+        # As integer, book.id
+        link = cbz_link(book.id)
+        # Eg <a class="log_download_link"
+        #   data-record_id="8979" data-record_table="book"
+        #   href="/First_Last/My_Book_002.cbz">my_book_002.cbz</a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'mybook-02of98.cbz')
+        self.assertEqual(
+            anchor['href'],
+            '/FirstLast/MyBook-02of98.cbz'.format(i=book.id)
+        )
+
+        # As Row, book
+        link = cbz_link(book)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'mybook-02of98.cbz')
+        self.assertEqual(
+            anchor['href'],
+            '/FirstLast/MyBook-02of98.cbz'.format(i=book.id)
+        )
+
+        # Invalid id
+        self.assertRaises(LookupError, cbz_link, -1)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = cbz_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = cbz_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = cbz_link(book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'mybook-02of98.cbz')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
+
+    def test__cbz_url(self):
+        self.assertRaises(LookupError, cbz_url, -1)
+
+        creator = self.add(db.creator, dict(
+            email='test__cbz_url@example.com',
+            name_for_url='FirstLast',
+        ))
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            creator_id=creator.id,
+            name_for_url='MyBook-002',
+        ))
+
+        self.assertEqual(cbz_url(book), '/FirstLast/MyBook-002.cbz')
+
+        book.update_record(name_for_url='MyBook-03of09')
+        db.commit()
+        self.assertEqual(
+            cbz_url(book), '/FirstLast/MyBook-03of09.cbz')
+
     def test__cc_licence_data(self):
         str_to_date = lambda x: datetime.datetime.strptime(
             x, "%Y-%m-%d").date()
@@ -1144,7 +1233,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
-
 
     def test__follow_link(self):
         book = Row(dict(

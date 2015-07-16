@@ -482,6 +482,78 @@ def cbz_comment(book_entity):
     return '|'.join(fields)
 
 
+def cbz_link(book_entity, components=None, **attributes):
+    """Return a link suitable for the cbz file of a book.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+        components: list, passed to A(*components), default [book.name_for_url]
+        attributes: dict of attributes for A()
+    Returns:
+        A instance
+    """
+    empty = SPAN('')
+
+    db = current.app.db
+    book = entity_to_row(db.book, book_entity)
+    if not book:
+        raise LookupError('Book not found, id: {e}'.format(
+            e=book_entity))
+
+    link_url = cbz_url(book)
+    if not link_url:
+        return empty
+
+    if not components:
+        name = '{n}.cbz'.format(
+            n=book_name(book_entity, use='url').lower()
+        )
+        components = [name]
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = link_url
+
+    return A(*components, **kwargs)
+
+
+def cbz_url(book_entity, **url_kwargs):
+    """Return the url to the cbz file for the book.
+
+    Args:
+        book_entity: Row instance or integer, if integer, this is the id of
+            the book. The book record is read.
+        url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
+    Returns:
+        string, url, eg
+            http://zco.mx/FirstLast/MyBook-001.cbz
+    """
+    db = current.app.db
+    book_record = entity_to_row(db.book, book_entity)
+    if not book_record:
+        raise LookupError('Creator not found, id: {e}'.format(
+            e=book_entity))
+
+    name_of_creator = creator_name(book_record.creator_id, use='url')
+    if not name_of_creator:
+        return
+
+    name = book_name(book_record, use='url')
+    if not name:
+        return
+
+    kwargs = {}
+    kwargs.update(url_kwargs)
+    return URL(
+        c=name_of_creator,
+        f='{name}.cbz'.format(name=name),
+        **kwargs
+    )
+
+
 def cc_licence_data(book_entity):
     """Return data required for the cc licence for the book.
 
@@ -1472,7 +1544,7 @@ def torrent_link(book_entity, components=None, **attributes):
     Args:
         book_entity: Row instance or integer, if integer, this is the id of
             the book. The book record is read.
-        components: list, passed to A(*components),  default [torrent_name()]
+        components: list, passed to A(*components), default [book.name_for_url]
         attributes: dict of attributes for A()
     Returns:
         A instance
