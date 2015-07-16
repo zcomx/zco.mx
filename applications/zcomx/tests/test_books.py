@@ -17,15 +17,8 @@ from gluon.storage import Storage
 from pydal.objects import Row
 from applications.zcomx.modules.book_types import by_name as book_type_by_name
 from applications.zcomx.modules.books import \
-    BaseEvent, \
     Book, \
-    BookEvent, \
-    ContributionEvent, \
     DEFAULT_BOOK_TYPE, \
-    DownloadEvent, \
-    RatingEvent, \
-    ViewEvent, \
-    ZcoContributionEvent, \
     book_name, \
     book_page_for_json, \
     book_pages, \
@@ -99,269 +92,6 @@ from applications.zcomx.modules.zco import \
 # pylint: disable=C0111,R0904
 
 
-class EventTestCase(LocalTestCase):
-    """ Base class for Event test cases. Sets up test data."""
-    _book = None
-    _user = None
-
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
-    def setUp(self):
-        book_row = self.add(db.book, dict(name='Event Test Case'))
-        self._book = Book.from_id(book_row.id)
-        email = web.username
-        self._user = db(db.auth_user.email == email).select().first()
-        if not self._user:
-            raise SyntaxError('No user with email: {e}'.format(e=email))
-
-    def _set_pages(self, db, book_id, num_of_pages):
-        set_pages(self, db, book_id, num_of_pages)
-
-
-class TestBaseEvent(EventTestCase):
-    def test____init__(self):
-        event = BaseEvent(self._user.id)
-        self.assertTrue(event)
-
-    def test_log(self):
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event = BaseEvent(self._user.id)
-        self.assertRaises(NotImplementedError, event._log, None)
-
-    def test__log(self):
-
-        class SubBaseEvent(BaseEvent):
-
-            def __init__(self, user_id):
-                BaseEvent.__init__(self, user_id)
-                self.actions = []
-
-            def _log(self, value=None):
-                self.actions.append(value)
-
-            def _post_log(self):
-                self.actions.append('post_log')
-
-        event = SubBaseEvent(self._user.id)
-        event.log(value='log_me')
-        self.assertEqual(event.actions, ['log_me', 'post_log'])
-
-    def test_post_log(self):
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event = BaseEvent(self._user.id)
-        self.assertRaises(NotImplementedError, event._post_log)
-
-
-class TestBook(LocalTestCase):
-
-    def test_parent__init__(self):
-        book = Book({'name': '_test_parent__init__'})
-        self.assertEqual(book.name, '_test_parent__init__')
-        self.assertEqual(book.db_table, 'book')
-
-
-class TestBookEvent(EventTestCase):
-    def test____init__(self):
-        event = BookEvent(self._book, self._user.id)
-        self.assertTrue(event)
-        self.assertEqual(event.book.name, self._book.name)
-
-
-class TestContributionEvent(EventTestCase):
-
-    def test_log(self):
-        self._set_pages(db, self._book.id, 10)
-        update_rating(db, self._book)
-        event = ContributionEvent(self._book, self._user.id)
-
-        # no value
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event_id = event._log()
-        self.assertFalse(event_id)
-
-        event_id = event._log(123.45)
-        contribution = entity_to_row(db.contribution, event_id)
-        self.assertEqual(contribution.id, event_id)
-        self.assertEqual(contribution.book_id, self._book.id)
-        self.assertAlmostEqual(
-            contribution.time_stamp,
-            datetime.datetime.now(),
-            delta=datetime.timedelta(minutes=1)
-        )
-        self.assertEqual(contribution.amount, 123.45)
-        self._objects.append(contribution)
-
-    def test_post_log(self):
-        self._set_pages(db, self._book.id, 10)
-        update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.contributions, 0.00)
-        self.assertAlmostEqual(book.contributions_remaining, 100.00)
-
-        event = ContributionEvent(self._book, self._user.id)
-
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event_id = event._log(123.45)
-        contribution = entity_to_row(db.contribution, event_id)
-        self._objects.append(contribution)
-
-        event._post_log()
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertAlmostEqual(book.contributions, 123.45)
-        self.assertAlmostEqual(book.contributions_remaining, 0.00)
-
-
-class TestDownloadEvent(EventTestCase):
-
-    def test_log(self):
-        update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-
-        download_click = self.add(db.download_click, dict(
-            record_table='book',
-            record_id=book.id,
-        ))
-
-        event = DownloadEvent(self._book, self._user.id)
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event_id = event._log(value=download_click)
-
-        download = entity_to_row(db.download, event_id)
-        self.assertEqual(download.id, event_id)
-        self.assertEqual(download.book_id, self._book.id)
-        self.assertEqual(download.download_click_id, download_click.id)
-        self.assertAlmostEqual(
-            download.time_stamp,
-            datetime.datetime.now(),
-            delta=datetime.timedelta(minutes=1)
-        )
-        self._objects.append(download)
-
-    def test_post_log(self):
-        # This does nothing, test that.
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event = DownloadEvent(self._book, self._user.id)
-        event._post_log()
-
-
-class TestRatingEvent(EventTestCase):
-
-    def test_log(self):
-        update_rating(db, self._book)
-        event = RatingEvent(self._book, self._user.id)
-
-        # no value
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event_id = event._log()
-        self.assertFalse(event_id)
-
-        event_id = event._log(5)
-        rating = entity_to_row(db.rating, event_id)
-        self.assertEqual(rating.id, event_id)
-        self.assertEqual(rating.book_id, self._book.id)
-        self.assertAlmostEqual(
-            rating.time_stamp,
-            datetime.datetime.now(),
-            delta=datetime.timedelta(minutes=1)
-        )
-        self.assertEqual(rating.amount, 5)
-        self._objects.append(rating)
-
-    def test_post_log(self):
-        update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertEqual(book.rating, 0)
-
-        event = RatingEvent(self._book, self._user.id)
-
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event_id = event._log(5)
-        rating = entity_to_row(db.rating, event_id)
-        self._objects.append(rating)
-
-        event._post_log()
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertEqual(book.rating, 5)
-
-
-class TestViewEvent(EventTestCase):
-
-    def test_log(self):
-        update_rating(db, self._book)
-        event = ViewEvent(self._book, self._user.id)
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event_id = event._log()
-
-        view = entity_to_row(db.book_view, event_id)
-        self.assertEqual(view.id, event_id)
-        self.assertEqual(view.book_id, self._book.id)
-        self.assertAlmostEqual(
-            view.time_stamp,
-            datetime.datetime.now(),
-            delta=datetime.timedelta(minutes=1)
-        )
-        self._objects.append(view)
-
-    def test_post_log(self):
-        update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertEqual(book.views, 0)
-
-        event = ViewEvent(self._book, self._user.id)
-
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event_id = event._log()
-        view = entity_to_row(db.book_view, event_id)
-        self._objects.append(view)
-
-        event._post_log()
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
-        self.assertEqual(book.views, 1)
-
-
-class TestZcoContributionEvent(EventTestCase):
-
-    def test_log(self):
-        self._set_pages(db, self._book.id, 10)
-        update_rating(db, self._book)
-        event = ZcoContributionEvent(self._user.id)
-
-        # no value
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event_id = event._log()
-        self.assertFalse(event_id)
-
-        event_id = event._log(123.45)
-        contribution = entity_to_row(db.contribution, event_id)
-        self.assertEqual(contribution.id, event_id)
-        self.assertEqual(contribution.book_id, 0)
-        self.assertAlmostEqual(
-            contribution.time_stamp,
-            datetime.datetime.now(),
-            delta=datetime.timedelta(minutes=1)
-        )
-        self.assertEqual(contribution.amount, 123.45)
-        self._objects.append(contribution)
-
-    def test_post_log(self):
-        # This does nothing, test that.
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        event = ZcoContributionEvent(self._user.id)
-        event._post_log()
-
-
 class WithObjectsTestCase(LocalTestCase):
     """ Base class for Image test cases. Sets up test data."""
 
@@ -397,6 +127,14 @@ class WithObjectsTestCase(LocalTestCase):
 
     def _set_pages(self, db, book_id, num_of_pages):
         set_pages(self, db, book_id, num_of_pages)
+
+
+class TestBook(LocalTestCase):
+
+    def test_parent__init__(self):
+        book = Book({'name': '_test_parent__init__'})
+        self.assertEqual(book.name, '_test_parent__init__')
+        self.assertEqual(book.db_table, 'book')
 
 
 class TestFunctions(WithObjectsTestCase, ImageTestCase):

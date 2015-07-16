@@ -10,13 +10,12 @@ Script to log download clicks.
 # pylint: disable=W0404
 import logging
 from optparse import OptionParser
-from applications.zcomx.modules.books import \
-    Book, \
+from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.events import \
+    DownloadClick, \
     DownloadEvent
 from applications.zcomx.modules.job_queue import \
     LogDownloadsQueuer
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -29,7 +28,7 @@ def log(download_click_id, book_id):
         download_click_id: integer, id of download_click record
         book_id: integer, id of book record
     """
-    click = entity_to_row(db.download_click, download_click_id)
+    click = DownloadClick.from_id(download_click_id)
     if not click:
         raise LookupError('download_click not found, id: {i}'.format(
             i=download_click_id))
@@ -53,7 +52,7 @@ def unlogged_generator(limit=None):
         db.download_click.id, orderby=db.download_click.id)]
     for download_click_id in click_ids:
 
-        click = entity_to_row(db.download_click, download_click_id)
+        click = DownloadClick.from_id(download_click_id)
         if not click:
             raise LookupError('download_click not found, id: {i}'.format(
                 i=download_click_id))
@@ -211,6 +210,8 @@ def main():
             cli_options={'-r': requeue, '-l': str(options.limit)},
         ).queue()
         LOG.debug('Requeue job id: %s', job.id)
+
+    LOG.debug('Done')
 
 
 if __name__ == '__main__':

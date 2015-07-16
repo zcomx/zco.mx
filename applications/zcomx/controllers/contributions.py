@@ -5,12 +5,13 @@ Controllers for contributions.
 import logging
 from applications.zcomx.modules.books import \
     Book, \
-    ContributionEvent, \
-    ZcoContributionEvent, \
     default_contribute_amount
 from applications.zcomx.modules.creators import \
     book_for_contributions, \
     formatted_name
+from applications.zcomx.modules.events import \
+    ContributionEvent, \
+    ZcoContributionEvent
 from applications.zcomx.modules.utils import \
     entity_to_row
 from applications.zcomx.modules.zco import Zco

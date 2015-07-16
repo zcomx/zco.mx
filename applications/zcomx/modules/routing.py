@@ -12,7 +12,6 @@ from gluon.html import A, SPAN
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
     Book, \
-    ViewEvent, \
     cover_image, \
     get_page, \
     page_url, \
@@ -21,6 +20,7 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import \
     Creator, \
     url as creator_url
+from applications.zcomx.modules.events import ViewEvent
 from applications.zcomx.modules.html.meta import \
     MetadataFactory, \
     html_metadata_from_records
