@@ -1,0 +1,161 @@
+# -*- coding: utf-8 -*-
+"""Torrent controller functions"""
+import cgi
+import logging
+import traceback
+from gluon.storage import Storage
+from applications.zcomx.modules.books import cbz_url
+from applications.zcomx.modules.creators import url as creator_url
+from applications.zcomx.modules.downloaders import CBZDownloader
+from applications.zcomx.modules.events import log_download_click
+from applications.zcomx.modules.utils import entity_to_row
+
+LOG = logging.getLogger('app')
+
+
+def download():
+    """Download cbz file.
+
+    request.args(0): integer, id of book record
+    request.vars.no_queue: boolean, if set, don't queue a logs_download job
+    """
+    if request.args:
+        record_table = 'book'
+        record_id = request.args(0)
+        queue_log_downloads = True if not request.vars.no_queue else False
+        log_download_click(
+            record_table,
+            record_id,
+            queue_log_downloads=queue_log_downloads
+        )
+
+    return CBZDownloader().download(request, db)
+
+
+def route():
+    """Parse and route cbz urls.
+
+    request.vars.creator: integer (creator id) or string (creator name)
+    request.vars.cbz: string name of cbz file
+
+    Examples:
+        ?creator=123&cbz=My_Book_01_(of 01).cbz
+        ?creator=First_Last&cbz=My_Book_01_(of 01).cbz
+
+    If request.vars.creator is an integer (creator id) the page is
+        redirected to the string (creator name) page.
+
+    request.vars.no_queue: boolean, if set, don't queue a logs_download job
+    """
+    # Note: there is a bug in web2py Ver 2.9.11-stable where request.vars
+    # is not set by routes.
+    # Ticket: http://code.google.com/p/web2py/issues/detail?id=1990
+    # If necessary, parse request.env.query_string for the values.
+    def parse_get_vars():
+        """Adapted from gluon/globals.py class Request"""
+        query_string = request.env.get('query_string', '')
+        dget = cgi.parse_qs(query_string, keep_blank_values=1)
+        get_vars = Storage(dget)
+        for (key, value) in get_vars.iteritems():
+            if isinstance(value, list) and len(value) == 1:
+                get_vars[key] = value[0]
+        return get_vars
+
+    request.vars.update(parse_get_vars())
+
+    def page_not_found():
+        """Handle page not found.
+
+        Ensures that during the page_not_found formatting if any
+        exceptions happen they are logged, and a 404 is returned.
+        (Then search bots, for example, see they have an invalid page)
+        """
+        try:
+            return formatted_page_not_found()
+        except Exception:
+            for line in traceback.format_exc().split("\n"):
+                LOG.error(line)
+            raise HTTP(404, "Page not found")
+
+    def formatted_page_not_found():
+        """Page not found formatter."""
+        urls = Storage({})
+        urls.invalid = '{scheme}://{host}{uri}'.format(
+            scheme=request.env.wsgi_url_scheme or 'https',
+            host=request.env.http_host,
+            uri=request.env.web2py_original_uri or request.env.request_uri
+        )
+
+        urls.suggestions = []
+
+        book = db(db.book.cbz != None).select(orderby='<random>').first()
+        if book:
+            urls.suggestions.append({
+                'label': 'CBZ file:',
+                'url': cbz_url(book, host=True),
+            })
+
+        response.view = 'errors/page_not_found.html'
+        message = 'The requested CBZ file was not found on this server.'
+        return dict(urls=urls, message=message)
+
+    if not request.vars:
+        return page_not_found()
+
+    if not request.vars.creator:
+        return page_not_found()
+
+    if not request.vars.cbz:
+        return page_not_found()
+
+    cbz_name = request.vars.cbz
+
+    creator_record = None
+
+    # Test for request.vars.creator as creator.id
+    try:
+        int(request.vars.creator)
+    except (TypeError, ValueError):
+        pass
+    else:
+        creator_record = entity_to_row(
+            db.creator,
+            request.vars.creator
+        )
+
+    # Test for request.vars.creator as creator.name_for_url
+    if not creator_record:
+        name = request.vars.creator.replace('_', ' ')
+        query = (db.creator.name_for_url == name)
+        creator_record = db(query).select().first()
+
+    if not creator_record:
+        return page_not_found()
+
+    if '{i:03d}'.format(i=creator_record.id) == request.vars.creator:
+        # Redirect to name version
+        c_url = creator_url(creator_record)
+        redirect_url = '/'.join([c_url, request.vars.cbz])
+        if request.vars.no_queue:
+            redirect_url += '?no_queue=' + str(request.vars.no_queue)
+        redirect(redirect_url)
+
+    download_vars = {'no_queue': request.vars.no_queue} \
+        if request.vars.no_queue else {}
+
+    extension = '.cbz'
+    if cbz_name.endswith(extension):
+        book_name = cbz_name[:(-1 * len(extension))]
+    query = (db.book.creator_id == creator_record.id) & \
+        (db.book.name_for_url == book_name)
+    book = db(query).select().first()
+    if not book or not book.cbz:
+        return page_not_found()
+    redirect(URL(
+        c='cbz',
+        f='download',
+        args=[book.id],
+        vars=download_vars
+    ))
+
+    return page_not_found()

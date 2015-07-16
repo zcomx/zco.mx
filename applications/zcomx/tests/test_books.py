@@ -36,6 +36,8 @@ from applications.zcomx.modules.books import \
     calc_contributions_remaining, \
     calc_status, \
     cbz_comment, \
+    cbz_link, \
+    cbz_url, \
     cc_licence_data, \
     complete_link, \
     contribute_link, \
@@ -69,10 +71,10 @@ from applications.zcomx.modules.books import \
     short_page_img_url, \
     short_page_url, \
     short_url, \
+    social_media_data, \
     torrent_file_name, \
     torrent_link, \
     torrent_url, \
-    tumblr_data, \
     update_contributions_remaining, \
     update_rating, \
     url
@@ -645,6 +647,93 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             fmt.format(cid=creator.id),
         )
 
+    def test__cbz_link(self):
+        creator = self.add(db.creator, dict(
+            email='test__cbz_link@example.com',
+            name_for_url='FirstLast',
+        ))
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            creator_id=creator.id,
+            name_for_url='MyBook-02of98'
+        ))
+
+        # As integer, book.id
+        link = cbz_link(book.id)
+        # Eg <a class="log_download_link"
+        #   data-record_id="8979" data-record_table="book"
+        #   href="/First_Last/My_Book_002.cbz">my_book_002.cbz</a>
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'mybook-02of98.cbz')
+        self.assertEqual(
+            anchor['href'],
+            '/FirstLast/MyBook-02of98.cbz'.format(i=book.id)
+        )
+
+        # As Row, book
+        link = cbz_link(book)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'mybook-02of98.cbz')
+        self.assertEqual(
+            anchor['href'],
+            '/FirstLast/MyBook-02of98.cbz'.format(i=book.id)
+        )
+
+        # Invalid id
+        self.assertRaises(LookupError, cbz_link, -1)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = cbz_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = cbz_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = cbz_link(book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'mybook-02of98.cbz')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
+
+    def test__cbz_url(self):
+        self.assertRaises(LookupError, cbz_url, -1)
+
+        creator = self.add(db.creator, dict(
+            email='test__cbz_url@example.com',
+            name_for_url='FirstLast',
+        ))
+
+        book = self.add(db.book, dict(
+            name='My Book',
+            creator_id=creator.id,
+            name_for_url='MyBook-002',
+        ))
+
+        self.assertEqual(cbz_url(book), '/FirstLast/MyBook-002.cbz')
+
+        book.update_record(name_for_url='MyBook-03of09')
+        db.commit()
+        self.assertEqual(
+            cbz_url(book), '/FirstLast/MyBook-03of09.cbz')
+
     def test__cc_licence_data(self):
         str_to_date = lambda x: datetime.datetime.strptime(
             x, "%Y-%m-%d").date()
@@ -1144,7 +1233,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
-
 
     def test__follow_link(self):
         book = Row(dict(
@@ -1953,9 +2041,9 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             db.commit()
             self.assertEqual(short_url(book), t[2])
 
-    def test__tumblr_data(self):
+    def test__social_media_data(self):
 
-        self.assertEqual(tumblr_data(None), {})
+        self.assertEqual(social_media_data(None), {})
 
         creator = self.add(db.creator, dict(
             name_for_url='FirstLast',
@@ -1987,7 +2075,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             'short_url': 'http://{cid}.zco.mx/MyBook'.format(cid=creator.id),
             'url': 'http://zco.mx/FirstLast/MyBook',
         }
-        self.assertEqual(tumblr_data(book), expect)
+        self.assertEqual(social_media_data(book), expect)
 
         # Book with cover
         self.add(db.book_page, dict(
@@ -2001,69 +2089,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         expect['download_url'] = 'http://zco.mx/images/download/book_page.image.aaa.000.jpg?size=web'
         expect['cover_image_name'] = 'book_page.image.aaa.000.jpg'
-        self.assertEqual(tumblr_data(book), expect)
-
-    def test__update_contributions_remaining(self):
-        # invalid-name (C0103): *Invalid %%s name "%%s"*
-        # pylint: disable=C0103
-        creator = self.add(db.creator, dict(
-            email='test__update_contributions_remaining@eg.com'
-        ))
-
-        book_contributions = lambda b: calc_contributions_remaining(db, b)
-        creator_contributions = \
-            lambda c: entity_to_row(db.creator, c.id).contributions_remaining
-
-        # Creator has no books
-        self.assertEqual(creator_contributions(creator), 0)
-
-        book = self.add(db.book, dict(
-            name='test__contributions_remaining_by_creator',
-            creator_id=creator.id,
-            status=BOOK_STATUS_ACTIVE,
-        ))
-        self._set_pages(db, book.id, 10)
-        update_contributions_remaining(db, book)
-        self.assertEqual(creator_contributions(creator), 100.00)
-        self.assertEqual(book_contributions(book), 100.00)
-
-        # Book has one contribution
-        self.add(db.contribution, dict(
-            book_id=book.id,
-            amount=15.00,
-        ))
-        update_contributions_remaining(db, book)
-        self.assertEqual(creator_contributions(creator), 85.00)
-        self.assertEqual(book_contributions(book), 85.00)
-
-        # Book has multiple contribution
-        self.add(db.contribution, dict(
-            book_id=book.id,
-            amount=35.99,
-        ))
-        update_contributions_remaining(db, book)
-        self.assertEqual(creator_contributions(creator), 49.01)
-        self.assertEqual(book_contributions(book), 49.01)
-
-        # Creator has multiple books.
-        book_2 = self.add(db.book, dict(
-            name='test__contributions_remaining_by_creator',
-            creator_id=creator.id,
-            status=BOOK_STATUS_ACTIVE,
-        ))
-        self._set_pages(db, book_2.id, 5)
-        update_contributions_remaining(db, book_2)
-        self.assertAlmostEqual(creator_contributions(creator), 99.01)
-        self.assertEqual(book_contributions(book), 49.01)
-        self.assertEqual(book_contributions(book_2), 50.00)
-
-        # Creator contributions_remaining should be updated by any of it's
-        # books.
-        creator.update_record(contributions_remaining=0)
-        db.commit()
-        self.assertEqual(creator_contributions(creator), 0)
-        update_contributions_remaining(db, book)
-        self.assertAlmostEqual(creator_contributions(creator), 99.01)
+        self.assertEqual(social_media_data(book), expect)
 
     def test__torrent_file_name(self):
         self.assertRaises(LookupError, torrent_file_name, -1)
@@ -2184,6 +2210,68 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         db.commit()
         self.assertEqual(
             torrent_url(book), '/FirstLast/MyBook-03of09.torrent')
+
+    def test__update_contributions_remaining(self):
+        # invalid-name (C0103): *Invalid %%s name "%%s"*
+        # pylint: disable=C0103
+        creator = self.add(db.creator, dict(
+            email='test__update_contributions_remaining@eg.com'
+        ))
+
+        book_contributions = lambda b: calc_contributions_remaining(db, b)
+        creator_contributions = \
+            lambda c: entity_to_row(db.creator, c.id).contributions_remaining
+
+        # Creator has no books
+        self.assertEqual(creator_contributions(creator), 0)
+
+        book = self.add(db.book, dict(
+            name='test__contributions_remaining_by_creator',
+            creator_id=creator.id,
+            status=BOOK_STATUS_ACTIVE,
+        ))
+        self._set_pages(db, book.id, 10)
+        update_contributions_remaining(db, book)
+        self.assertEqual(creator_contributions(creator), 100.00)
+        self.assertEqual(book_contributions(book), 100.00)
+
+        # Book has one contribution
+        self.add(db.contribution, dict(
+            book_id=book.id,
+            amount=15.00,
+        ))
+        update_contributions_remaining(db, book)
+        self.assertEqual(creator_contributions(creator), 85.00)
+        self.assertEqual(book_contributions(book), 85.00)
+
+        # Book has multiple contribution
+        self.add(db.contribution, dict(
+            book_id=book.id,
+            amount=35.99,
+        ))
+        update_contributions_remaining(db, book)
+        self.assertEqual(creator_contributions(creator), 49.01)
+        self.assertEqual(book_contributions(book), 49.01)
+
+        # Creator has multiple books.
+        book_2 = self.add(db.book, dict(
+            name='test__contributions_remaining_by_creator',
+            creator_id=creator.id,
+            status=BOOK_STATUS_ACTIVE,
+        ))
+        self._set_pages(db, book_2.id, 5)
+        update_contributions_remaining(db, book_2)
+        self.assertAlmostEqual(creator_contributions(creator), 99.01)
+        self.assertEqual(book_contributions(book), 49.01)
+        self.assertEqual(book_contributions(book_2), 50.00)
+
+        # Creator contributions_remaining should be updated by any of it's
+        # books.
+        creator.update_record(contributions_remaining=0)
+        db.commit()
+        self.assertEqual(creator_contributions(creator), 0)
+        update_contributions_remaining(db, book)
+        self.assertAlmostEqual(creator_contributions(creator), 99.01)
 
     def test__update_rating(self):
         book = self.add(db.book, dict(name='test__update_rating'))

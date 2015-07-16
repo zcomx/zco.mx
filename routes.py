@@ -36,6 +36,7 @@ BASE = ''  # optonal prefix for incoming URLs
 CONTROLLERS = '|'.join([
     'admin',
     'books',
+    'cbz',
     'contributions',
     'creators',
     'default',
@@ -91,6 +92,12 @@ routes_in = (
     ('/favicon.ico', '/zcomx/static/images/favicon.ico'),
     ('/robots.txt', '/zcomx/static/robots.txt'),
 
+    # reroute cbz files, look for .cbz extension
+    ('/zcomx/{c}/(?P<cbz>.*\.cbz)'.format(c=creator_re), '/zcomx/cbz/route?creator=\g<creator>&cbz=\g<cbz>'),
+    ('/zcomx/(?P<cbz>.*\.cbz)', '/zcomx/cbz/route?cbz=\g<cbz>'),
+    ('/{c}/(?P<cbz>.*\.cbz)'.format(c=creator_re), '/zcomx/cbz/route?creator=\g<creator>&cbz=\g<cbz>'),
+    ('/(?P<cbz>.*\.cbz)', '/zcomx/cbz/route?cbz=\g<cbz>'),
+
     # reroute rss feeds, look for .rss extension
     ('/zcomx/{c}/(?P<rss>.*\.rss)'.format(c=creator_re), '/zcomx/rss/route?creator=\g<creator>&rss=\g<rss>'),
     ('/zcomx/(?P<rss>.*\.rss)', '/zcomx/rss/route?rss=\g<rss>'),
@@ -140,6 +147,8 @@ routes_out = (
     ('/zcomx/default/user/login', '/login'),
     ('/zcomx/creators/index/$anything', '/$anything'),
     ('/creators/index/$anything', '/$anything'),
+    ('/zcomx/(?P<cbz>.*\.cbz)/index', '/\g<cbz>'),
+    ('/zcomx/$anything/(?P<cbz>.*\.cbz)', '/$anything/\g<cbz>'),
     ('/zcomx/(?P<rss>.*\.rss)/index', '/\g<rss>'),
     ('/zcomx/$anything/(?P<rss>.*\.rss)', '/$anything/\g<rss>'),
     ('/zcomx/(?P<tor>.*\.torrent)/index', '/\g<tor>'),

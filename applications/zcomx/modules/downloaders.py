@@ -21,6 +21,45 @@ from applications.zcomx.modules.utils import entity_to_row
 LOG = logging.getLogger('app')
 
 
+class CBZDownloader(Response):
+    """Class representing a cbz downloader"""
+
+    def download(
+            self, request, db, chunk_size=DEFAULT_CHUNK_SIZE, attachment=True,
+            download_filename=None):
+        """
+        Adapted from Response.download.
+        request.args(0): integer, id of book record.
+        """
+        current.session.forget(current.response)
+
+        if not request.args:
+            LOG.debug('FIXME no request.args')
+            raise HTTP(404)
+
+        book = entity_to_row(db.book, request.args(0))
+        if not book:
+            LOG.debug('FIXME book not found')
+            raise HTTP(404)
+        filename = book.cbz
+
+        if not filename or not os.path.exists(filename):
+            LOG.debug('FIXME cbz file  not found')
+            raise HTTP(404)
+
+        stream = os.path.abspath(filename)
+
+        headers = self.headers
+        headers['Content-Type'] = contenttype(filename)
+        if download_filename is None:
+            download_filename = os.path.basename(filename)
+        if attachment:
+            fmt = 'attachment; filename="%s"'
+            headers['Content-Disposition'] = \
+                fmt % download_filename.replace('"', '\"')
+        return self.stream(stream, chunk_size=chunk_size, request=request)
+
+
 class ImageDownloader(Response):
     """Class representing an image downloader"""
 
@@ -30,14 +69,12 @@ class ImageDownloader(Response):
         """
         Adapted from Response.download.
 
+        request.args: path to image file, the last item is the image filename.
         request.vars.size: string, one of SIZES. If provided the image is
             streamed from a subdirectory with that name.
         request.vars.cache: boolean, if set, set response headers to
             enable caching.
         """
-        # C0103: *Invalid name "%%s" (should match %%s)*
-        # pylint: disable=C0103
-
         current.session.forget(current.response)
 
         if not request.args:
@@ -90,12 +127,10 @@ class TorrentDownloader(Response):
         """
         Adapted from Response.download.
 
-        request.vars.size: string, one of SIZES. If provided the image is
-                streamed from a subdirectory with that name.
+        request.args(0): one of 'all', 'book', 'creator'
+        request.args(1): integer, id of record if request.args(0) is 'book' or
+            'creator'
         """
-        # C0103: *Invalid name "%%s" (should match %%s)*
-        # pylint: disable=C0103
-
         current.session.forget(current.response)
 
         if not request.args:

@@ -78,6 +78,7 @@ def log_download_click(record_table, record_id, queue_log_downloads=True):
         record_table=record_table,
         record_id=record_id,
     )
+    LOG.debug('FIXME data: %s', data)
     click_id = db.download_click.insert(**data)
     db.commit()
     click_record = db(db.download_click.id == click_id).select().first()

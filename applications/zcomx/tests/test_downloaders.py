@@ -15,6 +15,7 @@ from gluon.http import HTTP
 from gluon.storage import List
 from applications.zcomx.modules.archives import TorrentArchive
 from applications.zcomx.modules.downloaders import \
+    CBZDownloader, \
     ImageDownloader, \
     TorrentDownloader
 from applications.zcomx.modules.images import \
@@ -58,6 +59,56 @@ class WithObjectsTestCase(LocalTestCase):
             up_image = UploadImage(db.creator.image, self._creator.image)
             up_image.delete_all()
         super(WithObjectsTestCase, self).tearDown()
+
+
+class TestCBZDownloader(LocalTestCase):
+
+    def test__download(self):
+        downloader = CBZDownloader()
+        self.assertTrue(downloader)
+        env = globals()
+        request = env['request']
+
+        def test_http(args, expect):
+            request.args = List(args)
+            try:
+                downloader.download(request, db)
+            except HTTP as http:
+                self.assertEqual(http.status, expect['status'])
+                if expect['status'] == 200:
+                    self.assertEqual(
+                        http.headers['Content-Type'],
+                        'application/x-cbz'
+                    )
+                    self.assertEqual(
+                        http.headers['Content-Disposition'],
+                        'attachment; filename="{f}"'.format(
+                            f=expect['filename'])
+                    )
+                    self.assertEqual(
+                        http.headers['Content-Length'],
+                        expect['size']
+                    )
+
+        # Find a book with a cbz.
+        book = db(db.book.cbz != None).select().first()
+        test_http(
+            [book.id],
+            dict(
+                status=200,
+                filename=os.path.basename(book.cbz),
+                size=os.stat(book.cbz).st_size,
+            )
+        )
+
+        # Test invalids
+        invalid_record_id = -1
+        test_http([invalid_record_id], dict(status=404))
+
+        # Find a book without a cbz.
+        book = db(db.book.cbz == None).select().first()
+        if book:
+            test_http([book.id], dict(status=404))
 
 
 class TestImageDownloader(WithObjectsTestCase, ImageTestCase):

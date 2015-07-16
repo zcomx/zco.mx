@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import formatted_name, magnet_link, torrent_link}}
+{{from applications.zcomx.modules.books import cbz_link, formatted_name, magnet_link, torrent_link}}
 
 <div id="download_modal_page">
 
@@ -13,6 +13,9 @@
             </li>
             <li>
                 {{=magnet_link(book, ['dc'])}}
+            </li>
+            <li>
+                {{=cbz_link(book, ['download'])}}
             </li>
         </ul>
     </dd>

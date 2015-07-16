@@ -180,6 +180,7 @@ class TestRouter(LocalTestCase):
             'creator': [
                 'completed_grid',
                 'creator',
+                'creator_article_link_set',
                 'creator_page_link_set',
                 'grid',
                 'ongoing_grid',
@@ -190,9 +191,11 @@ class TestRouter(LocalTestCase):
             ],
             'book': [
                 'book',
+                'book_review_link_set',
                 'buy_book_link_set',
                 'cover_image',
                 'creator',
+                'creator_article_link_set',
                 'creator_page_link_set',
                 'page_count',
             ],
