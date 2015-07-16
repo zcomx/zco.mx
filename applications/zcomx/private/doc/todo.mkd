@@ -24,15 +24,13 @@
         link
     [x] comic page
         link
+[x] Cartoonist Page -> Links to Cartoonist Articles/Interviews
+        http://p.zsw.ca/IJ.png      ## mockup
+[x] Book page -> Links to Book Reviews
+        http://p.zsw.ca/IJ.png      ## mockup
 
 
 VERSION 3
-[ ] Cartoonist Page -> Links to Cartoonist Articles/Interviews
-        http://p.zsw.ca/IJ.png      ## mockup
-
-[ ] Book page -> Links to Book Reviews
-        http://p.zsw.ca/IJ.png      ## mockup
-
 [S] Integrity Check For Torrents
     https://code.google.com/p/pyroscope/wiki/RtControlExamples
     $ rtcontrol -q -oname name=* alias=zco.mx
@@ -44,9 +42,9 @@ VERSION 3
 [S] Update Jordan's indicia image
     [ ] release uptight 001?
 
-[ ] Post Notifications on fb?
+[ ] Post Notifications on fb
 
-[ ] Make CBZ's available via HTTP?
+[ ] Make CBZ's available via HTTP
 
 [ ] login/books
     After choosing 'Set as completed' we leave the cartoonist at "(in
