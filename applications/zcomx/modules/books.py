@@ -606,32 +606,21 @@ def complete_link(book_entity, components=None, **attributes):
         return empty
 
     if not components:
-        if book.releasing:
-            components = ['(in progress)']
-        else:
-            components = [
-                DIV(
-                    INPUT(_type='checkbox', _value='off'),
-                    _class="completed_checkbox_wrapper"
-                )
-            ]
+        components = [
+            DIV(
+                INPUT(_type='checkbox', _value='off'),
+                _class="completed_checkbox_wrapper"
+            )
+        ]
 
     kwargs = {}
     kwargs.update(attributes)
 
-    tag = SPAN if book.releasing else A
-
-    if tag == A and '_href' not in attributes:
+    if '_href' not in attributes:
         kwargs['_href'] = URL(
             c='login', f='book_release', args=book.id, extension=False)
 
-    if book.releasing:
-        if '_class' not in attributes:
-            kwargs['_class'] = 'disabled'
-        else:
-            kwargs['_class'] = ' '.join([kwargs['_class'], 'disabled'])
-
-    return tag(*components, **kwargs)
+    return A(*components, **kwargs)
 
 
 def contribute_link(db, book_entity, components=None, **attributes):

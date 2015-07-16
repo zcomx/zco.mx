@@ -879,16 +879,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
 
-        # Test release queued
-        book.update_record(releasing=True)
-        db.commit()
-        link = complete_link(book.id)
-        soup = BeautifulSoup(str(link))
-        # <span class="disabled">(in progress)</span>
-        span = soup.find('span')
-        self.assertEqual(span['class'], 'disabled')
-        self.assertEqual(span.string, '(in progress)')
-
     def test__contribute_link(self):
         empty = '<span></span>'
 
