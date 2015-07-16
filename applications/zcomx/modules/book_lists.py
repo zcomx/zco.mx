@@ -72,6 +72,14 @@ class BaseBookList(object):
         """
         return []
 
+    @property
+    def has_releasing_books(self):
+        """Return whether the list has books where release is in progress."""
+        for book in self.books():
+            if book.releasing:
+                return True
+        return False
+
     def headers(self):
         """Return dict representing column headers.
 
@@ -140,7 +148,10 @@ class CompletedBookList(BaseBookList):
         db = self.db
         queries = []
         queries.append((db.book.status == BOOK_STATUS_ACTIVE))
-        queries.append((db.book.release_date != None))
+        queries.append((
+            (db.book.release_date != None)
+            | (db.book.releasing == True)
+        ))
         return queries
 
     @property
@@ -247,6 +258,7 @@ class OngoingBookList(BaseBookList):
         queries = []
         queries.append((db.book.status == BOOK_STATUS_ACTIVE))
         queries.append((db.book.release_date == None))
+        queries.append((db.book.releasing != True))
         return queries
 
     def headers(self):

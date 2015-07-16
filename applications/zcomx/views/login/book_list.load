@@ -37,7 +37,10 @@
         {{for book in lister.books():}}
         {{book_name = formatted_name(db, book, include_publication_year=False)}}
         <tr>
-            <td class="book_name_column">{{if lister.link_to_book_page:}}{{=A(book_name, _href=book_url(book.id, extension=False))}}{{else:}}{{=book_name}}{{pass}}</td>
+            <td class="book_name_column">
+                {{if book.releasing:}}*{{else:}}{{pass}}
+                {{if lister.link_to_book_page:}}{{=A(book_name, _href=book_url(book.id, extension=False))}}{{else:}}{{=book_name}}{{pass}}
+            </td>
             {{if lister.include_publication_year:}}
             <td>{{=book.publication_year}}</td>
             {{pass}}
@@ -75,10 +78,18 @@
             </td>
             {{if lister.include_complete_checkbox:}}
             <td>
-                {{btn_class = 'modal-complete-btn' if not book.releasing else ''}}
-                {{=complete_link(book.id, **{'_class': btn_class + ' no_rclick_menu', '_data-book_id': book.id})}}
+                {{=complete_link(book.id, **{'_class': 'modal-complete-btn no_rclick_menu', '_data-book_id': book.id})}}
             </td>
             {{pass}}
+        </tr>
+        {{pass}}
+        {{if lister.has_releasing_books:}}
+        <tr>
+            <td colspan="7">
+                <span class="release_in_progress_footnote">
+                    * <i>Set as complete</i>&nbsp; in progress (this can take up to an hour)
+                </span>
+            </td>
         </tr>
         {{pass}}
         {{if not lister.books():}}

@@ -147,7 +147,10 @@ class TestCompletedBookList(LocalTestCase):
         filters = book_list.filters()
         self.assertEqual(len(filters), 2)
         self.assertEqual(str(filters[0]), "(book.status = 'a')")
-        self.assertEqual(str(filters[1]), "(book.release_date IS NOT NULL)")
+        self.assertEqual(
+            str(filters[1]),
+            "((book.release_date IS NOT NULL) OR (book.releasing = 'T'))"
+        )
 
     def test__include_publication_year(self):
         book_list = CompletedBookList({})
@@ -241,9 +244,10 @@ class TestOngoingBookList(LocalTestCase):
     def test__filters(self):
         book_list = OngoingBookList({})
         filters = book_list.filters()
-        self.assertEqual(len(filters), 2)
+        self.assertEqual(len(filters), 3)
         self.assertEqual(str(filters[0]), "(book.status = 'a')")
         self.assertEqual(str(filters[1]), "(book.release_date IS NULL)")
+        self.assertEqual(str(filters[2]), "(book.releasing <> 'T')")
 
     def test__headers(self):
         book_list = OngoingBookList({})
