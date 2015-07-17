@@ -5,11 +5,12 @@
 
 Class and functions relatedo database records.
 """
+import logging
+import traceback
 from gluon import *
 from pydal.objects import Row
-from pydal.helpers.classes import \
-    RecordDeleter, \
-    RecordUpdater
+
+LOG = logging.getLogger('app')
 
 
 class Record(Row):
@@ -20,17 +21,19 @@ class Record(Row):
     def __init__(self, *args, **kwargs):
         """Initializer"""
         Row.__init__(self, *args, **kwargs)
-        record_id = self.__dict__['id'] if 'id' in self.__dict__ else None
-        db = current.app.db
-        if record_id:
-            self.update_record = RecordUpdater(self.as_dict(), db[self.db_table], record_id)
-            self.delete_record = RecordDeleter(db[self.db_table], record_id)
 
     def delete(self):
         """Delete the record from the db"""
         db = current.app.db
         db(db[self.db_table].id == self.id).delete()
         db.commit()
+
+    def delete_record(self):
+        """DEPRECATED use delete()."""
+        for line in traceback.format_stack():
+            LOG.error(line)
+        LOG.error('Record.delete_record called')
+        return self.delete()
 
     @classmethod
     def from_id(cls, record_id):
@@ -52,3 +55,12 @@ class Record(Row):
         record_id = db[self.db_table].insert(**self.as_dict())
         db.commit()
         return record_id
+
+    def update_record(self, **data):
+        """DEPRECATED do not use."""
+        for line in traceback.format_stack():
+            LOG.error(line)
+        LOG.error('Record.update_record called')
+        db = current.app.db
+        db(db[self.db_table].id == self.id).update(**data)
+        db.commit()

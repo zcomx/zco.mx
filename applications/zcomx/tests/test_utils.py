@@ -211,6 +211,7 @@ class TestFunctions(LocalTestCase):
                 'creator_id': None,
                 'description': None,
                 'downloads': 0,
+                'facebook_post_id': None,
                 'id': None,
                 'name': None,
                 'name_for_search': None,

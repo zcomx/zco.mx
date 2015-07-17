@@ -95,7 +95,8 @@ def unlogged_generator(limit=None):
             for r in rows:
                 yield (click.id, r.id)
         else:
-            click.update_record(completed=True)
+            query = (db.download_click.id == click.id)
+            db(query).update(completed=True)
             db.commit()
 
 

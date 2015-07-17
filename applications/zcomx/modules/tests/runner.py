@@ -62,6 +62,8 @@ class LocalTestCase(unittest.TestCase):
             if hasattr(obj, 'remove'):
                 self._remove_comments_for(obj)
                 obj.remove()
+            elif hasattr(obj, 'delete') and hasattr(obj, 'id'):
+                obj.delete()
             elif hasattr(obj, 'delete_record'):
                 db = current.app.db
                 obj.delete_record()

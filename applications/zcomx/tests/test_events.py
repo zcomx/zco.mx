@@ -28,7 +28,6 @@ from applications.zcomx.modules.events import \
     is_loggable, \
     log_download_click
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import entity_to_row
 
 
 # C0111: Missing docstring
@@ -124,7 +123,7 @@ class TestContributionEvent(EventTestCase):
     def test_post_log(self):
         self._set_pages(db, self._book.id, 10)
         update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        book = Book.from_id(self._book.id)      # Re-load
         self.assertAlmostEqual(book.contributions, 0.00)
         self.assertAlmostEqual(book.contributions_remaining, 100.00)
 
@@ -137,7 +136,7 @@ class TestContributionEvent(EventTestCase):
         self._objects.append(contribution)
 
         event._post_log()
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        book = Book.from_id(self._book.id)      # Re-load
         self.assertAlmostEqual(book.contributions, 123.45)
         self.assertAlmostEqual(book.contributions_remaining, 0.00)
 
@@ -146,7 +145,7 @@ class TestDownloadEvent(EventTestCase):
 
     def test_log(self):
         update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        book = Book.from_id(self._book.id)      # Re-load
 
         download_click = self.add(db.download_click, dict(
             record_table='book',
@@ -203,7 +202,7 @@ class TestRatingEvent(EventTestCase):
 
     def test_post_log(self):
         update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        book = Book.from_id(self._book.id)       # Re-load
         self.assertEqual(book.rating, 0)
 
         event = RatingEvent(self._book, self._user.id)
@@ -215,7 +214,7 @@ class TestRatingEvent(EventTestCase):
         self._objects.append(rating)
 
         event._post_log()
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        book = Book.from_id(self._book.id)       # Re-load
         self.assertEqual(book.rating, 5)
 
 
@@ -240,7 +239,7 @@ class TestViewEvent(EventTestCase):
 
     def test_post_log(self):
         update_rating(db, self._book)
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        book = Book.from_id(self._book.id)       # Re-load
         self.assertEqual(book.views, 0)
 
         event = ViewEvent(self._book, self._user.id)
@@ -252,7 +251,7 @@ class TestViewEvent(EventTestCase):
         self._objects.append(view)
 
         event._post_log()
-        book = entity_to_row(db.book, self._book.id)  # Use id to force re-read
+        book = Book.from_id(self._book.id)       # Re-load
         self.assertEqual(book.views, 1)
 
 

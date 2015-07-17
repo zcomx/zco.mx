@@ -1471,13 +1471,12 @@ def update_contributions_remaining(db, book_entity):
         db.commit()
 
 
-def update_rating(db, book_entity, rating=None):
+def update_rating(db, book, rating=None):
     """Update an accumulated rating for a book.
 
     Args
         db: gluon.dal.DAL instance
-        book_entity: Row instance or integer, if integer, this is the id of the
-            book. The book record is read.
+        book: Book instance
         rating: string, one of 'contribution', 'rating', 'view'. If None,
                 all ratings are updated.
     """
@@ -1506,10 +1505,6 @@ def update_rating(db, book_entity, rating=None):
     for r in ratings:
         rating_data.extend(ratings_data[r])
 
-    book = entity_to_row(db.book, book_entity)
-    if not book:
-        return
-
     query = (db.book.id == book.id)
     for field, data_field, func in rating_data:
         data_table = data_field.table
@@ -1525,11 +1520,11 @@ def update_rating(db, book_entity, rating=None):
             groupby=data_table.book_id
         ).first()
         value = rows[tally] or 0 if rows else 0
-        db(db.book.id == book.id).update(**{field.name: value})
+        db(query).update(**{field.name: value})
     db.commit()
 
     if rating is None or rating == 'contribution':
-        update_contributions_remaining(db, book)
+        update_contributions_remaining(db, book.id)
 
 
 def url(book_entity, **url_kwargs):

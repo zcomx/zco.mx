@@ -36,6 +36,15 @@ class TestRecord(LocalTestCase):
         book.delete()
         self.assertRaises(LookupError, DubRecord.from_id, saved_book.id)
 
+    def test__delete_record(self):
+        saved_book = self.add(db.book, dict(
+            name='_test__delete_',
+        ))
+        book = DubRecord.from_id(saved_book.id)
+        book.delete_record()
+        # db.commit()
+        self.assertRaises(LookupError, DubRecord.from_id, saved_book.id)
+
     def test__from_id(self):
         saved_book = self.add(db.book, dict(
             name='_test__from_id_',
@@ -58,6 +67,20 @@ class TestRecord(LocalTestCase):
         self._objects.append(got)
         self.assertEqual(got.id, book_id)
         self.assertEqual(got.name, '_test__save_')
+
+    def test__update_record(self):
+        saved_book = self.add(db.book, dict(
+            name='_test__delete_',
+            name_for_url='N001',
+        ))
+        book = DubRecord.from_id(saved_book.id)
+        book.update_record(**{'name_for_url': 'N002'})
+        # db.commit()
+        updated_book = DubRecord.from_id(saved_book.id)
+        self.assertEqual(updated_book.id, book.id)
+        self.assertEqual(updated_book.name, book.name)
+        self.assertEqual(book.name_for_url, 'N001')
+        self.assertEqual(updated_book.name_for_url, 'N002')
 
 
 def setUpModule():

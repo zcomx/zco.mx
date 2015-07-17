@@ -12,7 +12,9 @@ import os
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
-from applications.zcomx.modules.books import update_rating
+from applications.zcomx.modules.books import \
+    Book, \
+    update_rating
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -82,8 +84,9 @@ def main():
 
     LOG.info('Started.')
 
-    for book in db(db.book).select(db.book.ALL):
-        LOG.debug('Updating: {name}'.format(name=book.name))
+    for book_id in db(db.book).select(db.book.id):
+        book = Book.from_id(book_id)
+        LOG.debug('Updating: %s', book.name)
         update_rating(db, book)
 
     LOG.info('Done.')

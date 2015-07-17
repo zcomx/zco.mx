@@ -3,7 +3,7 @@
 
 """
 
-Creator classes and functions.
+Classes and functions related to links.
 """
 from gluon import *
 from applications.zcomx.modules.records import Record

@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 """
 
 Test suite for zcomx/modules/books.py
@@ -2002,10 +2001,11 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertAlmostEqual(creator_contributions(creator), 99.01)
 
     def test__update_rating(self):
-        book = self.add(db.book, dict(name='test__update_rating'))
+        book_record = self.add(db.book, dict(name='test__update_rating'))
+        book = Book.from_id(book_record.id)
         self._set_pages(db, book.id, 10)
 
-        def reset(book_record):
+        def reset(book):
             data = dict(
                 contributions=0,
                 contributions_remaining=0,
@@ -2013,16 +2013,16 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 views=0,
                 rating=0,
             )
-            book_record.update_record(**data)
+            db(db.book.id == book.id).update(**data)
             db.commit()
 
         def zero(storage):
             for k in storage.keys():
                 storage[k] = 0
 
-        def do_test(book_record, rating, expect):
-            update_rating(db, book_record, rating=rating)
-            query = (db.book.id == book_record.id)
+        def do_test(book, rating, expect):
+            update_rating(db, book, rating=rating)
+            query = (db.book.id == book.id)
             r = db(query).select(
                 db.book.contributions,
                 db.book.contributions_remaining,
