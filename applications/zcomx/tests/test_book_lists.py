@@ -95,6 +95,40 @@ class TestBaseBookList(LocalTestCase):
         book_list = BaseBookList({})
         self.assertEqual(book_list.filters(), [])
 
+    def test__has_releasing_books(self):
+        creator = self.add(db.creator, dict(
+            email='test__books@email.com',
+        ))
+
+        book_list = BaseBookList(creator)
+        self.assertEqual(book_list.has_releasing_books, False)
+
+        book_1 = self.add(db.book, dict(
+            name='My Book 1',
+            creator_id=creator.id,
+        ))
+
+        book_2 = self.add(db.book, dict(
+            name='My Book 2',
+            creator_id=creator.id,
+        ))
+
+        tests = [
+            # (book_1.releasing, book_2.releasing, expect)
+            (False, False, False),
+            (True, False, True),
+            (False, True, True),
+            (True, True, True),
+        ]
+
+        for t in tests:
+            book_1.update_record(releasing=t[0])
+            db.commit()
+            book_2.update_record(releasing=t[1])
+            db.commit()
+            book_list = BaseBookList(creator)
+            self.assertEqual(book_list.has_releasing_books, t[2])
+
     def test__headers(self):
         book_list = BaseBookList({})
         self.assertEqual(book_list.headers(), None)
