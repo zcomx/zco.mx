@@ -17,6 +17,7 @@ from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
 from applications.zcomx.modules.images import SIZES
+from applications.zcomx.modules.images_optimize import OptimizeImgLog
 from applications.zcomx.modules.utils import \
     entity_to_row
 
@@ -45,7 +46,7 @@ def add_sizes(log):
         db.optimize_img_log.insert(**data)
         db.commit()
 
-    log.update_record(size='original')
+    db(db.optimize_img_log.id == log.id).update(size='original')
     db.commit()
 
 
@@ -112,9 +113,7 @@ def main():
         x.id for x in
         db(db.optimize_img_log.size == None).select(db.optimize_img_log.id)]
     for log_id in ids:
-        log = entity_to_row(db.optimize_img_log, log_id)
-        if not log:
-            raise LookupError('Log not found, id: %s', log_id)
+        log = OptimizeImgLog.from_id(log_id)
         add_sizes(log)
     LOG.info('Done.')
 

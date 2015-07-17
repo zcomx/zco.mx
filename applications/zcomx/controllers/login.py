@@ -28,6 +28,7 @@ from applications.zcomx.modules.books import \
     publication_year_range, \
     read_link, \
     set_status
+from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
     image_as_json, \
     queue_update_indicia, \
@@ -38,9 +39,7 @@ from applications.zcomx.modules.images import \
     store
 from applications.zcomx.modules.images_optimize import AllSizesImages
 from applications.zcomx.modules.indicias import \
-    IndiciaPage, \
     PublicationMetadata, \
-    cc_licence_by_code, \
     create_creator_indicia
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
@@ -292,9 +291,9 @@ def book_crud():
             if request.vars.name == 'book_type_id' else None
 
         show_cc_licence_place = False
-        cc0_licence_id = cc_licence_by_code('CC0', want='id', default=0)
+        cc0 = CCLicence.by_code('CC0')
         if request.vars.name == 'cc_licence_id' \
-                and request.vars.value == str(cc0_licence_id):
+                and request.vars.value == str(cc0.id):
             show_cc_licence_place = True
         return {
             'show_cc_licence_place': show_cc_licence_place,
@@ -350,8 +349,8 @@ def book_edit():
     show_cc_licence_place = False
     meta = None
     if book_record:
-        cc0_licence_id = cc_licence_by_code('CC0', want='id', default=0)
-        if book_record.cc_licence_id == cc0_licence_id:
+        cc0 = CCLicence.by_code('CC0')
+        if book_record.cc_licence_id == cc0.id:
             show_cc_licence_place = True
 
         meta = PublicationMetadata(book_record)
@@ -1008,19 +1007,18 @@ def link_crud():
     action = request.vars.action if request.vars.action in actions else 'get'
 
     link_id = None
-    link_record = None
-    link_type = None
     if request.vars.pk:
         try:
             link_id = int(request.vars.pk)
         except (TypeError, ValueError):
             link_id = None
 
+    link_type = None
     if link_id:
-        link_record = entity_to_row(db.link, link_id)
-        if not link_record:
+        link = Link.from_id(link_id)
+        if not link:
             return do_error('Invalid data provided')
-        link_type = LinkType.from_id(link_record.link_type_id)
+        link_type = LinkType.from_id(link.link_type_id)
 
     if not request.vars.link_type_code:
         return do_error('Invalid data provided')
@@ -1301,9 +1299,6 @@ def metadata_crud():
             orderby=db.cc_licence.number
         )
 
-        cc_licence_id = cc_licence_by_code(
-            IndiciaPage.default_licence_code, want='id', default=0)
-
         data['derivative']['fields']['cc_licence_id'].update({
             'type': 'select',
             'source': [{'value': x.id, 'text': x.code} for x in licences]
@@ -1324,7 +1319,7 @@ def metadata_crud():
 
         data['derivative']['default'].update({
             'is_derivative': 'no',
-            'cc_licence_id': cc_licence_id,
+            'cc_licence_id': licences[0].id,
         })
 
         query = (db.publication_metadata.book_id == book_record.id)

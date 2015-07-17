@@ -29,7 +29,7 @@ from applications.zcomx.modules.book.complete_barriers import \
     has_complete_barriers
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import by_name as book_type_by_name
-from applications.zcomx.modules.indicias import cc_licence_by_code
+from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -54,16 +54,16 @@ def _create_cbz(book_page):
 class TestAllRightsReservedBarrier(LocalTestCase):
 
     def test__applies(self):
-        cc_by_id = cc_licence_by_code('CC BY', want='id')
-        arr_id = cc_licence_by_code('All Rights Reserved', want='id')
+        cc_by = CCLicence.by_code('CC BY')
+        all_rights = CCLicence.by_code('All Rights Reserved')
 
         book = self.add(db.book, dict(
-            cc_licence_id=cc_by_id,
+            cc_licence_id=cc_by.id,
         ))
         barrier = AllRightsReservedBarrier(book)
         self.assertFalse(barrier.applies())
 
-        book.update_record(cc_licence_id=arr_id)
+        book.update_record(cc_licence_id=all_rights.id)
         db.commit()
         barrier = AllRightsReservedBarrier(book)
         self.assertTrue(barrier.applies())
@@ -641,14 +641,14 @@ class TestFunctions(ImageTestCase):
             email='test__complete_barriers@gmail.com',
         ))
 
-        cc0_id = cc_licence_by_code('CC0', want='id')
+        cc0 = CCLicence.by_code('CC0')
 
         book = self.add(db.book, dict(
             name='test__complete_barriers',
             number=999,
             creator_id=creator.id,
             book_type_id=book_type_by_name('ongoing').id,
-            cc_licence_id=cc0_id,
+            cc_licence_id=cc0,
         ))
 
         book_page = self.add(db.book_page, dict(
@@ -677,14 +677,14 @@ class TestFunctions(ImageTestCase):
             email='test__complete_barriers@gmail.com',
         ))
 
-        cc0_id = cc_licence_by_code('CC0', want='id')
+        cc0 = CCLicence.by_code('CC0')
 
         book = self.add(db.book, dict(
             name='test__complete_barriers',
             number=999,
             creator_id=creator.id,
             book_type_id=book_type_by_name('ongoing').id,
-            cc_licence_id=cc0_id,
+            cc_licence_id=cc0.id,
         ))
 
         book_page = self.add(db.book_page, dict(

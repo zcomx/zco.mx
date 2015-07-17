@@ -12,8 +12,14 @@ from applications.zcomx.modules.job_queue import \
     OptimizeCBZImgQueuer, \
     OptimizeOriginalImgQueuer, \
     OptimizeWebImgQueuer
+from applications.zcomx.modules.records import Record
 
 LOG = logging.getLogger('app')
+
+
+class OptimizeImgLog(Record):
+    """Class representing a optimize_img_log record"""
+    db_table = 'optimize_img_log'
 
 
 class BaseSizedImage(object):

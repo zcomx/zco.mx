@@ -70,8 +70,8 @@ from applications.zcomx.modules.books import \
     update_contributions_remaining, \
     update_rating, \
     url
+from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.images import store
-from applications.zcomx.modules.indicias import cc_licence_by_code
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -355,7 +355,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertRaises(LookupError, cbz_comment, -1)
 
-        cc_licence_id = cc_licence_by_code('CC BY-ND', want='id', default=0)
+        cc_by_nd = CCLicence.by_code('CC BY-ND')
 
         book = self.add(db.book, dict(
             name='My Book',
@@ -364,7 +364,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             creator_id=-1,
             publication_year=1999,
             book_type_id=book_type_by_name('mini-series').id,
-            cc_licence_id=cc_licence_id,
+            cc_licence_id=cc_by_nd.id,
         ))
 
         # Creator record not found

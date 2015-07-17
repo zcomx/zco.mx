@@ -15,6 +15,7 @@ from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import \
     from_id as book_type_from_id
+from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
     creator_name, \
     formatted_name as creator_formatted_name, \
@@ -309,10 +310,7 @@ def cbz_comment(book_entity):
         raise LookupError('Creator not found, {e}'.format(
             e=book_record.creator_id))
 
-    cc_licence = entity_to_row(db.cc_licence, book_record.cc_licence_id)
-    if not cc_licence:
-        raise LookupError('Cc licence not found, {e}'.format(
-            e=book_record.cc_licence_id))
+    cc_licence = CCLicence.from_id(book_record.cc_licence_id)
 
     fields = []
     fields.append(str(book_record.publication_year))

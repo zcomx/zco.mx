@@ -25,12 +25,12 @@ from applications.zcomx.modules.images import \
 from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
     BookIndiciaPagePng, \
+    CCLicence, \
     CreatorIndiciaPagePng, \
     IndiciaPage, \
     IndiciaSh, \
     IndiciaShError, \
     PublicationMetadata, \
-    cc_licence_by_code, \
     cc_licence_places, \
     cc_licences, \
     create_creator_indicia, \
@@ -91,7 +91,7 @@ class WithObjectsTestCase(LocalTestCase):
             image='book_page.image.aaa.000.jpg',
         ))
 
-        link = self.add(db.link, dict(
+        self.add(db.link, dict(
             link_type_id=LinkType.by_code('buy_book').id,
             record_table='book',
             record_id=self._book.id,
@@ -239,8 +239,8 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             )
         )
 
-        cc_licence_id = cc_licence_by_code('CC BY', want='id', default=0)
-        self._book.update_record(cc_licence_id=cc_licence_id)
+        cc_by = CCLicence.by_code('CC BY')
+        self._book.update_record(cc_licence_id=cc_by.id)
         db.commit()
         book = db(db.book.id == self._book.id).select().first()
 
@@ -452,14 +452,6 @@ class TestIndiciaPage(LocalTestCase):
             'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
         )
 
-    def test__default_licence(self):
-        indicia = IndiciaPage(None)
-        default = indicia.default_licence()
-        self.assertEqual(default.code, 'All Rights Reserved')
-        fields = ['id', 'number', 'code', 'url', 'template_img', 'template_web']
-        for f in fields:
-            self.assertTrue(f in default.keys())
-
     def test__follow_icons(self):
         indicia = IndiciaPage(None)
         self.assertEqual(indicia.follow_icons(), [])
@@ -668,13 +660,13 @@ class TestPublicationMetadata(LocalTestCase):
             ),
         ]
 
-        cc_licence_id = cc_licence_by_code('CC BY-NC-SA', want='id', default=0)
+        cc_by_nc_sa = CCLicence.by_code('CC BY-NC-SA')
 
         meta.derivative = dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
-            cc_licence_id=cc_licence_id,
+            cc_licence_id=cc_by_nc_sa.id,
             from_year=2014,
             to_year=2015,
         )
@@ -701,14 +693,14 @@ class TestPublicationMetadata(LocalTestCase):
 
         book = self.add(db.book, dict(name='My Book'))
 
-        cc_licence_id = cc_licence_by_code('CC BY-ND', want='id', default=0)
+        cc_by_nd = CCLicence.by_code('CC BY-ND')
 
         meta = PublicationMetadata(book.id)
         derivative = dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
-            cc_licence_id=cc_licence_id,
+            cc_licence_id=cc_by_nd.id,
             from_year=2014,
             to_year=2015,
         )
@@ -1390,13 +1382,13 @@ class TestPublicationMetadata(LocalTestCase):
             ),
         ]
 
-        cc_licence_id = cc_licence_by_code('CC BY-NC-SA', want='id', default=0)
+        cc_by_nc_sa = CCLicence.by_code('CC BY-NC-SA')
 
         meta.derivative = dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
-            cc_licence_id=cc_licence_id,
+            cc_licence_id=cc_by_nc_sa.id,
             from_year=2014,
             to_year=2015,
         )
@@ -1793,24 +1785,6 @@ class TestPublicationMetadata(LocalTestCase):
 
 class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
-    def test__cc_licence_by_code(self):
-        cc_licence = self.add(db.cc_licence, dict(
-            code='_test_'
-        ))
-
-        got = cc_licence_by_code('_test_')
-        self.assertEqual(got.id, cc_licence.id)
-        self.assertEqual(got.code, '_test_')
-
-        self.assertEqual(cc_licence_by_code(
-            '_test_', want='id'), cc_licence.id)
-        self.assertEqual(cc_licence_by_code('_test_', want='code'), '_test_')
-
-        self.assertEqual(cc_licence_by_code('_fake_', default={}), {})
-        self.assertEqual(cc_licence_by_code('_fake_', want='id', default=0), 0)
-        self.assertEqual(cc_licence_by_code(
-            '_fake_', want='code', default='mycode'), 'mycode')
-
     def test__cc_licence_places(self):
         places = cc_licence_places()
         got = loads('[' + str(places) + ']')
@@ -1903,13 +1877,14 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__render_cc_licence(self):
 
-        cc_licence = self.add(db.cc_licence, dict(
+        cc_licence_row = self.add(db.cc_licence, dict(
             number=999,
             code='test__render_cc_licence',
             url='http://cc_licence.com',
             template_img='The {title} is owned by {owner} for {year} in {place} at {url}.',
             template_web='THE {title} IS OWNED BY {owner} FOR {year} IN {place} AT {url}.'
         ))
+        cc_licence = CCLicence.from_id(cc_licence_row.id)
 
         this_year = datetime.date.today().year
 
@@ -1951,8 +1926,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 render_cc_licence(t[0], cc_licence, template_field=t[1]),
                 t[2]
             )
-
-        self.assertRaises(LookupError, render_cc_licence, {}, -1)
 
 
 def setUpModule():
