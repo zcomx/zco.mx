@@ -42,7 +42,7 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 
 def _create_cbz(book_page):
     # Quick and dirty method for created a cbz size. Just copy the original
-    upload_img = BookPage(book_page).upload_image()
+    upload_img = BookPage(book_page.as_dict()).upload_image()
     original = upload_img.fullname(size='original')
     cbz = upload_img.fullname(size='cbz')
     cbz_dirname = os.path.dirname(cbz)
@@ -428,6 +428,8 @@ class TestNoCBZImageBarrier(ImageTestCase):
         )
 
         barrier = NoCBZImageBarrier(book)
+        # protected-access (W0212): *Access to a protected member
+        # pylint: disable=W0212
         self.assertEqual(barrier._no_cbz_images, None)
 
         # No images have cbz sizes, all should be in violation
@@ -442,7 +444,7 @@ class TestNoCBZImageBarrier(ImageTestCase):
         )
 
         def has_size(book_page, size):
-            upload_img = BookPage(book_page).upload_image()
+            upload_img = BookPage(book_page.as_dict()).upload_image()
             fullname = upload_img.fullname(size=size)
             return os.path.exists(fullname)
 

@@ -193,8 +193,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__book_pages(self):
         pages = book_pages(self._book)
         self.assertEqual(len(pages), 2)
-        self.assertEqual(pages[0].book_page.page_no, 1)
-        self.assertEqual(pages[1].book_page.page_no, 2)
+        self.assertEqual(pages[0].page_no, 1)
+        self.assertEqual(pages[1].page_no, 2)
 
     def test__book_pages_as_json(self):
         filename = 'portrait.png'

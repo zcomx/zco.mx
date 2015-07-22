@@ -90,7 +90,7 @@ def book_page_for_json(db, book_page_id):
             },
     """
     try:
-        page = BookPage(book_page_id)
+        page = BookPage.from_id(book_page_id)
     except LookupError:
         return
 
@@ -100,26 +100,26 @@ def book_page_for_json(db, book_page_id):
     down_url = URL(
         c='images',
         f='download',
-        args=page.book_page.image,
+        args=page.image,
     )
 
     thumb = URL(
         c='images',
         f='download',
-        args=page.book_page.image,
+        args=page.image,
         vars={'size': 'web'},
     )
 
     delete_url = URL(
         c='login',
         f='book_pages_handler',
-        args=page.book_page.book_id,
-        vars={'book_page_id': page.book_page.id},
+        args=page.book_id,
+        vars={'book_page_id': page.id},
     )
 
     return dict(
-        book_id=page.book_page.book_id,
-        book_page_id=page.book_page.id,
+        book_id=page.book_id,
+        book_page_id=page.id,
         name=filename,
         size=size,
         url=down_url,
@@ -144,9 +144,12 @@ def book_pages(book_entity):
 
     pages = []
     query = (db.book_page.book_id == book_record.id)
-    rows = db(query).select(orderby=[db.book_page.page_no, db.book_page.id])
-    for page_entity in rows:
-        pages.append(BookPage(page_entity))
+    ids = db(query).select(
+        db.book_page.id,
+        orderby=[db.book_page.page_no, db.book_page.id]
+    )
+    for page_id in ids:
+        pages.append(BookPage.from_id(page_id))
     return pages
 
 
@@ -875,9 +878,9 @@ def images(book_entity):
         for field in db.book_page.fields:
             if db.book_page[field].type != 'upload':
                 continue
-            if not page.book_page[field]:
+            if not page[field]:
                 continue
-            image_names.append(page.book_page[field])
+            image_names.append(page[field])
 
     return image_names
 
@@ -1057,10 +1060,15 @@ def orientation(book_page_entity):
         book_page_entity: Row instance or integer, if integer, this is the id
             of the book_page. The book_page record is read.
     """
-    page = BookPage(book_page_entity)
-    if not page.book_page.image:
+    db = current.app.db
+    page_record = entity_to_row(db.book_page, book_page_entity)
+    if not page_record:
+        raise LookupError('Book page not found, {e}'.format(
+            e=book_page_entity))
+    page = BookPage.from_id(page_record.id)
+    if not page.image:
         raise LookupError('Book page has no image, book_page.id {i}'.format(
-            i=page.book_page.id))
+            i=page.id))
 
     return ImageDescriptor(page.upload_image().fullname()).orientation()
 

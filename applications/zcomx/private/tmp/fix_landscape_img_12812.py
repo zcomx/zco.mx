@@ -122,7 +122,7 @@ def main():
 
     ids = [x.id for x in db(db.book_page).select(db.book_page.id)]
     for page_id in ids:
-        page = BookPage(page_id)
+        page = BookPage.from_id(page_id)
         descriptor = ImageDescriptor(page.upload_image().fullname(size='web'))
         try:
             if descriptor.orientation() != 'landscape':
@@ -141,9 +141,9 @@ def main():
 
         LOG.debug(
             'Updating book_id: %s, page_id: %s, page_no: %s',
-            page.book_page.book_id,
-            page.book_page.id,
-            page.book_page.page_no
+            page.book_id,
+            page.id,
+            page.page_no
         )
         # copy original to a tmp directory renaming it to what it was
         # originally called so we can preserve the original name.
@@ -163,9 +163,9 @@ def main():
             LOG.error('IOError: %s', str(err))
             return
 
-        page.book_page.update_record(image=stored_filename)
+        db(db.book_page.id == page.id).update(image=stored_filename)
         db.commit()
-        book_ids.append(page.book_page.book_id)
+        book_ids.append(page.book_id)
 
         if options.limit and count >= options.limit:
             LOG.debug('Limit reached, aborting')

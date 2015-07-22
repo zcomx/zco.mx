@@ -97,11 +97,8 @@ class TestAbridgedBookPageNumbers(WithPagesTestCase):
 class TestBookPage(LocalTestCase):
 
     def test____init__(self):
-        book_page = self.add(db.book_page, dict(
-            image=None
-        ))
-        page = BookPage(book_page)
-        self.assertRaises(LookupError, BookPage, -1)
+        book_page = db(db.book_page).select(db.book_page.id).first()
+        page = BookPage.from_id(book_page.id)
         self.assertEqual(page.min_cbz_width, 1600)
         self.assertEqual(page.min_cbz_height_to_exempt, 2560)
 
@@ -110,7 +107,7 @@ class TestBookPage(LocalTestCase):
             image='book_image.aaa.000.jpg'
         ))
 
-        page = BookPage(book_page)
+        page = BookPage.from_id(book_page.id)
         up_image = page.upload_image()
         self.assertTrue(hasattr(up_image, 'retrieve'))
 
