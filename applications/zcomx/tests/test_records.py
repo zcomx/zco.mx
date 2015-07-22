@@ -21,6 +21,10 @@ class DubRecord(Record):
     db_table = 'book'
 
 
+class DubInvalidTableRecord(Record):
+    db_table = '_fake_'
+
+
 class TestRecord(LocalTestCase):
 
     def test____init__(self):
@@ -59,6 +63,13 @@ class TestRecord(LocalTestCase):
             book_keys,
             sorted(db.book.fields)
         )
+
+        # Test db_table parameter.
+        self.assertRaises(
+            AttributeError, DubInvalidTableRecord.from_id, saved_book.id)
+        book = DubInvalidTableRecord.from_id(saved_book.id, db_table='book')
+        self.assertEqual(book.id, saved_book.id)
+        self.assertEqual(book.name, '_test__from_id_')
 
     def test__save(self):
         book = DubRecord(name='_test__save_')

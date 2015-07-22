@@ -36,17 +36,23 @@ class Record(Row):
         return self.delete()
 
     @classmethod
-    def from_id(cls, record_id):
+    def from_id(cls, record_id, db_table=None):
         """Create instance from record id.
 
         Args:
             record_id: integer, id of record
+            db_table: str, name of database table
+                Defaults to cls.db_table.
+
+        Returns:
+            cls instance
         """
         db = current.app.db
-        record = db(db[cls.db_table].id == record_id).select().first()
+        table = db_table or cls.db_table
+        record = db(db[table].id == record_id).select().first()
         if not record:
             raise LookupError('Record not found, table {t}, id {i}'.format(
-                t=cls.db_table, i=record_id))
+                t=table, i=record_id))
         return cls(record.as_dict())
 
     def save(self):

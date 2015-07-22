@@ -15,8 +15,7 @@ from applications.zcomx.modules.book.complete_barriers import \
 from applications.zcomx.modules.book_pages import \
     delete_pages_not_in_ids, \
     reset_book_page_nos
-from applications.zcomx.modules.book_types import \
-    from_id as type_from_id
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.book_upload import BookPageUploader
 from applications.zcomx.modules.books import \
     name_fields, \
@@ -287,7 +286,8 @@ def book_crud():
 
         queue_search_prefetch()
 
-        numbers = type_from_id(request.vars.value).number_field_statuses() \
+        numbers = \
+            BookType.from_id(request.vars.value).number_field_statuses() \
             if request.vars.name == 'book_type_id' else None
 
         show_cc_licence_place = False
@@ -337,14 +337,15 @@ def book_edit():
         MODAL_ERROR('Permission denied')
 
     book_record = None
+    book_type = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
         if not book_record:
             MODAL_ERROR('Invalid data provided')
+        book_type = BookType.from_id(book_record.book_type_id)
 
-    book_type_id = book_record.book_type_id if book_record else 0
-
-    numbers = type_from_id(book_type_id).number_field_statuses()
+    if not book_type:
+        book_type = BookType.by_name('one-shot')
 
     show_cc_licence_place = False
     meta = None
@@ -364,7 +365,7 @@ def book_edit():
         book=book_record,
         link_types=link_types,
         metadata=str(meta) if meta else '',
-        numbers=dumps(numbers),
+        numbers=dumps(book_type.number_field_statuses()),
         show_cc_licence_place=dumps(show_cc_licence_place),
     )
 

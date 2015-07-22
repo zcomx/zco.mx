@@ -12,7 +12,7 @@ import unittest
 import gluon.contrib.rss2 as rss2
 from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.rss import \
     AllRSSChannel, \
     BaseRSSChannel, \
@@ -59,7 +59,7 @@ class WithObjectsTestCase(LocalTestCase):
             name='My Book',
             number=1,
             creator_id=self._creator.id,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             name_for_url='MyBook-001',
         ))
 

@@ -16,7 +16,7 @@ from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from gluon.validators import IS_INT_IN_RANGE
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import short_url as book_short_url
 from applications.zcomx.modules.creators import short_url as creator_short_url
 from applications.zcomx.modules.images import \
@@ -80,7 +80,7 @@ class WithObjectsTestCase(LocalTestCase):
         self._book = self.add(db.book, dict(
             name='Image Test Case',
             number=1,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             creator_id=self._creator.id,
             name_for_url='ImageTestCase-001',
         ))
@@ -1800,7 +1800,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         book = self.add(db.book, dict(
             name='test__cc_licences',
             creator_id=creator.id,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
         ))
 
         # Add a cc_licence with quotes in the template. Should be handled.

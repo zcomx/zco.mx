@@ -9,13 +9,10 @@ Test suite for zcomx/modules/book_types.py
 import unittest
 from gluon import *
 from applications.zcomx.modules.book_types import \
-    BaseBookType, \
-    CLASS_BY_NAME, \
+    BookType, \
     MiniSeriesType, \
     OneShotType, \
-    OngoingType, \
-    by_name, \
-    from_id
+    OngoingType
 
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -24,7 +21,16 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class DubBookType(BaseBookType):
+class WithDataTestCase(LocalTestCase):
+    """Class representing a test case with preset data."""
+    book_type_data = dict(
+        name='name',
+        description='description',
+        sequence=1,
+    )
+
+
+class DubBookType(BookType):
     def formatted_number(self, number, of_number):
         return '{num:02d} (of {of:02d})'.format(num=number, of=of_number)
 
@@ -37,19 +43,51 @@ class DubBookType(BaseBookType):
         }
 
 
-class TestBaseBookType(LocalTestCase):
+class TestBookType(WithDataTestCase):
 
-    def test____init__(self):
-        book_type = BaseBookType('name', 'description', 1)
-        self.assertTrue(book_type)
+    def test__by_name(self):
+        got = BookType.by_name('one-shot')
+        self.assertEqual(got.name, 'one-shot')
+        self.assertEqual(got.sequence, 3)
+        self.assertTrue('One-shot' in got.description)
+        self.assertTrue(isinstance(got, OneShotType))
+
+        got = BookType.by_name('ongoing')
+        self.assertEqual(got.name, 'ongoing')
+        self.assertEqual(got.sequence, 1)
+        self.assertTrue('001' in got.description)
+        self.assertTrue(isinstance(got, OngoingType))
+
+        got = BookType.by_name('mini-series')
+        self.assertEqual(got.name, 'mini-series')
+        self.assertEqual(got.sequence, 2)
+        self.assertTrue('01 of 04' in got.description)
+        self.assertTrue(isinstance(got, MiniSeriesType))
 
     def test__formatted_number(self):
-        book_type = BaseBookType('name', 'description', 1)
+        book_type = BookType(self.book_type_data)
         self.assertRaises(
             NotImplementedError, book_type.formatted_number, 1, 1)
 
+    def test__from_id(self):
+        tests = [
+            # (type name, expect class)
+            ('one-shot', OneShotType),
+            ('ongoing', OngoingType),
+            ('mini-series', MiniSeriesType),
+        ]
+        for t in tests:
+            book_type = db(db.book_type.name == t[0]).select().first()
+            self.assertTrue(book_type)
+            got = BookType.from_id(book_type.id)
+            self.assertEqual(got, book_type)
+            self.assertTrue(isinstance(got, t[1]))
+            self.assertEqual(got.name, book_type.name)
+            self.assertEqual(got.description, book_type.description)
+            self.assertEqual(got.sequence, book_type.sequence)
+
     def test__is_series(self):
-        book_type = DubBookType('name', 'description', 1)
+        book_type = DubBookType(self.book_type_data)
         book_type.number_field_statuses = lambda: {'number': True}
         self.assertTrue(book_type.is_series())
 
@@ -57,122 +95,55 @@ class TestBaseBookType(LocalTestCase):
         self.assertFalse(book_type.is_series())
 
     def test__number_field_statuses(self):
-        book_type = BaseBookType('name', 'description', 1)
+        book_type = BookType(self.book_type_data)
         self.assertRaises(
             NotImplementedError, book_type.number_field_statuses)
 
 
-class TestMiniSeriesType(LocalTestCase):
+class TestMiniSeriesType(WithDataTestCase):
 
     def test__formatted_number(self):
-        book_type = MiniSeriesType('name', 'description', 1)
+        book_type = MiniSeriesType(self.book_type_data)
         self.assertEqual(book_type.formatted_number(1, 4), '01 (of 04)')
 
     def test__number_field_statuses(self):
-        book_type = MiniSeriesType('name', 'description', 1)
+        book_type = MiniSeriesType(self.book_type_data)
         self.assertEqual(
             book_type.number_field_statuses(),
             {'of_number': True, 'number': True}
         )
 
 
-class TestOneShotType(LocalTestCase):
+class TestOneShotType(WithDataTestCase):
 
     def test__formatted_number(self):
-        book_type = OneShotType('name', 'description', 1)
+        book_type = OneShotType(self.book_type_data)
         self.assertEqual(book_type.formatted_number(1, 1), '')
         self.assertEqual(book_type.formatted_number(999, 999), '')
         self.assertEqual(book_type.formatted_number(None, None), '')
 
     def test__number_field_statuses(self):
-        book_type = OneShotType('name', 'description', 1)
+        book_type = OneShotType(self.book_type_data)
         self.assertEqual(
             book_type.number_field_statuses(),
             {'of_number': False, 'number': False}
         )
 
 
-class TestOngoingType(LocalTestCase):
+class TestOngoingType(WithDataTestCase):
 
     def test__formatted_number(self):
-        book_type = OngoingType('name', 'description', 1)
+        book_type = OngoingType(self.book_type_data)
         self.assertEqual(book_type.formatted_number(1, 1), '001')
         self.assertEqual(book_type.formatted_number(2, 999), '002')
         self.assertEqual(book_type.formatted_number(3, None), '003')
 
     def test__number_field_statuses(self):
-        book_type = OngoingType('name', 'description', 1)
+        book_type = OngoingType(self.book_type_data)
         self.assertEqual(
             book_type.number_field_statuses(),
             {'of_number': False, 'number': True}
         )
-
-
-class TestConstants(LocalTestCase):
-    def test_class_by_name(self):
-        self.assertEqual(CLASS_BY_NAME['one-shot'], OneShotType)
-        self.assertEqual(CLASS_BY_NAME['ongoing'], OngoingType)
-        self.assertEqual(CLASS_BY_NAME['mini-series'], MiniSeriesType)
-        self.assertEqual(CLASS_BY_NAME[None], OneShotType)
-        self.assertEqual(CLASS_BY_NAME[''], OneShotType)
-        self.assertEqual(CLASS_BY_NAME['_fake_'], OneShotType)
-
-
-class TestFunctions(LocalTestCase):
-
-    def test__by_name(self):
-        got = by_name('one-shot')
-        self.assertEqual(got.name, 'one-shot')
-        self.assertEqual(got.sequence, 3)
-        self.assertTrue('One-shot' in got.description)
-
-        got = by_name('ongoing')
-        self.assertEqual(got.name, 'ongoing')
-        self.assertEqual(got.sequence, 1)
-        self.assertTrue('001' in got.description)
-
-        got = by_name('mini-series')
-        self.assertEqual(got.name, 'mini-series')
-        self.assertEqual(got.sequence, 2)
-        self.assertTrue('01 of 04' in got.description)
-
-    def test__from_id(self):
-        types_by_name = {}
-        for row in db(db.book_type).select(db.book_type.ALL):
-            types_by_name[row.name] = row
-
-        # Test each type
-        got = from_id(types_by_name['one-shot'].id)
-        self.assertTrue(isinstance(got, OneShotType))
-        self.assertEqual(got.name, 'one-shot')
-        self.assertEqual(got.sequence, 3)
-        self.assertTrue('One-shot' in got.description)
-
-        got = from_id(types_by_name['ongoing'].id)
-        self.assertTrue(isinstance(got, OngoingType))
-        self.assertEqual(got.name, 'ongoing')
-        self.assertEqual(got.sequence, 1)
-        self.assertTrue('001' in got.description)
-
-        got = from_id(types_by_name['mini-series'].id)
-        self.assertTrue(isinstance(got, MiniSeriesType))
-        self.assertEqual(got.name, 'mini-series')
-        self.assertEqual(got.sequence, 2)
-        self.assertTrue('01 of 04' in got.description)
-
-        # Test invalid id, no default provided
-        got = from_id(-1)
-        self.assertTrue(isinstance(got, OneShotType))
-
-        # Test invalid id, default is None
-        self.assertRaises(LookupError, from_id, -1, default=None)
-
-        # Test invalid id, default
-        got = from_id(-1, default='mini-series')
-        self.assertTrue(isinstance(got, MiniSeriesType))
-
-        # Test invalid default
-        self.assertRaises(LookupError, from_id, -1, default='_invalid_')
 
 
 def setUpModule():

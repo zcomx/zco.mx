@@ -28,7 +28,7 @@ from applications.zcomx.modules.book.complete_barriers import \
     complete_barriers, \
     has_complete_barriers
 from applications.zcomx.modules.book_pages import BookPage
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
@@ -647,7 +647,7 @@ class TestFunctions(ImageTestCase):
             name='test__complete_barriers',
             number=999,
             creator_id=creator.id,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             cc_licence_id=cc0,
         ))
 
@@ -683,7 +683,7 @@ class TestFunctions(ImageTestCase):
             name='test__complete_barriers',
             number=999,
             creator_id=creator.id,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             cc_licence_id=cc0.id,
         ))
 

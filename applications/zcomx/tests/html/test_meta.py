@@ -8,6 +8,7 @@ Test suite for zcomx/modules/html/meta.py
 """
 import copy
 import unittest
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.html.meta import \
     BaseMetaPreparer, \
     MetadataFactory, \
@@ -212,6 +213,7 @@ class TestMetadataFactory(LocalTestCase):
             }
         )
 
+
 class TestOpenGraphBookMetaPreparer(LocalTestCase):
 
     def test__set_data(self):
@@ -373,7 +375,8 @@ class TestFunctions(LocalTestCase):
         book = self.add(db.book, dict(
             name='My Book',
             publication_year=1997,
-            creator_id=creator.id
+            creator_id=creator.id,
+            book_type_id=BookType.by_name('one-shot'),
         ))
 
         expect_book = {

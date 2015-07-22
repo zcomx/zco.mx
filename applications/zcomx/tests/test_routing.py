@@ -15,7 +15,7 @@ from gluon.rewrite import filter_url
 from gluon.storage import \
     List, \
     Storage
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import book_name
 from applications.zcomx.modules.creators import creator_name
 from applications.zcomx.modules.routing import Router
@@ -124,7 +124,7 @@ class TestRouter(LocalTestCase):
         self._book = self.add(db.book, dict(
             name='My Book',
             publication_year=1999,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
             number=1,
             of_number=999,
             creator_id=self._creator.id,
@@ -136,7 +136,7 @@ class TestRouter(LocalTestCase):
         self._book_2 = self.add(db.book, dict(
             name='My Second Book',
             publication_year=2002,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
             number=1,
             of_number=999,
             creator_id=self._creator_2.id,

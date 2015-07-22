@@ -10,6 +10,7 @@ import os
 import shutil
 import unittest
 from gluon import *
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.torrentparse import TorrentParser
 from applications.zcomx.modules.torrents import \
     AllTorrentCreator, \
@@ -224,8 +225,9 @@ class TestBookTorrentCreator(TorrentTestCase):
         creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
         book = self.add(db.book, dict(
             name='My Book',
-            creator_id=creator.id,
             publication_year=1999,
+            creator_id=creator.id,
+            book_type_id=BookType.by_name('one-shot'),
         ))
         tor_creator = BookTorrentCreator(book)
         # book.cbz is not defined, should fail
@@ -255,6 +257,7 @@ class TestBookTorrentCreator(TorrentTestCase):
             name='My Book',
             publication_year=1999,
             creator_id=creator.id,
+            book_type_id=BookType.by_name('one-shot'),
         ))
 
         tor_creator = BookTorrentCreator(book)

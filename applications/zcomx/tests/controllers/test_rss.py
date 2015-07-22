@@ -9,7 +9,7 @@ Test suite for zcomx/controllers/rss.py
 import datetime
 import os
 import unittest
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import book_name
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -55,7 +55,7 @@ class TestFunctions(LocalTestCase):
         self._book = self.add(db.book, dict(
             name='Test RSS',
             creator_id=self._creator.id,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
             name_for_url='TestRss',
         ))
 
