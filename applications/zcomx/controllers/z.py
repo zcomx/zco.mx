@@ -9,7 +9,7 @@ from applications.zcomx.modules.books import \
     url as book_url
 from applications.zcomx.modules.creators import \
     url as creator_url
-from applications.zcomx.modules.search import classified
+from applications.zcomx.modules.search import Grid
 from applications.zcomx.modules.stickon.tools import ExposeImproved
 from applications.zcomx.modules.utils import \
     faq_tabs, \
@@ -34,7 +34,7 @@ def _search_results(request, response, orderby):
 
     icons = {'list': 'th-list', 'tile': 'th-large'}
 
-    grid = classified(request)()
+    grid = Grid.class_factory(orderby or 'completed')
 
     return dict(
         grid=grid,

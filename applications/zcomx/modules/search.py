@@ -5,7 +5,6 @@
 
 Search classes and functions.
 """
-import collections
 import logging
 from BeautifulSoup import BeautifulSoup
 from gluon import *
@@ -31,6 +30,7 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
 from applications.zcomx.modules.utils import \
+    ClassFactory, \
     entity_to_row, \
     replace_in_elements
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
@@ -60,6 +60,7 @@ class Grid(object):
 
     _not_found_msg = None
 
+    class_factory = ClassFactory('class_factory_id')
     viewbys = {
         # name: items_per_page
         'list': {
@@ -389,12 +390,10 @@ class Grid(object):
     def tabs(self):
         """Return a div of clickable tabs used to select the orderby."""
         lis = []
-        orderbys = [
-            x for x in GRID_CLASSES.keys()
-            if (self.request.vars.o == 'search'
-                and x == self.request.vars.o)
-            or (self.request.vars.o != 'search' and x != 'search')
-        ]
+
+        orderbys = ['search'] \
+            if self.request.vars.o == 'search' \
+            else ['completed', 'ongoing', 'creators']
 
         orderby = self.request.vars.o \
             if self.request.vars.o in orderbys else orderbys[0]
@@ -406,7 +405,7 @@ class Grid(object):
             if 'page' in orderby_vars:
                 # Each tab should reset to page 1.
                 del orderby_vars['page']
-            label = GRID_CLASSES[o].label('tab_label')
+            label = self.class_factory(o).label('tab_label')
             lis.append(LI(
                 A(
                     label,
@@ -467,8 +466,10 @@ class Grid(object):
         return []
 
 
+@Grid.class_factory.register
 class CartoonistsGrid(Grid):
     """Class representing a grid for search results: cartoonist"""
+    class_factory_id = 'creators'
 
     _attributes = {
         'table': 'creator',
@@ -530,8 +531,10 @@ class CartoonistsGrid(Grid):
         ]
 
 
+@Grid.class_factory.register
 class CompletedGrid(Grid):
     """Class representing a grid for search results: completed"""
+    class_factory_id = 'completed'
 
     _attributes = {
         'table': 'book',
@@ -592,8 +595,10 @@ class CompletedGrid(Grid):
         ]
 
 
+@Grid.class_factory.register
 class CreatorMoniesGrid(Grid):
     """Class representing a grid for search results: creator_monies"""
+    class_factory_id = 'creator_monies'
 
     _attributes = dict(Grid._attributes)
     _attributes.update({
@@ -641,8 +646,10 @@ class CreatorMoniesGrid(Grid):
         return queries
 
 
+@Grid.class_factory.register
 class OngoingGrid(Grid):
     """Class representing a grid for search results: ongoing"""
+    class_factory_id = 'ongoing'
 
     _attributes = {
         'table': 'book',
@@ -702,8 +709,10 @@ class OngoingGrid(Grid):
         ]
 
 
+@Grid.class_factory.register
 class SearchGrid(Grid):
     """Class representing a grid for search results."""
+    class_factory_id = 'search'
 
     _attributes = {
         'table': 'book',
@@ -767,13 +776,6 @@ class SearchGrid(Grid):
             db.book.contributions_remaining,
             db.auth_user.name,
         ]
-
-
-GRID_CLASSES = collections.OrderedDict()
-GRID_CLASSES['completed'] = CompletedGrid
-GRID_CLASSES['ongoing'] = OngoingGrid
-GRID_CLASSES['creators'] = CartoonistsGrid
-GRID_CLASSES['search'] = SearchGrid
 
 
 class Tile(object):
@@ -1189,23 +1191,6 @@ def book_contribute_button(row):
         book_id,
         **dict(_class='btn btn-default contribute_button no_rclick_menu')
     )
-
-
-def classified(request):
-    """Return the appropriate Grid class for request.
-
-    Args:
-        request: gluon.global.Request instance
-
-    Returns:
-        Grid class or subclass
-    """
-    grid_class = CompletedGrid
-    LOG.debug('request.vars.o: %s', request.vars.o)
-    if request.vars.o:
-        if request.vars.o in GRID_CLASSES:
-            grid_class = GRID_CLASSES[request.vars.o]
-    return grid_class
 
 
 def creator_contribute_button(row):

@@ -27,7 +27,6 @@ from applications.zcomx.modules.search import \
     CartoonistsGrid, \
     CompletedGrid, \
     CreatorMoniesGrid, \
-    GRID_CLASSES, \
     Grid, \
     MoniesBookTile, \
     OngoingGrid, \
@@ -35,7 +34,6 @@ from applications.zcomx.modules.search import \
     Tile, \
     book_contribute_button, \
     creator_contribute_button, \
-    classified, \
     download_link, \
     follow_link, \
     link_book_id, \
@@ -153,6 +151,19 @@ class TestGrid(LocalTestCase):
             ]
         )
         self.assertEqual(len(grid.form_grid.rows), len(rows))
+
+    def test_class_factory(self):
+        tests = [
+            # (name, expect class)
+            ('creators', CartoonistsGrid),
+            ('creator_monies', CreatorMoniesGrid),
+            ('ongoing', OngoingGrid),
+            ('search', SearchGrid),
+            ('completed', CompletedGrid),
+        ]
+        for t in tests:
+            got = Grid.class_factory(t[0])
+            self.assertTrue(isinstance(got, t[1]))
 
     def test__filters(self):
         grid = SubGrid()
@@ -1373,7 +1384,6 @@ class TestFunctions(LocalTestCase):
             page_no=1,
         ))
 
-
     def _row(self, book_id=None):
         if not book_id:
             book_id = self._book.id
@@ -1400,12 +1410,6 @@ class TestFunctions(LocalTestCase):
                     data[attr] = None
         return data
 
-    def test_constants(self):
-        self.assertEqual(
-            GRID_CLASSES.keys(),
-            ['completed', 'ongoing', 'creators', 'search']
-        )
-
     def test__book_contribute_button(self):
         self.assertEqual(book_contribute_button({}), '')
 
@@ -1426,22 +1430,6 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(data['string'], 'Contribute')
         self.assertTrue('/contributions/modal?book_id=' in data['href'])
         self.assertTrue('contribute_button' in data['class'])
-
-    def test__classified(self):
-        env = globals()
-        request = env['request']
-
-        tests = [
-            # (request.vars.o, expect)
-            (None, CompletedGrid),
-            ('_fake_', CompletedGrid),
-            ('completed', CompletedGrid),
-            ('ongoing', OngoingGrid),
-            ('creators', CartoonistsGrid),
-        ]
-        for t in tests:
-            request.vars.o = t[0]
-            self.assertEqual(classified(request), t[1])
 
     def test__creator_contribute_button(self):
         self.assertEqual(creator_contribute_button({}), '')
