@@ -10,6 +10,7 @@ import os
 import shutil
 import unittest
 from gluon.storage import Storage
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_upload import \
     BookPageUploader, \
     FileTypeError, \
@@ -28,7 +29,6 @@ from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     WithTestDataDirTestCase
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -221,7 +221,7 @@ class TestUploadedFile(ImageTestCase):
 
         pages = db(db.book_page.book_id == book.id).select()
         self.assertEqual(len(pages), 1)
-        book_page = entity_to_row(db.book_page, pages[0]['id'])
+        book_page = BookPage.from_id(pages[0]['id'])
         self._objects.append(book_page)
 
     def test__for_json(self):
@@ -238,7 +238,7 @@ class TestUploadedFile(ImageTestCase):
 
         pages = db(db.book_page.book_id == book.id).select()
         self.assertEqual(len(pages), 1)
-        book_page = entity_to_row(db.book_page, pages[0]['id'])
+        book_page = BookPage.from_id(pages[0]['id'])
         self._objects.append(book_page)
 
     def test__unpack(self):
@@ -293,7 +293,7 @@ class TestUploadedImage(ImageTestCase):
 
         pages = db(db.book_page.book_id == book.id).select()
         self.assertEqual(len(pages), 1)
-        book_page = entity_to_row(db.book_page, pages[0]['id'])
+        book_page = BookPage.from_id(pages[0]['id'])
         self._objects.append(book_page)
 
     def test__unpack(self):

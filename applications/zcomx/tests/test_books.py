@@ -53,7 +53,6 @@ from applications.zcomx.modules.books import \
     name_fields, \
     names, \
     next_book_in_series, \
-    orientation, \
     page_url, \
     publication_year_range, \
     publication_years, \
@@ -71,7 +70,6 @@ from applications.zcomx.modules.books import \
     update_rating, \
     url
 from applications.zcomx.modules.cc_licences import CCLicence
-from applications.zcomx.modules.images import store
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -1493,27 +1491,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             book_type_id=BookType.by_name('mini-series').id,
         ))
         self.assertEqual(next_book_in_series(mini_series_2), mini_series_3)
-
-    def test__orientation(self):
-        # Test invalid book entity
-        self.assertRaises(LookupError, orientation, -1)
-
-        # Test book without an image.
-        book_page = self.add(db.book_page, dict(
-            image=None,
-        ))
-        self.assertRaises(LookupError, orientation, book_page)
-
-        for t in ['portrait', 'landscape', 'square']:
-            img = '{n}.png'.format(n=t)
-            filename = self._prep_image(img)
-            stored_filename = store(
-                db.book_page.image, filename, resizer=ResizerQuick)
-
-            book_page = self.add(db.book_page, dict(
-                image=stored_filename,
-            ))
-            self.assertEqual(orientation(book_page), t)
 
     def test__page_url(self):
         creator = self.add(db.creator, dict(

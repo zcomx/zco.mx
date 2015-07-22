@@ -13,11 +13,11 @@ import shutil
 import subprocess
 from gluon import *
 
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     cc_licence_data, \
     get_page, \
     next_book_in_series, \
-    orientation as page_orientation, \
     publication_year_range, \
     read_link
 from applications.zcomx.modules.cc_licences import CCLicence
@@ -209,8 +209,7 @@ class BookIndiciaPage(IndiciaPage):
         if self._orientation is None:
             orientation = None
             try:
-                orientation = page_orientation(
-                    get_page(self.book, page_no='last'))
+                orientation = get_page(self.book, page_no='last').orientation()
             except LookupError:
                 orientation = 'portrait'
             if orientation != 'landscape':

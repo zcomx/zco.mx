@@ -13,6 +13,7 @@ from applications.zcomx.modules.book.complete_barriers import \
     complete_barriers, \
     has_complete_barriers
 from applications.zcomx.modules.book_pages import \
+    BookPage, \
     delete_pages_not_in_ids, \
     reset_book_page_nos
 from applications.zcomx.modules.book_types import BookType
@@ -495,7 +496,7 @@ def book_pages_handler():
                     db.commit()
         return result_json
     elif request.env.request_method == 'DELETE':
-        book_page = entity_to_row(db.book_page, request.vars.book_page_id)
+        book_page = BookPage.from_id(request.vars.book_page_id)
         if not book_page:
             return do_error('Unable to delete page')
 
@@ -505,8 +506,7 @@ def book_pages_handler():
             nameonly=True,
         )
         on_delete_image(book_page.image)
-        book_page.delete_record()
-        db.commit()
+        book_page.delete()
         return dumps({"files": [{filename: True}]})
     else:
         # GET

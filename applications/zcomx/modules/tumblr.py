@@ -9,7 +9,8 @@ import logging
 import pytumblr
 from gluon import *
 from applications.zcomx.modules.book_pages import \
-    AbridgedBookPageNumbers
+    AbridgedBookPageNumbers, \
+    BookPage
 from applications.zcomx.modules.books import \
     formatted_name as book_formatted_name, \
     page_url, \
@@ -291,9 +292,7 @@ class OngoingBookListing(object):
         """
         db = current.app.db
         book = entity_to_row(db.book, activity_log.book_id)
-        book_pages = [
-            entity_to_row(db.book_page, x) for x in activity_log.book_page_ids
-        ]
+        book_pages = [BookPage.from_id(x) for x in activity_log.book_page_ids]
         creator = entity_to_row(db.creator, book.creator_id)
         return cls(book, book_pages, creator=creator)
 

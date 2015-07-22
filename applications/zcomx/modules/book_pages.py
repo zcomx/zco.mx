@@ -7,11 +7,11 @@ Book page classes and functions.
 """
 import logging
 from gluon import *
-from applications.zcomx.modules.images import UploadImage
+from applications.zcomx.modules.images import \
+    ImageDescriptor, \
+    UploadImage
 from applications.zcomx.modules.records import Record
-from applications.zcomx.modules.utils import \
-    abridged_list, \
-    entity_to_row
+from applications.zcomx.modules.utils import abridged_list
 from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = logging.getLogger('app')
@@ -28,6 +28,17 @@ class BookPage(Record):
         """Initializer"""
         Record.__init__(self, *args, **kwargs)
         self._upload_image = None
+
+    def orientation(self):
+        """Return the orientation of the book page.
+
+        Returns:
+            str: one of 'portrait', 'landscape', 'square'
+        """
+        if not self.image:
+            raise LookupError('Book page has no image, id {i}'.format(
+                i=self.id))
+        return ImageDescriptor(self.upload_image().fullname()).orientation()
 
     def upload_image(self):
         """Return an UploadImage instance representing the book page image
@@ -171,7 +182,7 @@ def reset_book_page_nos(page_ids):
     """
     db = current.app.db
     for count, page_id in enumerate(page_ids):
-        page_record = entity_to_row(db.book_page, page_id)
-        if page_record:
-            page_record.update_record(page_no=(count + 1))
+        page = BookPage.from_id(page_id)
+        if page:
+            db(db.book_page.id == page.id).update(page_no=(count + 1))
             db.commit()

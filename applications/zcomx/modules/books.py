@@ -784,9 +784,11 @@ def get_page(book_entity, page_no=1):
         raise LookupError('Book id {b}, page not found, {p}'.format(
             b=book_record.id, p=page_no))
 
-    query = (db.book_page.book_id == book_record.id) & \
-            (db.book_page.page_no == want_page_no)
-    book_page = db(query).select(db.book_page.ALL, limitby=(0, 1)).first()
+    key = {
+        'book_id': book_record.id,
+        'page_no': want_page_no,
+    }
+    book_page = BookPage.from_key(key)
     if not book_page:
         raise LookupError('Book id {b}, page not found, {p}'.format(
             b=book_record.id, p=page_no))
@@ -1053,26 +1055,6 @@ def next_book_in_series(book_entity):
     return db(query).select(orderby=db.book.number).first()
 
 
-def orientation(book_page_entity):
-    """Return the orientation of the book page.
-
-    Args:
-        book_page_entity: Row instance or integer, if integer, this is the id
-            of the book_page. The book_page record is read.
-    """
-    db = current.app.db
-    page_record = entity_to_row(db.book_page, book_page_entity)
-    if not page_record:
-        raise LookupError('Book page not found, {e}'.format(
-            e=book_page_entity))
-    page = BookPage.from_id(page_record.id)
-    if not page.image:
-        raise LookupError('Book page has no image, book_page.id {i}'.format(
-            i=page.id))
-
-    return ImageDescriptor(page.upload_image().fullname()).orientation()
-
-
 def page_url(book_page_entity, reader=None, **url_kwargs):
     """Return a url suitable for the reader webpage of a book page.
 
@@ -1087,7 +1069,10 @@ def page_url(book_page_entity, reader=None, **url_kwargs):
             http://zco.mx/First_Last/My_Book_(2014))/002
     """
     db = current.app.db
-    page_record = entity_to_row(db.book_page, book_page_entity)
+    if isinstance(book_page_entity, int) or isinstance(book_page_entity, long):
+        page_record = db(db.book_page.id == book_page_entity).select().first()
+    else:
+        page_record = book_page_entity
     if not page_record:
         return
 
@@ -1238,7 +1223,10 @@ def short_page_img_url(book_page_entity):
         string, url, eg http://101.zco.mx/My_Book/001.jpg
     """
     db = current.app.db
-    page_record = entity_to_row(db.book_page, book_page_entity)
+    if isinstance(book_page_entity, int):
+        page_record = db(db.book_page.id == book_page_entity).select().first()
+    else:
+        page_record = book_page_entity
     if not page_record:
         return
 
@@ -1263,7 +1251,10 @@ def short_page_url(book_page_entity):
         string, url, eg http://101.zco.mx/My_Book/001
     """
     db = current.app.db
-    page_record = entity_to_row(db.book_page, book_page_entity)
+    if isinstance(book_page_entity, int):
+        page_record = db(db.book_page.id == book_page_entity).select().first()
+    else:
+        page_record = book_page_entity
     if not page_record:
         return
 

@@ -18,6 +18,10 @@ from applications.zcomx.modules.book_pages import \
     delete_pages_not_in_ids, \
     pages_sorted_by_page_no, \
     reset_book_page_nos
+from applications.zcomx.modules.images import store
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -94,13 +98,33 @@ class TestAbridgedBookPageNumbers(WithPagesTestCase):
         self.assertEqual(numbers.numbers(), ['p01', 'p02', '...', 'p05'])
 
 
-class TestBookPage(LocalTestCase):
+class TestBookPage(ImageTestCase):
 
     def test____init__(self):
         book_page = db(db.book_page).select(db.book_page.id).first()
         page = BookPage.from_id(book_page.id)
         self.assertEqual(page.min_cbz_width, 1600)
         self.assertEqual(page.min_cbz_height_to_exempt, 2560)
+
+    def test__orientation(self):
+        # Test book without an image.
+        book_page_row = self.add(db.book_page, dict(
+            image=None,
+        ))
+        book_page = BookPage.from_id(book_page_row.id)
+        self.assertRaises(LookupError, book_page.orientation)
+
+        for t in ['portrait', 'landscape', 'square']:
+            img = '{n}.png'.format(n=t)
+            filename = self._prep_image(img)
+            stored_filename = store(
+                db.book_page.image, filename, resizer=ResizerQuick)
+
+            book_page_row = self.add(db.book_page, dict(
+                image=stored_filename,
+            ))
+            book_page = BookPage.from_id(book_page_row.id)
+            self.assertEqual(book_page.orientation(), t)
 
     def test__upload_image(self):
         book_page = self.add(db.book_page, dict(

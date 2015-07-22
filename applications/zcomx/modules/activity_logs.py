@@ -141,8 +141,7 @@ class CompletedTentativeLogSet(BaseTentativeLogSet):
         if not youngest_log:
             return
         try:
-            first_page = get_page(
-                youngest_log.book_id, page_no='first')
+            first_page = get_page(youngest_log.book_id, page_no='first')
         except LookupError:
             first_page = None
 

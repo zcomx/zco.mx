@@ -11,6 +11,7 @@ import unittest
 import uuid
 from BeautifulSoup import BeautifulSoup
 from pydal.objects import Row
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
@@ -62,15 +63,17 @@ class WithObjectsTestCase(LocalTestCase):
             name_for_url='MyBook-001',
         ))
 
-        self._book_page = self.add(db.book_page, dict(
+        page = self.add(db.book_page, dict(
             book_id=self._book.id,
             page_no=1,
         ))
+        self._book_page = BookPage.from_id(page.id)
 
-        self._book_page_2 = self.add(db.book_page, dict(
+        page_2 = self.add(db.book_page, dict(
             book_id=self._book.id,
             page_no=2,
         ))
+        self._book_page_2 = BookPage.from_id(page_2.id)
 
         self._activity_log_1 = self.add(db.activity_log, dict(
             book_id=self._book.id,
@@ -230,8 +233,14 @@ class TestOngoingBookListing(WithObjectsTestCase):
         got = OngoingBookListing.from_activity_log(activity_log)
         self.assertTrue(isinstance(got, OngoingBookListing))
         self.assertEqual(got.book, self._book)
-        self.assertEqual(got.book_pages[0], self._book_page)
-        self.assertEqual(got.book_pages[1], self._book_page_2)
+        self.assertEqual(
+            got.book_pages[0],
+            BookPage.from_id(self._book_page.id)
+        )
+        self.assertEqual(
+            got.book_pages[1],
+            BookPage.from_id(self._book_page_2.id)
+        )
         self.assertEqual(got.creator, self._creator)
 
 

@@ -150,8 +150,7 @@ class Router(object):
         # Check if indicia page is requested.
         last_page = None
         try:
-            last_page = get_page(
-                book_record, page_no='last')
+            last_page = get_page(book_record, page_no='last')
         except LookupError:
             pass
 

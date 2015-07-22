@@ -11,6 +11,7 @@ import gluon.contrib.rss2 as rss2
 from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import \
+    BookPage, \
     AbridgedBookPageNumbers
 from applications.zcomx.modules.books import \
     formatted_name as book_formatted_name, \
@@ -355,7 +356,7 @@ class BaseRSSEntry(object):
             string, entry title.
         """
         db = current.app.db
-        pages = [entity_to_row(db.book_page, x) for x in self.book_page_ids]
+        pages = [BookPage.from_id(x) for x in self.book_page_ids]
         return "'{b}' {p} by {c}".format(
             b=book_formatted_name(
                 db, self.book, include_publication_year=False),
