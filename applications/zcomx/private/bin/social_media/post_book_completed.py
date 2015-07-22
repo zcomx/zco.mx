@@ -11,8 +11,8 @@ import logging
 from gluon import *
 from optparse import OptionParser
 from applications.zcomx.modules.social_media import \
-    POSTER_CLASSES, \
-    SocialMediaPostError
+    SocialMediaPostError, \
+    SocialMediaPoster
 from applications.zcomx.modules.utils import \
     entity_to_row
 
@@ -137,9 +137,9 @@ def main():
 
     for service in services:
         LOG.debug('Posting to: %s', service)
-        poster_class = POSTER_CLASSES[service]
+        poster = SocialMediaPoster.class_factory(service)
         try:
-            post_id = poster_class().post(book, creator)
+            post_id = poster.post(book, creator)
         except SocialMediaPostError as err:
             post_id = None
             LOG.error(

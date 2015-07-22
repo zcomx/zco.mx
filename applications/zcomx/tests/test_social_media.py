@@ -10,9 +10,13 @@ import time
 import unittest
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.social_media import \
-    SocialMedia, \
+    FacebookPoster, \
     FacebookSocialMedia, \
+    SocialMedia, \
+    SocialMediaPoster, \
+    TumblrPoster, \
     TumblrSocialMedia, \
+    TwitterPoster, \
     TwitterSocialMedia
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -77,6 +81,14 @@ class TestSocialMedia(BaseTestCase):
         # creator_entity is None
         test_it(SocialMedia(self._book))
 
+    def test_class_factory(self):
+        social_media = SocialMedia.class_factory('facebook', self._book)
+        self.assertTrue(isinstance(social_media, FacebookSocialMedia))
+        social_media = SocialMedia.class_factory('tumblr', self._book)
+        self.assertTrue(isinstance(social_media, TumblrSocialMedia))
+        social_media = SocialMedia.class_factory('twitter', self._book)
+        self.assertTrue(isinstance(social_media, TwitterSocialMedia))
+
     def test__follow_url(self):
         media = SocialMedia(self._book, creator_entity=self._creator)
         self.assertRaises(NotImplementedError, media.follow_url)
@@ -93,6 +105,17 @@ class TestSocialMedia(BaseTestCase):
     def test__share_url(self):
         media = SocialMedia(self._book, creator_entity=self._creator)
         self.assertRaises(NotImplementedError, media.share_url)
+
+
+class TestSocialMediaPoster(BaseTestCase):
+
+    def test_class_factory(self):
+        social_media = SocialMediaPoster.class_factory('facebook')
+        self.assertTrue(isinstance(social_media, FacebookPoster))
+        social_media = SocialMediaPoster.class_factory('tumblr')
+        self.assertTrue(isinstance(social_media, TumblrPoster))
+        social_media = SocialMediaPoster.class_factory('twitter')
+        self.assertTrue(isinstance(social_media, TwitterPoster))
 
 
 class TestFacebookSocialMedia(BaseTestCase):

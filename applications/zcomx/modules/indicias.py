@@ -36,7 +36,7 @@ from applications.zcomx.modules.links import \
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
-from applications.zcomx.modules.social_media import SOCIAL_MEDIA_CLASSES
+from applications.zcomx.modules.social_media import SocialMedia
 from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
@@ -160,9 +160,10 @@ class BookIndiciaPage(IndiciaPage):
 
         call_to_action_data = dict(IndiciaPage.call_to_action_data)
         call_to_action_data['space'] = '&nbsp;'
-        for name, obj_class in SOCIAL_MEDIA_CLASSES.items():
+        for name in ['twitter', 'tumblr', 'facebook']:
             text = IndiciaPage.call_to_action_data[name]
-            media = obj_class(self.book, creator_entity=self.creator)
+            media = SocialMedia.class_factory(
+                name, self.book, creator_entity=self.creator)
             if not media:
                 continue
             url = media.share_url()
@@ -189,8 +190,9 @@ class BookIndiciaPage(IndiciaPage):
                 _target='_blank',
             )
         )
-        for obj_class in SOCIAL_MEDIA_CLASSES.values():
-            media = obj_class(self.book, creator_entity=self.creator)
+        for name in ['tumblr', 'twitter', 'facebook']:
+            media = SocialMedia.class_factory(
+                name, self.book, creator_entity=self.creator)
             if not media:
                 continue
             icons.append(
