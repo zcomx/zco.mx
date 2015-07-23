@@ -1055,12 +1055,11 @@ def next_book_in_series(book_entity):
     return db(query).select(orderby=db.book.number).first()
 
 
-def page_url(book_page_entity, reader=None, **url_kwargs):
+def page_url(book_page, reader=None, **url_kwargs):
     """Return a url suitable for the reader webpage of a book page.
 
     Args:
-        book_page_entity: Row instance or integer, if integer, this is the id
-            of the book_page. The book_page record is read.
+        book_page: BookPage instance
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url,
@@ -1069,14 +1068,8 @@ def page_url(book_page_entity, reader=None, **url_kwargs):
             http://zco.mx/First_Last/My_Book_(2014))/002
     """
     db = current.app.db
-    if isinstance(book_page_entity, int) or isinstance(book_page_entity, long):
-        page_record = db(db.book_page.id == book_page_entity).select().first()
-    else:
-        page_record = book_page_entity
-    if not page_record:
-        return
 
-    book_record = entity_to_row(db.book, page_record.book_id)
+    book_record = entity_to_row(db.book, book_page.book_id)
     if not book_record:
         return
 
@@ -1088,7 +1081,7 @@ def page_url(book_page_entity, reader=None, **url_kwargs):
     if not books_name:
         return
 
-    page_name = '{p:03d}'.format(p=page_record.page_no)
+    page_name = '{p:03d}'.format(p=book_page.page_no)
 
     kwargs = {}
     kwargs.update(url_kwargs)
@@ -1213,55 +1206,38 @@ def set_status(book_entity, status):
         db.commit()
 
 
-def short_page_img_url(book_page_entity):
+def short_page_img_url(book_page):
     """Return a short url for the book page image.
 
     Args:
-        book_entity: Row instance or integer, if integer, this is the id of
-            the book. The book record is read.
+        book_page: BookPage instance
+
     Returns:
         string, url, eg http://101.zco.mx/My_Book/001.jpg
     """
-    db = current.app.db
-    if isinstance(book_page_entity, int):
-        page_record = db(db.book_page.id == book_page_entity).select().first()
-    else:
-        page_record = book_page_entity
-    if not page_record:
-        return
-
-    book_page_url = short_page_url(page_record)
+    book_page_url = short_page_url(book_page)
     if not book_page_url:
         return
 
-    m = REGEX_STORE_PATTERN.search(page_record.image or '')
+    m = REGEX_STORE_PATTERN.search(book_page.image or '')
     extension = m and m.group('e') or ''
     if not extension:
         return book_page_url
     return '.'.join([book_page_url, extension])
 
 
-def short_page_url(book_page_entity):
+def short_page_url(book_page):
     """Return a short url for the book page.
 
     Args:
-        book_entity: Row instance or integer, if integer, this is the id of
-            the book. The book record is read.
+        book_page: BookPage instance
     Returns:
         string, url, eg http://101.zco.mx/My_Book/001
     """
-    db = current.app.db
-    if isinstance(book_page_entity, int):
-        page_record = db(db.book_page.id == book_page_entity).select().first()
-    else:
-        page_record = book_page_entity
-    if not page_record:
-        return
-
-    book_url = short_url(page_record.book_id)
+    book_url = short_url(book_page.book_id)
     if not book_url:
         return
-    page_name = '{p:03d}'.format(p=page_record.page_no)
+    page_name = '{p:03d}'.format(p=book_page.page_no)
     return '/'.join([book_url.rstrip('/'), page_name])
 
 

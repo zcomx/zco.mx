@@ -46,8 +46,8 @@ class BookPage(Record):
         Returns:
             UploadImage instance
         """
-        db = current.app.db
         if not self._upload_image:
+            db = current.app.db
             self._upload_image = UploadImage(
                 db.book_page.image,
                 self.image
@@ -62,7 +62,7 @@ class BookPageNumber(object):
         """Constructor
 
         Args:
-            book_page: Row instance representing book_page
+            book_page: BookPage instance
         """
         self.book_page = book_page
 
@@ -96,7 +96,7 @@ class BookPageNumbers(object):
         """Constructor
 
         Args:
-            book_pages: list of Row instances representing book_pages
+            book_pages: list of BookPage instances
         """
         self.book_pages = book_pages
 
@@ -161,10 +161,10 @@ def pages_sorted_by_page_no(book_pages, reverse=False):
     """Return a list of book_page Row instances sorted by page_no.
 
     Args:
-        list of Row instances representing book_page records.
+        list of BookPage instances
 
     Returns:
-        list of Row instances representing book_page records, sorted
+        list of BookPage instances, sorted
     """
     return sorted(
         book_pages,

@@ -7,12 +7,11 @@ Classes and functions related to activity logs
 import datetime
 import logging
 from gluon import *
-from applications.zcomx.modules.books import get_page
 from applications.zcomx.modules.book_pages import \
+    BookPage, \
     pages_sorted_by_page_no
+from applications.zcomx.modules.books import get_page
 from applications.zcomx.modules.records import Record
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 LOG = logging.getLogger('app')
 
@@ -177,13 +176,11 @@ class PageAddedTentativeLogSet(BaseTentativeLogSet):
             associated wiht the set tentative_activity_log records.
 
         Returns:
-            list of Rows representing book_page records.
+            list of BookPage instances
         """
         book_pages = []
-        db = current.app.db
         for tentative_activity_log in self.tentative_records:
-            book_page = entity_to_row(
-                db.book_page, tentative_activity_log.book_page_id)
+            book_page = BookPage.from_id(tentative_activity_log.book_page_id)
             if book_page:
                 book_pages.append(book_page)
         return book_pages

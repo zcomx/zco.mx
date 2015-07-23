@@ -14,6 +14,7 @@ from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from pydal.objects import Row
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import \
     Book, \
@@ -1504,10 +1505,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name_for_url='MyBook-01of999',
         ))
 
-        book_page = self.add(db.book_page, dict(
+        book_page = BookPage(
             book_id=book.id,
             page_no=1,
-        ))
+        )
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
@@ -1517,18 +1518,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             '/FirstLast/MyBook-01of999/001'
         )
 
-        # By id
-        self.assertEqual(
-            page_url(book_page.id),
-            '/FirstLast/MyBook-01of999/001'
-        )
-
         self.assertEqual(
             page_url(book_page, reader='slider'),
             '/FirstLast/MyBook-01of999/001?reader=slider'
         )
 
-        book_page.update_record(page_no=99)
+        book_page.page_no = 99
         db.commit()
         self.assertEqual(
             page_url(book_page),
@@ -1676,9 +1671,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__short_page_img_url(self):
         book = self.add(db.book, dict())
-        book_page = self.add(db.book_page, dict(
-            book_id=book.id,
-        ))
+        book_page = BookPage(dict(book_id=book.id))
         tests = [
             # (creator_id, book name_for_url, page_no, image,  expect)
             (None, 'MyBook', 1, 'book_page.image.000.aaa.jpg', None),
@@ -1708,15 +1701,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         for t in tests:
             book.update_record(creator_id=t[0], name_for_url=t[1])
             db.commit()
-            book_page.update_record(page_no=t[2], image=t[3])
-            db.commit()
+            book_page.page_no = t[2]
+            book_page.image = t[3]
             self.assertEqual(short_page_img_url(book_page), t[4])
 
     def test__short_page_url(self):
         book = self.add(db.book, dict())
-        book_page = self.add(db.book_page, dict(
-            book_id=book.id,
-        ))
+        book_page = BookPage(dict(book_id=book.id))
         tests = [
             # (creator_id, book name_for_url, page_no, expect)
             (None, None, 1, None),
@@ -1727,8 +1718,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         for t in tests:
             book.update_record(creator_id=t[0], name_for_url=t[1])
             db.commit()
-            book_page.update_record(page_no=t[2])
-            db.commit()
+            book_page.page_no = t[2]
             self.assertEqual(short_page_url(book_page), t[3])
 
     def test__short_url(self):

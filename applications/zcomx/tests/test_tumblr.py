@@ -176,7 +176,7 @@ class TestOngoingBookListing(WithObjectsTestCase):
     def test____init__(self):
         listing = OngoingBookListing(
             Row({'name': 'test____init__'}),
-            Row({'name_for_url': 'FirstLast'}),
+            BookPage({'name_for_url': 'FirstLast'}),
             []
         )
         self.assertTrue(listing)

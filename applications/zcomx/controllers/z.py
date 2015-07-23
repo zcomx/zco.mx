@@ -4,6 +4,7 @@ Default controller.
 """
 import logging
 import os
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     page_url, \
     url as book_url
@@ -225,7 +226,8 @@ def top():
     def page_link(page_id, text_only=False):
         """Return a read (book page) link."""
         label = 'read'
-        url = page_url(page_id, extension=False) \
+        book_page = BookPage.from_id(page_id)
+        url = page_url(book_page, extension=False) \
             if page_id and not text_only else None
         return li_link(label, url)
 

@@ -243,7 +243,7 @@ class OngoingBookListing(object):
 
         Args:
             book: Row instance representing book
-            book_pages: list of Row instances representing book_pages
+            book_pages: list of BookPage instances
             creator: Row instance representing creator. If None will be
                 created from book.creator_id
         """

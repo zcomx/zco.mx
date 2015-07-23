@@ -10,6 +10,7 @@ import os
 from gluon import *
 from gluon.html import A, SPAN
 from gluon.storage import Storage
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     Book, \
     cover_image, \
@@ -229,7 +230,7 @@ class Router(object):
             if random_book:
                 query_wants.append((db.book.id == random_book.id))
 
-        url_page_record = None
+        url_book_page = None
         url_book_record = None
         url_creator_record = None
 
@@ -256,10 +257,7 @@ class Router(object):
             )
             if rows:
                 if rows[0].book_page.id:
-                    url_page_record = entity_to_row(
-                        db.book_page,
-                        rows[0].book_page.id
-                    )
+                    url_book_page = BookPage.from_id(rows[0].book_page.id)
                 if rows[0].book.id:
                     url_book_record = entity_to_row(db.book, rows[0].book.id)
                 if rows[0].creator.id:
@@ -280,7 +278,7 @@ class Router(object):
         })
         urls.suggestions.append({
             'label': 'Read:',
-            'url': page_url(url_page_record, host=True),
+            'url': page_url(url_book_page, host=True),
         })
         message = 'The requested page was not found on this server.'
 
