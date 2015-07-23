@@ -49,10 +49,35 @@ class Record(Row):
         """
         db = current.app.db
         table = db_table or cls.db_table
-        record = db(db[table].id == record_id).select().first()
+        query = (db[table].id == record_id)
+        record = db(query).select().first()
         if not record:
             raise LookupError('Record not found, table {t}, id {i}'.format(
                 t=table, i=record_id))
+        return cls(record.as_dict())
+
+    @classmethod
+    def from_key(cls, key, db_table=None):
+        """Create instance from key
+
+        Args:
+            key: dict, {field: value, ...}
+            db_table: str, name of database table
+                Defaults to cls.db_table.
+
+        Returns:
+            cls instance
+        """
+        db = current.app.db
+        table = db_table or cls.db_table
+        queries = []
+        for k, v in key.iteritems():
+            queries.append((db[table][k] == v))
+        query = reduce(lambda x, y: x & y, queries) if queries else None
+        record = db(query).select().first()
+        if not record:
+            raise LookupError('Record not found, table {t}, key {k}'.format(
+                t=table, k=key))
         return cls(record.as_dict())
 
     def save(self):

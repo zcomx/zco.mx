@@ -25,12 +25,7 @@ class BookType(Record):
         Returns:
             BookType subclass instance
         """
-        db = current.app.db
-        query = (db.book_type.name == name)
-        book_type = db(query).select().first()
-        if not book_type:
-            raise LookupError('Book type not found, name: {n}'.format(
-                n=name))
+        book_type = cls.from_key({'name': name})
         return cls.class_factory(
             book_type.name,
             book_type.as_dict()

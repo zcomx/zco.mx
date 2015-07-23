@@ -6,7 +6,6 @@
 Classes and functions related to CC (Creative Commons) licences.
 """
 import logging
-from gluon import *
 
 from applications.zcomx.modules.records import Record
 
@@ -28,10 +27,7 @@ class CCLicence(Record):
         Returns:
             CCLicence instance.
         """
-        db = current.app.db
-        query = (db.cc_licence.code == code)
-        cc_licence_id = db(query).select(db.cc_licence.id).first()
-        return cls.from_id(cc_licence_id)
+        return cls.from_key({'code': code})
 
     @classmethod
     def default(cls):
