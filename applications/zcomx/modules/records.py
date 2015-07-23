@@ -74,7 +74,7 @@ class Record(Row):
         for k, v in key.iteritems():
             queries.append((db[table][k] == v))
         query = reduce(lambda x, y: x & y, queries) if queries else None
-        record = db(query).select().first()
+        record = db(query).select(limitby=(0, 1)).first()
         if not record:
             raise LookupError('Record not found, table {t}, key {k}'.format(
                 t=table, k=key))
