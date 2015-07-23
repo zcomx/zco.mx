@@ -14,6 +14,7 @@ from gluon import *
 from optparse import OptionParser
 from twitter import TwitterHTTPError
 from applications.zcomx.modules.creators import \
+    Creator, \
     formatted_name as creator_formatted_name
 from applications.zcomx.modules.stickon.dal import RecordGenerator
 from applications.zcomx.modules.facebook import \
@@ -31,8 +32,6 @@ from applications.zcomx.modules.tweeter import \
     Poster as TwPoster, \
     TextDataPreparer as TwTextDataPreparer, \
     creators_in_ongoing_post
-from applications.zcomx.modules.utils import \
-    entity_to_row
 from applications.zcomx.modules.zco import \
     IN_PROGRESS, \
     SITE_NAME
@@ -163,8 +162,9 @@ def post_on_twitter(ongoing_post):
 
     creators = []   # [{'name': 'Joe Smoe', 'twitter': '@joesmoe'},...]
     for creator_id in creators_in_ongoing_post(ongoing_post):
-        creator = entity_to_row(db.creator, creator_id)
-        if not creator:
+        try:
+            creator = Creator.from_id(creator_id)
+        except LookupError:
             LOG.error('Creator not found, id: %s', creator_id)
             continue
         creators.append({

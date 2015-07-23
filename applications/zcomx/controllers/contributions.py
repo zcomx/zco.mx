@@ -7,13 +7,13 @@ from applications.zcomx.modules.books import \
     Book, \
     default_contribute_amount
 from applications.zcomx.modules.creators import \
+    Creator, \
     book_for_contributions, \
     formatted_name
 from applications.zcomx.modules.events import \
     ContributionEvent, \
     ZcoContributionEvent
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
@@ -40,13 +40,13 @@ def modal():
         if not book_record:
             raise LookupError('Book not found, id %s', request.vars.book_id)
     elif request.vars.creator_id:
-        creator_record = entity_to_row(db.creator, request.vars.creator_id)
+        creator_record = Creator.from_id(request.vars.creator_id)
         if not creator_record:
             raise LookupError(
                 'Creator not found, id %s', request.vars.creator_id)
 
     if book_record:
-        creator_record = entity_to_row(db.creator, book_record.creator_id)
+        creator_record = Creator.from_id(book_record.creator_id)
 
     return dict(
         book=book_record,
@@ -88,7 +88,7 @@ def paypal():
         book_record = entity_to_row(db.book, book_id)
         if not book_record:
             raise LookupError('Book not found, id: {i}'.format(i=book_id))
-        creator_record = entity_to_row(db.creator, book_record.creator_id)
+        creator_record = Creator.from_id(book_record.creator_id)
         if not creator_record:
             raise LookupError('Creator not found, id: {i}'.format(
                 i=book_record.creator_id))
@@ -111,7 +111,7 @@ def paypal():
         if not creator_id:
             raise LookupError('Invalid creator id: {i}'.format(
                 i=creator_id_str))
-        creator_record = entity_to_row(db.creator, creator_id)
+        creator_record = Creator.from_id(creator_id)
         if not creator_record:
             raise LookupError('Creator not found, id: {i}'.format(
                 i=creator_id))
@@ -242,13 +242,13 @@ def widget():
         if not book_record:
             raise LookupError('Book not found, id %s', request.vars.book_id)
     elif request.vars.creator_id:
-        creator_record = entity_to_row(db.creator, request.vars.creator_id)
+        creator_record = Creator.from_id(request.vars.creator_id)
         if not creator_record:
             raise LookupError(
                 'Creator not found, id %s', request.vars.creator_id)
 
     if book_record:
-        creator_record = entity_to_row(db.creator, book_record.creator_id)
+        creator_record = Creator.from_id(book_record.creator_id)
 
     amount = default_contribute_amount(db, book_record) if book_record \
         else 1.00

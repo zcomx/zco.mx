@@ -8,10 +8,10 @@ from applications.zcomx.modules.book_lists import OngoingBookList
 from applications.zcomx.modules.books import \
     rss_url as book_rss_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     rss_url as creator_rss_url, \
     url as creator_url
 from applications.zcomx.modules.rss import channel_from_type
-from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
@@ -128,16 +128,12 @@ def route():
         except (TypeError, ValueError):
             pass
         else:
-            creator_record = entity_to_row(
-                db.creator,
-                request.vars.creator
-            )
+            creator_record = Creator.from_id(request.vars.creator)
 
         # Test for request.vars.creator as creator.name_for_url
         if not creator_record:
             name = request.vars.creator.replace('_', ' ')
-            query = (db.creator.name_for_url == name)
-            creator_record = db(query).select().first()
+            creator_record = Creator.from_key({'name_for_url': name})
 
         if not creator_record:
             return page_not_found()
@@ -199,7 +195,7 @@ def widget():
     """
     creator_record = None
     if request.args(0):
-        creator_record = entity_to_row(db.creator, request.args(0))
+        creator_record = Creator.from_id(request.args(0))
 
     book_records = None
     if creator_record:

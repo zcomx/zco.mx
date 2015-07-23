@@ -13,6 +13,7 @@ from BeautifulSoup import BeautifulSoup
 from pydal.objects import Row
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
     BookListingCreator, \
@@ -48,12 +49,13 @@ class WithObjectsTestCase(LocalTestCase):
             name='First Last'
         ))
 
-        self._creator = self.add(db.creator, dict(
+        creator = self.add(db.creator, dict(
             auth_user_id=self._auth_user.id,
             email='image_test_case@example.com',
             name_for_url='FirstLast',
             tumblr='http://firstlast.tumblr.com',
         ))
+        self._creator = Creator.from_id(creator.id)
 
         self._book = self.add(db.book, dict(
             name='My Book',

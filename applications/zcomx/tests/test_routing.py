@@ -18,7 +18,9 @@ from gluon.storage import \
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import book_name
-from applications.zcomx.modules.creators import creator_name
+from applications.zcomx.modules.creators import \
+    Creator, \
+    creator_name
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
@@ -78,7 +80,7 @@ class TestRouter(LocalTestCase):
             orderby=[db.creator.name_for_url, db.book_page.page_no],
             limitby=(0, 1),
         ).first()
-        first_creator = entity_to_row(db.creator, first['creator'].id)
+        first_creator = Creator.from_id(first['creator'].id)
         first_creator_book = entity_to_row(db.book, first['book'].id)
         first_creator_book_page = BookPage.from_id(first['book_page'].id)
 

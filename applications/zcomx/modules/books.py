@@ -16,6 +16,7 @@ from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
+    Creator, \
     creator_name, \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
@@ -29,8 +30,7 @@ from applications.zcomx.modules.names import \
     names as name_values
 from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.shell_utils import tthsum
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
     BOOK_STATUS_ACTIVE, \
@@ -307,20 +307,16 @@ def cbz_comment(book_entity):
     if not book_record:
         raise LookupError('Book not found, {e}'.format(e=book_entity))
 
-    creator_record = entity_to_row(db.creator, book_record.creator_id)
-    if not creator_record:
-        raise LookupError('Creator not found, {e}'.format(
-            e=book_record.creator_id))
-
+    creator = Creator.from_id(book_record.creator_id)
     cc_licence = CCLicence.from_id(book_record.cc_licence_id)
 
     fields = []
     fields.append(str(book_record.publication_year))
-    fields.append(creator_formatted_name(creator_record))
+    fields.append(creator_formatted_name(creator))
     fields.append(book_record.name)
     fields.append(formatted_number(book_record))
     fields.append(cc_licence.code)
-    fields.append(creator_short_url(creator_record))
+    fields.append(creator_short_url(creator))
     return '|'.join(fields)
 
 
@@ -408,10 +404,7 @@ def cc_licence_data(book_entity):
     if not book_record:
         raise LookupError('Book not found, {e}'.format(e=book_entity))
 
-    creator_record = entity_to_row(db.creator, book_record.creator_id)
-    if not creator_record:
-        raise LookupError('Creator not found, {e}'.format(
-            e=book_record.creator_id))
+    creator = Creator.from_id(book_record.creator_id)
 
     year_list = book_pages_years(book_record)
     if not year_list:
@@ -423,8 +416,8 @@ def cc_licence_data(book_entity):
         years = '{f}-{l}'.format(f=year_list[0], l=year_list[-1])
 
     return dict(
-        owner=creator_formatted_name(creator_record),
-        owner_url=creator_short_url(creator_record),
+        owner=creator_formatted_name(creator),
+        owner_url=creator_short_url(creator),
         title=book_record.name,
         title_url=short_url(book_record),
         year=years,
@@ -498,29 +491,27 @@ def contribute_link(db, book_entity, components=None, **attributes):
     return A(*components, **kwargs)
 
 
-def contributions_remaining_by_creator(db, creator_entity):
+def contributions_remaining_by_creator(creator):
     """Return the calculated contributions remaining for all books of the
     creator.
 
     Args:
-        db: gluon.dal.DAL instance
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
+        creator: Creator instance
 
     Returns:
         float, dollar amount of contributions remaining.
     """
-    # invalid-name (C0103): *Invalid %%s name "%%s"*
+    # invalid-name (C0103): *Invalid %%s name "%%s"%%s*
     # pylint: disable=C0103
-    creator = entity_to_row(db.creator, creator_entity)
     if not creator:
         return 0.00
 
+    db = current.app.db
     query = (db.book.creator_id == creator.id) & \
             (db.book.status == BOOK_STATUS_ACTIVE)
 
     total = 0
-    books = db(query).select(db.book.ALL)
+    books = db(query).select()
     for book in books:
         amount = calc_contributions_remaining(db, book)
         total = total + amount
@@ -598,25 +589,23 @@ def default_contribute_amount(db, book_entity):
     return amount
 
 
-def defaults(db, name, creator_entity):
+def defaults(name, creator):
     """Return a dict representing default values for a book.
 
     Args:
-        db: gluon.dal.DAL instance
         name: string, name of book
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator record.
+        creator: Creator instance
 
     Returns:
         dict: representing book fields and values.
     """
-    data = {}
-    data['name'] = name
-
-    creator = entity_to_row(db.creator, creator_entity)
     if not creator:
         return {}
 
+    data = {}
+    data['name'] = name
+
+    db = current.app.db
     data['creator_id'] = creator.id
 
     # Check if a book with the same name exists.
@@ -818,10 +807,7 @@ def html_metadata(book_entity):
     if not book_record:
         raise LookupError('Book not found, {e}'.format(e=book_entity))
 
-    creator_record = entity_to_row(db.creator, book_record.creator_id)
-    if not creator_record:
-        raise LookupError('Creator not found, {e}'.format(
-            e=book_record.creator_id))
+    creator = Creator.from_id(book_record.creator_id)
 
     try:
         first_page = get_page(book_entity, page_no='first')
@@ -839,8 +825,8 @@ def html_metadata(book_entity):
         )
 
     return {
-        'creator_name': creator_formatted_name(creator_record),
-        'creator_twitter': creator_record.twitter,
+        'creator_name': creator_formatted_name(creator),
+        'creator_twitter': creator.twitter,
         'description': book_record.description,
         'image_url': image_url,
         'name': formatted_name(db, book_record, include_publication_year=True),
@@ -1433,13 +1419,13 @@ def update_contributions_remaining(db, book_entity):
     if not book_record.creator_id:
         return
 
-    creator_record = entity_to_row(db.creator, book_record.creator_id)
-    if not creator_record:
+    creator = Creator.from_id(book_record.creator_id)
+    if not creator:
         return
 
-    total = contributions_remaining_by_creator(db, creator_record)
-    if creator_record.contributions_remaining != total:
-        creator_record.update_record(contributions_remaining=total)
+    total = contributions_remaining_by_creator(creator)
+    if creator.contributions_remaining != total:
+        db(db.creator.id == creator.id).update(contributions_remaining=total)
         db.commit()
 
 

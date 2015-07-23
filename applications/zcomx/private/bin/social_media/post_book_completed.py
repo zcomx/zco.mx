@@ -10,11 +10,11 @@ twitter).
 import logging
 from gluon import *
 from optparse import OptionParser
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.social_media import \
     SocialMediaPostError, \
     SocialMediaPoster
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 
 
 VERSION = 'Version 0.1'
@@ -121,9 +121,7 @@ def main():
     if not book:
         raise LookupError('Book not found, id: %s', book_id)
 
-    creator = entity_to_row(db.creator, book.creator_id)
-    if not creator:
-        raise LookupError('Creator not found, id: %s', book.creator_id)
+    creator = Creator.from_id(book.creator_id)
 
     services = []
     if options.facebook:

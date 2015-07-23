@@ -21,8 +21,7 @@ from applications.zcomx.modules.strings import \
     camelcase, \
     replace_punctuation, \
     squeeze_whitespace
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = logging.getLogger('app')

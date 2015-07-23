@@ -13,6 +13,7 @@ from gluon.globals import Response
 from gluon.streamer import DEFAULT_CHUNK_SIZE
 from gluon.contenttype import contenttype
 from applications.zcomx.modules.archives import TorrentArchive
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import \
     filename_for_size, \
     SIZES
@@ -154,8 +155,9 @@ class TorrentDownloader(Response):
                 name
             )
         elif tor_type == 'creator':
-            creator = entity_to_row(db.creator, request.args(1))
-            if not creator:
+            try:
+                creator = Creator.from_id(request.args(1))
+            except LookupError:
                 raise HTTP(404)
             filename = creator.torrent
         else:

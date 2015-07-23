@@ -196,7 +196,7 @@ def book_crud():
         # Validate all fields.
         if request.vars.name is not None and request.vars.value is not None:
             book_name = request.vars.value.strip()
-            data = book_defaults(db, book_name, creator_record)
+            data = book_defaults(book_name, creator_record)
             data[request.vars.name] = book_name
 
         ret = db.book.validate_and_insert(**data)

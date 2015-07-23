@@ -11,6 +11,7 @@ import shutil
 import unittest
 from gluon import *
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.torrentparse import TorrentParser
 from applications.zcomx.modules.torrents import \
     AllTorrentCreator, \
@@ -290,7 +291,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         # No creator entity
         self.assertRaises(LookupError, CreatorTorrentCreator)
 
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
             email='test____init__@gmail.com'
         ))
         tor_creator = CreatorTorrentCreator(creator)

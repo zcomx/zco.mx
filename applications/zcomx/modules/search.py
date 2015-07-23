@@ -21,6 +21,7 @@ from applications.zcomx.modules.books import \
     read_link as book_read_link, \
     url as book_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     can_receive_contributions, \
     contribute_link as creator_contribute_link, \
     follow_link as creator_follow_link, \
@@ -614,16 +615,9 @@ class CreatorMoniesGrid(Grid):
             form_grid_args=None,
             queries=None,
             default_viewby='tile',
-            creator_entity=None):
+            creator=None):
         """Constructor"""
-
-        db = current.app.db
-        self.creator = None
-        if creator_entity is not None:
-            self.creator = entity_to_row(db.creator, creator_entity)
-            if not self.creator:
-                raise LookupError('Creator not found: {e}'.format(
-                    e=creator_entity))
+        self.creator = creator
 
         Grid.__init__(
             self,
@@ -939,7 +933,7 @@ class BookTile(Tile):
         if not is_followable(book):
             return SPAN('')
 
-        creator = entity_to_row(db.creator, row.creator.id)
+        creator = Creator.from_id(row.creator.id)
         return creator_follow_link(
             creator,
             components=['follow'],
@@ -1060,9 +1054,8 @@ class CartoonistTile(Tile):
 
     def image(self):
         """Return a div for the tile image."""
-        db = self.db
         row = self.row
-        creator = entity_to_row(db.creator, row.creator.id)
+        creator = Creator.from_id(row.creator.id)
         creator_image = A(
             CreatorImgTag(
                 creator.image,
@@ -1267,9 +1260,7 @@ def link_for_creator_follow(row):
         return ''
     if 'creator' not in row or not row.creator.id:
         return ''
-    db = current.app.db
-
-    creator = entity_to_row(db.creator, row.creator.id)
+    creator = Creator.from_id(row.creator.id)
     return creator_follow_link(
         creator,
         **dict(_class='btn btn-default rss_button no_rclick_menu')

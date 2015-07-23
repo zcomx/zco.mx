@@ -18,10 +18,10 @@ from applications.zcomx.modules.books import \
     get_page, \
     page_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     formatted_name as creator_formatted_name, \
     url as creator_url
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
     SITE_NAME, \
     Zco
@@ -40,7 +40,7 @@ class BaseRSSChannel(object):
         """Initializer
 
         Args:
-            entity: string, first arg
+            entity: Row instance or id representing record
         """
         self.entity = entity
 
@@ -155,16 +155,14 @@ class BookRSSChannel(BaseRSSChannel):
         """Initializer
 
         Args:
-            entity: string, first arg
+            entity: Row instance or id representing record
         """
         super(BookRSSChannel, self).__init__(entity=entity)
         db = current.app.db
         self.book = entity_to_row(db.book, self.entity)
         if not self.book:
             raise LookupError('Book not found: {e}'.format(e=self.entity))
-        self.creator = entity_to_row(db.creator, self.book.creator_id)
-        if not self.creator:
-            raise LookupError('Creator not found: {e}'.format(e=self.entity))
+        self.creator = Creator.from_id(self.book.creator_id)
 
     def description(self):
         db = current.app.db
@@ -206,13 +204,10 @@ class CartoonistRSSChannel(BaseRSSChannel):
         """Initializer
 
         Args:
-            entity: string, first arg
+            entity: Creator instance
         """
         super(CartoonistRSSChannel, self).__init__(entity=entity)
-        db = current.app.db
-        self.creator = entity_to_row(db.creator, self.entity)
-        if not self.creator:
-            raise LookupError('Creator not found: {e}'.format(e=self.entity))
+        self.creator = Creator.from_id(self.entity.id)
 
     def description(self):
         return 'Recent activity of {c} on {s}.'.format(
@@ -262,10 +257,7 @@ class BaseRSSEntry(object):
         if not self.book:
             raise LookupError('Book not found: {e}'.format(
                 e=self.book_entity))
-        self.creator = entity_to_row(db.creator, self.book.creator_id)
-        if not self.creator:
-            raise LookupError('Creator not found, book: {e}'.format(
-                e=self.book.id))
+        self.creator = Creator.from_id(self.book.creator_id)
 
     def created_on(self):
         """Return the created_on value for the entry.
@@ -421,7 +413,7 @@ def channel_from_type(channel_type, record_id=None):
         return AllRSSChannel()
 
     if channel_type == 'creator':
-        return CartoonistRSSChannel(record_id)
+        return CartoonistRSSChannel(Creator.from_id(record_id))
 
     if channel_type == 'book':
         return BookRSSChannel(record_id)

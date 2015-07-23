@@ -18,7 +18,9 @@ from gluon.storage import Storage
 from gluon.validators import IS_INT_IN_RANGE
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import short_url as book_short_url
-from applications.zcomx.modules.creators import short_url as creator_short_url
+from applications.zcomx.modules.creators import \
+    Creator, \
+    short_url as creator_short_url
 from applications.zcomx.modules.images import \
     on_delete_image, \
     store
@@ -43,8 +45,6 @@ from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
 from applications.zcomx.modules.shell_utils import UnixFile
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -506,10 +506,12 @@ class TestIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
         filename = self._prep_image('file.png', to_name='indicia.png')
         stored_filename = store(
             db.creator.indicia_image, filename, resizer=ResizerQuick)
-        png_page.creator.update_record(indicia_image=stored_filename)
+
+        db(db.creator.id == png_page.creator.id).update(
+            indicia_image=stored_filename)
         db.commit()
 
-        png_page._indicia_filename = None       # Clear cache
+        png_page = BookIndiciaPagePng(self._book)         # Reload
         _, expect = db.creator.indicia_image.retrieve(
             png_page.creator.indicia_image, nameonly=True)
         self.assertEqual(png_page.get_indicia_filename(), expect)
@@ -1841,7 +1843,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self._creator.update_record(**data)
         db.commit()
 
-        creator = entity_to_row(db.creator, self._creator.id)
+        creator = Creator.from_id(self._creator.id)
         for f in fields:
             # Field is cleared
             self.assertEqual(creator[f], None)
@@ -1854,7 +1856,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         create_creator_indicia(self._creator)
 
-        creator_1 = entity_to_row(db.creator, self._creator.id)
+        creator_1 = Creator.from_id(self._creator.id)
         # Prove images exist
         for f in fields:
             # Field is not clear
@@ -1872,7 +1874,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             indicia_portrait=None,
             indicia_landscape=None,
         )
-        creator_1.update_record(**data)
+        db(db.creator.id == creator_1.id).update(**data)
         db.commit()
 
     def test__render_cc_licence(self):

@@ -35,8 +35,7 @@ from applications.zcomx.modules.search import \
     CompletedGrid, \
     CreatorMoniesGrid, \
     OngoingGrid
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_DISABLED, \
     BOOK_STATUS_DRAFT
@@ -100,16 +99,19 @@ class Router(object):
                 except (TypeError, ValueError):
                     pass
                 else:
-                    self.creator_record = entity_to_row(
-                        db.creator,
-                        request.vars.creator
-                    )
+                    try:
+                        self.creator_record = Creator.from_id(
+                            request.vars.creator)
+                    except LookupError:
+                        pass
 
                 # Test for request.vars.creator as creator.name_for_url
                 if not self.creator_record:
                     name = request.vars.creator.replace('_', ' ')
                     query = (db.creator.name_for_url.lower() == name.lower())
-                    self.creator_record = db(query).select().first()
+                    creator = db(query).select(limitby=(0, 1)).first()
+                    if creator:
+                        self.creator_record = Creator(creator.as_dict())
 
         return self.creator_record
 
@@ -261,10 +263,7 @@ class Router(object):
                 if rows[0].book.id:
                     url_book_record = entity_to_row(db.book, rows[0].book.id)
                 if rows[0].creator.id:
-                    url_creator_record = entity_to_row(
-                        db.creator,
-                        rows[0].creator.id
-                    )
+                    url_creator_record = Creator.from_id(rows[0].creator.id)
                 break
 
         urls.suggestions = []
@@ -438,8 +437,7 @@ class Router(object):
         if not request.vars.order:
             request.vars.order = 'book.name'
 
-        grid = CreatorMoniesGrid(
-            default_viewby='tile', creator_entity=creator_record)
+        grid = CreatorMoniesGrid(default_viewby='tile', creator=creator_record)
         self.view_dict = dict(
             creator=creator_record,
             grid=grid.render(),

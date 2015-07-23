@@ -19,6 +19,7 @@ from applications.zcomx.modules.books import \
     formatted_name, \
     page_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     can_receive_contributions, \
     creator_name
 from applications.zcomx.modules.search import \
@@ -506,8 +507,9 @@ class TestCreatorMoniesGrid(LocalTestCase):
         self.assertEqual(len(grid.filters()), 0)
 
         # creator is set
-        creator = self.add(db.creator, dict(email='test__filters@email.com'))
-        grid = CreatorMoniesGrid(creator_entity=creator)
+        row = self.add(db.creator, dict(email='test__filters@email.com'))
+        creator = Creator.from_id(row.id)
+        grid = CreatorMoniesGrid(creator=creator)
         self.assertEqual(len(grid.filters()), 1)
 
 

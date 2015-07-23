@@ -71,6 +71,7 @@ from applications.zcomx.modules.books import \
     update_rating, \
     url
 from applications.zcomx.modules.cc_licences import CCLicence
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -102,9 +103,10 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
 
-        self._creator = self.add(db.creator, dict(
+        creator = self.add(db.creator, dict(
             email='image_test_case@example.com',
         ))
+        self._creator = Creator.from_id(creator.id)
 
         self._book = self.add(db.book, dict(
             name='Image Test Case',
@@ -680,12 +682,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__contributions_remaining_by_creator(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
-        creator = self.add(db.creator, dict(
-            email='test__contributions_remaining_by_creator@eg.com'
-        ))
+        creator = Creator({'id': -1})
 
         # Creator has no books
-        self.assertEqual(contributions_remaining_by_creator(db, creator), 0.00)
+        self.assertEqual(contributions_remaining_by_creator(creator), 0.00)
 
         book = self.add(db.book, dict(
             name='test__contributions_remaining_by_creator',
@@ -697,7 +697,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # Book has no contributions
         self.assertEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             100.00
         )
 
@@ -707,7 +707,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             amount=15.00,
         ))
         self.assertEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             85.00
         )
 
@@ -717,7 +717,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             amount=35.99,
         ))
         self.assertEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             49.01
         )
 
@@ -732,13 +732,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # status = draft
         self.assertEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             49.01
         )
         book_2.update_record(status=BOOK_STATUS_ACTIVE)
         db.commit()
         self.assertAlmostEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             99.01
         )
 
@@ -835,7 +835,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             types_by_name[row.name] = row
 
         # Test book unique name
-        got = defaults(db, '_test__defaults_', self._creator)
+        got = defaults('_test__defaults_', self._creator)
         expect = {
             'name': '_test__defaults_',
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
@@ -856,7 +856,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self._book.update_record(**data)
         db.commit()
 
-        got = defaults(db, self._book.name, self._creator)
+        got = defaults(self._book.name, self._creator)
         expect = {
             'name': self._book.name,
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
@@ -874,7 +874,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
         self._book.update_record(**data)
         db.commit()
-        got = defaults(db, self._book.name, self._creator)
+        got = defaults(self._book.name, self._creator)
         expect = {
             'name': self._book.name,
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
@@ -895,7 +895,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self._book.update_record(**data)
         db.commit()
 
-        got = defaults(db, self._book.name, -1)
+        got = defaults(self._book.name, None)
         self.assertEqual(got, {})
 
     def test__download_link(self):
@@ -1914,7 +1914,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         book_contributions = lambda b: calc_contributions_remaining(db, b)
         creator_contributions = \
-            lambda c: entity_to_row(db.creator, c.id).contributions_remaining
+            lambda c: Creator.from_id(c.id).contributions_remaining
 
         # Creator has no books
         self.assertEqual(creator_contributions(creator), 0)

@@ -16,14 +16,15 @@ from applications.zcomx.modules.archives import CBZArchive
 from applications.zcomx.modules.books import \
     book_name, \
     cbz_comment
-from applications.zcomx.modules.creators import creator_name
+from applications.zcomx.modules.creators import \
+    Creator, \
+    creator_name
 from applications.zcomx.modules.images import filename_for_size
 from applications.zcomx.modules.indicias import BookIndiciaPagePng
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import NICES
 
 LOG = logging.getLogger('app')
@@ -223,10 +224,7 @@ def archive(book_entity, base_path='applications/zcomx/private/var'):
     if not book_record:
         raise LookupError('Book not found, {e}'.format(e=book_entity))
 
-    creator_record = entity_to_row(db.creator, book_record.creator_id)
-    if not creator_record:
-        raise LookupError('Creator not found, id:{i}'.format(
-            i=book_record.creator_id))
+    creator_record = Creator.from_id(book_record.creator_id)
 
     cbz_creator = CBZCreator(book_record)
     cbz_file = cbz_creator.run()

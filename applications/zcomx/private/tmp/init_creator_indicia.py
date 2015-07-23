@@ -22,9 +22,8 @@ from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
 from applications.zcomx.modules.creators import \
+    Creator, \
     queue_update_indicia
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -96,10 +95,7 @@ def main():
     LOG.info('Started.')
     ids = [x.id for x in db(db.creator).select(db.creator.id)]
     for creator_id in ids:
-        creator = entity_to_row(db.creator, creator_id)
-        if not creator:
-            raise LookupError('Creator not found, id: {i}'.format(
-                i=creator_id))
+        creator = Creator.from_id(creator_id)
         if not creator.indicia_portrait or not creator.indicia_landscape:
             LOG.debug('Queueing creator: %s', creator.name_for_url)
             queue_update_indicia(creator)

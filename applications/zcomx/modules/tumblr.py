@@ -16,6 +16,7 @@ from applications.zcomx.modules.books import \
     page_url, \
     url as book_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.utils import \
@@ -244,18 +245,13 @@ class OngoingBookListing(object):
         Args:
             book: Row instance representing book
             book_pages: list of BookPage instances
-            creator: Row instance representing creator. If None will be
-                created from book.creator_id
+            creator: Creator instance
         """
         self.book = book
         self.book_pages = book_pages
         self.creator = creator
-        db = current.app.db
         if self.creator is None:
-            self.creator = entity_to_row(db.creator, self.book.creator_id)
-            if not self.creator:
-                raise LookupError(
-                    'Creator not found, id: {c}', c=self.book.creator_id)
+            self.creator = Creator.from_id(self.book.creator_id)
 
     def components(self):
         """Return the components of a book listing.
@@ -293,7 +289,7 @@ class OngoingBookListing(object):
         db = current.app.db
         book = entity_to_row(db.book, activity_log.book_id)
         book_pages = [BookPage.from_id(x) for x in activity_log.book_page_ids]
-        creator = entity_to_row(db.creator, book.creator_id)
+        creator = Creator.from_id(book.creator_id)
         return cls(book, book_pages, creator=creator)
 
 

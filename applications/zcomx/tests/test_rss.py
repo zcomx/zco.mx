@@ -13,6 +13,7 @@ import gluon.contrib.rss2 as rss2
 from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.rss import \
     AllRSSChannel, \
     BaseRSSChannel, \
@@ -49,11 +50,12 @@ class WithObjectsTestCase(LocalTestCase):
             name='First Last'
         ))
 
-        self._creator = self.add(db.creator, dict(
+        creator = self.add(db.creator, dict(
             auth_user_id=self._auth_user.id,
             email='image_test_case@example.com',
             name_for_url='FirstLast',
         ))
+        self._creator = Creator.from_id(creator.id)
 
         self._book = self.add(db.book, dict(
             name='My Book',
@@ -681,7 +683,7 @@ class TestFunctions(WithObjectsTestCase):
 
         got = channel_from_type('creator', self._creator.id)
         self.assertTrue(isinstance(got, CartoonistRSSChannel))
-        self.assertEqual(got.entity, self._creator.id)
+        self.assertEqual(got.entity, self._creator)
 
     def test__entry_class_from_action(self):
         self.assertEqual(

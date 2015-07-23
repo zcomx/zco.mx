@@ -13,7 +13,6 @@ import shutil
 import subprocess
 from gluon import *
 
-from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     cc_licence_data, \
     get_page, \
@@ -22,6 +21,7 @@ from applications.zcomx.modules.books import \
     read_link
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
+    Creator, \
     can_receive_contributions, \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
@@ -152,7 +152,7 @@ class BookIndiciaPage(IndiciaPage):
         IndiciaPage.__init__(self, entity)
         self.table = db.book
         self.book = entity_to_row(db.book, self.entity)
-        self.creator = entity_to_row(db.creator, self.book.creator_id)
+        self.creator = Creator.from_id(self.book.creator_id)
         self._orientation = None
 
     def call_to_action_text(self):
@@ -460,12 +460,10 @@ class CreatorIndiciaPagePng(IndiciaPage, IndiciaPagePng):
         """Constructor
 
         Args:
-            entity: Row instance or integer representing a record,
-                if integer, this is the id of the record. The record is read.
+            entity: Row instance representing a creator record
         """
-        db = current.app.db
         IndiciaPage.__init__(self, entity)
-        self.creator = entity_to_row(db.creator, self.entity)
+        self.creator = Creator.from_id(self.entity.id)
         self.metadata_filename = None
         self._indicia_filename = None
 
@@ -1471,7 +1469,7 @@ def create_creator_indicia(creator, resize=False, optimize=False):
         # Delete existing
         if creator[field]:
             on_delete_image(creator[field])
-            creator.update_record(**{field: None})
+            db(db.creator.id == creator.id).update(**{field: None})
             db.commit()
         png_page = CreatorIndiciaPagePng(creator)
         png = png_page.create(orientation=orientation)
@@ -1485,7 +1483,7 @@ def create_creator_indicia(creator, resize=False, optimize=False):
             if optimize:
                 AllSizesImages.from_names([data[field]]).optimize()
 
-    creator.update_record(**data)
+    db(db.creator.id == creator.id).update(**data)
     db.commit()
 
 
