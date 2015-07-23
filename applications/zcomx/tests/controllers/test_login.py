@@ -11,12 +11,12 @@ import requests
 import time
 import unittest
 from gluon.contrib.simplejson import loads
+from applications.zcomx.modules.activity_logs import TentativeActivityLog
 from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.links import \
     LinkType, \
     LinksKey
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DRAFT
@@ -427,8 +427,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(len(before_activity_ids) + 1, len(after_activity_ids))
         new_activity_id = list(set(after_activity_ids).difference(
             set(before_activity_ids)))[0]
-        tentative_log = entity_to_row(
-            db.tentative_activity_log, new_activity_id)
+        tentative_log = TentativeActivityLog.from_id(new_activity_id)
         self.assertEqual(tentative_log.book_id, self._book.id)
         self.assertEqual(tentative_log.book_page_id, new_id)
         self.assertEqual(tentative_log.action, 'page added')

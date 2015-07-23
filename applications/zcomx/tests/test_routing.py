@@ -15,6 +15,7 @@ from gluon.rewrite import filter_url
 from gluon.storage import \
     List, \
     Storage
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import book_name
 from applications.zcomx.modules.creators import creator_name
@@ -79,10 +80,7 @@ class TestRouter(LocalTestCase):
         ).first()
         first_creator = entity_to_row(db.creator, first['creator'].id)
         first_creator_book = entity_to_row(db.book, first['book'].id)
-        first_creator_book_page = entity_to_row(
-            db.book_page,
-            first['book_page'].id
-        )
+        first_creator_book_page = BookPage.from_id(first['book_page'].id)
 
         first_creator_name = creator_name(first_creator, use='url')
         first_creator_book_name = book_name(first_creator_book, use='url')
@@ -1010,7 +1008,8 @@ class TestFunctions(LocalTestCase):
         self._request.vars = Storage()
 
     def test_routes(self):
-        """This tests the ~/routes.py settings."""
+        # This tests the ~/routes.py settings.
+
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         app_root = '/srv/http/jimk.zsw.ca/web2py/applications'
