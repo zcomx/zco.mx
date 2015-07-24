@@ -1908,9 +1908,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__update_contributions_remaining(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
-        creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             email='test__update_contributions_remaining@eg.com'
         ))
+        creator = Creator.from_id(creator_row.id)
 
         book_contributions = lambda b: calc_contributions_remaining(db, b)
         creator_contributions = \
@@ -1961,8 +1962,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # Creator contributions_remaining should be updated by any of it's
         # books.
-        creator.update_record(contributions_remaining=0)
+        data = dict(contributions_remaining=0)
+        db(db.creator.id == creator.id).update(**data)
         db.commit()
+        creator.update(**data)
         self.assertEqual(creator_contributions(creator), 0)
         update_contributions_remaining(db, book)
         self.assertAlmostEqual(creator_contributions(creator), 99.01)

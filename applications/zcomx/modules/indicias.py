@@ -163,7 +163,7 @@ class BookIndiciaPage(IndiciaPage):
         for name in ['twitter', 'tumblr', 'facebook']:
             text = IndiciaPage.call_to_action_data[name]
             media = SocialMedia.class_factory(
-                name, self.book, creator_entity=self.creator)
+                name, self.book, creator=self.creator)
             if not media:
                 continue
             url = media.share_url()
@@ -192,7 +192,7 @@ class BookIndiciaPage(IndiciaPage):
         )
         for name in ['tumblr', 'twitter', 'facebook']:
             media = SocialMedia.class_factory(
-                name, self.book, creator_entity=self.creator)
+                name, self.book, creator=self.creator)
             if not media:
                 continue
             icons.append(
@@ -279,7 +279,7 @@ class BookIndiciaPage(IndiciaPage):
         contribute_and_links_divs = []
 
         db = current.app.db
-        if self.creator and can_receive_contributions(db, self.creator):
+        if self.creator and can_receive_contributions(self.creator):
             # js is used to flesh out the contribute widget
             contribute_and_links_divs.append(
                 DIV(
@@ -460,10 +460,10 @@ class CreatorIndiciaPagePng(IndiciaPage, IndiciaPagePng):
         """Constructor
 
         Args:
-            entity: Row instance representing a creator record
+            entity: Creator instance
         """
         IndiciaPage.__init__(self, entity)
-        self.creator = Creator.from_id(self.entity.id)
+        self.creator = entity
         self.metadata_filename = None
         self._indicia_filename = None
 
@@ -1458,7 +1458,7 @@ def create_creator_indicia(creator, resize=False, optimize=False):
     """Create indicia for creator.
 
     Args:
-        creator: Row instance representing creator.
+        creator: Creator instance
         resize: If true, sizes of images are created
         optimize: If true, all images are optimized
     """

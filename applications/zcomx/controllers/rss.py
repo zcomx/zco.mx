@@ -92,8 +92,13 @@ def route():
             },
         ]
 
-        creator = db(db.creator).select(orderby='<random>').first()
-        if creator:
+        creator_row = db(db.creator).select(
+            orderby='<random>', limitby=(0, 1)).first()
+        try:
+            creator = Creator.from_id(creator_row.id)
+        except LookupError:
+            pass
+        else:
             urls.suggestions.append({
                 'label': 'Cartoonist rss:',
                 'url': creator_rss_url(creator, host=True),
@@ -120,7 +125,7 @@ def route():
     rss_name = None
 
     if request.vars.creator:
-        creator_record = None
+        creator = None
 
         # Test for request.vars.creator as creator.id
         try:
@@ -128,19 +133,25 @@ def route():
         except (TypeError, ValueError):
             pass
         else:
-            creator_record = Creator.from_id(request.vars.creator)
+            try:
+                creator = Creator.from_id(request.vars.creator)
+            except LookupError:
+                creator = None
 
         # Test for request.vars.creator as creator.name_for_url
-        if not creator_record:
+        if not creator:
             name = request.vars.creator.replace('_', ' ')
-            creator_record = Creator.from_key({'name_for_url': name})
+            try:
+                creator = Creator.from_key({'name_for_url': name})
+            except LookupError:
+                creator = None
 
-        if not creator_record:
+        if not creator:
             return page_not_found()
 
-        if '{i:03d}'.format(i=creator_record.id) == request.vars.creator:
+        if '{i:03d}'.format(i=creator.id) == request.vars.creator:
             # Redirect to name version
-            c_url = creator_url(creator_record)
+            c_url = creator_url(creator)
             redirect_url = '/'.join([c_url, request.vars.rss])
             redirect(redirect_url)
 
@@ -175,7 +186,7 @@ def route():
     if rss_type == 'book':
         if rss_name.endswith(extension):
             book_name = rss_name[:(-1 * len(extension))]
-        query = (db.book.creator_id == creator_record.id) & \
+        query = (db.book.creator_id == creator.id) & \
             (db.book.name_for_url == book_name)
         book = db(query).select().first()
         if not book:
@@ -193,13 +204,13 @@ def widget():
 
     request.args(0): integer, optional, id of creator.
     """
-    creator_record = None
+    creator = None
     if request.args(0):
-        creator_record = Creator.from_id(request.args(0))
+        creator = Creator.from_id(request.args(0))
 
     book_records = None
-    if creator_record:
-        book_list = OngoingBookList(creator_record)
+    if creator:
+        book_list = OngoingBookList(creator)
         book_records = book_list.books()
 
     query = (db.book.id != None)     # Creators must have at least one book.
@@ -221,7 +232,7 @@ def widget():
         Field(
             'creator_id',
             type='integer',
-            default=creator_record.id if creator_record else 0,
+            default=creator.id if creator else 0,
             requires=IS_EMPTY_OR(
                 IS_IN_SET(
                     names,
@@ -244,6 +255,6 @@ def widget():
 
     return dict(
         books=book_records,
-        creator=creator_record,
+        creator=creator,
         form=form
     )

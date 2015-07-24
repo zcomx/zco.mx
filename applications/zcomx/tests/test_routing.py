@@ -109,17 +109,19 @@ class TestRouter(LocalTestCase):
             email='test__auth_user@test.com',
         ))
 
-        self._creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             auth_user_id=self._auth_user.id,
             email='test__creator@test.com',
             name_for_url='FirstLast',
         ))
+        self._creator = Creator.from_id(creator_row.id)
 
-        self._creator_2 = self.add(db.creator, dict(
+        creator_row_2 = self.add(db.creator, dict(
             auth_user_id=self._auth_user.id,
             email='test__creator_2@test.com',
             name_for_url='JohnHancock',
         ))
+        self._creator_2 = Creator.from_id(creator_row_2.id)
 
         self._book = self.add(db.book, dict(
             name='My Book',
@@ -582,8 +584,9 @@ class TestRouter(LocalTestCase):
             shop=None,
             tumblr=None,
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
         # Creator not set.
         self.assertEqual(router.preset_links(), [])
@@ -611,8 +614,9 @@ class TestRouter(LocalTestCase):
             shop='http://www.shop.com',
             tumblr=None
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
         router.creator_record = None
         test_presets(router.preset_links(), ['shop'])
 
@@ -621,8 +625,9 @@ class TestRouter(LocalTestCase):
             shop=None,
             tumblr='user.tumblr.com',
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
         router.creator_record = None
         test_presets(router.preset_links(), ['tumblr'])
 
@@ -631,8 +636,9 @@ class TestRouter(LocalTestCase):
             shop='http://www.shop.com',
             tumblr='user.tumblr.com',
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
         router.creator_record = None
         test_presets(router.preset_links(), ['shop', 'tumblr'])
 

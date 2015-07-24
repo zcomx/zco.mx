@@ -375,7 +375,8 @@ def cbz_url(book_entity, **url_kwargs):
         raise LookupError('Creator not found, id: {e}'.format(
             e=book_entity))
 
-    name_of_creator = creator_name(book_record.creator_id, use='url')
+    creator = Creator.from_id(book_record.creator_id)
+    name_of_creator = creator_name(creator, use='url')
     if not name_of_creator:
         return
 
@@ -1059,7 +1060,8 @@ def page_url(book_page, reader=None, **url_kwargs):
     if not book_record:
         return
 
-    name_of_creator = creator_name(book_record.creator_id, use='url')
+    creator = Creator.from_id(book_record.creator_id)
+    name_of_creator = creator_name(creator, use='url')
     if not name_of_creator:
         return
 
@@ -1151,7 +1153,8 @@ def rss_url(book_entity, **url_kwargs):
         raise LookupError('Creator not found, id: {e}'.format(
             e=book_entity))
 
-    name_of_creator = creator_name(book_record.creator_id, use='url')
+    creator = Creator.from_id(book_record.creator_id)
+    name_of_creator = creator_name(creator, use='url')
     if not name_of_creator:
         return
 
@@ -1245,7 +1248,12 @@ def short_url(book_entity):
     if not name:
         return
 
-    url_for_creator = creator_short_url(book_record.creator_id)
+    try:
+        creator = Creator.from_id(book_record.creator_id)
+    except LookupError:
+        return
+
+    url_for_creator = creator_short_url(creator)
     if not url_for_creator:
         return
 
@@ -1382,7 +1390,8 @@ def torrent_url(book_entity, **url_kwargs):
         raise LookupError('Creator not found, id: {e}'.format(
             e=book_entity))
 
-    name_of_creator = creator_name(book_record.creator_id, use='url')
+    creator = Creator.from_id(book_record.creator_id)
+    name_of_creator = creator_name(creator, use='url')
     if not name_of_creator:
         return
 
@@ -1502,7 +1511,8 @@ def url(book_entity, **url_kwargs):
     if not book_record or not book_record.name:
         return
 
-    name_of_creator = creator_name(book_record.creator_id, use='url')
+    creator = Creator.from_id(book_record.creator_id)
+    name_of_creator = creator_name(creator, use='url')
     if not name_of_creator:
         return
 

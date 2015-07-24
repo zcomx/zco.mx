@@ -12,6 +12,7 @@ from applications.zcomx.modules.access import \
     requires_admin_ip, \
     requires_agreed_to_terms, \
     requires_login_if_configured
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
@@ -95,10 +96,11 @@ class TestFunctions(LocalTestCase):
             email='tests__requires_agreed_to_terms@example.com',
         ))
 
-        creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             auth_user_id=auth_user.id,
             agreed_to_terms=False,
         ))
+        creator = Creator.from_id(creator_row.id)
 
         auth.user = auth_user
 
@@ -134,7 +136,7 @@ class TestFunctions(LocalTestCase):
             self.fail('HTTP exception not raised.')
 
         # agreed_to_terms=False, should permit access
-        creator.update_record(agreed_to_terms=True)
+        db(db.creator.id == creator.id).update(agreed_to_terms=True)
         db.commit()
         self.assertEqual(func(), 'Success')
 

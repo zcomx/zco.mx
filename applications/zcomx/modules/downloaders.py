@@ -35,17 +35,14 @@ class CBZDownloader(Response):
         current.session.forget(current.response)
 
         if not request.args:
-            LOG.debug('FIXME no request.args')
             raise HTTP(404)
 
         book = entity_to_row(db.book, request.args(0))
         if not book:
-            LOG.debug('FIXME book not found')
             raise HTTP(404)
         filename = book.cbz
 
         if not filename or not os.path.exists(filename):
-            LOG.debug('FIXME cbz file  not found')
             raise HTTP(404)
 
         stream = os.path.abspath(filename)

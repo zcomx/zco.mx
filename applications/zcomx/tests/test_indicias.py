@@ -71,11 +71,12 @@ class WithObjectsTestCase(LocalTestCase):
             name='First Last'
         ))
 
-        self._creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             auth_user_id=self._auth_user.id,
             email='image_test_case@example.com',
             paypal_email='image_test_case@example.com',
         ))
+        self._creator = Creator.from_id(creator_row.id)
 
         self._book = self.add(db.book, dict(
             name='Image Test Case',
@@ -128,8 +129,9 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             tumblr=None,
             facebook=None,
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
         indicia = BookIndiciaPage(self._book)
         xml = indicia.call_to_action_text()
@@ -146,8 +148,9 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             tumblr='http://tmblr.tumblr.com',
             facebook='http://www.facebook.com/facepalm',
         )
-        self._creator.update_record(**socials)
+        db(db.creator.id == self._creator.id).update(**socials)
         db.commit()
+        self._creator.update(socials)
         indicia = BookIndiciaPage(self._book)
         icons = indicia.follow_icons()
 
@@ -408,8 +411,10 @@ class TestCreatorIndiciaPagePng(WithObjectsTestCase):
             indicia_portrait=None,
             indicia_landscape=None,
         )
-        self._creator.update_record(**data)
+
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
         png_page = CreatorIndiciaPagePng(self._creator)
         filename = png_page.create('portrait')
@@ -1838,10 +1843,11 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         data = dict(
             indicia_image=None,
             indicia_portrait=None,
-            indicia_landscap=None,
+            indicia_landscape=None,
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
         creator = Creator.from_id(self._creator.id)
         for f in fields:
@@ -1851,8 +1857,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         filename = self._prep_image('cbz_plus.png')
         indicia_image = store(
             db.creator.indicia_image, filename, resizer=ResizerQuick)
-        self._creator.update_record(indicia_image=indicia_image)
+        data = dict(indicia_image=indicia_image)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
         create_creator_indicia(self._creator)
 
@@ -1876,6 +1884,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
         db(db.creator.id == creator_1.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
     def test__render_cc_licence(self):
 

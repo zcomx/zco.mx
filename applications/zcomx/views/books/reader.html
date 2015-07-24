@@ -18,7 +18,7 @@
                         </div>
                         <div id="creator" class="col-sm-8">
                             <div id="creator_name">
-                                <a href="{{=creator_url(creator.id, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a>
+                                <a href="{{=creator_url(creator, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a>
                             </div>
                         </div>
                     </div>
@@ -77,7 +77,7 @@
                 </div>
                 <div class="col-sm-4 col-sm-pull-4" id="contribute_download_container">
                     <ul class="breadcrumb pipe_delimiter">
-                        {{if can_receive_contributions(db, creator):}}
+                        {{if can_receive_contributions(creator):}}
                         <li>
                             <div id="contribute_widget_container">
                                 {{=LOAD(c='contributions', f='widget', vars={'book_id': book.id}, extension='load', ajax=True, content='')}}

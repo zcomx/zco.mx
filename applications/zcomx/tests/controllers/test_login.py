@@ -12,6 +12,7 @@ import time
 import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.links import \
     LinkType, \
@@ -135,7 +136,7 @@ class TestFunctions(LocalTestCase):
             db(query).delete()
             db.commit()
 
-        cls._creator.update_record(**cls._creator_as_dict)
+        db(db.creator.id == cls._creator.id).update(**cls._creator_as_dict)
         db.commit()
 
     def test__account(self):
@@ -595,12 +596,11 @@ class TestFunctions(LocalTestCase):
             raise unittest.SkipTest('Remove --quick option to run test.')
 
         def get_creator():
-            """Return a creator"""
-            query = (db.creator.id == self._creator.id)
-            return db(query).select().first()
+            """Return a Creator instance"""
+            return Creator.from_id(self._creator.id)
 
         old_creator = get_creator()
-        old_creator.update_record(image=None)
+        db(db.creator.id == old_creator.id).update(image=None)
         db.commit()
         old_creator = get_creator()
         self.assertFalse(old_creator.image)
@@ -663,8 +663,7 @@ class TestFunctions(LocalTestCase):
 
         def get_creator():
             """Return creator"""
-            query = (db.creator.id == self._creator.id)
-            return db(query).select(db.creator.ALL).first()
+            return Creator.from_id(self._creator.id)
 
         web.login()
 
@@ -673,8 +672,9 @@ class TestFunctions(LocalTestCase):
             indicia_portrait=None,
             indicia_landscape=None,
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(**data)
 
         creator = get_creator()
         self.assertEqual(creator.indicia_portrait, None)
@@ -701,8 +701,11 @@ class TestFunctions(LocalTestCase):
             indicia_landscape='creator.indicia_landscape.lll.000.png',
             indicia_portrait='creator.indicia_portrait.ppp.111.png',
         )
-        creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(**data)
+        creator = get_creator()
+
         web.post(url, data={})
         result = loads(web.text)
         self.assertEqual(result['status'], 'ok')

@@ -91,7 +91,6 @@ def main():
         parser.print_help()
         exit(1)
 
-
     record_id = None
     name = None
     try:
@@ -154,8 +153,9 @@ def main():
     LOG.debug('stored_filename: %s', stored_filename)
     LOG.debug('Updating creator.indicia_image')
     data = {img_field: stored_filename}
-    creator.update_record(**data)
+    db(db.creator.id == creator.id).update(**data)
     db.commit()
+    creator.update(data)
 
 
 if __name__ == '__main__':

@@ -186,13 +186,9 @@ class BookTorrentCreator(BaseTorrentCreator):
         Returns:
             string: destination file name
         """
-        creator_record = Creator.from_id(self.book.creator_id)
-        if not creator_record:
-            raise LookupError('Creator not found, id:{i}'.format(
-                i=self.book.creator_id))
-
+        creator = Creator.from_id(self.book.creator_id)
         tor_subdir = TorrentArchive.get_subdir_path(
-            creator_name(creator_record, use='file'))
+            creator_name(creator, use='file'))
         tor_file = book_torrent_file_name(self.book)
         return os.path.join(tor_subdir, tor_file)
 
@@ -230,8 +226,10 @@ class CreatorTorrentCreator(BaseTorrentCreator):
         result = BaseTorrentCreator.archive(self, base_path=base_path)
         if self.creator:
             db = current.app.db
-            self.creator.update_record(torrent=result)
+            data = dict(torrent=result)
+            db(db.creator.id == self.creator.id).update(**data)
             db.commit()
+            self.creator.update(**data)
         return result
 
     def get_destination(self):

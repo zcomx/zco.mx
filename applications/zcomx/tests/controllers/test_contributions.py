@@ -9,7 +9,9 @@ Test suite for zcomx/controllers/contributions.py
 import datetime
 import unittest
 import urllib
-from applications.zcomx.modules.creators import formatted_name
+from applications.zcomx.modules.creators import \
+    Creator, \
+    formatted_name
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -68,7 +70,8 @@ class TestFunctions(LocalTestCase):
         else:
             self._invalid_book_id = 1
 
-        self._creator = db(db.creator.paypal_email != '').select().first()
+        creator_row = db(db.creator.paypal_email != '').select().first()
+        self._creator = Creator.from_id(creator_row.id)
         if not self._creator:
             raise SyntaxError('Unable to get creator.')
 

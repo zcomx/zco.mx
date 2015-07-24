@@ -234,7 +234,7 @@ class Router(object):
 
         url_book_page = None
         url_book_record = None
-        url_creator_record = None
+        url_creator = None
 
         for query_want in query_wants:
             queries = []
@@ -263,13 +263,13 @@ class Router(object):
                 if rows[0].book.id:
                     url_book_record = entity_to_row(db.book, rows[0].book.id)
                 if rows[0].creator.id:
-                    url_creator_record = Creator.from_id(rows[0].creator.id)
+                    url_creator = Creator.from_id(rows[0].creator.id)
                 break
 
         urls.suggestions = []
         urls.suggestions.append({
             'label': 'Cartoonist page:',
-            'url': creator_url(url_creator_record, host=True),
+            'url': creator_url(url_creator, host=True),
         })
         urls.suggestions.append({
             'label': 'Book page:',

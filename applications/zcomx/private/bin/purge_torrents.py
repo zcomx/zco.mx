@@ -21,7 +21,6 @@ def creators_needing_purge():
     """Generator of Row instances representing creator records for
     creators whose torrents need purging.
 
-
     Returns:
         Creator instance
     """

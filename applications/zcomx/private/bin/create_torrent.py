@@ -44,7 +44,6 @@ def book_torrent(book_id):
 
 def creator_torrent(creator_id):
     """Create a torrent for a creator."""
-
     creator = Creator.from_id(creator_id)
     result = CreatorTorrentCreator(creator).archive()
     LOG.debug('Created: %s', result)

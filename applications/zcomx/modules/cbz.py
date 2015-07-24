@@ -224,14 +224,12 @@ def archive(book_entity, base_path='applications/zcomx/private/var'):
     if not book_record:
         raise LookupError('Book not found, {e}'.format(e=book_entity))
 
-    creator_record = Creator.from_id(book_record.creator_id)
-
+    creator = Creator.from_id(book_record.creator_id)
     cbz_creator = CBZCreator(book_record)
     cbz_file = cbz_creator.run()
 
     cbz_archive = CBZArchive(base_path=base_path)
-    subdir = cbz_archive.get_subdir_path(
-        creator_name(creator_record, use='file'))
+    subdir = cbz_archive.get_subdir_path(creator_name(creator, use='file'))
     dst = os.path.join(subdir, os.path.basename(cbz_file))
     archive_file = cbz_archive.add_file(cbz_file, dst)
 

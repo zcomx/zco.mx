@@ -30,6 +30,7 @@ from applications.zcomx.modules.books import \
     set_status
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
+    Creator, \
     image_as_json, \
     queue_update_indicia, \
     short_url
@@ -69,23 +70,25 @@ MODAL_ERROR = lambda msg: redirect(
 @auth.requires_login()
 def account():
     """Account login controller."""
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         redirect(URL(c='default', f='index'))
 
-    return dict(creator=creator_record)
+    return dict(creator=creator)
 
 
 @auth.requires_login()
 def agree_to_terms():
     """Creator agree to terms modal view.
     """
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         redirect(URL(c='default', f='index'))
 
     fields = [
@@ -109,13 +112,15 @@ def agree_to_terms():
             message_onsuccess='',
             message_onfailure='',
             hideerror=True).accepted:
-        creator_record.update_record(agreed_to_terms=form.vars.agree_to_terms)
+        data = dict(agreed_to_terms=form.vars.agree_to_terms)
+        db(db.creator.id == creator.id).update(**data)
         db.commit()
-        if creator_record.agreed_to_terms:
+        creator.update(data)
+        if creator.agreed_to_terms:
             redirect(URL('books'))
         else:
             redirect(URL(c='default', f='index'))
-    return dict(creator=creator_record, form=form)
+    return dict(creator=creator, form=form)
 
 
 @auth.requires_login()
@@ -148,10 +153,11 @@ def book_crud():
         """Error handler."""
         return {'status': 'error', 'msg': msg or 'Server request failed'}
 
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return do_error('Permission denied')
 
     # W0212 (protected-access): *Access to a protected member
@@ -169,7 +175,7 @@ def book_crud():
             return do_error('Invalid data provided')
         book_record = entity_to_row(db.book, book_id)
         if not book_record or (
-                book_record and book_record.creator_id != creator_record.id):
+                book_record and book_record.creator_id != creator.id):
             return do_error('Invalid data provided')
 
     if action == 'complete':
@@ -196,7 +202,7 @@ def book_crud():
         # Validate all fields.
         if request.vars.name is not None and request.vars.value is not None:
             book_name = request.vars.value.strip()
-            data = book_defaults(book_name, creator_record)
+            data = book_defaults(book_name, creator)
             data[request.vars.name] = book_name
 
         ret = db.book.validate_and_insert(**data)
@@ -310,16 +316,17 @@ def book_delete():
 
     request.args(0): integer, id of book.
     """
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         MODAL_ERROR('Permission denied')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator_record.id:
+    if not book_record or book_record.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
     return dict(book=book_record)
@@ -331,10 +338,11 @@ def book_edit():
 
     request.args(0): integer, id of book
     """
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         MODAL_ERROR('Permission denied')
 
     book_record = None
@@ -379,14 +387,15 @@ def book_list():
         one of 'completed', 'ongoing', 'disabled'
     """
     # Verify user is legit
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return dict()
 
     try:
-        lister = book_list_class_from_code(request.args(0))(creator_record)
+        lister = book_list_class_from_code(request.args(0))(creator)
     except ValueError as err:
         LOG.error(err)
         return dict()
@@ -400,16 +409,17 @@ def book_pages():
 
     request.args(0): integer, id of book.
     """
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         MODAL_ERROR('Permission denied')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator_record.id:
+    if not book_record or book_record.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
     # Temporarily set the book status to draft, so it does not appear
@@ -455,16 +465,17 @@ def book_pages_handler():
         return dumps({'files': messages})
 
     # Verify user is legit
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return do_error('Upload service unavailable')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator_record.id:
+    if not book_record or book_record.creator_id != creator.id:
         return do_error('Upload service unavailable')
 
     if request.env.request_method == 'POST':
@@ -534,16 +545,17 @@ def book_post_upload_session():
         return dumps({'success': False, 'error': msg})
 
     # Verify user is legit
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return do_error('Reorder service unavailable')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator_record.id:
+    if not book_record or book_record.creator_id != creator.id:
         return do_error('Reorder service unavailable')
 
     book_page_ids = []
@@ -599,16 +611,17 @@ def book_release():
 
     request.args(0): integer, id of book.
     """
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         MODAL_ERROR('Permission denied')
 
     book_record = None
     if request.args(0):
         book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator_record.id:
+    if not book_record or book_record.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
     return dict(
@@ -622,10 +635,11 @@ def book_release():
 def books():
     """Books controller.
     """
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         redirect(URL('index'))
 
     response.files.append(
@@ -647,7 +661,7 @@ def books():
         )
     )
 
-    query = (db.book.creator_id == creator_record.id)
+    query = (db.book.creator_id == creator.id)
     status_count = db.book.status.count()
     rows = db(query).select(
         db.book.status,
@@ -676,10 +690,11 @@ def creator_crud():
         """Error handler."""
         return {'status': 'error', 'msg': msg or 'Server request failed'}
 
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return do_error('Permission denied')
 
     if request.vars.name is not None \
@@ -697,7 +712,7 @@ def creator_crud():
         if f in data:
             data[f] = data[f].rstrip('/')
 
-    query = (db.creator.id == creator_record.id)
+    query = (db.creator.id == creator.id)
     ret = db(query).validate_and_update(**data)
     db.commit()
 
@@ -740,10 +755,11 @@ def creator_img_handler():
         return dumps({'files': messages})
 
     # Verify user is legit
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return do_error('Upload service unavailable')
 
     img_field = 'image'
@@ -801,66 +817,70 @@ def creator_img_handler():
                 files=[up_file.filename]
             )
 
-        img_changed = creator_record[img_field] != stored_filename
+        img_changed = creator[img_field] != stored_filename
         if img_changed:
-            if creator_record[img_field] is not None:
+            if creator[img_field] is not None:
                 # Delete an existing image before it is replaced
-                on_delete_image(creator_record[img_field])
+                on_delete_image(creator[img_field])
                 data = {img_field: None}
-                creator_record.update_record(**data)
+                db(db.creator.id == creator.id).update(**data)
                 db.commit()
+                creator.update(data)
             if img_field == 'indicia_image':
                 # Clear the indicia png fields. This will trigger a rebuild
                 # in indicia_preview_urls
-                on_delete_image(creator_record['indicia_portrait'])
-                on_delete_image(creator_record['indicia_landscape'])
+                on_delete_image(creator['indicia_portrait'])
+                on_delete_image(creator['indicia_landscape'])
                 data = {
                     'indicia_portrait': None,
                     'indicia_landscape': None,
                 }
-                creator_record.update_record(**data)
+                db(db.creator.id == creator.id).update(**data)
                 db.commit()
+                creator.update(data)
 
         data = {img_field: stored_filename}
-        creator_record.update_record(**data)
+        db(db.creator.id == creator.id).update(**data)
         db.commit()
+        creator.update(data)
         if img_changed:
             if img_field == 'indicia_image':
                 # If indicias are blank, create them.
-                if not creator_record.indicia_portrait \
-                        or not creator_record.indicia_landscape:
+                if not creator.indicia_portrait \
+                        or not creator.indicia_landscape:
                     # This runs in the forground so keep it fast.
                     create_creator_indicia(
-                        creator_record, resize=False, optimize=False)
-                queue_update_indicia(creator_record)
-            AllSizesImages.from_names([creator_record[img_field]]).optimize()
-        return image_as_json(db, creator_record.id, field=img_field)
+                        creator, resize=False, optimize=False)
+                queue_update_indicia(creator)
+            AllSizesImages.from_names([creator[img_field]]).optimize()
+        return image_as_json(creator, field=img_field)
 
     elif request.env.request_method == 'DELETE':
         # retrieve real file name
-        if not creator_record[img_field]:
+        if not creator[img_field]:
             return do_error('')
 
         filename, _ = db.creator[img_field].retrieve(
-            creator_record[img_field],
+            creator[img_field],
             nameonly=True,
         )
         # Clear the images from the record
         data = {img_field: None}
-        on_delete_image(creator_record[img_field])
+        on_delete_image(creator[img_field])
         if img_field == 'indicia_image':
-            on_delete_image(creator_record['indicia_portrait'])
-            on_delete_image(creator_record['indicia_landscape'])
+            on_delete_image(creator['indicia_portrait'])
+            on_delete_image(creator['indicia_landscape'])
             data['indicia_portrait'] = None
             data['indicia_landscape'] = None
-        db(db.creator.id == creator_record.id).update(**data)
+        db(db.creator.id == creator.id).update(**data)
         db.commit()
+        creator.update(data)
         if img_field == 'indicia_image':
-            queue_update_indicia(creator_record)
+            queue_update_indicia(creator)
         return dumps({"files": [{filename: 'true'}]})
 
     # GET
-    return image_as_json(db, creator_record.id, field=img_field)
+    return image_as_json(creator, field=img_field)
 
 
 @auth.requires_login()
@@ -873,10 +893,11 @@ def index():
 def indicia():
     """Indicia controller.
     """
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         redirect(URL('index'))
 
     response.files.append(
@@ -894,7 +915,7 @@ def indicia():
         )
     )
 
-    return dict(creator=creator_record)
+    return dict(creator=creator)
 
 
 @auth.requires_login()
@@ -907,10 +928,11 @@ def indicia_preview_urls():
         """Error handler."""
         return {'status': 'error', 'msg': msg or 'Server request failed'}
 
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return do_error('Permission denied')
 
     urls = {
@@ -920,11 +942,11 @@ def indicia_preview_urls():
 
     for orientation in urls.keys():
         field = 'indicia_{o}'.format(o=orientation)
-        if creator_record[field]:
+        if creator[field]:
             urls[orientation] = URL(
                 c='images',
                 f='download',
-                args=creator_record[field],
+                args=creator[field],
                 vars={'size': 'web'},
             )
         else:
@@ -972,10 +994,11 @@ def link_crud():
         """Error handler."""
         return {'status': 'error', 'msg': msg or 'Server request failed'}
 
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return do_error('Permission denied')
 
     record_table = request.args(0)
@@ -992,15 +1015,15 @@ def link_crud():
             request_args_1 = int(request.args(1))
         except (TypeError, ValueError):
             return do_error('Permission denied')
-        if request_args_1 != creator_record.id:
+        if request_args_1 != creator.id:
             return do_error('Permission denied')
-        record = creator_record
+        record = creator
 
     if record_table == 'book':
         book_record = entity_to_row(db.book, request.args(1))
         if not book_record:
             return do_error('Invalid data provided')
-        if book_record.creator_id != creator_record.id:
+        if book_record.creator_id != creator.id:
             return do_error('Permission denied')
         record = book_record
 
@@ -1148,10 +1171,11 @@ def metadata_crud():
         """Error handler."""
         return {'status': 'error', 'msg': msg or 'Server request failed'}
 
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return do_error('Permission denied')
 
     # W0212 (protected-access): *Access to a protected member
@@ -1168,7 +1192,7 @@ def metadata_crud():
         return do_error('Invalid data provided')
     book_record = entity_to_row(db.book, book_id)
     if not book_record or (
-            book_record and book_record.creator_id != creator_record.id):
+            book_record and book_record.creator_id != creator.id):
         return do_error('Invalid data provided')
 
     if action == 'get':
@@ -1375,10 +1399,11 @@ def metadata_text():
         """Error handler."""
         return {'status': 'error', 'msg': msg or 'Server request failed'}
 
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         return do_error('Permission denied')
 
     book_record = None
@@ -1388,7 +1413,7 @@ def metadata_text():
         return do_error('Invalid data provided')
     book_record = entity_to_row(db.book, book_id)
     if not book_record or (
-            book_record and book_record.creator_id != creator_record.id):
+            book_record and book_record.creator_id != creator.id):
         return do_error('Invalid data provided')
 
     meta = PublicationMetadata(book_record)
@@ -1401,10 +1426,11 @@ def metadata_text():
 @auth.requires_login()
 def profile():
     """Creator profile controller."""
-    creator_record = db(db.creator.auth_user_id == auth.user_id).select(
-        db.creator.ALL
-    ).first()
-    if not creator_record:
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
         redirect(URL('index'))
 
     response.files.append(
@@ -1422,7 +1448,7 @@ def profile():
         link_types.append(LinkType.by_code(link_type_code))
 
     return dict(
-        creator=creator_record,
+        creator=creator,
         link_types=link_types,
-        short_url=short_url(creator_record)
+        short_url=short_url(creator)
     )

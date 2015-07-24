@@ -113,7 +113,7 @@ class Grid(object):
 
         db.auth_user.name.represent = lambda v, row: A(
             v,
-            _href=creator_url(row.creator.id, extension=False)
+            _href=creator_url(row.creator, extension=False)
         )
 
         db.book.name.represent = lambda v, row: A(
@@ -147,6 +147,7 @@ class Grid(object):
             db.creator.paypal_email,
             db.creator.contributions_remaining,
             db.creator.torrent,
+            db.creator.name_for_url,
         ]
 
         visible = [str(x) for x in self.visible_fields()]
@@ -823,13 +824,12 @@ class Tile(object):
 
     def footer_links(self):
         """Return a div for the tile footer links."""
-        db = self.db
         row = self.row
 
         breadcrumb_lis = []
         append_li = lambda x: x and breadcrumb_lis.append(LI(x))
 
-        if can_receive_contributions(db, row.creator):
+        if can_receive_contributions(row.creator):
             append_li(self.contribute_link())
 
         dl_link = self.download_link()
@@ -957,7 +957,8 @@ class BookTile(Tile):
     def subtitle(self):
         """Return div for the tile subtitle."""
         row = self.row
-        creator_href = creator_url(row.creator.id, extension=False)
+        creator = Creator.from_id(row.creator.id)
+        creator_href = creator_url(creator, extension=False)
 
         return DIV(
             A(
@@ -1002,15 +1003,13 @@ class CartoonistTile(Tile):
             row: gluon.dal.Row representing row of grid
         """
         Tile.__init__(self, db, value, row)
-        self.creator_href = creator_url(self.row.creator.id, extension=False)
+        self.creator = Creator.from_id(self.row.creator.id)
+        self.creator_href = creator_url(self.creator, extension=False)
 
     def contribute_link(self):
         """Return the tile contribute link."""
-        db = self.db
-        row = self.row
         return creator_contribute_link(
-            db,
-            row.creator,
+            self.creator,
             components=['contribute'],
             **dict(_class='contribute_button no_rclick_menu')
         )
@@ -1021,7 +1020,7 @@ class CartoonistTile(Tile):
         row = self.row
         if not row.creator or not row.creator.id or not row.creator.torrent:
             return empty
-        url = creator_torrent_url(row.creator.id)
+        url = creator_torrent_url(self.creator)
         return A(
             'download',
             _href=url
@@ -1055,10 +1054,9 @@ class CartoonistTile(Tile):
     def image(self):
         """Return a div for the tile image."""
         row = self.row
-        creator = Creator.from_id(row.creator.id)
         creator_image = A(
             CreatorImgTag(
-                creator.image,
+                self.creator.image,
                 size='web',
                 attributes={'_alt': row.auth_user.name}
             )(),
@@ -1122,7 +1120,7 @@ class MoniesBookTile(BookTile):
             include_publication_year=(row.book.release_date != None)
         )
 
-        if can_receive_contributions(db, row.creator):
+        if can_receive_contributions(row.creator):
             inner = book_contribute_link(
                 db,
                 row.book.id,
@@ -1142,7 +1140,7 @@ class MoniesBookTile(BookTile):
         db = self.db
         row = self.row
         img = cover_image(db, row.book, size='web')
-        if can_receive_contributions(db, row.creator):
+        if can_receive_contributions(row.creator):
             inner = book_contribute_link(
                 db,
                 row.book.id,
@@ -1193,12 +1191,11 @@ def creator_contribute_button(row):
         return ''
     if 'creator' not in row or not row.creator.id:
         return ''
-    db = current.app.db
-    if not can_receive_contributions(db, row.creator):
+    creator = Creator.from_id(row.creator.id)
+    if not can_receive_contributions(creator):
         return ''
     return creator_contribute_link(
-        db,
-        row.creator.id,
+        creator,
         **dict(_class='btn btn-default contribute_button no_rclick_menu')
     )
 
@@ -1273,7 +1270,8 @@ def link_for_creator_torrent(row):
         return ''
     if 'creator' not in row or not row.creator.id or not row.creator.torrent:
         return ''
-    return creator_torrent_link(row.creator.id)
+    creator = Creator.from_id(row.creator.id)
+    return creator_torrent_link(creator)
 
 
 def read_link(row):

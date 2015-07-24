@@ -300,7 +300,7 @@ class BookListingCreator(object):
         """Initializer
 
         Args:
-            creator: Row instance representing a creator.
+            creator: Creator instance
         """
         self.creator = creator
 
@@ -312,7 +312,7 @@ class BookListingCreator(object):
         """
         return A(
             creator_formatted_name(self.creator),
-            _href=creator_short_url(self.creator.id)
+            _href=creator_short_url(self.creator)
         )
 
 
@@ -330,7 +330,10 @@ def book_listing_creator(creator):
     """Return the BookListingCreator instance for the creator.
 
     Args:
-        creator: Row instance representing a creator.
+        creator: Creator instance
+
+    Returns
+        BookListingCreator or subclass instance
     """
     listing_class = BookListingCreatorWithTumblr \
         if creator.tumblr is not None \

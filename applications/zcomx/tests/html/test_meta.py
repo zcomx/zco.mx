@@ -9,6 +9,7 @@ Test suite for zcomx/modules/html/meta.py
 import copy
 import unittest
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.html.meta import \
     BaseMetaPreparer, \
     MetadataFactory, \
@@ -367,10 +368,11 @@ class TestFunctions(LocalTestCase):
     def test__html_metadata_from_records(self):
 
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             auth_user_id=auth_user.id,
             name_for_url='FirstLast',
         ))
+        creator = Creator.from_id(creator_row.id)
 
         book = self.add(db.book, dict(
             name='My Book',

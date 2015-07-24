@@ -9,6 +9,7 @@ from applications.zcomx.modules.books import \
     page_url, \
     url as book_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     url as creator_url
 from applications.zcomx.modules.search import Grid
 from applications.zcomx.modules.stickon.tools import ExposeImproved
@@ -211,8 +212,14 @@ def top():
     def creator_link(creator_id, text_only=False):
         """Return a creator link."""
         label = 'cartoonist'
-        url = creator_url(creator_id, extension=False) \
-            if creator_id and not text_only else None
+        url = None
+        if not text_only:
+            try:
+                creator = Creator.from_id(creator_id)
+            except LookupError:
+                url = None
+            else:
+                url = creator_url(creator, extension=False)
         return li_link(label, url)
 
     def login_link(label):

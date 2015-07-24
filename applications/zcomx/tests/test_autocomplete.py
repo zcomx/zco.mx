@@ -17,6 +17,7 @@ from applications.zcomx.modules.autocomplete import \
     CreatorAutocompleter, \
     autocompleter_class
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
@@ -282,10 +283,11 @@ class TestCreatorAutocompleter(LocalTestCase):
             name='First Last'
         ))
 
-        creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             auth_user_id=auth_user.id,
             name_for_search='azbycxazbycx',
         ))
+        creator = Creator.from_id(creator_row.id)
         autocompleter = CreatorAutocompleter()
         self.assertEqual(
             autocompleter.formatted_value(creator.id), 'First Last')
