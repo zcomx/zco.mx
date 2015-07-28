@@ -6,6 +6,7 @@
 Access classes and functions.
 """
 from gluon import *
+from applications.zcomx.modules.creators import Creator
 
 
 def requires_admin_ip(requires_login=True, otherwise=None):
@@ -45,15 +46,17 @@ def requires_agreed_to_terms():
         """Decorator"""
         def wrapper(*a, **b):
             """Wrapped function."""
-            db = current.app.db
             auth = current.app.auth
 
             if not auth.is_impersonating():
-                creator_record = db(
-                    db.creator.auth_user_id == auth.user_id
-                ).select(db.creator.ALL).first()
-                if not creator_record or not creator_record.agreed_to_terms:
-                    return redirect(URL(c='login', f='agree_to_terms'))
+                redirect_url = URL(c='login', f='agree_to_terms')
+                try:
+                    creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+                except LookupError:
+                    return redirect(redirect_url)
+                else:
+                    if not creator.agreed_to_terms:
+                        return redirect(redirect_url)
 
             return action(*a, **b)
         wrapper.__doc__ = action.__doc__

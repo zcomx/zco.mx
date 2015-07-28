@@ -36,6 +36,7 @@ import subprocess
 import zipfile
 from gluon import *
 from gluon.contrib.simplejson import dumps
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import book_page_for_json
 from applications.zcomx.modules.images import \
     is_image, \
@@ -44,7 +45,6 @@ from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     TemporaryDirectory, \
     UnixFile
-from applications.zcomx.modules.utils import entity_to_row
 
 LOG = logging.getLogger('app')
 
@@ -280,7 +280,6 @@ class UploadedArchive(UploadedFile):
 
     def for_json(self):
         """Return uploaded files as json appropriate for jquery-file-upload."""
-        db = current.app.db
         book_page_id = self.book_page_ids[0] if self.book_page_ids else 0
 
         try:
@@ -288,7 +287,7 @@ class UploadedArchive(UploadedFile):
         except (KeyError, OSError):
             size = 0
 
-        cover_page = entity_to_row(db.book_page, book_page_id)
+        cover_page = BookPage.from_id(book_page_id) if book_page_id else None
         thumb = ''
         if cover_page:
             thumb = URL(

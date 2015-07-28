@@ -266,11 +266,11 @@ class MetadataFactory(object):
         return meta
 
 
-def html_metadata_from_records(creator_entity, book_entity):
+def html_metadata_from_records(creator, book_entity):
     """Get the prepared metadata from records.
 
     Args:
-        creator_entity: Row instance or integer representing a creator
+        creator: Creator instance
         book_entity: Row instance or integer representing a book
 
     Returns:
@@ -284,6 +284,6 @@ def html_metadata_from_records(creator_entity, book_entity):
 
     if book_entity is not None:
         metadata['book'] = book_metadata(book_entity)
-    if creator_entity is not None:
-        metadata['creator'] = creator_metadata(creator_entity)
+    if creator is not None:
+        metadata['creator'] = creator_metadata(creator)
     return metadata

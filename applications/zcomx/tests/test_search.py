@@ -19,7 +19,7 @@ from applications.zcomx.modules.books import \
     formatted_name, \
     page_url
 from applications.zcomx.modules.creators import \
-    can_receive_contributions, \
+    Creator, \
     creator_name
 from applications.zcomx.modules.search import \
     BookTile, \
@@ -27,7 +27,6 @@ from applications.zcomx.modules.search import \
     CartoonistsGrid, \
     CompletedGrid, \
     CreatorMoniesGrid, \
-    GRID_CLASSES, \
     Grid, \
     MoniesBookTile, \
     OngoingGrid, \
@@ -35,7 +34,6 @@ from applications.zcomx.modules.search import \
     Tile, \
     book_contribute_button, \
     creator_contribute_button, \
-    classified, \
     download_link, \
     follow_link, \
     link_book_id, \
@@ -127,6 +125,7 @@ class TileTestCase(LocalTestCase):
                 'paypal_email': None,
                 'torrent': None,
                 'contributions_remaining': 10.0,
+                'name_for_url': creator.name_for_url,
             })
         })
         cls._value = '_value_'
@@ -153,6 +152,19 @@ class TestGrid(LocalTestCase):
             ]
         )
         self.assertEqual(len(grid.form_grid.rows), len(rows))
+
+    def test_class_factory(self):
+        tests = [
+            # (name, expect class)
+            ('creators', CartoonistsGrid),
+            ('creator_monies', CreatorMoniesGrid),
+            ('ongoing', OngoingGrid),
+            ('search', SearchGrid),
+            ('completed', CompletedGrid),
+        ]
+        for t in tests:
+            got = Grid.class_factory(t[0])
+            self.assertTrue(isinstance(got, t[1]))
 
     def test__filters(self):
         grid = SubGrid()
@@ -495,8 +507,9 @@ class TestCreatorMoniesGrid(LocalTestCase):
         self.assertEqual(len(grid.filters()), 0)
 
         # creator is set
-        creator = self.add(db.creator, dict(email='test__filters@email.com'))
-        grid = CreatorMoniesGrid(creator_entity=creator)
+        row = self.add(db.creator, dict(email='test__filters@email.com'))
+        creator = Creator.from_id(row.id)
+        grid = CreatorMoniesGrid(creator=creator)
         self.assertEqual(len(grid.filters()), 1)
 
 
@@ -523,8 +536,6 @@ class TestMoniesBookTile(TileTestCase):
 
         # Test: can contribute = True
         self._row.creator.paypal_email = 'testing@paypal.com'
-        self.assertTrue(can_receive_contributions(db, self._row.creator))
-
         tile = MoniesBookTile(db, self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer))
@@ -547,7 +558,6 @@ class TestMoniesBookTile(TileTestCase):
 
         # Test: can contribute = False
         self._row.creator.paypal_email = None
-        self.assertFalse(can_receive_contributions(db, self._row.creator))
         tile = MoniesBookTile(db, self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer))
@@ -567,8 +577,6 @@ class TestMoniesBookTile(TileTestCase):
 
         # Test: can contribute = True
         self._row.creator.paypal_email = 'testing@paypal.com'
-        self.assertTrue(can_receive_contributions(db, self._row.creator))
-
         tile = MoniesBookTile(db, self._value, self._row)
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div))
@@ -599,7 +607,6 @@ class TestMoniesBookTile(TileTestCase):
 
         # Test: can contribute = False
         self._row.creator.paypal_email = None
-        self.assertFalse(can_receive_contributions(db, self._row.creator))
         tile = MoniesBookTile(db, self._value, self._row)
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div))
@@ -1010,7 +1017,8 @@ class TestBookTile(TileTestCase):
         self.assertEqual(
             anchor['href'],
             '/{name}'.format(
-                name=creator_name(self._row.creator.id, use='url'))
+                name=creator_name(
+                    Creator(self._row.creator.as_dict()), use='url'))
         )
         self.assertEqual(anchor['title'], self._row.auth_user.name)
         self.assertEqual(anchor.string, self._row.auth_user.name)
@@ -1027,7 +1035,7 @@ class TestBookTile(TileTestCase):
         self.assertEqual(div['class'], 'col-sm-12 name')
         anchor = div.a
         self.assertEqual(anchor['href'], '/{c}/{b}'.format(
-            c=creator_name(self._row.creator.id, use='url'),
+            c=creator_name(Creator(self._row.creator.as_dict()), use='url'),
             b=urllib.quote(book_name(self._row.book.id, use='url'))
         ))
         book_formatted = formatted_name(
@@ -1083,7 +1091,8 @@ class TestCartoonistTile(TileTestCase):
         self.assertEqual(
             anchor['href'],
             '/{name}_({cid}.zco.mx).torrent'.format(
-                name=creator_name(self._row.creator.id, use='url'),
+                name=creator_name(
+                    Creator(self._row.creator.as_dict()), use='url'),
                 cid=self._row.creator.id
             )
         )
@@ -1156,7 +1165,8 @@ class TestCartoonistTile(TileTestCase):
         self.assertEqual(
             anchor['href'],
             '/{name}_({cid}.zco.mx).torrent'.format(
-                name=creator_name(self._row.creator.id, use='url'),
+                name=creator_name(
+                    Creator(self._row.creator.as_dict()), use='url'),
                 cid=self._row.creator.id
             )
         )
@@ -1221,7 +1231,8 @@ class TestCartoonistTile(TileTestCase):
         self.assertEqual(
             anchor['href'],
             '/{name}'.format(
-                name=creator_name(self._row.creator.id, use='url'))
+                name=creator_name(
+                    Creator(self._row.creator.as_dict()), use='url'))
         )
         self.assertEqual(anchor['title'], '')
         img = anchor.img
@@ -1252,7 +1263,7 @@ class TestCartoonistTile(TileTestCase):
         # self.assertEqual(
         #     anchor['href'],
         #     '/{name}'.format(
-        #         name=creator_name(self._row.creator.id, use='url'))
+        #         name=creator_name(self._row.creator, use='url'))
         # )
         # self.assertEqual(anchor['title'], '')
         # div_2 = div.div
@@ -1318,7 +1329,8 @@ class TestCartoonistTile(TileTestCase):
         self.assertEqual(
             anchor['href'],
             '/{name}'.format(
-                name=creator_name(self._row.creator.id, use='url'))
+                name=creator_name(
+                    Creator(self._row.creator.as_dict()), use='url'))
         )
         self.assertEqual(anchor['title'], self._row.auth_user.name)
         self.assertEqual(anchor.string, self._row.auth_user.name)
@@ -1373,7 +1385,6 @@ class TestFunctions(LocalTestCase):
             page_no=1,
         ))
 
-
     def _row(self, book_id=None):
         if not book_id:
             book_id = self._book.id
@@ -1400,12 +1411,6 @@ class TestFunctions(LocalTestCase):
                     data[attr] = None
         return data
 
-    def test_constants(self):
-        self.assertEqual(
-            GRID_CLASSES.keys(),
-            ['completed', 'ongoing', 'creators', 'search']
-        )
-
     def test__book_contribute_button(self):
         self.assertEqual(book_contribute_button({}), '')
 
@@ -1415,11 +1420,12 @@ class TestFunctions(LocalTestCase):
 
         self._book.update_record(creator_id=self._creator.id)
         db.commit()
-        self._creator.update_record(paypal_email='')
+        db(db.creator.id == self._creator.id).update(paypal_email='')
         db.commit()
         self.assertEqual(book_contribute_button(self._row()), '')
 
-        self._creator.update_record(paypal_email='paypal@email.com')
+        db(db.creator.id == self._creator.id).update(
+            paypal_email='paypal@email.com')
         db.commit()
 
         data = self._parse_link(book_contribute_button(self._row()))
@@ -1427,30 +1433,16 @@ class TestFunctions(LocalTestCase):
         self.assertTrue('/contributions/modal?book_id=' in data['href'])
         self.assertTrue('contribute_button' in data['class'])
 
-    def test__classified(self):
-        env = globals()
-        request = env['request']
-
-        tests = [
-            # (request.vars.o, expect)
-            (None, CompletedGrid),
-            ('_fake_', CompletedGrid),
-            ('completed', CompletedGrid),
-            ('ongoing', OngoingGrid),
-            ('creators', CartoonistsGrid),
-        ]
-        for t in tests:
-            request.vars.o = t[0]
-            self.assertEqual(classified(request), t[1])
-
     def test__creator_contribute_button(self):
         self.assertEqual(creator_contribute_button({}), '')
 
-        self._creator.update_record(paypal_email='')
+        db(db.creator.id == self._creator.id).update(
+            paypal_email='')
         db.commit()
         self.assertEqual(creator_contribute_button(self._row()), '')
 
-        self._creator.update_record(paypal_email='paypal@email.com')
+        db(db.creator.id == self._creator.id).update(
+            paypal_email='paypal@email.com')
         db.commit()
 
         data = self._parse_link(creator_contribute_button(self._row()))
@@ -1508,12 +1500,13 @@ class TestFunctions(LocalTestCase):
     def test__link_for_creator_torrent(self):
         self.assertEqual(link_for_creator_torrent({}), '')
 
-        self._creator.update_record(torrent=None)
+        db(db.creator.id == self._creator.id).update(torrent=None)
         db.commit()
         self.assertEqual(self._row().creator.torrent, None)
         self.assertEqual(link_for_creator_torrent(self._row()), '')
 
-        self._creator.update_record(torrent='FirstLast.torrent')
+        db(db.creator.id == self._creator.id).update(
+            torrent='FirstLast.torrent')
         db.commit()
         self.assertEqual(self._row().creator.torrent, 'FirstLast.torrent')
 

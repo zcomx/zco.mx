@@ -15,9 +15,12 @@ from gluon.rewrite import filter_url
 from gluon.storage import \
     List, \
     Storage
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import book_name
-from applications.zcomx.modules.creators import creator_name
+from applications.zcomx.modules.creators import \
+    Creator, \
+    creator_name
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import entity_to_row
@@ -77,12 +80,9 @@ class TestRouter(LocalTestCase):
             orderby=[db.creator.name_for_url, db.book_page.page_no],
             limitby=(0, 1),
         ).first()
-        first_creator = entity_to_row(db.creator, first['creator'].id)
+        first_creator = Creator.from_id(first['creator'].id)
         first_creator_book = entity_to_row(db.book, first['book'].id)
-        first_creator_book_page = entity_to_row(
-            db.book_page,
-            first['book_page'].id
-        )
+        first_creator_book_page = BookPage.from_id(first['book_page'].id)
 
         first_creator_name = creator_name(first_creator, use='url')
         first_creator_book_name = book_name(first_creator_book, use='url')
@@ -109,22 +109,24 @@ class TestRouter(LocalTestCase):
             email='test__auth_user@test.com',
         ))
 
-        self._creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             auth_user_id=self._auth_user.id,
             email='test__creator@test.com',
             name_for_url='FirstLast',
         ))
+        self._creator = Creator.from_id(creator_row.id)
 
-        self._creator_2 = self.add(db.creator, dict(
+        creator_row_2 = self.add(db.creator, dict(
             auth_user_id=self._auth_user.id,
             email='test__creator_2@test.com',
             name_for_url='JohnHancock',
         ))
+        self._creator_2 = Creator.from_id(creator_row_2.id)
 
         self._book = self.add(db.book, dict(
             name='My Book',
             publication_year=1999,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
             number=1,
             of_number=999,
             creator_id=self._creator.id,
@@ -136,7 +138,7 @@ class TestRouter(LocalTestCase):
         self._book_2 = self.add(db.book, dict(
             name='My Second Book',
             publication_year=2002,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
             number=1,
             of_number=999,
             creator_id=self._creator_2.id,
@@ -582,8 +584,9 @@ class TestRouter(LocalTestCase):
             shop=None,
             tumblr=None,
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
         # Creator not set.
         self.assertEqual(router.preset_links(), [])
@@ -611,8 +614,9 @@ class TestRouter(LocalTestCase):
             shop='http://www.shop.com',
             tumblr=None
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
         router.creator_record = None
         test_presets(router.preset_links(), ['shop'])
 
@@ -621,8 +625,9 @@ class TestRouter(LocalTestCase):
             shop=None,
             tumblr='user.tumblr.com',
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
         router.creator_record = None
         test_presets(router.preset_links(), ['tumblr'])
 
@@ -631,8 +636,9 @@ class TestRouter(LocalTestCase):
             shop='http://www.shop.com',
             tumblr='user.tumblr.com',
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
         router.creator_record = None
         test_presets(router.preset_links(), ['shop', 'tumblr'])
 
@@ -1010,7 +1016,8 @@ class TestFunctions(LocalTestCase):
         self._request.vars = Storage()
 
     def test_routes(self):
-        """This tests the ~/routes.py settings."""
+        # This tests the ~/routes.py settings.
+
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         app_root = '/srv/http/jimk.zsw.ca/web2py/applications'

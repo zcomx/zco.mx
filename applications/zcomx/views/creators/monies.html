@@ -12,11 +12,11 @@
     <div class="col-sm-12" id="call_to_action">
         <h1>
         Choose which book by
-        <a href="{{=url(creator.id, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a>
+        <a href="{{=url(creator, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a>
         to give monies to!!
         </h1>
     </div>
-    {{if not can_receive_contributions(db, creator):}}
+    {{if not can_receive_contributions(creator):}}
     <div class="alert alert-warning col-sm-12" role="alert">
         Please note {{=creator_name}} is not taking contributions at this time.
     </div>

@@ -21,6 +21,10 @@ class DubRecord(Record):
     db_table = 'book'
 
 
+class DubInvalidTableRecord(Record):
+    db_table = '_fake_'
+
+
 class TestRecord(LocalTestCase):
 
     def test____init__(self):
@@ -59,6 +63,54 @@ class TestRecord(LocalTestCase):
             book_keys,
             sorted(db.book.fields)
         )
+
+        # Test db_table parameter.
+        self.assertRaises(
+            AttributeError, DubInvalidTableRecord.from_id, saved_book.id)
+        book = DubInvalidTableRecord.from_id(saved_book.id, db_table='book')
+        self.assertEqual(book.id, saved_book.id)
+        self.assertEqual(book.name, '_test__from_id_')
+
+    def test__from_key(self):
+        data = dict(
+            name='_test__from_key_',
+            name_for_url='_TestFromKey_',
+            name_for_search='_test-from-key_',
+        )
+        saved_book = self.add(db.book, data)
+
+        mismatch_data = dict(
+            name='_test__from_key_',
+            name_for_url='_TestFromKey_X_',
+            name_for_search='_test-from-key_',
+        )
+
+        tests = [
+            # (key, match)
+            (dict(name='_test__from_key_'), True),
+            (data, True),
+            (dict(name='_test__from_key_x_'), False),
+            (mismatch_data, False),
+        ]
+        for t in tests:
+            if t[1]:
+                book = DubRecord.from_key(t[0])
+                self.assertEqual(book.id, saved_book.id)
+                ignore = ['delete_record', 'update_record']
+                book_keys = [x for x in sorted(book.keys()) if x not in ignore]
+                self.assertEqual(
+                    book_keys,
+                    sorted(db.book.fields)
+                )
+            else:
+                self.assertRaises(LookupError, DubRecord.from_key, t[0])
+
+        # Test db_table parameter.
+        self.assertRaises(
+            AttributeError, DubInvalidTableRecord.from_key, data)
+        book = DubInvalidTableRecord.from_key(data, db_table='book')
+        self.assertEqual(book.id, saved_book.id)
+        self.assertEqual(book.name, '_test__from_key_')
 
     def test__save(self):
         book = DubRecord(name='_test__save_')

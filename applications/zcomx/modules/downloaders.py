@@ -13,6 +13,7 @@ from gluon.globals import Response
 from gluon.streamer import DEFAULT_CHUNK_SIZE
 from gluon.contenttype import contenttype
 from applications.zcomx.modules.archives import TorrentArchive
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import \
     filename_for_size, \
     SIZES
@@ -34,17 +35,14 @@ class CBZDownloader(Response):
         current.session.forget(current.response)
 
         if not request.args:
-            LOG.debug('FIXME no request.args')
             raise HTTP(404)
 
         book = entity_to_row(db.book, request.args(0))
         if not book:
-            LOG.debug('FIXME book not found')
             raise HTTP(404)
         filename = book.cbz
 
         if not filename or not os.path.exists(filename):
-            LOG.debug('FIXME cbz file  not found')
             raise HTTP(404)
 
         stream = os.path.abspath(filename)
@@ -154,8 +152,9 @@ class TorrentDownloader(Response):
                 name
             )
         elif tor_type == 'creator':
-            creator = entity_to_row(db.creator, request.args(1))
-            if not creator:
+            try:
+                creator = Creator.from_id(request.args(1))
+            except LookupError:
                 raise HTTP(404)
             filename = creator.torrent
         else:

@@ -9,7 +9,6 @@ import logging
 import os
 from gluon import *
 from applications.zcomx.modules.books import book_pages as b_pages
-from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.images import ImageDescriptor
 
 LOG = logging.getLogger('app')

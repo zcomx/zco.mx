@@ -5,7 +5,6 @@
 
 Search classes and functions.
 """
-import collections
 import logging
 from BeautifulSoup import BeautifulSoup
 from gluon import *
@@ -22,6 +21,7 @@ from applications.zcomx.modules.books import \
     read_link as book_read_link, \
     url as book_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     can_receive_contributions, \
     contribute_link as creator_contribute_link, \
     follow_link as creator_follow_link, \
@@ -31,6 +31,7 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
 from applications.zcomx.modules.utils import \
+    ClassFactory, \
     entity_to_row, \
     replace_in_elements
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
@@ -60,6 +61,7 @@ class Grid(object):
 
     _not_found_msg = None
 
+    class_factory = ClassFactory('class_factory_id')
     viewbys = {
         # name: items_per_page
         'list': {
@@ -111,7 +113,7 @@ class Grid(object):
 
         db.auth_user.name.represent = lambda v, row: A(
             v,
-            _href=creator_url(row.creator.id, extension=False)
+            _href=creator_url(row.creator, extension=False)
         )
 
         db.book.name.represent = lambda v, row: A(
@@ -145,6 +147,7 @@ class Grid(object):
             db.creator.paypal_email,
             db.creator.contributions_remaining,
             db.creator.torrent,
+            db.creator.name_for_url,
         ]
 
         visible = [str(x) for x in self.visible_fields()]
@@ -389,12 +392,10 @@ class Grid(object):
     def tabs(self):
         """Return a div of clickable tabs used to select the orderby."""
         lis = []
-        orderbys = [
-            x for x in GRID_CLASSES.keys()
-            if (self.request.vars.o == 'search'
-                and x == self.request.vars.o)
-            or (self.request.vars.o != 'search' and x != 'search')
-        ]
+
+        orderbys = ['search'] \
+            if self.request.vars.o == 'search' \
+            else ['completed', 'ongoing', 'creators']
 
         orderby = self.request.vars.o \
             if self.request.vars.o in orderbys else orderbys[0]
@@ -406,7 +407,7 @@ class Grid(object):
             if 'page' in orderby_vars:
                 # Each tab should reset to page 1.
                 del orderby_vars['page']
-            label = GRID_CLASSES[o].label('tab_label')
+            label = self.class_factory(o).label('tab_label')
             lis.append(LI(
                 A(
                     label,
@@ -467,8 +468,10 @@ class Grid(object):
         return []
 
 
+@Grid.class_factory.register
 class CartoonistsGrid(Grid):
     """Class representing a grid for search results: cartoonist"""
+    class_factory_id = 'creators'
 
     _attributes = {
         'table': 'creator',
@@ -530,8 +533,10 @@ class CartoonistsGrid(Grid):
         ]
 
 
+@Grid.class_factory.register
 class CompletedGrid(Grid):
     """Class representing a grid for search results: completed"""
+    class_factory_id = 'completed'
 
     _attributes = {
         'table': 'book',
@@ -592,8 +597,10 @@ class CompletedGrid(Grid):
         ]
 
 
+@Grid.class_factory.register
 class CreatorMoniesGrid(Grid):
     """Class representing a grid for search results: creator_monies"""
+    class_factory_id = 'creator_monies'
 
     _attributes = dict(Grid._attributes)
     _attributes.update({
@@ -609,16 +616,9 @@ class CreatorMoniesGrid(Grid):
             form_grid_args=None,
             queries=None,
             default_viewby='tile',
-            creator_entity=None):
+            creator=None):
         """Constructor"""
-
-        db = current.app.db
-        self.creator = None
-        if creator_entity is not None:
-            self.creator = entity_to_row(db.creator, creator_entity)
-            if not self.creator:
-                raise LookupError('Creator not found: {e}'.format(
-                    e=creator_entity))
+        self.creator = creator
 
         Grid.__init__(
             self,
@@ -641,8 +641,10 @@ class CreatorMoniesGrid(Grid):
         return queries
 
 
+@Grid.class_factory.register
 class OngoingGrid(Grid):
     """Class representing a grid for search results: ongoing"""
+    class_factory_id = 'ongoing'
 
     _attributes = {
         'table': 'book',
@@ -702,8 +704,10 @@ class OngoingGrid(Grid):
         ]
 
 
+@Grid.class_factory.register
 class SearchGrid(Grid):
     """Class representing a grid for search results."""
+    class_factory_id = 'search'
 
     _attributes = {
         'table': 'book',
@@ -769,13 +773,6 @@ class SearchGrid(Grid):
         ]
 
 
-GRID_CLASSES = collections.OrderedDict()
-GRID_CLASSES['completed'] = CompletedGrid
-GRID_CLASSES['ongoing'] = OngoingGrid
-GRID_CLASSES['creators'] = CartoonistsGrid
-GRID_CLASSES['search'] = SearchGrid
-
-
 class Tile(object):
     """Class representing a Tile"""
 
@@ -827,13 +824,12 @@ class Tile(object):
 
     def footer_links(self):
         """Return a div for the tile footer links."""
-        db = self.db
         row = self.row
 
         breadcrumb_lis = []
         append_li = lambda x: x and breadcrumb_lis.append(LI(x))
 
-        if can_receive_contributions(db, row.creator):
+        if can_receive_contributions(row.creator):
             append_li(self.contribute_link())
 
         dl_link = self.download_link()
@@ -937,7 +933,7 @@ class BookTile(Tile):
         if not is_followable(book):
             return SPAN('')
 
-        creator = entity_to_row(db.creator, row.creator.id)
+        creator = Creator.from_id(row.creator.id)
         return creator_follow_link(
             creator,
             components=['follow'],
@@ -961,7 +957,8 @@ class BookTile(Tile):
     def subtitle(self):
         """Return div for the tile subtitle."""
         row = self.row
-        creator_href = creator_url(row.creator.id, extension=False)
+        creator = Creator.from_id(row.creator.id)
+        creator_href = creator_url(creator, extension=False)
 
         return DIV(
             A(
@@ -1006,15 +1003,13 @@ class CartoonistTile(Tile):
             row: gluon.dal.Row representing row of grid
         """
         Tile.__init__(self, db, value, row)
-        self.creator_href = creator_url(self.row.creator.id, extension=False)
+        self.creator = Creator.from_id(self.row.creator.id)
+        self.creator_href = creator_url(self.creator, extension=False)
 
     def contribute_link(self):
         """Return the tile contribute link."""
-        db = self.db
-        row = self.row
         return creator_contribute_link(
-            db,
-            row.creator,
+            self.creator,
             components=['contribute'],
             **dict(_class='contribute_button no_rclick_menu')
         )
@@ -1025,7 +1020,7 @@ class CartoonistTile(Tile):
         row = self.row
         if not row.creator or not row.creator.id or not row.creator.torrent:
             return empty
-        url = creator_torrent_url(row.creator.id)
+        url = creator_torrent_url(self.creator)
         return A(
             'download',
             _href=url
@@ -1058,12 +1053,10 @@ class CartoonistTile(Tile):
 
     def image(self):
         """Return a div for the tile image."""
-        db = self.db
         row = self.row
-        creator = entity_to_row(db.creator, row.creator.id)
         creator_image = A(
             CreatorImgTag(
-                creator.image,
+                self.creator.image,
                 size='web',
                 attributes={'_alt': row.auth_user.name}
             )(),
@@ -1127,7 +1120,7 @@ class MoniesBookTile(BookTile):
             include_publication_year=(row.book.release_date != None)
         )
 
-        if can_receive_contributions(db, row.creator):
+        if can_receive_contributions(row.creator):
             inner = book_contribute_link(
                 db,
                 row.book.id,
@@ -1147,7 +1140,7 @@ class MoniesBookTile(BookTile):
         db = self.db
         row = self.row
         img = cover_image(db, row.book, size='web')
-        if can_receive_contributions(db, row.creator):
+        if can_receive_contributions(row.creator):
             inner = book_contribute_link(
                 db,
                 row.book.id,
@@ -1191,23 +1184,6 @@ def book_contribute_button(row):
     )
 
 
-def classified(request):
-    """Return the appropriate Grid class for request.
-
-    Args:
-        request: gluon.global.Request instance
-
-    Returns:
-        Grid class or subclass
-    """
-    grid_class = CompletedGrid
-    LOG.debug('request.vars.o: %s', request.vars.o)
-    if request.vars.o:
-        if request.vars.o in GRID_CLASSES:
-            grid_class = GRID_CLASSES[request.vars.o]
-    return grid_class
-
-
 def creator_contribute_button(row):
     """Return a creator 'contribute' button suitable for grid row."""
     # Only display if creator has a paypal address.
@@ -1215,12 +1191,11 @@ def creator_contribute_button(row):
         return ''
     if 'creator' not in row or not row.creator.id:
         return ''
-    db = current.app.db
-    if not can_receive_contributions(db, row.creator):
+    creator = Creator.from_id(row.creator.id)
+    if not can_receive_contributions(creator):
         return ''
     return creator_contribute_link(
-        db,
-        row.creator.id,
+        creator,
         **dict(_class='btn btn-default contribute_button no_rclick_menu')
     )
 
@@ -1282,9 +1257,7 @@ def link_for_creator_follow(row):
         return ''
     if 'creator' not in row or not row.creator.id:
         return ''
-    db = current.app.db
-
-    creator = entity_to_row(db.creator, row.creator.id)
+    creator = Creator.from_id(row.creator.id)
     return creator_follow_link(
         creator,
         **dict(_class='btn btn-default rss_button no_rclick_menu')
@@ -1297,7 +1270,8 @@ def link_for_creator_torrent(row):
         return ''
     if 'creator' not in row or not row.creator.id or not row.creator.torrent:
         return ''
-    return creator_torrent_link(row.creator.id)
+    creator = Creator.from_id(row.creator.id)
+    return creator_torrent_link(creator)
 
 
 def read_link(row):

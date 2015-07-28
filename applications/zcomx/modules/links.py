@@ -128,13 +128,7 @@ class LinkType(Record):
         Returns:
             LinkType instance
         """
-        db = current.app.db
-        query = (db.link_type.code == code)
-        link_type = db(query).select().first()
-        if not link_type:
-            raise LookupError('Link type not found, link: {c}'.format(
-                c=code))
-        return LinkType(link_type.as_dict())
+        return cls.from_key({'code': code})
 
 
 class BaseLinkSet(object):

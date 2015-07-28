@@ -18,7 +18,7 @@ from applications.zcomx.modules.cbz import \
     CBZCreateError, \
     CBZCreator, \
     archive
-from applications.zcomx.modules.indicias import cc_licence_by_code
+from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -84,11 +84,13 @@ class WithObjectsTestCase(LocalTestCase):
 
         query = (db.book_type.name == DEFAULT_BOOK_TYPE)
         book_type_id = db(query).select().first().id
+        cc_by_nd = CCLicence.by_code('CC BY-ND')
         self._book = self.add(db.book, dict(
             name='My CBZ Test',
             creator_id=self._creator.id,
             book_type_id=book_type_id,
-            cc_licence_id=cc_licence_by_code('CC BY-ND', want='id', default=0),
+            cc_licence_id=cc_by_nd.id,
+
         ))
 
         self._book_page = self.add(db.book_page, dict(

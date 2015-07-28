@@ -400,7 +400,6 @@ div.centered table {
 #login_page div.error,
 #account_services_page div.error,
 #agree_to_terms_page div.error {
-    background: #FF4444;
     border: none;
     border-radius: 0px;
     margin-bottom: 2em;

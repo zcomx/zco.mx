@@ -3,8 +3,10 @@
 from applications.zcomx.modules.access import requires_login_if_configured
 from applications.zcomx.modules.autocomplete import autocompleter_class
 from applications.zcomx.modules.books import url as book_url
-from applications.zcomx.modules.creators import url as creator_url
-from applications.zcomx.modules.search import classified
+from applications.zcomx.modules.creators import \
+    Creator, \
+    url as creator_url
+from applications.zcomx.modules.search import Grid
 from applications.zcomx.modules.zco import Zco
 
 import logging
@@ -51,7 +53,12 @@ def autocomplete_selected():
     if request.args(0) == 'book':
         url = book_url(record_id)
     elif request.args(0) == 'creator':
-        url = creator_url(record_id)
+        try:
+            creator = Creator.from_id(record_id)
+        except LookupError:
+            url = None
+        else:
+            url = creator_url(creator)
 
     if not url:
         page_not_found()
@@ -76,7 +83,7 @@ def index():
 
     icons = {'list': 'th-list', 'tile': 'th-large'}
 
-    grid = classified(request)()
+    grid = Grid.class_factory(request.vars.o or 'completed')
 
     return dict(
         grid=grid,

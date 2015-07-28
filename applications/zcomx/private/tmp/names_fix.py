@@ -24,6 +24,7 @@ from optparse import OptionParser
 from applications.zcomx.modules.books import \
     names as book_names
 from applications.zcomx.modules.creators import \
+    Creator, \
     formatted_name
 from applications.zcomx.modules.names import \
     CreatorName, \
@@ -55,7 +56,8 @@ def fix_names(tablename):
         if tablename == 'book':
             data = book_names(record.as_dict(), fields=db[tablename].fields)
         elif tablename == 'creator':
-            creator_name = CreatorName(formatted_name(record))
+            creator = Creator.from_id(record_id)
+            creator_name = CreatorName(formatted_name(creator))
             data = names(creator_name, fields=db[tablename].fields)
         else:
             continue

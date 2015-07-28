@@ -19,8 +19,9 @@ from applications.zcomx.modules.books import \
     short_url, \
     social_media_data as book_social_media_data
 from applications.zcomx.modules.creators import \
+    Creator, \
+    formatted_name, \
     social_media_data as creator_social_media_data
-from applications.zcomx.modules.creators import formatted_name
 from applications.zcomx.modules.facebook import \
     Authenticator as FbAuthenticator, \
     FacebookAPIError, \
@@ -34,7 +35,9 @@ from applications.zcomx.modules.tweeter import \
     Authenticator as TwAuthenticator, \
     PhotoDataPreparer as TwPhotoDataPreparer, \
     Poster as TwPoster
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.utils import \
+    ClassFactory, \
+    entity_to_row
 from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = logging.getLogger('app')
@@ -43,26 +46,25 @@ LOG = logging.getLogger('app')
 class SocialMedia(object):
     """Base class representing social media"""
 
+    class_factory = ClassFactory('class_factory_id')
     icon_filename = 'zco.mx-logo-small.png'
     site = None
 
-    def __init__(self, book_entity, creator_entity=None):
+    def __init__(self, book_entity, creator=None):
         """Constructor
 
         Args:
             book_entity: Row instance or integer representing a book record
-            creator_entity: Row instance or integer representing a creator
-                record. If None, it is created from book_entity.creator_id.
+            creator: Creator instance. If None, it is created from
+                book_entity.creator_id.
         """
         self.book_entity = book_entity
-        self.creator_entity = creator_entity
         db = current.app.db
         self.book = entity_to_row(db.book, self.book_entity)
-        self.creator = entity_to_row(
-            db.creator,
-            self.creator_entity if self.creator_entity is not None
-            else self.book.creator_id
-        )
+        if creator:
+            self.creator = creator
+        else:
+            self.creator = Creator.from_id(self.book.creator_id)
 
     def follow_url(self):
         """Return a follow url.
@@ -91,21 +93,13 @@ class SocialMedia(object):
         raise NotImplementedError()
 
 
+@SocialMedia.class_factory.register
 class FacebookSocialMedia(SocialMedia):
     """Class representing social media: facebook"""
 
+    class_factory_id = 'facebook'
     icon_filename = 'facebook_logo.svg'
     site = 'http://www.facebook.com'
-
-    def __init__(self, book_entity, creator_entity=None):
-        """Constructor
-
-        Args:
-            book_entity: Row instance or integer representing a book record
-            creator_entity: Row instance or integer representing a creator
-                record. If None, it is created from book_entity.creator_id.
-        """
-        SocialMedia.__init__(self, book_entity, creator_entity=creator_entity)
 
     def follow_url(self):
         """Return a follow url.
@@ -130,21 +124,17 @@ class FacebookSocialMedia(SocialMedia):
             site=self.site, path=urllib.urlencode(query))
 
 
+@SocialMedia.class_factory.register
 class TumblrSocialMedia(SocialMedia):
     """Class representing social media: tumblr"""
 
+    class_factory_id = 'tumblr'
     icon_filename = 'tumblr_logo.svg'
     site = 'https://www.tumblr.com'
 
-    def __init__(self, book_entity, creator_entity=None):
-        """Constructor
-
-        Args:
-            book_entity: Row instance or integer representing a book record
-            creator_entity: Row instance or integer representing a creator
-                record. If None, it is created from book_entity.creator_id.
-        """
-        SocialMedia.__init__(self, book_entity, creator_entity=creator_entity)
+    def __init__(self, book_entity, creator=None):
+        """Constructor"""
+        SocialMedia.__init__(self, book_entity, creator=creator)
         self._username = None
 
     def follow_url(self):
@@ -191,21 +181,13 @@ class TumblrSocialMedia(SocialMedia):
             site=self.site, path=urllib.urlencode(query))
 
 
+@SocialMedia.class_factory.register
 class TwitterSocialMedia(SocialMedia):
     """Class representing social media: twitter"""
 
+    class_factory_id = 'twitter'
     icon_filename = 'twitter_logo.svg'
     site = 'https://twitter.com'
-
-    def __init__(self, book_entity, creator_entity=None):
-        """Constructor
-
-        Args:
-            book_entity: Row instance or integer representing a book record
-            creator_entity: Row instance or integer representing a creator
-                record. If None, it is created from book_entity.creator_id.
-        """
-        SocialMedia.__init__(self, book_entity, creator_entity=creator_entity)
 
     def follow_url(self):
         """Return a follow url.
@@ -236,13 +218,6 @@ class TwitterSocialMedia(SocialMedia):
             site=self.site, path=urllib.urlencode(query))
 
 
-SOCIAL_MEDIA_CLASSES = {
-    'twitter': TwitterSocialMedia,
-    'tumblr': TumblrSocialMedia,
-    'facebook': FacebookSocialMedia,
-}
-
-
 class SocialMediaPostError(Exception):
     """Exception class for errors occurring while posting on social media."""
     pass
@@ -252,6 +227,7 @@ class SocialMediaPoster(object):
     """Base class representing a social media poster."""
 
     authenticate_class = None
+    class_factory = ClassFactory('class_factory_id')
     poster_class = None
     photo_data_preparer_class = None
 
@@ -304,10 +280,12 @@ class SocialMediaPoster(object):
         return self.additional_prepare_data(photo_data)
 
 
+@SocialMediaPoster.class_factory.register
 class FacebookPoster(SocialMediaPoster):
     """Class representing a poster for posting material on facebook."""
 
     authenticate_class = FbAuthenticator
+    class_factory_id = 'facebook'
     poster_class = FbPoster
     photo_data_preparer_class = FbPhotoDataPreparer
 
@@ -341,10 +319,12 @@ class FacebookPoster(SocialMediaPoster):
         return post_id
 
 
+@SocialMediaPoster.class_factory.register
 class TumblrPoster(SocialMediaPoster):
     """Class representing a poster for posting material on tumblr."""
 
     authenticate_class = Authenticator
+    class_factory_id = 'tumblr'
     poster_class = Poster
     photo_data_preparer_class = PhotoDataPreparer
 
@@ -390,10 +370,12 @@ class TumblrPoster(SocialMediaPoster):
         return post_id
 
 
+@SocialMediaPoster.class_factory.register
 class TwitterPoster(SocialMediaPoster):
     """Class representing a poster for posting material on twitter."""
 
     authenticate_class = TwAuthenticator
+    class_factory_id = 'twitter'
     poster_class = TwPoster
     photo_data_preparer_class = TwPhotoDataPreparer
 
@@ -431,10 +413,3 @@ class TwitterPoster(SocialMediaPoster):
         post_id = result['id']
         LOG.debug('post_id: %s', post_id)
         return post_id
-
-
-POSTER_CLASSES = {
-    'facebook': FacebookPoster,
-    'tumblr': TumblrPoster,
-    'twitter': TwitterPoster,
-}

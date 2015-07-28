@@ -5,10 +5,11 @@ import logging
 import traceback
 from gluon.storage import Storage
 from applications.zcomx.modules.books import cbz_url
-from applications.zcomx.modules.creators import url as creator_url
+from applications.zcomx.modules.creators import \
+    Creator, \
+    url as creator_url
 from applications.zcomx.modules.downloaders import CBZDownloader
 from applications.zcomx.modules.events import log_download_click
-from applications.zcomx.modules.utils import entity_to_row
 
 LOG = logging.getLogger('app')
 
@@ -110,7 +111,7 @@ def route():
 
     cbz_name = request.vars.cbz
 
-    creator_record = None
+    creator = None
 
     # Test for request.vars.creator as creator.id
     try:
@@ -118,23 +119,25 @@ def route():
     except (TypeError, ValueError):
         pass
     else:
-        creator_record = entity_to_row(
-            db.creator,
-            request.vars.creator
-        )
+        try:
+            creator = Creator.from_id(request.vars.creator)
+        except LookupError:
+            creator = None
 
     # Test for request.vars.creator as creator.name_for_url
-    if not creator_record:
+    if not creator:
         name = request.vars.creator.replace('_', ' ')
-        query = (db.creator.name_for_url == name)
-        creator_record = db(query).select().first()
+        try:
+            creator = Creator.from_key({'name_for_url': name})
+        except LookupError:
+            creator = None
 
-    if not creator_record:
+    if not creator:
         return page_not_found()
 
-    if '{i:03d}'.format(i=creator_record.id) == request.vars.creator:
+    if '{i:03d}'.format(i=creator.id) == request.vars.creator:
         # Redirect to name version
-        c_url = creator_url(creator_record)
+        c_url = creator_url(creator)
         redirect_url = '/'.join([c_url, request.vars.cbz])
         if request.vars.no_queue:
             redirect_url += '?no_queue=' + str(request.vars.no_queue)
@@ -146,7 +149,7 @@ def route():
     extension = '.cbz'
     if cbz_name.endswith(extension):
         book_name = cbz_name[:(-1 * len(extension))]
-    query = (db.book.creator_id == creator_record.id) & \
+    query = (db.book.creator_id == creator.id) & \
         (db.book.name_for_url == book_name)
     book = db(query).select().first()
     if not book or not book.cbz:

@@ -4,12 +4,14 @@ Default controller.
 """
 import logging
 import os
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     page_url, \
     url as book_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     url as creator_url
-from applications.zcomx.modules.search import classified
+from applications.zcomx.modules.search import Grid
 from applications.zcomx.modules.stickon.tools import ExposeImproved
 from applications.zcomx.modules.utils import \
     faq_tabs, \
@@ -34,7 +36,7 @@ def _search_results(request, response, orderby):
 
     icons = {'list': 'th-list', 'tile': 'th-large'}
 
-    grid = classified(request)()
+    grid = Grid.class_factory(orderby or 'completed')
 
     return dict(
         grid=grid,
@@ -210,8 +212,14 @@ def top():
     def creator_link(creator_id, text_only=False):
         """Return a creator link."""
         label = 'cartoonist'
-        url = creator_url(creator_id, extension=False) \
-            if creator_id and not text_only else None
+        url = None
+        if not text_only:
+            try:
+                creator = Creator.from_id(creator_id)
+            except LookupError:
+                url = None
+            else:
+                url = creator_url(creator, extension=False)
         return li_link(label, url)
 
     def login_link(label):
@@ -225,7 +233,8 @@ def top():
     def page_link(page_id, text_only=False):
         """Return a read (book page) link."""
         label = 'read'
-        url = page_url(page_id, extension=False) \
+        book_page = BookPage.from_id(page_id)
+        url = page_url(book_page, extension=False) \
             if page_id and not text_only else None
         return li_link(label, url)
 

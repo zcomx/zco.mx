@@ -16,7 +16,8 @@ from applications.zcomx.modules.autocomplete import \
     BookAutocompleter, \
     CreatorAutocompleter, \
     autocompleter_class
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
@@ -109,7 +110,7 @@ class TestBaseAutocompleter(DumpTestCase):
         book = self.add(db.book, dict(
             name='My Book',
             number=1,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             name_for_search='azbycxazbycx-001',
             status=BOOK_STATUS_ACTIVE,
         ))
@@ -176,7 +177,7 @@ class TestBookAutocompleter(LocalTestCase):
         book = self.add(db.book, dict(
             name='My Book',
             number=1,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
         ))
         autocompleter = BookAutocompleter()
         self.assertEqual(autocompleter.formatted_value(book.id), 'My Book 001')
@@ -189,7 +190,7 @@ class TestBookAutocompleter(LocalTestCase):
         book = self.add(db.book, dict(
             name='My Book',
             number=1,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             name_for_search='azbycxazbycx-001',
             status=BOOK_STATUS_ACTIVE,
         ))
@@ -233,7 +234,7 @@ class TestBookAutocompleter(LocalTestCase):
             name='Another Book',
             number=2,
             of_number=4,
-            book_type_id=book_type_by_name('mini-series').id,
+            book_type_id=BookType.by_name('mini-series').id,
             name_for_search='my-azbycxazbycx-02-of-04',
             status=BOOK_STATUS_ACTIVE,
         ))
@@ -282,10 +283,11 @@ class TestCreatorAutocompleter(LocalTestCase):
             name='First Last'
         ))
 
-        creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             auth_user_id=auth_user.id,
             name_for_search='azbycxazbycx',
         ))
+        creator = Creator.from_id(creator_row.id)
         autocompleter = CreatorAutocompleter()
         self.assertEqual(
             autocompleter.formatted_value(creator.id), 'First Last')

@@ -16,6 +16,7 @@ from pydal.helpers.classes import Reference
 from gluon.storage import Storage
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
+    ClassFactory, \
     ItemDescription, \
     abridged_list, \
     default_record, \
@@ -32,6 +33,66 @@ from applications.zcomx.modules.utils import \
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
+
+class TestClassFactory(LocalTestCase):
+
+    def test____init__(self):
+        factory = ClassFactory('code')
+        self.assertTrue(factory)
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        self.assertEqual(factory._by_id, {})
+
+    def test____call__(self):
+        factory = ClassFactory('code')
+
+        @factory.register
+        class Aaa(object):
+            code = "A"
+
+            def __init__(self, arg_1, kwarg_1='_default_'):
+                self.arg_1 = arg_1
+                self.kwarg_1 = kwarg_1
+
+        aaa_1 = factory('A', 'an_arg', kwarg_1='a_kwarg')
+        self.assertTrue(isinstance(aaa_1, Aaa))
+        self.assertEqual(aaa_1.arg_1, 'an_arg')
+        self.assertEqual(aaa_1.kwarg_1, 'a_kwarg')
+
+        aaa_2 = factory('A', 'another_arg')
+        self.assertTrue(isinstance(aaa_2, Aaa))
+        self.assertEqual(aaa_2.arg_1, 'another_arg')
+        self.assertEqual(aaa_2.kwarg_1, '_default_')
+
+    def test__register(self):
+        factory = ClassFactory('code')
+
+        @factory.register
+        class Aaa(object):
+            code = "A"
+
+        @factory.register
+        class Bbb(object):
+            code = "B"
+
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        self.assertEqual(sorted(factory._by_id.keys()), ['A', 'B'])
+        self.assertEqual(factory._by_id['A'], Aaa)
+        self.assertEqual(factory._by_id['B'], Bbb)
+
+    def test__register_as(self):
+        factory = ClassFactory('code')
+
+        @factory.register_as('X')
+        class Ccc(object):
+            code = "C"
+
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        self.assertEqual(sorted(factory._by_id.keys()), ['X'])
+        self.assertEqual(factory._by_id['X'], Ccc)
 
 
 class TestItemDescription(LocalTestCase):

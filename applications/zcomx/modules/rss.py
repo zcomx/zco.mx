@@ -7,20 +7,23 @@ Classes and functions related to rss feeds.
 """
 import datetime
 import logging
+import os
 import gluon.contrib.rss2 as rss2
 from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import \
+    BookPage, \
     AbridgedBookPageNumbers
 from applications.zcomx.modules.books import \
     formatted_name as book_formatted_name, \
     get_page, \
     page_url
 from applications.zcomx.modules.creators import \
+    Creator, \
     formatted_name as creator_formatted_name, \
     url as creator_url
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.images import ImageDescriptor
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
     SITE_NAME, \
     Zco
@@ -39,7 +42,7 @@ class BaseRSSChannel(object):
         """Initializer
 
         Args:
-            entity: string, first arg
+            entity: Row instance or id representing record
         """
         self.entity = entity
 
@@ -154,16 +157,14 @@ class BookRSSChannel(BaseRSSChannel):
         """Initializer
 
         Args:
-            entity: string, first arg
+            entity: Row instance or id representing record
         """
         super(BookRSSChannel, self).__init__(entity=entity)
         db = current.app.db
         self.book = entity_to_row(db.book, self.entity)
         if not self.book:
             raise LookupError('Book not found: {e}'.format(e=self.entity))
-        self.creator = entity_to_row(db.creator, self.book.creator_id)
-        if not self.creator:
-            raise LookupError('Creator not found: {e}'.format(e=self.entity))
+        self.creator = Creator.from_id(self.book.creator_id)
 
     def description(self):
         db = current.app.db
@@ -205,13 +206,10 @@ class CartoonistRSSChannel(BaseRSSChannel):
         """Initializer
 
         Args:
-            entity: string, first arg
+            entity: Creator instance
         """
         super(CartoonistRSSChannel, self).__init__(entity=entity)
-        db = current.app.db
-        self.creator = entity_to_row(db.creator, self.entity)
-        if not self.creator:
-            raise LookupError('Creator not found: {e}'.format(e=self.entity))
+        self.creator = Creator.from_id(self.entity.id)
 
     def description(self):
         return 'Recent activity of {c} on {s}.'.format(
@@ -261,10 +259,7 @@ class BaseRSSEntry(object):
         if not self.book:
             raise LookupError('Book not found: {e}'.format(
                 e=self.book_entity))
-        self.creator = entity_to_row(db.creator, self.book.creator_id)
-        if not self.creator:
-            raise LookupError('Creator not found, book: {e}'.format(
-                e=self.book.id))
+        self.creator = Creator.from_id(self.book.creator_id)
 
     def created_on(self):
         """Return the created_on value for the entry.
@@ -297,6 +292,31 @@ class BaseRSSEntry(object):
         """
         raise NotImplementedError()
 
+    def enclosure(self):
+        """Return the enclosure for the entry.
+
+        Returns
+            rss2.Enclosure instance.
+        """
+        url = URL(
+            c='images',
+            f='download',
+            args=self.first_page.image,
+            vars={'size': 'web'},
+            host=SITE_NAME,
+        )
+
+        length = ImageDescriptor(
+            self.first_page.upload_image().fullname(size='web')
+        ).size_bytes()
+
+        _, extension = os.path.splitext(self.first_page.image)
+        mime_type = 'image/{ext}'.format(ext=extension.lstrip('.'))
+        if mime_type == 'image/jpg':
+            mime_type = 'image/jpeg'
+
+        return rss2.Enclosure(url, length, mime_type)
+
     def feed_item(self):
         """Return a dict representing an RSS feed item.
 
@@ -307,6 +327,7 @@ class BaseRSSEntry(object):
             title=self.title(),
             link=self.link(),
             description=self.description(),
+            enclosure=self.enclosure(),
             guid=self.guid(),
             created_on=self.created_on(),
         )
@@ -321,14 +342,14 @@ class BaseRSSEntry(object):
         """
         db = current.app.db
         rows = db(db.book_page.id.belongs(self.book_page_ids)).select(
-            db.book_page.ALL,
+            db.book_page.id,
             orderby=db.book_page.page_no,
             limitby=(0, 1),
         )
         if not rows:
             return
-        if rows:
-            return rows[0]
+
+        return BookPage.from_id(rows[0].id)
 
     def guid(self):
         """Return a guid for the entry.
@@ -355,7 +376,7 @@ class BaseRSSEntry(object):
             string, entry title.
         """
         db = current.app.db
-        pages = [entity_to_row(db.book_page, x) for x in self.book_page_ids]
+        pages = [BookPage.from_id(x) for x in self.book_page_ids]
         return "'{b}' {p} by {c}".format(
             b=book_formatted_name(
                 db, self.book, include_publication_year=False),
@@ -420,7 +441,7 @@ def channel_from_type(channel_type, record_id=None):
         return AllRSSChannel()
 
     if channel_type == 'creator':
-        return CartoonistRSSChannel(record_id)
+        return CartoonistRSSChannel(Creator.from_id(record_id))
 
     if channel_type == 'book':
         return BookRSSChannel(record_id)
@@ -467,6 +488,7 @@ def rss_serializer_with_image(feed):
                 title=_safestr(entry, 'title', '(notitle)'),
                 link=_safestr(entry, 'link'),
                 description=_safestr(entry, 'description'),
+                enclosure=entry.get('enclosure', None),
                 guid=entry.get('guid', None),
                 pubDate=entry.get('created_on', now)
             ) for entry in feed.get('entries', [])

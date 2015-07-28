@@ -10,12 +10,12 @@ Script to create a torrent file for a book, creator or all.
 # pylint: disable=W0404
 import logging
 from optparse import OptionParser
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.torrents import \
     AllTorrentCreator, \
     BookTorrentCreator, \
     CreatorTorrentCreator
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -36,29 +36,20 @@ def book_torrent(book_id):
     result = BookTorrentCreator(book).archive()
     LOG.debug('Created: %s', result)
 
-    creator = entity_to_row(db.creator, book.creator_id)
-    if not creator:
-        raise LookupError('Creator not found, id: {i}'.format(
-            i=book.creator_id))
-
+    creator = Creator.from_id(book.creator_id)
     if not creator.rebuild_torrent:
-        creator.update_record(rebuild_torrent=True)
+        db(db.creator.id == creator.id).update(rebuild_torrent=True)
         db.commit()
 
 
 def creator_torrent(creator_id):
     """Create a torrent for a creator."""
-
-    creator = entity_to_row(db.creator, creator_id)
-    if not creator:
-        raise LookupError('Creator not found, id: {i}'.format(
-            i=creator_id))
-
+    creator = Creator.from_id(creator_id)
     result = CreatorTorrentCreator(creator).archive()
     LOG.debug('Created: %s', result)
 
     if creator.rebuild_torrent:
-        creator.update_record(rebuild_torrent=False)
+        db(db.creator.id == creator.id).update(rebuild_torrent=False)
         db.commit()
 
 

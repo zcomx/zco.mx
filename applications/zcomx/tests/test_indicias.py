@@ -16,21 +16,23 @@ from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from gluon.validators import IS_INT_IN_RANGE
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import short_url as book_short_url
-from applications.zcomx.modules.creators import short_url as creator_short_url
+from applications.zcomx.modules.creators import \
+    Creator, \
+    short_url as creator_short_url
 from applications.zcomx.modules.images import \
     on_delete_image, \
     store
 from applications.zcomx.modules.indicias import \
     BookIndiciaPage, \
     BookIndiciaPagePng, \
+    CCLicence, \
     CreatorIndiciaPagePng, \
     IndiciaPage, \
     IndiciaSh, \
     IndiciaShError, \
     PublicationMetadata, \
-    cc_licence_by_code, \
     cc_licence_places, \
     cc_licences, \
     create_creator_indicia, \
@@ -43,8 +45,6 @@ from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
 from applications.zcomx.modules.shell_utils import UnixFile
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -71,16 +71,17 @@ class WithObjectsTestCase(LocalTestCase):
             name='First Last'
         ))
 
-        self._creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             auth_user_id=self._auth_user.id,
             email='image_test_case@example.com',
             paypal_email='image_test_case@example.com',
         ))
+        self._creator = Creator.from_id(creator_row.id)
 
         self._book = self.add(db.book, dict(
             name='Image Test Case',
             number=1,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             creator_id=self._creator.id,
             name_for_url='ImageTestCase-001',
         ))
@@ -91,7 +92,7 @@ class WithObjectsTestCase(LocalTestCase):
             image='book_page.image.aaa.000.jpg',
         ))
 
-        link = self.add(db.link, dict(
+        self.add(db.link, dict(
             link_type_id=LinkType.by_code('buy_book').id,
             record_table='book',
             record_id=self._book.id,
@@ -128,8 +129,9 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             tumblr=None,
             facebook=None,
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
         indicia = BookIndiciaPage(self._book)
         xml = indicia.call_to_action_text()
@@ -146,8 +148,9 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             tumblr='http://tmblr.tumblr.com',
             facebook='http://www.facebook.com/facepalm',
         )
-        self._creator.update_record(**socials)
+        db(db.creator.id == self._creator.id).update(**socials)
         db.commit()
+        self._creator.update(socials)
         indicia = BookIndiciaPage(self._book)
         icons = indicia.follow_icons()
 
@@ -239,8 +242,8 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             )
         )
 
-        cc_licence_id = cc_licence_by_code('CC BY', want='id', default=0)
-        self._book.update_record(cc_licence_id=cc_licence_id)
+        cc_by = CCLicence.by_code('CC BY')
+        self._book.update_record(cc_licence_id=cc_by.id)
         db.commit()
         book = db(db.book.id == self._book.id).select().first()
 
@@ -408,8 +411,10 @@ class TestCreatorIndiciaPagePng(WithObjectsTestCase):
             indicia_portrait=None,
             indicia_landscape=None,
         )
-        self._creator.update_record(**data)
+
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
         png_page = CreatorIndiciaPagePng(self._creator)
         filename = png_page.create('portrait')
@@ -451,14 +456,6 @@ class TestIndiciaPage(LocalTestCase):
             indicia.call_to_action_text(),
             'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
         )
-
-    def test__default_licence(self):
-        indicia = IndiciaPage(None)
-        default = indicia.default_licence()
-        self.assertEqual(default.code, 'All Rights Reserved')
-        fields = ['id', 'number', 'code', 'url', 'template_img', 'template_web']
-        for f in fields:
-            self.assertTrue(f in default.keys())
 
     def test__follow_icons(self):
         indicia = IndiciaPage(None)
@@ -514,10 +511,12 @@ class TestIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
         filename = self._prep_image('file.png', to_name='indicia.png')
         stored_filename = store(
             db.creator.indicia_image, filename, resizer=ResizerQuick)
-        png_page.creator.update_record(indicia_image=stored_filename)
+
+        db(db.creator.id == png_page.creator.id).update(
+            indicia_image=stored_filename)
         db.commit()
 
-        png_page._indicia_filename = None       # Clear cache
+        png_page = BookIndiciaPagePng(self._book)         # Reload
         _, expect = db.creator.indicia_image.retrieve(
             png_page.creator.indicia_image, nameonly=True)
         self.assertEqual(png_page.get_indicia_filename(), expect)
@@ -668,13 +667,13 @@ class TestPublicationMetadata(LocalTestCase):
             ),
         ]
 
-        cc_licence_id = cc_licence_by_code('CC BY-NC-SA', want='id', default=0)
+        cc_by_nc_sa = CCLicence.by_code('CC BY-NC-SA')
 
         meta.derivative = dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
-            cc_licence_id=cc_licence_id,
+            cc_licence_id=cc_by_nc_sa.id,
             from_year=2014,
             to_year=2015,
         )
@@ -701,14 +700,14 @@ class TestPublicationMetadata(LocalTestCase):
 
         book = self.add(db.book, dict(name='My Book'))
 
-        cc_licence_id = cc_licence_by_code('CC BY-ND', want='id', default=0)
+        cc_by_nd = CCLicence.by_code('CC BY-ND')
 
         meta = PublicationMetadata(book.id)
         derivative = dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
-            cc_licence_id=cc_licence_id,
+            cc_licence_id=cc_by_nd.id,
             from_year=2014,
             to_year=2015,
         )
@@ -1390,13 +1389,13 @@ class TestPublicationMetadata(LocalTestCase):
             ),
         ]
 
-        cc_licence_id = cc_licence_by_code('CC BY-NC-SA', want='id', default=0)
+        cc_by_nc_sa = CCLicence.by_code('CC BY-NC-SA')
 
         meta.derivative = dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
-            cc_licence_id=cc_licence_id,
+            cc_licence_id=cc_by_nc_sa.id,
             from_year=2014,
             to_year=2015,
         )
@@ -1793,24 +1792,6 @@ class TestPublicationMetadata(LocalTestCase):
 
 class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
-    def test__cc_licence_by_code(self):
-        cc_licence = self.add(db.cc_licence, dict(
-            code='_test_'
-        ))
-
-        got = cc_licence_by_code('_test_')
-        self.assertEqual(got.id, cc_licence.id)
-        self.assertEqual(got.code, '_test_')
-
-        self.assertEqual(cc_licence_by_code(
-            '_test_', want='id'), cc_licence.id)
-        self.assertEqual(cc_licence_by_code('_test_', want='code'), '_test_')
-
-        self.assertEqual(cc_licence_by_code('_fake_', default={}), {})
-        self.assertEqual(cc_licence_by_code('_fake_', want='id', default=0), 0)
-        self.assertEqual(cc_licence_by_code(
-            '_fake_', want='code', default='mycode'), 'mycode')
-
     def test__cc_licence_places(self):
         places = cc_licence_places()
         got = loads('[' + str(places) + ']')
@@ -1826,7 +1807,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         book = self.add(db.book, dict(
             name='test__cc_licences',
             creator_id=creator.id,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
         ))
 
         # Add a cc_licence with quotes in the template. Should be handled.
@@ -1862,12 +1843,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         data = dict(
             indicia_image=None,
             indicia_portrait=None,
-            indicia_landscap=None,
+            indicia_landscape=None,
         )
-        self._creator.update_record(**data)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
-        creator = entity_to_row(db.creator, self._creator.id)
+        creator = Creator.from_id(self._creator.id)
         for f in fields:
             # Field is cleared
             self.assertEqual(creator[f], None)
@@ -1875,12 +1857,14 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         filename = self._prep_image('cbz_plus.png')
         indicia_image = store(
             db.creator.indicia_image, filename, resizer=ResizerQuick)
-        self._creator.update_record(indicia_image=indicia_image)
+        data = dict(indicia_image=indicia_image)
+        db(db.creator.id == self._creator.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
         create_creator_indicia(self._creator)
 
-        creator_1 = entity_to_row(db.creator, self._creator.id)
+        creator_1 = Creator.from_id(self._creator.id)
         # Prove images exist
         for f in fields:
             # Field is not clear
@@ -1898,18 +1882,20 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             indicia_portrait=None,
             indicia_landscape=None,
         )
-        creator_1.update_record(**data)
+        db(db.creator.id == creator_1.id).update(**data)
         db.commit()
+        self._creator.update(data)
 
     def test__render_cc_licence(self):
 
-        cc_licence = self.add(db.cc_licence, dict(
+        cc_licence_row = self.add(db.cc_licence, dict(
             number=999,
             code='test__render_cc_licence',
             url='http://cc_licence.com',
             template_img='The {title} is owned by {owner} for {year} in {place} at {url}.',
             template_web='THE {title} IS OWNED BY {owner} FOR {year} IN {place} AT {url}.'
         ))
+        cc_licence = CCLicence.from_id(cc_licence_row.id)
 
         this_year = datetime.date.today().year
 
@@ -1951,8 +1937,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 render_cc_licence(t[0], cc_licence, template_field=t[1]),
                 t[2]
             )
-
-        self.assertRaises(LookupError, render_cc_licence, {}, -1)
 
 
 def setUpModule():

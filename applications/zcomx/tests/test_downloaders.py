@@ -7,7 +7,6 @@ Test suite for zcomx/modules/downloaders.py
 
 """
 import os
-import shutil
 import unittest
 from gluon import *
 from gluon.html import DIV, IMG

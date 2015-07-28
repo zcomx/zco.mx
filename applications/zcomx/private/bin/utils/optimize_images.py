@@ -11,11 +11,12 @@ Utility script to optimize all images for a book, creator or all.
 import logging
 from optparse import OptionParser
 from applications.zcomx.modules.books import images as book_images
-from applications.zcomx.modules.creators import images as creator_images
+from applications.zcomx.modules.creators import \
+    Creator, \
+    images as creator_images
 from applications.zcomx.modules.images_optimize import \
     AllSizesImages
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -54,7 +55,7 @@ def optimize_book_images(book_id, debug=False, force=False):
 
 def optimize_creator_images(creator_id, debug=False, force=False):
     """Optimize all images associated with a creator."""
-    creator = entity_to_row(db.creator, creator_id)
+    creator = Creator.from_id(creator_id)
     if not creator:
         raise LookupError('Creator not found, id: {i}'.format(
             i=creator_id))

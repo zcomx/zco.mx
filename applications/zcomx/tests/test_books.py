@@ -14,7 +14,8 @@ from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from pydal.objects import Row
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import \
     Book, \
     DEFAULT_BOOK_TYPE, \
@@ -53,7 +54,6 @@ from applications.zcomx.modules.books import \
     name_fields, \
     names, \
     next_book_in_series, \
-    orientation, \
     page_url, \
     publication_year_range, \
     publication_years, \
@@ -70,8 +70,8 @@ from applications.zcomx.modules.books import \
     update_contributions_remaining, \
     update_rating, \
     url
-from applications.zcomx.modules.images import store
-from applications.zcomx.modules.indicias import cc_licence_by_code
+from applications.zcomx.modules.cc_licences import CCLicence
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -103,9 +103,10 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
 
-        self._creator = self.add(db.creator, dict(
+        creator = self.add(db.creator, dict(
             email='image_test_case@example.com',
         ))
+        self._creator = Creator.from_id(creator.id)
 
         self._book = self.add(db.book, dict(
             name='Image Test Case',
@@ -141,7 +142,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__book_name(self):
         book = self.add(db.book, dict(
             name='My Book',
-            book_type_id=book_type_by_name('mini-series').id,
+            book_type_id=BookType.by_name('mini-series').id,
             number=2,
             of_number=19,
             name_for_search='my-search-kw',
@@ -193,8 +194,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__book_pages(self):
         pages = book_pages(self._book)
         self.assertEqual(len(pages), 2)
-        self.assertEqual(pages[0].book_page.page_no, 1)
-        self.assertEqual(pages[1].book_page.page_no, 2)
+        self.assertEqual(pages[0].page_no, 1)
+        self.assertEqual(pages[1].page_no, 2)
 
     def test__book_pages_as_json(self):
         filename = 'portrait.png'
@@ -355,7 +356,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertRaises(LookupError, cbz_comment, -1)
 
-        cc_licence_id = cc_licence_by_code('CC BY-ND', want='id', default=0)
+        cc_by_nd = CCLicence.by_code('CC BY-ND')
 
         book = self.add(db.book, dict(
             name='My Book',
@@ -363,8 +364,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             of_number=4,
             creator_id=-1,
             publication_year=1999,
-            book_type_id=book_type_by_name('mini-series').id,
-            cc_licence_id=cc_licence_id,
+            book_type_id=BookType.by_name('mini-series').id,
+            cc_licence_id=cc_by_nd.id,
         ))
 
         # Creator record not found
@@ -483,7 +484,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         book = self.add(db.book, dict(
             name='test__cc_licence_data',
             creator_id=-1,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
             name_for_url='TestCcLicenceData',
         ))
 
@@ -681,12 +682,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__contributions_remaining_by_creator(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
-        creator = self.add(db.creator, dict(
-            email='test__contributions_remaining_by_creator@eg.com'
-        ))
+        creator = Creator({'id': -1})
 
         # Creator has no books
-        self.assertEqual(contributions_remaining_by_creator(db, creator), 0.00)
+        self.assertEqual(contributions_remaining_by_creator(creator), 0.00)
 
         book = self.add(db.book, dict(
             name='test__contributions_remaining_by_creator',
@@ -698,7 +697,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # Book has no contributions
         self.assertEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             100.00
         )
 
@@ -708,7 +707,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             amount=15.00,
         ))
         self.assertEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             85.00
         )
 
@@ -718,7 +717,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             amount=35.99,
         ))
         self.assertEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             49.01
         )
 
@@ -733,13 +732,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # status = draft
         self.assertEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             49.01
         )
         book_2.update_record(status=BOOK_STATUS_ACTIVE)
         db.commit()
         self.assertAlmostEqual(
-            contributions_remaining_by_creator(db, creator),
+            contributions_remaining_by_creator(creator),
             99.01
         )
 
@@ -836,7 +835,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             types_by_name[row.name] = row
 
         # Test book unique name
-        got = defaults(db, '_test__defaults_', self._creator)
+        got = defaults('_test__defaults_', self._creator)
         expect = {
             'name': '_test__defaults_',
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
@@ -857,7 +856,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self._book.update_record(**data)
         db.commit()
 
-        got = defaults(db, self._book.name, self._creator)
+        got = defaults(self._book.name, self._creator)
         expect = {
             'name': self._book.name,
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
@@ -875,7 +874,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
         self._book.update_record(**data)
         db.commit()
-        got = defaults(db, self._book.name, self._creator)
+        got = defaults(self._book.name, self._creator)
         expect = {
             'name': self._book.name,
             'book_type_id': types_by_name[DEFAULT_BOOK_TYPE].id,
@@ -896,7 +895,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self._book.update_record(**data)
         db.commit()
 
-        got = defaults(db, self._book.name, -1)
+        got = defaults(self._book.name, None)
         self.assertEqual(got, {})
 
     def test__download_link(self):
@@ -1031,7 +1030,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             data = dict(
                 name=t[0],
                 publication_year=t[1],
-                book_type_id=book_type_by_name(t[2]).id,
+                book_type_id=BookType.by_name(t[2]).id,
                 number=t[3],
                 of_number=t[4],
             )
@@ -1059,7 +1058,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ]
         for t in tests:
             data = dict(
-                book_type_id=book_type_by_name(t[0]).id,
+                book_type_id=BookType.by_name(t[0]).id,
                 number=t[1],
                 of_number=t[2],
             )
@@ -1125,7 +1124,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         book = self.add(db.book, dict(
             name='My Book',
             number=2,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             publication_year=1998,
             creator_id=creator.id,
             description='This is my book!',
@@ -1241,7 +1240,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         book = self.add(db.book, dict(
             name='My Book',
             number=2,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             name_for_url='mybook-002',
         ))
 
@@ -1376,7 +1375,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             'name': 'My Book',
             'number': 2,
             'of_number': 9,
-            'book_type_id': book_type_by_name('mini-series').id,
+            'book_type_id': BookType.by_name('mini-series').id,
         }
 
         # No fields
@@ -1416,42 +1415,42 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name='one_shot',
             creator_id=creator_one,
             number=1,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
         ))
 
         one_shot_2 = self.add(db.book, dict(
             name='one_shot',
             creator_id=creator_one,
             number=2,
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
         ))
 
         ongoing_1 = self.add(db.book, dict(
             name='ongoing',
             creator_id=creator_one,
             number=1,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
         ))
 
         ongoing_2 = self.add(db.book, dict(
             name='ongoing',
             creator_id=creator_one,
             number=2,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
         ))
 
         mini_series_1 = self.add(db.book, dict(
             name='mini_series',
             creator_id=creator_one,
             number=1,
-            book_type_id=book_type_by_name('mini-series').id,
+            book_type_id=BookType.by_name('mini-series').id,
         ))
 
         mini_series_2 = self.add(db.book, dict(
             name='mini_series',
             creator_id=creator_one,
             number=2,
-            book_type_id=book_type_by_name('mini-series').id,
+            book_type_id=BookType.by_name('mini-series').id,
         ))
 
         tests = [
@@ -1472,7 +1471,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name='mini_series',
             creator_id=creator_two,
             number=3,
-            book_type_id=book_type_by_name('mini-series').id,
+            book_type_id=BookType.by_name('mini-series').id,
         ))
         self.assertEqual(next_book_in_series(mini_series_2), None)
 
@@ -1481,7 +1480,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name='mini_series_ZZZ',
             creator_id=creator_one,
             number=3,
-            book_type_id=book_type_by_name('mini-series').id,
+            book_type_id=BookType.by_name('mini-series').id,
         ))
         self.assertEqual(next_book_in_series(mini_series_2), None)
 
@@ -1490,30 +1489,9 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name='mini_series',
             creator_id=creator_one,
             number=999,
-            book_type_id=book_type_by_name('mini-series').id,
+            book_type_id=BookType.by_name('mini-series').id,
         ))
         self.assertEqual(next_book_in_series(mini_series_2), mini_series_3)
-
-    def test__orientation(self):
-        # Test invalid book entity
-        self.assertRaises(LookupError, orientation, -1)
-
-        # Test book without an image.
-        book_page = self.add(db.book_page, dict(
-            image=None,
-        ))
-        self.assertRaises(LookupError, orientation, book_page)
-
-        for t in ['portrait', 'landscape', 'square']:
-            img = '{n}.png'.format(n=t)
-            filename = self._prep_image(img)
-            stored_filename = store(
-                db.book_page.image, filename, resizer=ResizerQuick)
-
-            book_page = self.add(db.book_page, dict(
-                image=stored_filename,
-            ))
-            self.assertEqual(orientation(book_page), t)
 
     def test__page_url(self):
         creator = self.add(db.creator, dict(
@@ -1527,10 +1505,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name_for_url='MyBook-01of999',
         ))
 
-        book_page = self.add(db.book_page, dict(
+        book_page = BookPage(
             book_id=book.id,
             page_no=1,
-        ))
+        )
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
@@ -1540,18 +1518,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             '/FirstLast/MyBook-01of999/001'
         )
 
-        # By id
-        self.assertEqual(
-            page_url(book_page.id),
-            '/FirstLast/MyBook-01of999/001'
-        )
-
         self.assertEqual(
             page_url(book_page, reader='slider'),
             '/FirstLast/MyBook-01of999/001?reader=slider'
         )
 
-        book_page.update_record(page_no=99)
+        book_page.page_no = 99
         db.commit()
         self.assertEqual(
             page_url(book_page),
@@ -1588,7 +1560,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             publication_year=1999,
             creator_id=creator.id,
             reader='slider',
-            book_type_id=book_type_by_name('one-shot').id,
+            book_type_id=BookType.by_name('one-shot').id,
             name_for_url='TestReadLink',
         ))
 
@@ -1699,9 +1671,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__short_page_img_url(self):
         book = self.add(db.book, dict())
-        book_page = self.add(db.book_page, dict(
-            book_id=book.id,
-        ))
+        book_page = BookPage(dict(book_id=book.id))
         tests = [
             # (creator_id, book name_for_url, page_no, image,  expect)
             (None, 'MyBook', 1, 'book_page.image.000.aaa.jpg', None),
@@ -1731,15 +1701,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         for t in tests:
             book.update_record(creator_id=t[0], name_for_url=t[1])
             db.commit()
-            book_page.update_record(page_no=t[2], image=t[3])
-            db.commit()
+            book_page.page_no = t[2]
+            book_page.image = t[3]
             self.assertEqual(short_page_img_url(book_page), t[4])
 
     def test__short_page_url(self):
         book = self.add(db.book, dict())
-        book_page = self.add(db.book_page, dict(
-            book_id=book.id,
-        ))
+        book_page = BookPage(dict(book_id=book.id))
         tests = [
             # (creator_id, book name_for_url, page_no, expect)
             (None, None, 1, None),
@@ -1750,8 +1718,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         for t in tests:
             book.update_record(creator_id=t[0], name_for_url=t[1])
             db.commit()
-            book_page.update_record(page_no=t[2])
-            db.commit()
+            book_page.page_no = t[2]
             self.assertEqual(short_page_url(book_page), t[3])
 
     def test__short_url(self):
@@ -1780,7 +1747,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name='My Book',
             number=2,
             of_number=4,
-            book_type_id=book_type_by_name('mini-series').id,
+            book_type_id=BookType.by_name('mini-series').id,
             creator_id=creator.id,
             description='This is my book!',
             name_for_url='MyBook',
@@ -1830,7 +1797,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             number=2,
             creator_id=creator.id,
             publication_year=1999,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
         ))
 
         self.assertEqual(
@@ -1841,7 +1808,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         data = dict(
             number=2,
             of_number=4,
-            book_type_id=book_type_by_name('mini-series').id,
+            book_type_id=BookType.by_name('mini-series').id,
         )
         book.update_record(**data)
         db.commit()
@@ -1941,13 +1908,14 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__update_contributions_remaining(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
-        creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             email='test__update_contributions_remaining@eg.com'
         ))
+        creator = Creator.from_id(creator_row.id)
 
         book_contributions = lambda b: calc_contributions_remaining(db, b)
         creator_contributions = \
-            lambda c: entity_to_row(db.creator, c.id).contributions_remaining
+            lambda c: Creator.from_id(c.id).contributions_remaining
 
         # Creator has no books
         self.assertEqual(creator_contributions(creator), 0)
@@ -1994,8 +1962,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # Creator contributions_remaining should be updated by any of it's
         # books.
-        creator.update_record(contributions_remaining=0)
+        data = dict(contributions_remaining=0)
+        db(db.creator.id == creator.id).update(**data)
         db.commit()
+        creator.update(**data)
         self.assertEqual(creator_contributions(creator), 0)
         update_contributions_remaining(db, book)
         self.assertAlmostEqual(creator_contributions(creator), 99.01)

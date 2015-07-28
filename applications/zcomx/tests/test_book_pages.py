@@ -9,7 +9,6 @@ Test suite for zcomx/modules/book_pages.py
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
-from pydal.objects import Row
 from applications.zcomx.modules.book_pages import \
     AbridgedBookPageNumbers, \
     BookPage, \
@@ -18,6 +17,10 @@ from applications.zcomx.modules.book_pages import \
     delete_pages_not_in_ids, \
     pages_sorted_by_page_no, \
     reset_book_page_nos
+from applications.zcomx.modules.images import store
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -37,19 +40,19 @@ class WithPagesTestCase(LocalTestCase):
     _book_pages = None
 
     def setUp(self):
-        book_page_1 = Row({
+        book_page_1 = BookPage({
             'page_no': 1,
         })
-        book_page_2 = Row({
+        book_page_2 = BookPage({
             'page_no': 2,
         })
-        book_page_3 = Row({
+        book_page_3 = BookPage({
             'page_no': 3,
         })
-        book_page_4 = Row({
+        book_page_4 = BookPage({
             'page_no': 4,
         })
-        book_page_5 = Row({
+        book_page_5 = BookPage({
             'page_no': 5,
         })
 
@@ -94,38 +97,51 @@ class TestAbridgedBookPageNumbers(WithPagesTestCase):
         self.assertEqual(numbers.numbers(), ['p01', 'p02', '...', 'p05'])
 
 
-class TestBookPage(LocalTestCase):
+class TestBookPage(ImageTestCase):
 
     def test____init__(self):
-        book_page = self.add(db.book_page, dict(
-            image=None
-        ))
-        page = BookPage(book_page)
-        self.assertRaises(LookupError, BookPage, -1)
+        page = BookPage({})
+        # protected-access (W0212): *Access to a protected member
+        # pylint: disable=W0212
+        self.assertEqual(page._upload_image, None)
         self.assertEqual(page.min_cbz_width, 1600)
         self.assertEqual(page.min_cbz_height_to_exempt, 2560)
 
-    def test__upload_image(self):
-        book_page = self.add(db.book_page, dict(
-            image='book_image.aaa.000.jpg'
-        ))
+    def test__orientation(self):
+        # Test book without an image.
+        book_page = BookPage(dict(id=-1, image=None))
+        self.assertRaises(LookupError, book_page.orientation)
 
-        page = BookPage(book_page)
-        up_image = page.upload_image()
+        for t in ['portrait', 'landscape', 'square']:
+            img = '{n}.png'.format(n=t)
+            filename = self._prep_image(img)
+            stored_filename = store(
+                db.book_page.image, filename, resizer=ResizerQuick)
+
+            book_page_row = self.add(db.book_page, dict(
+                image=stored_filename,
+            ))
+            book_page = BookPage.from_id(book_page_row.id)
+            self.assertEqual(book_page.orientation(), t)
+
+    def test__upload_image(self):
+        book_page = BookPage(dict(image='book_image.aaa.000.jpg'))
+
+        up_image = book_page.upload_image()
         self.assertTrue(hasattr(up_image, 'retrieve'))
 
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
 
         # Test cache
-        page._upload_image = '_cache_'
-        self.assertEqual(page.upload_image(), '_cache_')
+        book_page._upload_image = '_cache_'
+        self.assertEqual(book_page.upload_image(), '_cache_')
 
 
 class TestBookPageNumber(WithPagesTestCase):
 
     def test____init__(self):
-        number = BookPageNumber({})
+        number = BookPageNumber(BookPage({}))
         self.assertTrue(number)
 
     def test__formatted(self):
@@ -221,13 +237,13 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__pages_sorted_by_page_no(self):
-        book_page_1 = Row({
+        book_page_1 = BookPage({
             'page_no': 3,
         })
-        book_page_2 = Row({
+        book_page_2 = BookPage({
             'page_no': 1,
         })
-        book_page_3 = Row({
+        book_page_3 = BookPage({
             'page_no': 2,
         })
         self.assertEqual(

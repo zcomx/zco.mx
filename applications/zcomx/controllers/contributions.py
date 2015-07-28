@@ -7,13 +7,13 @@ from applications.zcomx.modules.books import \
     Book, \
     default_contribute_amount
 from applications.zcomx.modules.creators import \
+    Creator, \
     book_for_contributions, \
     formatted_name
 from applications.zcomx.modules.events import \
     ContributionEvent, \
     ZcoContributionEvent
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
@@ -33,24 +33,22 @@ def modal():
     request.vars.book_id takes precendence over request.vars.creator_id.
     """
     book_record = None
-    creator_record = None
+    creator = None
 
     if request.vars.book_id:
         book_record = entity_to_row(db.book, request.vars.book_id)
         if not book_record:
             raise LookupError('Book not found, id %s', request.vars.book_id)
+        creator = Creator.from_id(book_record.creator_id)
     elif request.vars.creator_id:
-        creator_record = entity_to_row(db.creator, request.vars.creator_id)
-        if not creator_record:
+        creator = Creator.from_id(request.vars.creator_id)
+        if not creator:
             raise LookupError(
                 'Creator not found, id %s', request.vars.creator_id)
 
-    if book_record:
-        creator_record = entity_to_row(db.creator, book_record.creator_id)
-
     return dict(
         book=book_record,
-        creator=creator_record,
+        creator=creator,
     )
 
 
@@ -88,7 +86,7 @@ def paypal():
         book_record = entity_to_row(db.book, book_id)
         if not book_record:
             raise LookupError('Book not found, id: {i}'.format(i=book_id))
-        creator_record = entity_to_row(db.creator, book_record.creator_id)
+        creator_record = Creator.from_id(book_record.creator_id)
         if not creator_record:
             raise LookupError('Creator not found, id: {i}'.format(
                 i=book_record.creator_id))
@@ -111,14 +109,11 @@ def paypal():
         if not creator_id:
             raise LookupError('Invalid creator id: {i}'.format(
                 i=creator_id_str))
-        creator_record = entity_to_row(db.creator, creator_id)
-        if not creator_record:
-            raise LookupError('Creator not found, id: {i}'.format(
-                i=creator_id))
-        if not creator_record.paypal_email:
+        creator = Creator.from_id(creator_id)
+        if not creator.paypal_email:
             raise LookupError('Creator has no paypal email, id: {i}'.format(
                 i=creator_id))
-        book_record = book_for_contributions(db, creator_record)
+        book_record = book_for_contributions(creator)
         if not book_record:
             raise LookupError(
                 'Creator has no book for contributions, id: {i}'.format(
@@ -126,8 +121,8 @@ def paypal():
                 )
             )
         data = Storage({})
-        data.business = creator_record.paypal_email
-        data.item_name = '{c}'.format(c=formatted_name(creator_record))
+        data.business = creator.paypal_email
+        data.item_name = '{c}'.format(c=formatted_name(creator))
         data.item_number = book_record.id
         return data
 
@@ -242,13 +237,13 @@ def widget():
         if not book_record:
             raise LookupError('Book not found, id %s', request.vars.book_id)
     elif request.vars.creator_id:
-        creator_record = entity_to_row(db.creator, request.vars.creator_id)
+        creator_record = Creator.from_id(request.vars.creator_id)
         if not creator_record:
             raise LookupError(
                 'Creator not found, id %s', request.vars.creator_id)
 
     if book_record:
-        creator_record = entity_to_row(db.creator, book_record.creator_id)
+        creator_record = Creator.from_id(book_record.creator_id)
 
     amount = default_contribute_amount(db, book_record) if book_record \
         else 1.00

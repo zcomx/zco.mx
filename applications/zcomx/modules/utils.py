@@ -14,6 +14,59 @@ from gluon.languages import lazyT
 from applications.zcomx.modules.zco import Zco
 
 
+class ClassFactory(object):
+    """Class representing a class factory
+    Inspired by Roger Pate on stackoverflow
+    http://stackoverflow.com/questions/2191505/how-to-get-a-reference-to-the-current-class-from-class-body
+    """
+    def __init__(self, id_property):
+        """Initializer
+
+        Args:
+            id_property: string, the name of the class property used
+                to identify classes.
+        """
+        self.id_property = id_property
+        self._by_id = {}
+
+    def __call__(self, class_id, *args, **kwargs):
+        """Call instance.
+
+        Args:
+            class_id: str, the identifier the class is registered with.
+            args: list, args passed on to class initializer
+            kwargs: dict, kwargs passed on to class initializer
+        """
+        return self._by_id[class_id](*args, **kwargs)
+
+    def register(self, cls):
+        """Decorator to register the class.
+
+        Returns:
+            class cls
+        """
+        if not hasattr(cls, self.id_property):
+            raise SyntaxError('Class does not have property: {p}'.format(
+                p=self.id_property))
+        self._by_id[getattr(cls, self.id_property)] = cls
+        return cls
+
+    def register_as(self, class_id):
+        """Decorator to register a class under a different name.
+
+        Args:
+            class_id: str, the identifier to register the class with.
+
+        Returns:
+            function, decorated function
+        """
+        def wrapper(cls):
+            """Decorator wrapper."""
+            self._by_id[class_id] = cls
+            return cls
+        return wrapper
+
+
 class ItemDescription(object):
     """Class representing an item description field.
 

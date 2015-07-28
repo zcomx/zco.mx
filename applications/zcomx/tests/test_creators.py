@@ -12,8 +12,8 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
-from pydal.objects import Row
 from applications.zcomx.modules.creators import \
+    Creator, \
     add_creator, \
     book_for_contributions, \
     can_receive_contributions, \
@@ -106,19 +106,20 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(before, after)
 
     def test__book_for_contributions(self):
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
+            id=-1,
             email='test__book_for_contributions@email.com',
         ))
 
         # Has no books
-        self.assertEqual(book_for_contributions(db, creator), None)
+        self.assertEqual(book_for_contributions(creator), None)
 
         book_1 = self.add(db.book, dict(
             creator_id=creator.id,
             contributions_remaining=100.00,
         ))
 
-        got = book_for_contributions(db, creator)
+        got = book_for_contributions(creator)
         self.assertEqual(got, book_1)
 
         # With two books, the higher remaining should be returned.
@@ -127,7 +128,7 @@ class TestFunctions(ImageTestCase):
             contributions_remaining=99.00,
         ))
 
-        got = book_for_contributions(db, creator)
+        got = book_for_contributions(creator)
         self.assertEqual(got, book_1)
 
         # If contributions are applied to book so that its remaining is
@@ -135,15 +136,16 @@ class TestFunctions(ImageTestCase):
         book_1.update_record(contributions_remaining=98.00)
         db.commit()
 
-        got = book_for_contributions(db, creator)
+        got = book_for_contributions(creator)
         self.assertEqual(got, book_2)
 
     def test__can_receive_contributions(self):
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
+            id=-1,
             paypal_email='',
         ))
 
-        self.assertFalse(can_receive_contributions(db, creator))
+        self.assertFalse(can_receive_contributions(creator))
 
         tests = [
             # (paypal_email, expect)
@@ -154,9 +156,8 @@ class TestFunctions(ImageTestCase):
 
         # With no book, all tests should return False
         for t in tests:
-            creator.update_record(paypal_email=t[0])
-            db.commit()
-            self.assertFalse(can_receive_contributions(db, creator))
+            creator.paypal_email = t[0]
+            self.assertFalse(can_receive_contributions(creator))
 
         self.add(db.book, dict(
             creator_id=creator.id,
@@ -164,20 +165,19 @@ class TestFunctions(ImageTestCase):
         ))
 
         for t in tests:
-            creator.update_record(paypal_email=t[0])
-            db.commit()
-            self.assertEqual(can_receive_contributions(db, creator), t[1])
+            creator.paypal_email = t[0]
+            self.assertEqual(can_receive_contributions(creator), t[1])
 
     def test__contribute_link(self):
         empty = '<span></span>'
 
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
+            id=123,
             email='test__contribute_link@email.com',
         ))
 
-        # As integer, creator_id
-        link = contribute_link(db, creator.id)
-        # Eg   <a href="/contributions/paypal?creator_id=3713" target="_blank">
+        link = contribute_link(creator)
+        # Eg   <a href="/contributions/paypal?creator_id=123" target="_blank">
         #       Contribute
         #      </a>
         soup = BeautifulSoup(str(link))
@@ -185,32 +185,22 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(
             anchor['href'],
-            '/contributions/modal?creator_id={i}'.format(i=creator.id)
-        )
-
-        # As Row, creator
-        link = contribute_link(db, creator)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Contribute')
-        self.assertEqual(
-            anchor['href'],
-            '/contributions/modal?creator_id={i}'.format(i=creator.id)
+            '/contributions/modal?creator_id=123'
         )
 
         # Invalid id
-        link = contribute_link(db, -1)
+        link = contribute_link(None)
         self.assertEqual(str(link), empty)
 
         # Test components param
         components = ['aaa', 'bbb']
-        link = contribute_link(db, creator, components=components)
+        link = contribute_link(creator, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
-        link = contribute_link(db, creator, components=components)
+        link = contribute_link(creator, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         img = anchor.img
@@ -222,7 +212,7 @@ class TestFunctions(ImageTestCase):
             _class='btn btn-large',
             _target='_blank',
         )
-        link = contribute_link(db, creator, **attributes)
+        link = contribute_link(creator, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Contribute')
@@ -235,7 +225,7 @@ class TestFunctions(ImageTestCase):
             name='First Last'
         ))
 
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
             auth_user_id=auth_user.id,
             name_for_search='first-last',
             name_for_url='FirstMiddleLast',
@@ -252,7 +242,7 @@ class TestFunctions(ImageTestCase):
             self.assertEqual(creator_name(creator, use=t[0]), t[1])
 
     def test__follow_link(self):
-        creator = Row(dict(
+        creator = Creator(dict(
             id=123,
             email='test__follow_link@email.com',
         ))
@@ -349,35 +339,32 @@ class TestFunctions(ImageTestCase):
             name='Test Name'
         ))
 
-        creator = self.add(db.creator, dict(
-            email='test_name@example.com'
-        ))
-
         # creator.auth_user_id not set
+        creator = Creator(dict(
+            auth_user_id=None,
+            email='test__formatted_name@example.com',
+        ))
         self.assertEqual(formatted_name(creator), None)
 
         # Invalid auth_user.id
-        creator.update_record(auth_user_id=-1)
-        db.commit()
+        creator.auth_user_id = -1
         self.assertEqual(formatted_name(creator), None)
 
-        creator.update_record(auth_user_id=auth_user.id)
-        db.commit()
-        # By Row instance
+        # Valid
+        creator.auth_user_id = auth_user.id
         self.assertEqual(formatted_name(creator), 'Test Name')
-        # By integer instance
-        self.assertEqual(formatted_name(creator.id), 'Test Name')
 
     def test__html_metadata(self):
 
         self.assertEqual(html_metadata(None), {})
 
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
             auth_user_id=auth_user.id,
             name_for_url='FirstLast',
             bio='First was born...',
             twitter='@firstlast',
+            image=None,
         ))
 
         # Creator without image
@@ -414,8 +401,7 @@ class TestFunctions(ImageTestCase):
         if not user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
-        query = (db.creator.auth_user_id == user.id)
-        creator = db(query).select().first()
+        creator = Creator.from_key({'auth_user_id': user.id})
         if not creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
@@ -432,8 +418,9 @@ class TestFunctions(ImageTestCase):
                     resizer=ResizerQuick,
                 )
                 data = {field: stored_filename}
-                creator.update_record(**data)
+                db(db.creator.id == creator.id).update(**data)
                 db.commit()
+                creator[field] = stored_filename
 
         self.assertTrue(creator)
 
@@ -453,47 +440,42 @@ class TestFunctions(ImageTestCase):
             )
 
         # Test creator.image
-        for entity in [creator.id, creator]:
-            image_json = image_as_json(db, entity)
-            expect = Storage({})
-            filename, fullname = db.creator.image.retrieve(
-                creator.image,
-                nameonly=True,
-            )
+        image_json = image_as_json(creator)
+        expect = Storage({})
+        filename, fullname = db.creator.image.retrieve(
+            creator.image,
+            nameonly=True,
+        )
 
-            expect.filename = filename
-            expect.size = os.stat(fullname).st_size
-            expect.down_url = '/images/download/{img}'.format(
-                img=creator.image)
-            expect.thumb = '/images/download/{img}?size=web'.format(
-                img=creator.image)
-            expect.delete_url = '/login/creator_img_handler/image'
+        expect.filename = filename
+        expect.size = os.stat(fullname).st_size
+        expect.down_url = '/images/download/{img}'.format(
+            img=creator.image)
+        expect.thumb = '/images/download/{img}?size=web'.format(
+            img=creator.image)
+        expect.delete_url = '/login/creator_img_handler/image'
 
-            do_test(loads(image_json), expect)
+        do_test(loads(image_json), expect)
 
         # Test creator.indicia_image
-        for entity in [creator.id, creator]:
-            image_json = image_as_json(db, entity, field='indicia_image')
-            expect = Storage({})
-            filename, fullname = db.creator.indicia_image.retrieve(
-                creator.indicia_image,
-                nameonly=True,
-            )
-            expect.filename = filename
-            expect.size = os.stat(fullname).st_size
-            expect.down_url = '/images/download/{img}'.format(
-                img=creator.indicia_image)
-            expect.thumb = '/images/download/{img}?size=web'.format(
-                img=creator.indicia_image)
-            expect.delete_url = '/login/creator_img_handler/indicia_image'
+        image_json = image_as_json(creator, field='indicia_image')
+        expect = Storage({})
+        filename, fullname = db.creator.indicia_image.retrieve(
+            creator.indicia_image,
+            nameonly=True,
+        )
+        expect.filename = filename
+        expect.size = os.stat(fullname).st_size
+        expect.down_url = '/images/download/{img}'.format(
+            img=creator.indicia_image)
+        expect.thumb = '/images/download/{img}?size=web'.format(
+            img=creator.indicia_image)
+        expect.delete_url = '/login/creator_img_handler/indicia_image'
 
-            do_test(loads(image_json), expect)
+        do_test(loads(image_json), expect)
 
     def test__images(self):
-        creator = self.add(db.creator, dict(
-            email='test__images@example.com'
-        ))
-
+        creator = Creator()
         self.assertEqual(images(creator), [])
 
         data = {
@@ -503,8 +485,7 @@ class TestFunctions(ImageTestCase):
             'indicia_portrait': None,
         }
 
-        creator.update_record(**data)
-        db.commit()
+        creator = Creator(**data)
         self.assertEqual(images(creator), ['b.2.jpg'])
 
         data = {
@@ -514,9 +495,7 @@ class TestFunctions(ImageTestCase):
             'indicia_portrait': 'd.4.jpg',
         }
 
-        creator.update_record(**data)
-        db.commit()
-
+        creator = Creator(**data)
         self.assertEqual(
             sorted(images(creator)),
             [
@@ -532,9 +511,10 @@ class TestFunctions(ImageTestCase):
             name='Test On Change Name'
         ))
 
-        creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             email='test_on_change_name@example.com'
         ))
+        creator = Creator.from_id(creator_row.id)
 
         def test_prefetch_job():
             query = (db.job.command.like('%search_prefetch.py'))
@@ -548,28 +528,16 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(creator.name_for_url, None)
         on_change_name(creator)
         # creator.auth_user_id not set
-        creator = entity_to_row(db.creator, creator.id)
+        creator = Creator.from_id(creator_row.id)
         self.assertEqual(creator.name_for_search, None)
         self.assertEqual(creator.name_for_url, None)
 
-        creator.update_record(auth_user_id=auth_user.id)
+        db(db.creator.id == creator.id).update(auth_user_id=auth_user.id)
         db.commit()
+        creator = Creator.from_id(creator_row.id)
         on_change_name(creator)
         test_prefetch_job()
-        creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.name_for_search, 'test-on-change-name')
-        self.assertEqual(creator.name_for_url, 'TestOnChangeName')
-
-        # Test with creator.id
-        # Reset
-        creator.update_record(name_for_search=None, name_for_url=None)
-        db.commit()
-        creator = entity_to_row(db.creator, creator.id)
-        self.assertEqual(creator.name_for_search, None)
-        self.assertEqual(creator.name_for_url, None)
-        on_change_name(creator.id)
-        test_prefetch_job()
-        creator = entity_to_row(db.creator, creator.id)
+        creator = Creator.from_id(creator_row.id)
         self.assertEqual(creator.name_for_search, 'test-on-change-name')
         self.assertEqual(creator.name_for_url, 'TestOnChangeName')
 
@@ -578,9 +546,10 @@ class TestFunctions(ImageTestCase):
             name='Test Profile Onaccept'
         ))
 
-        creator = self.add(db.creator, dict(
+        creator_row = self.add(db.creator, dict(
             email='test_profile_onaccept@example.com',
         ))
+        creator = Creator.from_id(creator_row.id)
 
         self.assertEqual(creator.name_for_search, None)
         self.assertEqual(creator.name_for_url, None)
@@ -588,28 +557,29 @@ class TestFunctions(ImageTestCase):
         # form has no email
         form = Storage({'vars': Storage()})
         profile_onaccept(form)
-        creator = entity_to_row(db.creator, creator.id)
+        creator = Creator.from_id(creator.id)
         self.assertEqual(creator.name_for_search, None)
         self.assertEqual(creator.name_for_url, None)
 
         # creator.auth_user_id not set
         form.vars.id = auth_user.id
         profile_onaccept(form)
-        creator = entity_to_row(db.creator, creator.id)
+        creator = Creator.from_id(creator.id)
         self.assertEqual(creator.name_for_search, None)
         self.assertEqual(creator.name_for_url, None)
 
-        creator.update_record(auth_user_id=auth_user.id)
+        data = dict(auth_user_id=auth_user.id)
+        db(db.creator.id == creator.id).update(**data)
         db.commit()
+        creator.update(data)
         profile_onaccept(form)
-        creator = entity_to_row(db.creator, creator.id)
+        creator = Creator.from_id(creator.id)
         self.assertEqual(creator.name_for_search, 'test-profile-onaccept')
         self.assertEqual(creator.name_for_url, 'TestProfileOnaccept')
 
     def test__queue_update_indicia(self):
-        self.assertRaises(LookupError, queue_update_indicia, -1)
-
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
+            id=123,
             email='test__queue_update_indicia@example.com',
         ))
 
@@ -620,9 +590,7 @@ class TestFunctions(ImageTestCase):
         self._objects.append(job)
 
     def test__rss_url(self):
-        self.assertRaises(LookupError, rss_url, None)
-
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
             name_for_url='FirstLast',
         ))
         self.assertEqual(rss_url(creator), '/FirstLast.rss')
@@ -631,19 +599,23 @@ class TestFunctions(ImageTestCase):
         tests = [
             # (creator_id, expect)
             (None, None),
-            (-1, None),
             (98, 'http://98.zco.mx'),
             (101, 'http://101.zco.mx'),
         ]
         for t in tests:
-            self.assertEqual(short_url(t[0]), t[1])
+            if t[0]:
+                creator = Creator(dict(id=t[0]))
+            else:
+                creator = None
+            self.assertEqual(short_url(creator), t[1])
 
     def test__social_media_data(self):
 
         self.assertEqual(social_media_data(None), {})
 
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
+            id=123,
             auth_user_id=auth_user.id,
             name_for_search='first-last',
             name_for_url='FirstLast',
@@ -660,7 +632,7 @@ class TestFunctions(ImageTestCase):
                 'name': 'First Last',
                 'name_for_search': 'first-last',
                 'name_for_url': 'FirstLast',
-                'short_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
+                'short_url': 'http://123.zco.mx',
                 'social_media': [
                     ('website', 'http://website.com'),
                     ('twitter', 'https://twitter.com/firstlast'),
@@ -674,10 +646,13 @@ class TestFunctions(ImageTestCase):
 
     def test__torrent_file_name(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        creator = Creator(dict(
+            id=123,
+            auth_user_id=auth_user.id,
+        ))
         self.assertEqual(
             torrent_file_name(creator),
-            'FirstLast ({i}.zco.mx).torrent'.format(i=creator.id)
+            'FirstLast (123.zco.mx).torrent'
         )
 
         # Test scrubbed character.
@@ -686,42 +661,29 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(
             torrent_file_name(creator),
-            'FirstMiddleLast ({i}.zco.mx).torrent'.format(i=creator.id)
+            'FirstMiddleLast (123.zco.mx).torrent'
         )
 
     def test__torrent_link(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(
+        creator = Creator(dict(
+            id=123,
             auth_user_id=auth_user.id,
             torrent='app/zco/pri/var/tor/F/FirstLast.torrent',
             name_for_url='FirstLast',
         ))
 
-        # As integer, creator.id
-        link = torrent_link(creator.id)
+        link = torrent_link(creator)
         # Eg <a class="log_download_link"
         #   data-record_id="8979" data-record_table="book"
-        #   href="/First_Last_(101.zco.mx).torrent">first_last.torrent</a>
+        #   href="/First_Last_(123.zco.mx).torrent">first_last.torrent</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'FirstLast.torrent')
         self.assertEqual(
             anchor['href'],
-            '/FirstLast_({i}.zco.mx).torrent'.format(i=creator.id)
+            '/FirstLast_(123.zco.mx).torrent'
         )
-
-        # As Row, creator
-        link = torrent_link(creator)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'FirstLast.torrent')
-        self.assertEqual(
-            anchor['href'],
-            '/FirstLast_({i}.zco.mx).torrent'.format(i=creator.id)
-        )
-
-        # Invalid id
-        self.assertRaises(LookupError, torrent_link, -1)
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -752,14 +714,15 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__torrent_url(self):
-        self.assertRaises(LookupError, torrent_url, None)
-
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        creator = Creator(dict(
+            id=123,
+            auth_user_id=auth_user.id,
+        ))
 
         self.assertEqual(
             torrent_url(creator),
-            '/FirstLast_({i}.zco.mx).torrent'.format(i=creator.id)
+            '/FirstLast_(123.zco.mx).torrent'
         )
 
         # Test scrubbed character.
@@ -768,11 +731,11 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(
             torrent_url(creator),
-            '/FirstMiddleLast_({i}.zco.mx).torrent'.format(i=creator.id)
+            '/FirstMiddleLast_(123.zco.mx).torrent'
         )
 
     def test__url(self):
-        creator = self.add(db.creator, dict(email='test__url@example.com'))
+        creator = Creator(dict(email='test__url@example.com'))
 
         tests = [
             # (name_for_url, expect)
@@ -784,8 +747,7 @@ class TestFunctions(ImageTestCase):
         ]
 
         for t in tests:
-            creator.update_record(name_for_url=t[0])
-            db.commit()
+            creator.name_for_url = t[0]
             self.assertEqual(url(creator), t[1])
 
 

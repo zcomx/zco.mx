@@ -5,26 +5,31 @@
 
 Classes and functions related to book types.
 """
-import collections
 from gluon import *
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.records import Record
+from applications.zcomx.modules.utils import ClassFactory
 
 
-class BaseBookType(object):
-    """Base class representing a book type"""
+class BookType(Record):
+    """Class representing a book_type record"""
+    db_table = 'book_type'
+    class_factory = ClassFactory('class_factory_id')
 
-    def __init__(self, name, description, sequence):
-        """Constructor
+    @classmethod
+    def by_name(cls, name):
+        """Create instance from the given name.
 
         Args:
-            name: string, the name of the book type
-            description: string, the description of the book type
-            sequence: integer, the order sequence of the book type
+            name: str, book_type.name value.
+
+        Returns:
+            BookType subclass instance
         """
-        self.name = name
-        self.description = description
-        self.sequence = sequence
+        book_type = cls.from_key({'name': name})
+        return cls.class_factory(
+            book_type.name,
+            book_type.as_dict()
+        )
 
     def formatted_number(self, number, of_number):
         """Return the number of the book formatted.
@@ -37,6 +42,27 @@ class BaseBookType(object):
             string: formatted number, eg '01 (of 04)'
         """
         raise NotImplementedError()
+
+    @classmethod
+    def from_id(cls, record_id, db_table=None):
+        """Create instance from record id.
+
+        Like Record.from_id but converts BookType instance to appropriate
+        subclass instance
+
+        Args:
+            record_id: integer, id of record
+            db_table: str, name of database table
+                Defaults to cls.db_table.
+
+        Returns:
+            BookType subclass instance
+        """
+        book_type = Record.from_id(record_id, db_table=cls.db_table)
+        return cls.class_factory(
+            book_type.name,
+            book_type.as_dict()
+        )
 
     def is_series(self):
         """Return whether the book type is a series.
@@ -53,8 +79,10 @@ class BaseBookType(object):
         raise NotImplementedError()
 
 
-class MiniSeriesType(BaseBookType):
+@BookType.class_factory.register
+class MiniSeriesType(BookType):
     """Class representing a mini-series book type"""
+    class_factory_id = 'mini-series'
 
     def formatted_number(self, number, of_number):
         """Return the number of the book formatted.
@@ -77,8 +105,10 @@ class MiniSeriesType(BaseBookType):
         }
 
 
-class OneShotType(BaseBookType):
+@BookType.class_factory.register
+class OneShotType(BookType):
     """Class representing a one-shot book type"""
+    class_factory_id = 'one-shot'
 
     def formatted_number(self, number, of_number):
         """Return the number of the book formatted.
@@ -101,8 +131,10 @@ class OneShotType(BaseBookType):
         }
 
 
-class OngoingType(BaseBookType):
+@BookType.class_factory.register
+class OngoingType(BookType):
     """Class representing an ongoing book type"""
+    class_factory_id = 'ongoing'
 
     def formatted_number(self, number, of_number):
         """Return the number of the book formatted.
@@ -123,67 +155,3 @@ class OngoingType(BaseBookType):
             'number': True,
             'of_number': False,
         }
-
-
-CLASS_BY_NAME = collections.defaultdict(
-    lambda: OneShotType,
-    {
-        'one-shot': OneShotType,
-        'ongoing': OngoingType,
-        'mini-series': MiniSeriesType,
-    }
-)
-
-
-def by_name(type_name, default='one-shot'):
-    """Factory to return Row instance representing book_type record with the
-    given name.
-
-    Args:
-        type_name: string, name of book_type
-        default: default book_type name if book_type record not found.
-            If None and book_type record not found, raises LookupError.
-    Returns:
-        Row instance representing a book_type record
-    """
-    db = current.app.db
-    query = (db.book_type.name == type_name)
-    book_type = db(query).select().first()
-    if not book_type and default is None:
-        raise LookupError('Book type not found, name: {n}'.format(
-            n=type_name))
-    if not book_type:
-        query = (db.book_type.name == default)
-        book_type = db(query).select().first()
-        if not book_type:
-            raise LookupError('Book type not found, name: {n}'.format(
-                n=default))
-    return book_type
-
-
-def from_id(book_type_id, default='one-shot'):
-    """Factory to return a subclass instance associated with the book type id.
-
-    Args:
-        book_type_id: integer, id of book_type record
-        default: default book_type name if book_type record not found.
-            If None and book_type record not found, raises LookupError.
-    Returns:
-        BaseBookType subclass instance
-    """
-    db = current.app.db
-    book_type = entity_to_row(db.book_type, book_type_id)
-    if not book_type and default is None:
-        raise LookupError('Book type not found, id: {i}'.format(
-            i=book_type_id))
-    if not book_type:
-        query = (db.book_type.name == default)
-        book_type = db(query).select().first()
-        if not book_type:
-            raise LookupError('Book type not found, name: {n}'.format(
-                n=default))
-    return CLASS_BY_NAME[book_type.name](
-        book_type.name,
-        book_type.description,
-        book_type.sequence
-    )

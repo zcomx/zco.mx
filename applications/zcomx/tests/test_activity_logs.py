@@ -17,6 +17,7 @@ from applications.zcomx.modules.activity_logs import \
     PageAddedTentativeLogSet, \
     TentativeActivityLog, \
     TentativeLogSet
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -236,15 +237,17 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
     def test__as_book_pages(self):
         book_id = -2
 
-        book_page_1 = self.add(db.book_page, dict(
+        page_1 = self.add(db.book_page, dict(
             book_id=book_id,
             page_no=1,
         ))
+        book_page_1 = BookPage.from_id(page_1)
 
-        book_page_2 = self.add(db.book_page, dict(
+        page_2 = self.add(db.book_page, dict(
             book_id=book_id,
             page_no=1,
         ))
+        book_page_2 = BookPage.from_id(page_2)
 
         # Empty set
         log_set = PageAddedTentativeLogSet([])

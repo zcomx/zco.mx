@@ -19,7 +19,7 @@
                     <li>
                     {{=read_link(db, book.id, components=['read'])}}
                     </li>
-                    {{if can_receive_contributions(db, creator):}}
+                    {{if can_receive_contributions(creator):}}
                     <li>
                         {{=contribute_link(db, book.id, components=['contribute'], **dict(_class='contribute_button no_rclick_menu'))}}
                     </li>
@@ -72,14 +72,14 @@
             <div class="col-sm-12" >
                 <div class="row">
                     <div class="creator_img_container">
-                        <a href="{{=url(creator.id, extension=False)}}" title="{{=creator_name}}">
+                        <a href="{{=url(creator, extension=False)}}" title="{{=creator_name}}">
                         {{=CreatorImgTag(creator.image, size='web', attributes={'_alt': '', '_class': 'img-responsive'})()}}
                         </a>
                     </div>
                     <div class="creator_links_container">
                         <dl class="dl-horizontal">
                         <dt>cartoonist</dt>
-                        <dd><a href="{{=url(creator.id, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a></dd>
+                        <dd><a href="{{=url(creator, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a></dd>
                         {{for f in ['website', 'twitter', 'email']:}}
                             {{try:}}
                             {{if creator[f]:}}

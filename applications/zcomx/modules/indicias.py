@@ -17,10 +17,11 @@ from applications.zcomx.modules.books import \
     cc_licence_data, \
     get_page, \
     next_book_in_series, \
-    orientation as page_orientation, \
     publication_year_range, \
     read_link
+from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
+    Creator, \
     can_receive_contributions, \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
@@ -35,7 +36,7 @@ from applications.zcomx.modules.links import \
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
-from applications.zcomx.modules.social_media import SOCIAL_MEDIA_CLASSES
+from applications.zcomx.modules.social_media import SocialMedia
 from applications.zcomx.modules.utils import \
     default_record, \
     entity_to_row, \
@@ -63,7 +64,6 @@ class IndiciaPage(object):
         '{space} OR BY TELLING OTHERS ON {twitter}, {tumblr} AND {facebook}.'
     )
     default_indicia_paths = ['static', 'images', 'indicia_image.png']
-    default_licence_code = 'All Rights Reserved'
 
     def __init__(self, entity):
         """Constructor
@@ -79,15 +79,6 @@ class IndiciaPage(object):
         """Return the call to action text."""
         return self.call_to_action_fmt.format(
             **self.call_to_action_data).strip()
-
-    def default_licence(self):
-        """Return the default licence record."""
-        cc_licence_entity = cc_licence_by_code(
-            self.default_licence_code, default=None)
-        if cc_licence_entity is None:
-            raise LookupError('CC licence not found: {code}'.format(
-                code=self.default_licence_code))
-        return cc_licence_entity
 
     def follow_icons(self):
         """Return follow icons.
@@ -108,9 +99,11 @@ class IndiciaPage(object):
             template_field: string, name of cc_licence template field. One of
                 'template_img', 'template_web'
         """
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
         return render_cc_licence(
             {},
-            self.default_licence(),
+            CCLicence.default(),
             template_field=template_field,
         )
 
@@ -159,7 +152,7 @@ class BookIndiciaPage(IndiciaPage):
         IndiciaPage.__init__(self, entity)
         self.table = db.book
         self.book = entity_to_row(db.book, self.entity)
-        self.creator = entity_to_row(db.creator, self.book.creator_id)
+        self.creator = Creator.from_id(self.book.creator_id)
         self._orientation = None
 
     def call_to_action_text(self):
@@ -167,9 +160,10 @@ class BookIndiciaPage(IndiciaPage):
 
         call_to_action_data = dict(IndiciaPage.call_to_action_data)
         call_to_action_data['space'] = '&nbsp;'
-        for name, obj_class in SOCIAL_MEDIA_CLASSES.items():
+        for name in ['twitter', 'tumblr', 'facebook']:
             text = IndiciaPage.call_to_action_data[name]
-            media = obj_class(self.book, creator_entity=self.creator)
+            media = SocialMedia.class_factory(
+                name, self.book, creator=self.creator)
             if not media:
                 continue
             url = media.share_url()
@@ -196,8 +190,9 @@ class BookIndiciaPage(IndiciaPage):
                 _target='_blank',
             )
         )
-        for obj_class in SOCIAL_MEDIA_CLASSES.values():
-            media = obj_class(self.book, creator_entity=self.creator)
+        for name in ['tumblr', 'twitter', 'facebook']:
+            media = SocialMedia.class_factory(
+                name, self.book, creator=self.creator)
             if not media:
                 continue
             icons.append(
@@ -214,8 +209,7 @@ class BookIndiciaPage(IndiciaPage):
         if self._orientation is None:
             orientation = None
             try:
-                orientation = page_orientation(
-                    get_page(self.book, page_no='last'))
+                orientation = get_page(self.book, page_no='last').orientation()
             except LookupError:
                 orientation = 'portrait'
             if orientation != 'landscape':
@@ -231,23 +225,17 @@ class BookIndiciaPage(IndiciaPage):
             template_field: string, name of cc_licence template field. One of
                 'template_img', 'template_web'
         """
-        db = current.app.db
         sections = []
         data = cc_licence_data(self.book)
-        cc_licence_entity = None
+        cc_licence = None
         if self.book.cc_licence_id:
-            query = (db.cc_licence.id == self.book.cc_licence_id)
-            cc_licence_entity = db(query).select().first()
-            if not cc_licence_entity:
-                raise LookupError('CC licence not found: {code}'.format(
-                    code=self.default_licence_code))
-
-        if not cc_licence_entity:
-            cc_licence_entity = self.default_licence()
+            cc_licence = CCLicence.from_id(self.book.cc_licence_id)
+        if not cc_licence:
+            cc_licence = CCLicence.default()
 
         sections.append(render_cc_licence(
             data,
-            cc_licence_entity,
+            cc_licence,
             template_field=template_field,
         ))
 
@@ -291,7 +279,7 @@ class BookIndiciaPage(IndiciaPage):
         contribute_and_links_divs = []
 
         db = current.app.db
-        if self.creator and can_receive_contributions(db, self.creator):
+        if self.creator and can_receive_contributions(self.creator):
             # js is used to flesh out the contribute widget
             contribute_and_links_divs.append(
                 DIV(
@@ -472,12 +460,10 @@ class CreatorIndiciaPagePng(IndiciaPage, IndiciaPagePng):
         """Constructor
 
         Args:
-            entity: Row instance or integer representing a record,
-                if integer, this is the id of the record. The record is read.
+            entity: Creator instance
         """
-        db = current.app.db
         IndiciaPage.__init__(self, entity)
-        self.creator = entity_to_row(db.creator, self.entity)
+        self.creator = entity
         self.metadata_filename = None
         self._indicia_filename = None
 
@@ -516,7 +502,7 @@ class CreatorIndiciaPagePng(IndiciaPage, IndiciaPagePng):
         )
         return render_cc_licence(
             data,
-            self.default_licence(),
+            CCLicence.default(),
             template_field=template_field,
         )
 
@@ -690,8 +676,7 @@ class PublicationMetadata(object):
 
         query = (db.cc_licence.id == self.derivative['cc_licence_id'])
         cc_licence = db(query).select().first()
-        cc_code = cc_licence.code if cc_licence \
-            else IndiciaPage.default_licence_code
+        cc_code = cc_licence.code if cc_licence else CCLicence.default_code
 
         return fmt.format(
             name=self.book.name,
@@ -1049,16 +1034,12 @@ class PublicationMetadata(object):
             if not derivative:
                 raise LookupError('derivative record not found')
 
-            cc_licence_id = cc_licence_by_code(
-                IndiciaPage.default_licence_code,
-                want='id',
-                default=0
-            )
+            cc_licence = CCLicence.default()
 
             default = default_record(db.derivative, ignore_fields='common')
             default.update({
                 'book_id': self.book.id,
-                'cc_licence_id':cc_licence_id,
+                'cc_licence_id': cc_licence.id,
             })
 
             data = dict(default)
@@ -1175,28 +1156,6 @@ class PublicationMetadata(object):
         if self._publication_year_range == (None, None):
             self._publication_year_range = publication_year_range()
         return self._publication_year_range
-
-
-def cc_licence_by_code(code, want=None, default=None):
-    """Return the cc_licence record or field for a given code.
-
-    Args:
-        code: string, cc_licence.code
-        want: string, cc_licence field name. If None return Row instance.
-        default: value to return if cc_licence record not found.
-
-    Return:
-        mixed, field value or Row if want=None.
-    """
-    db = current.app.db
-    query = (db.cc_licence.code == code)
-    cc_licence = db(query).select().first()
-    if not cc_licence:
-        return default
-
-    if want is not None:
-        return cc_licence[want]
-    return cc_licence
 
 
 def cc_licence_places():
@@ -1483,7 +1442,8 @@ def cc_licences(book_entity):
     data = cc_licence_data(book_record)
 
     scrub = lambda x: x.replace('"', '\\"')
-    info = lambda x: scrub(render_cc_licence(data, cc_licence_entity=x))
+    info = lambda x: scrub(
+        render_cc_licence(data, cc_licence=CCLicence(x.as_dict())))
 
     # line-too-long (C0301): *Line too long (%%s/%%s)*
     # pylint: disable=C0301
@@ -1498,7 +1458,7 @@ def create_creator_indicia(creator, resize=False, optimize=False):
     """Create indicia for creator.
 
     Args:
-        creator: Row instance representing creator.
+        creator: Creator instance
         resize: If true, sizes of images are created
         optimize: If true, all images are optimized
     """
@@ -1509,7 +1469,7 @@ def create_creator_indicia(creator, resize=False, optimize=False):
         # Delete existing
         if creator[field]:
             on_delete_image(creator[field])
-            creator.update_record(**{field: None})
+            db(db.creator.id == creator.id).update(**{field: None})
             db.commit()
         png_page = CreatorIndiciaPagePng(creator)
         png = png_page.create(orientation=orientation)
@@ -1523,26 +1483,20 @@ def create_creator_indicia(creator, resize=False, optimize=False):
             if optimize:
                 AllSizesImages.from_names([data[field]]).optimize()
 
-    creator.update_record(**data)
+    db(db.creator.id == creator.id).update(**data)
     db.commit()
 
 
 def render_cc_licence(
-        data, cc_licence_entity, template_field='template_web'):
+        data, cc_licence, template_field='template_web'):
     """Render the cc licence for the book.
 
     Args:
         data: dict of data for the template.
-        cc_licence_entity: Row instance or integer (id) representing cc_licence
+        cc_licence: CCLicence instance
         template_field: string, name of cc_licence template field. One of
             'template_img', 'template_web'
     """
-    db = current.app.db
-    cc_licence_record = entity_to_row(db.cc_licence, cc_licence_entity)
-    if not cc_licence_record:
-        raise LookupError('CC licence not found, {e}'.format(
-            e=cc_licence_entity))
-
     default_url = URL(c='search', f='index')
 
     if 'owner' not in data:
@@ -1564,7 +1518,7 @@ def render_cc_licence(
         data['year'] = datetime.date.today().year
 
     if 'url' not in data:
-        data['url'] = cc_licence_record.url
+        data['url'] = cc_licence.url
 
     scrub = lambda x: x.upper().replace("'", '`') if x else 'n/a'
 
@@ -1572,5 +1526,5 @@ def render_cc_licence(
         if field in data:
             data[field] = scrub(data[field])
 
-    text = cc_licence_record[template_field].format(**data)
+    text = cc_licence[template_field].format(**data)
     return '{t}'.format(t=text)

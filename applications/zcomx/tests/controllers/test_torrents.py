@@ -10,7 +10,9 @@ import os
 import unittest
 import urllib2
 from applications.zcomx.modules.books import book_name
-from applications.zcomx.modules.creators import creator_name
+from applications.zcomx.modules.creators import \
+    Creator, \
+    creator_name
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -51,7 +53,8 @@ class TestFunctions(LocalTestCase):
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
         query = db.creator.auth_user_id == cls._user.id
-        cls._creator = db(query).select().first()
+        creator = db(query).select().first()
+        cls._creator = Creator.from_id(creator.id)
         if not cls._creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 

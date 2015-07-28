@@ -77,7 +77,7 @@ class BookNumber(BookName):
 
         Args:
             name: string, the book number as text, eg '01 (of 04)'
-                Eg. as returned by BaseBookType.formatted_number
+                Eg. as returned by BookType.formatted_number
         """
         BookName.__init__(self, name)
 

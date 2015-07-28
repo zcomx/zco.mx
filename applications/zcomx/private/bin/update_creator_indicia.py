@@ -10,10 +10,9 @@ Script to update a creator's indicia.
 # pylint: disable=W0404
 import logging
 from optparse import OptionParser
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import on_delete_image
-from applications.zcomx.modules.indicias import \
-    create_creator_indicia
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.indicias import create_creator_indicia
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -23,7 +22,7 @@ def clear_creator_indicia(creator):
     """Clear indicia for creator.
 
     Args:
-        creator: creator Row instance
+        creator: Creator instance
     Returns:
         creator
     """
@@ -36,7 +35,7 @@ def clear_creator_indicia(creator):
             on_delete_image(creator[field])
             data[field] = None
 
-    creator.update_record(**data)
+    db(db.creator.id == creator.id).update(**data)
     db.commit()
 
 
@@ -142,8 +141,9 @@ def main():
         ids.append(record_id)
 
     for creator_id in ids:
-        creator = entity_to_row(db.creator, creator_id)
-        if not creator:
+        try:
+            creator = Creator.from_id(creator_id)
+        except LookupError:
             print 'No creator found, id: {i}'.format(i=record_id)
             quit(1)
 

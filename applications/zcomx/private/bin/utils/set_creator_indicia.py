@@ -18,7 +18,7 @@ import os
 import shutil
 import sys
 from optparse import OptionParser
-from applications.zcomx.modules.utils import entity_to_row
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
     store
@@ -91,7 +91,6 @@ def main():
         parser.print_help()
         exit(1)
 
-
     record_id = None
     name = None
     try:
@@ -115,10 +114,7 @@ def main():
             quit(1)
         record_id = rows[0].creator.id
 
-    creator = entity_to_row(db.creator, record_id)
-    if not creator:
-        print 'No creator found, id: {i}'.format(i=record_id)
-        quit(1)
+    creator = Creator.from_id(record_id)
 
     if not os.path.exists(args[1]):
         print 'File not found: {n}'.format(n=args[1])
@@ -157,8 +153,9 @@ def main():
     LOG.debug('stored_filename: %s', stored_filename)
     LOG.debug('Updating creator.indicia_image')
     data = {img_field: stored_filename}
-    creator.update_record(**data)
+    db(db.creator.id == creator.id).update(**data)
     db.commit()
+    creator.update(data)
 
 
 if __name__ == '__main__':

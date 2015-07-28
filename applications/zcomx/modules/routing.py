@@ -10,6 +10,7 @@ import os
 from gluon import *
 from gluon.html import A, SPAN
 from gluon.storage import Storage
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     Book, \
     cover_image, \
@@ -34,8 +35,7 @@ from applications.zcomx.modules.search import \
     CompletedGrid, \
     CreatorMoniesGrid, \
     OngoingGrid
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_DISABLED, \
     BOOK_STATUS_DRAFT
@@ -99,16 +99,19 @@ class Router(object):
                 except (TypeError, ValueError):
                     pass
                 else:
-                    self.creator_record = entity_to_row(
-                        db.creator,
-                        request.vars.creator
-                    )
+                    try:
+                        self.creator_record = Creator.from_id(
+                            request.vars.creator)
+                    except LookupError:
+                        pass
 
                 # Test for request.vars.creator as creator.name_for_url
                 if not self.creator_record:
                     name = request.vars.creator.replace('_', ' ')
                     query = (db.creator.name_for_url.lower() == name.lower())
-                    self.creator_record = db(query).select().first()
+                    creator = db(query).select(limitby=(0, 1)).first()
+                    if creator:
+                        self.creator_record = Creator(creator.as_dict())
 
         return self.creator_record
 
@@ -150,8 +153,7 @@ class Router(object):
         # Check if indicia page is requested.
         last_page = None
         try:
-            last_page = get_page(
-                book_record, page_no='last')
+            last_page = get_page(book_record, page_no='last')
         except LookupError:
             pass
 
@@ -230,9 +232,9 @@ class Router(object):
             if random_book:
                 query_wants.append((db.book.id == random_book.id))
 
-        url_page_record = None
+        url_book_page = None
         url_book_record = None
-        url_creator_record = None
+        url_creator = None
 
         for query_want in query_wants:
             queries = []
@@ -257,23 +259,17 @@ class Router(object):
             )
             if rows:
                 if rows[0].book_page.id:
-                    url_page_record = entity_to_row(
-                        db.book_page,
-                        rows[0].book_page.id
-                    )
+                    url_book_page = BookPage.from_id(rows[0].book_page.id)
                 if rows[0].book.id:
                     url_book_record = entity_to_row(db.book, rows[0].book.id)
                 if rows[0].creator.id:
-                    url_creator_record = entity_to_row(
-                        db.creator,
-                        rows[0].creator.id
-                    )
+                    url_creator = Creator.from_id(rows[0].creator.id)
                 break
 
         urls.suggestions = []
         urls.suggestions.append({
             'label': 'Cartoonist page:',
-            'url': creator_url(url_creator_record, host=True),
+            'url': creator_url(url_creator, host=True),
         })
         urls.suggestions.append({
             'label': 'Book page:',
@@ -281,7 +277,7 @@ class Router(object):
         })
         urls.suggestions.append({
             'label': 'Read:',
-            'url': page_url(url_page_record, host=True),
+            'url': page_url(url_book_page, host=True),
         })
         message = 'The requested page was not found on this server.'
 
@@ -441,8 +437,7 @@ class Router(object):
         if not request.vars.order:
             request.vars.order = 'book.name'
 
-        grid = CreatorMoniesGrid(
-            default_viewby='tile', creator_entity=creator_record)
+        grid = CreatorMoniesGrid(default_viewby='tile', creator=creator_record)
         self.view_dict = dict(
             creator=creator_record,
             grid=grid.render(),

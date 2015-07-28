@@ -21,8 +21,6 @@ from applications.zcomx.modules.strings import \
     camelcase, \
     replace_punctuation, \
     squeeze_whitespace
-from applications.zcomx.modules.utils import \
-    entity_to_row
 from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = logging.getLogger('app')
@@ -67,25 +65,24 @@ def add_creator(form):
         )
         creator_id = db.creator.insert(**data)
         db.commit()
-        on_change_name(creator_id)
 
-        queue_update_indicia(creator_id)     # Create default indicia
+        creator = Creator.from_id(creator_id)
+        on_change_name(creator)
+        queue_update_indicia(creator)     # Create default indicia
 
 
-def book_for_contributions(db, creator_entity):
+def book_for_contributions(creator):
     """Return the book contributions to the creator will be applied to.
 
     Args:
-        db: gluon.dal.DAL instance
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the record. The creator record is read.
+        creator: Creator instance
 
     Returns:
         Row instance representing book.
     """
-    creator = entity_to_row(db.creator, creator_entity)
     if not creator:
         return
+    db = current.app.db
     query = (db.book.creator_id == creator.id)
     return db(query).select(
         db.book.ALL,
@@ -94,18 +91,15 @@ def book_for_contributions(db, creator_entity):
     ).first()
 
 
-def can_receive_contributions(db, creator_entity):
+def can_receive_contributions(creator):
     """Return whether a creator can receive contributions.
 
     Args:
-        db: gluon.dal.DAL instance
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the record. The creator record is read.
+        creator: Creator instance
 
     Returns:
         boolean, True if creator can receive contributions.
     """
-    creator = entity_to_row(db.creator, creator_entity)
     if not creator:
         return False
 
@@ -114,25 +108,22 @@ def can_receive_contributions(db, creator_entity):
         return False
 
     # Must have a book for contributions.
-    book = book_for_contributions(db, creator_entity)
+    book = book_for_contributions(creator)
     if not book:
         return False
     return True
 
 
-def contribute_link(db, creator_entity, components=None, **attributes):
+def contribute_link(creator, components=None, **attributes):
     """Return html code suitable for a 'Contribute' link.
 
     Args:
-        db: gluon.dal.DAL instance
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the record. The creator record is read.
+        creator: Creator instance
         components: list, passed to A(*components),  default ['Contribute']
         attributes: dict of attributes for A()
     """
     empty = SPAN('')
 
-    creator = entity_to_row(db.creator, creator_entity)
     if not creator:
         return empty
 
@@ -153,20 +144,16 @@ def contribute_link(db, creator_entity, components=None, **attributes):
     return A(*components, **kwargs)
 
 
-def creator_name(creator_entity, use='file'):
+def creator_name(creator, use='file'):
     """Return the name of the creator for the specific use.
 
     Args:
-        creator_entity: Row instance or integer representing a creator.
+        creator: Creator instance
         use: one of 'file', 'search', 'url'
 
     Returns:
         string, name of file
     """
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
     if use == 'file':
         return CreatorName(formatted_name(creator)).for_file()
     elif use == 'search':
@@ -180,7 +167,7 @@ def follow_link(creator, components=None, **attributes):
     """Return html code suitable for a 'Follow' link.
 
     Args:
-        creator: Row instance representing the creator
+        creator: Creator instance
         components: list, passed to A(*components),  default ['Download']
         attributes: dict of attributes for A()
     """
@@ -219,90 +206,79 @@ def for_path(name):
     return for_file(name)
 
 
-def formatted_name(creator_entity):
+def formatted_name(creator):
     """Return the formatted name of the creator.
 
     Args:
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
+        creator: Creator instance
     """
-    if not creator_entity:
-        return
-
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
     if not creator or not creator.auth_user_id:
         return
 
+    db = current.app.db
+
     # Read the auth_user record
     query = (db.auth_user.id == creator.auth_user_id)
-    auth_user = db(query).select(db.auth_user.ALL).first()
+    auth_user = db(query).select(db.auth_user.name, limitby=(0, 1)).first()
     if not auth_user:
         return
 
     return auth_user.name
 
 
-def html_metadata(creator_entity):
+def html_metadata(creator):
     """Return creator attributes for HTML metadata.
 
     Args:
-        creator_entity: Row instance or integer representing a creator.
+        creator: Creator instance
 
     Returns:
         dict
     """
-    if not creator_entity:
+    if not creator:
         return {}
 
-    db = current.app.db
-    creator_record = entity_to_row(db.creator, creator_entity)
-    if not creator_record:
-        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
-
     image_url = None
-    if creator_record.image:
+    if creator.image:
         image_url = URL(
             c='images',
             f='download',
-            args=creator_record.image,
+            args=creator.image,
             vars={'size': 'web'},
             host=True
         )
 
     return {
-        'description': creator_record.bio,
+        'description': creator.bio,
         'image_url': image_url,
-        'name': formatted_name(creator_record),
-        'twitter': creator_record.twitter,
+        'name': formatted_name(creator),
+        'twitter': creator.twitter,
         'type': 'profile',
-        'url': url(creator_record, host=True),
+        'url': url(creator, host=True),
     }
 
 
-def image_as_json(db, creator_entity, field='image'):
+def image_as_json(creator, field='image'):
     """Return the creator image as json.
 
     Args:
-        db: gluon.dal.DAL instance
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
+        creator: Creator instance
         field: string, the name of the creator field to get the image from.
     """
     image_attributes = []
-    creator_record = entity_to_row(db.creator, creator_entity)
-    if not creator_record:
+    if not creator:
         return dumps(dict(files=image_attributes))
 
+    db = current.app.db
     if field not in db.creator.fields:
         LOG.error('Invalid creator image field: %s', field)
         return dumps(dict(files=image_attributes))
 
-    if not creator_record[field]:
+    if not creator[field]:
         return dumps(dict(files=image_attributes))
 
     filename, original_fullname = db.creator[field].retrieve(
-        creator_record[field],
+        creator[field],
         nameonly=True,
     )
 
@@ -314,13 +290,13 @@ def image_as_json(db, creator_entity, field='image'):
     image_url = URL(
         c='images',
         f='download',
-        args=creator_record[field],
+        args=creator[field],
     )
 
     thumb = URL(
         c='images',
         f='download',
-        args=creator_record[field],
+        args=creator[field],
         vars={'size': 'web'},
     )
 
@@ -344,23 +320,21 @@ def image_as_json(db, creator_entity, field='image'):
     return dumps(dict(files=image_attributes))
 
 
-def images(creator_entity):
+def images(creator):
     """Return a list of image names associated with the creator.
 
     Args:
-        creator_entity: Row instance or integer representing a creator record.
+        creator: Creator instance
 
     Returns:
         list of strings, list of image names. Eg of an image name:
             creator.image.801685b627e099e.300332e6a7067.jpg
     """
     db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
-
     image_names = []
     for field in db.creator.fields:
+        if not hasattr(creator, field):
+            continue
         if db.creator[field].type != 'upload':
             continue
         if not creator[field]:
@@ -369,21 +343,17 @@ def images(creator_entity):
     return image_names
 
 
-def on_change_name(creator_entity):
+def on_change_name(creator):
     """Update creator record when name is changed.
 
     Args:
-        creator_entity: Row instance or integer, if integer, this is the id of
+        creator: Creator instance
             the creator. The creator record is read.
     """
-    if not creator_entity:
+    if not creator:
         return
 
     db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator or not creator.auth_user_id:
-        return
-
     update_data = names(
         CreatorName(formatted_name(creator)), fields=db.creator.fields)
 
@@ -405,27 +375,24 @@ def profile_onaccept(form):
     """
     if not form.vars.id:
         return
-    db = current.app.db
-    creator = db(db.creator.auth_user_id == form.vars.id).select(
-        db.creator.ALL).first()
+    try:
+        creator = Creator.from_key(dict(auth_user_id=form.vars.id))
+    except LookupError:
+        return
+
     on_change_name(creator)
 
 
-def queue_update_indicia(creator_entity):
+def queue_update_indicia(creator):
     """Queue a job to update the indicia images for a creator.
 
     Args:
-        creator_entity: Row instance or integer representing a creator.
+        creator: Creator instance
 
     Returns:
         Row instance representing the job created.
     """
     db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise LookupError('Creator not found, id: {e}'.format(
-            e=creator_entity))
-
     job = UpdateIndiciaQueuer(
         db.job,
         cli_args=[str(creator.id)],
@@ -441,23 +408,16 @@ def queue_update_indicia(creator_entity):
     return job
 
 
-def rss_url(creator_entity, **url_kwargs):
+def rss_url(creator, **url_kwargs):
     """Return the url to the rss feed for all of creator's books.
 
     Args:
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
+        creator: Creator instance
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url, eg
             http://zco.mx/FirstLast.rss
     """
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise LookupError('Creator not found, id: {e}'.format(
-            e=creator_entity))
-
     controller = '{name}.rss'.format(name=creator_name(creator, use='url'))
 
     kwargs = {}
@@ -469,48 +429,39 @@ def rss_url(creator_entity, **url_kwargs):
     )
 
 
-def short_url(creator_entity):
+def short_url(creator):
     """Return a shortened url suitable for the creator page.
 
     Args:
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
+        creator: Creator instance
+
     Returns:
         string, url, eg http://101.zco.mx
     """
-    if not creator_entity:
-        return
-
-    db = current.app.db
-
-    creator_record = entity_to_row(db.creator, creator_entity)
-    if not creator_record:
+    if not creator:
         return
 
     # Until SSL certs are available for subdomains, don't use SSL.
     return '{scheme}://{cid}.zco.mx'.format(
         # scheme=current.request.env.wsgi_url_scheme or 'https',
         scheme='http',
-        cid=creator_record.id,
+        cid=creator.id,
     )
 
 
-def social_media_data(creator_entity):
+def social_media_data(creator):
     """Return creator attributes for social media.
 
     Args:
-        creator_entity: Row instance or integer representing a creator.
+        creator: Creator instance
 
     Returns:
         dict
     """
-    if not creator_entity:
+    if not creator:
         return {}
 
     db = current.app.db
-    creator_record = entity_to_row(db.creator, creator_entity)
-    if not creator_record:
-        raise LookupError('Creator not found, {e}'.format(e=creator_entity))
 
     social_media = []           # (field, url) tuples
     social_media_fields = [
@@ -522,38 +473,32 @@ def social_media_data(creator_entity):
     ]
 
     for field in social_media_fields:
-        if creator_record[field]:
+        if creator[field]:
             anchor = db.creator[field].represent(
-                creator_record[field], creator_record)
+                creator[field], creator)
             value = anchor.attributes['_href']
             social_media.append((field, value))
 
     return {
-        'name': formatted_name(creator_record),
-        'name_for_search': creator_name(creator_entity, use='search'),
-        'name_for_url': creator_name(creator_entity, use='url'),
-        'short_url': short_url(creator_record),
+        'name': formatted_name(creator),
+        'name_for_search': creator_name(creator, use='search'),
+        'name_for_url': creator_name(creator, use='url'),
+        'short_url': short_url(creator),
         'social_media': social_media,
-        'twitter': creator_record.twitter,
-        'url': url(creator_record, host=SITE_NAME),
+        'twitter': creator.twitter,
+        'url': url(creator, host=SITE_NAME),
     }
 
 
-def torrent_file_name(creator_entity):
+def torrent_file_name(creator):
     """Return the name of the torrent file for the creator.
 
     Args:
-        creator_entity: Row instance or integer representing a creator.
+        creator: Creator instance
 
     Returns:
         string, the file name.
     """
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise LookupError('Creator not found, id: {e}'.format(
-            e=creator_entity))
-
     fmt = '{name} ({url}).torrent'
     return fmt.format(
         name=creator_name(creator, use='file'),
@@ -561,24 +506,16 @@ def torrent_file_name(creator_entity):
     )
 
 
-def torrent_link(creator_entity, components=None, **attributes):
+def torrent_link(creator, components=None, **attributes):
     """Return a link suitable for the torrent file of all of creator's books.
 
     Args:
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
         components: list, passed to A(*components),  default [torrent_name()]
         attributes: dict of attributes for A()
     Returns:
         A instance
     """
     empty = SPAN('')
-
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise LookupError('Creator not found, id: {e}'.format(
-            e=creator_entity))
 
     link_url = torrent_url(creator)
     if not link_url:
@@ -597,23 +534,16 @@ def torrent_link(creator_entity, components=None, **attributes):
     return A(*components, **kwargs)
 
 
-def torrent_url(creator_entity, **url_kwargs):
+def torrent_url(creator, **url_kwargs):
     """Return the url to the torrent file for all of creator's books.
 
     Args:
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
+        creator: Creator instance
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url, eg
             http://zco.mx/FirstLast_(123.zco.mx).torrent
     """
-    db = current.app.db
-    creator = entity_to_row(db.creator, creator_entity)
-    if not creator:
-        raise LookupError('Creator not found, id: {e}'.format(
-            e=creator_entity))
-
     controller = '{name} ({i}.zco.mx).torrent'.format(
         name=creator_name(creator, use='file'),
         i=creator.id,
@@ -628,18 +558,18 @@ def torrent_url(creator_entity, **url_kwargs):
     )
 
 
-def url(creator_entity, **url_kwargs):
+def url(creator, **url_kwargs):
     """Return a url suitable for the creator page.
 
     Args:
-        creator_entity: Row instance or integer, if integer, this is the id of
-            the creator. The creator record is read.
+        creator: Creator instance
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
+
     Returns:
         string, url, eg http://zco.mx/creators/index/Firstname_Lastname
             (routes_out should convert it to http://zco.mx/Firstname_Lastname)
     """
-    name = creator_name(creator_entity, use='url')
+    name = creator_name(creator, use='url')
     if not name:
         return
 

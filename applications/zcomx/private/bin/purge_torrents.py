@@ -12,8 +12,6 @@ import os
 from optparse import OptionParser
 from applications.zcomx.modules.archives import TorrentArchive
 from applications.zcomx.modules.creators import formatted_name
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -23,9 +21,8 @@ def creators_needing_purge():
     """Generator of Row instances representing creator records for
     creators whose torrents need purging.
 
-
     Returns:
-        Row instance representing creator record.
+        Creator instance
     """
     query = (db.creator.torrent != None)
     ids = [x.id for x in db(query).select(db.creator.id)]
@@ -34,11 +31,7 @@ def creators_needing_purge():
                 (db.book.cbz != None)
         if db(query).count() > 0:
             continue
-        creator = entity_to_row(db.creator, creator_id)
-        if not creator:
-            raise LookupError('Creator not found, id: {i}'.format(
-                i=creator_id))
-        yield creator
+        yield Creator.from_id(creator_id)
 
 
 def delete_all_torrent():
@@ -164,7 +157,7 @@ def main():
             torrent=None,
             rebuild_torrent=False,
         )
-        creator.update_record(**data)
+        db(db.creator.id == creator.id).update(**data)
         db.commit()
 
     count = num_books_with_cbz()

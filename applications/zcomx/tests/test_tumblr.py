@@ -11,7 +11,9 @@ import unittest
 import uuid
 from BeautifulSoup import BeautifulSoup
 from pydal.objects import Row
-from applications.zcomx.modules.book_types import by_name as book_type_by_name
+from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
     BookListingCreator, \
@@ -47,30 +49,33 @@ class WithObjectsTestCase(LocalTestCase):
             name='First Last'
         ))
 
-        self._creator = self.add(db.creator, dict(
+        creator = self.add(db.creator, dict(
             auth_user_id=self._auth_user.id,
             email='image_test_case@example.com',
             name_for_url='FirstLast',
             tumblr='http://firstlast.tumblr.com',
         ))
+        self._creator = Creator.from_id(creator.id)
 
         self._book = self.add(db.book, dict(
             name='My Book',
             number=1,
             creator_id=self._creator.id,
-            book_type_id=book_type_by_name('ongoing').id,
+            book_type_id=BookType.by_name('ongoing').id,
             name_for_url='MyBook-001',
         ))
 
-        self._book_page = self.add(db.book_page, dict(
+        page = self.add(db.book_page, dict(
             book_id=self._book.id,
             page_no=1,
         ))
+        self._book_page = BookPage.from_id(page.id)
 
-        self._book_page_2 = self.add(db.book_page, dict(
+        page_2 = self.add(db.book_page, dict(
             book_id=self._book.id,
             page_no=2,
         ))
+        self._book_page_2 = BookPage.from_id(page_2.id)
 
         self._activity_log_1 = self.add(db.activity_log, dict(
             book_id=self._book.id,
@@ -173,7 +178,7 @@ class TestOngoingBookListing(WithObjectsTestCase):
     def test____init__(self):
         listing = OngoingBookListing(
             Row({'name': 'test____init__'}),
-            Row({'name_for_url': 'FirstLast'}),
+            BookPage({'name_for_url': 'FirstLast'}),
             []
         )
         self.assertTrue(listing)
@@ -230,8 +235,14 @@ class TestOngoingBookListing(WithObjectsTestCase):
         got = OngoingBookListing.from_activity_log(activity_log)
         self.assertTrue(isinstance(got, OngoingBookListing))
         self.assertEqual(got.book, self._book)
-        self.assertEqual(got.book_pages[0], self._book_page)
-        self.assertEqual(got.book_pages[1], self._book_page_2)
+        self.assertEqual(
+            got.book_pages[0],
+            BookPage.from_id(self._book_page.id)
+        )
+        self.assertEqual(
+            got.book_pages[1],
+            BookPage.from_id(self._book_page_2.id)
+        )
         self.assertEqual(got.creator, self._creator)
 
 
