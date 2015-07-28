@@ -1,4 +1,4 @@
-# coding: utf8
+# -*- coding: utf-8 -*-
 {
 '!langcode!': 'uk',
 '!langname!': 'Українська',
@@ -83,7 +83,11 @@
 'Edit current record': 'Редагувати поточний запис',
 'Edit Page': 'Редагувати сторінку',
 'Email and SMS': 'Ел.пошта та SMS',
+'Enter a number between %(min)g and %(max)g': 'Enter a number between %(min)g and %(max)g',
+'Enter a valid year': 'Enter a valid year',
 'enter a value': 'введіть значення',
+'Enter an integer': 'Enter an integer',
+'Enter an integer between %(min)g and %(max)g': 'Enter an integer between %(min)g and %(max)g',
 'enter an integer between %(min)g and %(max)g': 'введіть ціле число між %(min)g та %(max)g',
 'Error!': 'Помилка!',
 'Errors': 'Помилки',

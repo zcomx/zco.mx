@@ -1,37 +1,4 @@
 ``
-[x] Tighten Up css on RSS page
-    https://zco.mx/z/rss
-    ~/rss.png
-    [x] Link to a howto on 'rss to email'
-        * https://blogtrottr.com/
-        * thunderbird
-        * outlook
-[x] Screen Too Small For Slider
-    http://www.forbiddenplanet.co.uk/blog/2015/zco-mx/#comment-87570
-[x] Web images are too small on hi-res screens
-    If the portview has a height > 1200px, then cbz image
-[x] Add RSS/zc-share button to cartoonist and book pages
-    Use RSS modal
-    [x] ongoing section - tile
-        link
-    [x] ongoing section - list
-        button
-    [x] cartoonist section - tile
-        link
-    [x] cartoonist section - list
-        button
-    [x] book page
-        link
-    [x] comic page
-        link
-[x] Cartoonist Page -> Links to Cartoonist Articles/Interviews
-        http://p.zsw.ca/IJ.png      ## mockup
-[x] Book page -> Links to Book Reviews
-        http://p.zsw.ca/IJ.png      ## mockup
-[x] Post Notifications on fb
-[x] Make CBZ's available via HTTP
-
-
 VERSION 3
 [S] Integrity Check For Torrents
     https://code.google.com/p/pyroscope/wiki/RtControlExamples
@@ -44,12 +11,7 @@ VERSION 3
 [S] Update Jordan's indicia image
     [ ] release uptight 001?
 
-[ ] login/books
-    After choosing 'Set as completed' we leave the cartoonist at "(in
-    progress)".  It's leaves them in a bit of limbo.  What if we put the
-    book under "Completed" and a comment "(this can take up to an hour
-    to complete)".  Once the book as been released, then we remove the
-    comment.
+[ ] Display Images in RSS Feeds?
 
 
 VERSION 4

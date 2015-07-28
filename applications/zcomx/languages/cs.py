@@ -20,6 +20,7 @@
 '(requires internet access, experimental)': '(requires internet access, experimental)',
 '(something like "it-it")': '(například "cs-cs")',
 '1 day ago': '1 day ago',
+'1 hour ago': '1 hour ago',
 '1 month ago': '1 month ago',
 '1 week ago': '1 week ago',
 '@markmin\x01(file **gluon/contrib/plural_rules/%s.py** is not found)': '(soubor **gluon/contrib/plural_rules/%s.py** nenalezen)',

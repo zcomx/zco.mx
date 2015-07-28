@@ -1945,7 +1945,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .link_fieldset {
-    width: 44em;
+    width: 52em;
 }
 @media (max-width: 767px){
     .link_fieldset {
