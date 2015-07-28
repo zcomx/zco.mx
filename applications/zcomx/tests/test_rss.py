@@ -12,8 +12,10 @@ import unittest
 import gluon.contrib.rss2 as rss2
 from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.images import store
 from applications.zcomx.modules.rss import \
     AllRSSChannel, \
     BaseRSSChannel, \
@@ -26,6 +28,9 @@ from applications.zcomx.modules.rss import \
     channel_from_type, \
     entry_class_from_action, \
     rss_serializer_with_image
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -82,6 +87,17 @@ class WithObjectsTestCase(LocalTestCase):
             time_stamp=self._activity_log_time_stamp,
         ))
 
+        super(WithObjectsTestCase, self).setUp()
+
+    def set_book_page_image(self):
+        """Set the book_page.image on self._book_page."""
+        filename = self._prep_image('file.jpg')
+        stored_filename = store(
+            db.book_page.image, filename, resizer=ResizerQuick)
+        query = (db.book_page.id == self._book_page.id)
+        db(query).update(image=stored_filename)
+        self._book_page = db(query).select().first()            # Reload
+
 
 class DubRSSChannel(BaseRSSChannel):
     max_entry_age_in_days = 10
@@ -113,6 +129,9 @@ class DubRSSEntry(BaseRSSEntry):
     def description_fmt(self):
         return 'A book {b} by {c} posted {d}.'
 
+    def enclosure(self):
+        return 'Fake enclosure.'
+
     def guid(self):
         return 'guid-001'
 
@@ -138,7 +157,7 @@ class TestAllRSSChannel(LocalTestCase):
         self.assertEqual(channel.title(), 'zco.mx')
 
 
-class TestBaseRSSChannel(WithObjectsTestCase):
+class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
     def test____init__(self):
         channel = BaseRSSChannel()
         self.assertTrue(channel)
@@ -150,6 +169,8 @@ class TestBaseRSSChannel(WithObjectsTestCase):
     def test__entries(self):
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
+        self.set_book_page_image()
+
         channel = DubRSSChannel()
         channel._filter_query = (db.activity_log.id < 0)
         self.assertEqual(channel.entries(), [])
@@ -161,7 +182,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
         entry = got[0]
         self.assertEqual(
             sorted(entry.keys()),
-            ['created_on', 'description', 'guid', 'link', 'title']
+            ['created_on', 'description', 'enclosure', 'guid', 'link', 'title']
         )
 
         self.assertEqual(
@@ -173,6 +194,16 @@ class TestBaseRSSChannel(WithObjectsTestCase):
         # pylint: disable=C0301
         desc = "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
         self.assertEqual(entry['description'], desc)
+
+        enclosure = entry['enclosure']
+        self.assertTrue(isinstance(enclosure, rss2.Enclosure))
+        fmt = 'http://zco.mx/images/download/{i}?size=web'
+        self.assertEqual(
+            enclosure.url,
+            fmt.format(i=self._book_page.image)
+        )
+        self.assertEqual(enclosure.length, 14727)
+        self.assertEqual(enclosure.type, 'image/jpeg')
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
         self.assertEqual(entry['guid'].guid, str(self._activity_log.id))
@@ -190,6 +221,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
     def test__feed(self):
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
+        self.set_book_page_image()
         channel = DubRSSChannel()
         channel._filter_query = (db.activity_log.id == self._activity_log.id)
         got = channel.feed()
@@ -204,7 +236,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
         entry = got['entries'][0]
         self.assertEqual(
             sorted(entry.keys()),
-            ['created_on', 'description', 'guid', 'link', 'title']
+            ['created_on', 'description', 'enclosure', 'guid', 'link', 'title']
         )
 
         self.assertEqual(
@@ -284,7 +316,7 @@ class TestBaseRSSChannel(WithObjectsTestCase):
         self.assertRaises(NotImplementedError, channel.title)
 
 
-class TestBaseRSSEntry(WithObjectsTestCase):
+class TestBaseRSSEntry(WithObjectsTestCase, ImageTestCase):
     def test____init__(self):
         entry = BaseRSSEntry(
             [self._book_page.id],
@@ -320,6 +352,24 @@ class TestBaseRSSEntry(WithObjectsTestCase):
         )
         self.assertRaises(NotImplementedError, entry.description_fmt)
 
+    def test__enclosure(self):
+        self.set_book_page_image()
+
+        entry = BaseRSSEntry(
+            [self._book_page.id],
+            self._activity_log_time_stamp,
+            self._activity_log.id
+        )
+        enclosure = entry.enclosure()
+        self.assertTrue(isinstance(enclosure, rss2.Enclosure))
+        fmt = 'http://zco.mx/images/download/{i}?size=web'
+        self.assertEqual(
+            enclosure.url,
+            fmt.format(i=self._book_page.image)
+        )
+        self.assertEqual(enclosure.length, 14727)
+        self.assertEqual(enclosure.type, 'image/jpeg')
+
     def test__feed_item(self):
         # The time_stamp and activity_log_id args to DubRSSEntry are irrelevant
         # for this test as the overriden methods determine the feed_item
@@ -332,7 +382,7 @@ class TestBaseRSSEntry(WithObjectsTestCase):
         got = entry.feed_item()
         self.assertEqual(
             sorted(got.keys()),
-            ['created_on', 'description', 'guid', 'link', 'title']
+            ['created_on', 'description', 'enclosure', 'guid', 'link', 'title']
         )
         self.assertEqual(
             got,
@@ -340,6 +390,7 @@ class TestBaseRSSEntry(WithObjectsTestCase):
                 'created_on': self._activity_log_time_stamp,
                 'description':
                     'A book My Book 001 by First Last posted Dec 31, 1999.',
+                'enclosure': 'Fake enclosure.',
                 'guid': 'guid-001',
                 'link': '/path/to/entry',
                 'title': 'Dub RSS Entry',
@@ -354,10 +405,11 @@ class TestBaseRSSEntry(WithObjectsTestCase):
         ))
 
         # Test single page
-        book_page = self.add(db.book_page, dict(
+        book_page_row = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=999,
         ))
+        book_page = BookPage.from_id(book_page_row.id)
 
         entry = BaseRSSEntry(
             [book_page.id],
@@ -367,15 +419,17 @@ class TestBaseRSSEntry(WithObjectsTestCase):
         self.assertEqual(entry.first_of_pages(), book_page)
 
         # Test multiple pages
-        book_page_2 = self.add(db.book_page, dict(
+        book_page_row_2 = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=666,
         ))
+        book_page_2 = BookPage.from_id(book_page_row_2.id)
 
-        book_page_3 = self.add(db.book_page, dict(
+        book_page_row_3 = self.add(db.book_page, dict(
             book_id=book.id,
             page_no=777,
         ))
+        book_page_3 = BookPage.from_id(book_page_row_3.id)
 
         page_ids = [
             book_page.id,
@@ -645,7 +699,8 @@ class TestFunctions(WithObjectsTestCase):
             self._activity_log.update_record(action=action)
             db.commit()
 
-            got = activity_log_as_rss_entry(ActivityLog(self._activity_log.as_dict()))
+            got = activity_log_as_rss_entry(
+                ActivityLog(self._activity_log.as_dict()))
 
             self.assertTrue(
                 isinstance(got, entry_class_from_action(action))
@@ -661,7 +716,8 @@ class TestFunctions(WithObjectsTestCase):
         self._activity_log.update_record(book_page_ids=new_book_page_ids)
         db.commit()
 
-        got = activity_log_as_rss_entry(ActivityLog(self._activity_log.as_dict()))
+        got = activity_log_as_rss_entry(
+            ActivityLog(self._activity_log.as_dict()))
 
         self.assertEqual(got.book_page_ids, old_book_page_ids)
 
