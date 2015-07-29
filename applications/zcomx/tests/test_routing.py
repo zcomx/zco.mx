@@ -309,6 +309,18 @@ class TestRouter(LocalTestCase):
         self.assertEqual(got.name_for_url, 'FirstLast')
         self.assertTrue(router.creator_record is not None)
 
+        # Test SpareNN
+        router.creator_record = None
+        query = (db.creator.name_for_url.like('Spare%'))
+        spare_creator = db(query).select().first()
+
+        router.request.vars.creator = spare_creator.name_for_url
+        self.assertRaises(LookupError, router.get_creator)
+
+        router.creator_record = None
+        router.request.vars.creator = str(spare_creator.id)
+        self.assertRaises(LookupError, router.get_creator)
+
     def test__get_book_page(self):
         router = Router(db, self._request, auth)
         self.assertTrue(router.book_page_record is None)
