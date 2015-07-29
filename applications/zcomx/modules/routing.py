@@ -118,7 +118,7 @@ class Router(object):
                 if self.creator_record:
                     re_spare = re.compile(r'Spare\d+')
                     if re_spare.match(self.creator_record.name_for_url):
-                        fmt = 'Spare creator accessed: {c}'
+                        fmt = 'Spare creator requested: {c}'
                         raise LookupError(fmt.format(
                             c=self.creator_record.name_for_url))
 
