@@ -11,6 +11,9 @@ import os
 import unittest
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import book_name
+from applications.zcomx.modules.tests.helpers import \
+    ImageTestCase, \
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -18,7 +21,7 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
+class TestFunctions(ImageTestCase):
 
     _creator = None
     _book = None
@@ -31,8 +34,8 @@ class TestFunctions(LocalTestCase):
         'modal': '<div id="rss_modal">',
         'page_not_found': '<h3>Page not found</h3>',
         'rss': [
-            '<?xml version="1.0"',
-            '<rss version="2.0">',
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">',
         ],
         'widget': '<div class="rss_widget_body">',
     }
@@ -76,6 +79,8 @@ class TestFunctions(LocalTestCase):
             time_stamp=self._activity_log_time_stamp,
         ))
 
+        super(TestFunctions, self).setUp()
+
     def test__modal(self):
         self.assertTrue(
             web.test(
@@ -87,6 +92,13 @@ class TestFunctions(LocalTestCase):
     def test__route(self):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
+        filename = 'file.jpg'
+        self._set_image(
+            db.book_page.image,
+            self._book_page,
+            self._prep_image(filename),
+            resizer=ResizerQuick
+        )
 
         # Test cartoonist rss
         expect = []
