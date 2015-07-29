@@ -312,7 +312,7 @@ class TestRouter(LocalTestCase):
         # Test SpareNN
         router.creator_record = None
         query = (db.creator.name_for_url.like('Spare%'))
-        spare_creator = db(query).select().first()
+        spare_creator = db(query).select(limitby=(0, 1)).first()
 
         router.request.vars.creator = spare_creator.name_for_url
         self.assertRaises(LookupError, router.get_creator)
@@ -458,9 +458,9 @@ class TestRouter(LocalTestCase):
                 book_url.split('/')
 
             query = (db.creator.name_for_url == creator_for_url)
-            got = db(query).select().first()
+            got = db(query).select(limitby=(0, 1)).first()
             self.assertTrue(got)
-            got = db(db.book.name_for_url == book_for_url).select().first()
+            got = db(db.book.name_for_url == book_for_url).select(limitby=(0, 1)).first()
             self.assertTrue(got)
             self.assertTrue(got.release_date is not None)
 

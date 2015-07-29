@@ -247,7 +247,7 @@ class TestBookTorrentCreator(TorrentTestCase):
             )
         )
 
-        book_record = db(db.book.id == book.id).select().first()
+        book_record = db(db.book.id == book.id).select(limitby=(0, 1)).first()
         self.assertEqual(book_record.torrent, tor_file)
 
     def test__get_destination(self):
@@ -311,7 +311,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         fmt = '/tmp/test_torrent/tor/zco.mx/F/FirstLast ({i}.zco.mx).torrent'
         self.assertEqual(tor_file, fmt.format(i=creator.id))
 
-        creator_record = db(db.creator.id == creator.id).select().first()
+        creator_record = db(db.creator.id == creator.id).select(limitby=(0, 1)).first()
         self.assertEqual(creator_record.torrent, tor_file)
 
     def test__get_destination(self):

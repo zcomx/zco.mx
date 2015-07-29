@@ -73,17 +73,17 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
         email = web.username
-        self._user = db(db.auth_user.email == email).select().first()
+        self._user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
         if not self._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
         query = db.creator.auth_user_id == self._user.id
-        self._creator = db(query).select().first()
+        self._creator = db(query).select(limitby=(0, 1)).first()
         if not self._creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
         query = (db.book_type.name == DEFAULT_BOOK_TYPE)
-        book_type_id = db(query).select().first().id
+        book_type_id = db(query).select(limitby=(0, 1)).first().id
         cc_by_nd = CCLicence.by_code('CC BY-ND')
         self._book = self.add(db.book, dict(
             name='My CBZ Test',

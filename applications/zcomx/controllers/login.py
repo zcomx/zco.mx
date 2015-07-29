@@ -1061,7 +1061,7 @@ def link_crud():
     if action == 'get':
         links = None
         if link_id:
-            r = db(db.link.id == link_id).select().first()
+            r = db(db.link.id == link_id).select(limitby=(0, 1)).first()
             links = Links([Link(r)])
         else:
             links = Links.from_links_key(links_key)
@@ -1366,7 +1366,7 @@ def metadata_crud():
         ).as_list()
 
         query = (db.derivative.book_id == book_record.id)
-        derivative_record = db(query).select().first()
+        derivative_record = db(query).select(limitby=(0, 1)).first()
         if derivative_record:
             data['derivative']['record'] = derivative_record.as_dict()
             data['derivative']['record']['is_derivative'] = 'yes'

@@ -220,11 +220,11 @@ def get_ongoing_post(date, create=True):
         Row instance representing the ongoing_post record.
     """
     query = (db.ongoing_post.post_date == date)
-    ongoing_post = db(query).select().first()
+    ongoing_post = db(query).select(limitby=(0, 1)).first()
     if not ongoing_post and create:
         ongoing_post_id = db.ongoing_post.insert(post_date=date)
         query = (db.ongoing_post.id == ongoing_post_id)
-        ongoing_post = db(query).select().first()
+        ongoing_post = db(query).select(limitby=(0, 1)).first()
         if not ongoing_post:
             raise LookupError(
                 'Fail: get or create ongoing_post record for date {d}'.format(

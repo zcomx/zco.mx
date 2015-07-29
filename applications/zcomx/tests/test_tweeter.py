@@ -77,12 +77,12 @@ class WithMediaTestCase(LocalTestCase):
     def setUpClass(cls):
         # Use an existing image to test with.
         email = web.username
-        user = db(db.auth_user.email == email).select().first()
+        user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
         if not user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
         query = db.creator.auth_user_id == user.id
-        creator = db(query).select().first()
+        creator = db(query).select(limitby=(0, 1)).first()
         if not creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 

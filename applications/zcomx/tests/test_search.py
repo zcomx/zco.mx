@@ -86,21 +86,21 @@ class TileTestCase(LocalTestCase):
     @classmethod
     def setUpClass(cls):
         email = web.username
-        user = db(db.auth_user.email == email).select().first()
+        user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
         if not user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
         query = db.creator.auth_user_id == user.id
-        creator = db(query).select().first()
+        creator = db(query).select(limitby=(0, 1)).first()
         if not creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
         query = (db.book.creator_id == creator.id)
-        book = db(query).select().first()
+        book = db(query).select(limitby=(0, 1)).first()
         if not book:
             raise SyntaxError('No book with email: {e}'.format(e=email))
 
-        book_type_id = db(db.book_type).select().first().id
+        book_type_id = db(db.book_type).select(limitby=(0, 1)).first().id
         cls._row = Row({
             'auth_user': Row({'name': 'FirstLast'}),
             'book': Row({
@@ -364,7 +364,7 @@ class TestGrid(LocalTestCase):
             email='test__tile_value@email.com'
         ))
         name = '_My Book_'
-        book_type_id = db(db.book_type).select().first().id
+        book_type_id = db(db.book_type).select(limitby=(0, 1)).first().id
         book = self.add(db.book, dict(
             name=name,
             creator_id=creator.id,
@@ -829,11 +829,13 @@ class TestBookTile(TileTestCase):
 
     def test__download_link(self):
         save_book_id = self._row.book.id
-        book = db(db.book.id == self._row.book.id).select().first()
+        book = db(db.book.id == self._row.book.id).select(
+            limitby=(0, 1)).first()
 
         # Test book with cbz
         if not book.cbz:
-            book_with_cbz_id = db(db.book.cbz != None).select().first()
+            book_with_cbz_id = db(db.book.cbz != None).select(
+                limitby=(0, 1)).first()
             self._row.book.id = book_with_cbz_id.id
 
         tile = BookTile(db, self._value, self._row)
@@ -850,7 +852,8 @@ class TestBookTile(TileTestCase):
         # Test without cbz
         self._row.book.id = save_book_id
         if book.cbz:
-            book_no_cbz_id = db(db.book.cbz == None).select().first()
+            book_no_cbz_id = db(db.book.cbz == None).select(
+                limitby=(0, 1)).first()
             self._row.book.id = book_no_cbz_id.id
 
         tile = BookTile(db, self._value, self._row)
@@ -865,7 +868,8 @@ class TestBookTile(TileTestCase):
         save_book_id = self._row.book.id
 
         # Released book (not followable)
-        released_book = db(db.book.release_date != None).select().first()
+        released_book = db(db.book.release_date != None).select(
+            limitby=(0, 1)).first()
         self._row.book.id = released_book.id
         tile = BookTile(db, self._value, self._row)
         link = tile.follow_link()
@@ -875,7 +879,8 @@ class TestBookTile(TileTestCase):
         self.assertEqual(span.string, None)
 
         # Ongoing book (followable)
-        released_book = db(db.book.release_date == None).select().first()
+        released_book = db(db.book.release_date == None).select(
+            limitby=(0, 1)).first()
         self._row.book.id = released_book.id
         tile = BookTile(db, self._value, self._row)
         link = tile.follow_link()
@@ -1354,7 +1359,7 @@ class TestFunctions(LocalTestCase):
             name_for_url='FirstLast',
         ))
         name = '_My Functions Book_'
-        book_type_id = db(db.book_type).select().first().id
+        book_type_id = db(db.book_type).select(limitby=(0, 1)).first().id
         now = datetime.datetime.now()
         self._book = self.add(db.book, dict(
             name=name,

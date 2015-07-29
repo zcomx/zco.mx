@@ -115,7 +115,7 @@ class TestRecord(LocalTestCase):
     def test__save(self):
         book = DubRecord(name='_test__save_')
         book_id = book.save()
-        got = db(db.book.id == book_id).select().first()
+        got = db(db.book.id == book_id).select(limitby=(0, 1)).first()
         self._objects.append(got)
         self.assertEqual(got.id, book_id)
         self.assertEqual(got.name, '_test__save_')

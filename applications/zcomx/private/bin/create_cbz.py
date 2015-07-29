@@ -80,7 +80,7 @@ def main():
 
     exit_status = 0
     for book_id in args:
-        book = db(db.book.id == book_id).select().first()
+        book = db(db.book.id == book_id).select(limitby=(0, 1)).first()
         if not book:
             LOG.error('Book not found, id: %s', book_id)
             exit_status = 1

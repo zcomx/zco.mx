@@ -260,7 +260,7 @@ def log_download_click(record_table, record_id, queue_log_downloads=True):
     )
     click_id = db.download_click.insert(**data)
     db.commit()
-    click_record = db(db.download_click.id == click_id).select().first()
+    click_record = db(db.download_click.id == click_id).select(limitby=(0, 1)).first()
     if is_loggable(click_id):
         click_data = {
             'loggable': True,

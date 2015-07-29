@@ -48,18 +48,18 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=C0103
         # Get the data the tests will use.
         email = web.username
-        cls._user = db(db.auth_user.email == email).select().first()
+        cls._user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
         if not cls._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
         query = db.creator.auth_user_id == cls._user.id
-        creator = db(query).select().first()
+        creator = db(query).select(limitby=(0, 1)).first()
         cls._creator = Creator.from_id(creator.id)
         if not cls._creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
         query = db.book.creator_id == cls._creator.id
-        cls._book = db(query).select().first()
+        cls._book = db(query).select(limitby=(0, 1)).first()
         if not cls._book:
             raise SyntaxError('No book for creator with email: {e}'.format(
                 e=email))

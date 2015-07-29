@@ -466,7 +466,7 @@ class TestJobQueuer(LocalTestCase):
         self.assertTrue(new_job.id not in job_ids)
         job_ids = get_job_ids()
         self.assertTrue(new_job.id in job_ids)
-        job = db(db.job.id == new_job.id).select().first()
+        job = db(db.job.id == new_job.id).select(limitby=(0, 1)).first()
         self._objects.append(job)
 
 
@@ -984,12 +984,12 @@ if __name__ == '__main__':
         queue = Queue(db.job)
         job = self.add(db.job, dict(command='pwd', status='d'))
 
-        new_job = db(db.job.id == job.id).select().first()
+        new_job = db(db.job.id == job.id).select(limitby=(0, 1)).first()
         self.assertEqual(new_job.status, 'd')
 
         for status in ['a', 'd', 'p']:
             queue.set_job_status(job.id, status)
-            new_job = db(db.job.id == job.id).select().first()
+            new_job = db(db.job.id == job.id).select(limitby=(0, 1)).first()
             self.assertEqual(new_job.status, status)
 
         # Invalid job id

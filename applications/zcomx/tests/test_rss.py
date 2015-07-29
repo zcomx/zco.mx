@@ -96,7 +96,7 @@ class WithObjectsTestCase(LocalTestCase):
             db.book_page.image, filename, resizer=ResizerQuick)
         query = (db.book_page.id == self._book_page.id)
         db(query).update(image=stored_filename)
-        self._book_page = db(query).select().first()            # Reload
+        self._book_page = db(query).select(limitby=(0, 1)).first()            # Reload
 
 
 class DubRSSChannel(BaseRSSChannel):

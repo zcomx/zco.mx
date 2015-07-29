@@ -89,14 +89,14 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=C0103
         # Get the data the tests will use.
         email = web.username
-        cls._user = db(db.auth_user.email == email).select().first()
+        cls._user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
         if not cls._user:
             msg = 'No user with email: {e}'.format(e=email)
             print msg
             raise SyntaxError(msg)
 
         query = db.creator.auth_user_id == cls._user.id
-        cls._creator = db(query).select().first()
+        cls._creator = db(query).select(limitby=(0, 1)).first()
         if not cls._creator:
             msg = 'No creator with email: {e}'.format(e=email)
             print msg
@@ -106,7 +106,7 @@ class TestFunctions(LocalTestCase):
 
         query = (db.book.creator_id == cls._creator.id) & \
                 (db.book.name_for_url == 'TestDoNotDelete-001')
-        cls._book = db(query).select().first()
+        cls._book = db(query).select(limitby=(0, 1)).first()
         if not cls._book:
             msg = 'No books for creator with email: {e}'.format(e=email)
             print msg
@@ -114,7 +114,7 @@ class TestFunctions(LocalTestCase):
 
         query = (db.book_page.book_id == cls._book.id) & \
                 (db.book_page.page_no == 1)
-        cls._book_page = db(query).select().first()
+        cls._book_page = db(query).select(limitby=(0, 1)).first()
         if not cls._book_page:
             msg = 'Unable to get book_page for: {e}'.format(e=email)
             print msg
@@ -161,7 +161,7 @@ class TestFunctions(LocalTestCase):
         def get_book(book_id):
             """Return a book"""
             query = (db.book.id == book_id)
-            return db(query).select().first()
+            return db(query).select(limitby=(0, 1)).first()
 
         book = self.add(db.book, dict(
             name='',
@@ -435,7 +435,7 @@ class TestFunctions(LocalTestCase):
         self._objects.append(tentative_log)
 
         # Test delete file
-        book_page = db(db.book_page.id == new_id).select().first()
+        book_page = db(db.book_page.id == new_id).select(limitby=(0, 1)).first()
         self.assertTrue(book_page)
         response = requests.delete(
             web.app + '/login/book_pages_handler/{i}'.format(i=new_id),
@@ -496,7 +496,7 @@ class TestFunctions(LocalTestCase):
             )
         )
         # book has no pages, so it should status should be set accordingly
-        book = db(db.book.id == self._book.id).select().first()
+        book = db(db.book.id == self._book.id).select(limitby=(0, 1)).first()
         self.assertEqual(book.status, BOOK_STATUS_DRAFT)
 
         # Valid
@@ -514,7 +514,7 @@ class TestFunctions(LocalTestCase):
             )
         )
         # book has no pages, so it should status should be set accordingly
-        book = db(db.book.id == self._book.id).select().first()
+        book = db(db.book.id == self._book.id).select(limitby=(0, 1)).first()
         self.assertEqual(book.status, BOOK_STATUS_ACTIVE)
 
     def test__book_release(self):

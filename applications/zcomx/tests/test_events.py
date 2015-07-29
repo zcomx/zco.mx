@@ -44,7 +44,7 @@ class EventTestCase(LocalTestCase):
         book_row = self.add(db.book, dict(name='Event Test Case'))
         self._book = Book.from_id(book_row.id)
         email = web.username
-        self._user = db(db.auth_user.email == email).select().first()
+        self._user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
         if not self._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 

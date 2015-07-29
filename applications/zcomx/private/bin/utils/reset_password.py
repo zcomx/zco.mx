@@ -90,7 +90,7 @@ def main():
         exit(1)
 
     email = args[0]
-    user = db(db.auth_user.email == email).select().first()
+    user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
     if not user:
         raise LookupError('User not found, email: {e}'.format(e=email))
 

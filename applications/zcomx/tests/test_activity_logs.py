@@ -406,7 +406,7 @@ class TestTentativeActivityLog(LocalTestCase):
         record_id = tentative_activity_log.save()
 
         tentative_record = \
-            db(db.tentative_activity_log.id == record_id).select().first()
+            db(db.tentative_activity_log.id == record_id).select(limitby=(0, 1)).first()
         self.assertTrue(tentative_record)
         self._objects.append(tentative_record)
         self.assertEqual(tentative_record.book_id, -1)

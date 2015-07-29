@@ -245,7 +245,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         cc_by = CCLicence.by_code('CC BY')
         self._book.update_record(cc_licence_id=cc_by.id)
         db.commit()
-        book = db(db.book.id == self._book.id).select().first()
+        book = db(db.book.id == self._book.id).select(limitby=(0, 1)).first()
 
         indicia = BookIndiciaPage(book)
         self.assertEqual(
@@ -1826,7 +1826,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         for d in got:
             self.assertEqual(sorted(d.keys()), ['info', 'text', 'value'])
             query = (db.cc_licence.id == d['value'])
-            cc_licence = db(query).select().first()
+            cc_licence = db(query).select(limitby=(0, 1)).first()
             self.assertEqual(cc_licence.code, d['text'])
 
     def test__create_creator_indicia(self):

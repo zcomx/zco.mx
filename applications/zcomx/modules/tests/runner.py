@@ -107,7 +107,7 @@ class LocalTestCase(unittest.TestCase):
         db = table._db
         record_id = table.insert(**data)
         db.commit()
-        record = db(table.id == record_id).select().first()
+        record = db(table.id == record_id).select(limitby=(0, 1)).first()
         cls._objects.append(record)
         return record
 

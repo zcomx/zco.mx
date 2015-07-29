@@ -207,7 +207,7 @@ def main():
         template_dict['code'] = code
         template_dict['number'] = number
         template = Storage(template_dict)
-        cc_licence = db(db.cc_licence.code == code).select().first()
+        cc_licence = db(db.cc_licence.code == code).select(limitby=(0, 1)).first()
         if cc_licence:
             LOG.debug('Updating: %s', template.code)
         else:
@@ -215,7 +215,7 @@ def main():
             if not options.dry_run:
                 db.cc_licence.insert(code=template.code)
                 db.commit()
-                cc_licence = db(db.cc_licence.code == template.code).select().first()
+                cc_licence = db(db.cc_licence.code == template.code).select(limitby=(0, 1)).first()
         if not cc_licence:
             raise LookupError('cc_licence not found, code: {code}'.format(
                 code=template.code))
