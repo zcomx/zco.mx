@@ -21,10 +21,6 @@ class DubRecord(Record):
     db_table = 'book'
 
 
-class DubInvalidTableRecord(Record):
-    db_table = '_fake_'
-
-
 class TestRecord(LocalTestCase):
 
     def test____init__(self):
@@ -49,6 +45,23 @@ class TestRecord(LocalTestCase):
         # db.commit()
         self.assertRaises(LookupError, DubRecord.from_id, saved_book.id)
 
+    def test__from_add(self):
+        data = dict(
+            name='_test__from_add_',
+            name_for_url='_TestFromAdd_',
+            name_for_search='_test-from-add_',
+        )
+        book = DubRecord.from_add(data)
+        self.assertTrue(book.id)
+        self.assertEqual(book.name, data['name'])
+        self.assertEqual(book.name_for_url, data['name_for_url'])
+        self.assertEqual(book.name_for_search, data['name_for_search'])
+        self._objects.append(book)
+
+        # Test data with validate errors
+        invalid_data = dict(name='')
+        self.assertRaises(SyntaxError, DubRecord.from_add, invalid_data)
+
     def test__from_id(self):
         saved_book = self.add(db.book, dict(
             name='_test__from_id_',
@@ -63,13 +76,6 @@ class TestRecord(LocalTestCase):
             book_keys,
             sorted(db.book.fields)
         )
-
-        # Test db_table parameter.
-        self.assertRaises(
-            AttributeError, DubInvalidTableRecord.from_id, saved_book.id)
-        book = DubInvalidTableRecord.from_id(saved_book.id, db_table='book')
-        self.assertEqual(book.id, saved_book.id)
-        self.assertEqual(book.name, '_test__from_id_')
 
     def test__from_key(self):
         data = dict(
@@ -105,20 +111,53 @@ class TestRecord(LocalTestCase):
             else:
                 self.assertRaises(LookupError, DubRecord.from_key, t[0])
 
-        # Test db_table parameter.
-        self.assertRaises(
-            AttributeError, DubInvalidTableRecord.from_key, data)
-        book = DubInvalidTableRecord.from_key(data, db_table='book')
-        self.assertEqual(book.id, saved_book.id)
-        self.assertEqual(book.name, '_test__from_key_')
+    def test__from_query(self):
+        data = dict(
+            name='_test__from_query_',
+            name_for_url='_TestFromQuery_',
+            name_for_search='_test-from-query_',
+        )
+        saved_book = self.add(db.book, data)
 
-    def test__save(self):
-        book = DubRecord(name='_test__save_')
-        book_id = book.save()
-        got = db(db.book.id == book_id).select(limitby=(0, 1)).first()
-        self._objects.append(got)
-        self.assertEqual(got.id, book_id)
-        self.assertEqual(got.name, '_test__save_')
+        query = (db.book.name == saved_book.name)
+        book = DubRecord.from_query(query)
+        self.assertEqual(book.id, saved_book.id)
+
+        # Test multiple queries
+        query = (db.book.name == saved_book.name) & \
+            (db.book.name_for_url == saved_book.name_for_url) & \
+            (db.book.name_for_search == saved_book.name_for_search)
+        self.assertEqual(book.id, saved_book.id)
+
+        # Test no matches
+        query = (db.book.name == '_fake__name_')
+        self.assertRaises(LookupError, DubRecord.from_query, query)
+
+    def test__from_updated(self):
+        data = dict(
+            name='_test__from_update_',
+            name_for_url='_TestFromUpdate_',
+            name_for_search='_test-from-update_',
+        )
+        book = DubRecord.from_add(data)
+        self.assertTrue(book.id)
+        self.assertEqual(book.name_for_url, data['name_for_url'])
+        self.assertEqual(book.name_for_search, data['name_for_search'])
+        self._objects.append(book)
+
+        new_data = dict(
+            name_for_url='_TestFromUpdate_2_',
+            name_for_search='_test-from-update_2_',
+        )
+        new_book = DubRecord.from_updated(book, new_data)
+        self.assertEqual(new_book.id, book.id)
+        self.assertEqual(new_book.name_for_url, new_data['name_for_url'])
+        self.assertEqual(new_book.name_for_search, new_data['name_for_search'])
+
+        # Test data with validate errors
+        invalid_data = dict(name='')
+        self.assertRaises(
+            SyntaxError, DubRecord.from_updated, book, invalid_data)
 
     def test__update_record(self):
         saved_book = self.add(db.book, dict(

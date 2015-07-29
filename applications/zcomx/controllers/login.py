@@ -19,6 +19,7 @@ from applications.zcomx.modules.book_pages import \
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.book_upload import BookPageUploader
 from applications.zcomx.modules.books import \
+    Book, \
     name_fields, \
     book_pages_as_json, \
     calc_status, \
@@ -205,26 +206,14 @@ def book_crud():
             data = book_defaults(book_name, creator)
             data[request.vars.name] = book_name
 
-        ret = db.book.validate_and_insert(**data)
-        db.commit()
+        try:
+            book = Book.from_add(data)
+        except SyntaxError as err:
+            return {'status': 'error', 'msg': str(err)}
 
-        if ret.errors:
-            if request.vars.name in ret.errors:
-                return {
-                    'status': 'error',
-                    'msg': ret.errors[request.vars.name]
-                }
-            else:
-                return {
-                    'status': 'error',
-                    'msg': ', '.join([
-                        '{k}: {v}'.format(k=k, v=v)
-                        for k, v in ret.errors.items()
-                    ])
-                }
-        if ret.id:
+        if book and book.id:
             return {
-                'id': ret.id,
+                'id': book.id,
                 'status': 'ok',
             }
         return do_error('Unable to create book')
@@ -294,7 +283,8 @@ def book_crud():
         queue_search_prefetch()
 
         numbers = \
-            BookType.from_id(request.vars.value).number_field_statuses() \
+            BookType.classified_from_id(
+                request.vars.value).number_field_statuses() \
             if request.vars.name == 'book_type_id' else None
 
         show_cc_licence_place = False
@@ -351,7 +341,7 @@ def book_edit():
         book_record = entity_to_row(db.book, request.args(0))
         if not book_record:
             MODAL_ERROR('Invalid data provided')
-        book_type = BookType.from_id(book_record.book_type_id)
+        book_type = BookType.classified_from_id(book_record.book_type_id)
 
     if not book_type:
         book_type = BookType.by_name('one-shot')
@@ -1102,7 +1092,8 @@ def link_crud():
             return do_error('Invalid data provided')
     elif action == 'create':
         url = request.vars.url.rstrip('/')
-        ret = db.link.validate_and_insert(
+
+        link_data = dict(
             link_type_id=link_type.id,
             record_table=record_table,
             record_id=record.id,
@@ -1110,10 +1101,13 @@ def link_crud():
             url=url,
             name=request.vars.name,
         )
-        db.commit()
-        if ret.errors:
-            return {'status': 'error', 'msg': ret.errors}
-        rows = db(db.link.id == ret.id).select().as_list()
+
+        try:
+            link = Link.from_add(link_data)
+        except SyntaxError as err:
+            return {'status': 'error', 'msg': str(err)}
+
+        rows = db(db.link.id == link.id).select().as_list()
         if url != request.vars.url:
             new_value = url
         do_reorder = True

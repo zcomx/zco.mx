@@ -726,7 +726,7 @@ def formatted_number(book_entity):
     book = entity_to_row(db.book, book_entity)
     if not book:
         return ''
-    book_type = BookType.from_id(book.book_type_id)
+    book_type = BookType.classified_from_id(book.book_type_id)
     return book_type.formatted_number(book.number, book.of_number)
 
 
@@ -1007,7 +1007,7 @@ def names(book, fields=None):
     Usage:
         names(book_record.as_dict(), db.book.fields)
     """
-    book_type = BookType.from_id(book['book_type_id'])
+    book_type = BookType.classified_from_id(book['book_type_id'])
     number = book_type.formatted_number(book['number'], book['of_number'])
     return name_values(
         BookTitle(
@@ -1032,7 +1032,7 @@ def next_book_in_series(book_entity):
     if not book_record:
         raise LookupError('Book not found, {e}'.format(e=book_entity))
 
-    book_type = BookType.from_id(book_record.book_type_id)
+    book_type = BookType.classified_from_id(book_record.book_type_id)
     if not book_type.is_series():
         return
 

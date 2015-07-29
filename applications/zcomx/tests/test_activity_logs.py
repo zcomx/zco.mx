@@ -378,39 +378,7 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
 
 
 class TestTentativeActivityLog(LocalTestCase):
-
-    def test_delete(self):
-        count = lambda x: db(db.tentative_activity_log.id == x).count()
-
-        tentative_record = self.add(db.tentative_activity_log, dict(
-            book_id=-1,
-            action='_test__delete_',
-        ))
-
-        tentative_activity_log = TentativeActivityLog(
-            tentative_record.as_dict())
-        self.assertEqual(count(tentative_record.id), 1)
-
-        tentative_activity_log.delete()
-        self.assertEqual(count(tentative_record.id), 0)
-
-    def test_save(self):
-
-        tentative_activity_log_data = dict(
-            book_id=-1,
-            action='_test__save_',
-        )
-
-        tentative_activity_log = \
-            TentativeActivityLog(tentative_activity_log_data)
-        record_id = tentative_activity_log.save()
-
-        tentative_record = \
-            db(db.tentative_activity_log.id == record_id).select(limitby=(0, 1)).first()
-        self.assertTrue(tentative_record)
-        self._objects.append(tentative_record)
-        self.assertEqual(tentative_record.book_id, -1)
-        self.assertEqual(tentative_record.action, '_test__save_')
+    pass            # Record subclass
 
 
 class TestTentativeLogSet(LocalTestCase):

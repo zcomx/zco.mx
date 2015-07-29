@@ -11,6 +11,7 @@ Script to process activity_log records.
 import logging
 from optparse import OptionParser
 from applications.zcomx.modules.activity_logs import \
+    ActivityLog, \
     CompletedTentativeLogSet, \
     MINIMUM_AGE_TO_LOG_IN_SECONDS, \
     PageAddedTentativeLogSet, \
@@ -49,7 +50,7 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] book_id'
+    usage = '%prog [options]'
     parser = OptionParser(usage=usage, version=VERSION)
 
     parser.add_option(
@@ -103,23 +104,19 @@ def main():
             continue
         LOG.debug('Logging book id: %s', log.book_id)
 
-        page_added_set = PageAddedTentativeLogSet.load(filters=filters)
-        activity_log = page_added_set.as_activity_log()
-        if activity_log:
-            LOG.debug(
-                'Creating activity_log action: %s',
-                activity_log.action
-            )
-            activity_log.save()
-
-        completed_set = CompletedTentativeLogSet.load(filters=filters)
-        activity_log = completed_set.as_activity_log()
-        if activity_log:
-            LOG.debug(
-                'Creating activity_log action: %s',
-                activity_log.action
-            )
-            activity_log.save()
+        log_set_classes = [
+            PageAddedTentativeLogSet,
+            CompletedTentativeLogSet,
+        ]
+        for log_set_class in log_set_classes:
+            log_set = log_set_class.load(filters=filters)
+            activity_log_data = log_set.as_activity_log()
+            if activity_log_data:
+                activity_log = ActivityLog.from_add(activity_log_data)
+                LOG.debug(
+                    'Created activity_log action: %s',
+                    activity_log.action
+                )
 
         for tentative_activity_log in log_set.tentative_records:
             tentative_activity_log.delete()
