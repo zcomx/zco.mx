@@ -77,7 +77,7 @@ class TestBookType(WithDataTestCase):
             ('mini-series', MiniSeriesType),
         ]
         for t in tests:
-            book_type = db(db.book_type.name == t[0]).select().first()
+            book_type = db(db.book_type.name == t[0]).select(limitby=(0, 1)).first()
             self.assertTrue(book_type)
             got = BookType.from_id(book_type.id)
             self.assertEqual(got, book_type)

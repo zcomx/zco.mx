@@ -42,12 +42,12 @@ class Releaser(object):
             book_id: string, first arg
         """
         self.book_id = book_id
-        self.book = db(db.book.id == book_id).select().first()
+        self.book = db(db.book.id == book_id).select(limitby=(0, 1)).first()
         if not self.book:
             raise LookupError('Book not found, id: %s', book_id)
 
         query = (db.creator.id == self.book.creator_id)
-        self.creator = db(query).select().first()
+        self.creator = db(query).select(limitby=(0, 1)).first()
         if not self.creator:
             raise LookupError(
                 'Creator not found, id: %s', self.book.creator_id)

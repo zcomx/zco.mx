@@ -175,7 +175,7 @@ def route():
         if rss_name.endswith(extension):
             creator_name = rss_name[:(-1 * len(extension))]
         query = (db.creator.name_for_url == creator_name)
-        creator = db(query).select().first()
+        creator = db(query).select(limitby=(0, 1)).first()
         if not creator:
             return page_not_found()
 
@@ -188,7 +188,7 @@ def route():
             book_name = rss_name[:(-1 * len(extension))]
         query = (db.book.creator_id == creator.id) & \
             (db.book.name_for_url == book_name)
-        book = db(query).select().first()
+        book = db(query).select(limitby=(0, 1)).first()
         if not book:
             return page_not_found()
 

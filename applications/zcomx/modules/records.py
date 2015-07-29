@@ -50,7 +50,7 @@ class Record(Row):
         db = current.app.db
         table = db_table or cls.db_table
         query = (db[table].id == record_id)
-        record = db(query).select().first()
+        record = db(query).select(limitby=(0, 1)).first()
         if not record:
             raise LookupError('Record not found, table {t}, id {i}'.format(
                 t=table, i=record_id))

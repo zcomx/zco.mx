@@ -675,7 +675,7 @@ class PublicationMetadata(object):
         )
 
         query = (db.cc_licence.id == self.derivative['cc_licence_id'])
-        cc_licence = db(query).select().first()
+        cc_licence = db(query).select(limitby=(0, 1)).first()
         cc_code = cc_licence.code if cc_licence else CCLicence.default_code
 
         return fmt.format(

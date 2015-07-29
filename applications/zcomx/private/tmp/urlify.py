@@ -83,7 +83,7 @@ def main():
     x = urlify('Jøhn Smith')
     print 'FIXME x: {var}'.format(var=x)
 
-    y = db(db.creator.name_for_url == x).select().first()
+    y = db(db.creator.name_for_url == x).select(limitby=(0, 1)).first()
     print 'FIXME y: {var}'.format(var=y)
     print 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
 

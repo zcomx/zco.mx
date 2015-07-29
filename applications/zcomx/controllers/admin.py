@@ -29,7 +29,7 @@ def index():
             response.flash = 'Not authorized'
         else:
             query = (db.auth_user.id == form.vars.user_id)
-            user = db(query).select().first()
+            user = db(query).select(limitby=(0, 1)).first()
             name = user.name if user else form.vars.user_id
             msgs = [
                 'Impersonating "{name}".'.format(name=name),

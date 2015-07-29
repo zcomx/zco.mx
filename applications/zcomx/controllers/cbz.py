@@ -151,7 +151,7 @@ def route():
         book_name = cbz_name[:(-1 * len(extension))]
     query = (db.book.creator_id == creator.id) & \
         (db.book.name_for_url == book_name)
-    book = db(query).select().first()
+    book = db(query).select(limitby=(0, 1)).first()
     if not book or not book.cbz:
         return page_not_found()
     redirect(URL(

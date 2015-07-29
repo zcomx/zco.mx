@@ -61,7 +61,7 @@ class AllRightsReservedBarrier(BaseCompleteBarrier):
 
     def applies(self):
         db = current.app.db
-        arr = db(db.cc_licence.code == 'All Rights Reserved').select().first()
+        arr = db(db.cc_licence.code == 'All Rights Reserved').select(limitby=(0, 1)).first()
         return arr and arr.id and self.book.cc_licence_id == arr.id
 
     @property
@@ -370,7 +370,7 @@ class NoPublicationMetadataBarrier(BaseCompleteBarrier):
     def applies(self):
         db = current.app.db
         query = (db.publication_metadata.book_id == self.book.id)
-        metadata = db(query).select().first()
+        metadata = db(query).select(limitby=(0, 1)).first()
         return not metadata
 
     @property

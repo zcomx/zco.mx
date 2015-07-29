@@ -52,7 +52,7 @@ def create_records(dry_run=False):
     """Create records."""
     for record in TYPES:
         query = (db.link_type.code == record['code'])
-        link_type = db(query).select().first()
+        link_type = db(query).select(limitby=(0, 1)).first()
         if not link_type:
             LOG.info(
                 '%sCreating record: %s',

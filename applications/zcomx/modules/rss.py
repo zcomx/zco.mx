@@ -6,7 +6,6 @@
 Classes and functions related to rss feeds.
 """
 import datetime
-import uuid
 import logging
 import os
 import gluon.contrib.rss2 as rss2
@@ -362,9 +361,8 @@ class BaseRSSEntry(object):
         Returns:
             string, entry guid.
         """
-        fmt = '{uuid}-{site}-{rid:07d}'
+        fmt = '{site}-{rid:09d}'
         unique_guid = fmt.format(
-            uuid=uuid.uuid4(),
             site=SITE_NAME,
             rid=self.activity_log_id
         ).replace('.', '')

@@ -96,7 +96,7 @@ class WithObjectsTestCase(LocalTestCase):
             db.book_page.image, filename, resizer=ResizerQuick)
         query = (db.book_page.id == self._book_page.id)
         db(query).update(image=stored_filename)
-        self._book_page = db(query).select().first()            # Reload
+        self._book_page = db(query).select(limitby=(0, 1)).first()            # Reload
 
 
 class DubRSSChannel(BaseRSSChannel):
@@ -206,9 +206,9 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(enclosure.type, 'image/jpeg')
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
-        self.assertRegexpMatches(
+        self.assertEqual(
             entry['guid'].guid,
-            re.compile(r'[0-9a-f-]{36}.*-zcomx-[0-9]{7}')
+            'zcomx-{aid:09d}'.format(aid=self._activity_log.id)
         )
         self.assertFalse(entry['guid'].isPermaLink)
 
@@ -253,9 +253,9 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(entry['description'], desc)
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
-        self.assertRegexpMatches(
+        self.assertEqual(
             entry['guid'].guid,
-            re.compile(r'[0-9a-f-]{36}.*-zcomx-[0-9]{7}')
+            'zcomx-{aid:09d}'.format(aid=self._activity_log.id)
         )
         self.assertFalse(entry['guid'].isPermaLink)
 
@@ -457,11 +457,7 @@ class TestBaseRSSEntry(WithObjectsTestCase, ImageTestCase):
         )
         guid = entry.guid()
         self.assertTrue(isinstance(guid, rss2.Guid))
-        # Eg '2308e6a1-9f62-460d-9ccd-a184646ddd95-zcomx-0000123'
-        self.assertRegexpMatches(
-            guid.guid,
-            re.compile(r'[0-9a-f-]{36}.*-zcomx-0000123')
-        )
+        self.assertEqual(guid.guid, 'zcomx-000000123')
         self.assertFalse(guid.isPermaLink)
 
     def test__link(self):

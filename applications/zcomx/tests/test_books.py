@@ -1666,7 +1666,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         for s in BOOK_STATUSES:
             set_status(book, s)
-            book_1 = db(db.book.id == book.id).select().first()   # Reload
+            book_1 = db(db.book.id == book.id).select(limitby=(0, 1)).first()   # Reload
             self.assertEqual(book_1.status, s)
 
     def test__short_page_img_url(self):

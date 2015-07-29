@@ -89,7 +89,7 @@ def main():
             optimize_img_log.record_id,
         )
         table, field = optimize_img_log.record_field.split('.')
-        record = db(db[table].id == optimize_img_log.record_id).select().first()
+        record = db(db[table].id == optimize_img_log.record_id).select(limitby=(0, 1)).first()
         if not record:
             LOG.info(
                 'Record not found: %s - %s',

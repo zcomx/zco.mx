@@ -90,7 +90,7 @@ class TestCBZDownloader(LocalTestCase):
                     )
 
         # Find a book with a cbz.
-        book = db(db.book.cbz != None).select().first()
+        book = db(db.book.cbz != None).select(limitby=(0, 1)).first()
         test_http(
             [book.id],
             dict(
@@ -105,7 +105,7 @@ class TestCBZDownloader(LocalTestCase):
         test_http([invalid_record_id], dict(status=404))
 
         # Find a book without a cbz.
-        book = db(db.book.cbz == None).select().first()
+        book = db(db.book.cbz == None).select(limitby=(0, 1)).first()
         if book:
             test_http([book.id], dict(status=404))
 
@@ -198,7 +198,7 @@ class TestTorrentDownloader(LocalTestCase):
                     )
 
         # Find a book with a torrent.
-        book = db(db.book.torrent != None).select().first()
+        book = db(db.book.torrent != None).select(limitby=(0, 1)).first()
         test_http(
             ['book', book.id],
             dict(
@@ -209,7 +209,7 @@ class TestTorrentDownloader(LocalTestCase):
         )
 
         # Find a creator with a torrent.
-        creator = db(db.creator.torrent != None).select().first()
+        creator = db(db.creator.torrent != None).select(limitby=(0, 1)).first()
         test_http(
             ['creator', creator.id],
             dict(

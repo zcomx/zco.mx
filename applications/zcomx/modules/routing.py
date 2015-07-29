@@ -81,7 +81,7 @@ class Router(object):
                     match = request.vars.book.lower()
                     query = (db.book.creator_id == creator_record.id) & \
                         (db.book.name_for_url.lower() == match)
-                    self.book_record = db(query).select().first()
+                    self.book_record = db(query).select(limitby=(0, 1)).first()
         return self.book_record
 
     def get_creator(self):

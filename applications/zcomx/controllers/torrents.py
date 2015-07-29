@@ -192,7 +192,7 @@ def route():
     if torrent_type == 'creator':
         query = (db.creator.torrent.like('%/{t}'.format(
             t=torrent_name)))
-        creator = db(query).select().first()
+        creator = db(query).select(limitby=(0, 1)).first()
         if not creator:
             return page_not_found()
         redirect(URL(
@@ -208,7 +208,7 @@ def route():
             book_name = torrent_name[:(-1 * len(extension))]
         query = (db.book.creator_id == creator.id) & \
             (db.book.name_for_url == book_name)
-        book = db(query).select().first()
+        book = db(query).select(limitby=(0, 1)).first()
         if not book or not book.torrent:
             return page_not_found()
         redirect(URL(

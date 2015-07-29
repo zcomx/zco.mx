@@ -192,7 +192,7 @@ def entity_to_row(table, entity):
     # W0212 (protected-access): *Access to a protected member
     # pylint: disable=W0212
     db = table._db
-    return db(table.id == int(entity)).select().first()
+    return db(table.id == int(entity)).select(limitby=(0, 1)).first()
 
 
 def faq_tabs(active='faq'):
