@@ -7,6 +7,7 @@ Routing classes and functions.
 """
 import logging
 import os
+import re
 from gluon import *
 from gluon.html import A, SPAN
 from gluon.storage import Storage
@@ -112,6 +113,14 @@ class Router(object):
                     creator = db(query).select(limitby=(0, 1)).first()
                     if creator:
                         self.creator_record = Creator(creator.as_dict())
+
+                # Raise exception on 'SpareNN' records so 404 is returned.
+                if self.creator_record:
+                    re_spare = re.compile(r'Spare\d+')
+                    if re_spare.match(self.creator_record.name_for_url):
+                        fmt = 'Spare creator accessed: {c}'
+                        raise LookupError(fmt.format(
+                            c=self.creator_record.name_for_url))
 
         return self.creator_record
 
