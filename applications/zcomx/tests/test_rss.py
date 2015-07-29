@@ -206,7 +206,10 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(enclosure.type, 'image/jpeg')
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
-        self.assertEqual(entry['guid'].guid, str(self._activity_log.id))
+        self.assertRegexpMatches(
+            entry['guid'].guid,
+            re.compile(r'[0-9a-f-]{36}.*-zcomx-[0-9]{7}')
+        )
         self.assertFalse(entry['guid'].isPermaLink)
 
         self.assertEqual(
@@ -250,7 +253,10 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(entry['description'], desc)
 
         self.assertTrue(isinstance(entry['guid'], rss2.Guid))
-        self.assertEqual(entry['guid'].guid, str(self._activity_log.id))
+        self.assertRegexpMatches(
+            entry['guid'].guid,
+            re.compile(r'[0-9a-f-]{36}.*-zcomx-[0-9]{7}')
+        )
         self.assertFalse(entry['guid'].isPermaLink)
 
         self.assertEqual(
@@ -291,7 +297,7 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__image(self):
-        channel = BaseRSSChannel()
+        channel = DubRSSChannel()
         image = channel.image()
         self.assertTrue(isinstance(image, rss2.Image))
         self.assertEqual(
@@ -300,11 +306,11 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
         )
         self.assertEqual(
             image.title,
-            'zco.mx'
+            'Dub RSS Channel'
         )
         self.assertEqual(
             image.link,
-            'http://127.0.0.1:8000/'
+            '/path/to/channel'
         )
 
     def test__link(self):
@@ -451,7 +457,11 @@ class TestBaseRSSEntry(WithObjectsTestCase, ImageTestCase):
         )
         guid = entry.guid()
         self.assertTrue(isinstance(guid, rss2.Guid))
-        self.assertEqual(guid.guid, '123')
+        # Eg '2308e6a1-9f62-460d-9ccd-a184646ddd95-zcomx-0000123'
+        self.assertRegexpMatches(
+            guid.guid,
+            re.compile(r'[0-9a-f-]{36}.*-zcomx-0000123')
+        )
         self.assertFalse(guid.isPermaLink)
 
     def test__link(self):

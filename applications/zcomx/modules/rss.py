@@ -6,6 +6,7 @@
 Classes and functions related to rss feeds.
 """
 import datetime
+import uuid
 import logging
 import os
 import gluon.contrib.rss2 as rss2
@@ -112,10 +113,13 @@ class BaseRSSChannel(object):
         """
         # R0201: *Method could be a function*
         # pylint: disable=R0201
+
+        # From RSS spec: (Note, in practice the image <title> and <link>
+        # should have the same value as the channel's <title> and <link>.
         return rss2.Image(
             URL(c='static', f='images/zco.mx-logo-small.png', host=True),
-            SITE_NAME,
-            URL(c='default', f='index', host=True),
+            self.title(),
+            self.link(),
         )
 
     def link(self):
@@ -304,6 +308,7 @@ class BaseRSSEntry(object):
             args=self.first_page.image,
             vars={'size': 'web'},
             host=SITE_NAME,
+            scheme='http',          # RSS validation suggests this
         )
 
         length = ImageDescriptor(
@@ -357,7 +362,13 @@ class BaseRSSEntry(object):
         Returns:
             string, entry guid.
         """
-        return rss2.Guid(str(self.activity_log_id), isPermaLink=False)
+        fmt = '{uuid}-{site}-{rid:07d}'
+        unique_guid = fmt.format(
+            uuid=uuid.uuid4(),
+            site=SITE_NAME,
+            rid=self.activity_log_id
+        ).replace('.', '')
+        return rss2.Guid(str(unique_guid), isPermaLink=False)
 
     def link(self):
         """Return the link for the entry.
@@ -402,6 +413,28 @@ class PageAddedRSSEntry(BaseRSSEntry):
             return "Posted: {d} - Several pages were added to the book '{b}' by {c}."
         else:
             return "Posted: {d} - A page was added to the book '{b}' by {c}."
+
+
+class RSS2WithAtom(rss2.RSS2):
+    """Class representing the main RSS class with an atom namespace"""
+    rss_attrs = dict(
+        rss2.RSS2.rss_attrs,
+        **{'xmlns:atom': 'http://www.w3.org/2005/Atom'}
+    )
+
+    def publish_extensions(self, handler):
+        # protected-access (W0212): *Access to a protected member
+        # pylint: disable=W0212
+        rss2._element(
+            handler,
+            'atom:link',
+            None,
+            {
+                'href': self.link,
+                'rel': 'self',
+                'type': 'application/rss+xml',
+            }
+        )
 
 
 def activity_log_as_rss_entry(activity_log):
@@ -464,8 +497,10 @@ def rss_serializer_with_image(feed):
     """RSS serializer adapted from gluon/serializers def rss().
 
     Customizations:
+        Replace rss2.RSS2 with RSS2WithAtom
         rss2.RSS2(..., image=...)
         rss2.RSSItem(..., guid=...)
+        rss2.RSSItem(..., enclosure=...)
     """
 
     if 'entries' not in feed and 'items' in feed:
@@ -477,7 +512,7 @@ def rss_serializer_with_image(feed):
             if key in obj else default
 
     now = datetime.datetime.now()
-    rss = rss2.RSS2(
+    rss = RSS2WithAtom(
         title=_safestr(feed, 'title'),
         link=_safestr(feed, 'link'),
         description=_safestr(feed, 'description'),
