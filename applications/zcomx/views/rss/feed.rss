@@ -1,2 +1,1 @@
-{{response.headers['Content-Type'] = 'applications/rss+xml'}}
-{{from applications.zcomx.modules.rss import rss_serializer_with_image}}{{=XML(rss_serializer_with_image(response._vars))}}
+{{response.headers['Content-Type'] = 'application/rss+xml'}}{{from applications.zcomx.modules.rss import rss_serializer_with_image}}{{=XML(rss_serializer_with_image(response._vars))}}
