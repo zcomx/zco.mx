@@ -1,4 +1,6 @@
 ``
+[x] Display Images in RSS Feeds?
+
 VERSION 3
 [S] Integrity Check For Torrents
     https://code.google.com/p/pyroscope/wiki/RtControlExamples
@@ -10,8 +12,6 @@ VERSION 3
 
 [S] Update Jordan's indicia image
     [ ] release uptight 001?
-
-[ ] Display Images in RSS Feeds?
 
 
 VERSION 4
