@@ -30,6 +30,7 @@ from applications.zcomx.modules.book.complete_barriers import \
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -639,7 +640,7 @@ class TestFunctions(ImageTestCase):
         self.assertTrue(isinstance(barriers[0], DubAppliesBarrier))
 
     def test__complete_barriers(self):
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__complete_barriers@gmail.com',
         ))
 
@@ -675,7 +676,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(complete_barriers(book), [])
 
     def test__has_complete_barriers(self):
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__complete_barriers@gmail.com',
         ))
 

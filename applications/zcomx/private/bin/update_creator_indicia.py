@@ -35,8 +35,7 @@ def clear_creator_indicia(creator):
             on_delete_image(creator[field])
             data[field] = None
 
-    db(db.creator.id == creator.id).update(**data)
-    db.commit()
+    creator = Creator.from_updated(creator, data)
 
 
 def man_page():

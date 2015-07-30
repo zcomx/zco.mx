@@ -71,12 +71,11 @@ class WithObjectsTestCase(LocalTestCase):
             name='First Last'
         ))
 
-        creator_row = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             email='image_test_case@example.com',
             paypal_email='image_test_case@example.com',
         ))
-        self._creator = Creator.from_id(creator_row.id)
 
         self._book = self.add(db.book, dict(
             name='Image Test Case',
@@ -129,9 +128,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             tumblr=None,
             facebook=None,
         )
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
 
         indicia = BookIndiciaPage(self._book)
         xml = indicia.call_to_action_text()
@@ -148,9 +145,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             tumblr='http://tmblr.tumblr.com',
             facebook='http://www.facebook.com/facepalm',
         )
-        db(db.creator.id == self._creator.id).update(**socials)
-        db.commit()
-        self._creator.update(socials)
+        self._creator = Creator.from_updated(self._creator, socials)
         indicia = BookIndiciaPage(self._book)
         icons = indicia.follow_icons()
 
@@ -411,10 +406,7 @@ class TestCreatorIndiciaPagePng(WithObjectsTestCase):
             indicia_portrait=None,
             indicia_landscape=None,
         )
-
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
 
         png_page = CreatorIndiciaPagePng(self._creator)
         filename = png_page.create('portrait')
@@ -512,9 +504,8 @@ class TestIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
         stored_filename = store(
             db.creator.indicia_image, filename, resizer=ResizerQuick)
 
-        db(db.creator.id == png_page.creator.id).update(
-            indicia_image=stored_filename)
-        db.commit()
+        data = dict(indicia_image=stored_filename)
+        png_page.creator = Creator.from_updated(png_page.creator, data)
 
         png_page = BookIndiciaPagePng(self._book)         # Reload
         _, expect = db.creator.indicia_image.retrieve(
@@ -1803,7 +1794,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__cc_licences(self):
         auth_user = self.add(db.auth_user, dict(name='Test CC Licence'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
         book = self.add(db.book, dict(
             name='test__cc_licences',
             creator_id=creator.id,
@@ -1845,23 +1836,16 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             indicia_portrait=None,
             indicia_landscape=None,
         )
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
-
-        creator = Creator.from_id(self._creator.id)
+        self._creator = Creator.from_updated(self._creator, data)
         for f in fields:
             # Field is cleared
-            self.assertEqual(creator[f], None)
+            self.assertEqual(self._creator[f], None)
 
         filename = self._prep_image('cbz_plus.png')
         indicia_image = store(
             db.creator.indicia_image, filename, resizer=ResizerQuick)
         data = dict(indicia_image=indicia_image)
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
-
+        self._creator = Creator.from_updated(self._creator, data)
         create_creator_indicia(self._creator)
 
         creator_1 = Creator.from_id(self._creator.id)
@@ -1882,9 +1866,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             indicia_portrait=None,
             indicia_landscape=None,
         )
-        db(db.creator.id == creator_1.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
 
     def test__render_cc_licence(self):
 

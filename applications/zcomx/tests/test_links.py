@@ -10,6 +10,7 @@ import unittest
 from gluon import *
 from BeautifulSoup import BeautifulSoup
 from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.links import \
     BaseLinkSet, \
     Link, \
@@ -199,12 +200,12 @@ class TestLinks(LocalTestCase):
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     def setUp(self):
-        self._creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             email='testcustomlinks@example.com'
         ))
 
         # Create a second creator with no links
-        self._creator_2 = self.add(db.creator, dict(
+        self._creator_2 = self.add(Creator, dict(
             email='testcustomlinks_2@example.com'
         ))
 

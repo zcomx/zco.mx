@@ -1469,8 +1469,7 @@ def create_creator_indicia(creator, resize=False, optimize=False):
         # Delete existing
         if creator[field]:
             on_delete_image(creator[field])
-            db(db.creator.id == creator.id).update(**{field: None})
-            db.commit()
+            creator = Creator.from_updated(creator, {field: None})
         png_page = CreatorIndiciaPagePng(creator)
         png = png_page.create(orientation=orientation)
         stored_filename = store(
@@ -1483,8 +1482,7 @@ def create_creator_indicia(creator, resize=False, optimize=False):
             if optimize:
                 AllSizesImages.from_names([data[field]]).optimize()
 
-    db(db.creator.id == creator.id).update(**data)
-    db.commit()
+    Creator.from_updated(creator, data)
 
 
 def render_cc_licence(

@@ -13,6 +13,7 @@ import string
 import unittest
 import uuid
 from twitter import TwitterHTTPError
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import ImageDescriptor, UploadImage
 from applications.zcomx.modules.tweeter import \
     Authenticator, \
@@ -653,11 +654,11 @@ class TestFunctions(LocalTestCase):
             post_date=datetime.date.today(),
         ))
 
-        creator_1 = self.add(db.creator, dict(
+        creator_1 = self.add(Creator, dict(
             name_for_url='Creator One',
         ))
 
-        creator_2 = self.add(db.creator, dict(
+        creator_2 = self.add(Creator, dict(
             name_for_url='Creator Two',
         ))
 

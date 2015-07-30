@@ -114,10 +114,8 @@ def agree_to_terms():
             message_onfailure='',
             hideerror=True).accepted:
         data = dict(agreed_to_terms=form.vars.agree_to_terms)
-        db(db.creator.id == creator.id).update(**data)
-        db.commit()
-        creator.update(data)
-        if creator.agreed_to_terms:
+        agreed_creator = Creator.from_updated(creator, data)
+        if agreed_creator.agreed_to_terms:
             redirect(URL('books'))
         else:
             redirect(URL(c='default', f='index'))
@@ -702,21 +700,11 @@ def creator_crud():
         if f in data:
             data[f] = data[f].rstrip('/')
 
-    query = (db.creator.id == creator.id)
-    ret = db(query).validate_and_update(**data)
-    db.commit()
+    try:
+        creator = Creator.from_updated(creator, data)
+    except SyntaxError as err:
+        return {'status': 'error', 'msg': str(err)}
 
-    if ret.errors:
-        if request.vars.name in ret.errors:
-            return {'status': 'error', 'msg': ret.errors[request.vars.name]}
-        else:
-            return {
-                'status': 'error',
-                'msg': ', '.join([
-                    '{k}: {v}'.format(k=k, v=v)
-                    for k, v in ret.errors.items()
-                ])
-            }
     result = {'status': 'ok'}
     if request.vars.name in data \
             and data[request.vars.name] != request.vars.value:
@@ -813,9 +801,7 @@ def creator_img_handler():
                 # Delete an existing image before it is replaced
                 on_delete_image(creator[img_field])
                 data = {img_field: None}
-                db(db.creator.id == creator.id).update(**data)
-                db.commit()
-                creator.update(data)
+                creator = Creator.from_updated(creator, data)
             if img_field == 'indicia_image':
                 # Clear the indicia png fields. This will trigger a rebuild
                 # in indicia_preview_urls
@@ -825,14 +811,10 @@ def creator_img_handler():
                     'indicia_portrait': None,
                     'indicia_landscape': None,
                 }
-                db(db.creator.id == creator.id).update(**data)
-                db.commit()
-                creator.update(data)
+                creator = Creator.from_updated(creator, data)
 
         data = {img_field: stored_filename}
-        db(db.creator.id == creator.id).update(**data)
-        db.commit()
-        creator.update(data)
+        creator = Creator.from_updated(creator, data)
         if img_changed:
             if img_field == 'indicia_image':
                 # If indicias are blank, create them.
@@ -862,9 +844,7 @@ def creator_img_handler():
             on_delete_image(creator['indicia_landscape'])
             data['indicia_portrait'] = None
             data['indicia_landscape'] = None
-        db(db.creator.id == creator.id).update(**data)
-        db.commit()
-        creator.update(data)
+        creator = Creator.from_updated(creator, data)
         if img_field == 'indicia_image':
             queue_update_indicia(creator)
         return dumps({"files": [{filename: 'true'}]})

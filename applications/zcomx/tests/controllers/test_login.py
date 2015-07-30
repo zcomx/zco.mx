@@ -89,14 +89,15 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=C0103
         # Get the data the tests will use.
         email = web.username
-        cls._user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
+        query = (db.auth_user.email == email)
+        cls._user = db(query).select(limitby=(0, 1)).first()
         if not cls._user:
             msg = 'No user with email: {e}'.format(e=email)
             print msg
             raise SyntaxError(msg)
 
         query = db.creator.auth_user_id == cls._user.id
-        cls._creator = db(query).select(limitby=(0, 1)).first()
+        cls._creator = Creator.from_query(query)
         if not cls._creator:
             msg = 'No creator with email: {e}'.format(e=email)
             print msg
@@ -136,8 +137,7 @@ class TestFunctions(LocalTestCase):
             db(query).delete()
             db.commit()
 
-        db(db.creator.id == cls._creator.id).update(**cls._creator_as_dict)
-        db.commit()
+        Creator.from_updated(cls._creator, cls._creator_as_dict)
 
     def test__account(self):
 
@@ -435,7 +435,8 @@ class TestFunctions(LocalTestCase):
         self._objects.append(tentative_log)
 
         # Test delete file
-        book_page = db(db.book_page.id == new_id).select(limitby=(0, 1)).first()
+        query = (db.book_page.id == new_id)
+        book_page = db(query).select(limitby=(0, 1)).first()
         self.assertTrue(book_page)
         response = requests.delete(
             web.app + '/login/book_pages_handler/{i}'.format(i=new_id),
@@ -548,8 +549,7 @@ class TestFunctions(LocalTestCase):
 
         def get_creator():
             """Return a creator"""
-            query = (db.creator.id == self._creator.id)
-            return db(query).select(db.creator.ALL).first()
+            return Creator.from_id(self._creator.id)
 
         old_creator = get_creator()
 
@@ -587,9 +587,7 @@ class TestFunctions(LocalTestCase):
             '{"status": "error", "msg": "Invalid data provided"}\n'
         )
 
-        db(db.creator.id == old_creator.id).update(**old_creator.as_dict())
-        db.commit()
-        creator = get_creator()
+        Creator.from_updated(self._creator, old_creator.as_dict())
 
     def test__creator_img_handler(self):
         if self._opts.quick:
@@ -599,10 +597,7 @@ class TestFunctions(LocalTestCase):
             """Return a Creator instance"""
             return Creator.from_id(self._creator.id)
 
-        old_creator = get_creator()
-        db(db.creator.id == old_creator.id).update(image=None)
-        db.commit()
-        old_creator = get_creator()
+        old_creator = Creator.from_updated(self._creator, dict(image=None))
         self.assertFalse(old_creator.image)
 
         web.login()
@@ -672,11 +667,7 @@ class TestFunctions(LocalTestCase):
             indicia_portrait=None,
             indicia_landscape=None,
         )
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(**data)
-
-        creator = get_creator()
+        creator = Creator.from_updated(self._creator, data)
         self.assertEqual(creator.indicia_portrait, None)
         self.assertEqual(creator.indicia_landscape, None)
 
@@ -701,10 +692,7 @@ class TestFunctions(LocalTestCase):
             indicia_landscape='creator.indicia_landscape.lll.000.png',
             indicia_portrait='creator.indicia_portrait.ppp.111.png',
         )
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(**data)
-        creator = get_creator()
+        creator = Creator.from_updated(self._creator, data)
 
         web.post(url, data={})
         result = loads(web.text)

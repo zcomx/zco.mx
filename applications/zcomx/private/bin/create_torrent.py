@@ -38,8 +38,7 @@ def book_torrent(book_id):
 
     creator = Creator.from_id(book.creator_id)
     if not creator.rebuild_torrent:
-        db(db.creator.id == creator.id).update(rebuild_torrent=True)
-        db.commit()
+        creator = Creator.from_updated(creator, dict(rebuild_torrent=True))
 
 
 def creator_torrent(creator_id):
@@ -49,8 +48,7 @@ def creator_torrent(creator_id):
     LOG.debug('Created: %s', result)
 
     if creator.rebuild_torrent:
-        db(db.creator.id == creator.id).update(rebuild_torrent=False)
-        db.commit()
+        creator = Creator.from_updated(creator, dict(rebuild_torrent=False))
 
 
 def man_page():

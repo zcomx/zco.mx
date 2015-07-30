@@ -153,9 +153,7 @@ def main():
     LOG.debug('stored_filename: %s', stored_filename)
     LOG.debug('Updating creator.indicia_image')
     data = {img_field: stored_filename}
-    db(db.creator.id == creator.id).update(**data)
-    db.commit()
-    creator.update(data)
+    creator = Creator.from_updated(creator, data)
 
 
 if __name__ == '__main__':

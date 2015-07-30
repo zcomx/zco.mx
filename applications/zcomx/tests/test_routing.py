@@ -109,19 +109,17 @@ class TestRouter(LocalTestCase):
             email='test__auth_user@test.com',
         ))
 
-        creator_row = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             email='test__creator@test.com',
             name_for_url='FirstLast',
         ))
-        self._creator = Creator.from_id(creator_row.id)
 
-        creator_row_2 = self.add(db.creator, dict(
+        self._creator_2 = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             email='test__creator_2@test.com',
             name_for_url='JohnHancock',
         ))
-        self._creator_2 = Creator.from_id(creator_row_2.id)
 
         self._book = self.add(db.book, dict(
             name='My Book',
@@ -460,7 +458,8 @@ class TestRouter(LocalTestCase):
             query = (db.creator.name_for_url == creator_for_url)
             got = db(query).select(limitby=(0, 1)).first()
             self.assertTrue(got)
-            got = db(db.book.name_for_url == book_for_url).select(limitby=(0, 1)).first()
+            query = (db.book.name_for_url == book_for_url)
+            got = db(query).select(limitby=(0, 1)).first()
             self.assertTrue(got)
             self.assertTrue(got.release_date is not None)
 
@@ -596,9 +595,7 @@ class TestRouter(LocalTestCase):
             shop=None,
             tumblr=None,
         )
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
 
         # Creator not set.
         self.assertEqual(router.preset_links(), [])
@@ -618,7 +615,7 @@ class TestRouter(LocalTestCase):
                 if anchor.string == 'shop':
                     self.assertEqual(anchor['href'], 'http://www.shop.com')
                 elif anchor.string == 'tumblr':
-                    self.assertEqual(anchor['href'], 'user.tumblr.com')
+                    self.assertEqual(anchor['href'], 'http://user.tumblr.com')
                 self.assertEqual(anchor['target'], '_blank')
 
         # Set creator.shop
@@ -626,31 +623,25 @@ class TestRouter(LocalTestCase):
             shop='http://www.shop.com',
             tumblr=None
         )
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
         router.creator_record = None
         test_presets(router.preset_links(), ['shop'])
 
         # Set creator.tumblr
         data = dict(
             shop=None,
-            tumblr='user.tumblr.com',
+            tumblr='http://user.tumblr.com',
         )
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
         router.creator_record = None
         test_presets(router.preset_links(), ['tumblr'])
 
         # Set both creator.shop and creator.tumblr
         data = dict(
             shop='http://www.shop.com',
-            tumblr='user.tumblr.com',
+            tumblr='http://user.tumblr.com',
         )
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
         router.creator_record = None
         test_presets(router.preset_links(), ['shop', 'tumblr'])
 

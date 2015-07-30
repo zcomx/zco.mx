@@ -283,11 +283,10 @@ class TestCreatorAutocompleter(LocalTestCase):
             name='First Last'
         ))
 
-        creator_row = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             auth_user_id=auth_user.id,
             name_for_search='azbycxazbycx',
         ))
-        creator = Creator.from_id(creator_row.id)
         autocompleter = CreatorAutocompleter()
         self.assertEqual(
             autocompleter.formatted_value(creator.id), 'First Last')
@@ -303,7 +302,7 @@ class TestCreatorAutocompleter(LocalTestCase):
             name='First Last'
         ))
 
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             auth_user_id=auth_user.id,
             name_for_search='azbycxazbycx',
         ))
@@ -350,7 +349,7 @@ class TestCreatorAutocompleter(LocalTestCase):
             name='Second Prime'
         ))
 
-        creator_2 = self.add(db.creator, dict(
+        creator_2 = self.add(Creator, dict(
             auth_user_id=auth_user_2.id,
             name_for_search='aaa-azbycxazbycx-lld',
         ))

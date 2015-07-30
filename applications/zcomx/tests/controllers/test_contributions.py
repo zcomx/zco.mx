@@ -70,8 +70,7 @@ class TestFunctions(LocalTestCase):
         else:
             self._invalid_book_id = 1
 
-        creator_row = db(db.creator.paypal_email != '').select(limitby=(0, 1)).first()
-        self._creator = Creator.from_id(creator_row.id)
+        self._creator = Creator.from_query((db.creator.paypal_email != ''))
         if not self._creator:
             raise SyntaxError('Unable to get creator.')
 
@@ -266,7 +265,8 @@ class TestFunctions(LocalTestCase):
             set(before_ids))
         self.assertEqual(len(new_contrib_ids), 1)
         new_contrib_id = list(new_contrib_ids)[0]
-        new_contrib = db(db.contribution.id == new_contrib_id).select(limitby=(0, 1)).first()
+        query = (db.contribution.id == new_contrib_id)
+        new_contrib = db(query).select(limitby=(0, 1)).first()
         self._objects.append(new_contrib)
 
         logs = get_paypal_log(txn_id)

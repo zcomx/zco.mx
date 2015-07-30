@@ -96,11 +96,10 @@ class TestFunctions(LocalTestCase):
             email='tests__requires_agreed_to_terms@example.com',
         ))
 
-        creator_row = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             auth_user_id=auth_user.id,
             agreed_to_terms=False,
         ))
-        creator = Creator.from_id(creator_row.id)
 
         auth.user = auth_user
 
@@ -136,8 +135,7 @@ class TestFunctions(LocalTestCase):
             self.fail('HTTP exception not raised.')
 
         # agreed_to_terms=False, should permit access
-        db(db.creator.id == creator.id).update(agreed_to_terms=True)
-        db.commit()
+        Creator.from_updated(creator, dict(agreed_to_terms=True))
         self.assertEqual(func(), 'Success')
 
     def test__requires_login_if_configured(self):

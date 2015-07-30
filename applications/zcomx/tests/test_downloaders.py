@@ -13,6 +13,7 @@ from gluon.html import DIV, IMG
 from gluon.http import HTTP
 from gluon.storage import List
 from applications.zcomx.modules.archives import TorrentArchive
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.downloaders import \
     CBZDownloader, \
     ImageDownloader, \
@@ -47,7 +48,7 @@ class WithObjectsTestCase(LocalTestCase):
             email=email,
         ))
 
-        self._creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             email=email,
         ))
@@ -209,7 +210,8 @@ class TestTorrentDownloader(LocalTestCase):
         )
 
         # Find a creator with a torrent.
-        creator = db(db.creator.torrent != None).select(limitby=(0, 1)).first()
+        query = (db.creator.torrent != None)
+        creator = Creator.from_query(query)
         test_http(
             ['creator', creator.id],
             dict(

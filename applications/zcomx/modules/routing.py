@@ -464,10 +464,7 @@ class Router(object):
             request.vars.order = 'book.name'
 
         queries = [(db.creator.id == creator_record.id)]
-        LOG.debug('queries: %s', queries)
         completed_grid = CompletedGrid(queries=queries, default_viewby='list')
-
-        LOG.debug('queries: %s', queries)
         ongoing_grid = OngoingGrid(queries=queries, default_viewby='list')
 
         self.view_dict = dict(

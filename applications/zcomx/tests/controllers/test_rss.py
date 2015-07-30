@@ -11,6 +11,7 @@ import os
 import unittest
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import book_name
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -49,7 +50,7 @@ class TestFunctions(ImageTestCase):
             name='First Last',
         ))
 
-        self._creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             email='test_rss@example.com',
             name_for_url='FirstLast',

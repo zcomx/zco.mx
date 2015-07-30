@@ -49,13 +49,12 @@ class WithObjectsTestCase(LocalTestCase):
             name='First Last'
         ))
 
-        creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             email='image_test_case@example.com',
             name_for_url='FirstLast',
             tumblr='http://firstlast.tumblr.com',
         ))
-        self._creator = Creator.from_id(creator.id)
 
         self._book = self.add(db.book, dict(
             name='My Book',

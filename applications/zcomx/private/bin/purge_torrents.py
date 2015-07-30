@@ -11,7 +11,9 @@ import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.archives import TorrentArchive
-from applications.zcomx.modules.creators import formatted_name
+from applications.zcomx.modules.creators import \
+    Creator, \
+    formatted_name
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -157,8 +159,7 @@ def main():
             torrent=None,
             rebuild_torrent=False,
         )
-        db(db.creator.id == creator.id).update(**data)
-        db.commit()
+        creator = Creator.from_updated(creator, data)
 
     count = num_books_with_cbz()
     LOG.debug('Number of books with cbz file: %s', count)

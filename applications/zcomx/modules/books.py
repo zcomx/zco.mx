@@ -1434,8 +1434,8 @@ def update_contributions_remaining(db, book_entity):
 
     total = contributions_remaining_by_creator(creator)
     if creator.contributions_remaining != total:
-        db(db.creator.id == creator.id).update(contributions_remaining=total)
-        db.commit()
+        data = dict(contributions_remaining=total)
+        creator = Creator.from_updated(creator, data)
 
 
 def update_rating(db, book, rating=None):
