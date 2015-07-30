@@ -6,10 +6,12 @@
 Test suite for zcomx/modules/rss.py
 
 """
+import cStringIO
 import datetime
 import re
 import unittest
 import gluon.contrib.rss2 as rss2
+from xml.sax import saxutils
 from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
@@ -24,6 +26,7 @@ from applications.zcomx.modules.rss import \
     CartoonistRSSChannel, \
     CompletedRSSEntry, \
     PageAddedRSSEntry, \
+    RSS2WithAtom, \
     activity_log_as_rss_entry, \
     channel_from_type, \
     entry_class_from_action, \
@@ -96,7 +99,7 @@ class WithObjectsTestCase(LocalTestCase):
             db.book_page.image, filename, resizer=ResizerQuick)
         query = (db.book_page.id == self._book_page.id)
         db(query).update(image=stored_filename)
-        self._book_page = db(query).select(limitby=(0, 1)).first()            # Reload
+        self._book_page = db(query).select(limitby=(0, 1)).first()     # Reload
 
 
 class DubRSSChannel(BaseRSSChannel):
@@ -695,6 +698,30 @@ class TestPageAddedRSSEntry(WithObjectsTestCase):
         self.assertEqual(
             entry.description_fmt(),
             "Posted: {d} - Several pages were added to the book '{b}' by {c}."
+        )
+
+
+class TestRSS2WithAtom(LocalTestCase):
+
+    def test_parent__init__(self):
+        rss = RSS2WithAtom('title', 'link', 'description')
+        self.assertEqual(
+            sorted(rss.rss_attrs.keys()),
+            ['version', 'xmlns:atom']
+        )
+
+    def test__publish_extensions(self):
+        rss = RSS2WithAtom('title', 'link', 'description')
+        outfile = cStringIO.StringIO()
+        handler = saxutils.XMLGenerator(outfile)
+        handler.startDocument()
+        rss.publish_extensions(handler)
+        handler.endDocument()
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            outfile.getvalue(),
+            '<?xml version="1.0" encoding="iso-8859-1"?>\n<atom:link href="link" type="application/rss+xml" rel="self"></atom:link>'
         )
 
 
