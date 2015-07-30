@@ -332,8 +332,8 @@ class UploadedImage(UploadedFile):
 
     def for_json(self):
         """Return uploaded files as json appropriate for jquery-file-upload."""
-        db = current.app.db
-        return book_page_for_json(db, self.book_page_ids[0])
+        book_page = BookPage.from_id(self.book_page_ids[0])
+        return book_page_for_json(book_page)
 
     def unpack(self):
         """Unpack file."""

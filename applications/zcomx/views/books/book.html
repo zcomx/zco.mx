@@ -17,16 +17,16 @@
             <div class="col-sm-12 image_footer">
                 <ul class="breadcrumb pipe_delimiter">
                     <li>
-                    {{=read_link(db, book.id, components=['read'])}}
+                    {{=read_link(book, components=['read'])}}
                     </li>
                     {{if can_receive_contributions(creator):}}
                     <li>
-                        {{=contribute_link(db, book.id, components=['contribute'], **dict(_class='contribute_button no_rclick_menu'))}}
+                        {{=contribute_link(book, components=['contribute'], **dict(_class='contribute_button no_rclick_menu'))}}
                     </li>
                     {{pass}}
                     {{if is_downloadable(book):}}
                     <li>
-                        {{=download_link(db, book, components=['download'], **dict(_class='download_button no_rclick_menu'))}}
+                        {{=download_link(book, components=['download'], **dict(_class='download_button no_rclick_menu'))}}
                     </li>
                     {{pass}}
                     {{if is_followable(book):}}
@@ -41,7 +41,7 @@
     <div class="col-sm-7" id="right_column">
         <div class="row">
             <div id="book_name">
-                {{=formatted_book_name(db, book, include_publication_year=(book.release_date != None))}}
+                {{=formatted_book_name(book, include_publication_year=(book.release_date != None))}}
             </div>
             {{=ItemDescription(book.description).as_html(**dict(_id='book_description'))}}
             <div id="book_id_section">

@@ -2,7 +2,9 @@
 """ Search controller."""
 from applications.zcomx.modules.access import requires_login_if_configured
 from applications.zcomx.modules.autocomplete import autocompleter_class
-from applications.zcomx.modules.books import url as book_url
+from applications.zcomx.modules.books import \
+    Book, \
+    url as book_url
 from applications.zcomx.modules.creators import \
     Creator, \
     url as creator_url
@@ -51,7 +53,12 @@ def autocomplete_selected():
         page_not_found()
 
     if request.args(0) == 'book':
-        url = book_url(record_id)
+        try:
+            book = Book.from_id(record_id)
+        except LookupError:
+            url = None
+        else:
+            url = book_url(book)
     elif request.args(0) == 'creator':
         try:
             creator = Creator.from_id(record_id)

@@ -13,7 +13,9 @@ import unittest
 import zipfile
 from gluon import *
 from gluon.storage import Storage
-from applications.zcomx.modules.books import DEFAULT_BOOK_TYPE
+from applications.zcomx.modules.books import \
+    Book, \
+    DEFAULT_BOOK_TYPE
 from applications.zcomx.modules.cbz import \
     CBZCreateError, \
     CBZCreator, \
@@ -23,8 +25,6 @@ from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -73,7 +73,8 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
         email = web.username
-        self._user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
+        self._user = db(
+            db.auth_user.email == email).select(limitby=(0, 1)).first()
         if not self._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
@@ -85,7 +86,7 @@ class WithObjectsTestCase(LocalTestCase):
         query = (db.book_type.name == DEFAULT_BOOK_TYPE)
         book_type_id = db(query).select(limitby=(0, 1)).first().id
         cc_by_nd = CCLicence.by_code('CC BY-ND')
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name='My CBZ Test',
             creator_id=self._creator.id,
             book_type_id=book_type_id,
@@ -126,19 +127,13 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         self.assertTrue(creator)
         self.assertEqual(creator.book.name, self._book.name)
 
-        # book as integer
-        creator = CBZCreator(self._book.id)
-        self.assertTrue(creator)
-        self.assertEqual(creator.book.name, self._book.name)
-
     def test__cbz_filename(self):
         data = dict(
             name='My Book',
             publication_year=1998,
             creator_id=123,
         )
-        self._book.update_record(**data)
-        db.commit()
+        self._book.update(**data)
 
         cbz_creator = CBZCreator(self._book)
         self.assertEqual(
@@ -239,8 +234,6 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
             )
 
     def test__run(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         self._set_images()
         creator = CBZCreator(self._book)
         zip_file = creator.run()
@@ -308,9 +301,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         super(TestFunctions, cls).tearDownClass()
 
     def test__archive(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
         self._set_images()
 
         cbz_filename = archive(self._book, base_path=self._base_path)
@@ -322,7 +312,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             '/tmp/cbz_archive/cbz/zco.mx/J/JimKarsten/My CBZ Test (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
         )
 
-        book = entity_to_row(db.book, self._book.id)
+        book = Book.from_id(self._book.id)
         self.assertEqual(book.cbz, cbz_filename)
 
         self.assertTrue(os.path.exists(cbz_filename))

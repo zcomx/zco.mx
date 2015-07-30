@@ -10,6 +10,7 @@ Script to create a cbz file for a book.
 # pylint: disable=W0404
 import logging
 from optparse import OptionParser
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.cbz import \
     CBZCreateError, \
     archive
@@ -80,11 +81,13 @@ def main():
 
     exit_status = 0
     for book_id in args:
-        book = db(db.book.id == book_id).select(limitby=(0, 1)).first()
-        if not book:
+        try:
+            book = Book.from_id(book_id)
+        except LookupError:
             LOG.error('Book not found, id: %s', book_id)
             exit_status = 1
             continue
+
         LOG.debug('Creating cbz for: %s', book.name)
         try:
             archive(book)

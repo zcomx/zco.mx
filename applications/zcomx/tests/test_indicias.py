@@ -17,7 +17,9 @@ from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from gluon.validators import IS_INT_IN_RANGE
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.books import short_url as book_short_url
+from applications.zcomx.modules.books import \
+    Book, \
+    short_url as book_short_url
 from applications.zcomx.modules.creators import \
     Creator, \
     short_url as creator_short_url
@@ -77,7 +79,7 @@ class WithObjectsTestCase(LocalTestCase):
             paypal_email='image_test_case@example.com',
         ))
 
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name='Image Test Case',
             number=1,
             book_type_id=BookType.by_name('ongoing').id,
@@ -100,7 +102,7 @@ class WithObjectsTestCase(LocalTestCase):
         ))
 
         # Next book in series
-        next_book = self.add(db.book, dict(
+        next_book = self.add(Book, dict(
             name=self._book.name,
             number=self._book.number + 1,
             book_type_id=self._book.book_type_id,
@@ -238,11 +240,8 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         )
 
         cc_by = CCLicence.by_code('CC BY')
-        self._book.update_record(cc_licence_id=cc_by.id)
-        db.commit()
-        book = db(db.book.id == self._book.id).select(limitby=(0, 1)).first()
-
-        indicia = BookIndiciaPage(book)
+        self._book = Book.from_updated(self._book, dict(cc_licence_id=cc_by.id))
+        indicia = BookIndiciaPage(self._book)
         self.assertEqual(
             indicia.licence_text(),
             '<a href="{b_url}">IMAGE TEST CASE</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0" target="_blank">CC BY 4.0 INT`L LICENSE</a>.'.format(
@@ -603,10 +602,10 @@ class TestPublicationMetadata(LocalTestCase):
         # date.today overridden
         self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='TestPublicationMetadata',
         ))
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         self.assertTrue(meta)
         self.assertEqual(
             meta.first_publication_text,
@@ -614,9 +613,9 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
     def test____str__(self):
-        book = self.add(db.book, dict(name='My Book'))
+        book = self.add(Book, dict(name='My Book'))
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         self.assertEqual(str(meta), '')
 
         meta.metadata = dict(
@@ -689,11 +688,11 @@ class TestPublicationMetadata(LocalTestCase):
 
         # [14] "Name of Book", is a derivative of "Their work's name" from "their_YYYY" by Their_Name, used under Their_Licence eg CC BY.
 
-        book = self.add(db.book, dict(name='My Book'))
+        book = self.add(Book, dict(name='My Book'))
 
         cc_by_nd = CCLicence.by_code('CC BY-ND')
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         derivative = dict(
             book_id=book.id,
             title='My Derivative',
@@ -710,7 +709,7 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
     def test__load(self):
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__load',
         ))
 
@@ -719,7 +718,7 @@ class TestPublicationMetadata(LocalTestCase):
             self.assertEqual(meta.serials, expect.serials)
             self.assertEqual(meta.derivative, expect.derivative)
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         expect = Storage({})
         expect.metadata = {}
         expect.serials = []
@@ -815,11 +814,11 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
     def test__load_from_vars(self):
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__load_from_vars',
         ))
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         self.assertEqual(meta.metadata, {})
         self.assertEqual(meta.serials, [])
         self.assertEqual(meta.derivative, {})
@@ -958,9 +957,9 @@ class TestPublicationMetadata(LocalTestCase):
         book_name = 'My Book'
         original_name = 'My Old Book'
 
-        book = self.add(db.book, dict(name=book_name))
+        book = self.add(Book, dict(name=book_name))
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         metadata = Storage(dict(
             book_id=book.id,
             republished=False,
@@ -1070,8 +1069,8 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
     def test__publication_year(self):
-        book = self.add(db.book, dict(name='test__publication_year'))
-        meta = PublicationMetadata(book.id)
+        book = self.add(Book, dict(name='test__publication_year'))
+        meta = PublicationMetadata(book)
 
         # Test: no metadata or serial data
         self.assertRaises(ValueError, meta.publication_year)
@@ -1143,9 +1142,9 @@ class TestPublicationMetadata(LocalTestCase):
         #      STORY_NAME #2 was originally self-published in print in ANTHOLOGY_NAME in YYYY.
         # ...
 
-        book = self.add(db.book, dict(name='test__serials_text'))
+        book = self.add(Book, dict(name='test__serials_text'))
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         default_serial = Storage(dict(
             book_id=book.id,
             published_name='',
@@ -1273,9 +1272,9 @@ class TestPublicationMetadata(LocalTestCase):
             self.assertEqual(meta.serial_text(s, is_anthology=True), expect)
 
     def test__serials_text(self):
-        book = self.add(db.book, dict(name='test__serials_text'))
+        book = self.add(Book, dict(name='test__serials_text'))
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         serial_1 = Storage(dict(
             book_id=book.id,
             sequence=0,
@@ -1337,9 +1336,9 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
     def test__texts(self):
-        book = self.add(db.book, dict(name='My Book'))
+        book = self.add(Book, dict(name='My Book'))
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
 
         meta.metadata = dict(
             book_id=book.id,
@@ -1402,10 +1401,10 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
     def test__to_year_requires(self):
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__to_year_requires',
         ))
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         min_year, max_year = meta.year_range()
 
         requires = meta.to_year_requires('2000')
@@ -1429,11 +1428,11 @@ class TestPublicationMetadata(LocalTestCase):
     def test__update(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__update',
         ))
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
 
         def get_metadatas(book_id):
             query = (db.publication_metadata.book_id == book_id)
@@ -1525,11 +1524,11 @@ class TestPublicationMetadata(LocalTestCase):
             self._objects.append(record)
 
     def test__validate(self):
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__validate',
         ))
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         self.assertEqual(meta.errors, {})
         meta.validate()
         self.assertEqual(meta.errors, {})
@@ -1756,11 +1755,11 @@ class TestPublicationMetadata(LocalTestCase):
         # date.today overridden
         self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__year_range',
         ))
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
 
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
@@ -1795,10 +1794,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__cc_licences(self):
         auth_user = self.add(db.auth_user, dict(name='Test CC Licence'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=-1,
             name='test__cc_licences',
             creator_id=creator.id,
             book_type_id=BookType.by_name('one-shot').id,
+            name_for_url='TestCcLicences',
+            cc_licence_place=None,
         ))
 
         # Add a cc_licence with quotes in the template. Should be handled.

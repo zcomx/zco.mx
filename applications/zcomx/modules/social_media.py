@@ -35,9 +35,7 @@ from applications.zcomx.modules.tweeter import \
     Authenticator as TwAuthenticator, \
     PhotoDataPreparer as TwPhotoDataPreparer, \
     Poster as TwPoster
-from applications.zcomx.modules.utils import \
-    ClassFactory, \
-    entity_to_row
+from applications.zcomx.modules.utils import ClassFactory
 from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = logging.getLogger('app')
@@ -50,17 +48,15 @@ class SocialMedia(object):
     icon_filename = 'zco.mx-logo-small.png'
     site = None
 
-    def __init__(self, book_entity, creator=None):
+    def __init__(self, book, creator=None):
         """Constructor
 
         Args:
-            book_entity: Row instance or integer representing a book record
+            book: Book instance
             creator: Creator instance. If None, it is created from
-                book_entity.creator_id.
+                book.creator_id.
         """
-        self.book_entity = book_entity
-        db = current.app.db
-        self.book = entity_to_row(db.book, self.book_entity)
+        self.book = book
         if creator:
             self.creator = creator
         else:
@@ -132,9 +128,9 @@ class TumblrSocialMedia(SocialMedia):
     icon_filename = 'tumblr_logo.svg'
     site = 'https://www.tumblr.com'
 
-    def __init__(self, book_entity, creator=None):
+    def __init__(self, book, creator=None):
         """Constructor"""
-        SocialMedia.__init__(self, book_entity, creator=creator)
+        SocialMedia.__init__(self, book, creator=creator)
         self._username = None
 
     def follow_url(self):
@@ -260,7 +256,15 @@ class SocialMediaPoster(object):
         raise NotImplementedError
 
     def post(self, book, creator):
-        """Post to social media."""
+        """Post to social media.
+
+        Args:
+            book: Book instance
+            creator: Creator instance
+
+        Returns:
+            dict
+        """
         # not-callable (E1102): *%%s is not callable*
         # pylint: disable=E1102
         client = self.authenticate_class(self.credentials()).authenticate()
@@ -268,7 +272,15 @@ class SocialMediaPoster(object):
         return self.post_data(poster, self.prepare_data(book, creator))
 
     def prepare_data(self, book, creator):
-        """Prepare the data for the api."""
+        """Prepare the data for the api.
+
+        Args:
+            book: Book instance
+            creator: Creator instance
+
+        Returns:
+            dict
+        """
         social_media_data = {
             'book': book_social_media_data(book),
             'creator': creator_social_media_data(creator),

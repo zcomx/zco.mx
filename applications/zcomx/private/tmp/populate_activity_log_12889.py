@@ -14,7 +14,9 @@ import traceback
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
-from applications.zcomx.modules.books import get_page
+from applications.zcomx.modules.books import \
+    Book, \
+    get_page
 from applications.zcomx.modules.utils import \
     entity_to_row
 
@@ -32,7 +34,7 @@ def log_completed():
     query = (db.book.release_date != None)
     ids = [x.id for x in db(query).select(db.book.id)]
     for book_id in ids:
-        book = entity_to_row(db.book, book_id)
+        book = Book.from_id(book_id)
         # Check if log exists
         query = (db.activity_log.action == 'completed') & \
                 (db.activity_log.book_id == book.id)

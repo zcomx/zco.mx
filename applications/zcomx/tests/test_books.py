@@ -105,25 +105,25 @@ class WithObjectsTestCase(LocalTestCase):
             email='image_test_case@example.com',
         ))
 
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name='Image Test Case',
             creator_id=self._creator.id,
         ))
 
-        self._book_page = self.add(db.book_page, dict(
+        self._book_page = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=1,
         ))
 
-        self._book_page_2 = self.add(db.book_page, dict(
+        self._book_page_2 = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=2,
         ))
 
         super(WithObjectsTestCase, self).setUp()
 
-    def _set_pages(self, db, book_id, num_of_pages):
-        set_pages(self, db, book_id, num_of_pages)
+    def _set_pages(self, book_id, num_of_pages):
+        set_pages(self, book_id, num_of_pages)
 
 
 class TestBook(LocalTestCase):
@@ -137,7 +137,7 @@ class TestBook(LocalTestCase):
 class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__book_name(self):
-        book = self.add(db.book, dict(
+        book = Book(dict(
             name='My Book',
             book_type_id=BookType.by_name('mini-series').id,
             number=2,
@@ -175,7 +175,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
         self.assertEqual(
-            book_page_for_json(db, self._book_page.id),
+            book_page_for_json(self._book_page),
             {
                 'book_id': self._book_page.book_id,
                 'book_page_id': self._book_page.id,
@@ -211,7 +211,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             resizer=ResizerQuick
         )
 
-        as_json = book_pages_as_json(db, self._book.id)
+        as_json = book_pages_as_json(self._book.id)
         data = loads(as_json)
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 2)
@@ -230,14 +230,17 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # Test book_page_ids param.
         as_json = book_pages_as_json(
-            db, self._book.id, book_page_ids=[self._book_page.id])
+            self._book.id, book_page_ids=[self._book_page.id])
         data = loads(as_json)
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 1)
         self.assertEqual(data['files'][0]['name'], 'portrait.png')
 
     def test__book_pages_years(self):
-        book = self.add(db.book, dict(name='test__book_pages_years'))
+        book = Book(dict(
+            id=-1,
+            name='test__book_pages_years',
+        ))
 
         self.assertEqual(book_pages_years(book), [])
 
@@ -288,38 +291,38 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__calc_contributions_remaining',
         ))
 
         # Book has no pages
-        self.assertEqual(calc_contributions_remaining(db, book), 0.00)
+        self.assertEqual(calc_contributions_remaining(book), 0.00)
 
         # Invalid book
-        self.assertEqual(calc_contributions_remaining(db, -1), 0.00)
+        self.assertEqual(calc_contributions_remaining(None), 0.00)
 
-        self._set_pages(db, book.id, 10)
-        self.assertEqual(contributions_target(db, book.id), 100.00)
+        self._set_pages(book.id, 10)
 
         # Book has no contributions
-        self.assertEqual(calc_contributions_remaining(db, book), 100.00)
+        self.assertEqual(calc_contributions_remaining(book), 100.00)
 
         # Book has one contribution
         self.add(db.contribution, dict(
             book_id=book.id,
             amount=15.00,
         ))
-        self.assertEqual(calc_contributions_remaining(db, book), 85.00)
+        self.assertEqual(calc_contributions_remaining(book), 85.00)
 
         # Book has multiple contribution
         self.add(db.contribution, dict(
             book_id=book.id,
             amount=35.99,
         ))
-        self.assertEqual(calc_contributions_remaining(db, book), 49.01)
+        self.assertEqual(calc_contributions_remaining(book), 49.01)
 
     def test__calc_status(self):
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=-1,
             name='test__calc_status',
         ))
 
@@ -342,20 +345,15 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 db(db.book_page.book_id == book.id).delete()
                 db.commit()
             if t[1]:
-                book.update_record(status=BOOK_STATUS_DISABLED)
-                db.commit()
+                book.update(status=BOOK_STATUS_DISABLED)
             else:
-                book.update_record(status='')
-                db.commit()
+                book.update(status='')
             self.assertEqual(calc_status(book), t[2])
 
     def test__cbz_comment(self):
-
-        self.assertRaises(LookupError, cbz_comment, -1)
-
         cc_by_nd = CCLicence.by_code('CC BY-ND')
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
             name='My Book',
             number=2,
             of_number=4,
@@ -370,8 +368,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         auth_user = self.add(db.auth_user, dict(name='Test CBZ Comment'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
-        book.update_record(creator_id=creator.id)
-        db.commit()
+        book.update(creator_id=creator.id)
 
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
@@ -383,42 +380,30 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__cbz_link(self):
+        empty = '<span></span>'
+
         creator = self.add(Creator, dict(
             email='test__cbz_link@example.com',
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
             name='My Book',
             creator_id=creator.id,
             name_for_url='MyBook-02of98'
         ))
 
-        # As integer, book.id
-        link = cbz_link(book.id)
-        # Eg <a class="log_download_link"
-        #   data-record_id="8979" data-record_table="book"
-        #   href="/First_Last/My_Book_002.cbz">my_book_002.cbz</a>
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'mybook-02of98.cbz')
-        self.assertEqual(
-            anchor['href'],
-            '/FirstLast/MyBook-02of98.cbz'.format(i=book.id)
-        )
-
-        # As Row, book
         link = cbz_link(book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'mybook-02of98.cbz')
         self.assertEqual(
             anchor['href'],
-            '/FirstLast/MyBook-02of98.cbz'.format(i=book.id)
+            '/FirstLast/MyBook-02of98.cbz',
         )
 
-        # Invalid id
-        self.assertRaises(LookupError, cbz_link, -1)
+        # Invalid book
+        self.assertEqual(str(cbz_link(None)), empty)
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -449,14 +434,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__cbz_url(self):
-        self.assertRaises(LookupError, cbz_url, -1)
-
         creator = self.add(Creator, dict(
             email='test__cbz_url@example.com',
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
             name='My Book',
             creator_id=creator.id,
             name_for_url='MyBook-002',
@@ -464,10 +447,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(cbz_url(book), '/FirstLast/MyBook-002.cbz')
 
-        book.update_record(name_for_url='MyBook-03of09')
-        db.commit()
-        self.assertEqual(
-            cbz_url(book), '/FirstLast/MyBook-03of09.cbz')
+        book.update(name_for_url='MyBook-03of09')
+        self.assertEqual(cbz_url(book), '/FirstLast/MyBook-03of09.cbz')
 
     def test__cc_licence_data(self):
         str_to_date = lambda x: datetime.datetime.strptime(
@@ -476,13 +457,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # date.today overridden
         self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
 
-        self.assertRaises(LookupError, cc_licence_data, -1)
-
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=-1,
             name='test__cc_licence_data',
             creator_id=-1,
             book_type_id=BookType.by_name('one-shot').id,
             name_for_url='TestCcLicenceData',
+            cc_licence_place=None,
         ))
 
         self.add(db.book_page, dict(
@@ -497,8 +478,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         auth_user = self.add(db.auth_user, dict(name='Test CC Licence Data'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
-        book.update_record(creator_id=creator.id)
-        db.commit()
+        book.update(creator_id=creator.id)
         self.assertEqual(
             cc_licence_data(book),
             {
@@ -513,8 +493,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             }
         )
 
-        book.update_record(cc_licence_place='Canada')
-        db.commit()
+        book.update(cc_licence_place='Canada')
         self.assertEqual(
             cc_licence_data(book),
             {
@@ -542,38 +521,25 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__complete_link(self):
         empty = '<span></span>'
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=123,
             name='test__complete_link',
+            releasing=False,
         ))
 
         self.assertEqual(book.releasing, False)
 
-        # As integer, book_id
-        link = complete_link(book.id)
+        link = complete_link(book)
+        soup = BeautifulSoup(str(link))
         # <a href="/login/book_release/2876">
         #   <div class="completed_checkbox_wrapper">
         #     <input type="checkbox" value="off" />
         #   </div>
         # </a>
-        soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(
             anchor['href'],
-            '/login/book_release/{i}'.format(i=book.id)
-        )
-        div = anchor.find('div')
-        self.assertEqual(div['class'], 'completed_checkbox_wrapper')
-        checkbox_input = div.find('input')
-        self.assertEqual(checkbox_input['type'], 'checkbox')
-        self.assertEqual(checkbox_input['value'], 'off')
-
-        # As Row, book
-        link = complete_link(book)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(
-            anchor['href'],
-            '/login/book_release/{i}'.format(i=book.id)
+            '/login/book_release/123'
         )
         div = anchor.find('div')
         self.assertEqual(div['class'], 'completed_checkbox_wrapper')
@@ -582,7 +548,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(checkbox_input['value'], 'off')
 
         # Invalid id
-        link = complete_link(-1)
+        link = complete_link(None)
         self.assertEqual(str(link), empty)
 
         # Test components param
@@ -617,12 +583,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__contribute_link(self):
         empty = '<span></span>'
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=123,
             name='test__contribute_link',
         ))
 
-        # As integer, book_id
-        link = contribute_link(db, book.id)
+        link = contribute_link(book)
         # Eg    <a href="/contributions/modal?book_id=3713" target="_blank">
         #        Contribute
         #       </a>
@@ -631,32 +597,22 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(
             anchor['href'],
-            '/contributions/modal?book_id={i}'.format(i=book.id)
-        )
-
-        # As Row, book
-        link = contribute_link(db, book)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Contribute')
-        self.assertEqual(
-            anchor['href'],
-            '/contributions/modal?book_id={i}'.format(i=book.id)
+            '/contributions/modal?book_id=123'
         )
 
         # Invalid id
-        link = contribute_link(db, -1)
+        link = contribute_link(None)
         self.assertEqual(str(link), empty)
 
         # Test components param
         components = ['aaa', 'bbb']
-        link = contribute_link(db, book, components=components)
+        link = contribute_link(book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
-        link = contribute_link(db, book, components=components)
+        link = contribute_link(book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         img = anchor.img
@@ -668,7 +624,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _class='btn btn-large',
             _target='_blank',
         )
-        link = contribute_link(db, book, **attributes)
+        link = contribute_link(book, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Contribute')
@@ -679,18 +635,20 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__contributions_remaining_by_creator(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
-        creator = Creator({'id': -1})
+        creator = self.add(Creator, dict(
+            name_for_url='FirstLast',
+        ))
 
         # Creator has no books
         self.assertEqual(contributions_remaining_by_creator(creator), 0.00)
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__contributions_remaining_by_creator',
             creator_id=creator.id,
             status=BOOK_STATUS_ACTIVE,
         ))
-        self._set_pages(db, book.id, 10)
-        self.assertEqual(contributions_target(db, book.id), 100.00)
+        self._set_pages(book.id, 10)
+        self.assertEqual(contributions_target(book), 100.00)
 
         # Book has no contributions
         self.assertEqual(
@@ -719,34 +677,33 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
         # Creator has multiple books.
-        book_2 = self.add(db.book, dict(
+        book_2 = self.add(Book, dict(
             name='test__contributions_remaining_by_creator',
             creator_id=creator.id,
             status=BOOK_STATUS_DRAFT,
         ))
-        self._set_pages(db, book_2.id, 5)
-        self.assertEqual(contributions_target(db, book_2.id), 50.00)
+        self._set_pages(book_2.id, 5)
+        self.assertEqual(contributions_target(book_2), 50.00)
 
         # status = draft
         self.assertEqual(
             contributions_remaining_by_creator(creator),
             49.01
         )
-        book_2.update_record(status=BOOK_STATUS_ACTIVE)
-        db.commit()
+        book_2 = Book.from_updated(book_2, dict(status=BOOK_STATUS_ACTIVE))
         self.assertAlmostEqual(
             contributions_remaining_by_creator(creator),
             99.01
         )
 
     def test__contributions_target(self):
-        book = self.add(db.book, dict(name='test__contributions_target'))
+        book = self.add(Book, dict(name='test__contributions_target'))
 
         # Book has no pages
-        self.assertEqual(contributions_target(db, book), 0.00)
+        self.assertEqual(contributions_target(book), 0.00)
 
         # Invalid book
-        self.assertEqual(contributions_target(db, -1), 0.00)
+        self.assertEqual(contributions_target(None), 0.00)
 
         tests = [
             # (pages, expect)
@@ -760,21 +717,20 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ]
 
         for t in tests:
-            self._set_pages(db, book.id, t[0])
-            self.assertEqual(contributions_target(db, book), t[1])
+            self._set_pages(book.id, t[0])
+            self.assertEqual(contributions_target(book), t[1])
 
     def test__cover_image(self):
 
         placeholder = \
             '<div alt="" class="portrait_placeholder"></div>'
 
-        self.assertEqual(str(cover_image(db, 0)), placeholder)
+        self.assertEqual(str(cover_image(0)), placeholder)
 
         book = self.add(db.book, dict(name='test__cover_image'))
 
         # Book has no pages
-        for book_entity in [book, book.id]:
-            self.assertEqual(str(cover_image(db, book_entity)), placeholder)
+        self.assertEqual(str(cover_image(book)), placeholder)
 
         book_images = [
             'book_page.image.page_trees.png',
@@ -791,17 +747,16 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
 
-        for book_entity in [book, book.id]:
-            self.assertEqual(
-                str(cover_image(db, book_entity)),
-                '<img alt="" src="/images/download/book_page.image.page_trees.png?cache=1&amp;size=original" />'
-            )
+        self.assertEqual(
+            str(cover_image(book)),
+            '<img alt="" src="/images/download/book_page.image.page_trees.png?cache=1&amp;size=original" />'
+        )
 
     def test__default_contribute_amount(self):
-        book = self.add(db.book, dict(name='test__default_contribute_amount'))
+        book = self.add(Book, dict(name='test__default_contribute_amount'))
 
         # Book has no pages
-        self.assertEqual(default_contribute_amount(db, book), 1.00)
+        self.assertEqual(default_contribute_amount(book), 1.00)
 
         tests = [
             # (pages, expect)
@@ -823,8 +778,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             tests.append((1000, 20.00))
 
         for t in tests:
-            self._set_pages(db, book.id, t[0])
-            self.assertEqual(default_contribute_amount(db, book), t[1])
+            self._set_pages(book.id, t[0])
+            self.assertEqual(default_contribute_amount(book), t[1])
 
     def test__defaults(self):
         types_by_name = {}
@@ -850,8 +805,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             number=1,
             of_number=1
         )
-        self._book.update_record(**data)
-        db.commit()
+        self._book = Book.from_updated(self._book, data)
 
         got = defaults(self._book.name, self._creator)
         expect = {
@@ -869,8 +823,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             number=2,
             of_number=9
         )
-        self._book.update_record(**data)
-        db.commit()
+        self._book = Book.from_updated(self._book, data)
         got = defaults(self._book.name, self._creator)
         expect = {
             'name': self._book.name,
@@ -889,55 +842,43 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             number=1,
             of_number=1
         )
-        self._book.update_record(**data)
-        db.commit()
-
+        self._book = Book.from_updated(self._book, data)
         got = defaults(self._book.name, None)
         self.assertEqual(got, {})
 
     def test__download_link(self):
         empty = '<span></span>'
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=123,
             name='test__download_link',
             cbz='_test_cbz_',
             torrent='_test_torrent_',
         ))
 
-        # As integer, book_id
-        link = download_link(db, book.id)
+        link = download_link(book)
         # Eg  <a href="/downloads/modal/4547">Download</a>
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Download')
         self.assertEqual(
             anchor['href'],
-            '/downloads/modal/{i}'.format(i=book.id)
-        )
-
-        # As Row, book
-        link = download_link(db, book)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Download')
-        self.assertEqual(
-            anchor['href'],
-            '/downloads/modal/{i}'.format(i=book.id)
+            '/downloads/modal/123'
         )
 
         # Invalid id
-        link = download_link(db, -1)
+        link = download_link(None)
         self.assertEqual(str(link), empty)
 
         # Test components param
         components = ['aaa', 'bbb']
-        link = download_link(db, book, components=components)
+        link = download_link(book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
-        link = download_link(db, book, components=components)
+        link = download_link(book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         img = anchor.img
@@ -949,7 +890,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _class='btn btn-large',
             _target='_blank',
         )
-        link = download_link(db, book, **attributes)
+        link = download_link(book, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Download')
@@ -999,7 +940,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__formatted_name(self):
-        book = self.add(db.book, dict(name='My Book'))
+        book = Book(dict(name='My Book'))
 
         tests = [
             # (name, pub year, type, number, of_number, expect, expect pub yr),
@@ -1031,21 +972,15 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 number=t[3],
                 of_number=t[4],
             )
-            book.update_record(**data)
-            db.commit()
+            book.update(data)
             self.assertEqual(
-                formatted_name(db, book, include_publication_year=False),
+                formatted_name(book, include_publication_year=False),
                 t[5]
             )
-            self.assertEqual(
-                formatted_name(db, book.id, include_publication_year=False),
-                t[5]
-            )
-            self.assertEqual(formatted_name(db, book), t[6])
-            self.assertEqual(formatted_name(db, book.id), t[6])
+            self.assertEqual(formatted_name(book), t[6])
 
     def test__formatted_number(self):
-        book = self.add(db.book, dict(name='My Book'))
+        book = Book(dict(name='My Book'))
 
         tests = [
             # (type, number, of_number, expect),
@@ -1059,13 +994,14 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 number=t[1],
                 of_number=t[2],
             )
-            book.update_record(**data)
-            db.commit()
+            book.update(data)
             self.assertEqual(formatted_number(book), t[3])
-            self.assertEqual(formatted_number(book.id), t[3])
 
     def test__get_page(self):
-        book = self.add(db.book, dict(name='test__get_page'))
+        book = Book(dict(
+            id=-1,
+            name='test__get_page'
+        ))
 
         def do_test(page_no, expect):
             kwargs = {}
@@ -1118,9 +1054,11 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name_for_url='FirstLast',
             twitter='@firstlast',
         ))
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=-1,
             name='My Book',
             number=2,
+            of_number=1,
             book_type_id=BookType.by_name('ongoing').id,
             publication_year=1998,
             creator_id=creator.id,
@@ -1154,7 +1092,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(html_metadata(book), expect)
 
     def test__images(self):
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=-1,
             name='test_images'
         ))
 
@@ -1234,11 +1173,16 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(is_released(book), t[3])
 
     def test__magnet_link(self):
-        book = self.add(db.book, dict(
+        # Invalid book
+        self.assertEqual(str(magnet_link(None)), str(SPAN('')))
+
+        book = Book(dict(
+            id=123,
             name='My Book',
             number=2,
             book_type_id=BookType.by_name('ongoing').id,
             name_for_url='mybook-002',
+            cbz=None,
         ))
 
         # book.cbz not set
@@ -1248,8 +1192,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         with open(cbz_filename, 'w') as f:
             f.write('Fake cbz file used for testing.')
 
-        book.update_record(cbz=cbz_filename)
-        db.commit()
+        book.update(cbz=cbz_filename)
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
@@ -1267,8 +1210,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 }
             )
 
-        # As integer, book.id
-        link = magnet_link(book.id)
+        link = magnet_link(book)
         soup = BeautifulSoup(str(link))
         # Eg <a class="log_download_link"
         #   data-record_id="8999" data-record_table="book"
@@ -1279,20 +1221,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         test_href(anchor['href'])
         self.assertEqual(anchor['class'], 'log_download_link')
         self.assertEqual(anchor['data-record_table'], 'book')
-        self.assertEqual(anchor['data-record_id'], str(book.id))
-
-        # As Row, book
-        link = magnet_link(book)
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'mybook-002.magnet')
-        test_href(anchor['href'])
-        self.assertEqual(anchor['class'], 'log_download_link')
-        self.assertEqual(anchor['data-record_table'], 'book')
-        self.assertEqual(anchor['data-record_id'], str(book.id))
-
-        # Invalid id
-        self.assertRaises(LookupError, magnet_link, -1)
+        self.assertEqual(anchor['data-record_id'], '123')
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -1323,8 +1252,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__magnet_uri(self):
-        book = self.add(db.book, dict(
-            name='Test Magnet URI'
+        book = Book(dict(
+            id=123,
+            name='Test Magnet URI',
+            cbz=None,
         ))
 
         # No book
@@ -1337,8 +1268,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         with open(cbz_filename, 'w') as f:
             f.write('Fake cbz file used for testing.')
 
-        book.update_record(cbz=cbz_filename)
-        db.commit()
+        book.update(cbz=cbz_filename)
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
@@ -1405,47 +1335,51 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__next_book_in_series(self):
-        creator_one = -1
-        creator_two = -2
+        creator_one = self.add(Creator, dict(
+            email='next_book_1@example.com',
+        ))
+        creator_two = self.add(Creator, dict(
+            email='next_book_2@example.com',
+        ))
 
-        one_shot_1 = self.add(db.book, dict(
+        one_shot_1 = self.add(Book, dict(
             name='one_shot',
-            creator_id=creator_one,
+            creator_id=creator_one.id,
             number=1,
             book_type_id=BookType.by_name('one-shot').id,
         ))
 
-        one_shot_2 = self.add(db.book, dict(
+        one_shot_2 = self.add(Book, dict(
             name='one_shot',
-            creator_id=creator_one,
+            creator_id=creator_one.id,
             number=2,
             book_type_id=BookType.by_name('one-shot').id,
         ))
 
-        ongoing_1 = self.add(db.book, dict(
+        ongoing_1 = self.add(Book, dict(
             name='ongoing',
-            creator_id=creator_one,
+            creator_id=creator_one.id,
             number=1,
             book_type_id=BookType.by_name('ongoing').id,
         ))
 
-        ongoing_2 = self.add(db.book, dict(
+        ongoing_2 = self.add(Book, dict(
             name='ongoing',
-            creator_id=creator_one,
+            creator_id=creator_one.id,
             number=2,
             book_type_id=BookType.by_name('ongoing').id,
         ))
 
-        mini_series_1 = self.add(db.book, dict(
+        mini_series_1 = self.add(Book, dict(
             name='mini_series',
-            creator_id=creator_one,
+            creator_id=creator_one.id,
             number=1,
             book_type_id=BookType.by_name('mini-series').id,
         ))
 
-        mini_series_2 = self.add(db.book, dict(
+        mini_series_2 = self.add(Book, dict(
             name='mini_series',
-            creator_id=creator_one,
+            creator_id=creator_one.id,
             number=2,
             book_type_id=BookType.by_name('mini-series').id,
         ))
@@ -1464,27 +1398,27 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(next_book_in_series(t[0]), t[1])
 
         # Test: book from different creator is ignored
-        self.add(db.book, dict(
+        self.add(Book, dict(
             name='mini_series',
-            creator_id=creator_two,
+            creator_id=creator_two.id,
             number=3,
             book_type_id=BookType.by_name('mini-series').id,
         ))
         self.assertEqual(next_book_in_series(mini_series_2), None)
 
         # Test: book from different name is ignored
-        self.add(db.book, dict(
+        self.add(Book, dict(
             name='mini_series_ZZZ',
-            creator_id=creator_one,
+            creator_id=creator_one.id,
             number=3,
             book_type_id=BookType.by_name('mini-series').id,
         ))
         self.assertEqual(next_book_in_series(mini_series_2), None)
 
         # Test: skipped numbers are okay
-        mini_series_3 = self.add(db.book, dict(
+        mini_series_3 = self.add(Book, dict(
             name='mini_series',
-            creator_id=creator_one,
+            creator_id=creator_one.id,
             number=999,
             book_type_id=BookType.by_name('mini-series').id,
         ))
@@ -1552,7 +1486,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__read_link',
             publication_year=1999,
             creator_id=creator.id,
@@ -1566,20 +1500,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             page_no=1,
         ))
 
-        # As integer, book_id
-        link = read_link(db, book.id)
-        # Eg <a data-w2p_disable_with="default"
-        #       href="/zcomx/books/slider/57">Read</a>
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'Read')
-        self.assertEqual(
-            anchor['href'],
-            '/FirstLast/TestReadLink/001'
-        )
-
-        # As Row, book
-        link = read_link(db, book)
+        link = read_link(book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')
@@ -1589,12 +1510,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
         # Invalid id
-        link = read_link(db, -1)
+        link = read_link(None)
         self.assertEqual(str(link), empty)
 
         # Test reader variation
         book.reader = 'awesome_reader'
-        link = read_link(db, book)
+        link = read_link(book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')
@@ -1605,13 +1526,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # Test components param
         components = ['aaa', 'bbb']
-        link = read_link(db, book, components=components)
+        link = read_link(book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
-        link = read_link(db, book, components=components)
+        link = read_link(book, components=components)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         img = anchor.img
@@ -1624,7 +1545,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _class='btn btn-large',
             _target='_blank',
         )
-        link = read_link(db, book, **attributes)
+        link = read_link(book, **attributes)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')
@@ -1633,14 +1554,15 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__rss_url(self):
-        self.assertRaises(LookupError, rss_url, -1)
+        self.assertEqual(rss_url(None), None)
 
         creator = self.add(Creator, dict(
             email='test__torrent_url@example.com',
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=123,
             name='My Book',
             creator_id=creator.id,
             name_for_url='MyBook-002',
@@ -1648,24 +1570,20 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(rss_url(book), '/FirstLast/MyBook-002.rss')
 
-        book.update_record(name_for_url='MyBook-03of09')
-        db.commit()
+        book.update(name_for_url='MyBook-03of09')
         self.assertEqual(
             rss_url(book), '/FirstLast/MyBook-03of09.rss')
 
     def test__set_status(self):
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__set_status',
         ))
 
-        self.assertRaises(LookupError, set_status, -1, BOOK_STATUS_ACTIVE)
         self.assertRaises(ValueError, set_status, book, '_fake_')
 
         for s in BOOK_STATUSES:
-            set_status(book, s)
-            query = (db.book.id == book.id)
-            book_1 = db(query).select(limitby=(0, 1)).first()   # Reload
-            self.assertEqual(book_1.status, s)
+            book = set_status(book, s)
+            self.assertEqual(book.status, s)
 
     def test__short_page_img_url(self):
         book = self.add(db.book, dict())
@@ -1720,7 +1638,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(short_page_url(book_page), t[3])
 
     def test__short_url(self):
-        book = self.add(db.book, dict())
+        book = Book(dict())
         tests = [
             # (creator_id, book name_for_url, expect)
             (None, None, None),
@@ -1729,8 +1647,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             (101, 'MyBook-01of99', 'http://101.zco.mx/MyBook-01of99'),
         ]
         for t in tests:
-            book.update_record(creator_id=t[0], name_for_url=t[1])
-            db.commit()
+            book.update(creator_id=t[0], name_for_url=t[1])
             self.assertEqual(short_url(book), t[2])
 
     def test__social_media_data(self):
@@ -1741,7 +1658,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=-1,
             name='My Book',
             number=2,
             of_number=4,
@@ -1784,15 +1702,17 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(social_media_data(book), expect)
 
     def test__torrent_file_name(self):
-        self.assertRaises(LookupError, torrent_file_name, -1)
+        self.assertEqual(torrent_file_name(None), None)
 
-        creator = self.add(Creator, dict(
+        creator = Creator(dict(
+            id=123,
             email='test__torrent_file_name@example.com',
         ))
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
             name='My Book',
             number=2,
+            of_number=9,
             creator_id=creator.id,
             publication_year=1999,
             book_type_id=BookType.by_name('ongoing').id,
@@ -1800,7 +1720,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(
             torrent_file_name(book),
-            'My Book 002 (1999) ({i}.zco.mx).cbz.torrent'.format(i=creator.id)
+            'My Book 002 (1999) (123.zco.mx).cbz.torrent'
         )
 
         data = dict(
@@ -1808,51 +1728,38 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             of_number=4,
             book_type_id=BookType.by_name('mini-series').id,
         )
-        book.update_record(**data)
-        db.commit()
+        book.update(**data)
         self.assertEqual(
             torrent_file_name(book),
-            'My Book 02 (of 04) (1999) ({i}.zco.mx).cbz.torrent'.format(
-                i=creator.id)
+            'My Book 02 (of 04) (1999) (123.zco.mx).cbz.torrent'
         )
 
     def test__torrent_link(self):
+        self.assertEqual(str(torrent_link(None)), str(SPAN('')))
+
         creator = self.add(Creator, dict(
             email='test__torrent_link@example.com',
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
             name='My Book',
             creator_id=creator.id,
             name_for_url='MyBook-02of98'
         ))
 
-        # As integer, book.id
-        link = torrent_link(book.id)
-        # Eg <a class="log_download_link"
-        #   data-record_id="8979" data-record_table="book"
-        #   href="/First_Last/My_Book_002.torrent">my_book_002.torrent</a>
-        soup = BeautifulSoup(str(link))
-        anchor = soup.find('a')
-        self.assertEqual(anchor.string, 'mybook-02of98.torrent')
-        self.assertEqual(
-            anchor['href'],
-            '/FirstLast/MyBook-02of98.torrent'.format(i=book.id)
-        )
-
         # As Row, book
         link = torrent_link(book)
         soup = BeautifulSoup(str(link))
+        # Eg <a class="log_download_link"
+        #   data-record_id="8979" data-record_table="book"
+        #   href="/First_Last/My_Book_002.torrent">my_book_002.torrent</a>
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'mybook-02of98.torrent')
         self.assertEqual(
             anchor['href'],
-            '/FirstLast/MyBook-02of98.torrent'.format(i=book.id)
+            '/FirstLast/MyBook-02of98.torrent'
         )
-
-        # Invalid id
-        self.assertRaises(LookupError, torrent_link, -1)
 
         # Test components param
         components = ['aaa', 'bbb']
@@ -1883,14 +1790,14 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__torrent_url(self):
-        self.assertRaises(LookupError, torrent_url, -1)
+        self.assertEqual(torrent_url(None), None)
 
         creator = self.add(Creator, dict(
             email='test__torrent_url@example.com',
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
             name='My Book',
             creator_id=creator.id,
             name_for_url='MyBook-002',
@@ -1898,8 +1805,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(torrent_url(book), '/FirstLast/MyBook-002.torrent')
 
-        book.update_record(name_for_url='MyBook-03of09')
-        db.commit()
+        book.update(name_for_url='MyBook-03of09')
         self.assertEqual(
             torrent_url(book), '/FirstLast/MyBook-03of09.torrent')
 
@@ -1910,65 +1816,63 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             email='test__update_contributions_remaining@eg.com'
         ))
 
-        book_contributions = lambda b: calc_contributions_remaining(db, b)
         creator_contributions = \
             lambda c: Creator.from_id(c.id).contributions_remaining
 
         # Creator has no books
         self.assertEqual(creator_contributions(creator), 0)
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__contributions_remaining_by_creator',
             creator_id=creator.id,
             status=BOOK_STATUS_ACTIVE,
         ))
-        self._set_pages(db, book.id, 10)
-        update_contributions_remaining(db, book)
+        self._set_pages(book.id, 10)
+        update_contributions_remaining(book)
         self.assertEqual(creator_contributions(creator), 100.00)
-        self.assertEqual(book_contributions(book), 100.00)
+        self.assertEqual(calc_contributions_remaining(book), 100.00)
 
         # Book has one contribution
         self.add(db.contribution, dict(
             book_id=book.id,
             amount=15.00,
         ))
-        update_contributions_remaining(db, book)
+        update_contributions_remaining(book)
         self.assertEqual(creator_contributions(creator), 85.00)
-        self.assertEqual(book_contributions(book), 85.00)
+        self.assertEqual(calc_contributions_remaining(book), 85.00)
 
         # Book has multiple contribution
         self.add(db.contribution, dict(
             book_id=book.id,
             amount=35.99,
         ))
-        update_contributions_remaining(db, book)
+        update_contributions_remaining(book)
         self.assertEqual(creator_contributions(creator), 49.01)
-        self.assertEqual(book_contributions(book), 49.01)
+        self.assertEqual(calc_contributions_remaining(book), 49.01)
 
         # Creator has multiple books.
-        book_2 = self.add(db.book, dict(
+        book_2 = self.add(Book, dict(
             name='test__contributions_remaining_by_creator',
             creator_id=creator.id,
             status=BOOK_STATUS_ACTIVE,
         ))
-        self._set_pages(db, book_2.id, 5)
-        update_contributions_remaining(db, book_2)
+        self._set_pages(book_2.id, 5)
+        update_contributions_remaining(book_2)
         self.assertAlmostEqual(creator_contributions(creator), 99.01)
-        self.assertEqual(book_contributions(book), 49.01)
-        self.assertEqual(book_contributions(book_2), 50.00)
+        self.assertEqual(calc_contributions_remaining(book), 49.01)
+        self.assertEqual(calc_contributions_remaining(book_2), 50.00)
 
         # Creator contributions_remaining should be updated by any of it's
         # books.
         data = dict(contributions_remaining=0)
         creator = Creator.from_updated(creator, data)
         self.assertEqual(creator_contributions(creator), 0)
-        update_contributions_remaining(db, book)
+        update_contributions_remaining(book)
         self.assertAlmostEqual(creator_contributions(creator), 99.01)
 
     def test__update_rating(self):
-        book_record = self.add(db.book, dict(name='test__update_rating'))
-        book = Book.from_id(book_record.id)
-        self._set_pages(db, book.id, 10)
+        book = self.add(Book, dict(name='test__update_rating'))
+        self._set_pages(book.id, 10)
 
         def reset(book):
             data = dict(
@@ -1978,15 +1882,14 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 views=0,
                 rating=0,
             )
-            db(db.book.id == book.id).update(**data)
-            db.commit()
+            book = Book.from_updated(book, data)
 
         def zero(storage):
             for k in storage.keys():
                 storage[k] = 0
 
         def do_test(book, rating, expect):
-            update_rating(db, book, rating=rating)
+            update_rating(book, rating=rating)
             query = (db.book.id == book.id)
             r = db(query).select(
                 db.book.contributions,
@@ -2078,22 +1981,23 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertRaises(
             SyntaxError,
             update_rating,
-            db,
             book,
             rating='_invalid_'
         )
 
     def test__url(self):
+        self.assertEqual(url(None), None)
+
         creator = self.add(Creator, dict(
             email='test__url@example.com',
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(name=''))
+        # Store book so effect of special chars in db is tested.
+        book = self.add(Book, dict(name='TestUrl'))
 
         tests = [
             # (name, name_for_url, expect),
-            (None, None, None),
             ('My Book', 'MyBook', '/FirstLast/MyBook'),
             ('My Book', 'MyBook-012', '/FirstLast/MyBook-012'),
             (
@@ -2114,12 +2018,11 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 name_for_url=t[1],
                 creator_id=creator.id,
             )
-            book.update_record(**data)
-            db.commit()
+            book = Book.from_updated(book, data)
             self.assertEqual(url(book), t[2])
 
 
-def set_pages(obj, db, book_id, num_of_pages):
+def set_pages(obj, book_id, num_of_pages):
     """Create pages for a book."""
     # protected-access (W0212): *Access to a protected member
     # pylint: disable=W0212

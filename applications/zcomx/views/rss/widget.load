@@ -26,7 +26,7 @@ Follow {{=form.custom.widget.creator_id}}
     {{for book in books:}}
     <li>
         <span class="table_cell">
-            {{=book_formatted_name(db, book, include_publication_year=False)}}
+            {{=book_formatted_name(book, include_publication_year=False)}}
         </span>
         <a href="{{=book_rss_url(book, extension=False)}}" target="_blank">
             {{=book_rss_url(book, host=True, extension=False)}}

@@ -4,7 +4,9 @@ import cgi
 import logging
 import traceback
 from gluon.storage import Storage
-from applications.zcomx.modules.books import cbz_url
+from applications.zcomx.modules.books import \
+    Book, \
+    cbz_url
 from applications.zcomx.modules.creators import \
     Creator, \
     url as creator_url
@@ -89,7 +91,10 @@ def route():
 
         urls.suggestions = []
 
-        book = db(db.book.cbz != None).select(orderby='<random>').first()
+        query = (db.book.cbz != None)
+        book_row = db(query).select(
+            db.book.id, orderby='<random>', limitby=(0, 1)).first()
+        book = Book.from_id(book_row.id)
         if book:
             urls.suggestions.append({
                 'label': 'CBZ file:',

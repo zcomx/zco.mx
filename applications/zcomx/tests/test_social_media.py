@@ -9,6 +9,7 @@ Test suite for zcomx/modules/social_media.py
 import time
 import unittest
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.social_media import \
     FacebookPoster, \
@@ -46,7 +47,7 @@ class BaseTestCase(LocalTestCase):
             email='test_social_media@example.com',
         ))
 
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name='Test Social Media',
             creator_id=self._creator.id,
             book_type_id=BookType.by_name('one-shot').id,
@@ -75,11 +76,7 @@ class TestSocialMedia(BaseTestCase):
             self.assertEqual(media.book, self._book)
             self.assertEqual(media.creator, self._creator)
 
-        # entities are Row instances
         test_it(SocialMedia(self._book, creator=self._creator))
-        # entities are integers
-        test_it(SocialMedia(self._book.id, creator=self._creator))
-        # creator is None
         test_it(SocialMedia(self._book))
 
     def test_class_factory(self):

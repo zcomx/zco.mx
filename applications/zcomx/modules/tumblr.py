@@ -12,6 +12,7 @@ from applications.zcomx.modules.book_pages import \
     AbridgedBookPageNumbers, \
     BookPage
 from applications.zcomx.modules.books import \
+    Book, \
     formatted_name as book_formatted_name, \
     page_url, \
     url as book_url
@@ -19,9 +20,7 @@ from applications.zcomx.modules.creators import \
     Creator, \
     formatted_name as creator_formatted_name, \
     short_url as creator_short_url
-from applications.zcomx.modules.utils import \
-    entity_to_row, \
-    joined_list
+from applications.zcomx.modules.utils import joined_list
 from applications.zcomx.modules.zco import SITE_NAME
 
 
@@ -243,7 +242,7 @@ class OngoingBookListing(object):
         """Initializer
 
         Args:
-            book: Row instance representing book
+            book: Book instance
             book_pages: list of BookPage instances
             creator: Creator instance
         """
@@ -259,11 +258,10 @@ class OngoingBookListing(object):
         Returns:
             list of components (strings or gluon.html.XmlComponent subclasses)
         """
-        db = current.app.db
         parts = [
             I(A(
                 book_formatted_name(
-                    db, self.book, include_publication_year=False),
+                    self.book, include_publication_year=False),
                 _href=book_url(self.book, extension=False, host=SITE_NAME),
             )),
             ' by ',
@@ -286,8 +284,7 @@ class OngoingBookListing(object):
         Returns:
             OngoingBookListing instance
         """
-        db = current.app.db
-        book = entity_to_row(db.book, activity_log.book_id)
+        book = Book.from_id(activity_log.book_id)
         book_pages = [BookPage.from_id(x) for x in activity_log.book_page_ids]
         creator = Creator.from_id(book.creator_id)
         return cls(book, book_pages, creator=creator)

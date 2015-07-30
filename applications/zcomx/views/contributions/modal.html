@@ -17,7 +17,7 @@ encourages cartoonists to produce more work.
     {{if book:}}
     <div class="row" id="options_section">
         <label class="col-sm-4">book</label>
-        <div class="col-sm-8">{{=formatted_book_name(db, book, include_publication_year=(book.release_date != None))}}</div>
+        <div class="col-sm-8">{{=formatted_book_name(book, include_publication_year=(book.release_date != None))}}</div>
     </div>
     {{pass}}
     </div>

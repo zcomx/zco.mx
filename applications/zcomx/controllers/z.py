@@ -6,6 +6,7 @@ import logging
 import os
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
+    Book, \
     page_url, \
     url as book_url
 from applications.zcomx.modules.creators import \
@@ -205,8 +206,14 @@ def top():
     def book_link(book_id, text_only=False):
         """Return a book link."""
         label = 'book'
-        url = book_url(book_id, extension=False) \
-            if book_id and not text_only else None
+        url = None
+        if not text_only:
+            try:
+                book = Book.from_id(book_id)
+            except LookupError:
+                url = None
+            else:
+                url = book_url(book, extension=False)
         return li_link(label, url)
 
     def creator_link(creator_id, text_only=False):

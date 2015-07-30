@@ -12,12 +12,13 @@ import logging
 import os
 import shutil
 from optparse import OptionParser
+from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.indicias import \
     BookIndiciaPagePng, \
     CreatorIndiciaPagePng, \
     IndiciaPage, \
     IndiciaSh
-from applications.zcomx.modules.utils import entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -179,11 +180,13 @@ def main():
         name = args[0]
 
     table = db.creator if options.creator else db.book
+    record_class = Creator if options.creator else Book
 
     if record_id is not None:
         if not options.creator or record_id != 0:
-            record = entity_to_row(table, record_id)
-            if not record:
+            try:
+                record = record_class.from_id(record_id)
+            except LookupError:
                 print 'No {t} found, id: {i}'.format(t=str(table), i=record_id)
                 quit(1)
     else:
@@ -205,7 +208,7 @@ def main():
             for r in rows:
                 print 'id: {i}'.format(i=r.id)
             quit(1)
-        record = rows[0]
+        record = record_class.from_id(rows[0].id)
 
     if options.creator and record_id == 0:
         create_generic_png(options)

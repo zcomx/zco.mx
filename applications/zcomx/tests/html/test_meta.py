@@ -9,6 +9,7 @@ Test suite for zcomx/modules/html/meta.py
 import copy
 import unittest
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.html.meta import \
     BaseMetaPreparer, \
@@ -373,11 +374,16 @@ class TestFunctions(LocalTestCase):
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(
+        book = Book(dict(
+            id=-1,
             name='My Book',
+            number=1,
+            of_number=1,
+            description=None,
             publication_year=1997,
             creator_id=creator.id,
             book_type_id=BookType.by_name('one-shot'),
+            name_for_url='MyBook',
         ))
 
         expect_book = {
@@ -387,7 +393,7 @@ class TestFunctions(LocalTestCase):
             'image_url': None,
             'name': 'My Book (1997)',
             'type': 'book',
-            'url': None,
+            'url': 'http://127.0.0.1:8000/FirstLast/MyBook',
         }
 
         expect_creator = {

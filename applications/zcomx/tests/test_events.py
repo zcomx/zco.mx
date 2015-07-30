@@ -99,7 +99,7 @@ class TestContributionEvent(EventTestCase):
 
     def test_log(self):
         self._set_pages(db, self._book.id, 10)
-        update_rating(db, self._book)
+        update_rating(self._book)
         event = ContributionEvent(self._book, self._user.id)
 
         # no value
@@ -122,7 +122,7 @@ class TestContributionEvent(EventTestCase):
 
     def test_post_log(self):
         self._set_pages(db, self._book.id, 10)
-        update_rating(db, self._book)
+        update_rating(self._book)
         book = Book.from_id(self._book.id)      # Re-load
         self.assertAlmostEqual(book.contributions, 0.00)
         self.assertAlmostEqual(book.contributions_remaining, 100.00)
@@ -144,7 +144,7 @@ class TestContributionEvent(EventTestCase):
 class TestDownloadEvent(EventTestCase):
 
     def test_log(self):
-        update_rating(db, self._book)
+        update_rating(self._book)
         book = Book.from_id(self._book.id)      # Re-load
 
         download_click = self.add(db.download_click, dict(
@@ -179,7 +179,7 @@ class TestDownloadEvent(EventTestCase):
 class TestRatingEvent(EventTestCase):
 
     def test_log(self):
-        update_rating(db, self._book)
+        update_rating(self._book)
         event = RatingEvent(self._book, self._user.id)
 
         # no value
@@ -201,7 +201,7 @@ class TestRatingEvent(EventTestCase):
         self._objects.append(rating)
 
     def test_post_log(self):
-        update_rating(db, self._book)
+        update_rating(self._book)
         book = Book.from_id(self._book.id)       # Re-load
         self.assertEqual(book.rating, 0)
 
@@ -221,7 +221,7 @@ class TestRatingEvent(EventTestCase):
 class TestViewEvent(EventTestCase):
 
     def test_log(self):
-        update_rating(db, self._book)
+        update_rating(self._book)
         event = ViewEvent(self._book, self._user.id)
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
@@ -238,7 +238,7 @@ class TestViewEvent(EventTestCase):
         self._objects.append(view)
 
     def test_post_log(self):
-        update_rating(db, self._book)
+        update_rating(self._book)
         book = Book.from_id(self._book.id)       # Re-load
         self.assertEqual(book.views, 0)
 
@@ -259,7 +259,7 @@ class TestZcoContributionEvent(EventTestCase):
 
     def test_log(self):
         self._set_pages(db, self._book.id, 10)
-        update_rating(db, self._book)
+        update_rating(self._book)
         event = ZcoContributionEvent(self._user.id)
 
         # no value

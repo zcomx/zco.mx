@@ -15,6 +15,7 @@ from applications.zcomx.modules.book_pages import \
     BookPage, \
     AbridgedBookPageNumbers
 from applications.zcomx.modules.books import \
+    Book, \
     formatted_name as book_formatted_name, \
     get_page, \
     page_url
@@ -23,7 +24,6 @@ from applications.zcomx.modules.creators import \
     formatted_name as creator_formatted_name, \
     url as creator_url
 from applications.zcomx.modules.images import ImageDescriptor
-from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
     SITE_NAME, \
     Zco
@@ -38,13 +38,13 @@ class BaseRSSChannel(object):
 
     max_entry_age_in_days = 7
 
-    def __init__(self, entity=None):
+    def __init__(self, record=None):
         """Initializer
 
         Args:
-            entity: Row instance or id representing record
+            record: Record sublcass instance
         """
-        self.entity = entity
+        self.record = record
 
     def description(self):
         """Return the description for the channel.
@@ -156,24 +156,19 @@ class BookRSSChannel(BaseRSSChannel):
 
     max_entry_age_in_days = 30
 
-    def __init__(self, entity=None):
+    def __init__(self, record=None):
         """Initializer
 
         Args:
-            entity: Row instance or id representing record
+            record: Book instance
         """
-        super(BookRSSChannel, self).__init__(entity=entity)
-        db = current.app.db
-        self.book = entity_to_row(db.book, self.entity)
-        if not self.book:
-            raise LookupError('Book not found: {e}'.format(e=self.entity))
+        super(BookRSSChannel, self).__init__(record=record)
+        self.book = record
         self.creator = Creator.from_id(self.book.creator_id)
 
     def description(self):
-        db = current.app.db
         return 'Recent activity of {b} by {c} on {s}.'.format(
-            b=book_formatted_name(
-                db, self.book, include_publication_year=False),
+            b=book_formatted_name(self.book, include_publication_year=False),
             c=creator_formatted_name(self.creator),
             s=SITE_NAME
         )
@@ -191,11 +186,9 @@ class BookRSSChannel(BaseRSSChannel):
         return page_url(first_page, extension=False, host=True)
 
     def title(self):
-        db = current.app.db
         return '{s}: {b} by {c}'.format(
             s=SITE_NAME,
-            b=book_formatted_name(
-                db, self.book, include_publication_year=False),
+            b=book_formatted_name(self.book, include_publication_year=False),
             c=creator_formatted_name(self.creator),
         )
 
@@ -205,14 +198,14 @@ class CartoonistRSSChannel(BaseRSSChannel):
 
     max_entry_age_in_days = 30
 
-    def __init__(self, entity=None):
+    def __init__(self, record=None):
         """Initializer
 
         Args:
-            entity: Creator instance
+            record: Creator instance
         """
-        super(CartoonistRSSChannel, self).__init__(entity=entity)
-        self.creator = Creator.from_id(self.entity.id)
+        super(CartoonistRSSChannel, self).__init__(record=record)
+        self.creator = record
 
     def description(self):
         return 'Recent activity of {c} on {s}.'.format(
@@ -251,17 +244,13 @@ class BaseRSSEntry(object):
         self.book_page_ids = book_page_ids
         self.time_stamp = time_stamp
         self.activity_log_id = activity_log_id
-        db = current.app.db
         if not book_page_ids:
             raise SyntaxError('No book page ids provided')
         self.first_page = self.first_of_pages()
         if not self.first_page:
             raise LookupError('First page not found within: {e}'.format(
                 e=self.book_page_ids))
-        self.book = entity_to_row(db.book, self.first_page.book_id)
-        if not self.book:
-            raise LookupError('Book not found: {e}'.format(
-                e=self.book_entity))
+        self.book = Book.from_id(self.first_page.book_id)
         self.creator = Creator.from_id(self.book.creator_id)
 
     def created_on(self):
@@ -278,10 +267,8 @@ class BaseRSSEntry(object):
         Returns:
             string, entry description.
         """
-        db = current.app.db
         return self.description_fmt().format(
-            b=book_formatted_name(
-                db, self.book, include_publication_year=False),
+            b=book_formatted_name(self.book, include_publication_year=False),
             c=creator_formatted_name(self.creator),
             d=datetime.datetime.strftime(self.time_stamp, '%b %d, %Y')
         )
@@ -384,11 +371,9 @@ class BaseRSSEntry(object):
         Returns:
             string, entry title.
         """
-        db = current.app.db
         pages = [BookPage.from_id(x) for x in self.book_page_ids]
         return "'{b}' {p} by {c}".format(
-            b=book_formatted_name(
-                db, self.book, include_publication_year=False),
+            b=book_formatted_name(self.book, include_publication_year=False),
             p=' '.join(AbridgedBookPageNumbers(pages).numbers()),
             c=creator_formatted_name(self.creator),
         )
@@ -475,7 +460,7 @@ def channel_from_type(channel_type, record_id=None):
         return CartoonistRSSChannel(Creator.from_id(record_id))
 
     if channel_type == 'book':
-        return BookRSSChannel(record_id)
+        return BookRSSChannel(Book.from_id(record_id))
 
     raise SyntaxError('Invalid rss feed channel: {c}'.format(
         c=channel_type))

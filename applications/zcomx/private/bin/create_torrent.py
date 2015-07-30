@@ -10,12 +10,12 @@ Script to create a torrent file for a book, creator or all.
 # pylint: disable=W0404
 import logging
 from optparse import OptionParser
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.torrents import \
     AllTorrentCreator, \
     BookTorrentCreator, \
     CreatorTorrentCreator
-from applications.zcomx.modules.utils import entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -29,10 +29,7 @@ def all_torrent():
 
 def book_torrent(book_id):
     """Create a torrent for a book."""
-    book = entity_to_row(db.book, book_id)
-    if not book:
-        raise LookupError('Book not found, id: {i}'.format(i=book_id))
-
+    book = Book.from_id(book_id)
     result = BookTorrentCreator(book).archive()
     LOG.debug('Created: %s', result)
 

@@ -4,8 +4,8 @@ Controllers related to downloads.
 """
 import logging
 from gluon.contrib.simplejson import dumps
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.events import log_download_click
-from applications.zcomx.modules.utils import entity_to_row
 
 LOG = logging.getLogger('app')
 
@@ -59,12 +59,16 @@ def modal():
     do_error = lambda msg: redirect(
         URL(c='z', f='modal_error', vars={'message': msg}))
 
-    book_record = None
+    book = None
     if request.args(0):
-        book_record = entity_to_row(db.book, request.args(0))
-    if not book_record:
+        try:
+            book = Book.from_id(request.args(0))
+        except LookupError:
+            do_error('Invalid data provided')
+
+    if not book:
         do_error('Invalid data provided')
-    if not book_record.cbz:
+    if not book.cbz:
         do_error('This book is not available for download.')
 
-    return dict(book=book_record)
+    return dict(book=book)

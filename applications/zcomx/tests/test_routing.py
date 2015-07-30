@@ -17,13 +17,14 @@ from gluon.storage import \
     Storage
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.books import book_name
+from applications.zcomx.modules.books import \
+    Book, \
+    book_name
 from applications.zcomx.modules.creators import \
     Creator, \
     creator_name
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
@@ -81,7 +82,7 @@ class TestRouter(LocalTestCase):
             limitby=(0, 1),
         ).first()
         first_creator = Creator.from_id(first['creator'].id)
-        first_creator_book = entity_to_row(db.book, first['book'].id)
+        first_creator_book = Book.from_id(first['book'].id)
         first_creator_book_page = BookPage.from_id(first['book_page'].id)
 
         first_creator_name = creator_name(first_creator, use='url')
@@ -121,7 +122,7 @@ class TestRouter(LocalTestCase):
             name_for_url='JohnHancock',
         ))
 
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name='My Book',
             publication_year=1999,
             book_type_id=BookType.by_name('one-shot').id,
@@ -133,7 +134,7 @@ class TestRouter(LocalTestCase):
             status=BOOK_STATUS_ACTIVE,
         ))
 
-        self._book_2 = self.add(db.book, dict(
+        self._book_2 = self.add(Book, dict(
             name='My Second Book',
             publication_year=2002,
             book_type_id=BookType.by_name('one-shot').id,
@@ -225,18 +226,18 @@ class TestRouter(LocalTestCase):
 
     def test__get_book(self):
         router = Router(db, self._request, auth)
-        self.assertTrue(router.book_record is None)
+        self.assertTrue(router.book is None)
 
         # request.vars.book not set
         got = router.get_book()
         self.assertEqual(got, None)
-        self.assertTrue(router.book_record is None)
+        self.assertTrue(router.book is None)
 
         router.request.vars.creator = 'FirstLast'
         router.request.vars.book = '_Fake Book_'
         got = router.get_book()
         self.assertEqual(got, None)
-        self.assertTrue(router.book_record is None)
+        self.assertTrue(router.book is None)
 
         # Test case variations
         tests = [
@@ -246,37 +247,37 @@ class TestRouter(LocalTestCase):
         ]
         for t in tests:
             router.request.vars.book = t
-            router.book_record = None       # clear cache
+            router.book = None       # clear cache
             got = router.get_book()
             self.assertEqual(got.name, 'My Book')
             self.assertEqual(got.creator_id, self._creator.id)
-            self.assertTrue(router.book_record is not None)
+            self.assertTrue(router.book is not None)
 
         # Subsequent calls get value from cache
         router.request.vars.book = '_Fake Book_'
         got = router.get_book()
         self.assertEqual(got.name, 'My Book')
         self.assertEqual(got.creator_id, self._creator.id)
-        self.assertTrue(router.book_record is not None)
+        self.assertTrue(router.book is not None)
 
     def test__get_creator(self):
         router = Router(db, self._request, auth)
-        self.assertTrue(router.creator_record is None)
+        self.assertTrue(router.creator is None)
 
         # request.vars.creator not set
         got = router.get_creator()
         self.assertEqual(got, None)
-        self.assertTrue(router.creator_record is None)
+        self.assertTrue(router.creator is None)
 
         router.request.vars.creator = 'Fake_Creator'
         got = router.get_creator()
         self.assertEqual(got, None)
-        self.assertTrue(router.creator_record is None)
+        self.assertTrue(router.creator is None)
 
         router.request.vars.creator = str(99999999)
         got = router.get_creator()
         self.assertEqual(got, None)
-        self.assertTrue(router.creator_record is None)
+        self.assertTrue(router.creator is None)
 
         # Test case variations
         tests = [
@@ -286,36 +287,36 @@ class TestRouter(LocalTestCase):
         ]
         for t in tests:
             router.request.vars.creator = t
-            router.creator_record = None        # clear cache
+            router.creator = None        # clear cache
             got = router.get_creator()
             self.assertEqual(got.email, 'test__creator@test.com')
             self.assertEqual(got.name_for_url, 'FirstLast')
-            self.assertTrue(router.creator_record is not None)
+            self.assertTrue(router.creator is not None)
 
         # Subsequent calls get value from cache
         router.request.vars.creator = 'Fake_Creator'
         got = router.get_creator()
         self.assertEqual(got.email, 'test__creator@test.com')
         self.assertEqual(got.name_for_url, 'FirstLast')
-        self.assertTrue(router.creator_record is not None)
+        self.assertTrue(router.creator is not None)
 
         # Test by integer.
-        router.creator_record = None
+        router.creator = None
         router.request.vars.creator = str(self._creator.id)
         got = router.get_creator()
         self.assertEqual(got.email, 'test__creator@test.com')
         self.assertEqual(got.name_for_url, 'FirstLast')
-        self.assertTrue(router.creator_record is not None)
+        self.assertTrue(router.creator is not None)
 
         # Test SpareNN
-        router.creator_record = None
+        router.creator = None
         query = (db.creator.name_for_url.like('Spare%'))
         spare_creator = db(query).select(limitby=(0, 1)).first()
 
         router.request.vars.creator = spare_creator.name_for_url
         self.assertRaises(LookupError, router.get_creator)
 
-        router.creator_record = None
+        router.creator = None
         router.request.vars.creator = str(spare_creator.id)
         self.assertRaises(LookupError, router.get_creator)
 
@@ -389,36 +390,34 @@ class TestRouter(LocalTestCase):
     def test__get_reader(self):
         router = Router(db, self._request, auth)
 
-        # No request.vars.reader, no book_record
+        # No request.vars.reader, no book
         self.assertEqual(router.get_reader(), None)
 
         unreadable_statuses = [BOOK_STATUS_DRAFT, BOOK_STATUS_DISABLED]
         readers = ['_reader_', 'slider', 'scroller']
-        router.book_record = self._book
+        router.book = self._book
         for status in unreadable_statuses:
-            self._book.update_record(status=status)
-            db.commit()
+            router.book = Book.from_updated(router.book, dict(status=status))
             for reader in readers:
                 router.request.vars.reader = reader
                 self.assertEqual(router.get_reader(), 'draft')
 
-        self._book.update_record(status=BOOK_STATUS_ACTIVE)
-        db.commit()
-        router.book_record = None
+        self._book = Book.from_updated(
+            self._book, dict(status=BOOK_STATUS_ACTIVE))
+        router.book = None
         router.request.vars.reader = '_reader_'
         self.assertEqual(router.get_reader(), None)
 
-        router.book_record = self._book
+        router.book = self._book
         self.assertEqual(router.get_reader(), 'slider')
 
         del router.request.vars.reader
         self.assertEqual(router.get_reader(), 'slider')
 
-        self._book.update_record(reader='scroller')
-        db.commit()
+        self._book = Book.from_updated(self._book, dict(reader='scroller'))
+        router.book = self._book
         self.assertEqual(router.get_reader(), 'scroller')
-        self._book.update_record(reader='slider')
-        db.commit()
+        self._book = Book.from_updated(self._book, dict(reader='slider'))
 
     def test__page_not_found(self):
 
@@ -624,7 +623,7 @@ class TestRouter(LocalTestCase):
             tumblr=None
         )
         self._creator = Creator.from_updated(self._creator, data)
-        router.creator_record = None
+        router.creator = None
         test_presets(router.preset_links(), ['shop'])
 
         # Set creator.tumblr
@@ -633,7 +632,7 @@ class TestRouter(LocalTestCase):
             tumblr='http://user.tumblr.com',
         )
         self._creator = Creator.from_updated(self._creator, data)
-        router.creator_record = None
+        router.creator = None
         test_presets(router.preset_links(), ['tumblr'])
 
         # Set both creator.shop and creator.tumblr
@@ -642,7 +641,7 @@ class TestRouter(LocalTestCase):
             tumblr='http://user.tumblr.com',
         )
         self._creator = Creator.from_updated(self._creator, data)
-        router.creator_record = None
+        router.creator = None
         test_presets(router.preset_links(), ['shop', 'tumblr'])
 
     def test__route(self):
@@ -757,8 +756,7 @@ class TestRouter(LocalTestCase):
             self._objects.append(obj)
 
         # Book page: scroller
-        self._book.update_record(reader='scroller')
-        db.commit()
+        self._book = Book.from_updated(self._book, dict(reader='scroller'))
         expect = Storage({
             'view_dict_keys': self._keys_for_view['reader'],
             'view': 'books/scroller.html',
@@ -769,8 +767,7 @@ class TestRouter(LocalTestCase):
         for obj in views:
             self._objects.append(obj)
 
-        self._book.update_record(reader='slider')
-        db.commit()
+        self._book = Book.from_updated(self._book, dict(reader='slider'))
 
         # Book page image
         request_vars.page = '001.jpg'
@@ -807,8 +804,8 @@ class TestRouter(LocalTestCase):
 
     def test__set_book_view(self):
         router = Router(db, self._request, auth)
-        router.creator_record = self._creator
-        router.book_record = self._book
+        router.creator = self._creator
+        router.book = self._book
         router.set_book_view()
         self.assertEqual(
             sorted(router.view_dict.keys()),
@@ -822,7 +819,7 @@ class TestRouter(LocalTestCase):
 
     def test__set_creator_monies_view(self):
         router = Router(db, self._request, auth)
-        router.creator_record = self._creator
+        router.creator = self._creator
         router.set_creator_monies_view()
         self.assertEqual(
             sorted(router.view_dict.keys()),
@@ -836,7 +833,7 @@ class TestRouter(LocalTestCase):
 
     def test__set_creator_view(self):
         router = Router(db, self._request, auth)
-        router.creator_record = self._creator
+        router.creator = self._creator
         router.set_creator_view()
         self.assertEqual(
             sorted(router.view_dict.keys()),
@@ -850,8 +847,8 @@ class TestRouter(LocalTestCase):
 
     def test__set_page_image_view(self):
         router = Router(db, self._request, auth)
-        router.creator_record = self._creator
-        router.book_record = self._book
+        router.creator = self._creator
+        router.book = self._book
         router.book_page_record = self._book_page
         router.set_page_image_view()
         self.assertEqual(
@@ -869,8 +866,8 @@ class TestRouter(LocalTestCase):
             return db(db.book_view.book_id == book_id).select()
 
         router = Router(db, self._request, auth)
-        router.creator_record = self._creator
-        router.book_record = self._book
+        router.creator = self._creator
+        router.book = self._book
         router.book_page_record = self._book_page
         self.assertEqual(len(book_views(self._book.id)), 0)
         router.set_reader_view()
@@ -888,8 +885,7 @@ class TestRouter(LocalTestCase):
         for obj in views:
             self._objects.append(obj)
 
-        router.book_record.update_record(reader='scroller')
-        db.commit()
+        router.book = Book.from_updated(router.book, dict(reader='scroller'))
         db(db.book_view.book_id == self._book.id).delete()
         db.commit()
         self.assertEqual(len(book_views(self._book.id)), 0)
@@ -906,8 +902,7 @@ class TestRouter(LocalTestCase):
         self.assertEqual(len(views), 1)
         for obj in views:
             self._objects.append(obj)
-        router.book_record.update_record(reader='slider')
-        db.commit()
+        router.book = Book.from_updated(router.book, dict(reader='slider'))
 
     def test__set_response_meta(self):
         # line-too-long (C0301): *Line too long (%%s/%%s)*
@@ -916,8 +911,8 @@ class TestRouter(LocalTestCase):
         codes = ['opengraph']
 
         # Has book and creator
-        router.book_record = self._book
-        router.creator_record = self._creator
+        router.book = self._book
+        router.creator = self._creator
         response.meta = Storage()
         router.set_response_meta(codes)
         self.assertEqual(
@@ -945,8 +940,8 @@ class TestRouter(LocalTestCase):
         )
 
         # Has creator
-        router.book_record = None
-        router.creator_record = self._creator
+        router.book = None
+        router.creator = self._creator
         response.meta = Storage()
         router.set_response_meta(codes)
         self.assertEqual(
@@ -974,8 +969,8 @@ class TestRouter(LocalTestCase):
         )
 
         # Has neither book nor creator
-        router.book_record = None
-        router.creator_record = None
+        router.book = None
+        router.creator = None
         response.meta = Storage()
         router.set_response_meta(codes)
         self.assertEqual(

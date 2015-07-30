@@ -16,6 +16,7 @@ from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.rss import \
@@ -64,7 +65,7 @@ class WithObjectsTestCase(LocalTestCase):
             name_for_url='FirstLast',
         ))
 
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name='My Book',
             number=1,
             creator_id=self._creator.id,
@@ -104,8 +105,8 @@ class WithObjectsTestCase(LocalTestCase):
 class DubRSSChannel(BaseRSSChannel):
     max_entry_age_in_days = 10
 
-    def __init__(self, entity=None):
-        super(DubRSSChannel, self).__init__(entity=entity)
+    def __init__(self, record=None):
+        super(DubRSSChannel, self).__init__(record=record)
         self._filter_query = None
 
     def description(self):
@@ -763,15 +764,15 @@ class TestFunctions(WithObjectsTestCase):
 
         got = channel_from_type('all')
         self.assertTrue(isinstance(got, AllRSSChannel))
-        self.assertEqual(got.entity, None)
+        self.assertEqual(got.record, None)
 
         got = channel_from_type('book', self._book.id)
         self.assertTrue(isinstance(got, BookRSSChannel))
-        self.assertEqual(got.entity, self._book.id)
+        self.assertEqual(got.record, self._book)
 
         got = channel_from_type('creator', self._creator.id)
         self.assertTrue(isinstance(got, CartoonistRSSChannel))
-        self.assertEqual(got.entity, self._creator)
+        self.assertEqual(got.record, self._creator)
 
     def test__entry_class_from_action(self):
         self.assertEqual(

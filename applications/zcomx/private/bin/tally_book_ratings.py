@@ -87,7 +87,7 @@ def main():
     for book_id in db(db.book).select(db.book.id):
         book = Book.from_id(book_id)
         LOG.debug('Updating: %s', book.name)
-        update_rating(db, book)
+        update_rating(book)
 
     LOG.info('Done.')
 

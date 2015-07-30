@@ -10,7 +10,9 @@ from gluon import *
 from applications.zcomx.modules.book_pages import \
     BookPage, \
     pages_sorted_by_page_no
-from applications.zcomx.modules.books import get_page
+from applications.zcomx.modules.books import \
+    Book, \
+    get_page
 from applications.zcomx.modules.records import Record
 
 LOG = logging.getLogger('app')
@@ -140,7 +142,8 @@ class CompletedTentativeLogSet(BaseTentativeLogSet):
         if not youngest_log:
             return
         try:
-            first_page = get_page(youngest_log.book_id, page_no='first')
+            youngest_book = Book.from_id(youngest_log.book_id)
+            first_page = get_page(youngest_book, page_no='first')
         except LookupError:
             first_page = None
 

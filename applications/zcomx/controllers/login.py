@@ -166,26 +166,30 @@ def book_crud():
         return do_error('Invalid data provided')
     action = request.vars._action
 
-    book_record = None
+    book = None
     if action != 'create':
         try:
             book_id = int(request.vars.pk)
         except (TypeError, ValueError):
             return do_error('Invalid data provided')
-        book_record = entity_to_row(db.book, book_id)
-        if not book_record or (
-                book_record and book_record.creator_id != creator.id):
+        try:
+            book = Book.from_id(book_id)
+        except LookupError:
+            return do_error('Invalid data provided')
+
+        if not book or (
+                book and book.creator_id != creator.id):
             return do_error('Invalid data provided')
 
     if action == 'complete':
-        if has_complete_barriers(book_record):
+        if has_complete_barriers(book):
             return do_error('This book cannot be released.')
 
-        book_record.update_record(releasing=True)
+        book = Book.from_updated(book, dict(releasing=True))
         db.commit()
         job = ReleaseBookQueuer(
             db.job,
-            cli_args=[str(book_record.id)],
+            cli_args=[str(book.id)],
         ).queue()
         if not job:
             msg = (
@@ -219,20 +223,19 @@ def book_crud():
     if action == 'delete':
         # The process of deleting book can be slow, so queue a job to
         # take care of it. Flag the book status=False so it is hidden.
-        db(db.book.id == book_record.id).update(status=False)
-        db.commit()
+        book = Book.from_updated(book, dict(status=False))
         err_msg = 'Delete failed. The book cannot be deleted at this time.'
 
         job = ReverseReleaseBookQueuer(
             db.job,
-            cli_args=[str(book_record.id)],
+            cli_args=[str(book.id)],
         ).queue()
         if not job:
             return do_error(err_msg)
 
         job = DeleteBookQueuer(
             db.job,
-            cli_args=[str(book_record.id)],
+            cli_args=[str(book.id)],
         ).queue()
         if not job:
             return do_error(err_msg)
@@ -255,28 +258,14 @@ def book_crud():
 
         if request.vars.name in name_fields():
             data.update(names(
-                dict(book_record.as_dict(), **as_per_type(db.book, data)),
+                dict(book.as_dict(), **as_per_type(db.book, data)),
                 fields=db.book.fields
             ))
 
-        query = (db.book.id == book_record.id)
-        ret = db(query).validate_and_update(**data)
-        db.commit()
-
-        if ret.errors:
-            if request.vars.name in ret.errors:
-                return {
-                    'status': 'error',
-                    'msg': ret.errors[request.vars.name]
-                }
-            else:
-                return {
-                    'status': 'error',
-                    'msg': ', '.join([
-                        '{k}: {v}'.format(k=k, v=v)
-                        for k, v in ret.errors.items()
-                    ])
-                }
+        try:
+            book = Book.from_updated(book, data)
+        except SyntaxError as err:
+            return {'status': 'error', 'msg': str(err)}
 
         queue_search_prefetch()
 
@@ -311,13 +300,13 @@ def book_delete():
     if not creator:
         MODAL_ERROR('Permission denied')
 
-    book_record = None
+    book = None
     if request.args(0):
-        book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator.id:
+        book = entity_to_row(db.book, request.args(0))
+    if not book or book.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
-    return dict(book=book_record)
+    return dict(book=book)
 
 
 @auth.requires_login()
@@ -333,25 +322,28 @@ def book_edit():
     if not creator:
         MODAL_ERROR('Permission denied')
 
-    book_record = None
+    book = None
     book_type = None
     if request.args(0):
-        book_record = entity_to_row(db.book, request.args(0))
-        if not book_record:
+        try:
+            book = Book.from_id(request.args(0))
+        except LookupError:
+            book = None
+        if not book:
             MODAL_ERROR('Invalid data provided')
-        book_type = BookType.classified_from_id(book_record.book_type_id)
+        book_type = BookType.classified_from_id(book.book_type_id)
 
     if not book_type:
         book_type = BookType.by_name('one-shot')
 
     show_cc_licence_place = False
     meta = None
-    if book_record:
+    if book:
         cc0 = CCLicence.by_code('CC0')
-        if book_record.cc_licence_id == cc0.id:
+        if book.cc_licence_id == cc0.id:
             show_cc_licence_place = True
 
-        meta = PublicationMetadata(book_record)
+        meta = PublicationMetadata(book)
         meta.load()
 
     link_types = []
@@ -359,7 +351,7 @@ def book_edit():
         link_types.append(LinkType.by_code(link_type_code))
 
     return dict(
-        book=book_record,
+        book=book,
         link_types=link_types,
         metadata=str(meta) if meta else '',
         numbers=dumps(book_type.number_field_statuses()),
@@ -404,19 +396,18 @@ def book_pages():
     if not creator:
         MODAL_ERROR('Permission denied')
 
-    book_record = None
+    book = None
     if request.args(0):
-        book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator.id:
+        book = Book.from_id(request.args(0))
+    if not book or book.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
     # Temporarily set the book status to draft, so it does not appear
     # in search results while it is being edited.
-    set_status(book_record, BOOK_STATUS_DRAFT)
+    book = set_status(book, BOOK_STATUS_DRAFT)
 
     read_button = read_link(
-        db,
-        book_record,
+        book,
         **dict(
             _class='btn btn-default btn-lg',
             _target='_blank',
@@ -424,7 +415,7 @@ def book_pages():
     )
 
     return dict(
-        book=book_record,
+        book=book,
         read_button=read_button,
     )
 
@@ -460,10 +451,10 @@ def book_pages_handler():
     if not creator:
         return do_error('Upload service unavailable')
 
-    book_record = None
+    book = None
     if request.args(0):
-        book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator.id:
+        book = entity_to_row(db.book, request.args(0))
+    if not book or book.creator_id != creator.id:
         return do_error('Upload service unavailable')
 
     if request.env.request_method == 'POST':
@@ -474,7 +465,7 @@ def book_pages_handler():
         # Catching too general exception (W0703)
         # pylint: disable=W0703
         try:
-            result_json = BookPageUploader(book_record.id, files).upload()
+            result_json = BookPageUploader(book.id, files).upload()
         except Exception as err:
             LOG.error('Upload failed, err: %s', str(err))
             return do_error(
@@ -487,7 +478,7 @@ def book_pages_handler():
             for result_file in result['files']:
                 if 'book_page_id' in result_file:
                     db.tentative_activity_log.insert(
-                        book_id=book_record.id,
+                        book_id=book.id,
                         book_page_id=result_file['book_page_id'],
                         action='page added',
                         time_stamp=request.now,
@@ -509,7 +500,7 @@ def book_pages_handler():
         return dumps({"files": [{filename: True}]})
     else:
         # GET
-        return book_pages_as_json(db, book_record.id)
+        return book_pages_as_json(book.id)
 
 
 @auth.requires_login()
@@ -540,10 +531,13 @@ def book_post_upload_session():
     if not creator:
         return do_error('Reorder service unavailable')
 
-    book_record = None
+    book = None
     if request.args(0):
-        book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator.id:
+        try:
+            book = Book.from_id(request.args(0))
+        except LookupError:
+            return do_error('Reorder service unavailable')
+    if not book or book.creator_id != creator.id:
         return do_error('Reorder service unavailable')
 
     book_page_ids = []
@@ -560,8 +554,7 @@ def book_post_upload_session():
         original_page_count = 0
     pages_added = len(book_page_ids) - original_page_count
     if pages_added > 0:
-        book_record.update_record(page_added_on=request.now)
-        db.commit()
+        book = Book.from_updated(book, dict(page_added_on=request.now))
 
     # Step 2: Reorder book pages
     page_ids = []
@@ -573,11 +566,11 @@ def book_post_upload_session():
             # move on
             continue
 
-    delete_pages_not_in_ids(book_record.id, page_ids)
+    delete_pages_not_in_ids(book.id, page_ids)
     reset_book_page_nos(page_ids)
 
     # Step 3:  Set book status
-    set_status(book_record, calc_status(book_record))
+    book = set_status(book, calc_status(book))
 
     # Step 4:  Trigger search prefetch
     # A book with no pages is not in search results. Adding pages makes it
@@ -588,7 +581,7 @@ def book_post_upload_session():
     queue_search_prefetch()
 
     # Step 5:  Trigger optimization of book images
-    AllSizesImages.from_names(images(book_record)).optimize()
+    AllSizesImages.from_names(images(book)).optimize()
 
     return dumps({'success': True})
 
@@ -606,15 +599,15 @@ def book_release():
     if not creator:
         MODAL_ERROR('Permission denied')
 
-    book_record = None
+    book = None
     if request.args(0):
-        book_record = entity_to_row(db.book, request.args(0))
-    if not book_record or book_record.creator_id != creator.id:
+        book = entity_to_row(db.book, request.args(0))
+    if not book or book.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
     return dict(
-        book=book_record,
-        barriers=complete_barriers(book_record),
+        book=book,
+        barriers=complete_barriers(book),
     )
 
 
@@ -990,12 +983,12 @@ def link_crud():
         record = creator
 
     if record_table == 'book':
-        book_record = entity_to_row(db.book, request.args(1))
-        if not book_record:
+        book = entity_to_row(db.book, request.args(1))
+        if not book:
             return do_error('Invalid data provided')
-        if book_record.creator_id != creator.id:
+        if book.creator_id != creator.id:
             return do_error('Permission denied')
-        record = book_record
+        record = book
 
     actions = ['get', 'update', 'create', 'delete', 'move']
     action = request.vars.action if request.vars.action in actions else 'get'
@@ -1051,22 +1044,14 @@ def link_crud():
 
             if data:
                 query = (db.link.id == link_id)
-                ret = db(query).validate_and_update(**data)
-                db.commit()
-                if ret.errors:
-                    if request.vars.field in ret.errors:
-                        return {
-                            'status': 'error',
-                            'msg': ret.errors[request.vars.field]
-                        }
-                    else:
-                        return {
-                            'status': 'error',
-                            'msg': ', '.join([
-                                '{k}: {v}'.format(k=k, v=v)
-                                for k, v in ret.errors.items()
-                            ])
-                        }
+                try:
+                    link = Link.from_id(link_id)
+                except LookupError:
+                    return do_error('Invalid data provided')
+                try:
+                    link = Link.from_updated(link, data)
+                except SyntaxError as err:
+                    return {'status': 'error', 'msg': str(err)}
                 do_reorder = True
         else:
             return do_error('Invalid data provided')
@@ -1159,14 +1144,14 @@ def metadata_crud():
         return do_error('Invalid data provided')
     action = request.vars._action
 
-    book_record = None
+    book = None
     try:
         book_id = int(request.args(0))
     except (TypeError, ValueError):
         return do_error('Invalid data provided')
-    book_record = entity_to_row(db.book, book_id)
-    if not book_record or (
-            book_record and book_record.creator_id != creator.id):
+    book = entity_to_row(db.book, book_id)
+    if not book or (
+            book and book.creator_id != creator.id):
         return do_error('Invalid data provided')
 
     if action == 'get':
@@ -1308,12 +1293,12 @@ def metadata_crud():
                 db[table], ignore_fields='common')
 
         data['publication_metadata']['default'].update({
-            'published_name': book_record.name,
+            'published_name': book.name,
         })
 
         data['publication_serial']['default'].update({
-            'published_name': book_record.name,
-            'serial_title': book_record.name,
+            'published_name': book.name,
+            'serial_title': book.name,
         })
 
         data['derivative']['default'].update({
@@ -1321,7 +1306,7 @@ def metadata_crud():
             'cc_licence_id': licences[0].id,
         })
 
-        query = (db.publication_metadata.book_id == book_record.id)
+        query = (db.publication_metadata.book_id == book.id)
         metadata_record = db(query).select(
             orderby=[db.publication_metadata.id],
         ).first()
@@ -1331,7 +1316,7 @@ def metadata_crud():
             data['publication_metadata']['record'] = \
                 data['publication_metadata']['default']
 
-        query = (db.publication_serial.book_id == book_record.id)
+        query = (db.publication_serial.book_id == book.id)
         data['publication_serial']['records'] = db(query).select(
             orderby=[
                 db.publication_serial.sequence,
@@ -1339,7 +1324,7 @@ def metadata_crud():
             ],
         ).as_list()
 
-        query = (db.derivative.book_id == book_record.id)
+        query = (db.derivative.book_id == book.id)
         derivative_record = db(query).select(limitby=(0, 1)).first()
         if derivative_record:
             data['derivative']['record'] = derivative_record.as_dict()
@@ -1349,13 +1334,13 @@ def metadata_crud():
         return {'status': 'ok', 'data': data}
 
     if action == 'update':
-        meta = PublicationMetadata(book_record)
+        meta = PublicationMetadata(book)
         meta.load_from_vars(dict(request.vars))
         meta.validate()
         if meta.errors:
             return {'status': 'error', 'fields': meta.errors}
         meta.update()
-        book_record.update_record(publication_year=meta.publication_year())
+        book.update_record(publication_year=meta.publication_year())
         db.commit()
         return {'status': 'ok'}
     return do_error('Invalid data provided')
@@ -1380,17 +1365,17 @@ def metadata_text():
     if not creator:
         return do_error('Permission denied')
 
-    book_record = None
+    book = None
     try:
         book_id = int(request.args(0))
     except (TypeError, ValueError):
         return do_error('Invalid data provided')
-    book_record = entity_to_row(db.book, book_id)
-    if not book_record or (
-            book_record and book_record.creator_id != creator.id):
+    book = entity_to_row(db.book, book_id)
+    if not book or (
+            book and book.creator_id != creator.id):
         return do_error('Invalid data provided')
 
-    meta = PublicationMetadata(book_record)
+    meta = PublicationMetadata(book)
     if not meta:
         return do_error('Invalid data provided')
     meta.load()

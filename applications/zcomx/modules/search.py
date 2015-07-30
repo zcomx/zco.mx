@@ -11,6 +11,7 @@ from gluon import *
 from gluon.tools import prettydate
 from gluon.validators import urlify
 from applications.zcomx.modules.books import \
+    Book, \
     contribute_link as book_contribute_link, \
     cover_image, \
     download_link as book_download_link, \
@@ -116,14 +117,14 @@ class Grid(object):
             _href=creator_url(row.creator, extension=False)
         )
 
-        db.book.name.represent = lambda v, row: A(
-            formatted_name(
-                db,
-                row.book,
-                include_publication_year=False,
-            ),
-            _href=book_url(row.book.id, extension=False)
-        )
+        def book_name_rep(v, row):
+            """db.book.name.represent."""
+            book = Book.from_id(row.book.id)
+            return A(
+                formatted_name(book, include_publication_year=False),
+                _href=book_url(book, extension=False)
+            )
+        db.book.name.represent = book_name_rep
 
         db.book.page_added_on.represent = lambda v, row: \
             str(prettydate(v, T=current.T)) if v is not None else 'n/a'
@@ -896,30 +897,23 @@ class BookTile(Tile):
             row: gluon.dal.Row representing row of grid
         """
         Tile.__init__(self, db, value, row)
+        self.book = Book.from_id(self.row.book.id)
 
     def contribute_link(self):
         """Return the tile contribute link."""
-        db = self.db
-        row = self.row
         return book_contribute_link(
-            db,
-            row.book.id,
+            self.book,
             components=['contribute'],
             **dict(_class='contribute_button no_rclick_menu')
         )
 
     def download_link(self):
         """Return the tile download link."""
-        db = self.db
-        row = self.row
-
-        book = entity_to_row(db.book, row.book.id)
-        if not is_downloadable(book):
+        if not is_downloadable(self.book):
             return SPAN('')
 
         return book_download_link(
-            db,
-            book,
+            self.book,
             components=['download'],
             **dict(_class='download_button no_rclick_menu')
         )
@@ -942,13 +936,10 @@ class BookTile(Tile):
 
     def image(self):
         """Return a div for the tile image."""
-        db = self.db
-        row = self.row
         return DIV(
             book_read_link(
-                db,
-                row.book.id,
-                components=[cover_image(db, row.book, size='web')],
+                self.book,
+                components=[cover_image(self.book, size='web')],
                 **dict(_class='book_page_image', _title='')
             ),
             _class='col-sm-12 image_container',
@@ -971,16 +962,14 @@ class BookTile(Tile):
 
     def title(self):
         """Return a div for the tile title"""
-        db = self.db
         row = self.row
         book_name = formatted_name(
-            db,
-            row.book,
+            self.book,
             include_publication_year=(row.book.release_date != None)
         )
         book_link = A(
             book_name,
-            _href=book_url(row.book.id, extension=False),
+            _href=book_url(self.book, extension=False),
             _title=book_name,
         )
         return DIV(
@@ -1111,19 +1100,15 @@ class MoniesBookTile(BookTile):
 
     def footer(self):
         """Return a div for the tile footer."""
-
-        db = self.db
         row = self.row
         book_name = formatted_name(
-            db,
-            row.book,
+            self.book,
             include_publication_year=(row.book.release_date != None)
         )
 
         if can_receive_contributions(row.creator):
             inner = book_contribute_link(
-                db,
-                row.book.id,
+                self.book,
                 components=[book_name],
                 **dict(_class='contribute_button no_rclick_menu')
             )
@@ -1137,13 +1122,11 @@ class MoniesBookTile(BookTile):
 
     def image(self):
         """Return a div for the tile image."""
-        db = self.db
         row = self.row
-        img = cover_image(db, row.book, size='web')
+        img = cover_image(self.book, size='web')
         if can_receive_contributions(row.creator):
             inner = book_contribute_link(
-                db,
-                row.book.id,
+                self.book,
                 components=[img],
                 **dict(_class='contribute_button no_rclick_menu')
             ),
@@ -1176,10 +1159,9 @@ def book_contribute_button(row):
     if 'creator' not in row or not row.creator.paypal_email:
         return ''
 
-    db = current.app.db
+    book = Book.from_id(book_id)
     return book_contribute_link(
-        db,
-        book_id,
+        book,
         **dict(_class='btn btn-default contribute_button no_rclick_menu')
     )
 
@@ -1208,14 +1190,11 @@ def download_link(row):
     if not book_id:
         return ''
 
-    db = current.app.db
-
-    book = entity_to_row(db.book, book_id)
+    book = Book.from_id(book_id)
     if not is_downloadable(book):
         return ''
 
     return book_download_link(
-        db,
         book,
         **dict(_class='btn btn-default download_button no_rclick_menu')
     )
@@ -1281,9 +1260,8 @@ def read_link(row):
     book_id = link_book_id(row)
     if not book_id:
         return ''
-    db = current.app.db
+    book = Book.from_id(book_id)
     return book_read_link(
-        db,
-        book_id,
+        book,
         **dict(_class='btn btn-default')
     )

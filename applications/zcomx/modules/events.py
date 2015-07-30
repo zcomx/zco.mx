@@ -111,7 +111,7 @@ class ContributionEvent(BookEvent):
 
     def _post_log(self):
         db = current.app.db
-        update_rating(db, self.book, rating='contribution')
+        update_rating(self.book, rating='contribution')
 
 
 class DownloadEvent(BookEvent):
@@ -161,7 +161,7 @@ class RatingEvent(BookEvent):
 
     def _post_log(self):
         db = current.app.db
-        update_rating(db, self.book, rating='rating')
+        update_rating(self.book, rating='rating')
 
 
 class ViewEvent(BookEvent):
@@ -180,7 +180,7 @@ class ViewEvent(BookEvent):
 
     def _post_log(self):
         db = current.app.db
-        update_rating(db, self.book, rating='view')
+        update_rating(self.book, rating='view')
 
 
 class ZcoContributionEvent(BaseEvent):

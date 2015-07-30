@@ -5,6 +5,7 @@ import logging
 import traceback
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
+    Book, \
     torrent_url as book_torrent_url
 from applications.zcomx.modules.creators import \
     Creator, \
@@ -120,8 +121,13 @@ def route():
                 'url': creator_torrent_url(creator, host=True),
             })
 
-        book = db(db.book.torrent != None).select(orderby='<random>').first()
-        if book:
+        book_row = db(db.book.torrent != None).select(
+            orderby='<random>', limitby=(0, 1)).first()
+        try:
+            book = Book.from_id(book_row.id)
+        except LookupError:
+            pass
+        else:
             urls.suggestions.append({
                 'label': 'Book torrent:',
                 'url': book_torrent_url(book, host=True),

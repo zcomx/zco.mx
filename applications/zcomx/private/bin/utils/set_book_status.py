@@ -11,10 +11,9 @@ Script to set the status of a book.
 import logging
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
+    Book, \
     calc_status, \
     set_status
-from applications.zcomx.modules.utils import \
-    entity_to_row
 from applications.zcomx.modules.zco import BOOK_STATUS_DISABLED
 
 VERSION = 'Version 0.1'
@@ -27,15 +26,12 @@ def book_generator(query):
     Args:
         query: gluon.dal.Expr query.
 
-
     Yields:
-        Row instance representing a book record.
+        Book instance
     """
     ids = [x.id for x in db(query).select(db.book.id)]
     for book_id in ids:
-        book = entity_to_row(db.book, book_id)
-        if not book:
-            raise LookupError('Book not found, id: {i}'.format(i=book_id))
+        book = Book.from_id(book_id)
         yield book
 
 
@@ -130,9 +126,9 @@ def main():
     for book in book_generator(generator_query):
         LOG.debug('Updating: %s', book.name)
         if options.disable:
-            set_status(book, BOOK_STATUS_DISABLED)
+            book = set_status(book, BOOK_STATUS_DISABLED)
         else:
-            set_status(book, calc_status(book))
+            book = set_status(book, calc_status(book))
 
 
 if __name__ == '__main__':

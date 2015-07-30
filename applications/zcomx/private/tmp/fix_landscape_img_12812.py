@@ -20,7 +20,9 @@ import traceback
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
-from applications.zcomx.modules.books import images
+from applications.zcomx.modules.books import \
+    Book, \
+    images
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.images import \
     ImageDescriptor, \
@@ -175,7 +177,8 @@ def main():
 
     if not options.debug:
         for book_id in set(book_ids):
-            AllSizesImages.from_names(images(book_id)).optimize()
+            book = Book.from_id(book_id)
+            AllSizesImages.from_names(images(book)).optimize()
 
     LOG.info('Done.')
 

@@ -14,6 +14,7 @@ from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.archives import CBZArchive
 from applications.zcomx.modules.books import \
+    Book, \
     book_name, \
     cbz_comment
 from applications.zcomx.modules.creators import \
@@ -24,7 +25,6 @@ from applications.zcomx.modules.indicias import BookIndiciaPagePng
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
-from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import NICES
 
 LOG = logging.getLogger('app')
@@ -42,10 +42,9 @@ class CBZCreator(TempDirectoryMixin):
         """Constructor
 
         Args:
-            book: Row instance of book or integer, id of book record.
+            book: Book instance
         """
-        db = current.app.db
-        self.book = entity_to_row(db.book, book)
+        self.book = book
         self._max_page_no = None
         self._img_filename_fmt = None
         self._working_directory = None
@@ -209,23 +208,18 @@ class CBZCreator(TempDirectoryMixin):
         return cbz_filename
 
 
-def archive(book_entity, base_path='applications/zcomx/private/var'):
+def archive(book, base_path='applications/zcomx/private/var'):
     """Create a cbz file for an book and archive it.
 
     Args:
-        book_entity: Row instance or integer representing book
+        book: Book instance
         base_path: location of cbz archive
 
     Return:
         string, path to cbz file.
     """
-    db = current.app.db
-    book_record = entity_to_row(db.book, book_entity)
-    if not book_record:
-        raise LookupError('Book not found, {e}'.format(e=book_entity))
-
-    creator = Creator.from_id(book_record.creator_id)
-    cbz_creator = CBZCreator(book_record)
+    creator = Creator.from_id(book.creator_id)
+    cbz_creator = CBZCreator(book)
     cbz_file = cbz_creator.run()
 
     cbz_archive = CBZArchive(base_path=base_path)
@@ -233,6 +227,5 @@ def archive(book_entity, base_path='applications/zcomx/private/var'):
     dst = os.path.join(subdir, os.path.basename(cbz_file))
     archive_file = cbz_archive.add_file(cbz_file, dst)
 
-    book_record.update_record(cbz=archive_file)
-    db.commit()
+    book = Book.from_updated(book, dict(cbz=archive_file))
     return archive_file

@@ -565,7 +565,7 @@ class TestMoniesBookTile(TileTestCase):
         self.assertEqual(div['class'], 'col-sm-12 name')
         self.assertEqual(
             div.string,
-            'My Book 001'
+            'Test Do Not Delete 001'
         )
 
         # Restore
@@ -1040,10 +1040,10 @@ class TestBookTile(TileTestCase):
         anchor = div.a
         self.assertEqual(anchor['href'], '/{c}/{b}'.format(
             c=creator_name(Creator(self._row.creator.as_dict()), use='url'),
-            b=urllib.quote(book_name(self._row.book.id, use='url'))
+            b=urllib.quote(book_name(tile.book, use='url'))
         ))
         book_formatted = formatted_name(
-            db, self._row.book, include_publication_year=False)
+            tile.book, include_publication_year=False)
         self.assertEqual(anchor['title'], book_formatted)
         self.assertEqual(anchor.string, book_formatted)
 
@@ -1054,7 +1054,7 @@ class TestBookTile(TileTestCase):
         div = soup.div
         anchor = div.a
         book_formatted = formatted_name(
-            db, self._row.book, include_publication_year=True)
+            tile.book, include_publication_year=True)
         self.assertEqual(anchor['title'], book_formatted)
 
 

@@ -10,6 +10,7 @@ import os
 import unittest
 import urllib2
 from applications.zcomx.modules.books import \
+    Book, \
     book_name, \
     cbz_comment
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -57,7 +58,7 @@ class TestFunctions(LocalTestCase):
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
         query = db.book.creator_id == cls._creator.id
-        cls._book = db(query).select(limitby=(0, 1)).first()
+        cls._book = Book.from_query(query)
         if not cls._book:
             raise SyntaxError('No book for creator with email: {e}'.format(
                 e=email))

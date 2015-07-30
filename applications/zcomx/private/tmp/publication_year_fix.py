@@ -13,10 +13,9 @@ import traceback
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.indicias import \
     PublicationMetadata
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -87,21 +86,18 @@ def main():
     LOG.info('Started.')
     ids = [x.id for x in db(db.book).select(db.book.id)]
     for book_id in ids:
-        book_record = entity_to_row(db.book, book_id)
-        if not book_record:
-            raise LookupError('Book not found, id: {i}'.format(i=book_id))
-        meta = PublicationMetadata(book_record)
+        book = Book.from_id(book_id)
+        meta = PublicationMetadata(book)
         meta.load()
         try:
             publication_year = meta.publication_year()
         except ValueError:
             continue        # This is expected if the metadata is not set.
 
-        if book_record.publication_year == publication_year:
+        if book.publication_year == publication_year:
             continue
-        LOG.debug('Updating: %s to %s', book_record.name, publication_year)
-        book_record.update_record(publication_year=publication_year)
-        db.commit()
+        LOG.debug('Updating: %s to %s', book.name, publication_year)
+        book = Book.from_updated(book, dict(publication_year=publication_year))
     LOG.info('Done.')
 
 

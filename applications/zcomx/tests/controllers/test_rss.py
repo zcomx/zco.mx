@@ -10,7 +10,9 @@ import datetime
 import os
 import unittest
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.books import book_name
+from applications.zcomx.modules.books import \
+    Book, \
+    book_name
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
@@ -56,7 +58,7 @@ class TestFunctions(ImageTestCase):
             name_for_url='FirstLast',
         ))
 
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name='Test RSS',
             creator_id=self._creator.id,
             book_type_id=BookType.by_name('one-shot').id,

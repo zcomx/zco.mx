@@ -10,12 +10,11 @@ twitter).
 import logging
 from gluon import *
 from optparse import OptionParser
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.social_media import \
     SocialMediaPostError, \
     SocialMediaPoster
-from applications.zcomx.modules.utils import entity_to_row
-
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -117,10 +116,7 @@ def main():
     LOG.debug('Starting')
     book_id = args[0]
 
-    book = entity_to_row(db.book, book_id)
-    if not book:
-        raise LookupError('Book not found, id: %s', book_id)
-
+    book = Book.from_id(book_id)
     creator = Creator.from_id(book.creator_id)
 
     services = []
@@ -152,8 +148,7 @@ def main():
         if post_id:
             field = '{s}_post_id'.format(s=service)
             data = {field: post_id}
-            book.update_record(**data)
-            db.commit()
+            book = Book.from_updated(book, data)
 
     LOG.debug('Done')
 

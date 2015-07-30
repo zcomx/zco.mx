@@ -33,13 +33,13 @@ marking the book complete.</li>
 
 {{if not barriers:}}
     <div class="instruction">
-        Click the <em>Complete</em> button to mark <em>{{=formatted_name(db, book)}}</em> as complete.
+        Click the <em>Complete</em> button to mark <em>{{=formatted_name(book)}}</em> as complete.
         Click the <em>Cancel</em> button if you've changed your mind.
     </div>
 {{else:}}
     <div class="panel panel-danger">
         <div class="panel-heading">
-            The book <em>{{=formatted_name(db, book)}}</em> cannot be marked complete.
+            The book <em>{{=formatted_name(book)}}</em> cannot be marked complete.
         </div>
         <div class="panel-body">
             {{if len(barriers) > 1:}}<ol>{{else:}}<ul>{{pass}}

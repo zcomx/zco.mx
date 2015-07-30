@@ -35,18 +35,18 @@
             </thead>
         {{pass}}
         {{for book in lister.books():}}
-        {{book_name = formatted_name(db, book, include_publication_year=False)}}
+        {{book_name = formatted_name(book, include_publication_year=False)}}
         <tr>
             <td class="book_name_column">
                 {{if book.releasing:}}*{{else:}}{{pass}}
-                {{if lister.link_to_book_page:}}{{=A(book_name, _href=book_url(book.id, extension=False))}}{{else:}}{{=book_name}}{{pass}}
+                {{if lister.link_to_book_page:}}{{=A(book_name, _href=book_url(book, extension=False))}}{{else:}}{{=book_name}}{{pass}}
             </td>
             {{if lister.include_publication_year:}}
             <td>{{=book.publication_year}}</td>
             {{pass}}
             {{if lister.include_read:}}
             <td>
-                {{=read_link(db, book.id, **dict(_class='btn btn-default'))}}
+                {{=read_link(book, **dict(_class='btn btn-default'))}}
             </td>
             {{pass}}
             {{if lister.include_upload:}}
@@ -78,7 +78,7 @@
             </td>
             {{if lister.include_complete_checkbox:}}
             <td>
-                {{=complete_link(book.id, **{'_class': 'modal-complete-btn no_rclick_menu', '_data-book_id': book.id})}}
+                {{=complete_link(book, **{'_class': 'modal-complete-btn no_rclick_menu', '_data-book_id': book.id})}}
             </td>
             {{pass}}
         </tr>

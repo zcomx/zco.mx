@@ -6,6 +6,7 @@ import traceback
 from gluon.storage import Storage
 from applications.zcomx.modules.book_lists import OngoingBookList
 from applications.zcomx.modules.books import \
+    Book, \
     rss_url as book_rss_url
 from applications.zcomx.modules.creators import \
     Creator, \
@@ -104,8 +105,13 @@ def route():
                 'url': creator_rss_url(creator, host=True),
             })
 
-        book = db(db.book).select(orderby='<random>').first()
-        if book:
+        book_row = db(db.book).select(
+            orderby='<random>', limitby=(0, 1)).first()
+        try:
+            book = Book.from_id(book_row.id)
+        except LookupError:
+            pass
+        else:
             urls.suggestions.append({
                 'label': 'Book rss:',
                 'url': book_rss_url(book, host=True),
@@ -208,10 +214,10 @@ def widget():
     if request.args(0):
         creator = Creator.from_id(request.args(0))
 
-    book_records = None
+    books = None
     if creator:
         book_list = OngoingBookList(creator)
-        book_records = book_list.books()
+        books = book_list.books()
 
     query = (db.book.id != None)     # Creators must have at least one book.
     creators = db(query).select(
@@ -254,7 +260,7 @@ def widget():
         redirect(URL(r=request, args=form.vars.creator_id))
 
     return dict(
-        books=book_records,
+        books=books,
         creator=creator,
         form=form
     )

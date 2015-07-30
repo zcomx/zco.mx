@@ -11,6 +11,7 @@ from gluon import *
 from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
 from applications.zcomx.modules.books import \
+    Book, \
     formatted_name as formatted_book_name
 from applications.zcomx.modules.creators import \
     Creator, \
@@ -148,9 +149,8 @@ class BookAutocompleter(BaseAutocompleter):
         return queries
 
     def formatted_value(self, record_id):
-        db = current.app.db
-        return formatted_book_name(
-            db, record_id, include_publication_year=False)
+        book = Book.from_id(record_id)
+        return formatted_book_name(book, include_publication_year=False)
 
     def orderby(self):
         return self.table['name']

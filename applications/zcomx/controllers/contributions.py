@@ -14,7 +14,6 @@ from applications.zcomx.modules.events import \
     ContributionEvent, \
     PaypalLog, \
     ZcoContributionEvent
-from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import Zco
 
 LOG = logging.getLogger('app')
@@ -33,14 +32,12 @@ def modal():
         a contribution to zco.mx is presumed.
     request.vars.book_id takes precendence over request.vars.creator_id.
     """
-    book_record = None
+    book = None
     creator = None
 
     if request.vars.book_id:
-        book_record = entity_to_row(db.book, request.vars.book_id)
-        if not book_record:
-            raise LookupError('Book not found, id %s', request.vars.book_id)
-        creator = Creator.from_id(book_record.creator_id)
+        book = Book.from_id(request.vars.book_id)
+        creator = Creator.from_id(book.creator_id)
     elif request.vars.creator_id:
         creator = Creator.from_id(request.vars.creator_id)
         if not creator:
@@ -48,7 +45,7 @@ def modal():
                 'Creator not found, id %s', request.vars.creator_id)
 
     return dict(
-        book=book_record,
+        book=book,
         creator=creator,
     )
 
@@ -84,21 +81,16 @@ def paypal():
             book_id = None
         if not book_id:
             raise LookupError('Invalid book id: {i}'.format(i=book_id_str))
-        book_record = entity_to_row(db.book, book_id)
-        if not book_record:
-            raise LookupError('Book not found, id: {i}'.format(i=book_id))
-        creator_record = Creator.from_id(book_record.creator_id)
-        if not creator_record:
-            raise LookupError('Creator not found, id: {i}'.format(
-                i=book_record.creator_id))
+        book = Book.from_id(book_id)
+        creator_record = Creator.from_id(book.creator_id)
         if not creator_record.paypal_email:
             raise LookupError('Creator has no paypal email, id: {i}'.format(
-                i=book_record.creator_id))
+                i=book.creator_id))
         data = Storage({})
         data.business = creator_record.paypal_email
         data.item_name = '{b} ({c})'.format(
-            b=book_record.name, c=formatted_name(creator_record))
-        data.item_number = book_record.id
+            b=book.name, c=formatted_name(creator_record))
+        data.item_number = book.id
         return data
 
     def creator_data(creator_id_str):
@@ -114,8 +106,8 @@ def paypal():
         if not creator.paypal_email:
             raise LookupError('Creator has no paypal email, id: {i}'.format(
                 i=creator_id))
-        book_record = book_for_contributions(creator)
-        if not book_record:
+        book = book_for_contributions(creator)
+        if not book:
             raise LookupError(
                 'Creator has no book for contributions, id: {i}'.format(
                     i=creator_id
@@ -124,7 +116,7 @@ def paypal():
         data = Storage({})
         data.business = creator.paypal_email
         data.item_name = '{c}'.format(c=formatted_name(creator))
-        data.item_number = book_record.id
+        data.item_number = book.id
         return data
 
     data = None
@@ -235,27 +227,24 @@ def widget():
         If any errors occur, nothing is displayed.
     """
     Zco().paypal_in_progress = None
-    book_record = None
+    book = None
     creator_record = None
     if request.vars.book_id:
-        book_record = entity_to_row(db.book, request.vars.book_id)
-        if not book_record:
-            raise LookupError('Book not found, id %s', request.vars.book_id)
+        book = Book.from_id(request.vars.book_id)
     elif request.vars.creator_id:
         creator_record = Creator.from_id(request.vars.creator_id)
         if not creator_record:
             raise LookupError(
                 'Creator not found, id %s', request.vars.creator_id)
 
-    if book_record:
-        creator_record = Creator.from_id(book_record.creator_id)
+    if book:
+        creator_record = Creator.from_id(book.creator_id)
 
-    amount = default_contribute_amount(db, book_record) if book_record \
-        else 1.00
+    amount = default_contribute_amount(book) if book else 1.00
 
     paypal_vars = {}
-    if book_record:
-        paypal_vars['book_id'] = book_record.id
+    if book:
+        paypal_vars['book_id'] = book.id
     elif creator_record:
         paypal_vars['creator_id'] = creator_record.id
 

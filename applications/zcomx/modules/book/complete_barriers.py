@@ -21,7 +21,7 @@ class BaseCompleteBarrier(object):
         """Initializer
 
         Args:
-            book: Row instance representing a book.
+            book: Book instance
         """
         self.book = book
 
@@ -61,7 +61,8 @@ class AllRightsReservedBarrier(BaseCompleteBarrier):
 
     def applies(self):
         db = current.app.db
-        arr = db(db.cc_licence.code == 'All Rights Reserved').select(limitby=(0, 1)).first()
+        query = (db.cc_licence.code == 'All Rights Reserved')
+        arr = db(query).select(limitby=(0, 1)).first()
         return arr and arr.id and self.book.cc_licence_id == arr.id
 
     @property

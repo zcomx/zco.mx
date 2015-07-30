@@ -13,6 +13,7 @@ from applications.zcomx.modules.archives import \
     CBZArchive, \
     TorrentArchive
 from applications.zcomx.modules.books import \
+    Book, \
     torrent_file_name as book_torrent_file_name
 from applications.zcomx.modules.creators import \
     Creator, \
@@ -21,7 +22,6 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
-from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import NICES
 
 LOG = logging.getLogger('app')
@@ -159,13 +159,10 @@ class BookTorrentCreator(BaseTorrentCreator):
         """Constructor
 
         Args:
-            entity: Row instance or integer representing a book.
+            entity: Book instance
         """
         BaseTorrentCreator.__init__(self, entity=entity)
-        db = current.app.db
-        self.book = entity_to_row(db.book, self.entity)
-        if not self.book:
-            raise LookupError('Book not found: {e}'.format(e=self.entity))
+        self.book = entity
 
     def archive(self, base_path=None):
         """Archive the torrent.
@@ -175,9 +172,7 @@ class BookTorrentCreator(BaseTorrentCreator):
         """
         result = BaseTorrentCreator.archive(self, base_path=base_path)
         if self.book:
-            db = current.app.db
-            self.book.update_record(torrent=result)
-            db.commit()
+            self.book = Book.from_updated(self.book, dict(torrent=result))
         return result
 
     def get_destination(self):
@@ -213,8 +208,6 @@ class CreatorTorrentCreator(BaseTorrentCreator):
         """
         BaseTorrentCreator.__init__(self, entity=entity)
         self.creator = entity
-        if not self.creator:
-            raise LookupError('Creator not found: {e}'.format(e=self.entity))
         self._cbz_base_path = None
 
     def archive(self, base_path=None):

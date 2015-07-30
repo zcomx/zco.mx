@@ -10,7 +10,9 @@ Utility script to optimize all images for a book, creator or all.
 # pylint: disable=W0404
 import logging
 from optparse import OptionParser
-from applications.zcomx.modules.books import images as book_images
+from applications.zcomx.modules.books import \
+    Book, \
+    images as book_images
 from applications.zcomx.modules.creators import \
     Creator, \
     images as creator_images
@@ -38,10 +40,7 @@ def optimize_all_images(debug=False, force=False):
 
 def optimize_book_images(book_id, debug=False, force=False):
     """Optimize all images associated with a book."""
-    book = entity_to_row(db.book, book_id)
-    if not book:
-        raise LookupError('Book not found, id: {i}'.format(i=book_id))
-
+    book = Book.from_id(book_id)
     LOG.debug('Optimizing images for book: %s', book.name)
     if not debug:
         images = book_images(book)

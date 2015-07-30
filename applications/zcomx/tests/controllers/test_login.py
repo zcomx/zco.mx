@@ -12,6 +12,7 @@ import time
 import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.links import \
@@ -163,11 +164,11 @@ class TestFunctions(LocalTestCase):
             query = (db.book.id == book_id)
             return db(query).select(limitby=(0, 1)).first()
 
-        book = self.add(db.book, dict(
-            name='',
+        book = self.add(Book, dict(
+            name='_fake_',
             creator_id=self._creator.id,
+            status=True,
         ))
-        self.assertEqual(book.name, '')
 
         web.login()
 
@@ -863,7 +864,7 @@ class TestFunctions(LocalTestCase):
                 'field': 'url',
                 'value': '_bad_url_',
             }
-            do_test(links_key, data, [], 'Enter a valid URL')
+            do_test(links_key, data, [], 'url: Enter a valid URL')
 
             # Action: update, Invalid name
             data = {
@@ -877,7 +878,7 @@ class TestFunctions(LocalTestCase):
                 links_key,
                 data,
                 [],
-                'Enter 1 to 40 characters'
+                'name: Enter 1 to 40 characters'
             )
 
             # Action: move
@@ -918,7 +919,7 @@ class TestFunctions(LocalTestCase):
 
     def test__metadata_crud(self):
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__metadata_crud',
             creator_id=self._creator.id,
         ))
@@ -1020,7 +1021,7 @@ class TestFunctions(LocalTestCase):
 
     def test__metadata_text(self):
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__metadata_text',
             creator_id=self._creator.id,
         ))
@@ -1042,7 +1043,7 @@ class TestFunctions(LocalTestCase):
 
         text = 'This work was originally published in print in 1999-2000 as "My Book" by Acme.'
 
-        meta = PublicationMetadata(book.id)
+        meta = PublicationMetadata(book)
         meta.load()
         self.assertEqual(str(meta), text)
 

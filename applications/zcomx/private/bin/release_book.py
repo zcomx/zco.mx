@@ -11,6 +11,7 @@ import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
+    Book, \
     get_page, \
     images as book_images
 from applications.zcomx.modules.creators import \
@@ -43,14 +44,8 @@ class Releaser(object):
             book_id: string, first arg
         """
         self.book_id = book_id
-        self.book = db(db.book.id == book_id).select(limitby=(0, 1)).first()
-        if not self.book:
-            raise LookupError('Book not found, id: %s', book_id)
-
+        self.book = Book.from_id(self.book_id)
         self.creator = Creator.from_id(self.book.creator_id)
-        if not self.creator:
-            raise LookupError(
-                'Creator not found, id: %s', self.book.creator_id)
         self.needs_requeue = False
 
     def requeue(self, requeues, max_requeues):
@@ -147,8 +142,7 @@ class ReleaseBook(Releaser):
                 tumblr_post_id=IN_PROGRESS,
                 twitter_post_id=IN_PROGRESS
             )
-            self.book.update_record(**data)
-            db.commit()
+            self.book = Book.from_updated(self.book, data)
 
             self.needs_requeue = True
             return
@@ -158,8 +152,7 @@ class ReleaseBook(Releaser):
             release_date=datetime.datetime.today(),
             releasing=False,
         )
-        self.book.update_record(**data)
-        db.commit()
+        self.book = Book.from_updated(self.book, data)
 
         # Log activity
         try:
@@ -223,9 +216,7 @@ class UnreleaseBook(Releaser):
             data['tumblr_post_id'] = None
         if self.book.twitter_post_id == IN_PROGRESS:
             data['twitter_post_id'] = None
-
-        self.book.update_record(**data)
-        db.commit()
+        self.book = Book.from_updated(self.book, data)
 
 
 def man_page():

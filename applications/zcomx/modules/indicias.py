@@ -12,7 +12,6 @@ import os
 import shutil
 import subprocess
 from gluon import *
-
 from applications.zcomx.modules.books import \
     cc_licence_data, \
     get_page, \
@@ -39,7 +38,6 @@ from applications.zcomx.modules.shell_utils import \
 from applications.zcomx.modules.social_media import SocialMedia
 from applications.zcomx.modules.utils import \
     default_record, \
-    entity_to_row, \
     vars_to_records
 from applications.zcomx.modules.zco import NICES
 
@@ -145,13 +143,12 @@ class BookIndiciaPage(IndiciaPage):
         """Constructor
 
         Args:
-            entity: Row instance or integer representing a record,
-                if integer, this is the id of the record. The record is read.
+            entity: Book instance
         """
         db = current.app.db
         IndiciaPage.__init__(self, entity)
         self.table = db.book
-        self.book = entity_to_row(db.book, self.entity)
+        self.book = entity
         self.creator = Creator.from_id(self.book.creator_id)
         self._orientation = None
 
@@ -278,7 +275,6 @@ class BookIndiciaPage(IndiciaPage):
 
         contribute_and_links_divs = []
 
-        db = current.app.db
         if self.creator and can_receive_contributions(self.creator):
             # js is used to flesh out the contribute widget
             contribute_and_links_divs.append(
@@ -382,7 +378,7 @@ class BookIndiciaPage(IndiciaPage):
                 TAG.i(_class='glyphicon glyphicon-play'),
             ]
 
-            read_next = read_link(db, next_book, components=components)
+            read_next = read_link(next_book, components=components)
             text_divs.append(DIV(
                 read_next,
                 _class='read_next_link',
@@ -617,7 +613,7 @@ class PublicationMetadata(object):
 
     def __init__(
             self,
-            book_entity,
+            book,
             metadata=None,
             serials=None,
             derivative=None,
@@ -625,18 +621,14 @@ class PublicationMetadata(object):
         """Constructor.
 
         Args:
-            book_entity: Row instance representing book or integer (id of book)
+            book: Book instance
             metadata: dict representing publication_metadata record.
             serials: list of dicts representing publication_serial records.
             derivative: dict representing derivative record.
             first_publication_text: string, text to use if this is the first
                 publication. If None, uses 'First publication: zco.mx 2014.'
         """
-        db = current.app.db
-        book_record = entity_to_row(db.book, book_entity)
-        if not book_record:
-            raise LookupError('Book not found, {e}'.format(e=book_entity))
-        self.book = book_record
+        self.book = book
         self.metadata = metadata if metadata is not None else {}
         self.serials = serials if serials is not None else []
         self.derivative = derivative if derivative is not None else {}
@@ -1420,26 +1412,21 @@ def cc_licence_places():
     )
 
 
-def cc_licences(book_entity):
+def cc_licences(book):
     """Return a XML instance representing book cc licences suitable for
     an HTML radio button input.
 
     Args:
-        book_entity: Row instance or integer, if integer, this is the id of the
-            book. The book record is read.
+        book: Book instance
     """
     db = current.app.db
-    book_record = entity_to_row(db.book, book_entity)
-    if not book_record:
-        raise LookupError('Book not found, {e}'.format(e=book_entity))
-
     # {'value': record_id, 'text': description}, ...
     licences = db(db.cc_licence).select(
         db.cc_licence.ALL,
         orderby=db.cc_licence.number
     )
 
-    data = cc_licence_data(book_record)
+    data = cc_licence_data(book)
 
     scrub = lambda x: x.replace('"', '\\"')
     info = lambda x: scrub(

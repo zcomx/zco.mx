@@ -11,6 +11,7 @@ import shutil
 import unittest
 from gluon import *
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.torrentparse import TorrentParser
 from applications.zcomx.modules.torrents import \
@@ -212,10 +213,7 @@ class TestAllTorrentCreator(TorrentTestCase):
 class TestBookTorrentCreator(TorrentTestCase):
 
     def test____init__(self):
-        # No book entity
-        self.assertRaises(LookupError, BookTorrentCreator)
-
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='Test Book Torrent Creator'
         ))
         tor_creator = BookTorrentCreator(book)
@@ -224,7 +222,7 @@ class TestBookTorrentCreator(TorrentTestCase):
     def test__archive(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='My Book',
             publication_year=1999,
             creator_id=creator.id,
@@ -234,8 +232,7 @@ class TestBookTorrentCreator(TorrentTestCase):
         # book.cbz is not defined, should fail
         self.assertRaises(TorrentCreateError, tor_creator.archive)
 
-        book.update_record(cbz=self._test_file)
-        db.commit()
+        book = Book.from_updated(book, dict(cbz=self._test_file))
         tor_creator = BookTorrentCreator(book)
         tor_file = tor_creator.archive(base_path=self._tmp_dir)
         self.assertEqual(
@@ -247,14 +244,14 @@ class TestBookTorrentCreator(TorrentTestCase):
             )
         )
 
-        book_record = db(db.book.id == book.id).select(limitby=(0, 1)).first()
-        self.assertEqual(book_record.torrent, tor_file)
+        got = Book.from_id(book.id)
+        self.assertEqual(got.torrent, tor_file)
 
     def test__get_destination(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='My Book',
             publication_year=1999,
             creator_id=creator.id,
@@ -268,13 +265,8 @@ class TestBookTorrentCreator(TorrentTestCase):
                 i=creator.id)
         )
 
-        # Test invalid creator
-        book.update_record(creator_id=-1)
-        db.commit()
-        self.assertRaises(LookupError, tor_creator.get_destination)
-
     def test__get_target(self):
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='Test Book Torrent Creator',
             cbz='/path/to/file.cbz',
         ))
