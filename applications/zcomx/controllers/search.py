@@ -83,7 +83,11 @@ def index():
 
     icons = {'list': 'th-list', 'tile': 'th-large'}
 
-    grid = Grid.class_factory(request.vars.o or 'completed')
+    try:
+        grid = Grid.class_factory(request.vars.o or 'completed')
+    except KeyError:
+        LOG.error('Invalid front view requested: o=%s', request.vars.o)
+        raise HTTP(404, "Page not found")
 
     return dict(
         grid=grid,
