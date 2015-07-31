@@ -223,7 +223,7 @@ class TestBookTorrentCreator(TorrentTestCase):
 
     def test__archive(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
         book = self.add(db.book, dict(
             name='My Book',
             publication_year=1999,
@@ -252,7 +252,7 @@ class TestBookTorrentCreator(TorrentTestCase):
 
     def test__get_destination(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         book = self.add(db.book, dict(
             name='My Book',
@@ -288,9 +288,6 @@ class TestBookTorrentCreator(TorrentTestCase):
 class TestCreatorTorrentCreator(TorrentTestCase):
 
     def test____init__(self):
-        # No creator entity
-        # FIXME self.assertRaises(LookupError, CreatorTorrentCreator)
-
         creator = Creator(dict(
             email='test____init__@gmail.com'
         ))
@@ -299,7 +296,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
 
     def test__archive(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
         # The target cbz directory won't exist
@@ -311,13 +308,12 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         fmt = '/tmp/test_torrent/tor/zco.mx/F/FirstLast ({i}.zco.mx).torrent'
         self.assertEqual(tor_file, fmt.format(i=creator.id))
 
-        creator_record = db(db.creator.id == creator.id).select(limitby=(0, 1)).first()
-        self.assertEqual(creator_record.torrent, tor_file)
+        updated_creator = Creator.from_id(creator.id)
+        self.assertEqual(updated_creator.torrent, tor_file)
 
     def test__get_destination(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator_row = self.add(db.creator, dict(auth_user_id=auth_user.id))
-        creator = Creator.from_id(creator_row.id)
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
         self.assertEqual(
@@ -327,8 +323,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
 
     def test__get_target(self):
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator_row = self.add(db.creator, dict(auth_user_id=auth_user.id))
-        creator = Creator.from_id(creator_row.id)
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
         self.assertEqual(
@@ -341,7 +336,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         # pylint: disable=W0212
 
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
         self.assertEqual(tor_creator._cbz_base_path, None)

@@ -17,6 +17,7 @@ from PIL import Image
 from gluon import *
 from gluon.html import DIV, IMG
 from gluon.http import HTTP
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import \
     CachedImgTag, \
     CreatorImgTag, \
@@ -65,7 +66,7 @@ class WithObjectsTestCase(LocalTestCase):
             email=email,
         ))
 
-        self._creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             email=email,
         ))

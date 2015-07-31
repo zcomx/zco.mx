@@ -16,6 +16,7 @@ from applications.zcomx.modules.images import \
     ImageDescriptor, \
     UploadImage, \
     store
+from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.shell_utils import TempDirectoryMixin
 
@@ -141,7 +142,7 @@ class ImageTestCase(WithTestDataDirTestCase):
 
         Args:
             field: gluon.dal.Field instance
-            record: Row instance.
+            record: Record instance or Row instance.
             img: string, path/to/name of image.
         Returns:
             Name of the stored image file.
@@ -153,8 +154,12 @@ class ImageTestCase(WithTestDataDirTestCase):
             up_image.delete_all()
         stored_filename = store(field, img, resizer=resizer)
         data = {field.name: stored_filename}
-        record.update_record(**data)
-        db.commit()
+        if isinstance(record, Record):
+            record.__class__.from_updated(record, data)
+            record.update(data)
+        else:
+            record.update_record(**data)
+            db.commit()
         return stored_filename
 
     def setUp(self):

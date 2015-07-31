@@ -36,59 +36,109 @@ class Record(Row):
         return self.delete()
 
     @classmethod
-    def from_id(cls, record_id, db_table=None):
+    def from_add(cls, data):
+        """Add a db record from the given data and return the instance
+        associateted with it.
+
+        Args:
+            data: dict, {field: value, ...}
+
+        Returns:
+            cls instance
+        """
+        db = current.app.db
+        ret = db[cls.db_table].validate_and_insert(**data)
+        db.commit()
+        if ret.errors:
+            msg = ', '.join([
+                '{k}: {v}'.format(k=k, v=v)
+                for k, v in ret.errors.items()
+            ])
+            raise SyntaxError(msg)
+        return cls.from_id(ret.id)
+
+    @classmethod
+    def from_id(cls, record_id):
         """Create instance from record id.
 
         Args:
             record_id: integer, id of record
-            db_table: str, name of database table
-                Defaults to cls.db_table.
 
         Returns:
             cls instance
         """
         db = current.app.db
-        table = db_table or cls.db_table
-        query = (db[table].id == record_id)
+        query = (db[cls.db_table].id == record_id)
         record = db(query).select(limitby=(0, 1)).first()
         if not record:
             raise LookupError('Record not found, table {t}, id {i}'.format(
-                t=table, i=record_id))
+                t=cls.db_table, i=record_id))
         return cls(record.as_dict())
 
     @classmethod
-    def from_key(cls, key, db_table=None):
+    def from_key(cls, key):
         """Create instance from key
 
         Args:
             key: dict, {field: value, ...}
-            db_table: str, name of database table
-                Defaults to cls.db_table.
 
         Returns:
             cls instance
         """
         db = current.app.db
-        table = db_table or cls.db_table
         queries = []
         for k, v in key.iteritems():
-            queries.append((db[table][k] == v))
+            queries.append((db[cls.db_table][k] == v))
         query = reduce(lambda x, y: x & y, queries) if queries else None
+        return cls.from_query(query)
+
+    @classmethod
+    def from_query(cls, query):
+        """Create instance from key
+
+        Args:
+            key: dict, {field: value, ...}
+
+        Returns:
+            cls instance
+        """
+        db = current.app.db
         record = db(query).select(limitby=(0, 1)).first()
         if not record:
-            raise LookupError('Record not found, table {t}, key {k}'.format(
-                t=table, k=key))
+            raise LookupError('Record not found, table {t}, query {q}'.format(
+                t=cls.db_table, q=query))
         return cls(record.as_dict())
 
-    def save(self):
-        """Save the record to the db."""
+    @classmethod
+    def from_updated(cls, record, data):
+        """Update a db record and return a instance representing the
+        updated record.
+
+        Args:
+            record: Record (or subclass) instance
+            data: dict, {field: value, ...}
+
+        Returns:
+            cls instance
+        """
+        if not record.id:
+            msg = 'Unable to update record with out id.'
+            raise SyntaxError(msg)
+
         db = current.app.db
-        record_id = db[self.db_table].insert(**self.as_dict())
+        query = (db[record.db_table].id == record.id)
+        ret = db(query).validate_and_update(**data)
         db.commit()
-        return record_id
+        if ret.errors:
+            msg = ', '.join([
+                '{k}: {v}'.format(k=k, v=v)
+                for k, v in ret.errors.items()
+            ])
+            raise SyntaxError(msg)
+        return cls.from_id(record.id)
 
     def update_record(self, **data):
-        """DEPRECATED do not use."""
+        """DEPRECATED do not use. Use from_updated()."""
         for line in traceback.format_stack():
             LOG.error(line)
         LOG.error('Record.update_record called')

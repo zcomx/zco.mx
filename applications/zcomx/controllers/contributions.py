@@ -12,6 +12,7 @@ from applications.zcomx.modules.creators import \
     formatted_name
 from applications.zcomx.modules.events import \
     ContributionEvent, \
+    PaypalLog, \
     ZcoContributionEvent
 from applications.zcomx.modules.utils import entity_to_row
 from applications.zcomx.modules.zco import Zco
@@ -196,13 +197,17 @@ def paypal_notify():
             else:
                 ZcoContributionEvent(auth_user_id).log(amount)
 
-    paypal_log = {}
+    paypal_log_data = {}
     for f in db.paypal_log.fields:
         if f in request.vars:
-            paypal_log[f] = request.vars[f]
-    if paypal_log:
-        db.paypal_log.validate_and_insert(**paypal_log)
-        db.commit()
+            paypal_log_data[f] = request.vars[f]
+    if paypal_log_data:
+        # unused-variable (W0612): *Unused variable %%r*
+        # pylint: disable=W0612
+        try:
+            paypal_log = PaypalLog.from_add(paypal_log_data)
+        except SyntaxError as err:
+            LOG.error('Paypal log failed: %s', str(err))
 
     if request.vars.custom:
         redirect(request.vars.custom)

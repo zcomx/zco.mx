@@ -360,7 +360,7 @@ class TestGrid(LocalTestCase):
         self.assertEqual(anchor_3['href'], '/z/cartoonists')
 
     def test__tile_value(self):
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__tile_value@email.com'
         ))
         name = '_My Book_'
@@ -507,8 +507,7 @@ class TestCreatorMoniesGrid(LocalTestCase):
         self.assertEqual(len(grid.filters()), 0)
 
         # creator is set
-        row = self.add(db.creator, dict(email='test__filters@email.com'))
-        creator = Creator.from_id(row.id)
+        creator = self.add(Creator, dict(email='test__filters@email.com'))
         grid = CreatorMoniesGrid(creator=creator)
         self.assertEqual(len(grid.filters()), 1)
 
@@ -1354,7 +1353,7 @@ class TestFunctions(LocalTestCase):
         self._auth_user = self.add(db.auth_user, dict(
             name='First Last',
         ))
-        self._creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             name_for_url='FirstLast',
         ))
@@ -1425,13 +1424,12 @@ class TestFunctions(LocalTestCase):
 
         self._book.update_record(creator_id=self._creator.id)
         db.commit()
-        db(db.creator.id == self._creator.id).update(paypal_email='')
-        db.commit()
+        self._creator = Creator.from_updated(
+            self._creator, dict(paypal_email=''))
         self.assertEqual(book_contribute_button(self._row()), '')
 
-        db(db.creator.id == self._creator.id).update(
-            paypal_email='paypal@email.com')
-        db.commit()
+        self._creator = Creator.from_updated(
+            self._creator, dict(paypal_email='paypal@email.com'))
 
         data = self._parse_link(book_contribute_button(self._row()))
         self.assertEqual(data['string'], 'Contribute')
@@ -1441,14 +1439,12 @@ class TestFunctions(LocalTestCase):
     def test__creator_contribute_button(self):
         self.assertEqual(creator_contribute_button({}), '')
 
-        db(db.creator.id == self._creator.id).update(
-            paypal_email='')
-        db.commit()
+        self._creator = Creator.from_updated(
+            self._creator, dict(paypal_email=''))
         self.assertEqual(creator_contribute_button(self._row()), '')
 
-        db(db.creator.id == self._creator.id).update(
-            paypal_email='paypal@email.com')
-        db.commit()
+        self._creator = Creator.from_updated(
+            self._creator, dict(paypal_email='paypal@email.com'))
 
         data = self._parse_link(creator_contribute_button(self._row()))
         self.assertEqual(data['string'], 'Contribute')
@@ -1505,14 +1501,12 @@ class TestFunctions(LocalTestCase):
     def test__link_for_creator_torrent(self):
         self.assertEqual(link_for_creator_torrent({}), '')
 
-        db(db.creator.id == self._creator.id).update(torrent=None)
-        db.commit()
+        self._creator = Creator.from_updated(self._creator, dict(torrent=None))
         self.assertEqual(self._row().creator.torrent, None)
         self.assertEqual(link_for_creator_torrent(self._row()), '')
 
-        db(db.creator.id == self._creator.id).update(
-            torrent='FirstLast.torrent')
-        db.commit()
+        self._creator = Creator.from_updated(self._creator, dict(
+            torrent='FirstLast.torrent'))
         self.assertEqual(self._row().creator.torrent, 'FirstLast.torrent')
 
         data = self._parse_link(link_for_creator_torrent(self._row()))

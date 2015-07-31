@@ -14,6 +14,7 @@ from applications.zcomx.modules.books import \
     get_page, \
     images as book_images
 from applications.zcomx.modules.creators import \
+    Creator, \
     images as creator_images
 from applications.zcomx.modules.images_optimize import \
     CBZImagesForRelease
@@ -46,8 +47,7 @@ class Releaser(object):
         if not self.book:
             raise LookupError('Book not found, id: %s', book_id)
 
-        query = (db.creator.id == self.book.creator_id)
-        self.creator = db(query).select(limitby=(0, 1)).first()
+        self.creator = Creator.from_id(self.book.creator_id)
         if not self.creator:
             raise LookupError(
                 'Creator not found, id: %s', self.book.creator_id)

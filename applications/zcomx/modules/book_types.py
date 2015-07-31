@@ -31,6 +31,25 @@ class BookType(Record):
             book_type.as_dict()
         )
 
+    @classmethod
+    def classified_from_id(cls, record_id):
+        """Create instance of appropriate class from record id.
+
+        Like Record.from_id but converts BookType instance to appropriate
+        subclass instance
+
+        Args:
+            record_id: integer, id of record
+
+        Returns:
+            BookType subclass instance
+        """
+        book_type = cls.from_id(record_id)
+        return cls.class_factory(
+            book_type.name,
+            book_type.as_dict()
+        )
+
     def formatted_number(self, number, of_number):
         """Return the number of the book formatted.
 
@@ -42,27 +61,6 @@ class BookType(Record):
             string: formatted number, eg '01 (of 04)'
         """
         raise NotImplementedError()
-
-    @classmethod
-    def from_id(cls, record_id, db_table=None):
-        """Create instance from record id.
-
-        Like Record.from_id but converts BookType instance to appropriate
-        subclass instance
-
-        Args:
-            record_id: integer, id of record
-            db_table: str, name of database table
-                Defaults to cls.db_table.
-
-        Returns:
-            BookType subclass instance
-        """
-        book_type = Record.from_id(record_id, db_table=cls.db_table)
-        return cls.class_factory(
-            book_type.name,
-            book_type.as_dict()
-        )
 
     def is_series(self):
         """Return whether the book type is a series.

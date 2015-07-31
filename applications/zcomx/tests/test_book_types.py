@@ -64,12 +64,7 @@ class TestBookType(WithDataTestCase):
         self.assertTrue('01 of 04' in got.description)
         self.assertTrue(isinstance(got, MiniSeriesType))
 
-    def test__formatted_number(self):
-        book_type = BookType(self.book_type_data)
-        self.assertRaises(
-            NotImplementedError, book_type.formatted_number, 1, 1)
-
-    def test__from_id(self):
+    def test__classified_from_id(self):
         tests = [
             # (type name, expect class)
             ('one-shot', OneShotType),
@@ -79,12 +74,17 @@ class TestBookType(WithDataTestCase):
         for t in tests:
             book_type = db(db.book_type.name == t[0]).select(limitby=(0, 1)).first()
             self.assertTrue(book_type)
-            got = BookType.from_id(book_type.id)
+            got = BookType.classified_from_id(book_type.id)
             self.assertEqual(got, book_type)
             self.assertTrue(isinstance(got, t[1]))
             self.assertEqual(got.name, book_type.name)
             self.assertEqual(got.description, book_type.description)
             self.assertEqual(got.sequence, book_type.sequence)
+
+    def test__formatted_number(self):
+        book_type = BookType(self.book_type_data)
+        self.assertRaises(
+            NotImplementedError, book_type.formatted_number, 1, 1)
 
     def test__is_series(self):
         book_type = DubBookType(self.book_type_data)

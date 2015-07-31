@@ -9,6 +9,7 @@ Test suite for zcomx/modules/social_media.py
 import time
 import unittest
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.social_media import \
     FacebookPoster, \
     FacebookSocialMedia, \
@@ -40,7 +41,7 @@ class BaseTestCase(LocalTestCase):
             name='First Last',
         ))
 
-        self._creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             email='test_social_media@example.com',
         ))
@@ -134,9 +135,7 @@ class TestFacebookSocialMedia(BaseTestCase):
         ]
         for t in tests:
             data = dict(facebook=t[0])
-            db(db.creator.id == self._creator.id).update(**data)
-            db.commit()
-            self._creator.update(data)
+            self._creator = Creator.from_updated(self._creator, data)
             media = FacebookSocialMedia(
                 self._book, creator=self._creator)
             self.assertEqual(media.follow_url(), t[1])
@@ -174,30 +173,17 @@ class TestTumblrSocialMedia(BaseTestCase):
         ]
         for t in tests:
             data = dict(tumblr=t[0])
-            db(db.creator.id == self._creator.id).update(**data)
-            db.commit()
-            self._creator.update(data)
+            self._creator = Creator.from_updated(self._creator, data)
             media = TumblrSocialMedia(
                 self._book, creator=self._creator)
             self.assertEqual(media.follow_url(), t[1])
 
     def test__get_username(self):
         media = TumblrSocialMedia(self._book, creator=self._creator)
-        tests = [
-            # (tumblr, expect)
-            (None, None),
-            ('http://auser.tumblr.com', 'auser'),
-            ('_invalid_ _tumblr_', None),
-            ('www.tumblr.com', None),
-        ]
-        for t in tests:
-            data = dict(tumblr=t[0])
-            db(db.creator.id == self._creator.id).update(**data)
-            db.commit()
-            self._creator.update(data)
-            media = TumblrSocialMedia(
-                self._book, creator=self._creator)
-            self.assertEqual(media.get_username(), t[1])
+        data = dict(tumblr='http://auser.tumblr.com')
+        self._creator = Creator.from_updated(self._creator, data)
+        media = TumblrSocialMedia(self._book, creator=self._creator)
+        self.assertEqual(media.get_username(), 'auser')
 
     def test_icon_url(self):
         media = TumblrSocialMedia(self._book, creator=self._creator)
@@ -207,11 +193,9 @@ class TestTumblrSocialMedia(BaseTestCase):
     def test__share_url(self):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
-        media = TumblrSocialMedia(self._book, creator=self._creator)
         data = dict(tumblr=None)
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
+        media = TumblrSocialMedia(self._book, creator=self._creator)
         self.assertEqual(
             media.share_url(),
             'https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia%2F001.png&clickthru=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E'.format(cid=self._creator.id)
@@ -219,9 +203,8 @@ class TestTumblrSocialMedia(BaseTestCase):
         )
 
         data = dict(tumblr='http://zco.tumblr.com')
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
+        media = TumblrSocialMedia(self._book, creator=self._creator)
         self.assertEqual(
             media.share_url(),
             'https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia%2F001.png&clickthru=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3Ezco%3C%2Fa%3E'.format(cid=self._creator.id)
@@ -244,9 +227,7 @@ class TestTwitterSocialMedia(BaseTestCase):
         ]
         for t in tests:
             data = dict(twitter=t[0])
-            db(db.creator.id == self._creator.id).update(**data)
-            db.commit()
-            self._creator.update(data)
+            self._creator = Creator.from_updated(self._creator, data)
             media = TwitterSocialMedia(
                 self._book, creator=self._creator)
             self.assertEqual(media.follow_url(), t[1])
@@ -259,19 +240,16 @@ class TestTwitterSocialMedia(BaseTestCase):
     def test__share_url(self):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
-        media = TwitterSocialMedia(self._book, creator=self._creator)
         data = dict(twitter=None)
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
+        media = TwitterSocialMedia(self._book, creator=self._creator)
         self.assertEqual(
             media.share_url(),
             'https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia&text=Check+out+%27Test+Social+Media%27+by+First+Last&hashtage='.format(cid=self._creator.id)
         )
         data = dict(twitter='@zco')
-        db(db.creator.id == self._creator.id).update(**data)
-        db.commit()
-        self._creator.update(data)
+        self._creator = Creator.from_updated(self._creator, data)
+        media = TwitterSocialMedia(self._book, creator=self._creator)
         self.assertEqual(
             media.share_url(),
             'https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia&text=Check+out+%27Test+Social+Media%27+by+%40zco&hashtage='.format(cid=self._creator.id)

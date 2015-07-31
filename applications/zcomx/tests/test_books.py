@@ -78,8 +78,6 @@ from applications.zcomx.modules.tests.helpers import \
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
-from applications.zcomx.modules.utils import \
-    entity_to_row
 from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
     BOOK_STATUS_ACTIVE, \
@@ -103,10 +101,9 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
 
-        creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             email='image_test_case@example.com',
         ))
-        self._creator = Creator.from_id(creator.id)
 
         self._book = self.add(db.book, dict(
             name='Image Test Case',
@@ -372,7 +369,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertRaises(LookupError, cbz_comment, book)
 
         auth_user = self.add(db.auth_user, dict(name='Test CBZ Comment'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
         book.update_record(creator_id=creator.id)
         db.commit()
 
@@ -386,7 +383,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__cbz_link(self):
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__cbz_link@example.com',
             name_for_url='FirstLast',
         ))
@@ -454,7 +451,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__cbz_url(self):
         self.assertRaises(LookupError, cbz_url, -1)
 
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__cbz_url@example.com',
             name_for_url='FirstLast',
         ))
@@ -498,7 +495,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertRaises(LookupError, cc_licence_data, book)
 
         auth_user = self.add(db.auth_user, dict(name='Test CC Licence Data'))
-        creator = self.add(db.creator, dict(auth_user_id=auth_user.id))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         book.update_record(creator_id=creator.id)
         db.commit()
@@ -1116,7 +1113,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(html_metadata(None), {})
 
         auth_user = self.add(db.auth_user, dict(name='First Last'))
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             auth_user_id=auth_user.id,
             name_for_url='FirstLast',
             twitter='@firstlast',
@@ -1494,7 +1491,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(next_book_in_series(mini_series_2), mini_series_3)
 
     def test__page_url(self):
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__page_url@example.com',
             name_for_url='FirstLast',
         ))
@@ -1550,7 +1547,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__read_link(self):
         empty = '<span></span>'
 
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__read_link@example.com',
             name_for_url='FirstLast',
         ))
@@ -1638,7 +1635,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__rss_url(self):
         self.assertRaises(LookupError, rss_url, -1)
 
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__torrent_url@example.com',
             name_for_url='FirstLast',
         ))
@@ -1666,7 +1663,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         for s in BOOK_STATUSES:
             set_status(book, s)
-            book_1 = db(db.book.id == book.id).select(limitby=(0, 1)).first()   # Reload
+            query = (db.book.id == book.id)
+            book_1 = db(query).select(limitby=(0, 1)).first()   # Reload
             self.assertEqual(book_1.status, s)
 
     def test__short_page_img_url(self):
@@ -1739,7 +1737,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(social_media_data(None), {})
 
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             name_for_url='FirstLast',
         ))
 
@@ -1788,7 +1786,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__torrent_file_name(self):
         self.assertRaises(LookupError, torrent_file_name, -1)
 
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__torrent_file_name@example.com',
         ))
 
@@ -1819,7 +1817,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__torrent_link(self):
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__torrent_link@example.com',
             name_for_url='FirstLast',
         ))
@@ -1887,7 +1885,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__torrent_url(self):
         self.assertRaises(LookupError, torrent_url, -1)
 
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__torrent_url@example.com',
             name_for_url='FirstLast',
         ))
@@ -1908,10 +1906,9 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__update_contributions_remaining(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
-        creator_row = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__update_contributions_remaining@eg.com'
         ))
-        creator = Creator.from_id(creator_row.id)
 
         book_contributions = lambda b: calc_contributions_remaining(db, b)
         creator_contributions = \
@@ -1963,9 +1960,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Creator contributions_remaining should be updated by any of it's
         # books.
         data = dict(contributions_remaining=0)
-        db(db.creator.id == creator.id).update(**data)
-        db.commit()
-        creator.update(**data)
+        creator = Creator.from_updated(creator, data)
         self.assertEqual(creator_contributions(creator), 0)
         update_contributions_remaining(db, book)
         self.assertAlmostEqual(creator_contributions(creator), 99.01)
@@ -2089,7 +2084,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__url(self):
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__url@example.com',
             name_for_url='FirstLast',
         ))

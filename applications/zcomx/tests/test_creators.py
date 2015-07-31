@@ -40,8 +40,6 @@ from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -418,9 +416,7 @@ class TestFunctions(ImageTestCase):
                     resizer=ResizerQuick,
                 )
                 data = {field: stored_filename}
-                db(db.creator.id == creator.id).update(**data)
-                db.commit()
-                creator[field] = stored_filename
+                creator = Creator.from_updated(creator, data)
 
         self.assertTrue(creator)
 
@@ -511,10 +507,9 @@ class TestFunctions(ImageTestCase):
             name='Test On Change Name'
         ))
 
-        creator_row = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test_on_change_name@example.com'
         ))
-        creator = Creator.from_id(creator_row.id)
 
         def test_prefetch_job():
             query = (db.job.command.like('%search_prefetch.py'))
@@ -526,30 +521,30 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(creator.name_for_search, None)
         self.assertEqual(creator.name_for_url, None)
-        on_change_name(creator)
-        # creator.auth_user_id not set
-        creator = Creator.from_id(creator_row.id)
-        self.assertEqual(creator.name_for_search, None)
-        self.assertEqual(creator.name_for_url, None)
 
-        db(db.creator.id == creator.id).update(auth_user_id=auth_user.id)
-        db.commit()
-        creator = Creator.from_id(creator_row.id)
-        on_change_name(creator)
+        # creator.auth_user_id not set
+        updated_creator = on_change_name(creator)
+        creator = Creator.from_id(creator.id)
+        self.assertEqual(updated_creator.name_for_search, None)
+        self.assertEqual(updated_creator.name_for_url, None)
+
+        creator = Creator.from_updated(creator, dict(
+            auth_user_id=auth_user.id
+        ))
+        updated_creator = on_change_name(creator)
         test_prefetch_job()
-        creator = Creator.from_id(creator_row.id)
-        self.assertEqual(creator.name_for_search, 'test-on-change-name')
-        self.assertEqual(creator.name_for_url, 'TestOnChangeName')
+        self.assertEqual(
+            updated_creator.name_for_search, 'test-on-change-name')
+        self.assertEqual(updated_creator.name_for_url, 'TestOnChangeName')
 
     def test__profile_onaccept(self):
         auth_user = self.add(db.auth_user, dict(
             name='Test Profile Onaccept'
         ))
 
-        creator_row = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test_profile_onaccept@example.com',
         ))
-        creator = Creator.from_id(creator_row.id)
 
         self.assertEqual(creator.name_for_search, None)
         self.assertEqual(creator.name_for_url, None)
@@ -569,9 +564,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(creator.name_for_url, None)
 
         data = dict(auth_user_id=auth_user.id)
-        db(db.creator.id == creator.id).update(**data)
-        db.commit()
-        creator.update(data)
+        creator = Creator.from_updated(creator, data)
         profile_onaccept(form)
         creator = Creator.from_id(creator.id)
         self.assertEqual(creator.name_for_search, 'test-profile-onaccept')

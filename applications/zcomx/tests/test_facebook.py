@@ -11,11 +11,11 @@ import re
 import unittest
 import uuid
 from applications.zcomx.modules.book_types import BookType
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.facebook import \
     Authenticator, \
     FacebookAPIAuthenticator, \
     FacebookAPIClient, \
-    FacebookAPIError, \
     PhotoDataPreparer, \
     Poster, \
     TextDataPreparer
@@ -44,7 +44,7 @@ class WithObjectsTestCase(LocalTestCase):
             name='First Last'
         ))
 
-        self._creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             auth_user_id=self._auth_user.id,
             email='image_test_case@example.com',
             name_for_url='FirstLast',
@@ -297,7 +297,7 @@ class TestPhotoDataPreparer(LocalTestCase):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         data = {
-            'creator': {'name': 'First Last' }
+            'creator': {'name': 'First Last'}
         }
         expect = 'by First Last'
         preparer = PhotoDataPreparer(data)

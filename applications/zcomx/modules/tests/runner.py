@@ -16,7 +16,6 @@ import sys
 import time
 import unittest
 import urllib
-import urllib2
 import urlparse
 
 from gluon.contrib.webclient import \
@@ -29,8 +28,8 @@ from gluon.storage import \
     Storage
 
 FILTER_TABLES = []          # Cache for values in comment.filter_table fields
-APP_ENV = {}                # Cache for app environments. Reuse of db prevents
-                            # 'too many connections' errors.
+# Cache db instances to prevent 'too many connections' errors.
+APP_ENV = {}                # Cache for app environments.
 
 
 class LocalTestCase(unittest.TestCase):
@@ -100,14 +99,25 @@ class LocalTestCase(unittest.TestCase):
                 db.commit()
 
     @classmethod
-    def add(cls, table, data):
-        """Helper function to add a test record and store it for removal."""
+    def add(cls, obj, data):
+        """Helper function to add a test record and store it for removal.
+
+        Args:
+            obj: A Record subclass instance or a gluon.dal.Table
+                instance.
+
+            data: dict of data, {field: value, ...}
+
+        """
         # protected-access (W0212): *Access to a protected member
         # pylint: disable=W0212
-        db = table._db
-        record_id = table.insert(**data)
-        db.commit()
-        record = db(table.id == record_id).select(limitby=(0, 1)).first()
+        db = current.app.db
+        if hasattr(obj, 'insert'):
+            record_id = obj.insert(**data)
+            db.commit()
+            record = db(obj.id == record_id).select(limitby=(0, 1)).first()
+        elif hasattr(obj, 'from_add'):
+            record = obj.from_add(data)
         cls._objects.append(record)
         return record
 
@@ -524,14 +534,13 @@ class LocalWebClient(WebClient):
         self.post(url, data=data)
 
     def post(
-        self,
-        url,
-        data=None,
-        cookies=None,
-        headers=None,
-        auth=None,
-        method='auto'
-    ):
+            self,
+            url,
+            data=None,
+            cookies=None,
+            headers=None,
+            auth=None,
+            method='auto'):
         """Override base class method.
 
         Args:
@@ -561,13 +570,12 @@ class LocalWebClient(WebClient):
         return socket.gethostbyname(urlparse.urlparse(url).hostname)
 
     def test(
-        self,
-        url,
-        expect,
-        match_type='all',
-        tolerate_whitespace=False,
-        post_data=None
-    ):
+            self,
+            url,
+            expect,
+            match_type='all',
+            tolerate_whitespace=False,
+            post_data=None):
         """Test accessing a page.
 
         Args:
@@ -671,6 +679,8 @@ class TableTracker(object):
         Args:
             table: gluon.dal.base.Table instance
         """
+        # protected-access (W0212): *Access to a protected member
+        # pylint: disable=W0212
         self.table = table
         db = self.table._db
         self._ids = [x.id for x in db(self.table).select()]
@@ -690,6 +700,8 @@ class TableTracker(object):
         Args:
             row: gluon.dal.objects.Row instance.
         """
+        # protected-access (W0212): *Access to a protected member
+        # pylint: disable=W0212
         db = self.table._db
         ids = [x.id for x in db(self.table).select()]
         return True if row.id in ids else False
@@ -731,6 +743,8 @@ def count_diff(func):
         Args:
             arg: args passed to decorated function.
         """
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         tmp_dir = '/tmp/test_suite/count_diff'
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)

@@ -16,6 +16,7 @@ from applications.zcomx.modules.book_lists import \
     OngoingBookList, \
     CompletedBookList, \
     class_from_code
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -33,7 +34,7 @@ class DubBookList(BaseBookList):
 class TestBaseBookList(LocalTestCase):
 
     def test____init__(self):
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__init__@email.com',
         ))
         book_list = BaseBookList(creator)
@@ -47,7 +48,7 @@ class TestBaseBookList(LocalTestCase):
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
 
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__books@email.com',
         ))
 
@@ -96,7 +97,7 @@ class TestBaseBookList(LocalTestCase):
         self.assertEqual(book_list.filters(), [])
 
     def test__has_releasing_books(self):
-        creator = self.add(db.creator, dict(
+        creator = self.add(Creator, dict(
             email='test__books@email.com',
         ))
 

@@ -357,10 +357,9 @@ def on_change_name(creator):
     update_data = names(
         CreatorName(formatted_name(creator)), fields=db.creator.fields)
 
-    if update_data:
-        db(db.creator.id == creator.id).update(**update_data)
-        db.commit()
+    updated_creator = Creator.from_updated(creator, update_data)
     queue_search_prefetch()
+    return updated_creator
 
 
 def profile_onaccept(form):

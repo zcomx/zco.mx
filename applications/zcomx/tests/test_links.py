@@ -10,6 +10,7 @@ import unittest
 from gluon import *
 from BeautifulSoup import BeautifulSoup
 from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.links import \
     BaseLinkSet, \
     Link, \
@@ -199,26 +200,27 @@ class TestLinks(LocalTestCase):
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     def setUp(self):
-        self._creator = self.add(db.creator, dict(
+        self._creator = self.add(Creator, dict(
             email='testcustomlinks@example.com'
         ))
 
         # Create a second creator with no links
-        self._creator_2 = self.add(db.creator, dict(
+        self._creator_2 = self.add(Creator, dict(
             email='testcustomlinks_2@example.com'
         ))
 
-        if not self._links:
-            for count, link_data in enumerate(self._links_data):
-                link = Link(dict(
-                    link_type_id=LinkType.by_code('creator_page').id,
-                    record_table='creator',
-                    record_id=self._creator.id,
-                    name=link_data['name'],
-                    url=link_data['url'],
-                    order_no=count,
-                ))
-                self._links.append(link)
+        self._links = []
+        for count, link_data in enumerate(self._links_data):
+            link = Link.from_add(dict(
+                link_type_id=LinkType.by_code('creator_page').id,
+                record_table='creator',
+                record_id=self._creator.id,
+                name=link_data['name'],
+                url=link_data['url'],
+                order_no=count,
+            ))
+            self._links.append(link)
+            self._objects.append(link)
 
         self._links_key = LinksKey.from_link(self._links[0])
 
@@ -242,25 +244,16 @@ class TestLinks(LocalTestCase):
             self.assertEqual(anchor['target'], '_blank')
 
     def test__from_links_key(self):
-        link_records = []
-        for link in self._links:
-            link_data = link.as_dict()
-            link_data['id'] = link.save()
-            link_records.append(Link(link_data))
-
-        for link in link_records:
-            self._objects.append(link)
-
         links = Links.from_links_key(self._links_key)
-        self.assertEqual(len(links.links), len(link_records))
+        self.assertEqual(len(links.links), len(self._links))
 
-        fields = link_records[0].keys()
+        fields = self._links[0].keys()
         ignore_fields = ['delete_record', 'update_record']
         for count, link in enumerate(links.links):
             for f in fields:
                 if f in ignore_fields:
                     continue
-                self.assertEqual(link[f], link_records[count][f])
+                self.assertEqual(link[f], self._links[count][f])
 
     def test__represent(self):
         links = Links(self._links)

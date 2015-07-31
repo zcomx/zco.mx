@@ -225,11 +225,8 @@ class CreatorTorrentCreator(BaseTorrentCreator):
         """
         result = BaseTorrentCreator.archive(self, base_path=base_path)
         if self.creator:
-            db = current.app.db
             data = dict(torrent=result)
-            db(db.creator.id == self.creator.id).update(**data)
-            db.commit()
-            self.creator.update(**data)
+            self.creator = Creator.from_updated(self.creator, data)
         return result
 
     def get_destination(self):
