@@ -95,8 +95,8 @@ def main():
     for log in logs:
         LOG.debug('Checking book id: %s', log.book_id)
         filters = {'book_id': log.book_id}
-        log_set = TentativeLogSet.load(filters=filters)
-        youngest_log = log_set.youngest()
+        tentative_log_set = TentativeLogSet.load(filters=filters)
+        youngest_log = tentative_log_set.youngest()
         age = youngest_log.age()
         if age.total_seconds() < options.minimum_age:
             LOG.debug(
@@ -118,7 +118,7 @@ def main():
                     activity_log.action
                 )
 
-        for tentative_activity_log in log_set.tentative_records:
+        for tentative_activity_log in tentative_log_set.tentative_records:
             tentative_activity_log.delete()
 
     LOG.debug('Done')
