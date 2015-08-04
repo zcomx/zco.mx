@@ -11,24 +11,6 @@ body {
     font-family: 'robotoregular', sans-serif;
 }
 
-/* revert bootstrap/web2py fieldset/legend formatting */
-fieldset {
-    border: 1px solid #DDD;
-    padding: 0 1.4em 1.4em 1.4em;
-    margin: 0 0 1.5em 0;
-}
-
-fieldset legend {
-    border: none;
-    background: none;
-    color: inherit;
-    font-size: inherit;
-    font-weight: inherit;
-    margin-bottom: 0;
-    text-transform: none;
-    width: auto;
-}
-
 h1, h2, h3, h4, h5 {
     font-family: 'roboto_slabregular', serif;
 }
@@ -2836,6 +2818,26 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border: 1px solid #DDDDDD;
     margin: 1em;
     padding: 1em;
+}
+
+/* revert bootstrap/web2py fieldset/legend formatting */
+#book_edit_section fieldset,
+#creator_section fieldset {
+    border: 1px solid #DDD;
+    padding: 0 1.4em 1.4em 1.4em;
+    margin: 0 0 1.5em 0;
+}
+
+#book_edit_section fieldset legend,
+#creator_section fieldset legend {
+    border: none;
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    margin-bottom: 0;
+    text-transform: none;
+    width: auto;
 }
 
 #book_delete_section .instruction em {
