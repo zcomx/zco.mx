@@ -180,8 +180,12 @@ class PageAddedTentativeLogSet(BaseTentativeLogSet):
         """
         book_pages = []
         for tentative_activity_log in self.tentative_records:
-            book_page = BookPage.from_id(tentative_activity_log.book_page_id)
-            if book_page:
+            try:
+                book_page = BookPage.from_id(
+                        tentative_activity_log.book_page_id)
+            except LookupError:
+                pass        # This will happen if the book is deleted.
+            else:
                 book_pages.append(book_page)
         return book_pages
 
