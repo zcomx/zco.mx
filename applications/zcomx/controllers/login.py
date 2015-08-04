@@ -57,7 +57,6 @@ from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
 from applications.zcomx.modules.utils import \
     default_record, \
-    entity_to_row, \
     move_record, \
     reorder
 from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
@@ -302,7 +301,11 @@ def book_delete():
 
     book = None
     if request.args(0):
-        book = entity_to_row(db.book, request.args(0))
+        try:
+            book = Book.from_id(request.args(0))
+        except LookupError:
+            MODAL_ERROR('Invalid data provided')
+
     if not book or book.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
@@ -453,7 +456,10 @@ def book_pages_handler():
 
     book = None
     if request.args(0):
-        book = entity_to_row(db.book, request.args(0))
+        try:
+            book = Book.from_id(request.args(0))
+        except LookupError:
+            return do_error('Upload service unavailable')
     if not book or book.creator_id != creator.id:
         return do_error('Upload service unavailable')
 
@@ -601,7 +607,10 @@ def book_release():
 
     book = None
     if request.args(0):
-        book = entity_to_row(db.book, request.args(0))
+        try:
+            book = Book.from_id(request.args(0))
+        except LookupError:
+            MODAL_ERROR('Invalid data provided')
     if not book or book.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
@@ -983,7 +992,10 @@ def link_crud():
         record = creator
 
     if record_table == 'book':
-        book = entity_to_row(db.book, request.args(1))
+        try:
+            book = Book.from_id(request.args(1))
+        except LookupError:
+            return do_error('Invalid data provided')
         if not book:
             return do_error('Invalid data provided')
         if book.creator_id != creator.id:
@@ -1149,7 +1161,10 @@ def metadata_crud():
         book_id = int(request.args(0))
     except (TypeError, ValueError):
         return do_error('Invalid data provided')
-    book = entity_to_row(db.book, book_id)
+    try:
+        book = Book.from_id(book_id)
+    except LookupError:
+        return do_error('Invalid data provided')
     if not book or (
             book and book.creator_id != creator.id):
         return do_error('Invalid data provided')
@@ -1340,8 +1355,8 @@ def metadata_crud():
         if meta.errors:
             return {'status': 'error', 'fields': meta.errors}
         meta.update()
-        book.update_record(publication_year=meta.publication_year())
-        db.commit()
+        book = Book.from_updated(
+            book, dict(publication_year=meta.publication_year()))
         return {'status': 'ok'}
     return do_error('Invalid data provided')
 
@@ -1370,7 +1385,10 @@ def metadata_text():
         book_id = int(request.args(0))
     except (TypeError, ValueError):
         return do_error('Invalid data provided')
-    book = entity_to_row(db.book, book_id)
+    try:
+        book = Book.from_id(book_id)
+    except LookupError:
+        return do_error('Invalid data provided')
     if not book or (
             book and book.creator_id != creator.id):
         return do_error('Invalid data provided')

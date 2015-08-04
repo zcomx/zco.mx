@@ -174,27 +174,6 @@ def default_record(table, ignore_fields=None):
     return record
 
 
-def entity_to_row(table, entity):
-    """Return a Row instance for the entity.
-
-    Args:
-        table: gluon.dal.Table instance
-        entity: Row instance or integer, if integer, this is the id of the
-            record. The record is read from the table.
-    """
-    if not entity:
-        return
-
-    if isinstance(entity, Row):
-        return entity
-
-    # Assume entity is an id or a Reference instance
-    # W0212 (protected-access): *Access to a protected member
-    # pylint: disable=W0212
-    db = table._db
-    return db(table.id == int(entity)).select(limitby=(0, 1)).first()
-
-
 def faq_tabs(active='faq'):
     """Return a div of clickable tabs for cartoonists' faq page.
 

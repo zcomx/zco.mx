@@ -17,8 +17,6 @@ from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
     get_page
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -68,7 +66,7 @@ def log_page_added():
     """
     for row in db.executesql(sql):
         book_id, created_on_grp, count = row
-        book = entity_to_row(db.book, book_id)
+        book = Book.from_id(book_id)
         action = 'page added'
         time_stamp = datetime.datetime.strptime(
             created_on_grp + ':00:00',

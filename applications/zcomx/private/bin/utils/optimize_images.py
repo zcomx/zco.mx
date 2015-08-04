@@ -18,7 +18,6 @@ from applications.zcomx.modules.creators import \
     images as creator_images
 from applications.zcomx.modules.images_optimize import \
     AllSizesImages
-from applications.zcomx.modules.utils import entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')

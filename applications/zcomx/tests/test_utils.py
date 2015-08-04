@@ -12,7 +12,6 @@ import shutil
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
-from pydal.helpers.classes import Reference
 from gluon.storage import Storage
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import \
@@ -20,7 +19,6 @@ from applications.zcomx.modules.utils import \
     ItemDescription, \
     abridged_list, \
     default_record, \
-    entity_to_row, \
     faq_tabs, \
     joined_list, \
     markmin, \
@@ -307,18 +305,6 @@ class TestFunctions(LocalTestCase):
             sorted(set(all_fields.keys()).difference(set(common.keys()))),
             ['created_on', 'id', 'updated_on']
         )
-
-    def test__entity_to_row(self):
-        book = self.add(db.book, dict(name='test__entity_to_row'))
-
-        # Test Row, Reference, id
-        for entity in [book, Reference(book.id), book.id]:
-            got = entity_to_row(db.book, entity)
-            self.assertEqual(book.as_dict(), got.as_dict())
-
-        # Test invalids
-        for entity in [None, -1, Reference(0)]:
-            self.assertEqual(entity_to_row(db.book, entity), None)
 
     def test__faq_tabs(self):
 

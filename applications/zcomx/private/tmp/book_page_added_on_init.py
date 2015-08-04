@@ -11,8 +11,7 @@ import sys
 import traceback
 from gluon import *
 from optparse import OptionParser
-from applications.zcomx.modules.utils import \
-    entity_to_row
+from applications.zcomx.modules.books import Book
 
 VERSION = 'Version 0.1'
 
@@ -25,9 +24,7 @@ def set_page_added_on(book_id):
     Args:
         book_id: integer, id of book
     """
-    book = entity_to_row(db.book, book_id)
-    if not book:
-        raise LookupError('Book not found, id {b}'.format(b=book_id))
+    book = Book.from_id(book_id)
     LOG.debug('Checking book: %s', book.name)
 
     max_created_on = db.book_page.created_on.max()
@@ -38,8 +35,7 @@ def set_page_added_on(book_id):
     page_added_on = rows[0][max_created_on]
     if page_added_on:
         LOG.debug('Updating book: %s %s', book.name, page_added_on)
-        book.update_record(page_added_on=page_added_on)
-        db.commit()
+        book = Book.from_updated(book, dict(page_added_on=page_added_on))
 
 
 def man_page():

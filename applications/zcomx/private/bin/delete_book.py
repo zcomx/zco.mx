@@ -8,10 +8,10 @@ Script to delete a book.
 """
 import logging
 from optparse import OptionParser
-from applications.zcomx.modules.books import book_tables
+from applications.zcomx.modules.books import \
+    Book, \
+    book_tables
 from applications.zcomx.modules.job_queue import queue_search_prefetch
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -36,8 +36,7 @@ def delete_records(book):
         db.commit()
 
     # Delete the book
-    db(db.book.id == book.id).delete()
-    db.commit()
+    book.delete()
 
 
 def man_page():
@@ -103,10 +102,7 @@ def main():
     LOG.debug('Starting')
 
     book_id = args[0]
-    book = entity_to_row(db.book, book_id)
-    if not book:
-        raise LookupError('Book not found, id: %s', book_id)
-
+    book = Book.from_id(book_id)
     delete_records(book)
     queue_search_prefetch()
 

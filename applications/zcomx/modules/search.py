@@ -33,7 +33,6 @@ from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
 from applications.zcomx.modules.utils import \
     ClassFactory, \
-    entity_to_row, \
     replace_in_elements
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
@@ -920,10 +919,9 @@ class BookTile(Tile):
 
     def follow_link(self):
         """Return the tile download link."""
-        db = self.db
         row = self.row
 
-        book = entity_to_row(db.book, row.book.id)
+        book = Book.from_id(row.book.id)
         if not is_followable(book):
             return SPAN('')
 
@@ -1209,9 +1207,7 @@ def follow_link(row):
     if not book_id:
         return ''
 
-    db = current.app.db
-
-    book = entity_to_row(db.book, book_id)
+    book = Book.from_id(row.book.id)
     if not is_followable(book):
         return ''
 

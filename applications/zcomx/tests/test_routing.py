@@ -454,11 +454,9 @@ class TestRouter(LocalTestCase):
             unused_scheme, _, unused_url, creator_for_url, book_for_url = \
                 book_url.split('/')
 
-            query = (db.creator.name_for_url == creator_for_url)
-            got = db(query).select(limitby=(0, 1)).first()
+            got = Creator.from_key(dict(name_for_url=creator_for_url))
             self.assertTrue(got)
-            query = (db.book.name_for_url == book_for_url)
-            got = db(query).select(limitby=(0, 1)).first()
+            got = Book.from_key(dict(name_for_url=book_for_url))
             self.assertTrue(got)
             self.assertTrue(got.release_date is not None)
 

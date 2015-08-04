@@ -18,8 +18,6 @@ from gluon.shell import env
 from optparse import OptionParser
 from applications.zcomx.modules.images import SIZES
 from applications.zcomx.modules.images_optimize import OptimizeImgLog
-from applications.zcomx.modules.utils import \
-    entity_to_row
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)

@@ -13,11 +13,11 @@ from gluon.globals import Response
 from gluon.streamer import DEFAULT_CHUNK_SIZE
 from gluon.contenttype import contenttype
 from applications.zcomx.modules.archives import TorrentArchive
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import \
     filename_for_size, \
     SIZES
-from applications.zcomx.modules.utils import entity_to_row
 
 LOG = logging.getLogger('app')
 
@@ -37,8 +37,9 @@ class CBZDownloader(Response):
         if not request.args:
             raise HTTP(404)
 
-        book = entity_to_row(db.book, request.args(0))
-        if not book:
+        try:
+            book = Book.from_id(request.args(0))
+        except LookupError:
             raise HTTP(404)
         filename = book.cbz
 
@@ -158,8 +159,9 @@ class TorrentDownloader(Response):
                 raise HTTP(404)
             filename = creator.torrent
         else:
-            book = entity_to_row(db.book, request.args(1))
-            if not book:
+            try:
+                book = Book.from_id(request.args(1))
+            except LookupError:
                 raise HTTP(404)
             filename = book.torrent
 

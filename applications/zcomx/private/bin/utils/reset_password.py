@@ -34,7 +34,14 @@ USAGE
 
     If the password is not provided, the user is prompted for it.
 
+    WARNING: This script does what it says it does: it resets the passwords
+    of users accounts. It is intended to be used in test environments. Use
+    at own risk.
+
 OPTIONS
+    -a, --all
+        Update all users.
+
     -h, --help
         Print a brief help.
 
@@ -56,6 +63,11 @@ def main():
     usage = '%prog [options] email [password]'
     parser = OptionParser(usage=usage, version=VERSION)
 
+    parser.add_option(
+        '-a', '--all',
+        action='store_true', dest='all', default=False,
+        help='Update all accounts.',
+    )
     parser.add_option(
         '--man',
         action='store_true', dest='man', default=False,
@@ -85,30 +97,41 @@ def main():
             if h.__class__ == logging.StreamHandler
         ]
 
-    if not args or len(args) > 2:
-        print parser.print_help()
-        exit(1)
-
-    email = args[0]
-    user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
-    if not user:
-        raise LookupError('User not found, email: {e}'.format(e=email))
-
-    if len(args) == 1:
-        passwd = getpass.getpass()
+    emails = []
+    passwd = None
+    if options.all:
+        if len(args) > 1:
+            print parser.print_help()
+            exit(1)
+        emails = [x.email for x in db(db.auth_user).select(db.auth_user.email)]
+        if len(args) == 1:
+            passwd = args[0]
     else:
-        passwd = args[1]
+        if not args or len(args) > 2:
+            print parser.print_help()
+            exit(1)
+        emails = [args[0]]
+        if len(args) == 2:
+            passwd = args[1]
 
-    alg = 'pbkdf2(1000,20,sha512)'
-    passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
+    if not passwd:
+        passwd = getpass.getpass()
 
-    data = {
-        'password': passkey,
-        'registration_key': '',
-        'reset_password_key': ''
-    }
-    user.update_record(**data)
-    db.commit()
+    for email in emails:
+        user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
+        if not user:
+            raise LookupError('User not found, email: {e}'.format(e=email))
+
+        alg = 'pbkdf2(1000,20,sha512)'
+        passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
+
+        data = {
+            'password': passkey,
+            'registration_key': '',
+            'reset_password_key': ''
+        }
+        user.update_record(**data)
+        db.commit()
 
 
 if __name__ == '__main__':
