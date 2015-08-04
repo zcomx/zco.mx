@@ -18,9 +18,8 @@ import sys
 import time
 from gluon import *
 from gluon.storage import Storage
-from applications.zcomx.modules.utils import \
-    default_record, \
-    entity_to_row
+from applications.zcomx.modules.records import Record
+from applications.zcomx.modules.utils import default_record
 
 
 DAEMON_NAME = 'zco_queued'
@@ -203,6 +202,11 @@ class Daemon(object):
                 f.write("{k}: {v}\n".format(k=k, v=v))
 
 
+class Job(Record):
+    """Class representing a job database record."""
+    db_table = 'job'
+
+
 class JobQueuer(object):
     """Class representing a job queuer base class.
 
@@ -326,15 +330,18 @@ class Queue(object):
         data = default_record(self.tbl, ignore_fields='common')
         data.update(job_data)
         LOG.debug('job_data: %s', job_data)
-        job_id = self.tbl.insert(**data)
-        self.db.commit()
+        job = Job.from_add(data)
         if 'command' in job_data:
             LOG.debug('Queued command: %s', job_data['command'])
         self.post_add_job()
-        return entity_to_row(self.tbl, job_id)
+        return job
 
     def job_generator(self):
-        """Generator of jobs returning the top job in queue."""
+        """Generator of jobs returning the top job in queue.
+
+        Yields:
+            Job instance
+        """
         while True:
             try:
                 yield self.top_job()
@@ -356,7 +363,7 @@ class Queue(object):
             limitby: integer or tuple. Tuple is format (start, stop). If
                     integer converted to tuple (0, integer)
         Returns:
-            list, list of Job object instances.
+            list, list of Job instances.
         """
         if query is None:
             query = self.tbl
@@ -364,7 +371,9 @@ class Queue(object):
             limitby = None
         elif not hasattr(limitby, '__len__'):
             limitby = (0, int(limitby))         # Convert integer to tuple
-        return self.db(query).select(orderby=orderby, limitby=limitby)
+        job_ids = self.db(query).select(
+            self.db.job.id, orderby=orderby, limitby=limitby)
+        return [Job.from_id(x) for x in job_ids]
 
     def lock(self, filename=None, extended_seconds=0):
         """Lock the queue.
@@ -422,21 +431,21 @@ class Queue(object):
         """
         pass
 
-    def run_job(self, job_entity):
+    def run_job(self, job):
         """Run the job command.
 
-        The command is expected to be a python script with optional arguments
-        and options. It is run as:
+        Args:
+            job: Job instance.
+
+        The command (job.command) is expected to be a python script with
+        optional arguments and options. It is run as:
             $ python <command>
         """
-        # E1101: *%s %r has no %r member*
-        # pylint: disable=E1101
-        job_record = entity_to_row(self.tbl, job_entity)
-        if not job_record:
-            raise LookupError('Job not found: {j}'.format(j=job_entity))
-        if not job_record.command:
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+        if not job.command:
             return
-        if job_record.command.startswith('applications/'):
+        if job.command.startswith('applications/'):
             # If the command starts with 'applications/' assume it is a web2py
             # script and run it with the web2py handler.
             args = [os.path.join(
@@ -447,39 +456,24 @@ class Queue(object):
             # Otherwise assume the script is a python command.
             # For security purposes, general commands are not permitted.
             args = [sys.executable]
-        args.extend(shlex.split(job_record.command))
+        args.extend(shlex.split(job.command))
         subprocess.check_output(args, stderr=subprocess.STDOUT)
 
-    def remove_job(self, job_entity):
-        """Remove a job from the the queue.
-
-        Args:
-            job_entity: Row instance or integer representing a job record.
-        """
-        job_record = entity_to_row(self.tbl, job_entity)
-        if not job_record:
-            raise LookupError('Job not found: {j}'.format(j=job_entity))
-        job_record.delete_record()
-        self.db.commit()
-
-    def set_job_status(self, job_entity, status):
+    def set_job_status(self, job, status):
         """Set the status of a job in the queue.
 
         Args:
-            job_entity: Row instance or integer representing a job record.
+            job: Job instance
             status: string, one of Queue.job_statuses
 
+        Returns:
+            Job instance, updated versions
         """
-        job_record = entity_to_row(self.tbl, job_entity)
-        if not job_record:
-            raise LookupError('Job not found: {j}'.format(j=job_entity))
         if status not in self.job_statuses:
             raise InvalidStatusError(
                 'Invalid status: {s}'.format(s=status))
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        job_record.update_record(status=status)
-        self.tbl._db.commit()
+        job = Job.from_updated(job, dict(status=status))
+        return job
 
     def stats(self):
         """Return queue stats.
@@ -491,16 +485,16 @@ class Queue(object):
         # pylint: disable=W0212
 
         db = self.db
-        _count = self.tbl.status.count()
+        count = self.tbl.status.count()
         rows = db().select(
-            _count, self.tbl.status, groupby=self.tbl.status)
-        return {r.job.status: r[_count] for r in rows}
+            count, self.tbl.status, groupby=self.tbl.status)
+        return {r.job.status: r[count] for r in rows}
 
     def top_job(self):
         """Return the highest priority job in the queue.
 
         Returns:
-            Row instance representing a job record. None, if no job found.
+            Job instance. None, if no job found.
         """
         start = time.strftime('%F %T', time.localtime())    # now
         query = (self.tbl.status == 'a') & \
@@ -510,7 +504,7 @@ class Queue(object):
         if len(top_jobs) == 0:
             msg = 'There are no jobs in the queue.'
             raise QueueEmptyError(msg)
-        return top_jobs.first()
+        return top_jobs[0]
 
     def unlock(self, filename=None):
         """Lock the queue.
@@ -710,8 +704,11 @@ class OptimizeCBZImgForReleaseQueuer(OptimizeImgQueuer):
 
 
 class PostOnSocialMediaQueuer(JobQueuer):
-    """Class representing a queuer for post_book_completed on social_media jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'social_media', 'post_book_completed.py')
+    """Class representing a queuer for post_book_completed on social_media
+    jobs.
+    """
+    program = os.path.join(
+        JobQueuer.bin_path, 'social_media', 'post_book_completed.py')
     default_job_options = {
         'priority': PRIORITIES.index('post_book_completed'),
         'status': 'a',
@@ -793,7 +790,8 @@ class UpdateIndiciaQueuer(JobQueuer):
 
 
 class UpdateIndiciaForReleaseQueuer(UpdateIndiciaQueuer):
-    """Class representing a queuer for update_creator_indicia for release jobs."""
+    """Class representing a queuer for update_creator_indicia for release jobs.
+    """
     default_job_options = dict(UpdateIndiciaQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index(
         'update_creator_indicia_for_release')

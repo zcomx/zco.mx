@@ -77,7 +77,7 @@ def main():
             stats['error'] += 1
         else:
             LOG.debug("job: %s, exit: %s", job.command, '0')
-            queue.remove_job(job)
+            job.delete()
             stats['success'] += 1
 
     if options.summary:

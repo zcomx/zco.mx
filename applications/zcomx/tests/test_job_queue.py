@@ -12,6 +12,7 @@ import os
 import subprocess
 import time
 import unittest
+from gluon import *
 from applications.zcomx.modules.job_queue import \
     CLIOption, \
     CreateAllTorrentQueuer, \
@@ -26,6 +27,7 @@ from applications.zcomx.modules.job_queue import \
     InvalidCLIOptionError, \
     InvalidJobOptionError, \
     InvalidStatusError, \
+    Job, \
     JobQueuer, \
     LogDownloadsQueuer, \
     NotifyP2PQueuer, \
@@ -731,33 +733,36 @@ class TestQueue(LocalTestCase):
             ('do_c', '2010-01-01 10:00:00', 9, 'a'),
         ]
 
-        job_ids = []
+        all_jobs = []
         for j in job_data:
             job = queue.add_job(
                 dict(command=j[0], start=j[1], priority=j[2], status=j[3])
             )
-            job_ids.append(job.id)
+            all_jobs.append(job)
 
         gen = queue.job_generator()
         job = gen.next()
         self.assertEqual(job.command, 'do_c')
-        queue.remove_job(job_ids[2])
+        all_jobs[2].delete()
         job = gen.next()
         self.assertEqual(job.command, 'do_b')
-        queue.remove_job(job_ids[1])
+        all_jobs[1].delete()
         job = gen.next()
         self.assertEqual(job.command, 'do_a')
-        queue.remove_job(job_ids[0])
+        all_jobs[0].delete()
         self.assertRaises(StopIteration, gen.next)
 
-        for i in job_ids:
+        for j in all_jobs:
             try:
-                queue.remove_job(i)
+                j.delete()
             except LookupError:
                 pass
         self.assertEqual(queue.stats(), {})
 
     def test__jobs(self):
+        # Add a new 'z' status to test with.
+        db.job.status.requires = IS_IN_SET(['a', 'd', 'p', 'z'])
+
         queue = Queue(db.job)
         TestQueue.clear_queue()
         self.assertEqual(len(queue.jobs()), 0)
@@ -773,27 +778,24 @@ class TestQueue(LocalTestCase):
             ('2010-01-01 10:00:02', 1, 'd'),
         ]
 
-        job_ids = []
+        all_jobs = []
         for j in job_data:
             job_d = dict(command='pwd', start=j[0], priority=j[1], status=j[2])
-            job_id = db.job.insert(**job_d)
-            db.commit()
-            job_ids.append(job_id)
+            job = Job.from_add(job_d)
+            self._objects.append(job)
+            all_jobs.append(job)
 
         job_set = queue.jobs()
         self.assertEqual(len(job_set), 6)
-        self.assertEqual(
-            [x.id for x in job_set],
-            job_ids,
-        )
+        self.assertEqual(job_set, all_jobs)
 
         # Test query
         query = (db.job.status == 'z')
         job_set = queue.jobs(query=query)
         self.assertEqual(len(job_set), 3)
         self.assertEqual(
-            [x.id for x in job_set],
-            [job_ids[0].id, job_ids[2].id, job_ids[4].id]
+            job_set,
+            [all_jobs[0], all_jobs[2], all_jobs[4]]
         )
 
         query = (db.job.status == 'd') & \
@@ -801,8 +803,8 @@ class TestQueue(LocalTestCase):
         job_set = queue.jobs(query=query)
         self.assertEqual(len(job_set), 2)
         self.assertEqual(
-            [x.id for x in job_set],
-            [job_ids[1].id, job_ids[3].id]
+            job_set,
+            [all_jobs[1], all_jobs[3]]
         )
 
         # Test orderby
@@ -811,8 +813,8 @@ class TestQueue(LocalTestCase):
         job_set = queue.jobs(query=query, orderby=db.job.priority)
         self.assertEqual(len(job_set), 3)
         self.assertEqual(
-            [x.id for x in job_set],
-            [job_ids[2].id, job_ids[0].id, job_ids[4].id]
+            job_set,
+            [all_jobs[2], all_jobs[0], all_jobs[4]]
         )
 
         # Orderby priority DESC
@@ -820,8 +822,8 @@ class TestQueue(LocalTestCase):
         job_set = queue.jobs(query=query, orderby=~db.job.priority)
         self.assertEqual(len(job_set), 3)
         self.assertEqual(
-            [x.id for x in job_set],
-            [job_ids[4].id, job_ids[0].id, job_ids[2].id]
+            job_set,
+            [all_jobs[4], all_jobs[0], all_jobs[2]]
         )
 
         # Test limitby
@@ -829,7 +831,7 @@ class TestQueue(LocalTestCase):
         query = (db.job.status == 'z')
         job_set = queue.jobs(query=query, orderby=~db.job.priority, limitby=1)
         self.assertEqual(len(job_set), 1)
-        self.assertEqual([x.id for x in job_set], [job_ids[4].id])
+        self.assertEqual(job_set, [all_jobs[4]])
 
     def test__lock(self):
         queue = Queue(db.job)
@@ -881,52 +883,19 @@ class TestQueue(LocalTestCase):
         # See test__add_job
         pass
 
-    def test__remove_job(self):
-
-        queue = Queue(db.job)
-        tracker = TableTracker(db.job)
-
-        job_1 = queue.add_job({'command': '_fake_1_'})
-        self._objects.append(job_1)
-        job_2 = queue.add_job({'command': '_fake_2_'})
-        self._objects.append(job_2)
-        job_3 = queue.add_job({'command': '_fake_3_'})
-        self._objects.append(job_3)
-
-        self.assertFalse(tracker.had(job_1))
-        self.assertFalse(tracker.had(job_2))
-        self.assertFalse(tracker.had(job_3))
-        self.assertTrue(tracker.has(job_1))
-        self.assertTrue(tracker.has(job_2))
-        self.assertTrue(tracker.has(job_3))
-        queue.remove_job(job_2)
-        self.assertTrue(tracker.has(job_1))
-        self.assertFalse(tracker.has(job_2))
-        self.assertTrue(tracker.has(job_3))
-
-        queue.remove_job(job_1)
-        queue.remove_job(job_3)
-        self.assertFalse(tracker.has(job_1))
-        self.assertFalse(tracker.has(job_2))
-        self.assertFalse(tracker.has(job_3))
-
-        # Test remove of non-existent record
-        self.assertRaises(LookupError, queue.remove_job, -1)
-        self.assertRaises(LookupError, queue.remove_job, job_1.id)
-
     def test__run_job(self):
 
         queue = Queue(db.job)
 
-        def do_run(job_entity):
+        def do_run(job):
             try:
-                queue.run_job(job_entity)
+                queue.run_job(job)
             except subprocess.CalledProcessError:
                 return 1
             else:
                 return 0
 
-        job = self.add(db.job, dict(status='a'))
+        job = Job(dict(command=None, status='a'))
         # No command defined, should fail.
         self.assertFalse(do_run(job))
 
@@ -982,18 +951,12 @@ if __name__ == '__main__':
 
     def test__set_job_status(self):
         queue = Queue(db.job)
-        job = self.add(db.job, dict(command='pwd', status='d'))
-
-        new_job = db(db.job.id == job.id).select(limitby=(0, 1)).first()
-        self.assertEqual(new_job.status, 'd')
+        job = self.add(Job, dict(command='pwd', status='d'))
+        self.assertEqual(job.status, 'd')
 
         for status in ['a', 'd', 'p']:
-            queue.set_job_status(job.id, status)
-            new_job = db(db.job.id == job.id).select(limitby=(0, 1)).first()
-            self.assertEqual(new_job.status, status)
-
-        # Invalid job id
-        self.assertRaises(LookupError, queue.set_job_status, -1, 'a')
+            got = queue.set_job_status(job, status)
+            self.assertEqual(got.status, status)
 
         # Invalid status
         self.assertRaises(InvalidStatusError, queue.set_job_status, job, 'z')
@@ -1003,10 +966,10 @@ if __name__ == '__main__':
         TestQueue.clear_queue()
         self.assertEqual(len(queue.jobs()), 0)
 
-        self.add(db.job, dict(status='a'))
-        self.add(db.job, dict(status='a'))
-        self.add(db.job, dict(status='d'))
-        self.add(db.job, dict(status='p'))
+        self.add(Job, dict(status='a'))
+        self.add(Job, dict(status='a'))
+        self.add(Job, dict(status='d'))
+        self.add(Job, dict(status='p'))
         self.assertEqual(queue.stats(), {'a': 2, 'd': 1, 'p': 1})
 
     def test__top_job(self):
@@ -1025,7 +988,7 @@ if __name__ == '__main__':
         ]
 
         for j in jobs:
-            self.add(db.job, dict(command=j[0], start=j[1], priority=j[2]))
+            self.add(Job, dict(command=j[0], start=j[1], priority=j[2]))
 
         job = queue.top_job()
         self.assertEqual(job.command, 'do_c')
