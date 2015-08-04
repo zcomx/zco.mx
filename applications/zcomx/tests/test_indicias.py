@@ -31,10 +31,13 @@ from applications.zcomx.modules.indicias import \
     BookIndiciaPagePng, \
     CCLicence, \
     CreatorIndiciaPagePng, \
+    Derivative, \
     IndiciaPage, \
     IndiciaSh, \
     IndiciaShError, \
+    BookPublicationMetadata, \
     PublicationMetadata, \
+    PublicationSerial, \
     cc_licence_places, \
     cc_licences, \
     create_creator_indicia, \
@@ -462,7 +465,7 @@ class TestIndiciaPage(LocalTestCase):
         # template_field='template_img'
         self.assertEqual(
             indicia.licence_text(template_field='template_img'),
-            ' "NAME OF BOOK" IS COPYRIGHT (C) 2015 BY CREATOR NAME.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
+            ' "NAME OF BOOK" IS COPYRIGHT (C) {y} BY CREATOR NAME.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year).format(y=this_year)
         )
 
 
@@ -595,7 +598,7 @@ class TestIndiciaSh(WithObjectsTestCase, ImageTestCase):
             f=metadata_filename))
 
 
-class TestPublicationMetadata(LocalTestCase):
+class TestBookPublicationMetadata(LocalTestCase):
     def test____init__(self):
         str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
         datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
@@ -603,9 +606,9 @@ class TestPublicationMetadata(LocalTestCase):
         self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
 
         book = self.add(Book, dict(
-            name='TestPublicationMetadata',
+            name='TestBookPublicationMetadata',
         ))
-        meta = PublicationMetadata(book)
+        meta = BookPublicationMetadata(book)
         self.assertTrue(meta)
         self.assertEqual(
             meta.first_publication_text,
@@ -615,10 +618,10 @@ class TestPublicationMetadata(LocalTestCase):
     def test____str__(self):
         book = self.add(Book, dict(name='My Book'))
 
-        meta = PublicationMetadata(book)
+        meta = BookPublicationMetadata(book)
         self.assertEqual(str(meta), '')
 
-        meta.metadata = dict(
+        meta.metadata = PublicationMetadata(dict(
             book_id=book.id,
             republished=True,
             published_type='whole',
@@ -628,10 +631,10 @@ class TestPublicationMetadata(LocalTestCase):
             publisher='Acme Pub Inc',
             from_year=2014,
             to_year=2015,
-        )
+        ))
 
         meta.serials = [
-            dict(
+            PublicationSerial(dict(
                 book_id=book.id,
                 published_name='My Story',
                 published_format='paper',
@@ -642,8 +645,8 @@ class TestPublicationMetadata(LocalTestCase):
                 serial_number=2,
                 from_year=2014,
                 to_year=2015,
-            ),
-            dict(
+            )),
+            PublicationSerial(dict(
                 book_id=book.id,
                 published_name='My Story',
                 published_format='paper',
@@ -654,19 +657,19 @@ class TestPublicationMetadata(LocalTestCase):
                 serial_number=2,
                 from_year=2014,
                 to_year=2015,
-            ),
+            )),
         ]
 
         cc_by_nc_sa = CCLicence.by_code('CC BY-NC-SA')
 
-        meta.derivative = dict(
+        meta.derivative = Derivative(dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
             cc_licence_id=cc_by_nc_sa.id,
             from_year=2014,
             to_year=2015,
-        )
+        ))
 
         self.assertEqual(
             str(meta),
@@ -692,39 +695,34 @@ class TestPublicationMetadata(LocalTestCase):
 
         cc_by_nd = CCLicence.by_code('CC BY-ND')
 
-        meta = PublicationMetadata(book)
-        derivative = dict(
+        meta = BookPublicationMetadata(book)
+        meta.derivative = Derivative(dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
             cc_licence_id=cc_by_nd.id,
             from_year=2014,
             to_year=2015,
-        )
+        ))
 
-        meta.derivative = dict(derivative)
         self.assertEqual(
             meta.derivative_text(),
             '"My Book" is a derivative of "My Derivative" from 2014-2015 by John Doe used under CC BY-ND.'
         )
 
-    def test__load(self):
-        book = self.add(Book, dict(
-            name='test__load',
-        ))
+    def test__from_book(self):
+        book = self.add(Book, dict(name='test__from_book'))
 
         def test_meta(meta, expect):
             self.assertEqual(meta.metadata, expect.metadata)
             self.assertEqual(meta.serials, expect.serials)
             self.assertEqual(meta.derivative, expect.derivative)
 
-        meta = PublicationMetadata(book)
         expect = Storage({})
-        expect.metadata = {}
+        expect.metadata = None
         expect.serials = []
-        expect.derivative = {}
-        test_meta(meta, expect)
-        meta.load()
+        expect.derivative = None
+        meta = BookPublicationMetadata.from_book(book)
         test_meta(meta, expect)
 
         metadata = dict(
@@ -740,9 +738,9 @@ class TestPublicationMetadata(LocalTestCase):
             to_year=2015,
         )
 
-        self.add(db.publication_metadata, metadata)
-        meta.load()
-        expect.metadata = metadata
+        publication_metadata = self.add(PublicationMetadata, metadata)
+        meta = BookPublicationMetadata.from_book(book)
+        expect.metadata = publication_metadata
         test_meta(meta, expect)
 
         serial_1 = dict(
@@ -773,16 +771,17 @@ class TestPublicationMetadata(LocalTestCase):
             to_year=2001,
         )
 
-        self.add(db.publication_serial, serial_1)
-        meta.load()
-        expect.metadata = metadata
-        expect.serials = [serial_1]
+        publication_serial_1 = self.add(PublicationSerial, serial_1)
+        meta = BookPublicationMetadata.from_book(book)
+        expect.metadata = publication_metadata
+        expect.serials = [publication_serial_1]
         test_meta(meta, expect)
 
-        self.add(db.publication_serial, serial_2)
-        meta.load()
-        expect.metadata = metadata
-        expect.serials = [serial_2, serial_1]   # Sorted by sequence
+        publication_serial_2 = self.add(PublicationSerial, serial_2)
+        meta = BookPublicationMetadata.from_book(book)
+        expect.metadata = publication_metadata
+        # Expect serials sorted by sequence
+        expect.serials = [publication_serial_2, publication_serial_1]
         test_meta(meta, expect)
 
         derivative_data = dict(
@@ -794,34 +793,35 @@ class TestPublicationMetadata(LocalTestCase):
             to_year=2007,
         )
 
-        self.add(db.derivative, derivative_data)
-        meta.load()
-        expect.metadata = metadata
-        expect.serials = [serial_2, serial_1]   # Sorted by story_number
-        expect.derivative = derivative_data
+        derivative = self.add(Derivative, derivative_data)
+        meta = BookPublicationMetadata.from_book(book)
+        expect.metadata = publication_metadata
+        expect.serials = [publication_serial_2, publication_serial_1]
+        expect.derivative = derivative
         test_meta(meta, expect)
 
         # Test chaining.
-        self.assertEqual(meta.load().metadata, expect.metadata)
         self.assertEqual(
-            str(meta.load()),
+            BookPublicationMetadata.from_book(book).metadata,
+            expect.metadata
+        )
+        self.assertEqual(
+            str(BookPublicationMetadata.from_book(book)),
             (
                 'This work was originally published digitally in 2014-2015 as "My Book" by Acme. '
                 'This work was originally published digitally in 2000-2001 as "Sheerios 2 #2" at Acme 2. '
                 'This work was originally published digitally in 1998-1999 as "Sheerios #1" at Acme. '
-                '"test__load" is a derivative of "Derivative" from 2006-2007 by Dr Drawer used under CC0.'
+                '"test__from_book" is a derivative of "Derivative" from 2006-2007 by Dr Drawer used under CC0.'
             )
         )
 
-    def test__load_from_vars(self):
+    def test__from_vars(self):
         book = self.add(Book, dict(
             name='test__load_from_vars',
         ))
 
-        meta = PublicationMetadata(book)
-        self.assertEqual(meta.metadata, {})
-        self.assertEqual(meta.serials, [])
-        self.assertEqual(meta.derivative, {})
+        self.assertRaises(
+            LookupError, BookPublicationMetadata.from_vars, book, {})
 
         metadata = dict(
             republished='first',
@@ -877,28 +877,28 @@ class TestPublicationMetadata(LocalTestCase):
             request_vars['derivative_' + k] = v
         request_vars['is_derivative'] = 'no'
 
-        meta.load_from_vars(request_vars)
-        expect = dict(metadata)
-        expect['republished'] = False
+        meta = BookPublicationMetadata.from_vars(book, request_vars)
+        expect = PublicationMetadata(dict(metadata))
+        expect.republished = False
         self.assertEqual(meta.metadata, expect)
         self.assertEqual(len(meta.serials), 0)
-        self.assertEqual(meta.derivative, {})
+        self.assertEqual(meta.derivative, None)
 
         request_vars['publication_metadata_republished'] = 'repub'
         request_vars['publication_metadata_published_type'] = 'whole'
-        meta.load_from_vars(request_vars)
+        meta = BookPublicationMetadata.from_vars(book, request_vars)
         self.assertEqual(len(meta.serials), 0)
 
         request_vars['publication_metadata_republished'] = 'repub'
         request_vars['publication_metadata_published_type'] = 'serial'
-        meta.load_from_vars(request_vars)
+        meta = BookPublicationMetadata.from_vars(book, request_vars)
         self.assertEqual(len(meta.serials), 2)
-        self.assertEqual(meta.serials[0], serials[0])
-        self.assertEqual(meta.serials[1], serials[1])
+        self.assertEqual(meta.serials[0], PublicationSerial(serials[0]))
+        self.assertEqual(meta.serials[1], PublicationSerial(serials[1]))
 
         request_vars['is_derivative'] = 'yes'
-        meta.load_from_vars(request_vars)
-        self.assertEqual(meta.derivative, derivative)
+        meta = BookPublicationMetadata.from_vars(book, request_vars)
+        self.assertEqual(meta.derivative, Derivative(derivative))
 
         # Test 'republished' variations
         tests = [
@@ -910,18 +910,20 @@ class TestPublicationMetadata(LocalTestCase):
         ]
         for t in tests:
             request_vars['publication_metadata_republished'] = t[0]
-            meta.load_from_vars(request_vars)
-            self.assertEqual(meta.metadata['republished'], t[1])
+            meta = BookPublicationMetadata.from_vars(book, request_vars)
+            self.assertEqual(meta.metadata.republished, t[1])
 
         # Test chaining
         request_vars['publication_metadata_republished'] = 'repub'
         request_vars['publication_metadata_published_type'] = 'whole'
-        expect = dict(metadata)
-        expect['republished'] = True
-        self.assertEqual(meta.load_from_vars(request_vars).metadata, expect)
+        expect = PublicationMetadata(dict(metadata))
+        expect.republished = True
+        self.assertEqual(
+            BookPublicationMetadata.from_vars(book, request_vars).metadata,
+            expect
+        )
 
     def test__metadata_text(self):
-
         # METADATA see mod 12687
         # If 'first publication'; then
         #     echo [1]
@@ -953,14 +955,18 @@ class TestPublicationMetadata(LocalTestCase):
         #     ---
         # [7] This work was originally self-published in print as old_name in YYYY.
         #     ---
+        str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
+        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
+        # date.today overridden
+        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
 
         book_name = 'My Book'
         original_name = 'My Old Book'
 
         book = self.add(Book, dict(name=book_name))
 
-        meta = PublicationMetadata(book)
-        metadata = Storage(dict(
+        meta = BookPublicationMetadata(book)
+        metadata = dict(
             book_id=book.id,
             republished=False,
             published_type='',
@@ -970,15 +976,10 @@ class TestPublicationMetadata(LocalTestCase):
             publisher='',
             from_year=2014,
             to_year=2015,
-        ))
-
-        str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
-        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
-        # date.today overridden
-        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
+        )
 
         # [1]
-        meta.metadata = dict(metadata)
+        meta.metadata = PublicationMetadata(metadata)
         self.assertEqual(
             meta.metadata_text(),
             'First publication: zco.mx 2014.'
@@ -991,7 +992,7 @@ class TestPublicationMetadata(LocalTestCase):
         self.assertEqual(meta.metadata_text(), 'La de do la de da')
 
         # [2]
-        meta.metadata = Storage(metadata)
+        meta.metadata = PublicationMetadata(metadata)
         meta.metadata.republished = True
         meta.metadata.published_type = 'whole'
         meta.metadata.published_name = book_name
@@ -1004,7 +1005,7 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # [3]
-        meta.metadata = Storage(metadata)
+        meta.metadata = PublicationMetadata(metadata)
         meta.metadata.republished = True
         meta.metadata.published_type = 'whole'
         meta.metadata.published_name = book_name
@@ -1017,7 +1018,7 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # [4]
-        meta.metadata = Storage(metadata)
+        meta.metadata = PublicationMetadata(metadata)
         meta.metadata.republished = True
         meta.metadata.published_type = 'whole'
         meta.metadata.published_name = book_name
@@ -1030,7 +1031,7 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # [5]
-        meta.metadata = Storage(metadata)
+        meta.metadata = PublicationMetadata(metadata)
         meta.metadata.republished = True
         meta.metadata.published_type = 'whole'
         meta.metadata.published_name = original_name
@@ -1043,7 +1044,7 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # [6]
-        meta.metadata = Storage(metadata)
+        meta.metadata = PublicationMetadata(metadata)
         meta.metadata.republished = True
         meta.metadata.published_type = 'whole'
         meta.metadata.published_name = original_name
@@ -1056,7 +1057,7 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # [7]
-        meta.metadata = Storage(metadata)
+        meta.metadata = PublicationMetadata(metadata)
         meta.metadata.republished = True
         meta.metadata.published_type = 'whole'
         meta.metadata.published_name = original_name
@@ -1070,13 +1071,13 @@ class TestPublicationMetadata(LocalTestCase):
 
     def test__publication_year(self):
         book = self.add(Book, dict(name='test__publication_year'))
-        meta = PublicationMetadata(book)
+        meta = BookPublicationMetadata(book)
 
         # Test: no metadata or serial data
         self.assertRaises(ValueError, meta.publication_year)
 
         # Test: metadata, no serial
-        metadata = Storage(dict(
+        metadata = PublicationMetadata(dict(
             book_id=book.id,
             from_year=1998,
             to_year=1999,
@@ -1085,7 +1086,7 @@ class TestPublicationMetadata(LocalTestCase):
         self.assertEqual(meta.publication_year(), 1999)
 
         # Test: single serial
-        serial_1 = Storage(dict(
+        serial_1 = PublicationSerial(dict(
             book_id=book.id,
             from_year=2010,
             to_year=2011,
@@ -1094,12 +1095,12 @@ class TestPublicationMetadata(LocalTestCase):
         self.assertEqual(meta.publication_year(), 2011)
 
         # Test: multiple serial
-        serial_2 = Storage(dict(
+        serial_2 = PublicationSerial(dict(
             book_id=book.id,
             from_year=2013,
             to_year=2014,
         ))
-        serial_3 = Storage(dict(
+        serial_3 = PublicationSerial(dict(
             book_id=book.id,
             from_year=2000,
             to_year=2001,
@@ -1144,8 +1145,8 @@ class TestPublicationMetadata(LocalTestCase):
 
         book = self.add(Book, dict(name='test__serials_text'))
 
-        meta = PublicationMetadata(book)
-        default_serial = Storage(dict(
+        meta = BookPublicationMetadata(book)
+        default_serial = dict(
             book_id=book.id,
             published_name='',
             published_format='',
@@ -1156,10 +1157,10 @@ class TestPublicationMetadata(LocalTestCase):
             serial_number=0,
             from_year=2014,
             to_year=2015,
-        ))
+        )
 
         # [8]
-        s = Storage(default_serial)
+        s = PublicationSerial(default_serial)
         s.published_name = '-'
         s.published_format = 'digital'
         s.publisher_type = 'self'
@@ -1177,7 +1178,7 @@ class TestPublicationMetadata(LocalTestCase):
             self.assertEqual(meta.serial_text(s, is_anthology=False), expect)
 
         # [9]
-        s = Storage(default_serial)
+        s = PublicationSerial(default_serial)
         s.published_name = '-'
         s.published_format = 'paper'
         s.publisher_type = 'press'
@@ -1196,7 +1197,7 @@ class TestPublicationMetadata(LocalTestCase):
             self.assertEqual(meta.serial_text(s, is_anthology=False), expect)
 
         # [10]
-        s = Storage(default_serial)
+        s = PublicationSerial(default_serial)
         s.published_name = '-'
         s.published_format = 'paper'
         s.publisher_type = 'self'
@@ -1215,7 +1216,7 @@ class TestPublicationMetadata(LocalTestCase):
             self.assertEqual(meta.serial_text(s, is_anthology=False), expect)
 
         # [11]
-        s = Storage(default_serial)
+        s = PublicationSerial(default_serial)
         s.published_name = 'My Story'
         s.published_format = 'digital'
         s.publisher_type = 'self'
@@ -1234,7 +1235,7 @@ class TestPublicationMetadata(LocalTestCase):
             self.assertEqual(meta.serial_text(s, is_anthology=True), expect)
 
         # [12]
-        s = Storage(default_serial)
+        s = PublicationSerial(default_serial)
         s.published_name = 'My Story'
         s.published_format = 'paper'
         s.publisher_type = 'press'
@@ -1253,7 +1254,7 @@ class TestPublicationMetadata(LocalTestCase):
             self.assertEqual(meta.serial_text(s, is_anthology=True), expect)
 
         # [13]
-        s = Storage(default_serial)
+        s = PublicationSerial(default_serial)
         s.published_name = 'My Story'
         s.published_format = 'paper'
         s.publisher_type = 'self'
@@ -1274,8 +1275,8 @@ class TestPublicationMetadata(LocalTestCase):
     def test__serials_text(self):
         book = self.add(Book, dict(name='test__serials_text'))
 
-        meta = PublicationMetadata(book)
-        serial_1 = Storage(dict(
+        meta = BookPublicationMetadata(book)
+        serial_1 = PublicationSerial(dict(
             book_id=book.id,
             sequence=0,
             published_name='My Story',
@@ -1289,7 +1290,7 @@ class TestPublicationMetadata(LocalTestCase):
             to_year=2015,
         ))
 
-        serial_2 = Storage(dict(
+        serial_2 = PublicationSerial(dict(
             book_id=book.id,
             sequence=1,
             published_name='My Story',
@@ -1303,7 +1304,7 @@ class TestPublicationMetadata(LocalTestCase):
             to_year=2015,
         ))
 
-        meta.metadata = {'is_anthology': False}
+        meta.metadata = PublicationMetadata({'is_anthology': False})
         meta.serials = [serial_1]
         self.assertEqual(
             meta.serials_text(),
@@ -1319,7 +1320,7 @@ class TestPublicationMetadata(LocalTestCase):
             ]
         )
 
-        meta.metadata = {'is_anthology': True}
+        meta.metadata.is_anthology = True
         meta.serials = [serial_1]
         self.assertEqual(
             meta.serials_text(),
@@ -1338,9 +1339,9 @@ class TestPublicationMetadata(LocalTestCase):
     def test__texts(self):
         book = self.add(Book, dict(name='My Book'))
 
-        meta = PublicationMetadata(book)
+        meta = BookPublicationMetadata(book)
 
-        meta.metadata = dict(
+        meta.metadata = PublicationMetadata(dict(
             book_id=book.id,
             republished=True,
             published_type='whole',
@@ -1350,10 +1351,10 @@ class TestPublicationMetadata(LocalTestCase):
             publisher='Acme Pub Inc',
             from_year=2014,
             to_year=2015,
-        )
+        ))
 
         meta.serials = [
-            dict(
+            PublicationSerial(dict(
                 book_id=book.id,
                 published_name='My Story',
                 published_format='paper',
@@ -1364,8 +1365,8 @@ class TestPublicationMetadata(LocalTestCase):
                 serial_number=2,
                 from_year=2014,
                 to_year=2015,
-            ),
-            dict(
+            )),
+            PublicationSerial(dict(
                 book_id=book.id,
                 published_name='My Story',
                 published_format='paper',
@@ -1376,19 +1377,19 @@ class TestPublicationMetadata(LocalTestCase):
                 serial_number=2,
                 from_year=2014,
                 to_year=2015,
-            ),
+            )),
         ]
 
         cc_by_nc_sa = CCLicence.by_code('CC BY-NC-SA')
 
-        meta.derivative = dict(
+        meta.derivative = Derivative(dict(
             book_id=book.id,
             title='My Derivative',
             creator='John Doe',
             cc_licence_id=cc_by_nc_sa.id,
             from_year=2014,
             to_year=2015,
-        )
+        ))
 
         self.assertEqual(
             meta.texts(),
@@ -1404,7 +1405,7 @@ class TestPublicationMetadata(LocalTestCase):
         book = self.add(Book, dict(
             name='test__to_year_requires',
         ))
-        meta = PublicationMetadata(book)
+        meta = BookPublicationMetadata(book)
         min_year, max_year = meta.year_range()
 
         requires = meta.to_year_requires('2000')
@@ -1428,11 +1429,9 @@ class TestPublicationMetadata(LocalTestCase):
     def test__update(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
         # pylint: disable=C0103
-        book = self.add(Book, dict(
-            name='test__update',
-        ))
+        book = self.add(Book, dict(name='test__update'))
 
-        meta = PublicationMetadata(book)
+        meta = BookPublicationMetadata(book)
 
         def get_metadatas(book_id):
             query = (db.publication_metadata.book_id == book_id)
@@ -1452,37 +1451,28 @@ class TestPublicationMetadata(LocalTestCase):
         self.assertEqual(len(get_metadatas(book.id)), 0)
         self.assertEqual(len(get_serials(book.id)), 0)
 
-        # Add blank record
-        meta.metadata = {}
-        meta.serials = [{}]
-        meta.update()
-        got = get_metadatas(book.id)
-        self.assertEqual(len(got), 1)
-        metadata_id = got[0].id
-
-        got = get_serials(book.id)
-        self.assertEqual(len(got), 1)
-        serial_ids = [got[0].id]
-
-        # Add populated records
-        meta.metadata = {'publisher': 'aaa'}
+        meta.metadata = PublicationMetadata({'publisher': 'aaa'})
         meta.serials = [
-            {
+            PublicationSerial({
+                'published_name': 'name_bbb',
                 'publisher': 'bbb',
+                'serial_title': 'title_bbb',
                 'story_number': 1,
-            },
-            {
+            }),
+            PublicationSerial({
+                'published_name': 'name_ccc',
                 'publisher': 'ccc',
+                'serial_title': 'title_ccc',
                 'story_number': 2,
-            },
+            }),
         ]
+        meta.derivative = None
 
         meta.update()
         got = get_metadatas(book.id)
         self.assertEqual(len(got), 1)
         self.assertEqual(got[0].publisher, 'aaa')
-        # existing record should be reused.
-        self.assertTrue(got[0].id == metadata_id)
+        metadata_id = got[0].id
 
         got = get_serials(book.id)
         self.assertEqual(len(got), 2)
@@ -1490,23 +1480,53 @@ class TestPublicationMetadata(LocalTestCase):
         self.assertEqual(got[0].story_number, 1)
         self.assertEqual(got[1].publisher, 'ccc')
         self.assertEqual(got[1].story_number, 2)
+        serial_ids = [x.id for x in got]
 
-        # existing record should be reused.
+        # Test existing records are reused.
+        meta.metadata = PublicationMetadata({'publisher': 'aaa_2'})
+        meta.serials = [
+            PublicationSerial({
+                'published_name': 'name_bbb_2',
+                'publisher': 'bbb_2',
+                'serial_title': 'title_bbb_2',
+                'story_number': 1,
+            }),
+            PublicationSerial({
+                'published_name': 'name_ccc_2',
+                'publisher': 'ccc_2',
+                'serial_title': 'title_ccc',
+                'story_number': 2,
+            }),
+        ]
+        meta.update()
+        got = get_metadatas(book.id)
+        self.assertEqual(len(got), 1)
+        self.assertEqual(got[0].publisher, 'aaa_2')
+        self.assertTrue(got[0].id == metadata_id)
+
+        got = get_serials(book.id)
+        self.assertEqual(len(got), 2)
+        self.assertEqual(got[0].publisher, 'bbb_2')
+        self.assertEqual(got[0].story_number, 1)
+        self.assertEqual(got[1].publisher, 'ccc_2')
+        self.assertEqual(got[1].story_number, 2)
         self.assertTrue(got[0].id in serial_ids or got[1].id in serial_ids)
         serial_ids = [got[0].id, got[1].id]
 
         # Add fewer serial records
         meta.serials = [
-            {
+            PublicationSerial({
+                'published_name': 'name_ddd',
                 'publisher': 'ddd',
+                'serial_title': 'title_ddd',
                 'story_number': 3,
-            },
+            }),
         ]
 
         meta.update()
         got = get_metadatas(book.id)
         self.assertEqual(len(got), 1)
-        self.assertEqual(got[0].publisher, 'aaa')
+        self.assertEqual(got[0].publisher, 'aaa_2')
         # existing record should be reused.
         self.assertTrue(got[0].id == metadata_id)
 
@@ -1528,7 +1548,7 @@ class TestPublicationMetadata(LocalTestCase):
             name='test__validate',
         ))
 
-        meta = PublicationMetadata(book)
+        meta = BookPublicationMetadata(book)
         self.assertEqual(meta.errors, {})
         meta.validate()
         self.assertEqual(meta.errors, {})
@@ -1578,11 +1598,11 @@ class TestPublicationMetadata(LocalTestCase):
             to_year=2015,
         )
 
-        meta.metadata = dict(metadata)
+        meta.metadata = PublicationMetadata(metadata)
         meta.validate()
         self.assertEqual(meta.errors, {})
 
-        meta.metadata['published_type'] = '_fake_'
+        meta.metadata.published_type = '_fake_'
         meta.validate()
         self.assertEqual(
             meta.errors['publication_metadata_published_type'],
@@ -1590,13 +1610,13 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # whole
-        meta.metadata['published_type'] = 'whole'
-        meta.metadata['published_name'] = ''
-        meta.metadata['published_format'] = '_fake_'
-        meta.metadata['publisher_type'] = '_fake_'
-        meta.metadata['publisher'] = ''
-        meta.metadata['from_year'] = -1
-        meta.metadata['to_year'] = -2
+        meta.metadata.published_type = 'whole'
+        meta.metadata.published_name = ''
+        meta.metadata.published_format = '_fake_'
+        meta.metadata.publisher_type = '_fake_'
+        meta.metadata.publisher = ''
+        meta.metadata.from_year = -1
+        meta.metadata.to_year = -2
         meta.validate()
         self.assertEqual(
             sorted(meta.errors.keys()),
@@ -1611,19 +1631,19 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # Valid: whole, paper, self, no publisher
-        meta.metadata['published_type'] = 'whole'
-        meta.metadata['published_name'] = 'Some Name',
-        meta.metadata['published_format'] = 'paper'
-        meta.metadata['publisher_type'] = 'self'
-        meta.metadata['publisher'] = ''
-        meta.metadata['from_year'] = 2000
-        meta.metadata['to_year'] = 2001
+        meta.metadata.published_type = 'whole'
+        meta.metadata.published_name = 'Some Name',
+        meta.metadata.published_format = 'paper'
+        meta.metadata.publisher_type = 'self'
+        meta.metadata.publisher = ''
+        meta.metadata.from_year = 2000
+        meta.metadata.to_year = 2001
         meta.validate()
         self.assertEqual(meta.errors, {})
 
         # Invalid: whole, paper, press, no publisher
-        meta.metadata['publisher_type'] = 'press'
-        meta.metadata['publisher'] = ''
+        meta.metadata.publisher_type = 'press'
+        meta.metadata.publisher = ''
         meta.validate()
         self.assertEqual(
             meta.errors['publication_metadata_publisher'],
@@ -1631,9 +1651,9 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # Invalid years
-        meta.metadata = dict(metadata)
-        meta.metadata['from_year'] = 2000
-        meta.metadata['to_year'] = 1999
+        meta.metadata = PublicationMetadata(metadata)
+        meta.metadata.from_year = 2000
+        meta.metadata.to_year = 1999
         meta.validate()
         self.assertEqual(
             meta.errors['publication_metadata_to_year'],
@@ -1641,23 +1661,23 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # serial
-        meta.metadata = dict(metadata)
-        meta.metadata['published_type'] = 'serial'
+        meta.metadata = PublicationMetadata(metadata)
+        meta.metadata.published_type = 'serial'
         meta.serials = []
-        meta.derivative = {}
+        meta.derivative = None
         meta.validate()
         self.assertEqual(meta.errors, {})
 
-        meta.serials = [dict(serials[0])]
+        meta.serials = [PublicationSerial(serials[0])]
         meta.validate()
         self.assertEqual(meta.errors, {})
 
-        meta.serials[0]['published_name'] = ''
-        meta.serials[0]['published_format'] = '_fake_'
-        meta.serials[0]['publisher_type'] = '_fake_'
-        meta.serials[0]['publisher'] = ''
-        meta.serials[0]['from_year'] = -1
-        meta.serials[0]['to_year'] = -2
+        meta.serials[0].published_name = ''
+        meta.serials[0].published_format = '_fake_'
+        meta.serials[0].publisher_type = '_fake_'
+        meta.serials[0].publisher = ''
+        meta.serials[0].from_year = -1
+        meta.serials[0].to_year = -2
         meta.validate()
         self.assertEqual(
             sorted(meta.errors.keys()),
@@ -1671,14 +1691,14 @@ class TestPublicationMetadata(LocalTestCase):
             ])
         )
 
-        meta.metadata['is_anthology'] = False
+        meta.metadata.is_anthology = False
         meta.validate()
-        meta.serials[0]['published_name'] = ''
-        meta.serials[0]['published_format'] = '_fake_'
-        meta.serials[0]['publisher_type'] = '_fake_'
-        meta.serials[0]['publisher'] = ''
-        meta.serials[0]['from_year'] = -1
-        meta.serials[0]['to_year'] = -2
+        meta.serials[0].published_name = ''
+        meta.serials[0].published_format = '_fake_'
+        meta.serials[0].publisher_type = '_fake_'
+        meta.serials[0].publisher = ''
+        meta.serials[0].from_year = -1
+        meta.serials[0].to_year = -2
         meta.validate()
         self.assertEqual(
             sorted(meta.errors.keys()),
@@ -1691,23 +1711,23 @@ class TestPublicationMetadata(LocalTestCase):
             ])
         )
 
-        meta.metadata['is_anthology'] = True
-        meta.serials = [dict(serials[0])]
+        meta.metadata.is_anthology = True
+        meta.serials = [PublicationSerial(serials[0])]
         meta.validate()
         self.assertEqual(meta.errors, {})
-        meta.serials[0]['from_year'] = 1981
-        meta.serials[0]['to_year'] = 1980
+        meta.serials[0].from_year = 1981
+        meta.serials[0].to_year = 1980
         meta.validate()
         self.assertEqual(
             meta.errors['publication_serial_to_year__0'],
             'Enter a year 1981 or greater'
         )
 
-        meta.serials = list(serials)
+        meta.serials = [PublicationSerial(x) for x in list(serials)]
         meta.validate()
         self.assertEqual(meta.errors, {})
-        meta.serials[0]['published_name'] = ''
-        meta.serials[1]['published_format'] = '_fake_'
+        meta.serials[0].published_name = ''
+        meta.serials[1].published_format = '_fake_'
         meta.validate()
         self.assertEqual(
             sorted(meta.errors.keys()),
@@ -1718,17 +1738,17 @@ class TestPublicationMetadata(LocalTestCase):
         )
 
         # derivative
-        meta.metadata = dict(metadata)
-        meta.serials = list(serials)
-        meta.deriviate = dict(derivative)
+        meta.metadata = PublicationMetadata(metadata)
+        meta.serials = [PublicationSerial(x) for x in list(serials)]
+        meta.derivative = Derivative(derivative)
         meta.validate()
         self.assertEqual(meta.errors, {})
 
-        meta.derivative['title'] = ''
-        meta.derivative['creator'] = ''
-        meta.derivative['cc_licence_id'] = 999999
-        meta.derivative['from_year'] = -1
-        meta.derivative['to_year'] = -2
+        meta.derivative.title = ''
+        meta.derivative.creator = ''
+        meta.derivative.cc_licence_id = 999999
+        meta.derivative.from_year = -1
+        meta.derivative.to_year = -2
         meta.validate()
         self.assertEqual(
             sorted(meta.errors.keys()),
@@ -1740,9 +1760,9 @@ class TestPublicationMetadata(LocalTestCase):
                 'derivative_to_year',
             ])
         )
-        meta.deriviate = dict(derivative)
-        meta.derivative['from_year'] = 1977
-        meta.derivative['to_year'] = 1976
+        meta.deriviate = Derivative(derivative)
+        meta.derivative.from_year = 1977
+        meta.derivative.to_year = 1976
         meta.validate()
         self.assertEqual(
             meta.errors['derivative_to_year'],
@@ -1759,7 +1779,7 @@ class TestPublicationMetadata(LocalTestCase):
             name='test__year_range',
         ))
 
-        meta = PublicationMetadata(book)
+        meta = BookPublicationMetadata(book)
 
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212

@@ -41,6 +41,8 @@ from applications.zcomx.modules.images import \
     store
 from applications.zcomx.modules.images_optimize import AllSizesImages
 from applications.zcomx.modules.indicias import \
+    BookPublicationMetadata, \
+    Derivative, \
     PublicationMetadata, \
     create_creator_indicia
 from applications.zcomx.modules.job_queue import \
@@ -346,8 +348,7 @@ def book_edit():
         if book.cc_licence_id == cc0.id:
             show_cc_licence_place = True
 
-        meta = PublicationMetadata(book)
-        meta.load()
+        meta = BookPublicationMetadata.from_book(book)
 
     link_types = []
     for link_type_code in ['book_review', 'buy_book']:
@@ -1132,7 +1133,7 @@ def metadata_crud():
 
         get: Return the metadata in json format.
         update: expect POST json data and create/update metadata records as
-            necesary.
+            necessary.
     """
     # too-many-return-statements (R0911): *Too many return statements*
     # pylint: disable=R0911
@@ -1322,14 +1323,13 @@ def metadata_crud():
         })
 
         query = (db.publication_metadata.book_id == book.id)
-        metadata_record = db(query).select(
-            orderby=[db.publication_metadata.id],
-        ).first()
-        if metadata_record:
-            data['publication_metadata']['record'] = metadata_record.as_dict()
-        else:
+        try:
+            metadata_record = PublicationMetadata.from_query(query)
+        except LookupError:
             data['publication_metadata']['record'] = \
                 data['publication_metadata']['default']
+        else:
+            data['publication_metadata']['record'] = metadata_record.as_dict()
 
         query = (db.publication_serial.book_id == book.id)
         data['publication_serial']['records'] = db(query).select(
@@ -1340,17 +1340,17 @@ def metadata_crud():
         ).as_list()
 
         query = (db.derivative.book_id == book.id)
-        derivative_record = db(query).select(limitby=(0, 1)).first()
-        if derivative_record:
-            data['derivative']['record'] = derivative_record.as_dict()
-            data['derivative']['record']['is_derivative'] = 'yes'
-        else:
+        try:
+            derivative = Derivative.from_query(query)
+        except LookupError:
             data['derivative']['record'] = data['derivative']['default']
+        else:
+            data['derivative']['record'] = derivative.as_dict()
+            data['derivative']['record']['is_derivative'] = 'yes'
         return {'status': 'ok', 'data': data}
 
     if action == 'update':
-        meta = PublicationMetadata(book)
-        meta.load_from_vars(dict(request.vars))
+        meta = BookPublicationMetadata.from_vars(book, dict(request.vars))
         meta.validate()
         if meta.errors:
             return {'status': 'error', 'fields': meta.errors}
@@ -1393,10 +1393,9 @@ def metadata_text():
             book and book.creator_id != creator.id):
         return do_error('Invalid data provided')
 
-    meta = PublicationMetadata(book)
+    meta = BookPublicationMetadata.from_book(book)
     if not meta:
         return do_error('Invalid data provided')
-    meta.load()
     return {'status': 'ok', 'text': str(meta)}
 
 

@@ -14,7 +14,9 @@ from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.indicias import PublicationMetadata
+from applications.zcomx.modules.indicias import \
+    BookPublicationMetadata, \
+    PublicationMetadata
 from applications.zcomx.modules.links import \
     LinkType, \
     LinksKey
@@ -1026,7 +1028,7 @@ class TestFunctions(LocalTestCase):
             creator_id=self._creator.id,
         ))
 
-        self.add(db.publication_metadata, dict(
+        self.add(PublicationMetadata, dict(
             book_id=book.id,
             republished=True,
             published_type='whole',
@@ -1043,8 +1045,7 @@ class TestFunctions(LocalTestCase):
 
         text = 'This work was originally published in print in 1999-2000 as "My Book" by Acme.'
 
-        meta = PublicationMetadata(book)
-        meta.load()
+        meta = BookPublicationMetadata.from_book(book)
         self.assertEqual(str(meta), text)
 
         web.login()

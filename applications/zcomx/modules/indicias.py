@@ -32,6 +32,7 @@ from applications.zcomx.modules.links import \
     Links, \
     LinksKey, \
     LinkType
+from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     os_nice
@@ -236,8 +237,8 @@ class BookIndiciaPage(IndiciaPage):
             template_field=template_field,
         ))
 
-        meta = PublicationMetadata(self.book, first_publication_text='')
-        meta.load()
+        meta = BookPublicationMetadata.from_book(
+            self.book, first_publication_text='')
         sections.append(str(meta))
 
         return ' '.join([x for x in sections if x])
@@ -608,8 +609,8 @@ class IndiciaSh(TempDirectoryMixin):
             self.png_filename = matches[0]
 
 
-class PublicationMetadata(object):
-    """Class representing publication metadata"""
+class BookPublicationMetadata(object):
+    """Class representing publication metadata for a book."""
 
     def __init__(
             self,
@@ -622,16 +623,16 @@ class PublicationMetadata(object):
 
         Args:
             book: Book instance
-            metadata: dict representing publication_metadata record.
-            serials: list of dicts representing publication_serial records.
-            derivative: dict representing derivative record.
+            metadata: PublicationMetadata instance
+            serials: list of PublicationSerial instances
+            derivative: Derivative instance
             first_publication_text: string, text to use if this is the first
-                publication. If None, uses 'First publication: zco.mx 2014.'
+                publication. If None, uses 'First publication: zco.mx YYYY.'
         """
         self.book = book
-        self.metadata = metadata if metadata is not None else {}
+        self.metadata = metadata
         self.serials = serials if serials is not None else []
-        self.derivative = derivative if derivative is not None else {}
+        self.derivative = derivative
         self.first_publication_text = first_publication_text
         if first_publication_text is None:
             fmt = 'First publication: zco.mx {y}.'
@@ -648,7 +649,6 @@ class PublicationMetadata(object):
 
         Returns: string
         """
-        db = current.app.db
         if not self.derivative:
             return ''
 
@@ -660,67 +660,92 @@ class PublicationMetadata(object):
         years = '-'.join(
             sorted(set(
                 [
-                    str(self.derivative['from_year']),
-                    str(self.derivative['to_year'])
+                    str(self.derivative.from_year),
+                    str(self.derivative.to_year)
                 ]
             ))
         )
 
-        query = (db.cc_licence.id == self.derivative['cc_licence_id'])
-        cc_licence = db(query).select(limitby=(0, 1)).first()
-        cc_code = cc_licence.code if cc_licence else CCLicence.default_code
+        try:
+            cc_licence = CCLicence.from_id(self.derivative.cc_licence_id)
+            cc_code = cc_licence.code
+        except LookupError:
+            cc_code = CCLicence.default_code
 
         return fmt.format(
             name=self.book.name,
-            title=self.derivative['title'],
+            title=self.derivative.title,
             y=years,
-            creator=self.derivative['creator'],
+            creator=self.derivative.creator,
             cc_code=cc_code,
         )
 
-    def load(self):
-        """Load the metadata, serials and derivative data from db."""
-        db = current.app.db
-        ignore_fields = ['id', 'created_on', 'updated_on']
-        scrub = lambda d: {i:d[i] for i in d if i not in ignore_fields}
-
-        self.metadata = {}
-        query = (db.publication_metadata.book_id == self.book.id)
-        metadata = db(query).select()
-        if metadata:
-            self.metadata = scrub(metadata.first().as_dict())
-
-        self.serials = []
-        query = (db.publication_serial.book_id == self.book.id)
-        serials = db(query).select(
-            orderby=[
-                db.publication_serial.sequence,
-                db.publication_serial.id,
-            ],
-        ).as_list()
-        self.serials = [scrub(x) for x in serials]
-
-        self.derivative = {}
-        query = (db.derivative.book_id == self.book.id)
-        derivative = db(query).select()
-        if derivative:
-            self.derivative = scrub(derivative.first().as_dict())
-        return self
-
-    def load_from_vars(self, request_vars):
-        """Set the metadata, serials and derivative properties from
-        request.vars.
+    @classmethod
+    def from_book(cls, book, first_publication_text=None):
+        """Return a BookPublicationMetadata instance for the book.
 
         Args:
-            request_vars: dict(request.vars)
+            book: Book instance
+            first_publication_text: str, see __init__
 
         Returns:
-            self
+            BookPublicationMetadata instance
+        """
+        db = current.app.db
+        query = (db.publication_metadata.book_id == book.id)
+        try:
+            publication_metadata = PublicationMetadata.from_query(query)
+        except LookupError:
+            publication_metadata = None
+
+        serials = []
+        query = (db.publication_serial.book_id == book.id)
+        serial_ids = [
+            x.id for x in db(query).select(
+                db.publication_serial.id,
+                orderby=[
+                    db.publication_serial.sequence,
+                    db.publication_serial.id,
+                ],
+            )
+        ]
+        serials = [PublicationSerial.from_id(x) for x in serial_ids]
+
+        query = (db.derivative.book_id == book.id)
+        try:
+            derivative = Derivative.from_query(query)
+        except LookupError:
+            derivative = None
+
+        return cls(
+            book,
+            metadata=publication_metadata,
+            serials=serials,
+            derivative=derivative,
+            first_publication_text=first_publication_text
+        )
+
+    @classmethod
+    def from_vars(cls, book, request_vars, first_publication_text=None):
+        """Return a BookPublicationMetadata instance for the book setting the
+        metadata, serials and derivative properties from request.vars.
+
+        Args:
+            book: Book instance
+            request_vars: dict(request.vars)
+            first_publication_text: str, see __init__
+
+        Returns:
+            BookPublicationMetadata instance
         """
         # The request_vars may include the following
         #     publication_metadata (none or one record)
         #     publication_serial   (none, one or more records)
-        #     deravitive           (none or one record)
+        #     derivative           (none or one record)
+
+        metadata = None
+        serials = []
+        derivative = None
 
         # Convert republished from string to boolean
         if 'publication_metadata_republished' in request_vars:
@@ -741,21 +766,29 @@ class PublicationMetadata(object):
             request_vars, 'publication_metadata', multiple=False)
         if not metadatas:
             raise LookupError('Unable to convert vars to metadata.')
-        self.metadata = metadatas[0]
-        if self.metadata['republished'] \
-                and self.metadata['published_type'] == 'serial':
-            self.serials = vars_to_records(
+        metadata = PublicationMetadata(metadatas[0])
+        if metadata.republished \
+                and metadata.published_type == 'serial':
+            serial_records = vars_to_records(
                 request_vars, 'publication_serial', multiple=True)
+            serials = [PublicationSerial(x) for x in serial_records]
         if 'is_derivative' in request_vars \
                 and request_vars['is_derivative'] == 'yes':
             derivatives = vars_to_records(
                 request_vars, 'derivative', multiple=False)
             if not derivatives:
                 raise LookupError('Unable to convert vars to derivative.')
-            self.derivative = derivatives[0]
+            derivative = Derivative(derivatives[0])
         else:
-            self.derivative = {}
-        return self
+            derivative = None
+
+        return cls(
+            book,
+            metadata=metadata,
+            serials=serials,
+            derivative=derivative,
+            first_publication_text=first_publication_text
+        )
 
     def metadata_text(self):
         """Return the sentence form of a publication_metadata record.
@@ -765,47 +798,47 @@ class PublicationMetadata(object):
         if not self.metadata:
             return ''
 
-        if not self.metadata['republished']:
+        if not self.metadata.republished:
             return self.first_publication_text
 
-        if self.metadata['published_type'] == 'serial' and self.serials:
-            # Set def serial_text produce the text.
+        if self.metadata.published_type == 'serial' and self.serials:
+            # Set so def serial_text produces the text.
             return ''
 
-        # From here on: self.metadata['republished'] == True
+        # From here on: self.metadata.republished == True
 
         fmt = (
             'This work was originally '
             '{pubr_type} {pubd_type} in {y}{old}{publr}.'
         )
         pubr_type = 'self-published' \
-            if self.metadata['published_format'] == 'paper' \
-            and self.metadata['publisher_type'] == 'self' \
+            if self.metadata.published_format == 'paper' \
+            and self.metadata.publisher_type == 'self' \
             else 'published'
-        by = 'by' if self.metadata['publisher_type'] == 'press' else 'at'
+        by = 'by' if self.metadata.publisher_type == 'press' else 'at'
         pubd_type = 'digitally' \
-            if self.metadata['published_format'] == 'digital' \
+            if self.metadata.published_format == 'digital' \
             else 'in print'
         years = '-'.join(
             sorted(
                 set([
-                    str(self.metadata['from_year']),
-                    str(self.metadata['to_year'])
+                    str(self.metadata.from_year),
+                    str(self.metadata.to_year)
                 ])
             )
         )
 
         publr = ''
-        if self.metadata['publisher']:
-            by = 'by' if self.metadata['publisher_type'] == 'press' else 'at'
+        if self.metadata.publisher:
+            by = 'by' if self.metadata.publisher_type == 'press' else 'at'
             publr = ' {by} {name}'.format(
                 by=by,
-                name=self.metadata['publisher'],
+                name=self.metadata.publisher,
             )
 
         old = ''
-        if self.book.name != self.metadata['published_name']:
-            old = ' as "{name}"'.format(name=self.metadata['published_name'])
+        if self.book.name != self.metadata.published_name:
+            old = ' as "{name}"'.format(name=self.metadata.published_name)
 
         return fmt.format(
             pubr_type=pubr_type,
@@ -828,17 +861,17 @@ class PublicationMetadata(object):
         if self.serials:
             max_to_year = 0
             for serial in self.serials:
-                if serial['to_year'] > max_to_year:
-                    max_to_year = serial['to_year']
+                if serial.to_year > max_to_year:
+                    max_to_year = serial.to_year
             return max_to_year
         else:
-            return self.metadata['to_year']
+            return self.metadata.to_year
 
     def serial_text(self, serial, is_anthology=False):
         """Return the sentence form of a publication_serial record.
 
         Args:
-            serial: dict representing publication_serial record.
+            serial: PublicationSerial instance
             is_anthology: If True, serial is an anthology.
 
         Returns: string
@@ -871,21 +904,21 @@ class PublicationMetadata(object):
 
         formatted_title = lambda name, num: '{name} #{num}'.format(name=name, num=num) if num else name
 
-        fmt = fmts[is_anthology][serial['published_format']]
-        if serial['published_format'] == 'paper':
-            fmt = fmts[is_anthology][serial['published_format']][serial['publisher_type']]
+        fmt = fmts[is_anthology][serial.published_format]
+        if serial.published_format == 'paper':
+            fmt = fmts[is_anthology][serial.published_format][serial.publisher_type]
 
         years = '-'.join(
             sorted(
-                set([str(serial['from_year']), str(serial['to_year'])])
+                set([str(serial.from_year), str(serial.to_year)])
             )
         )
 
         return fmt.format(
-            story=formatted_title(serial['published_name'], serial['story_number']),
-            title=formatted_title(serial['serial_title'], serial['serial_number']),
+            story=formatted_title(serial.published_name, serial.story_number),
+            title=formatted_title(serial.serial_title, serial.serial_number),
             y=years,
-            publr=serial['publisher'].rstrip('.'),
+            publr=serial.publisher.rstrip('.'),
         )
 
     def serials_text(self):
@@ -895,7 +928,7 @@ class PublicationMetadata(object):
         """
         is_anthology = False
         if self.metadata and 'is_anthology' in self.metadata:
-            is_anthology = self.metadata['is_anthology']
+            is_anthology = self.metadata.is_anthology
         return [self.serial_text(x, is_anthology=is_anthology)
                 for x in self.serials]
 
@@ -939,17 +972,14 @@ class PublicationMetadata(object):
         # There should be exactly one publication_metadata record per book
         if len(existing) > 1:
             for record in existing[1:]:
-                db(db.publication_metadata.id == record.id).delete()
-                db.commit()
+                publication_metadata = PublicationMetadata.from_id(record.id)
+                publication_metadata.delete()
 
         if not existing:
-            db.publication_metadata.insert(book_id=self.book.id)
-            db.commit()
+            data = dict(book_id=self.book.id)
+            PublicationMetadata.from_add(data)
 
-        publication_metadata = db(query).select(
-            orderby=[db.publication_metadata.id],
-        ).first()
-
+        publication_metadata = PublicationMetadata.from_query(query)
         if not publication_metadata:
             raise LookupError('publication_metadata record not found')
 
@@ -957,12 +987,14 @@ class PublicationMetadata(object):
             db.publication_metadata, ignore_fields='common')
         default.update({
             'book_id': self.book.id,
+            'republished': False,
         })
 
         data = dict(default)
-        data.update(self.metadata)
-        publication_metadata.update_record(**data)
-        db.commit()
+        if self.metadata:
+            data.update(self.metadata)
+        publication_metadata = PublicationMetadata.from_updated(
+            publication_metadata, data)
 
         # Update publication_serial records
         query = (db.publication_serial.book_id == self.book.id)
@@ -975,13 +1007,13 @@ class PublicationMetadata(object):
 
         if len(self.serials) < len(existing):
             for serial in existing[len(self.serials):]:
-                db(db.publication_serial.id == serial.id).delete()
-                db.commit()
+                publication_serial = PublicationSerial.from_id(serial.id)
+                publication_serial.delete()
 
         if len(self.serials) > len(existing):
+            data = dict(book_id=self.book.id)
             for serial in self.serials[len(existing):]:
-                db.publication_serial.insert(book_id=self.book.id)
-            db.commit()
+                PublicationSerial.from_add(data)
 
         query = (db.publication_serial.book_id == self.book.id)
         existing = db(query).select(
@@ -999,12 +1031,16 @@ class PublicationMetadata(object):
             'book_id': self.book.id,
         })
 
-        for c, record in enumerate(self.serials):
+        for c, serial in enumerate(self.serials):
             data = dict(default)
-            data.update(record)
+            data.update(serial)
             data['sequence'] = c
-            existing[c].update_record(**data)
-        db.commit()
+            publication_serial = PublicationSerial.from_id(existing[c].id)
+            publication_serial = PublicationSerial.from_updated(
+                publication_serial,
+                data,
+                validate=False,         # Use def validate() to validate
+            )
 
         # Update derivative record.
         query = (db.derivative.book_id == self.book.id)
@@ -1014,15 +1050,14 @@ class PublicationMetadata(object):
         if self.derivative:
             if len(existing) > 1:
                 for record in existing[1:]:
-                    db(db.derivative.id == record.id).delete()
-                    db.commit()
+                    derivative = Derivative.from_id(record.id)
+                    derivative.delete()
 
             if not existing:
-                db.derivative.insert(book_id=self.book.id)
-                db.commit()
+                data = dict(book_id=self.book.id)
+                Derivative.from_add(data)
 
-            derivative = db(query).select(orderby=[db.derivative.id]).first()
-
+            derivative = Derivative.from_query(query)
             if not derivative:
                 raise LookupError('derivative record not found')
 
@@ -1036,13 +1071,12 @@ class PublicationMetadata(object):
 
             data = dict(default)
             data.update(self.derivative)
-            derivative.update_record(**data)
-            db.commit()
+            derivative = Derivative.from_updated(derivative, data)
         else:
             # Delete any existing records
             for record in existing:
-                db(db.derivative.id == record.id).delete()
-                db.commit()
+                derivative = Derivative.from_id(record.id)
+                derivative.delete()
 
     def validate(self):
         """Validate data.
@@ -1061,33 +1095,33 @@ class PublicationMetadata(object):
 
         self.errors = {}
         if self.metadata:
-            if self.metadata['republished']:
+            if self.metadata.republished:
                 db_meta.published_type.requires = IS_IN_SET(
                     published_types,
                     error_message='Please select an option',
                 )
-                if self.metadata['published_type'] == 'whole':
+                if self.metadata.published_type == 'whole':
                     db_meta.published_name.requires = IS_NOT_EMPTY()
                     db_meta.published_format.requires = IS_IN_SET(
                         published_formats)
                     db_meta.publisher_type.requires = IS_IN_SET(
                         publisher_types)
                     db_meta.publisher.requires = IS_NOT_EMPTY()
-                    if self.metadata['published_format'] == 'paper' and \
-                            self.metadata['publisher_type'] == 'self':
+                    if self.metadata.published_format == 'paper' and \
+                            self.metadata.publisher_type == 'self':
                         db_meta.publisher.requires = None
                     db_meta.from_year.requires = IS_INT_IN_RANGE(
                         min_year, max_year)
                     db_meta.to_year.requires = self.to_year_requires(
-                        self.metadata['from_year'])
+                        self.metadata.from_year)
                     for f in db_serial.fields:
                         db_serial[f].requires = None
-                elif self.metadata['published_type'] == 'serial':
+                elif self.metadata.published_type == 'serial':
                     for f in db_meta.fields:
                         if f not in ['republished', 'published_type']:
                             db_meta[f].requires = None
                     if 'is_anthology' in self.metadata \
-                            and self.metadata['is_anthology']:
+                            and self.metadata.is_anthology:
                         db_serial.published_name.requires = IS_NOT_EMPTY()
                     else:
                         db_serial.published_name.requires = None
@@ -1112,12 +1146,12 @@ class PublicationMetadata(object):
                 if field in db_serial.fields:
                     if field == 'publisher':
                         db_serial.publisher.requires = IS_NOT_EMPTY()
-                        if serial['published_format'] == 'paper' and \
-                                serial['publisher_type'] == 'self':
+                        if serial.published_format == 'paper' and \
+                                serial.publisher_type == 'self':
                             db_serial.publisher.requires = None
                     if field == 'to_year':
                         db_serial.to_year.requires = self.to_year_requires(
-                            serial['from_year'])
+                            serial.from_year)
                     value, error = db_serial[field].validate(value)
                     if error:
                         key = '{t}_{f}__{i}'.format(
@@ -1125,18 +1159,20 @@ class PublicationMetadata(object):
                         self.errors[key] = error
                     serial[field] = value
 
-        db.derivative.from_year.requires = IS_INT_IN_RANGE(min_year, max_year)
-        for field, value in self.derivative.items():
-            if field in db.derivative.fields:
-                if field == 'to_year':
-                    db.derivative.to_year.requires = self.to_year_requires(
-                        self.derivative['from_year'])
-                value, error = db.derivative[field].validate(value)
-                if error:
-                    key = '{t}_{f}'.format(
-                        t=str(db.derivative), f=field)
-                    self.errors[key] = error
-                self.derivative[field] = value
+        if self.derivative:
+            db.derivative.from_year.requires = IS_INT_IN_RANGE(
+                min_year, max_year)
+            for field, value in self.derivative.items():
+                if field in db.derivative.fields:
+                    if field == 'to_year':
+                        db.derivative.to_year.requires = self.to_year_requires(
+                            self.derivative.from_year)
+                    value, error = db.derivative[field].validate(value)
+                    if error:
+                        key = '{t}_{f}'.format(
+                            t=str(db.derivative), f=field)
+                        self.errors[key] = error
+                    self.derivative[field] = value
 
     def year_range(self):
         """Return a tuple representing the start and end range of publication
@@ -1148,6 +1184,21 @@ class PublicationMetadata(object):
         if self._publication_year_range == (None, None):
             self._publication_year_range = publication_year_range()
         return self._publication_year_range
+
+
+class PublicationMetadata(Record):
+    """Class representing a publication_metadata record."""
+    db_table = 'publication_metadata'
+
+
+class PublicationSerial(Record):
+    """Class representing a publication_serial record."""
+    db_table = 'publication_serial'
+
+
+class Derivative(Record):
+    """Class representing a derivative record."""
+    db_table = 'derivative'
 
 
 def cc_licence_places():

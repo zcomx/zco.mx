@@ -15,7 +15,7 @@ from gluon.shell import env
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.indicias import \
-    PublicationMetadata
+    BookPublicationMetadata
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -87,8 +87,7 @@ def main():
     ids = [x.id for x in db(db.book).select(db.book.id)]
     for book_id in ids:
         book = Book.from_id(book_id)
-        meta = PublicationMetadata(book)
-        meta.load()
+        meta = BookPublicationMetadata.from_book(book)
         try:
             publication_year = meta.publication_year()
         except ValueError:

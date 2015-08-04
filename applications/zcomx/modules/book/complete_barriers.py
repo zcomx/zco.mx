@@ -10,6 +10,7 @@ import os
 from gluon import *
 from applications.zcomx.modules.books import book_pages as b_pages
 from applications.zcomx.modules.images import ImageDescriptor
+from applications.zcomx.modules.indicias import PublicationMetadata
 
 LOG = logging.getLogger('app')
 
@@ -371,8 +372,12 @@ class NoPublicationMetadataBarrier(BaseCompleteBarrier):
     def applies(self):
         db = current.app.db
         query = (db.publication_metadata.book_id == self.book.id)
-        metadata = db(query).select(limitby=(0, 1)).first()
-        return not metadata
+        try:
+            metadata = PublicationMetadata.from_query(query)
+        except LookupError:
+            return True
+        else:
+            return False
 
     @property
     def code(self):

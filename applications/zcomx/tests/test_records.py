@@ -60,7 +60,14 @@ class TestRecord(LocalTestCase):
 
         # Test data with validate errors
         invalid_data = dict(name='')
-        self.assertRaises(SyntaxError, DubRecord.from_add, invalid_data)
+        self.assertRaises(
+            SyntaxError, DubRecord.from_add, invalid_data, validate=True)
+
+        # Test validate=False
+        book = DubRecord.from_add(invalid_data, validate=False)
+        self.assertTrue(book.id)
+        self.assertEqual(book.name, '')
+        self._objects.append(book)
 
     def test__from_id(self):
         saved_book = self.add(db.book, dict(
@@ -158,6 +165,11 @@ class TestRecord(LocalTestCase):
         invalid_data = dict(name='')
         self.assertRaises(
             SyntaxError, DubRecord.from_updated, book, invalid_data)
+
+        # Test validate=False
+        new_book = DubRecord.from_updated(book, invalid_data, validate=False)
+        self.assertEqual(new_book.id, book.id)
+        self.assertEqual(new_book.name, '')
 
     def test__update_record(self):
         saved_book = self.add(db.book, dict(

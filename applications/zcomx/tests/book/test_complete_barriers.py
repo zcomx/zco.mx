@@ -32,6 +32,7 @@ from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -133,7 +134,6 @@ class TestBaseCompleteBarrier(LocalTestCase):
 class TestDupeNameBarrier(LocalTestCase):
 
     def test__applies(self):
-        return
         creator = self.add(Creator, dict(email='dupe@example.com'))
         creator_2 = self.add(Creator, dict(email='dupe_2@example.com'))
 
@@ -153,7 +153,6 @@ class TestDupeNameBarrier(LocalTestCase):
             book_type_id=book.book_type_id + 1,                     # not same
             release_date=datetime.date(1990, 12, 31),               # not None
         )
-        print 'FIXME dupe_data: {var}'.format(var=dupe_data)
 
         book_2 = self.add(Book, dict(dupe_data))
         self.assertTrue(barrier.applies())
@@ -558,7 +557,7 @@ class TestNoPublicationMetadataBarrier(LocalTestCase):
             name='test__applies',
         ))
 
-        metadata = self.add(db.publication_metadata, dict(
+        metadata = self.add(PublicationMetadata, dict(
             book_id=book.id,
         ))
 
@@ -669,7 +668,7 @@ class TestFunctions(ImageTestCase):
 
         _create_cbz(book_page)
 
-        self.add(db.publication_metadata, dict(
+        self.add(PublicationMetadata, dict(
             book_id=book.id,
             republished=False,
         ))
@@ -705,7 +704,7 @@ class TestFunctions(ImageTestCase):
 
         _create_cbz(book_page)
 
-        self.add(db.publication_metadata, dict(
+        self.add(PublicationMetadata, dict(
             book_id=book.id,
             republished=False,
         ))

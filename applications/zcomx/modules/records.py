@@ -36,26 +36,33 @@ class Record(Row):
         return self.delete()
 
     @classmethod
-    def from_add(cls, data):
+    def from_add(cls, data, validate=True):
         """Add a db record from the given data and return the instance
         associateted with it.
 
         Args:
             data: dict, {field: value, ...}
+            validate: if True, data is validated before adding.
 
         Returns:
             cls instance
         """
+        record_id = 0
         db = current.app.db
-        ret = db[cls.db_table].validate_and_insert(**data)
-        db.commit()
-        if ret.errors:
-            msg = ', '.join([
-                '{k}: {v}'.format(k=k, v=v)
-                for k, v in ret.errors.items()
-            ])
-            raise SyntaxError(msg)
-        return cls.from_id(ret.id)
+        if validate:
+            ret = db[cls.db_table].validate_and_insert(**data)
+            db.commit()
+            if ret.errors:
+                msg = ', '.join([
+                    '{k}: {v}'.format(k=k, v=v)
+                    for k, v in ret.errors.items()
+                ])
+                raise SyntaxError(msg)
+            record_id = ret.id
+        else:
+            record_id = db[cls.db_table].insert(**data)
+            db.commit()
+        return cls.from_id(record_id)
 
     @classmethod
     def from_id(cls, record_id):
@@ -110,16 +117,20 @@ class Record(Row):
         return cls(record.as_dict())
 
     @classmethod
-    def from_updated(cls, record, data):
+    def from_updated(cls, record, data, validate=True):
         """Update a db record and return a instance representing the
         updated record.
 
         Args:
             record: Record (or subclass) instance
             data: dict, {field: value, ...}
+            validate: if True, data is validated before updating.
 
         Returns:
             cls instance
+
+        Raises:
+            SyntaxError if validate=True and data is invalid.
         """
         if not record.id:
             msg = 'Unable to update record with out id.'
@@ -127,14 +138,18 @@ class Record(Row):
 
         db = current.app.db
         query = (db[record.db_table].id == record.id)
-        ret = db(query).validate_and_update(**data)
-        db.commit()
-        if ret.errors:
-            msg = ', '.join([
-                '{k}: {v}'.format(k=k, v=v)
-                for k, v in ret.errors.items()
-            ])
-            raise SyntaxError(msg)
+        if validate:
+            ret = db(query).validate_and_update(**data)
+            db.commit()
+            if ret.errors:
+                msg = ', '.join([
+                    '{k}: {v}'.format(k=k, v=v)
+                    for k, v in ret.errors.items()
+                ])
+                raise SyntaxError(msg)
+        else:
+            db(query).update(**data)
+            db.commit()
         return cls.from_id(record.id)
 
     def update_record(self, **data):
