@@ -325,7 +325,7 @@ def main():
     # print client.permissions()
     # print client.post_text()
     # print client.post_photo_link()
-    print client.post_tumblr_link()
+    # print client.post_tumblr_link()
     # print client.post_photo()
 
     LOG.info('Done.')
