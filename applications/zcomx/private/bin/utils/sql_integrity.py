@@ -48,10 +48,11 @@ def compare_tables():
         SELECT name
         FROM sqlite_master
         WHERE type = ?
+        OR type = ?
         ORDER BY name
         ;
     """
-    placeholders = ['table']
+    placeholders = ['table', 'view']
     rows = db.executesql(sql, placeholders=placeholders)
     for r in rows:
         sqlite_tables.append(r[0])
