@@ -2,7 +2,7 @@
 __loaded_logger 2>/dev/null || source ${BASH_SOURCE%/*}/../lib/logger.sh
 
 APP=zcomx
-PY_SCRIPT="applications/shared/private/bin/python_web2py.sh"
+PY_SCRIPT="applications/$APP/private/bin/python_web2py.sh"
 SETTINGS_CONF="applications/$APP/private/settings.conf"
 VIEWS_SQL=views.sql
 
