@@ -1037,8 +1037,7 @@ def link_crud():
     if action == 'get':
         links = None
         if link_id:
-            r = db(db.link.id == link_id).select(limitby=(0, 1)).first()
-            links = Links([Link(r)])
+            links = Links([Link.from_id(link_id)])
         else:
             links = Links.from_links_key(links_key)
         rows = [x for x in links.links]
@@ -1056,7 +1055,6 @@ def link_crud():
                     new_value = data[f]
 
             if data:
-                query = (db.link.id == link_id)
                 try:
                     link = Link.from_id(link_id)
                 except LookupError:
@@ -1085,15 +1083,13 @@ def link_crud():
         except SyntaxError as err:
             return {'status': 'error', 'msg': str(err)}
 
-        rows = db(db.link.id == link.id).select().as_list()
+        rows = [Link.from_id(link.id).as_dict()]
         if url != request.vars.url:
             new_value = url
         do_reorder = True
     elif action == 'delete':
         if link_id:
-            query = (db.link.id == link_id)
-            db(query).delete()
-            db.commit()
+            Link.from_id(link_id).delete()
             do_reorder = True
         else:
             return do_error('Invalid data provided')

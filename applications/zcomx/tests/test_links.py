@@ -361,8 +361,8 @@ class TestLinkType(LocalTestCase):
 
     def test__by_code(self):
         link_type = LinkType.by_code('buy_book')
-        expect = db(db.link_type.code == 'buy_book').select(limitby=(0, 1)).first()
-        self.assertEqual(link_type, expect)
+        self.assertTrue(isinstance(link_type, LinkType))
+        self.assertEqual(link_type.code, 'buy_book')
 
 
 def setUpModule():

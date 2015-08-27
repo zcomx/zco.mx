@@ -18,6 +18,7 @@ from applications.zcomx.modules.indicias import \
     BookPublicationMetadata, \
     PublicationMetadata
 from applications.zcomx.modules.links import \
+    Link, \
     LinkType, \
     LinksKey
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -750,8 +751,7 @@ class TestFunctions(LocalTestCase):
             for r in rows:
                 if r.name in keep_names:
                     continue
-                db(db.link.id == r.id).delete()
-                db.commit()
+                Link.from_id(r.id).delete()
 
         web.login()
         links_keys = [
