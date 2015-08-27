@@ -356,6 +356,7 @@ def book_edit():
 
     return dict(
         book=book,
+        book_type=book_type,
         link_types=link_types,
         metadata=str(meta) if meta else '',
         numbers=dumps(book_type.number_field_statuses()),

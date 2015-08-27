@@ -566,10 +566,9 @@ def defaults(name, creator):
         data['number'] = book.number + 1                # Must be unique
         data['of_number'] = book.of_number
     else:
-        book_type_record = db(db.book_type.name == DEFAULT_BOOK_TYPE).select(
-            db.book_type.ALL).first()
-        if book_type_record:
-            data['book_type_id'] = book_type_record.id
+        book_type = BookType.from_key(dict(name=DEFAULT_BOOK_TYPE))
+        if book_type:
+            data['book_type_id'] = book_type.id
         data['number'] = 1
         data['of_number'] = 1
     data.update(names(data, fields=db.book.fields))
