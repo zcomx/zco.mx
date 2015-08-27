@@ -8,6 +8,7 @@ Test suite for zcomx/controllers/downloads.py
 """
 import unittest
 from gluon.contrib.simplejson import loads
+from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -38,7 +39,8 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=W0212
         # Get a book from a creator with a paypal_email.
         email = web.username
-        self._creator = db(db.creator.email == email).select(limitby=(0, 1)).first()
+        self._creator = db(
+            db.creator.email == email).select(limitby=(0, 1)).first()
         if not self._creator:
             raise SyntaxError('Unable to get creator.')
 
@@ -78,7 +80,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(result['status'], 'ok')
         click_id = int(result['id'])
         self.assertTrue(click_id > 0)
-        download_click = db(db.download_click.id == click_id).select(limitby=(0, 1)).first()
+        download_click = DownloadClick.from_id(click_id)
         self.assertTrue(download_click)
         self._objects.append(download_click)
         self.assertEqual(download_click.record_table, 'book')
@@ -93,7 +95,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(result['status'], 'ok')
         click_id = int(result['id'])
         self.assertTrue(click_id > 0)
-        download_click = db(db.download_click.id == click_id).select(limitby=(0, 1)).first()
+        download_click = DownloadClick.from_id(click_id)
         self.assertTrue(download_click)
         self._objects.append(download_click)
         self.assertEqual(download_click.record_table, 'book')

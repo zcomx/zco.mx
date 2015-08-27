@@ -44,7 +44,8 @@ class EventTestCase(LocalTestCase):
         book_row = self.add(db.book, dict(name='Event Test Case'))
         self._book = Book.from_id(book_row.id)
         email = web.username
-        self._user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
+        self._user = db(
+            db.auth_user.email == email).select(limitby=(0, 1)).first()
         if not self._user:
             raise SyntaxError('No user with email: {e}'.format(e=email))
 
@@ -291,7 +292,7 @@ class TestZcoContributionEvent(EventTestCase):
 class TestFunctions(LocalTestCase):
     def test__is_loggable(self):
         now = request.now
-        download_click_1 = self.add(db.download_click, dict(
+        download_click_1 = self.add(DownloadClick, dict(
             ip_address='111.111.111.111',
             auth_user_id=1,
             record_table='_table_1_',
@@ -301,7 +302,7 @@ class TestFunctions(LocalTestCase):
         ))
 
         # Test: should not match itself.
-        self.assertTrue(is_loggable(download_click_1))
+        self.assertTrue(is_loggable(download_click_1.id))
 
         # Test: identical record should not be loggable.
         click_2 = dict(
@@ -313,59 +314,56 @@ class TestFunctions(LocalTestCase):
             time_stamp=now,
         )
 
-        download_click_2 = self.add(db.download_click, dict(click_2))
-        self.assertFalse(is_loggable(download_click_2))
+        download_click_2 = self.add(DownloadClick, dict(click_2))
+        self.assertFalse(is_loggable(download_click_2.id))
 
         # If first record is not loggable, then should be loggable.
-        download_click_1.update_record(loggable=False)
-        db.commit()
-        self.assertTrue(is_loggable(download_click_2))
+        download_click_1 = DownloadClick.from_updated(
+            download_click_1, dict(loggable=False))
+        self.assertTrue(is_loggable(download_click_2.id))
 
         # Reset
-        download_click_1.update_record(loggable=True)
-        db.commit()
-        self.assertFalse(is_loggable(download_click_2))
+        download_click_1 = DownloadClick.from_updated(
+            download_click_1, dict(loggable=True))
+        self.assertFalse(is_loggable(download_click_2.id))
 
-        def test_mismatch(change):
+        def test_mismatch(dl_click, change):
             click_2_changed = dict(click_2)
             click_2_changed.update(change)
-            download_click_2.update_record(**click_2_changed)
-            db.commit()
-            self.assertTrue(is_loggable(download_click_2))
+            dl_click = DownloadClick.from_updated(dl_click, click_2_changed)
+            self.assertTrue(is_loggable(dl_click.id))
 
         # Test mismatching each field in query
-        test_mismatch(dict(ip_address='222.222.222.222'))
-        test_mismatch(dict(auth_user_id=2))
-        test_mismatch(dict(record_table='_table_2_'))
-        test_mismatch(dict(record_id=222))
+        test_mismatch(download_click_2, dict(ip_address='222.222.222.222'))
+        test_mismatch(download_click_2, dict(auth_user_id=2))
+        test_mismatch(download_click_2, dict(record_table='_table_2_'))
+        test_mismatch(download_click_2, dict(record_id=222))
 
         # Reset
-        download_click_2.update_record(**click_2)
-        db.commit()
-        self.assertFalse(is_loggable(download_click_2))
+        download_click_2 = DownloadClick.from_updated(
+            download_click_2, click_2)
+        self.assertFalse(is_loggable(download_click_2.id))
 
         # Test interval seconds.
-        def set_time_stamp(increment_seconds):
+        def set_time_stamp(dl_click, increment_seconds):
             click_2_changed = dict(click_2)
             click_2_changed.update(dict(
                 time_stamp=(
                     now + datetime.timedelta(seconds=increment_seconds))
             ))
-            db(db.download_click.id == download_click_2.id).update(
-                **click_2_changed)
-            db.commit()
+            DownloadClick.from_updated(dl_click, click_2_changed)
 
-        set_time_stamp(1)
-        self.assertFalse(is_loggable(download_click_2, interval_seconds=5))
+        set_time_stamp(download_click_2, 1)
+        self.assertFalse(is_loggable(download_click_2.id, interval_seconds=5))
 
-        set_time_stamp(4)
-        self.assertFalse(is_loggable(download_click_2, interval_seconds=5))
+        set_time_stamp(download_click_2, 4)
+        self.assertFalse(is_loggable(download_click_2.id, interval_seconds=5))
 
-        set_time_stamp(5)
-        self.assertTrue(is_loggable(download_click_2, interval_seconds=5))
+        set_time_stamp(download_click_2, 5)
+        self.assertTrue(is_loggable(download_click_2.id, interval_seconds=5))
 
-        set_time_stamp(6)
-        self.assertTrue(is_loggable(download_click_2, interval_seconds=5))
+        set_time_stamp(download_click_2, 6)
+        self.assertTrue(is_loggable(download_click_2.id, interval_seconds=5))
 
     def test__log_download_click(self):
         env = globals()
