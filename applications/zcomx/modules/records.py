@@ -22,6 +22,25 @@ class Record(Row):
         """Initializer"""
         Row.__init__(self, *args, **kwargs)
 
+    def as_one(self, record_class, key_fields=None):
+        """Return a Record instance representing a referenced attribute of the
+        record.
+
+        Args:
+            record_class: Record subclass, the class of the referenced
+                attribute.
+            key_fields: dict of field pairings
+                Eg {field of record_class: field of self}
+                If None, {'id': <db_table>_id} where db_table is
+                record_class.db_table
+        """
+        if not key_fields:
+            key_fields = {'id': '{t}_id'.format(t=record_class.db_table)}
+        key = {}
+        for record_field, self_field in key_fields.iteritems():
+            key[record_field] = self[self_field]
+        return record_class.from_key(key)
+
     def delete(self):
         """Delete the record from the db"""
         db = current.app.db
