@@ -10,7 +10,9 @@ import unittest
 from gluon import *
 from pydal.objects import Row
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.records import Record
+from applications.zcomx.modules.records import \
+    Record, \
+    Records
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -33,7 +35,10 @@ class TestRecord(LocalTestCase):
         self.assertEqual(book.name, 'My Book')
 
     def test__as_one(self):
-        creator = self.add(db.creator, dict(name_for_url='test__as_one'))
+        creator = self.add(DubCreator, dict(
+            name_for_url='test__as_one',
+        ))
+
         book = DubBook(dict(
             name='test__as_one',
             creator_id=creator.id,
@@ -211,6 +216,132 @@ class TestRecord(LocalTestCase):
         self.assertEqual(updated_book.name, book.name)
         self.assertEqual(book.name_for_url, 'N001')
         self.assertEqual(updated_book.name_for_url, 'N002')
+
+
+class TestRecords(LocalTestCase):
+
+    def test____init__(self):
+
+        book_1 = DubBook(name='My Book')
+        book_2 = DubBook(name='My Book 2')
+        records = Records([book_1, book_2])
+        self.assertTrue(records)
+        self.assertEqual(records.records[0], book_1)
+        self.assertEqual(records.records[1], book_2)
+
+    def test____getitem__(self):
+        book_1 = DubBook(name='My Book')
+        book_2 = DubBook(name='My Book 2')
+        records = Records([book_1, book_2])
+        self.assertEqual(records[0], book_1)
+        self.assertEqual(records[1], book_2)
+        self.assertRaises(IndexError, records.__getitem__, 2)
+
+    def test____iter__(self):
+        book_1 = DubBook(name='My Book')
+        book_2 = DubBook(name='My Book 2')
+        records = Records([book_1, book_2])
+        for count, record in enumerate(records):
+            if count == 0:
+                self.assertEqual(record, book_1)
+            else:
+                self.assertEqual(record, book_2)
+
+    def test____len__(self):
+        records = Records([])
+        self.assertEqual(len(records), 0)
+        book_1 = DubBook(name='My Book')
+        book_2 = DubBook(name='My Book 2')
+        records = Records([book_1, book_2])
+        self.assertEqual(len(records), 2)
+
+    def test____nonzero__(self):
+        records = Records([])
+        self.assertFalse(records)
+        book_1 = DubBook(name='My Book')
+        book_2 = DubBook(name='My Book 2')
+        records = Records([book_1, book_2])
+        self.assertTrue(records)
+
+    def test__first(self):
+        records = Records([])
+        self.assertEqual(records.first(), None)
+        book_1 = DubBook(name='My Book')
+        book_2 = DubBook(name='My Book 2')
+        records = Records([book_1, book_2])
+        self.assertEqual(records.first(), book_1)
+
+    def test__from_key(self):
+        creator = self.add(DubCreator, dict(
+            name_for_url='test__from_key',
+        ))
+
+        key = {'creator_id': creator.id}
+
+        # No books
+        records = Records.from_key(DubBook, key)
+        self.assertEqual(records.records, [])
+
+        # With books
+        book_1 = self.add(DubBook, dict(
+            name='Book 1',
+            creator_id=creator.id,
+        ))
+        book_2 = self.add(DubBook, dict(
+            name='Book 2',
+            creator_id=creator.id,
+        ))
+
+        records = Records.from_key(DubBook, key)
+        self.assertEqual(records.records, [book_1, book_2])
+
+        key_2 = {
+            'name': 'Book 2',
+            'creator_id': creator.id,
+        }
+
+        records = Records.from_key(DubBook, key_2)
+        self.assertEqual(records.records, [book_2])
+
+        # Test orderby
+        records = Records.from_key(DubBook, key, orderby=[~db.book.name])
+        self.assertEqual(records.records, [book_2, book_1])
+
+        # Test limitby
+        records = Records.from_key(DubBook, key, limitby=(0, 1))
+        self.assertEqual(records.records, [book_1])
+
+    def test__from_query(self):
+        creator = self.add(DubCreator, dict(
+            name_for_url='test__from_query',
+        ))
+
+        query = (db.book.creator_id == creator.id)
+
+        # No books
+        records = Records.from_query(DubBook, query)
+        self.assertEqual(records.records, [])
+
+        # With books
+        book_1 = self.add(DubBook, dict(
+            name='Book 1',
+            creator_id=creator.id,
+        ))
+        book_2 = self.add(DubBook, dict(
+            name='Book 2',
+            creator_id=creator.id,
+        ))
+
+        records = Records.from_query(DubBook, query)
+        self.assertEqual(records.records, [book_1, book_2])
+
+        # Test orderby
+        records = Records.from_query(DubBook, query, orderby=[~db.book.name])
+        self.assertEqual(records.records, [book_2, book_1])
+
+        # Test limitby
+        records = Records.from_query(DubBook, query, limitby=(0, 1))
+        self.assertEqual(records.records, [book_1])
 
 
 def setUpModule():
