@@ -26,9 +26,37 @@ from applications.zcomx.modules.zco import SITE_NAME
 LOG = logging.getLogger('app')
 
 
+class AuthUser(Record):
+    """Class representing a auth_user record"""
+    db_table = 'auth_user'
+
+
 class Creator(Record):
     """Class representing a creator record"""
     db_table = 'creator'
+
+    @classmethod
+    def by_email(cls, email):
+        """Return a Creator instance by an email.
+
+        Args:
+            email: str, email address (auth_user.email)
+
+        Returns:
+            Creator instance
+        """
+        auth_user = AuthUser.from_key(dict(email=email))
+        return Creator.from_key(dict(auth_user_id=auth_user.id))
+
+    @property
+    def name(self):
+        """Return the name of the creator.
+
+        Returns:
+            str, the name of the creator
+        """
+        auth_user = self.as_one(AuthUser)
+        return auth_user.name
 
 
 def add_creator(form):
@@ -47,16 +75,16 @@ def add_creator(form):
 
     db = current.app.db
 
-    auth_user = db(db.auth_user.email == email).select(
-        db.auth_user.ALL
-    ).first()
-    if not auth_user:
+    try:
+        auth_user = AuthUser.from_key(dict(email=email))
+    except LookupError:
         # Nothing we can do if there is no auth_user record
         return
 
-    creator = db(db.creator.auth_user_id == auth_user.id).select(
-        db.creator.ALL
-    ).first()
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth_user.id))
+    except LookupError:
+        creator = None
 
     if not creator:
         data = dict(
@@ -155,7 +183,7 @@ def creator_name(creator, use='file'):
         string, name of file
     """
     if use == 'file':
-        return CreatorName(formatted_name(creator)).for_file()
+        return CreatorName(creator.name).for_file()
     elif use == 'search':
         return creator.name_for_search
     elif use == 'url':
@@ -206,26 +234,6 @@ def for_path(name):
     return for_file(name)
 
 
-def formatted_name(creator):
-    """Return the formatted name of the creator.
-
-    Args:
-        creator: Creator instance
-    """
-    if not creator or not creator.auth_user_id:
-        return
-
-    db = current.app.db
-
-    # Read the auth_user record
-    query = (db.auth_user.id == creator.auth_user_id)
-    auth_user = db(query).select(db.auth_user.name, limitby=(0, 1)).first()
-    if not auth_user:
-        return
-
-    return auth_user.name
-
-
 def html_metadata(creator):
     """Return creator attributes for HTML metadata.
 
@@ -251,7 +259,7 @@ def html_metadata(creator):
     return {
         'description': creator.bio,
         'image_url': image_url,
-        'name': formatted_name(creator),
+        'name': creator.name,
         'twitter': creator.twitter,
         'type': 'profile',
         'url': url(creator, host=True),
@@ -354,8 +362,7 @@ def on_change_name(creator):
         return
 
     db = current.app.db
-    update_data = names(
-        CreatorName(formatted_name(creator)), fields=db.creator.fields)
+    update_data = names(CreatorName(creator.name), fields=db.creator.fields)
 
     updated_creator = Creator.from_updated(creator, update_data)
     queue_search_prefetch()
@@ -479,7 +486,7 @@ def social_media_data(creator):
             social_media.append((field, value))
 
     return {
-        'name': formatted_name(creator),
+        'name': creator.name,
         'name_for_search': creator_name(creator, use='search'),
         'name_for_url': creator_name(creator, use='url'),
         'short_url': short_url(creator),

@@ -10,6 +10,7 @@ import string
 import unittest
 from gluon import *
 from gluon.storage import Storage
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_ANYCASE, \
@@ -102,13 +103,9 @@ class TestIS_NOT_IN_DB_ANYCASE(LocalTestCase):
         email_2 = 'anycase_2@example.com'
         error_msg = 'is_not_in_db_anycase error'
 
-        def creator_by_email(email):
-            """Get creator by email."""
-            return db(db.creator.email == email).select(db.creator.ALL).first()
-
         db.creator.insert(email=email)
         db.commit()
-        creator = creator_by_email(email)
+        creator = Creator.from_key(dict(email=email))
         self.assertTrue(creator)
         self.assertEqual(creator.email, email)
         self._objects.append(creator)
@@ -147,10 +144,6 @@ class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
         email_2 = 'scrub_2@example.com'
         error_msg = 'is_not_in_db_scrubbed error'
 
-        def creator_by_email(email):
-            """Get creator by email."""
-            return db(db.creator.email == email).select(db.creator.ALL).first()
-
         def rm_underscore_two(text):
             """Remove '_2' from given string."""
             return text.replace('_2', '')
@@ -161,7 +154,7 @@ class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
 
         db.creator.insert(email=email)
         db.commit()
-        creator = creator_by_email(email)
+        creator = Creator.from_key(dict(email=email))
         self.assertTrue(creator)
         self.assertEqual(creator.email, email)
         self._objects.append(creator)

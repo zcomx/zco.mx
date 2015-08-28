@@ -21,7 +21,6 @@ from applications.zcomx.modules.books import \
     page_url
 from applications.zcomx.modules.creators import \
     Creator, \
-    formatted_name as creator_formatted_name, \
     url as creator_url
 from applications.zcomx.modules.images import ImageDescriptor
 from applications.zcomx.modules.zco import \
@@ -169,7 +168,7 @@ class BookRSSChannel(BaseRSSChannel):
     def description(self):
         return 'Recent activity of {b} by {c} on {s}.'.format(
             b=book_formatted_name(self.book, include_publication_year=False),
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
             s=SITE_NAME
         )
 
@@ -189,7 +188,7 @@ class BookRSSChannel(BaseRSSChannel):
         return '{s}: {b} by {c}'.format(
             s=SITE_NAME,
             b=book_formatted_name(self.book, include_publication_year=False),
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
         )
 
 
@@ -209,7 +208,7 @@ class CartoonistRSSChannel(BaseRSSChannel):
 
     def description(self):
         return 'Recent activity of {c} on {s}.'.format(
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
             s=SITE_NAME
         )
 
@@ -224,7 +223,7 @@ class CartoonistRSSChannel(BaseRSSChannel):
     def title(self):
         return '{s}: {c}'.format(
             s=SITE_NAME,
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
         )
 
 
@@ -269,7 +268,7 @@ class BaseRSSEntry(object):
         """
         return self.description_fmt().format(
             b=book_formatted_name(self.book, include_publication_year=False),
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
             d=datetime.datetime.strftime(self.time_stamp, '%b %d, %Y')
         )
 
@@ -375,7 +374,7 @@ class BaseRSSEntry(object):
         return "'{b}' {p} by {c}".format(
             b=book_formatted_name(self.book, include_publication_year=False),
             p=' '.join(AbridgedBookPageNumbers(pages).numbers()),
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
         )
 
 

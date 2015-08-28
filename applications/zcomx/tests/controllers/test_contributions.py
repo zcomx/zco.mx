@@ -9,9 +9,7 @@ Test suite for zcomx/controllers/contributions.py
 import datetime
 import unittest
 import urllib
-from applications.zcomx.modules.creators import \
-    Creator, \
-    formatted_name
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -104,7 +102,7 @@ class TestFunctions(LocalTestCase):
         )
         # Test with creator_id
         expect = list(self.titles['modal_book'])
-        expect.append(formatted_name(self._creator))
+        expect.append(self._creator.name)
         self.assertTrue(
             web.test(
                 '{url}/modal?creator_id={cid}'.format(

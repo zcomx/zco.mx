@@ -14,6 +14,7 @@ from gluon import *
 from pydal.objects import Row
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
+    Book, \
     book_name, \
     get_page, \
     formatted_name, \
@@ -85,20 +86,8 @@ class TileTestCase(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUpClass(cls):
-        email = web.username
-        user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
-        if not user:
-            raise SyntaxError('No user with email: {e}'.format(e=email))
-
-        query = db.creator.auth_user_id == user.id
-        creator = db(query).select(limitby=(0, 1)).first()
-        if not creator:
-            raise SyntaxError('No creator with email: {e}'.format(e=email))
-
-        query = (db.book.creator_id == creator.id)
-        book = db(query).select(limitby=(0, 1)).first()
-        if not book:
-            raise SyntaxError('No book with email: {e}'.format(e=email))
+        creator = Creator.by_email(web.username)
+        book = Book.from_key(dict(creator_id=creator.id))
 
         book_type_id = db(db.book_type).select(limitby=(0, 1)).first().id
         cls._row = Row({

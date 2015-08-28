@@ -1,6 +1,4 @@
 {{from applications.zcomx.modules.books import formatted_name as formatted_book_name}}
-{{from applications.zcomx.modules.creators import formatted_name as formatted_creator_name}}
-
 <div id="contribute_modal_page">
 
 {{if book or creator:}}
@@ -11,7 +9,7 @@ encourages cartoonists to produce more work.
     {{if creator:}}
     <div class="row" id="options_section">
         <label class="col-sm-4">creator</label>
-        <div class="col-sm-8">{{=formatted_creator_name(creator)}}</div>
+        <div class="col-sm-8">{{=creator.name}}</div>
     </div>
     {{pass}}
     {{if book:}}

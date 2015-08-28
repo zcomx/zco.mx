@@ -8,6 +8,7 @@ Test suite for zcomx/controllers/creators.py
 """
 import unittest
 import urllib2
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -31,15 +32,7 @@ class TestFunctions(LocalTestCase):
         # C0103: *Invalid name "%%s" (should match %%s)*
         # pylint: disable=C0103
         # Get the data the tests will use.
-        email = web.username
-        cls._user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
-        if not cls._user:
-            raise SyntaxError('No user with email: {e}'.format(e=email))
-
-        query = db.creator.auth_user_id == cls._user.id
-        cls._creator = db(query).select(limitby=(0, 1)).first()
-        if not cls._creator:
-            raise SyntaxError('No creator with email: {e}'.format(e=email))
+        cls._creator = Creator.by_email(web.username)
 
     def test__creator(self):
         with self.assertRaises(urllib2.HTTPError) as cm:

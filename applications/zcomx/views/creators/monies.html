@@ -1,8 +1,7 @@
-{{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name, url}}
+{{from applications.zcomx.modules.creators import can_receive_contributions, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
-{{creator_name = formatted_name(creator)}}
 <div id="creator_monies_page">
 
 {{=LOAD(c='z', f='top', args='creator', vars={'creator_id': creator.id}, extension='load', ajax=False, content='')}}
@@ -12,13 +11,13 @@
     <div class="col-sm-12" id="call_to_action">
         <h1>
         Choose which book by
-        <a href="{{=url(creator, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a>
+        <a href="{{=url(creator, extension=False)}}" title="{{=creator.name}}">{{=creator.name}}</a>
         to give monies to!!
         </h1>
     </div>
     {{if not can_receive_contributions(creator):}}
     <div class="alert alert-warning col-sm-12" role="alert">
-        Please note {{=creator_name}} is not taking contributions at this time.
+        Please note {{=creator.name}} is not taking contributions at this time.
     </div>
     {{pass}}
 </div>

@@ -8,8 +8,7 @@ from applications.zcomx.modules.books import \
     default_contribute_amount
 from applications.zcomx.modules.creators import \
     Creator, \
-    book_for_contributions, \
-    formatted_name
+    book_for_contributions
 from applications.zcomx.modules.events import \
     ContributionEvent, \
     PaypalLog, \
@@ -89,7 +88,7 @@ def paypal():
         data = Storage({})
         data.business = creator_record.paypal_email
         data.item_name = '{b} ({c})'.format(
-            b=book.name, c=formatted_name(creator_record))
+            b=book.name, c=creator_record.name)
         data.item_number = book.id
         return data
 
@@ -115,7 +114,7 @@ def paypal():
             )
         data = Storage({})
         data.business = creator.paypal_email
-        data.item_name = '{c}'.format(c=formatted_name(creator))
+        data.item_name = '{c}'.format(c=creator.name)
         data.item_number = book.id
         return data
 

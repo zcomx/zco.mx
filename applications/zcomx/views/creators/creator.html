@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.creators import follow_link, formatted_name, torrent_link, short_url}}
+{{from applications.zcomx.modules.creators import follow_link, torrent_link, short_url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
@@ -38,7 +38,7 @@
 
             <div class="col-xs-12 col-sm-7" id="name_bio_links">
                 <div id="name">
-                    <h1>{{=formatted_name(creator)}}</h1>
+                    <h1>{{=creator.name}}</h1>
                 </div>
                 <div>
                 {{=ItemDescription(creator.bio).as_html(**dict(_id='bio'))}}

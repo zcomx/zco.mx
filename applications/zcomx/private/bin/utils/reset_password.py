@@ -13,6 +13,7 @@ from gluon import *
 from gluon.shell import env
 from gluon.validators import CRYPT
 from optparse import OptionParser
+from applications.zcomx.modules.creators import AuthUser
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -118,10 +119,7 @@ def main():
         passwd = getpass.getpass()
 
     for email in emails:
-        user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
-        if not user:
-            raise LookupError('User not found, email: {e}'.format(e=email))
-
+        auth_user = AuthUser.from_key(dict(email=email))
         alg = 'pbkdf2(1000,20,sha512)'
         passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
 
@@ -130,8 +128,7 @@ def main():
             'registration_key': '',
             'reset_password_key': ''
         }
-        user.update_record(**data)
-        db.commit()
+        AuthUser.from_updated(auth_user, data)
 
 
 if __name__ == '__main__':

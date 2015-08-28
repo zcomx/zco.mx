@@ -12,6 +12,7 @@ from gluon import *
 from applications.zcomx.modules.books import \
     Book, \
     update_rating
+from applications.zcomx.modules.creators import AuthUser
 from applications.zcomx.modules.events import \
     BaseEvent, \
     BookEvent, \
@@ -43,11 +44,7 @@ class EventTestCase(LocalTestCase):
     def setUp(self):
         book_row = self.add(db.book, dict(name='Event Test Case'))
         self._book = Book.from_id(book_row.id)
-        email = web.username
-        self._user = db(
-            db.auth_user.email == email).select(limitby=(0, 1)).first()
-        if not self._user:
-            raise SyntaxError('No user with email: {e}'.format(e=email))
+        self._user = AuthUser.from_key(dict(email=web.username))
 
     def _set_pages(self, db, book_id, num_of_pages):
         set_pages(self, db, book_id, num_of_pages)

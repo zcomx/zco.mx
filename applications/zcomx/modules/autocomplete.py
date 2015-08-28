@@ -13,9 +13,7 @@ from gluon.validators import urlify
 from applications.zcomx.modules.books import \
     Book, \
     formatted_name as formatted_book_name
-from applications.zcomx.modules.creators import \
-    Creator, \
-    formatted_name as formatted_creator_name
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
@@ -173,7 +171,7 @@ class CreatorAutocompleter(BaseAutocompleter):
 
     def formatted_value(self, record_id):
         creator = Creator.from_id(record_id)
-        return formatted_creator_name(creator)
+        return creator.name
 
     def left_join(self):
         db = current.app.db
