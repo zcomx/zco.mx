@@ -501,7 +501,7 @@ class TestFunctions(LocalTestCase):
             )
         )
         # book has no pages, so it should status should be set accordingly
-        book = db(db.book.id == self._book.id).select(limitby=(0, 1)).first()
+        book = Book.from_id(self._book.id)
         self.assertEqual(book.status, BOOK_STATUS_DRAFT)
 
         # Valid
@@ -518,8 +518,8 @@ class TestFunctions(LocalTestCase):
                 self.titles['book_post_upload_session']
             )
         )
-        # book has no pages, so it should status should be set accordingly
-        book = db(db.book.id == self._book.id).select(limitby=(0, 1)).first()
+        # book has pages, so it should status should be set accordingly
+        book = Book.from_id(self._book.id)
         self.assertEqual(book.status, BOOK_STATUS_ACTIVE)
 
     def test__book_release(self):

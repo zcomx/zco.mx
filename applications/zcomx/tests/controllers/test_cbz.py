@@ -14,6 +14,8 @@ from applications.zcomx.modules.books import \
     book_name, \
     cbz_comment
 from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.events import DownloadClick
+from applications.zcomx.modules.records import Records
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -39,9 +41,9 @@ class TestFunctions(LocalTestCase):
         web.sessions = {}
 
     def tearDown(self):
-        server_ip = web.server_ip()
-        db(db.download_click.ip_address == server_ip).delete()
-        db.commit()
+        for download_click in Records.from_key(
+                DownloadClick, dict(ip_address=web.server_ip())):
+            download_click.delete()
 
     @classmethod
     def setUpClass(cls):

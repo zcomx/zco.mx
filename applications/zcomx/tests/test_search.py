@@ -817,8 +817,7 @@ class TestBookTile(TileTestCase):
 
     def test__download_link(self):
         save_book_id = self._row.book.id
-        book = db(db.book.id == self._row.book.id).select(
-            limitby=(0, 1)).first()
+        book = Book.from_id(self._row.book.id)
 
         # Test book with cbz
         if not book.cbz:
@@ -840,8 +839,7 @@ class TestBookTile(TileTestCase):
         # Test without cbz
         self._row.book.id = save_book_id
         if book.cbz:
-            book_no_cbz_id = db(db.book.cbz == None).select(
-                limitby=(0, 1)).first()
+            book_no_cbz_id = Book.from_key(dict(cbz=None))
             self._row.book.id = book_no_cbz_id.id
 
         tile = BookTile(db, self._value, self._row)
@@ -856,8 +854,7 @@ class TestBookTile(TileTestCase):
         save_book_id = self._row.book.id
 
         # Released book (not followable)
-        released_book = db(db.book.release_date != None).select(
-            limitby=(0, 1)).first()
+        released_book = Book.from_query((db.book.release_date != None))
         self._row.book.id = released_book.id
         tile = BookTile(db, self._value, self._row)
         link = tile.follow_link()
@@ -867,8 +864,7 @@ class TestBookTile(TileTestCase):
         self.assertEqual(span.string, None)
 
         # Ongoing book (followable)
-        released_book = db(db.book.release_date == None).select(
-            limitby=(0, 1)).first()
+        released_book = Book.from_query((db.book.release_date == None))
         self._row.book.id = released_book.id
         tile = BookTile(db, self._value, self._row)
         link = tile.follow_link()

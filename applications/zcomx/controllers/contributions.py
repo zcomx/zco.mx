@@ -81,14 +81,14 @@ def paypal():
         if not book_id:
             raise LookupError('Invalid book id: {i}'.format(i=book_id_str))
         book = Book.from_id(book_id)
-        creator_record = Creator.from_id(book.creator_id)
-        if not creator_record.paypal_email:
+        creator = Creator.from_id(book.creator_id)
+        if not creator.paypal_email:
             raise LookupError('Creator has no paypal email, id: {i}'.format(
                 i=book.creator_id))
         data = Storage({})
-        data.business = creator_record.paypal_email
+        data.business = creator.paypal_email
         data.item_name = '{b} ({c})'.format(
-            b=book.name, c=creator_record.name)
+            b=book.name, c=creator.name)
         data.item_number = book.id
         return data
 
@@ -227,25 +227,25 @@ def widget():
     """
     Zco().paypal_in_progress = None
     book = None
-    creator_record = None
+    creator = None
     if request.vars.book_id:
         book = Book.from_id(request.vars.book_id)
     elif request.vars.creator_id:
-        creator_record = Creator.from_id(request.vars.creator_id)
-        if not creator_record:
+        creator = Creator.from_id(request.vars.creator_id)
+        if not creator:
             raise LookupError(
                 'Creator not found, id %s', request.vars.creator_id)
 
     if book:
-        creator_record = Creator.from_id(book.creator_id)
+        creator = Creator.from_id(book.creator_id)
 
     amount = default_contribute_amount(book) if book else 1.00
 
     paypal_vars = {}
     if book:
         paypal_vars['book_id'] = book.id
-    elif creator_record:
-        paypal_vars['creator_id'] = creator_record.id
+    elif creator:
+        paypal_vars['creator_id'] = creator.id
 
     link_types = ['link', 'button']
     link_type = request.vars.link_type if request.vars.link in link_types \

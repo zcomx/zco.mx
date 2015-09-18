@@ -341,11 +341,15 @@ def book_edit():
     if not book_type:
         book_type = BookType.by_name('one-shot')
 
+    cc_licence = None
     show_cc_licence_place = False
     meta = None
     if book:
-        cc0 = CCLicence.by_code('CC0')
-        if book.cc_licence_id == cc0.id:
+        try:
+            cc_licence = book.as_one(CCLicence)
+        except LookupError:
+            cc_licence = None
+        if cc_licence and cc_licence.code == 'CC0':
             show_cc_licence_place = True
 
         meta = BookPublicationMetadata.from_book(book)
@@ -357,6 +361,7 @@ def book_edit():
     return dict(
         book=book,
         book_type=book_type,
+        cc_licence=cc_licence,
         link_types=link_types,
         metadata=str(meta) if meta else '',
         numbers=dumps(book_type.number_field_statuses()),
