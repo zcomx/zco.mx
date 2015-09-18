@@ -12,7 +12,10 @@ import time
 import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
-from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.books import \
+    Book, \
+    get_page
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.indicias import \
     BookPublicationMetadata, \
@@ -111,19 +114,8 @@ class TestFunctions(LocalTestCase):
 
         query = (db.book.creator_id == cls._creator.id) & \
                 (db.book.name_for_url == 'TestDoNotDelete-001')
-        cls._book = db(query).select(limitby=(0, 1)).first()
-        if not cls._book:
-            msg = 'No books for creator with email: {e}'.format(e=email)
-            print msg
-            raise SyntaxError(msg)
-
-        query = (db.book_page.book_id == cls._book.id) & \
-                (db.book_page.page_no == 1)
-        cls._book_page = db(query).select(limitby=(0, 1)).first()
-        if not cls._book_page:
-            msg = 'Unable to get book_page for: {e}'.format(e=email)
-            print msg
-            raise SyntaxError(msg)
+        cls._book = Book.from_query(query)
+        cls._book_page = get_page(cls._book, page_no='first')
 
         id_max = db.optimize_img_log.id.max()
         cls._max_optimize_img_log_id = \
@@ -400,16 +392,15 @@ class TestFunctions(LocalTestCase):
             )
         )
 
-        def get_book_page_ids(book_id):
-            query = (db.book_page.book_id == book_id)
-            return [x.id for x in db(query).select(db.book_page.id)]
+        def get_book_page_ids(book):
+            return [x.id for x in book.pages()]
 
         def get_activity_log_ids(book_id):
             query = (db.tentative_activity_log.book_id == book_id)
             return [
                 x.id for x in db(query).select(db.tentative_activity_log.id)]
 
-        before_ids = get_book_page_ids(self._book.id)
+        before_ids = get_book_page_ids(self._book)
         before_activity_ids = get_activity_log_ids(self._book.id)
 
         # Test add file.
@@ -423,7 +414,7 @@ class TestFunctions(LocalTestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-        after_ids = get_book_page_ids(self._book.id)
+        after_ids = get_book_page_ids(self._book)
         self.assertEqual(len(before_ids) + 1, len(after_ids))
         new_id = list(set(after_ids).difference(set(before_ids)))[0]
 
@@ -483,11 +474,13 @@ class TestFunctions(LocalTestCase):
 
         # Protect existing book_page records so they don't get deleted.
         def set_book_page_book_ids(from_book_id, to_book_id):
-            query = (db.book_page.book_id == from_book_id)
-            db(query).update(book_id=to_book_id)
-            db.commit()
+            from_book = Book.from_id(from_book_id)
+            for page in from_book.pages():
+                BookPage.from_updated(page, dict(book_id=to_book_id))
 
-        set_book_page_book_ids(self._book.id, (-1 * self._book.id))
+        temp_book = self.add(Book, dict(name='Temp Book'))
+
+        set_book_page_book_ids(self._book.id, temp_book.id)
 
         self._book.update_record(status=BOOK_STATUS_DRAFT)
         db.commit()
@@ -505,9 +498,8 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(book.status, BOOK_STATUS_DRAFT)
 
         # Valid
-        set_book_page_book_ids((-1 * self._book.id), self._book.id)
-        query = (db.book_page.book_id == self._book.id)
-        book_page_ids = [x.id for x in db(query).select(db.book_page.id)]
+        set_book_page_book_ids(temp_book.id, self._book.id)
+        book_page_ids = [x.id for x in self._book.pages()]
         bp_ids = ['book_page_ids[]={pid}'.format(pid=x) for x in book_page_ids]
         self.assertTrue(
             web.test(

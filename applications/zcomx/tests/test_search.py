@@ -13,6 +13,7 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from pydal.objects import Row
 from gluon.storage import Storage
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     Book, \
     book_name, \
@@ -20,6 +21,7 @@ from applications.zcomx.modules.books import \
     formatted_name, \
     page_url
 from applications.zcomx.modules.creators import \
+    AuthUser, \
     Creator, \
     creator_name
 from applications.zcomx.modules.search import \
@@ -354,7 +356,7 @@ class TestGrid(LocalTestCase):
         ))
         name = '_My Book_'
         book_type_id = db(db.book_type).select(limitby=(0, 1)).first().id
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name=name,
             creator_id=creator.id,
             book_type_id=book_type_id,
@@ -1335,7 +1337,7 @@ class TestFunctions(LocalTestCase):
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     def setUp(self):
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='First Last',
         ))
         self._creator = self.add(Creator, dict(
@@ -1345,7 +1347,7 @@ class TestFunctions(LocalTestCase):
         name = '_My Functions Book_'
         book_type_id = db(db.book_type).select(limitby=(0, 1)).first().id
         now = datetime.datetime.now()
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name=name,
             creator_id=self._creator.id,
             book_type_id=book_type_id,
@@ -1359,7 +1361,7 @@ class TestFunctions(LocalTestCase):
 
         self._released_book = self._book
 
-        self._ongoing_book = self.add(db.book, dict(
+        self._ongoing_book = self.add(Book, dict(
             name=name,
             creator_id=self._creator.id,
             book_type_id=book_type_id,
@@ -1369,7 +1371,7 @@ class TestFunctions(LocalTestCase):
             status='a',
         ))
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=1,
         ))

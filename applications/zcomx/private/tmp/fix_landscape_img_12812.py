@@ -165,8 +165,7 @@ def main():
             LOG.error('IOError: %s', str(err))
             return
 
-        db(db.book_page.id == page.id).update(image=stored_filename)
-        db.commit()
+        page = BookPage.from_updated(page, dict(image=stored_filename))
         book_ids.append(page.book_id)
 
         if options.limit and count >= options.limit:

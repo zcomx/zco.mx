@@ -17,7 +17,9 @@ from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.rss import \
     AllRSSChannel, \
@@ -55,7 +57,7 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
 
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='First Last'
         ))
 
@@ -73,17 +75,17 @@ class WithObjectsTestCase(LocalTestCase):
             name_for_url='MyBook-001',
         ))
 
-        self._book_page = self.add(db.book_page, dict(
+        self._book_page = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=1,
         ))
 
-        self._book_page_2 = self.add(db.book_page, dict(
+        self._book_page_2 = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=2,
         ))
 
-        self._activity_log = self.add(db.activity_log, dict(
+        self._activity_log = self.add(ActivityLog, dict(
             book_id=self._book.id,
             book_page_ids=[self._book_page.id],
             action='completed',
@@ -408,13 +410,13 @@ class TestBaseRSSEntry(WithObjectsTestCase, ImageTestCase):
 
     def test__first_of_pages(self):
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__first_of_pages',
             creator_id=self._creator.id,
         ))
 
         # Test single page
-        book_page_row = self.add(db.book_page, dict(
+        book_page_row = self.add(BookPage, dict(
             book_id=book.id,
             page_no=999,
         ))
@@ -428,13 +430,13 @@ class TestBaseRSSEntry(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(entry.first_of_pages(), book_page)
 
         # Test multiple pages
-        book_page_row_2 = self.add(db.book_page, dict(
+        book_page_row_2 = self.add(BookPage, dict(
             book_id=book.id,
             page_no=666,
         ))
         book_page_2 = BookPage.from_id(book_page_row_2.id)
 
-        book_page_row_3 = self.add(db.book_page, dict(
+        book_page_row_3 = self.add(BookPage, dict(
             book_id=book.id,
             page_no=777,
         ))
@@ -729,8 +731,8 @@ class TestFunctions(WithObjectsTestCase):
 
     def test__activity_log_as_rss_entry(self):
         for action in ['completed', 'page added']:
-            self._activity_log.update_record(action=action)
-            db.commit()
+            self._activity_log = ActivityLog.from_updated(
+                self._activity_log, dict(action=action))
 
             got = activity_log_as_rss_entry(
                 ActivityLog(self._activity_log.as_dict()))

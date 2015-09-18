@@ -16,6 +16,7 @@ from applications.zcomx.modules.book_lists import \
     OngoingBookList, \
     CompletedBookList, \
     class_from_code
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -56,12 +57,12 @@ class TestBaseBookList(LocalTestCase):
         self.assertEqual(book_list.books().as_list(), [])
         self.assertEqual(book_list._books.as_list(), [])
 
-        book_1 = self.add(db.book, dict(
+        book_1 = self.add(Book, dict(
             name='My Book 1',
             creator_id=creator.id,
         ))
 
-        book_2 = self.add(db.book, dict(
+        book_2 = self.add(Book, dict(
             name='My Book 2',
             creator_id=creator.id,
         ))
@@ -104,12 +105,12 @@ class TestBaseBookList(LocalTestCase):
         book_list = BaseBookList(creator)
         self.assertEqual(book_list.has_releasing_books, False)
 
-        book_1 = self.add(db.book, dict(
+        book_1 = self.add(Book, dict(
             name='My Book 1',
             creator_id=creator.id,
         ))
 
-        book_2 = self.add(db.book, dict(
+        book_2 = self.add(Book, dict(
             name='My Book 2',
             creator_id=creator.id,
         ))

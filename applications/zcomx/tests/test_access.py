@@ -12,7 +12,9 @@ from applications.zcomx.modules.access import \
     requires_admin_ip, \
     requires_agreed_to_terms, \
     requires_login_if_configured
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
@@ -92,7 +94,7 @@ class TestFunctions(LocalTestCase):
         session = env['session']
         session.auth = Storage({})              # Not logged in
 
-        auth_user = self.add(db.auth_user, dict(
+        auth_user = self.add(AuthUser, dict(
             email='tests__requires_agreed_to_terms@example.com',
         ))
 

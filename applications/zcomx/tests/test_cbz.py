@@ -13,6 +13,7 @@ import unittest
 import zipfile
 from gluon import *
 from gluon.storage import Storage
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     Book, \
     DEFAULT_BOOK_TYPE
@@ -94,13 +95,13 @@ class WithObjectsTestCase(LocalTestCase):
 
         ))
 
-        self._book_page = self.add(db.book_page, dict(
+        self._book_page = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=1,
         ))
 
         # Create a second page to test with.
-        self._book_page_2 = self.add(db.book_page, dict(
+        self._book_page_2 = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=2,
         ))
@@ -172,7 +173,7 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(creator.get_img_filename_fmt(), '_cache_')
 
         # Test book with no pages.
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='TestGetMaxPageNo'
         ))
         creator = CBZCreator(book)
@@ -203,7 +204,7 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(creator.get_max_page_no(), -1)
 
         # Test book with no pages.
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='TestGetMaxPageNo'
         ))
         creator = CBZCreator(book)
@@ -248,8 +249,8 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         self.assertTrue('Everything is Ok' in p_stdout)
         self.assertEqual(p_stderr, '')
 
-        pages = db(db.book_page.book_id == self._book.id).count()
-        files_comment = 'Files: {c}'.format(c=pages + 1)    # +1 for indicia
+        page_count = self._book.page_count() + 1       # +1 for indicia
+        files_comment = 'Files: {c}'.format(c=page_count)
         self.assertTrue(files_comment in p_stdout)
 
         # C0301 (line-too-long): *Line too long (%%s/%%s)*

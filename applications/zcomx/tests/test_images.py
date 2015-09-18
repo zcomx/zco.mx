@@ -17,7 +17,9 @@ from PIL import Image
 from gluon import *
 from gluon.html import DIV, IMG
 from gluon.http import HTTP
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.images import \
     CachedImgTag, \
     CreatorImgTag, \
@@ -61,7 +63,7 @@ class WithObjectsTestCase(LocalTestCase):
     def setUp(self):
         # Create a creator and set the image
         email = 'up_image@example.com'
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='Image UploadImage',
             email=email,
         ))

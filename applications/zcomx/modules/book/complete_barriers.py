@@ -8,7 +8,6 @@ Classes and functions related to book complete barriers.
 import logging
 import os
 from gluon import *
-from applications.zcomx.modules.books import book_pages as b_pages
 from applications.zcomx.modules.images import ImageDescriptor
 from applications.zcomx.modules.indicias import PublicationMetadata
 
@@ -173,23 +172,20 @@ class InvalidPageNoBarrier(BaseCompleteBarrier):
     """Class representing a 'invalid page no' barrier."""
 
     def applies(self):
-        db = current.app.db
-        # Must have a cover page
-        book_id_query = (db.book_page.book_id == self.book.id)
-        query = book_id_query & (db.book_page.page_no == 1)
-        rows = db(query).select(db.book_page.id)
-        if not rows:
+        pages = self.book.pages()
+
+        # Must have a pages
+        if not pages:
             return True
 
-        count = db.book_page.book_id.count()
-        query = book_id_query
-        rows = db(query).select(
-            db.book_page.page_no,
-            count,
-            groupby=[db.book_page.book_id, db.book_page.page_no],
-            having=(count > 1)
-        )
-        if rows:
+        page_nos = [x.page_no for x in pages]
+
+        # Must have a cover page
+        if 1 not in page_nos:
+            return True
+
+        # Must have no dupe page_on values.
+        if len(page_nos) != len(set(page_nos)):
             return True
         return False
 
@@ -286,9 +282,8 @@ class NoCBZImageBarrier(BaseCompleteBarrier):
         """
         # Images must have a 'cbz' sized version.
         if self._no_cbz_images is None:
-            pages = b_pages(self.book)
             violating_images = []
-            for page in pages:
+            for page in self.book.pages():
                 upload_img = page.upload_image()
                 fullname = upload_img.fullname(size='cbz')
                 if not os.path.exists(fullname):
@@ -348,8 +343,7 @@ class NoPagesBarrier(BaseCompleteBarrier):
     """Class representing a 'no pages' barrier."""
 
     def applies(self):
-        pages = b_pages(self.book)
-        return len(pages) == 0
+        return self.book.page_count() == 0
 
     @property
     def code(self):

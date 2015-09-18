@@ -343,6 +343,7 @@ def book_edit():
 
     cc_licence = None
     show_cc_licence_place = False
+    db.book.cc_licence_place.requires = None
     meta = None
     if book:
         try:
@@ -351,6 +352,8 @@ def book_edit():
             cc_licence = None
         if cc_licence and cc_licence.code == 'CC0':
             show_cc_licence_place = True
+            db.book.cc_licence_place.requires = IS_NOT_EMPTY(
+                error_message='Select a territory')
 
         meta = BookPublicationMetadata.from_book(book)
 
@@ -514,7 +517,7 @@ def book_pages_handler():
         return dumps({"files": [{filename: True}]})
     else:
         # GET
-        return book_pages_as_json(book.id)
+        return book_pages_as_json(book)
 
 
 @auth.requires_login()

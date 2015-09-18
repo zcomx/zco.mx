@@ -12,7 +12,9 @@ import unittest
 from gluon import *
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.torrentparse import TorrentParser
 from applications.zcomx.modules.torrents import \
     AllTorrentCreator, \
@@ -220,7 +222,7 @@ class TestBookTorrentCreator(TorrentTestCase):
         self.assertTrue(tor_creator)
 
     def test__archive(self):
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
         book = self.add(Book, dict(
             name='My Book',
@@ -248,7 +250,7 @@ class TestBookTorrentCreator(TorrentTestCase):
         self.assertEqual(got.torrent, tor_file)
 
     def test__get_destination(self):
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         book = self.add(Book, dict(
@@ -287,7 +289,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         self.assertTrue(tor_creator)
 
     def test__archive(self):
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
@@ -304,7 +306,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         self.assertEqual(updated_creator.torrent, tor_file)
 
     def test__get_destination(self):
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
@@ -314,7 +316,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         )
 
     def test__get_target(self):
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
@@ -327,7 +329,7 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         # W0212 (protected-access): *Access to a protected member
         # pylint: disable=W0212
 
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)

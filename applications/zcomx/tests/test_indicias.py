@@ -16,11 +16,13 @@ from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from gluon.validators import IS_INT_IN_RANGE
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import \
     Book, \
     short_url as book_short_url
 from applications.zcomx.modules.creators import \
+    AuthUser, \
     Creator, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
@@ -42,7 +44,9 @@ from applications.zcomx.modules.indicias import \
     cc_licences, \
     create_creator_indicia, \
     render_cc_licence
-from applications.zcomx.modules.links import LinkType
+from applications.zcomx.modules.links import \
+    Link, \
+    LinkType
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -72,7 +76,7 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
 
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='First Last'
         ))
 
@@ -90,13 +94,13 @@ class WithObjectsTestCase(LocalTestCase):
             name_for_url='ImageTestCase-001',
         ))
 
-        self._book_page = self.add(db.book_page, dict(
+        self._book_page = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=1,
             image='book_page.image.aaa.000.jpg',
         ))
 
-        self.add(db.link, dict(
+        self.add(Link, dict(
             link_type_id=LinkType.by_code('buy_book').id,
             record_table='book',
             record_id=self._book.id,
@@ -113,7 +117,7 @@ class WithObjectsTestCase(LocalTestCase):
             name_for_url='ImageTestCase-002',
         ))
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=next_book.id,
             page_no=1,
         ))
@@ -600,6 +604,8 @@ class TestIndiciaSh(WithObjectsTestCase, ImageTestCase):
 
 class TestBookPublicationMetadata(LocalTestCase):
     def test____init__(self):
+        save_datetime_date = datetime.date
+
         str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
         datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
         # date.today overridden
@@ -614,6 +620,8 @@ class TestBookPublicationMetadata(LocalTestCase):
             meta.first_publication_text,
             'First publication: zco.mx 2014.'
         )
+
+        datetime.date = save_datetime_date
 
     def test____str__(self):
         book = self.add(Book, dict(name='My Book'))
@@ -955,6 +963,7 @@ class TestBookPublicationMetadata(LocalTestCase):
         #     ---
         # [7] This work was originally self-published in print as old_name in YYYY.
         #     ---
+        save_datetime_date = datetime.date
         str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
         datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
         # date.today overridden
@@ -1068,6 +1077,8 @@ class TestBookPublicationMetadata(LocalTestCase):
             meta.metadata_text(),
             'This work was originally self-published in print in 2014-2015 as "My Old Book".'
         )
+
+        datetime.date = save_datetime_date
 
     def test__publication_year(self):
         book = self.add(Book, dict(name='test__publication_year'))
@@ -1770,6 +1781,7 @@ class TestBookPublicationMetadata(LocalTestCase):
         )
 
     def test__year_range(self):
+        save_datetime_date = datetime.date
         str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
         datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
         # date.today overridden
@@ -1799,6 +1811,8 @@ class TestBookPublicationMetadata(LocalTestCase):
         meta._publication_year_range = (888, 999)
         self.assertEqual(meta.year_range(), (888, 999))
 
+        datetime.date = save_datetime_date
+
 
 class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
@@ -1812,7 +1826,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(d['text'], d['value'])
 
     def test__cc_licences(self):
-        auth_user = self.add(db.auth_user, dict(name='Test CC Licence'))
+        auth_user = self.add(AuthUser, dict(name='Test CC Licence'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
         book = Book(dict(
             id=-1,
@@ -1824,7 +1838,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         # Add a cc_licence with quotes in the template. Should be handled.
-        self.add(db.cc_licence, dict(
+        self.add(CCLicence, dict(
             number=999,
             code='test__cc_licences',
             url='http://cc_licence.com',
@@ -1892,7 +1906,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__render_cc_licence(self):
 
-        cc_licence_row = self.add(db.cc_licence, dict(
+        cc_licence_row = self.add(CCLicence, dict(
             number=999,
             code='test__render_cc_licence',
             url='http://cc_licence.com',

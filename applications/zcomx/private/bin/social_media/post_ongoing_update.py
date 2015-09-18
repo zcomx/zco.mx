@@ -20,6 +20,7 @@ from applications.zcomx.modules.facebook import \
     FacebookAPIError, \
     Poster as FbPoster, \
     TextDataPreparer as FbTextDataPreparer
+from applications.zcomx.modules.social_media import OngoingPost
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
     Poster, \
@@ -34,7 +35,6 @@ from applications.zcomx.modules.zco import \
     IN_PROGRESS, \
     SITE_NAME
 
-
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
 
@@ -43,7 +43,7 @@ def post_on_facebook(ongoing_post):
     """Post on facebook
 
     Args:
-        ongoing_post: Row instance representing ongoing_post record.
+        ongoing_post: OngoingPost instance
 
     Returns:
         str, facebook post id
@@ -89,7 +89,7 @@ def post_on_tumblr(ongoing_post):
     """Post on tumblr
 
     Args:
-        ongoing_post: Row instance representing ongoing_post record.
+        ongoing_post: OngoingPost instance
 
     Returns:
         str, tumblr posting id
@@ -140,7 +140,7 @@ def post_on_twitter(ongoing_post):
     """Post on twitter
 
     Args:
-        ongoing_post: Row instance representing ongoing_post record.
+        ongoing_post: OngoingPost instance
 
     Returns:
         str, twitter posting id
@@ -215,19 +215,15 @@ def get_ongoing_post(date, create=True):
         create: If true, create an ongoing_post record if not found.
 
     Returns:
-        Row instance representing the ongoing_post record.
+        OngoingPost instance
     """
-    query = (db.ongoing_post.post_date == date)
-    ongoing_post = db(query).select(limitby=(0, 1)).first()
+    key = dict(post_date=date)
+    try:
+        ongoing_post = OngoingPost.from_key(key)
+    except LookupError:
+        ongoing_post = None
     if not ongoing_post and create:
-        ongoing_post_id = db.ongoing_post.insert(post_date=date)
-        query = (db.ongoing_post.id == ongoing_post_id)
-        ongoing_post = db(query).select(limitby=(0, 1)).first()
-        if not ongoing_post:
-            raise LookupError(
-                'Fail: get or create ongoing_post record for date {d}'.format(
-                    d=str(date))
-            )
+        ongoing_post = OngoingPost.from_add(key)
     return ongoing_post
 
 
@@ -384,8 +380,8 @@ def main():
         else:
             tumblr_post_id = post_on_tumblr(ongoing_post)
             if tumblr_post_id:
-                ongoing_post.update_record(tumblr_post_id=tumblr_post_id)
-                db.commit()
+                ongoing_post = OngoingPost.from_updated(
+                    ongoing_post, dict(tumblr_post_id=tumblr_post_id))
 
     if 'twitter' in services:
         if ongoing_post.twitter_post_id \
@@ -399,8 +395,8 @@ def main():
         else:
             twitter_post_id = post_on_twitter(ongoing_post)
             if twitter_post_id:
-                ongoing_post.update_record(twitter_post_id=twitter_post_id)
-                db.commit()
+                ongoing_post = OngoingPost.from_updated(
+                    ongoing_post, dict(twitter_post_id=twitter_post_id))
 
     if 'facebook' in services:
         if not ongoing_post.tumblr_post_id \
@@ -417,8 +413,8 @@ def main():
         else:
             facebook_post_id = post_on_facebook(ongoing_post)
             if facebook_post_id:
-                ongoing_post.update_record(facebook_post_id=facebook_post_id)
-                db.commit()
+                ongoing_post = OngoingPost.from_updated(
+                    ongoing_post, dict(facebook_post_id=facebook_post_id))
 
     LOG.debug('Done')
 

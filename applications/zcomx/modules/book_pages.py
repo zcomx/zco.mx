@@ -151,8 +151,8 @@ def delete_pages_not_in_ids(book_id, book_page_ids):
     ids = [x.id for x in db(query).select()]
     for page_id in ids:
         if page_id not in book_page_ids:
-            db(db.book_page.id == page_id).delete()
-            db.commit()
+            page = BookPage.from_id(page_id)
+            page.delete()
             deleted_ids.append(page_id)
     return deleted_ids
 
@@ -180,9 +180,7 @@ def reset_book_page_nos(page_ids):
     Args:
         book_page_ids: list of integers, ids of book_page records
     """
-    db = current.app.db
     for count, page_id in enumerate(page_ids):
         page = BookPage.from_id(page_id)
         if page:
-            db(db.book_page.id == page.id).update(page_no=(count + 1))
-            db.commit()
+            BookPage.from_updated(page, dict(page_no=(count + 1)))

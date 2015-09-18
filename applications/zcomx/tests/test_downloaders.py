@@ -14,7 +14,9 @@ from gluon.http import HTTP
 from gluon.storage import List
 from applications.zcomx.modules.archives import TorrentArchive
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.downloaders import \
     CBZDownloader, \
     ImageDownloader, \
@@ -44,7 +46,7 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
         email = 'up_image@example.com'
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='test_downloaders',
             email=email,
         ))

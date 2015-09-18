@@ -9,10 +9,11 @@ Test suite for zcomx/modules/records.py
 import unittest
 from gluon import *
 from pydal.objects import Row
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.records import \
     Record, \
     Records
+from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -61,7 +62,7 @@ class TestRecord(LocalTestCase):
         self.assertRaises(LookupError, invalid_book.as_one, DubCreator)
 
     def test__delete(self):
-        saved_book = self.add(db.book, dict(
+        saved_book = self.add(Book, dict(
             name='_test__delete_',
         ))
         book = DubBook.from_id(saved_book.id)
@@ -69,7 +70,7 @@ class TestRecord(LocalTestCase):
         self.assertRaises(LookupError, DubBook.from_id, saved_book.id)
 
     def test__delete_record(self):
-        saved_book = self.add(db.book, dict(
+        saved_book = self.add(Book, dict(
             name='_test__delete_',
         ))
         book = DubBook.from_id(saved_book.id)
@@ -102,7 +103,7 @@ class TestRecord(LocalTestCase):
         self._objects.append(book)
 
     def test__from_id(self):
-        saved_book = self.add(db.book, dict(
+        saved_book = self.add(Book, dict(
             name='_test__from_id_',
         ))
 
@@ -122,7 +123,7 @@ class TestRecord(LocalTestCase):
             name_for_url='_TestFromKey_',
             name_for_search='_test-from-key_',
         )
-        saved_book = self.add(db.book, data)
+        saved_book = self.add(Book, data)
 
         mismatch_data = dict(
             name='_test__from_key_',
@@ -156,7 +157,7 @@ class TestRecord(LocalTestCase):
             name_for_url='_TestFromQuery_',
             name_for_search='_test-from-query_',
         )
-        saved_book = self.add(db.book, data)
+        saved_book = self.add(Book, data)
 
         query = (db.book.name == saved_book.name)
         book = DubBook.from_query(query)
@@ -204,7 +205,7 @@ class TestRecord(LocalTestCase):
         self.assertEqual(new_book.name, '')
 
     def test__update_record(self):
-        saved_book = self.add(db.book, dict(
+        saved_book = self.add(Book, dict(
             name='_test__delete_',
             name_for_url='N001',
         ))

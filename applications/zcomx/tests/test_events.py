@@ -9,6 +9,7 @@ Test suite for zcomx/modules/events.py
 import datetime
 import unittest
 from gluon import *
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     Book, \
     update_rating
@@ -42,12 +43,12 @@ class EventTestCase(LocalTestCase):
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     def setUp(self):
-        book_row = self.add(db.book, dict(name='Event Test Case'))
+        book_row = self.add(Book, dict(name='Event Test Case'))
         self._book = Book.from_id(book_row.id)
         self._user = AuthUser.from_key(dict(email=web.username))
 
-    def _set_pages(self, db, book_id, num_of_pages):
-        set_pages(self, db, book_id, num_of_pages)
+    def _set_pages(self, book, num_of_pages):
+        set_pages(self, book, num_of_pages)
 
 
 class TestBaseEvent(EventTestCase):
@@ -96,7 +97,7 @@ class TestBookEvent(EventTestCase):
 class TestContributionEvent(EventTestCase):
 
     def test_log(self):
-        self._set_pages(db, self._book.id, 10)
+        self._set_pages(self._book, 10)
         update_rating(self._book)
         event = ContributionEvent(self._book, self._user.id)
 
@@ -119,7 +120,7 @@ class TestContributionEvent(EventTestCase):
         self._objects.append(contribution)
 
     def test_post_log(self):
-        self._set_pages(db, self._book.id, 10)
+        self._set_pages(self._book, 10)
         update_rating(self._book)
         book = Book.from_id(self._book.id)      # Re-load
         self.assertAlmostEqual(book.contributions, 0.00)
@@ -145,7 +146,7 @@ class TestDownloadEvent(EventTestCase):
         update_rating(self._book)
         book = Book.from_id(self._book.id)      # Re-load
 
-        download_click = self.add(db.download_click, dict(
+        download_click = self.add(DownloadClick, dict(
             record_table='book',
             record_id=book.id,
         ))
@@ -256,7 +257,7 @@ class TestViewEvent(EventTestCase):
 class TestZcoContributionEvent(EventTestCase):
 
     def test_log(self):
-        self._set_pages(db, self._book.id, 10)
+        self._set_pages(self._book, 10)
         update_rating(self._book)
         event = ZcoContributionEvent(self._user.id)
 
@@ -388,16 +389,12 @@ class TestFunctions(LocalTestCase):
         self._objects.append(download_click_2)
 
 
-def set_pages(obj, db, book_id, num_of_pages):
+def set_pages(obj, book, num_of_pages):
     """Create pages for a book."""
-    # protected-access (W0212): *Access to a protected member
-    # pylint: disable=W0212
-    def page_count():
-        return db(db.book_page.book_id == book_id).count()
-    while page_count() < num_of_pages:
-        obj.add(db.book_page, dict(
-            book_id=book_id,
-            page_no=(page_count() + 1),
+    while book.page_count() < num_of_pages:
+        obj.add(BookPage, dict(
+            book_id=book.id,
+            page_no=(book.page_count() + 1),
         ))
 
 
