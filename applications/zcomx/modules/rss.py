@@ -244,7 +244,7 @@ class BaseRSSEntry(object):
         self.time_stamp = time_stamp
         self.activity_log_id = activity_log_id
         if not book_page_ids:
-            raise SyntaxError('No book page ids provided')
+            raise LookupError('No book page ids provided')
         self.first_page = self.first_of_pages()
         if not self.first_page:
             raise LookupError('First page not found within: {e}'.format(
@@ -433,9 +433,14 @@ def activity_log_as_rss_entry(activity_log):
         raise LookupError('activity_log has no book page ids, id {i}'.format(
             i=activity_log.id))
 
+    book_page_ids = activity_log.verified_book_page_ids()
+    if not book_page_ids:
+        fmt = 'activity_log has no verifiable book page ids, id {i}'
+        raise LookupError(fmt.format(i=activity_log.id))
+
     entry_class = entry_class_from_action(activity_log.action)
     return entry_class(
-        activity_log.verified_book_page_ids(),
+        book_page_ids,
         activity_log.time_stamp,
         activity_log.id
     )

@@ -499,8 +499,9 @@ def book_pages_handler():
                     db.commit()
         return result_json
     elif request.env.request_method == 'DELETE':
-        book_page = BookPage.from_id(request.vars.book_page_id)
-        if not book_page:
+        try:
+            book_page = BookPage.from_id(request.vars.book_page_id)
+        except LookupError:
             return do_error('Unable to delete page')
 
         # retrieve real file name
