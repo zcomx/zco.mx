@@ -9,6 +9,7 @@
 '%(nrows)s records found': '%(nrows)s records found',
 '%d days ago': '%d days ago',
 '%d hours ago': '%d hours ago',
+'%d minutes ago': '%d minutes ago',
 '%d months ago': '%d months ago',
 '%d weeks ago': '%d weeks ago',
 '%s %%{row} deleted': '%s smazaných %%{záznam}',

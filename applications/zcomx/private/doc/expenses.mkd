@@ -26,8 +26,9 @@ EXPENSES
     Jun 2015    Domain Registration     $ 45
     Jul 2015    Server Hosting          $ 40
     Aug 2015    Server Hosting          $ 40
-  TOTAL Expense                                 $1882
+    Sep 2015    Server Hosting          $ 40
+  TOTAL Expense                                 $1922
 
 
-NET TOTAL                                      -$1877
+NET TOTAL                                      -$1917
 ``

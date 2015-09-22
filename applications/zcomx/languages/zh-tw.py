@@ -7,6 +7,7 @@
 '%d days ago': '%d days ago',
 '%d hours ago': '%d hours ago',
 '%d months ago': '%d months ago',
+'%d weeks ago': '%d weeks ago',
 '%s %%{row} deleted': '已刪除 %s 筆',
 '%s %%{row} updated': '已更新 %s 筆',
 '%s selected': '%s 已選擇',

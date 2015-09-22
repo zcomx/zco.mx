@@ -1,6 +1,13 @@
 ``
 [x] Display Images in RSS Feeds?
 
+[ ] Logout Link on FAQ pages
+    https://zco.mx/default/user/logout gives 502 error
+
+[ ] Switching Slider to Scroll
+    check page number
+    do the images resize on mouse-over
+
 VERSION 3
 [S] Integrity Check For Torrents
     https://code.google.com/p/pyroscope/wiki/RtControlExamples
