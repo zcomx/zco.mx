@@ -14,6 +14,7 @@ from gluon import *
 from pydal.objects import Row
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
+    Book, \
     book_name, \
     get_page, \
     formatted_name, \
@@ -85,20 +86,8 @@ class TileTestCase(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUpClass(cls):
-        email = web.username
-        user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
-        if not user:
-            raise SyntaxError('No user with email: {e}'.format(e=email))
-
-        query = db.creator.auth_user_id == user.id
-        creator = db(query).select(limitby=(0, 1)).first()
-        if not creator:
-            raise SyntaxError('No creator with email: {e}'.format(e=email))
-
-        query = (db.book.creator_id == creator.id)
-        book = db(query).select(limitby=(0, 1)).first()
-        if not book:
-            raise SyntaxError('No book with email: {e}'.format(e=email))
+        creator = Creator.by_email(web.username)
+        book = Book.from_key(dict(creator_id=creator.id))
 
         book_type_id = db(db.book_type).select(limitby=(0, 1)).first().id
         cls._row = Row({
@@ -828,8 +817,7 @@ class TestBookTile(TileTestCase):
 
     def test__download_link(self):
         save_book_id = self._row.book.id
-        book = db(db.book.id == self._row.book.id).select(
-            limitby=(0, 1)).first()
+        book = Book.from_id(self._row.book.id)
 
         # Test book with cbz
         if not book.cbz:
@@ -851,8 +839,7 @@ class TestBookTile(TileTestCase):
         # Test without cbz
         self._row.book.id = save_book_id
         if book.cbz:
-            book_no_cbz_id = db(db.book.cbz == None).select(
-                limitby=(0, 1)).first()
+            book_no_cbz_id = Book.from_key(dict(cbz=None))
             self._row.book.id = book_no_cbz_id.id
 
         tile = BookTile(db, self._value, self._row)
@@ -867,8 +854,7 @@ class TestBookTile(TileTestCase):
         save_book_id = self._row.book.id
 
         # Released book (not followable)
-        released_book = db(db.book.release_date != None).select(
-            limitby=(0, 1)).first()
+        released_book = Book.from_query((db.book.release_date != None))
         self._row.book.id = released_book.id
         tile = BookTile(db, self._value, self._row)
         link = tile.follow_link()
@@ -878,8 +864,7 @@ class TestBookTile(TileTestCase):
         self.assertEqual(span.string, None)
 
         # Ongoing book (followable)
-        released_book = db(db.book.release_date == None).select(
-            limitby=(0, 1)).first()
+        released_book = Book.from_query((db.book.release_date == None))
         self._row.book.id = released_book.id
         tile = BookTile(db, self._value, self._row)
         link = tile.follow_link()

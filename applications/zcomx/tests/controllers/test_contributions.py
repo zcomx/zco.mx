@@ -9,9 +9,11 @@ Test suite for zcomx/controllers/contributions.py
 import datetime
 import unittest
 import urllib
-from applications.zcomx.modules.creators import \
-    Creator, \
-    formatted_name
+from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.events import \
+    Contribution, \
+    PaypalLog
+from applications.zcomx.modules.records import Records
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -104,7 +106,7 @@ class TestFunctions(LocalTestCase):
         )
         # Test with creator_id
         expect = list(self.titles['modal_book'])
-        expect.append(formatted_name(self._creator))
+        expect.append(self._creator.name)
         self.assertTrue(
             web.test(
                 '{url}/modal?creator_id={cid}'.format(
@@ -150,17 +152,17 @@ class TestFunctions(LocalTestCase):
         book = self.add(db.book, dict(name='Text Book'))
 
         def get_contributions():
-            return db(db.contribution.book_id == book.id).select()
+            return Records.from_key(Contribution, dict(book_id=book.id))
 
         def get_zco_contributions():
-            return db(db.contribution.book_id == 0).select()
+            return Records.from_key(Contribution, dict(book_id=0))
 
         def get_paypal_log(txn_id):
-            return db(db.paypal_log.txn_id == txn_id).select()
+            return Records.from_key(PaypalLog, dict(txn_id=txn_id))
 
         def delete_paypal_log(txn_id):
-            db(db.paypal_log.txn_id == txn_id).delete()
-            db.commit()
+            for paypal_log in get_paypal_log(txn_id):
+                paypal_log.delete()
 
         self.assertEqual(len(get_contributions()), 0)
 

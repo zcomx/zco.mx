@@ -13,6 +13,7 @@ from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from applications.zcomx.modules.creators import \
+    AuthUser, \
     Creator, \
     add_creator, \
     book_for_contributions, \
@@ -21,7 +22,6 @@ from applications.zcomx.modules.creators import \
     creator_name, \
     follow_link, \
     for_path, \
-    formatted_name, \
     html_metadata, \
     image_as_json, \
     images, \
@@ -44,6 +44,37 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
+
+
+class TestAuthUser(LocalTestCase):
+    def test_parent__init__(self):
+        auth_user = AuthUser.from_key(dict(email=web.username))
+        self.assertTrue(auth_user)
+        self.assertEqual(auth_user.email, web.username)
+
+
+class TestCreator(LocalTestCase):
+    def test_parent__init__(self):
+        creator = self.add(Creator, dict(name_for_url='test_parent__init__'))
+        got = Creator.from_id(creator.id)
+        self.assertEqual(got.name_for_url, 'test_parent__init__')
+
+    def test__by_email(self):
+        # Doesn't exist
+        self.assertRaises(LookupError, Creator.by_email, '_invalid_email_')
+
+        # Auth user exists but no creator
+        auth_user = self.add(AuthUser, dict(email='test@byemail.com'))
+        self.assertRaises(LookupError, Creator.by_email, 'test@byemail.com')
+
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
+        got = Creator.by_email('test@byemail.com')
+        self.assertEqual(got, creator)
+
+    def test__name(self):
+        auth_user = self.add(AuthUser, dict(name='test__name'))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
+        self.assertEqual(creator.name, 'test__name')
 
 
 class TestFunctions(ImageTestCase):
@@ -72,7 +103,7 @@ class TestFunctions(ImageTestCase):
         add_creator(form)
         self.assertEqual(creator_by_email(email), None)
 
-        user = self.add(db.auth_user, dict(
+        user = self.add(AuthUser, dict(
             name='First Last',
             email=email,
         ))
@@ -332,26 +363,6 @@ class TestFunctions(ImageTestCase):
         for t in tests:
             self.assertEqual(for_path(t[0]), t[1])
 
-    def test__formatted_name(self):
-        auth_user = self.add(db.auth_user, dict(
-            name='Test Name'
-        ))
-
-        # creator.auth_user_id not set
-        creator = Creator(dict(
-            auth_user_id=None,
-            email='test__formatted_name@example.com',
-        ))
-        self.assertEqual(formatted_name(creator), None)
-
-        # Invalid auth_user.id
-        creator.auth_user_id = -1
-        self.assertEqual(formatted_name(creator), None)
-
-        # Valid
-        creator.auth_user_id = auth_user.id
-        self.assertEqual(formatted_name(creator), 'Test Name')
-
     def test__html_metadata(self):
 
         self.assertEqual(html_metadata(None), {})
@@ -394,14 +405,7 @@ class TestFunctions(ImageTestCase):
         )
 
     def test__image_as_json(self):
-        email = web.username
-        user = db(db.auth_user.email == email).select(limitby=(0, 1)).first()
-        if not user:
-            raise SyntaxError('No user with email: {e}'.format(e=email))
-
-        creator = Creator.from_key({'auth_user_id': user.id})
-        if not creator:
-            raise SyntaxError('No creator with email: {e}'.format(e=email))
+        creator = Creator.by_email(web.username)
 
         for field in ['image', 'indicia_image']:
             if creator[field]:
@@ -523,10 +527,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(creator.name_for_url, None)
 
         # creator.auth_user_id not set
-        updated_creator = on_change_name(creator)
-        creator = Creator.from_id(creator.id)
-        self.assertEqual(updated_creator.name_for_search, None)
-        self.assertEqual(updated_creator.name_for_url, None)
+        self.assertRaises(LookupError, on_change_name, creator)
 
         creator = Creator.from_updated(creator, dict(
             auth_user_id=auth_user.id

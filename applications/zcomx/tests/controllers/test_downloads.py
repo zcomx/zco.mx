@@ -8,6 +8,9 @@ Test suite for zcomx/controllers/downloads.py
 """
 import unittest
 from gluon.contrib.simplejson import loads
+from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -37,18 +40,8 @@ class TestFunctions(LocalTestCase):
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
         # Get a book from a creator with a paypal_email.
-        email = web.username
-        self._creator = db(db.creator.email == email).select(limitby=(0, 1)).first()
-        if not self._creator:
-            raise SyntaxError('Unable to get creator.')
-
-        self._book = db(db.book.creator_id == self._creator.id).select(
-            db.book.ALL,
-            orderby=db.book.id,
-        ).first()
-
-        if not self._book:
-            raise SyntaxError('Unable to get book.')
+        self._creator = Creator.by_email(web.username)
+        self._book = Book.from_key(dict(creator_id=self._creator.id))
 
         max_book_id = db.book.id.max()
         rows = db().select(max_book_id)
@@ -78,7 +71,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(result['status'], 'ok')
         click_id = int(result['id'])
         self.assertTrue(click_id > 0)
-        download_click = db(db.download_click.id == click_id).select(limitby=(0, 1)).first()
+        download_click = DownloadClick.from_id(click_id)
         self.assertTrue(download_click)
         self._objects.append(download_click)
         self.assertEqual(download_click.record_table, 'book')
@@ -93,7 +86,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(result['status'], 'ok')
         click_id = int(result['id'])
         self.assertTrue(click_id > 0)
-        download_click = db(db.download_click.id == click_id).select(limitby=(0, 1)).first()
+        download_click = DownloadClick.from_id(click_id)
         self.assertTrue(download_click)
         self._objects.append(download_click)
         self.assertEqual(download_click.record_table, 'book')

@@ -18,7 +18,6 @@ from applications.zcomx.modules.books import \
     url as book_url
 from applications.zcomx.modules.creators import \
     Creator, \
-    formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.utils import joined_list
 from applications.zcomx.modules.zco import SITE_NAME
@@ -308,7 +307,7 @@ class BookListingCreator(object):
             string
         """
         return A(
-            creator_formatted_name(self.creator),
+            self.creator.name,
             _href=creator_short_url(self.creator)
         )
 
@@ -318,7 +317,7 @@ class BookListingCreatorWithTumblr(BookListingCreator):
 
     def link(self):
         return A(
-            creator_formatted_name(self.creator),
+            self.creator.name,
             _href=self.creator.tumblr,
         )
 

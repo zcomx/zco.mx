@@ -9,9 +9,8 @@ Test suite for zcomx/controllers/search.py
 import unittest
 import urllib2
 from gluon.contrib.simplejson import loads
-from applications.zcomx.modules.creators import \
-    Creator, \
-    formatted_name
+from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
@@ -28,18 +27,18 @@ class WithObjectsTestCase(LocalTestCase):
     def setUp(self):
         query = (db.book.status == BOOK_STATUS_ACTIVE) & \
                 (db.book.release_date != None)
-        books = db(query).select(
-            db.book.ALL,
+        book_ids = db(query).select(
+            db.book.id,
             left=[
                 db.book_page.on(db.book_page.book_id == db.book.id)
             ],
             orderby=~db.book.release_date,
             limitby=(0, 1)
         )
-        if not books:
+        if not book_ids:
             self.fail('No book found in db.')
 
-        self._book = books[0]
+        self._book = Book.from_id(book_ids[0]['id'])
 
 
 class TestFunctions(WithObjectsTestCase):
@@ -211,12 +210,11 @@ class TestFunctions(WithObjectsTestCase):
             self.fail('No creator found in db.')
 
         creator = Creator.from_id(creator_rows[0].id)
-        creator_name = formatted_name(creator)
 
         self.assertTrue(web.test(
             '{url}/index?view={v}&o={o}'.format(
                 url=self.url, v='tile', o='creators'),
-            [self.titles['tile_grid'], creator_name]
+            [self.titles['tile_grid'], creator.name]
         ))
 
 

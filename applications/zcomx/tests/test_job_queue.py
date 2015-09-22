@@ -468,7 +468,7 @@ class TestJobQueuer(LocalTestCase):
         self.assertTrue(new_job.id not in job_ids)
         job_ids = get_job_ids()
         self.assertTrue(new_job.id in job_ids)
-        job = db(db.job.id == new_job.id).select(limitby=(0, 1)).first()
+        job = Job.from_id(new_job.id)
         self._objects.append(job)
 
 

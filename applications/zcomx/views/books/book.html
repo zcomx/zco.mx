@@ -1,9 +1,8 @@
 {{from applications.zcomx.modules.books import contribute_link, download_link, follow_link, formatted_name as formatted_book_name, is_downloadable, is_followable, read_link}}
-{{from applications.zcomx.modules.creators import can_receive_contributions, formatted_name as formatted_creator_name, torrent_link, url}}
+{{from applications.zcomx.modules.creators import can_receive_contributions, torrent_link, url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
-{{creator_name = formatted_creator_name(creator)}}
 <div id="book_page">
 
 {{=LOAD(c='z', f='top', args='book', vars={'book_id': book.id, 'creator_id': book.creator_id}, extension='load', ajax=False, content='')}}
@@ -72,14 +71,14 @@
             <div class="col-sm-12" >
                 <div class="row">
                     <div class="creator_img_container">
-                        <a href="{{=url(creator, extension=False)}}" title="{{=creator_name}}">
+                        <a href="{{=url(creator, extension=False)}}" title="{{=creator.name}}">
                         {{=CreatorImgTag(creator.image, size='web', attributes={'_alt': '', '_class': 'img-responsive'})()}}
                         </a>
                     </div>
                     <div class="creator_links_container">
                         <dl class="dl-horizontal">
                         <dt>cartoonist</dt>
-                        <dd><a href="{{=url(creator, extension=False)}}" title="{{=creator_name}}">{{=creator_name}}</a></dd>
+                        <dd><a href="{{=url(creator, extension=False)}}" title="{{=creator.name}}">{{=creator.name}}</a></dd>
                         {{for f in ['website', 'twitter', 'email']:}}
                             {{try:}}
                             {{if creator[f]:}}

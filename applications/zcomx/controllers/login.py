@@ -341,11 +341,15 @@ def book_edit():
     if not book_type:
         book_type = BookType.by_name('one-shot')
 
+    cc_licence = None
     show_cc_licence_place = False
     meta = None
     if book:
-        cc0 = CCLicence.by_code('CC0')
-        if book.cc_licence_id == cc0.id:
+        try:
+            cc_licence = book.as_one(CCLicence)
+        except LookupError:
+            cc_licence = None
+        if cc_licence and cc_licence.code == 'CC0':
             show_cc_licence_place = True
 
         meta = BookPublicationMetadata.from_book(book)
@@ -356,6 +360,8 @@ def book_edit():
 
     return dict(
         book=book,
+        book_type=book_type,
+        cc_licence=cc_licence,
         link_types=link_types,
         metadata=str(meta) if meta else '',
         numbers=dumps(book_type.number_field_statuses()),
@@ -493,8 +499,9 @@ def book_pages_handler():
                     db.commit()
         return result_json
     elif request.env.request_method == 'DELETE':
-        book_page = BookPage.from_id(request.vars.book_page_id)
-        if not book_page:
+        try:
+            book_page = BookPage.from_id(request.vars.book_page_id)
+        except LookupError:
             return do_error('Unable to delete page')
 
         # retrieve real file name
@@ -1037,8 +1044,7 @@ def link_crud():
     if action == 'get':
         links = None
         if link_id:
-            r = db(db.link.id == link_id).select(limitby=(0, 1)).first()
-            links = Links([Link(r)])
+            links = Links([Link.from_id(link_id)])
         else:
             links = Links.from_links_key(links_key)
         rows = [x for x in links.links]
@@ -1056,7 +1062,6 @@ def link_crud():
                     new_value = data[f]
 
             if data:
-                query = (db.link.id == link_id)
                 try:
                     link = Link.from_id(link_id)
                 except LookupError:
@@ -1085,15 +1090,13 @@ def link_crud():
         except SyntaxError as err:
             return {'status': 'error', 'msg': str(err)}
 
-        rows = db(db.link.id == link.id).select().as_list()
+        rows = [Link.from_id(link.id).as_dict()]
         if url != request.vars.url:
             new_value = url
         do_reorder = True
     elif action == 'delete':
         if link_id:
-            query = (db.link.id == link_id)
-            db(query).delete()
-            db.commit()
+            Link.from_id(link_id).delete()
             do_reorder = True
         else:
             return do_error('Invalid data provided')

@@ -23,6 +23,8 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import \
     Creator, \
     creator_name
+from applications.zcomx.modules.events import BookView
+from applications.zcomx.modules.records import Records
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
@@ -219,6 +221,18 @@ class TestRouter(LocalTestCase):
                 'use_scroller_if_short_view',
             ]
         }
+
+    def _book_views(self, book_id):
+        """Return BookView instances for the book with given id.
+
+        Args:
+            book_id: integer, id of book record.
+        Returns:
+            list of BookView instances
+        """
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
+        return Records.from_key(BookView, dict(book_id=book_id))
 
     def test____init__(self):
         router = Router(db, self._request, auth)
@@ -648,10 +662,7 @@ class TestRouter(LocalTestCase):
         router = Router(db, self._request, auth)
         random = '_random_placeholder_'
 
-        def book_views(book_id):
-            return db(db.book_view.book_id == book_id).select()
-
-        self.assertEqual(len(book_views(self._book.id)), 0)
+        self.assertEqual(len(self._book_views(self._book.id)), 0)
 
         def do_test(request_vars, expect):
             """Run test."""
@@ -691,7 +702,7 @@ class TestRouter(LocalTestCase):
         })
 
         do_test(request_vars, page_not_found_expect)
-        self.assertEqual(len(book_views(self._book.id)), 0)
+        self.assertEqual(len(self._book_views(self._book.id)), 0)
 
         router.route()
         urls = router.view_dict['urls']
@@ -713,7 +724,7 @@ class TestRouter(LocalTestCase):
             self.assertTrue(len(parts), count + 1)
 
         # Creator as integer (creator_id) should redirect.
-        self.assertEqual(len(book_views(self._book.id)), 0)
+        self.assertEqual(len(self._book_views(self._book.id)), 0)
         request_vars.creator = str(self._creator.id)
         expect = Storage({
             'redirect': '/FirstLast',
@@ -721,7 +732,7 @@ class TestRouter(LocalTestCase):
         do_test(request_vars, expect)
 
         # Creator as name
-        self.assertEqual(len(book_views(self._book.id)), 0)
+        self.assertEqual(len(self._book_views(self._book.id)), 0)
         request_vars.creator = 'FirstLast'
         expect = Storage({
             'view_dict_keys': self._keys_for_view['creator'],
@@ -730,7 +741,7 @@ class TestRouter(LocalTestCase):
         do_test(request_vars, expect)
 
         # Book as name
-        self.assertEqual(len(book_views(self._book.id)), 0)
+        self.assertEqual(len(self._book_views(self._book.id)), 0)
         request_vars.creator = 'FirstLast'
         request_vars.book = 'MyBook'
         expect = Storage({
@@ -748,9 +759,9 @@ class TestRouter(LocalTestCase):
             'view': 'books/slider.html',
         })
 
-        self.assertEqual(len(book_views(self._book.id)), 0)
+        self.assertEqual(len(self._book_views(self._book.id)), 0)
         do_test(request_vars, expect)
-        views = book_views(self._book.id)
+        views = self._book_views(self._book.id)
         self.assertEqual(len(views), 1)
         for obj in views:
             self._objects.append(obj)
@@ -762,7 +773,7 @@ class TestRouter(LocalTestCase):
             'view': 'books/scroller.html',
         })
         do_test(request_vars, expect)
-        views = book_views(self._book.id)
+        views = self._book_views(self._book.id)
         self.assertEqual(len(views), 2)
         for obj in views:
             self._objects.append(obj)
@@ -862,14 +873,11 @@ class TestRouter(LocalTestCase):
         self.assertEqual(router.redirect, None)
 
     def test__set_reader_view(self):
-        def book_views(book_id):
-            return db(db.book_view.book_id == book_id).select()
-
         router = Router(db, self._request, auth)
         router.creator = self._creator
         router.book = self._book
         router.book_page_record = self._book_page
-        self.assertEqual(len(book_views(self._book.id)), 0)
+        self.assertEqual(len(self._book_views(self._book.id)), 0)
         router.set_reader_view()
         self.assertEqual(
             sorted(router.view_dict.keys()),
@@ -880,15 +888,15 @@ class TestRouter(LocalTestCase):
             'books/slider.html',
         )
         self.assertEqual(router.redirect, None)
-        views = book_views(self._book.id)
+        views = self._book_views(self._book.id)
         self.assertEqual(len(views), 1)
         for obj in views:
             self._objects.append(obj)
 
         router.book = Book.from_updated(router.book, dict(reader='scroller'))
-        db(db.book_view.book_id == self._book.id).delete()
-        db.commit()
-        self.assertEqual(len(book_views(self._book.id)), 0)
+        for book_view in self._book_views(self._book.id):
+            book_view.delete()
+        self.assertEqual(len(self._book_views(self._book.id)), 0)
         router.set_reader_view()
         self.assertEqual(
             sorted(router.view_dict.keys()),
@@ -898,7 +906,7 @@ class TestRouter(LocalTestCase):
             router.view,
             'books/scroller.html',
         )
-        views = book_views(self._book.id)
+        views = self._book_views(self._book.id)
         self.assertEqual(len(views), 1)
         for obj in views:
             self._objects.append(obj)

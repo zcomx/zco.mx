@@ -13,6 +13,7 @@ from gluon.html import DIV, IMG
 from gluon.http import HTTP
 from gluon.storage import List
 from applications.zcomx.modules.archives import TorrentArchive
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.downloaders import \
     CBZDownloader, \
@@ -106,7 +107,7 @@ class TestCBZDownloader(LocalTestCase):
         test_http([invalid_record_id], dict(status=404))
 
         # Find a book without a cbz.
-        book = db(db.book.cbz == None).select(limitby=(0, 1)).first()
+        book = Book.from_key(dict(cbz=None))
         if book:
             test_http([book.id], dict(status=404))
 

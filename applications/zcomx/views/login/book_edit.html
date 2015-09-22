@@ -66,7 +66,7 @@
         book_data_extra = {
             'book_type_id': {
                 'label': '{{=db.book.book_type_id.label}}',
-                'value': "{{try:}}{{=db(db.book_type.id == book.book_type_id).select(db.book_type.description).first()['description']}}{{except:}}{{='n/a'}}{{pass}}",
+                'value': '{{=book_type.description}}',
                 'save': function(e, params) {
                     setTimeout( function() {
                         set_number_containers(params.response.numbers);
@@ -146,7 +146,7 @@
             },
             'cc_licence_id': {
                 'label': '{{=db.book.cc_licence_id.label}}',
-                'value': "{{try:}}{{=db(db.cc_licence.id == book.cc_licence_id).select(db.cc_licence.code).first()['code']}}{{except:}}{{pass}}",
+                'value': "{{=cc_licence.code if cc_licence else ''}}",
                 'hidden': function (e, reason) {
                     var cc_link_div = $(e.target).closest('.row_container')
                         .find('.cc_licences_info_link_container');

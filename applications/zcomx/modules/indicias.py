@@ -22,7 +22,6 @@ from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
     Creator, \
     can_receive_contributions, \
-    formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
     on_delete_image, \
@@ -345,19 +344,17 @@ class BookIndiciaPage(IndiciaPage):
         )
 
         if self.creator:
-            creator_name = creator_formatted_name(self.creator)
-            if creator_name:
-                creator_href = creator_short_url(self.creator)
-                follow_text = creator_name
-                if creator_href:
-                    follow_text = A(
-                        creator_name,
-                        _href=creator_href,
-                    )
-                text_divs.append(DIV(
-                    follow_text,
-                    _class='follow_creator',
-                ))
+            follow_text = self.creator.name
+            creator_href = creator_short_url(self.creator)
+            if creator_href:
+                follow_text = A(
+                    self.creator.name,
+                    _href=creator_href,
+                )
+            text_divs.append(DIV(
+                follow_text,
+                _class='follow_creator',
+            ))
 
         icon_divs = []
         for icon in self.follow_icons():
@@ -494,7 +491,7 @@ class CreatorIndiciaPagePng(IndiciaPage, IndiciaPagePng):
                 'template_img', 'template_web'
         """
         data = dict(
-            owner=creator_formatted_name(self.creator),
+            owner=self.creator.name,
             owner_url=creator_short_url(self.creator)
         )
         return render_cc_licence(

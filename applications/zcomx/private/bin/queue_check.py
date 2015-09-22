@@ -11,6 +11,8 @@ import logging
 import os
 from gluon.shell import env
 from optparse import OptionParser
+from applications.zcomx.modules.job_queue import Job
+from applications.zcomx.modules.records import Records
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -50,22 +52,26 @@ def main():
     usage = '%prog [options]'
     parser = OptionParser(usage=usage, version=VERSION)
 
-    parser.add_option('-a', '--age', type='int',
+    parser.add_option(
+        '-a', '--age', type='int',
         dest='age', default=1440,
         help='Age in minutes where jobs are considered old.',
-        )
-    parser.add_option('--man',
+    )
+    parser.add_option(
+        '--man',
         action='store_true', dest='man', default=False,
         help='Display manual page-like help and exit.',
-        )
-    parser.add_option('-v', '--verbose',
+    )
+    parser.add_option(
+        '-v', '--verbose',
         action='store_true', dest='verbose', default=False,
         help='Print messages to stdout.',
-        )
-    parser.add_option('--vv',
+    )
+    parser.add_option(
+        '--vv',
         action='store_true', dest='vv', default=False,
         help='More verbose.',
-        )
+    )
 
     (options, _) = parser.parse_args()
 
@@ -75,24 +81,25 @@ def main():
 
     if options.verbose or options.vv:
         level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [h.setLevel(level) for h in LOG.handlers
-                if h.__class__ == logging.StreamHandler]
+        unused_h = [
+            h.setLevel(level) for h in LOG.handlers
+            if h.__class__ == logging.StreamHandler
+        ]
 
     LOG.info('Started.')
 
     LOG.debug('Checking for multiple pending jobs.')
-    count = db(db.job.status == 'p').count()
-    if count > 1:
+    jobs = Records.from_key(Job, dict(status='p'))
+    if len(jobs) > 1:
         LOG.error("Multiple pending jobs in queue.")
 
-    LOG.debug('Checking for jobs started {m} minutes ago.'.format(
-        m=options.age))
+    LOG.debug('Checking for jobs started %s minutes ago.', options.age)
     threshold = datetime.datetime.now() - \
-            datetime.timedelta(minutes=options.age)
-    count = db(db.job.start < threshold).count()
-    if count > 0:
-        LOG.error('Jobs older than {age} minutes found in queue.'.format(
-            age=options.age))
+        datetime.timedelta(minutes=options.age)
+    query = (db.job.start < threshold)
+    jobs = Records.from_query(Job, query)
+    if len(jobs) > 0:
+        LOG.error('Jobs older than %s minutes found in queue.', options.age)
 
     LOG.info('Done.')
 

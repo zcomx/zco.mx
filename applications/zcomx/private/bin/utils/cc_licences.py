@@ -13,6 +13,7 @@ import os
 from gluon import *
 from gluon.shell import env
 from optparse import OptionParser
+from applications.zcomx.modules.cc_licences import CCLicence
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -207,15 +208,17 @@ def main():
         template_dict['code'] = code
         template_dict['number'] = number
         template = Storage(template_dict)
-        cc_licence = db(db.cc_licence.code == code).select(limitby=(0, 1)).first()
+        try:
+            cc_licence = CCLicence.by_code(code)
+        except LookupError:
+            cc_licence = None
+
         if cc_licence:
             LOG.debug('Updating: %s', template.code)
         else:
             LOG.debug('Adding: %s', template.code)
             if not options.dry_run:
-                db.cc_licence.insert(code=template.code)
-                db.commit()
-                cc_licence = db(db.cc_licence.code == template.code).select(limitby=(0, 1)).first()
+                cc_licence = CCLicence.from_add(dict(code=template.code))
         if not cc_licence:
             raise LookupError('cc_licence not found, code: {code}'.format(
                 code=template.code))
@@ -227,8 +230,7 @@ def main():
                 template_img=template.template_img,
                 template_web=template.template_web
             )
-            cc_licence.update_record(**data)
-            db.commit()
+            CCLicence.from_updated(cc_licence, data)
         else:
             LOG.debug('Dry run. No changes made.')
 

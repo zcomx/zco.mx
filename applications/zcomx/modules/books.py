@@ -18,7 +18,6 @@ from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
     Creator, \
     creator_name, \
-    formatted_name as creator_formatted_name, \
     short_url as creator_short_url
 from applications.zcomx.modules.images import \
     CachedImgTag, \
@@ -288,7 +287,7 @@ def cbz_comment(book):
 
     fields = []
     fields.append(str(book.publication_year))
-    fields.append(creator_formatted_name(creator))
+    fields.append(creator.name)
     fields.append(book.name)
     fields.append(formatted_number(book))
     fields.append(cc_licence.code)
@@ -376,7 +375,7 @@ def cc_licence_data(book):
         years = '{f}-{l}'.format(f=year_list[0], l=year_list[-1])
 
     return dict(
-        owner=creator_formatted_name(creator),
+        owner=creator.name,
         owner_url=creator_short_url(creator),
         title=book.name,
         title_url=short_url(book),
@@ -566,10 +565,9 @@ def defaults(name, creator):
         data['number'] = book.number + 1                # Must be unique
         data['of_number'] = book.of_number
     else:
-        book_type_record = db(db.book_type.name == DEFAULT_BOOK_TYPE).select(
-            db.book_type.ALL).first()
-        if book_type_record:
-            data['book_type_id'] = book_type_record.id
+        book_type = BookType.from_key(dict(name=DEFAULT_BOOK_TYPE))
+        if book_type:
+            data['book_type_id'] = book_type.id
         data['number'] = 1
         data['of_number'] = 1
     data.update(names(data, fields=db.book.fields))
@@ -756,7 +754,7 @@ def html_metadata(book):
         )
 
     return {
-        'creator_name': creator_formatted_name(creator),
+        'creator_name': creator.name,
         'creator_twitter': creator.twitter,
         'description': book.description,
         'image_url': image_url,

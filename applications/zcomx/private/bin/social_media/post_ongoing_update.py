@@ -13,9 +13,7 @@ import random
 from gluon import *
 from optparse import OptionParser
 from twitter import TwitterHTTPError
-from applications.zcomx.modules.creators import \
-    Creator, \
-    formatted_name as creator_formatted_name
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.stickon.dal import RecordGenerator
 from applications.zcomx.modules.facebook import \
     Authenticator as FbAuthenticator, \
@@ -168,7 +166,7 @@ def post_on_twitter(ongoing_post):
             LOG.error('Creator not found, id: %s', creator_id)
             continue
         creators.append({
-            'name': creator_formatted_name(creator),
+            'name': creator.name,
             'twitter': creator.twitter,
         })
 

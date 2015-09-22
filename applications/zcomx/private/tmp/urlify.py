@@ -87,8 +87,6 @@ def main():
     print 'FIXME y: {var}'.format(var=y)
     print 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
 
-
-
     LOG.info('Done.')
 
 

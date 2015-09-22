@@ -11,9 +11,7 @@ import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.archives import TorrentArchive
-from applications.zcomx.modules.creators import \
-    Creator, \
-    formatted_name
+from applications.zcomx.modules.creators import Creator
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('cli')
@@ -153,7 +151,7 @@ def main():
     LOG.debug('Starting')
 
     for creator in creators_needing_purge():
-        LOG.debug('Purging torrent for creator: %s', formatted_name(creator))
+        LOG.debug('Purging torrent for creator: %s', creator.name)
         delete_torrent(creator)
         data = dict(
             torrent=None,

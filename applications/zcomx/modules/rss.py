@@ -21,7 +21,6 @@ from applications.zcomx.modules.books import \
     page_url
 from applications.zcomx.modules.creators import \
     Creator, \
-    formatted_name as creator_formatted_name, \
     url as creator_url
 from applications.zcomx.modules.images import ImageDescriptor
 from applications.zcomx.modules.zco import \
@@ -169,7 +168,7 @@ class BookRSSChannel(BaseRSSChannel):
     def description(self):
         return 'Recent activity of {b} by {c} on {s}.'.format(
             b=book_formatted_name(self.book, include_publication_year=False),
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
             s=SITE_NAME
         )
 
@@ -189,7 +188,7 @@ class BookRSSChannel(BaseRSSChannel):
         return '{s}: {b} by {c}'.format(
             s=SITE_NAME,
             b=book_formatted_name(self.book, include_publication_year=False),
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
         )
 
 
@@ -209,7 +208,7 @@ class CartoonistRSSChannel(BaseRSSChannel):
 
     def description(self):
         return 'Recent activity of {c} on {s}.'.format(
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
             s=SITE_NAME
         )
 
@@ -224,7 +223,7 @@ class CartoonistRSSChannel(BaseRSSChannel):
     def title(self):
         return '{s}: {c}'.format(
             s=SITE_NAME,
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
         )
 
 
@@ -245,7 +244,7 @@ class BaseRSSEntry(object):
         self.time_stamp = time_stamp
         self.activity_log_id = activity_log_id
         if not book_page_ids:
-            raise SyntaxError('No book page ids provided')
+            raise LookupError('No book page ids provided')
         self.first_page = self.first_of_pages()
         if not self.first_page:
             raise LookupError('First page not found within: {e}'.format(
@@ -269,7 +268,7 @@ class BaseRSSEntry(object):
         """
         return self.description_fmt().format(
             b=book_formatted_name(self.book, include_publication_year=False),
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
             d=datetime.datetime.strftime(self.time_stamp, '%b %d, %Y')
         )
 
@@ -375,7 +374,7 @@ class BaseRSSEntry(object):
         return "'{b}' {p} by {c}".format(
             b=book_formatted_name(self.book, include_publication_year=False),
             p=' '.join(AbridgedBookPageNumbers(pages).numbers()),
-            c=creator_formatted_name(self.creator),
+            c=self.creator.name,
         )
 
 
@@ -434,9 +433,14 @@ def activity_log_as_rss_entry(activity_log):
         raise LookupError('activity_log has no book page ids, id {i}'.format(
             i=activity_log.id))
 
+    book_page_ids = activity_log.verified_book_page_ids()
+    if not book_page_ids:
+        fmt = 'activity_log has no verifiable book page ids, id {i}'
+        raise LookupError(fmt.format(i=activity_log.id))
+
     entry_class = entry_class_from_action(activity_log.action)
     return entry_class(
-        activity_log.verified_book_page_ids(),
+        book_page_ids,
         activity_log.time_stamp,
         activity_log.id
     )

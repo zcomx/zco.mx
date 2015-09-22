@@ -22,6 +22,25 @@ class Record(Row):
         """Initializer"""
         Row.__init__(self, *args, **kwargs)
 
+    def as_one(self, record_class, key_fields=None):
+        """Return a Record instance representing a referenced attribute of the
+        record.
+
+        Args:
+            record_class: Record subclass, the class of the referenced
+                attribute.
+            key_fields: dict of field pairings
+                Eg {field of record_class: field of self}
+                If None, {'id': <db_table>_id} where db_table is
+                record_class.db_table
+        """
+        if not key_fields:
+            key_fields = {'id': '{t}_id'.format(t=record_class.db_table)}
+        key = {}
+        for record_field, self_field in key_fields.iteritems():
+            key[record_field] = self[self_field]
+        return record_class.from_key(key)
+
     def delete(self):
         """Delete the record from the db"""
         db = current.app.db
@@ -101,10 +120,10 @@ class Record(Row):
 
     @classmethod
     def from_query(cls, query):
-        """Create instance from key
+        """Create instance from query
 
         Args:
-            key: dict, {field: value, ...}
+            query: pydal.objects.Expression instance.
 
         Returns:
             cls instance
@@ -160,3 +179,82 @@ class Record(Row):
         db = current.app.db
         db(db[self.db_table].id == self.id).update(**data)
         db.commit()
+
+
+class Records(object):
+    """Class representing a list of Record instances"""
+
+    def __init__(self, records):
+        """Initializer
+
+        Args:
+            records: list, list of Record instances
+        """
+        self.records = records
+
+    def __getitem__(self, i):
+        """Permits access of records using self[key] where key is integer or
+        slice.
+        """
+        return self.records[i]
+
+    def __iter__(self):
+        """Permits the object to be used as an iterator."""
+        for obj in self.records:
+            yield obj
+
+    def __len__(self):
+        """Return length of object."""
+        return len(self.records)
+
+    def __nonzero__(self):
+        """Return truth value of object."""
+        if len(self.records):
+            return 1
+        return 0
+
+    def first(self):
+        """Return the first of the records."""
+        if not self.records:
+            return None
+        return self.records[0]
+
+    @classmethod
+    def from_key(cls, record_class, key, orderby=None, limitby=None):
+        """Create instance from key
+
+        Args:
+            records_class: Record subclass.
+            key: dict, {field: value, ...}
+            orderby: orderby expression, see select()
+            limitby: limitby expression, see seelct()
+
+        Returns:
+            cls instance
+        """
+        db = current.app.db
+        queries = []
+        for k, v in key.iteritems():
+            queries.append((db[record_class.db_table][k] == v))
+        query = reduce(lambda x, y: x & y, queries) if queries else None
+        return cls.from_query(record_class, query, orderby=orderby, limitby=limitby)
+
+    @classmethod
+    def from_query(cls, record_class, query, orderby=None, limitby=None):
+        """Create instance from query
+
+        Args:
+            records_class: Record subclass.
+            query: pydal.objects.Expression instance.
+            orderby: orderby expression, see select()
+            limitby: limitby expression, see seelct()
+
+        Returns:
+            cls instance
+        """
+        db = current.app.db
+        records = []
+        for r in db(query).select(orderby=orderby, limitby=limitby):
+            record = record_class(r.as_dict())
+            records.append(record)
+        return cls(records)

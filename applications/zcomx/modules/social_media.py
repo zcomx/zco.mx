@@ -20,7 +20,6 @@ from applications.zcomx.modules.books import \
     social_media_data as book_social_media_data
 from applications.zcomx.modules.creators import \
     Creator, \
-    formatted_name, \
     social_media_data as creator_social_media_data
 from applications.zcomx.modules.facebook import \
     Authenticator as FbAuthenticator, \
@@ -170,7 +169,7 @@ class TumblrSocialMedia(SocialMedia):
             'source': short_page_img_url(get_page(self.book, page_no='first')),
             'caption': caption_fmt.format(
                 title=self.book.name,
-                handle=self.get_username() or formatted_name(self.creator)
+                handle=self.get_username() or self.creator.name
             ),
         }
         return '{site}/share/photo?{path}'.format(
@@ -206,7 +205,7 @@ class TwitterSocialMedia(SocialMedia):
             'url': short_url(self.book),
             'text': "Check out '{title}' by {creator}".format(
                 title=self.book.name,
-                creator=self.creator.twitter or formatted_name(self.creator)
+                creator=self.creator.twitter or self.creator.name
             ),
             'hashtage': '',
         }

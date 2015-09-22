@@ -18,6 +18,7 @@ from gluon.shell import env
 from optparse import OptionParser
 from applications.zcomx.modules.images import SIZES
 from applications.zcomx.modules.images_optimize import OptimizeImgLog
+from applications.zcomx.modules.records import Records
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -41,11 +42,8 @@ def add_sizes(log):
         if size == 'original':
             continue
         data['size'] = size
-        db.optimize_img_log.insert(**data)
-        db.commit()
-
-    db(db.optimize_img_log.id == log.id).update(size='original')
-    db.commit()
+        OptimizeImgLog.from_add(data)
+    OptimizeImgLog.from_update(log, dict(size='original'))
 
 
 def man_page():
@@ -107,11 +105,7 @@ def main():
         ]
 
     LOG.info('Started.')
-    ids = [
-        x.id for x in
-        db(db.optimize_img_log.size == None).select(db.optimize_img_log.id)]
-    for log_id in ids:
-        log = OptimizeImgLog.from_id(log_id)
+    for log in Records.from_key(OptimizeImgLog, dict(size=None)):
         add_sizes(log)
     LOG.info('Done.')
 

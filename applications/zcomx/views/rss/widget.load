@@ -1,5 +1,5 @@
 {{from applications.zcomx.modules.books import formatted_name as book_formatted_name, rss_url as book_rss_url}}
-{{from applications.zcomx.modules.creators import formatted_name as creator_formatted_name, rss_url as creator_rss_url}}
+{{from applications.zcomx.modules.creators import rss_url as creator_rss_url}}
 {{from applications.zcomx.modules.zco import Zco}}
 <div class="rss_widget_body">
 
@@ -10,9 +10,8 @@ Follow {{=form.custom.widget.creator_id}}
 {{=form.custom.end}}
 
 {{if creator:}}
-{{creator_name = creator_formatted_name(creator)}}
 <dl>
-    <dt>Follow all works by {{=creator_name}}:</dt>
+    <dt>Follow all works by {{=creator.name}}:</dt>
     <dd>
         <a href="{{=creator_rss_url(creator, extension=False)}}" target="_blank">
             {{=creator_rss_url(creator, host=True, extension=False)}}
@@ -20,7 +19,7 @@ Follow {{=form.custom.widget.creator_id}}
     </dd>
 
 {{if books:}}
-<dt>Follow specific ongoing comics by {{=creator_name}}:</dt>
+<dt>Follow specific ongoing comics by {{=creator.name}}:</dt>
 <dd>
 <ul>
     {{for book in books:}}
