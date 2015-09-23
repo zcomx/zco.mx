@@ -123,6 +123,7 @@
 'New Record': 'Novo Registo',
 'new record inserted': 'novo registo inserido',
 'next 100 rows': 'próximas 100 linhas',
+'No completed books': 'No completed books',
 'No Data': 'No Data',
 'No databases in this application': 'Não há bases de dados nesta aplicação',
 'No ongoing series': 'No ongoing series',
