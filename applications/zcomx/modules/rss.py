@@ -75,7 +75,8 @@ class BaseRSSChannel(object):
                 entry = activity_log_as_rss_entry(activity_log).feed_item()
             except LookupError as err:
                 # This may happen if a book deletion is in progress
-                LOG.error(err)
+                # LOG.error(err)
+                pass        # This is producing too much noise
             else:
                 items.append(entry)
         return items
