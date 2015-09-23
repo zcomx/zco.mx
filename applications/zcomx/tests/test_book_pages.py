@@ -17,6 +17,7 @@ from applications.zcomx.modules.book_pages import \
     delete_pages_not_in_ids, \
     pages_sorted_by_page_no, \
     reset_book_page_nos
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
@@ -118,7 +119,7 @@ class TestBookPage(ImageTestCase):
             stored_filename = store(
                 db.book_page.image, filename, resizer=ResizerQuick)
 
-            book_page_row = self.add(db.book_page, dict(
+            book_page_row = self.add(BookPage, dict(
                 image=stored_filename,
             ))
             book_page = BookPage.from_id(book_page_row.id)
@@ -192,17 +193,16 @@ class TestFunctions(LocalTestCase):
 
     def test__delete_pages_not_in_ids(self):
 
-        def get_page_ids(book_id):
-            query = (db.book_page.book_id == book_id)
-            return sorted([x.id for x in db(query).select()])
+        def get_page_ids(book):
+            return [x.id for x in book.pages()]
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__delete_pages_not_in_ids',
         ))
 
         page_ids = []
         for page_no in range(1, 11):
-            book_page = self.add(db.book_page, dict(
+            book_page = self.add(BookPage, dict(
                 book_id=book.id,
                 page_no=page_no,
             ))
@@ -210,7 +210,7 @@ class TestFunctions(LocalTestCase):
 
         self.assertEqual(
             page_ids,
-            get_page_ids(book.id)
+            get_page_ids(book)
         )
 
         # Keep every other page.
@@ -228,7 +228,7 @@ class TestFunctions(LocalTestCase):
 
         self.assertEqual(
             keep_ids,
-            get_page_ids(book.id)
+            get_page_ids(book)
         )
 
         self.assertEqual(
@@ -258,27 +258,23 @@ class TestFunctions(LocalTestCase):
 
     def test__reset_book_page_nos(self):
 
-        def get_page_ids_by_page_no(book_id):
-            query = (db.book_page.book_id == book_id)
-            return [
-                x.id
-                for x in db(query).select(orderby=db.book_page.page_no)
-            ]
+        def get_page_ids_by_page_no(book):
+            return [x.id for x in book.pages()]
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__delete_pages_not_in_ids',
         ))
 
         page_ids = []
         for page_no in range(1, 5):
-            book_page = self.add(db.book_page, dict(
+            book_page = self.add(BookPage, dict(
                 book_id=book.id,
                 page_no=page_no,
             ))
             page_ids.append(book_page.id)
 
         self.assertEqual(
-            get_page_ids_by_page_no(book.id),
+            get_page_ids_by_page_no(book),
             page_ids
         )
 
@@ -292,7 +288,7 @@ class TestFunctions(LocalTestCase):
         reset_book_page_nos(new_order)
 
         self.assertEqual(
-            get_page_ids_by_page_no(book.id),
+            get_page_ids_by_page_no(book),
             new_order
         )
 

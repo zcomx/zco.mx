@@ -10,8 +10,13 @@ import datetime
 import re
 import unittest
 import uuid
+from applications.zcomx.modules.activity_logs import ActivityLog
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.facebook import \
     Authenticator, \
     FacebookAPIAuthenticator, \
@@ -40,7 +45,7 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
 
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='First Last'
         ))
 
@@ -51,7 +56,7 @@ class WithObjectsTestCase(LocalTestCase):
             tumblr='http://firstlast.tumblr.com',
         ))
 
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name='My Book',
             number=1,
             creator_id=self._creator.id,
@@ -59,24 +64,24 @@ class WithObjectsTestCase(LocalTestCase):
             name_for_url='MyBook-001',
         ))
 
-        self._book_page = self.add(db.book_page, dict(
+        self._book_page = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=1,
         ))
 
-        self._book_page_2 = self.add(db.book_page, dict(
+        self._book_page_2 = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=2,
         ))
 
-        self._activity_log_1 = self.add(db.activity_log, dict(
+        self._activity_log_1 = self.add(ActivityLog, dict(
             book_id=self._book.id,
             book_page_ids=[self._book_page.id],
             action='page added',
             ongoing_post_id=None,
         ))
 
-        self._activity_log_2 = self.add(db.activity_log, dict(
+        self._activity_log_2 = self.add(ActivityLog, dict(
             book_id=self._book.id,
             book_page_ids=[self._book_page_2.id],
             action='page added',

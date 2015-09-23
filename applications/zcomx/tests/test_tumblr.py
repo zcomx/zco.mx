@@ -11,9 +11,13 @@ import unittest
 import uuid
 from BeautifulSoup import BeautifulSoup
 from pydal.objects import Row
+from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
     BookListingCreator, \
@@ -45,7 +49,7 @@ class WithObjectsTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
 
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='First Last'
         ))
 
@@ -56,7 +60,7 @@ class WithObjectsTestCase(LocalTestCase):
             tumblr='http://firstlast.tumblr.com',
         ))
 
-        self._book = self.add(db.book, dict(
+        self._book = self.add(Book, dict(
             name='My Book',
             number=1,
             creator_id=self._creator.id,
@@ -64,26 +68,26 @@ class WithObjectsTestCase(LocalTestCase):
             name_for_url='MyBook-001',
         ))
 
-        page = self.add(db.book_page, dict(
+        page = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=1,
         ))
         self._book_page = BookPage.from_id(page.id)
 
-        page_2 = self.add(db.book_page, dict(
+        page_2 = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=2,
         ))
         self._book_page_2 = BookPage.from_id(page_2.id)
 
-        self._activity_log_1 = self.add(db.activity_log, dict(
+        self._activity_log_1 = self.add(ActivityLog, dict(
             book_id=self._book.id,
             book_page_ids=[self._book_page.id],
             action='page added',
             ongoing_post_id=None,
         ))
 
-        self._activity_log_2 = self.add(db.activity_log, dict(
+        self._activity_log_2 = self.add(ActivityLog, dict(
             book_id=self._book.id,
             book_page_ids=[self._book_page_2.id],
             action='page added',
@@ -254,7 +258,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
 
     def test__body(self):
 
-        activity_log = self.add(db.activity_log, dict(
+        activity_log = self.add(ActivityLog, dict(
             book_id=self._book.id,
             book_page_ids=[self._book_page.id, self._book_page_2.id],
             action='page added',
@@ -611,11 +615,11 @@ class TestFunctions(WithObjectsTestCase, WithDateTestCase):
 
     def test__postable_activity_log_ids(self):
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__activity_log_ids'
         ))
 
-        activity_log = self.add(db.activity_log, dict(
+        activity_log = self.add(ActivityLog, dict(
             book_id=book.id,
         ))
 

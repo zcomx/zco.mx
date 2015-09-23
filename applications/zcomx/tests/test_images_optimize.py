@@ -22,6 +22,7 @@ from applications.zcomx.modules.images_optimize import \
     CBZImage, \
     CBZImagesForRelease, \
     Image, \
+    OptimizeImgLog, \
     OriginalImage, \
     WebImage
 from applications.zcomx.modules.tests.runner import \
@@ -192,14 +193,14 @@ class TestBaseSizedImage(LocalTestCase):
 
         self.assertFalse(image.is_optimized())
 
-        self.add(db.optimize_img_log, dict(
+        self.add(OptimizeImgLog, dict(
             image=image_name,
             size='web',             # mismatching size
         ))
 
         self.assertFalse(image.is_optimized())
 
-        self.add(db.optimize_img_log, dict(
+        self.add(OptimizeImgLog, dict(
             image=image_name,
             size='dub',
         ))
@@ -261,20 +262,20 @@ class TestImage(LocalTestCase):
 
         self.assertFalse(image.is_optimized())
 
-        self.add(db.optimize_img_log, dict(
+        self.add(OptimizeImgLog, dict(
             image=image_name,
             size='original',            # mismatch size
         ))
 
         self.assertFalse(image.is_optimized())
 
-        self.add(db.optimize_img_log, dict(
+        self.add(OptimizeImgLog, dict(
             image=image_name,
             size='cbz'
         ))
         self.assertFalse(image.is_optimized())      # not all images logged
 
-        self.add(db.optimize_img_log, dict(
+        self.add(OptimizeImgLog, dict(
             image=image_name,
             size='web'
         ))

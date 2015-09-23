@@ -196,10 +196,11 @@ class TestDupeNameBarrier(LocalTestCase):
 class TestDupeNumberBarrier(LocalTestCase):
 
     def test__applies(self):
-        book = self.add(db.book, dict(
+        creator = self.add(Creator, dict(name_for_url='test__applies'))
+        book = self.add(Book, dict(
             name='test__applies',
             number=2,
-            creator_id=-1,
+            creator_id=creator.id,
             book_type_id=1,
             release_date=datetime.date(2014, 12, 31),
         ))
@@ -215,7 +216,7 @@ class TestDupeNumberBarrier(LocalTestCase):
             release_date=datetime.date.today()                      # not None
         )
 
-        book_2 = self.add(db.book, dict(dupe_data))
+        book_2 = self.add(Book, dict(dupe_data))
         self.assertTrue(barrier.applies())
 
         # Change each field one a time to see test that if changed, the
@@ -259,22 +260,19 @@ class TestDupeNumberBarrier(LocalTestCase):
 class TestInvalidPageNoBarrier(LocalTestCase):
 
     def test__applies(self):
-        book = Book(dict(
-            id=-1,
-            name='test__applies',
-        ))
+        book = self.add(Book, dict(name='test__applies'))
 
-        book_page_1 = self.add(db.book_page, dict(
+        book_page_1 = self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
         ))
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id,
             page_no=2,
         ))
 
-        book_page_3 = self.add(db.book_page, dict(
+        book_page_3 = self.add(BookPage, dict(
             book_id=book.id,
             page_no=3,
         ))
@@ -390,15 +388,12 @@ class TestNoCBZImageBarrier(ImageTestCase):
         self.assertEqual(barrier.fixes, ['file.jpg', 'file2.png'])
 
     def test__no_cbz_images(self):
-        book = Book(dict(
-            id=-1,
-            name='test__no_cbz_images'
-        ))
+        book = self.add(Book, dict(name='test__no_cbz_images'))
 
         # The images and their sizes are irrelevant other than for identity.
         # The existence of a cbz file will determine whether images violate
         # or not.
-        landscape_page = self.add(db.book_page, dict(
+        landscape_page = self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
         ))
@@ -409,7 +404,7 @@ class TestNoCBZImageBarrier(ImageTestCase):
             resizer=ResizerQuick
         )
 
-        portrait_page = self.add(db.book_page, dict(
+        portrait_page = self.add(BookPage, dict(
             book_id=book.id,
             page_no=2,
         ))
@@ -420,7 +415,7 @@ class TestNoCBZImageBarrier(ImageTestCase):
             resizer=ResizerQuick
         )
 
-        square_page = self.add(db.book_page, dict(
+        square_page = self.add(BookPage, dict(
             book_id=book.id,
             page_no=3,
         ))
@@ -518,14 +513,11 @@ class TestNoLicenceBarrier(LocalTestCase):
 class TestNoPagesBarrier(LocalTestCase):
 
     def test__applies(self):
-        book = Book(dict(
-            id=-1,
-            name='test__applies',
-        ))
+        book = self.add(Book, dict(name='test__applies'))
         barrier = NoPagesBarrier(book)
         self.assertTrue(barrier.applies())
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id
         ))
         barrier = NoPagesBarrier(book)
@@ -655,7 +647,7 @@ class TestFunctions(ImageTestCase):
             cc_licence_id=cc0.id,
         ))
 
-        book_page = self.add(db.book_page, dict(
+        book_page = self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
         ))
@@ -691,7 +683,7 @@ class TestFunctions(ImageTestCase):
             cc_licence_id=cc0.id,
         ))
 
-        book_page = self.add(db.book_page, dict(
+        book_page = self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
         ))

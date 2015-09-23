@@ -12,6 +12,7 @@ from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import \
     AuthUser, \
     Creator, \
@@ -135,15 +136,14 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(before, after)
 
     def test__book_for_contributions(self):
-        creator = Creator(dict(
-            id=-1,
+        creator = self.add(Creator, dict(
             email='test__book_for_contributions@email.com',
         ))
 
         # Has no books
         self.assertEqual(book_for_contributions(creator), None)
 
-        book_1 = self.add(db.book, dict(
+        book_1 = self.add(Book, dict(
             creator_id=creator.id,
             contributions_remaining=100.00,
         ))
@@ -152,7 +152,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(got, book_1)
 
         # With two books, the higher remaining should be returned.
-        book_2 = self.add(db.book, dict(
+        book_2 = self.add(Book, dict(
             creator_id=creator.id,
             contributions_remaining=99.00,
         ))
@@ -169,10 +169,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(got, book_2)
 
     def test__can_receive_contributions(self):
-        creator = Creator(dict(
-            id=-1,
-            paypal_email='',
-        ))
+        creator = self.add(Creator, dict(paypal_email=''))
 
         self.assertFalse(can_receive_contributions(creator))
 
@@ -188,7 +185,7 @@ class TestFunctions(ImageTestCase):
             creator.paypal_email = t[0]
             self.assertFalse(can_receive_contributions(creator))
 
-        self.add(db.book, dict(
+        self.add(Book, dict(
             creator_id=creator.id,
             contributions_remaining=100.00,
         ))
@@ -250,7 +247,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__creator_name(self):
-        auth_user = self.add(db.auth_user, dict(
+        auth_user = self.add(AuthUser, dict(
             name='First Last'
         ))
 
@@ -367,7 +364,7 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(html_metadata(None), {})
 
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = Creator(dict(
             auth_user_id=auth_user.id,
             name_for_url='FirstLast',
@@ -507,7 +504,7 @@ class TestFunctions(ImageTestCase):
         )
 
     def test__on_change_name(self):
-        auth_user = self.add(db.auth_user, dict(
+        auth_user = self.add(AuthUser, dict(
             name='Test On Change Name'
         ))
 
@@ -539,7 +536,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(updated_creator.name_for_url, 'TestOnChangeName')
 
     def test__profile_onaccept(self):
-        auth_user = self.add(db.auth_user, dict(
+        auth_user = self.add(AuthUser, dict(
             name='Test Profile Onaccept'
         ))
 
@@ -607,7 +604,7 @@ class TestFunctions(ImageTestCase):
 
         self.assertEqual(social_media_data(None), {})
 
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = Creator(dict(
             id=123,
             auth_user_id=auth_user.id,
@@ -639,7 +636,7 @@ class TestFunctions(ImageTestCase):
         )
 
     def test__torrent_file_name(self):
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = Creator(dict(
             id=123,
             auth_user_id=auth_user.id,
@@ -659,7 +656,7 @@ class TestFunctions(ImageTestCase):
         )
 
     def test__torrent_link(self):
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = Creator(dict(
             id=123,
             auth_user_id=auth_user.id,
@@ -708,7 +705,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['target'], '_blank')
 
     def test__torrent_url(self):
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = Creator(dict(
             id=123,
             auth_user_id=auth_user.id,

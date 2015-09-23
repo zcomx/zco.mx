@@ -87,13 +87,12 @@ class CBZCreator(TempDirectoryMixin):
         """
         if self._max_page_no is None:
             db = current.app.db
-            query = (db.book_page.book_id == self.book.id)
-            max_page_no = db.book_page.page_no.max()
-            page_no = db(query).select(max_page_no).first()[max_page_no]
-            if not page_no:
+            orderby = [~db.book_page.page_no]
+            pages = self.book.pages(orderby=orderby, limitby=(0, 1))
+            if not pages:
                 raise LookupError('Book has no pages, id: {i}'.format(
                     i=self.book.id))
-            self._max_page_no = page_no
+            self._max_page_no = pages[0].page_no
         return self._max_page_no
 
     def image_filename(self, page, fmt=None, extension=None):
@@ -116,14 +115,8 @@ class CBZCreator(TempDirectoryMixin):
     def run(self):
         """Create the cbz file."""
         db = current.app.db
-        pages = db(db.book_page.book_id == self.book.id).select(
-            db.book_page.ALL,
-            orderby=db.book_page.page_no
-        )
-
         fmt = self.get_img_filename_fmt()
-
-        for page in pages:
+        for page in self.book.pages():
             unused_file_name, fullname = db.book_page.image.retrieve(
                 page.image,
                 nameonly=True,

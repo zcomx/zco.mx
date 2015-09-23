@@ -9,11 +9,15 @@ Test suite for zcomx/controllers/rss.py
 import datetime
 import os
 import unittest
+from applications.zcomx.modules.activity_logs import ActivityLog
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import \
     Book, \
     book_name
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -48,7 +52,7 @@ class TestFunctions(ImageTestCase):
         # Prevent 'Changed session ID' warnings.
         web.sessions = {}
 
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='First Last',
         ))
 
@@ -65,17 +69,17 @@ class TestFunctions(ImageTestCase):
             name_for_url='TestRss',
         ))
 
-        self._book_page = self.add(db.book_page, dict(
+        self._book_page = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=1,
         ))
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=2,
         ))
 
-        self.add(db.activity_log, dict(
+        self.add(ActivityLog, dict(
             book_id=self._book.id,
             book_page_ids=[self._book_page.id],
             action='page added',

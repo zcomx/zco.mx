@@ -8,12 +8,16 @@ Test suite for zcomx/modules/social_media.py
 """
 import time
 import unittest
+from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.social_media import \
     FacebookPoster, \
     FacebookSocialMedia, \
+    OngoingPost, \
     SocialMedia, \
     SocialMediaPoster, \
     TumblrPoster, \
@@ -38,7 +42,7 @@ class BaseTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
 
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='First Last',
         ))
 
@@ -54,17 +58,27 @@ class BaseTestCase(LocalTestCase):
             name_for_url='TestSocialMedia',
         ))
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=1,
             image='book_page.image.000.aaa.png',
         ))
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=2,
             image='book_page.image.001.aab.png',
         ))
+
+
+class TestOngoingPost(LocalTestCase):
+
+    def test_parent__init__(self):
+        post = self.add(
+            OngoingPost, dict(facebook_post_id='_test_parent__init__'))
+        got = OngoingPost.from_id(post.id)
+        self.assertTrue(got)
+        self.assertEqual(got.facebook_post_id, '_test_parent__init__')
 
 
 class TestSocialMedia(BaseTestCase):

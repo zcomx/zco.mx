@@ -391,10 +391,9 @@ class Router(object):
 
     def set_book_view(self):
         """Set the view for the book page."""
-        db = self.db
         creator = self.get_creator()
         book = self.get_book()
-        page_count = db(db.book_page.book_id == book.id).count()
+        page_count = book.page_count()
 
         if page_count > 0:
             cover = read_link(
@@ -494,7 +493,6 @@ class Router(object):
 
     def set_reader_view(self):
         """Set the view for the book reader."""
-        db = self.db
         request = self.request
         creator = self.get_creator()
         book = self.get_book()
@@ -502,13 +500,11 @@ class Router(object):
 
         reader = self.get_reader()
 
-        rows = db(db.book_page.book_id == book.id).select(
-            db.book_page.image,
-            db.book_page.page_no,
-            orderby=[db.book_page.page_no, db.book_page.id]
-        )
+        page_images = [
+            Storage({'image': p.image, 'page_no': p.page_no})
+            for p in book.pages()
+        ]
 
-        page_images = [Storage(x) for x in rows.as_list()]
         # Add indicia page
         indicia = BookIndiciaPage(book)
         try:

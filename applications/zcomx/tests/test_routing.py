@@ -21,6 +21,7 @@ from applications.zcomx.modules.books import \
     Book, \
     book_name
 from applications.zcomx.modules.creators import \
+    AuthUser, \
     Creator, \
     creator_name
 from applications.zcomx.modules.events import BookView
@@ -107,7 +108,7 @@ class TestRouter(LocalTestCase):
             ),
         })
 
-        self._auth_user = self.add(db.auth_user, dict(
+        self._auth_user = self.add(AuthUser, dict(
             name='First Last',
             email='test__auth_user@test.com',
         ))
@@ -148,23 +149,23 @@ class TestRouter(LocalTestCase):
             status=BOOK_STATUS_ACTIVE,
         ))
 
-        self._book_page = self.add(db.book_page, dict(
+        self._book_page = self.add(BookPage, dict(
             book_id=self._book.id,
             image='book_page.image.000.aaa.png',
             page_no=1,
         ))
 
-        self._book_page_2 = self.add(db.book_page, dict(
+        self._book_page_2 = self.add(BookPage, dict(
             book_id=self._book.id,
             page_no=2,
         ))
 
-        self._book_2_page = self.add(db.book_page, dict(
+        self._book_2_page = self.add(BookPage, dict(
             book_id=self._book_2.id,
             page_no=1,
         ))
 
-        self._book_2_page_2 = self.add(db.book_page, dict(
+        self._book_2_page_2 = self.add(BookPage, dict(
             book_id=self._book_2.id,
             page_no=2,
         ))

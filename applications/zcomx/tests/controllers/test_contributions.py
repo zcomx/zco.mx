@@ -9,6 +9,7 @@ Test suite for zcomx/controllers/contributions.py
 import datetime
 import unittest
 import urllib
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.events import \
     Contribution, \
@@ -149,7 +150,7 @@ class TestFunctions(LocalTestCase):
         )
 
     def test__paypal_notify(self):
-        book = self.add(db.book, dict(name='Text Book'))
+        book = self.add(Book, dict(name='Text Book'))
 
         def get_contributions():
             return Records.from_key(Contribution, dict(book_id=book.id))

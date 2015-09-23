@@ -90,20 +90,20 @@ class TestBaseLinkSet(LocalTestCase):
         self.assertEqual(link_set.link_type(), fake_link_type)
 
     def test__links(self):
-        book_row = self.add(db.book, dict(
+        book_row = self.add(Book, dict(
             name='test__links',
         ))
 
         book = Book(book_row)
 
-        self.add(db.link, dict(
+        self.add(Link, dict(
             link_type_id=LinkType.by_code(DubLinkSet2.link_type_code).id,
             record_table='book',
             record_id=book.id,
             order_no=1,
         ))
 
-        link_2 = self.add(db.link, dict(
+        link_2 = self.add(Link, dict(
             link_type_id=LinkType.by_code(DubLinkSet2.link_type_code).id,
             record_table='book',
             record_id=book.id,
@@ -341,7 +341,7 @@ class TestLinksKey(LocalTestCase):
         )
 
     def test__from_link(self):
-        link = self.add(db.link, dict(
+        link = self.add(Link, dict(
             link_type_id=111,
             record_table='a_table',
             record_id=222,

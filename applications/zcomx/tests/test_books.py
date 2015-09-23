@@ -21,7 +21,6 @@ from applications.zcomx.modules.books import \
     DEFAULT_BOOK_TYPE, \
     book_name, \
     book_page_for_json, \
-    book_pages, \
     book_pages_as_json, \
     book_pages_years, \
     book_tables, \
@@ -71,7 +70,10 @@ from applications.zcomx.modules.books import \
     update_rating, \
     url
 from applications.zcomx.modules.cc_licences import CCLicence
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
+from applications.zcomx.modules.events import Contribution
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
@@ -122,16 +124,43 @@ class WithObjectsTestCase(LocalTestCase):
 
         super(WithObjectsTestCase, self).setUp()
 
-    def _set_pages(self, book_id, num_of_pages):
-        set_pages(self, book_id, num_of_pages)
+    def _set_pages(self, book, num_of_pages):
+        set_pages(self, book, num_of_pages)
 
 
-class TestBook(LocalTestCase):
+class TestBook(WithObjectsTestCase):
 
     def test_parent__init__(self):
         book = Book({'name': '_test_parent__init__'})
         self.assertEqual(book.name, '_test_parent__init__')
         self.assertEqual(book.db_table, 'book')
+
+    def test__page_count(self):
+        book = self.add(Book, dict(name='test__pages'))
+        self.assertEqual(book.page_count(), 0)
+        self.assertEqual(self._book.page_count(), 2)
+
+    def test__pages(self):
+        book = self.add(Book, dict(name='test__pages'))
+        self.assertEqual(len(book.pages()), 0)
+
+        pages = self._book.pages()
+        for p in pages:
+            self.assertTrue(isinstance(p, BookPage))
+        self.assertEqual(len(pages), 2)
+        self.assertEqual(pages[0].page_no, 1)
+        self.assertEqual(pages[1].page_no, 2)
+
+        # Test orderby
+        orderby = [~db.book_page.page_no]
+        pages = self._book.pages(orderby=orderby)
+        self.assertEqual(pages[0].page_no, 2)
+        self.assertEqual(pages[1].page_no, 1)
+
+        # Test limitby
+        pages = self._book.pages(limitby=(0, 1))
+        self.assertEqual(len(pages), 1)
+        self.assertEqual(pages[0].page_no, 1)
 
 
 class TestFunctions(WithObjectsTestCase, ImageTestCase):
@@ -188,12 +217,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             }
         )
 
-    def test__book_pages(self):
-        pages = book_pages(self._book)
-        self.assertEqual(len(pages), 2)
-        self.assertEqual(pages[0].page_no, 1)
-        self.assertEqual(pages[1].page_no, 2)
-
     def test__book_pages_as_json(self):
         filename = 'portrait.png'
         self._set_image(
@@ -211,7 +234,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             resizer=ResizerQuick
         )
 
-        as_json = book_pages_as_json(self._book.id)
+        as_json = book_pages_as_json(self._book)
         data = loads(as_json)
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 2)
@@ -230,21 +253,18 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # Test book_page_ids param.
         as_json = book_pages_as_json(
-            self._book.id, book_page_ids=[self._book_page.id])
+            self._book, book_page_ids=[self._book_page.id])
         data = loads(as_json)
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 1)
         self.assertEqual(data['files'][0]['name'], 'portrait.png')
 
     def test__book_pages_years(self):
-        book = Book(dict(
-            id=-1,
-            name='test__book_pages_years',
-        ))
+        book = self.add(Book, dict(name='test__book_pages_years'))
 
         self.assertEqual(book_pages_years(book), [])
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
             created_on='2010-12-31 01:01:01',
@@ -252,7 +272,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(book_pages_years(book), [2010])
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id,
             page_no=2,
             created_on='2011-12-31 01:01:01',
@@ -260,7 +280,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(book_pages_years(book), [2010, 2011])
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id,
             page_no=3,
             created_on='2014-12-31 01:01:01',
@@ -301,28 +321,27 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Invalid book
         self.assertEqual(calc_contributions_remaining(None), 0.00)
 
-        self._set_pages(book.id, 10)
+        self._set_pages(book, 10)
 
         # Book has no contributions
         self.assertEqual(calc_contributions_remaining(book), 100.00)
 
         # Book has one contribution
-        self.add(db.contribution, dict(
+        self.add(Contribution, dict(
             book_id=book.id,
             amount=15.00,
         ))
         self.assertEqual(calc_contributions_remaining(book), 85.00)
 
         # Book has multiple contribution
-        self.add(db.contribution, dict(
+        self.add(Contribution, dict(
             book_id=book.id,
             amount=35.99,
         ))
         self.assertEqual(calc_contributions_remaining(book), 49.01)
 
     def test__calc_status(self):
-        book = Book(dict(
-            id=-1,
+        book = self.add(Book, dict(
             name='test__calc_status',
         ))
 
@@ -335,19 +354,20 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ]
 
         for t in tests:
-            pages = book_pages(book)
+            pages = book.pages()
 
             if t[0] and not pages:
-                self.add(db.book_page, dict(
+                self.add(BookPage, dict(
                     book_id=book.id
                 ))
             if not t[0] and pages:
-                db(db.book_page.book_id == book.id).delete()
-                db.commit()
+                for page in book.pages():
+                    page.delete()
             if t[1]:
-                book.update(status=BOOK_STATUS_DISABLED)
+                book = Book.from_updated(
+                    book, dict(status=BOOK_STATUS_DISABLED))
             else:
-                book.update(status='')
+                book = Book.from_updated(book, dict(status=''))
             self.assertEqual(calc_status(book), t[2])
 
     def test__cbz_comment(self):
@@ -366,7 +386,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Creator record not found
         self.assertRaises(LookupError, cbz_comment, book)
 
-        auth_user = self.add(db.auth_user, dict(name='Test CBZ Comment'))
+        auth_user = self.add(AuthUser, dict(name='Test CBZ Comment'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
         book.update(creator_id=creator.id)
 
@@ -453,32 +473,29 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__cc_licence_data(self):
         str_to_date = lambda x: datetime.datetime.strptime(
             x, "%Y-%m-%d").date()
+        save_datetime_date = datetime.date
         datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
         # date.today overridden
         self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
 
-        book = Book(dict(
+        auth_user = self.add(db.auth_user, dict(name='Test CC Licence Data'))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
+
+        book = self.add(Book, dict(
             id=-1,
             name='test__cc_licence_data',
-            creator_id=-1,
+            creator_id=creator.id,
             book_type_id=BookType.by_name('one-shot').id,
             name_for_url='TestCcLicenceData',
             cc_licence_place=None,
         ))
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
             created_on='2010-12-31 01:01:01',
         ))
 
-        # no creator
-        self.assertRaises(LookupError, cc_licence_data, book)
-
-        auth_user = self.add(db.auth_user, dict(name='Test CC Licence Data'))
-        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
-
-        book.update(creator_id=creator.id)
         self.assertEqual(
             cc_licence_data(book),
             {
@@ -493,7 +510,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             }
         )
 
-        book.update(cc_licence_place='Canada')
+        book = Book.from_updated(book, dict(cc_licence_place='Canada'))
         self.assertEqual(
             cc_licence_data(book),
             {
@@ -510,13 +527,15 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(cc_licence_data(book)['year'], '2010')
         # Add second book page with different year.
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id,
             page_no=2,
             created_on='2014-12-31 01:01:01',
         ))
 
         self.assertEqual(cc_licence_data(book)['year'], '2010-2014')
+
+        datetime.date = save_datetime_date
 
     def test__complete_link(self):
         empty = '<span></span>'
@@ -647,7 +666,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             creator_id=creator.id,
             status=BOOK_STATUS_ACTIVE,
         ))
-        self._set_pages(book.id, 10)
+        self._set_pages(book, 10)
         self.assertEqual(contributions_target(book), 100.00)
 
         # Book has no contributions
@@ -657,7 +676,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
         # Book has one contribution
-        self.add(db.contribution, dict(
+        self.add(Contribution, dict(
             book_id=book.id,
             amount=15.00,
         ))
@@ -667,7 +686,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
         # Book has multiple contribution
-        self.add(db.contribution, dict(
+        self.add(Contribution, dict(
             book_id=book.id,
             amount=35.99,
         ))
@@ -682,7 +701,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             creator_id=creator.id,
             status=BOOK_STATUS_DRAFT,
         ))
-        self._set_pages(book_2.id, 5)
+        self._set_pages(book_2, 5)
         self.assertEqual(contributions_target(book_2), 50.00)
 
         # status = draft
@@ -717,7 +736,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ]
 
         for t in tests:
-            self._set_pages(book.id, t[0])
+            self._set_pages(book, t[0])
             self.assertEqual(contributions_target(book), t[1])
 
     def test__cover_image(self):
@@ -727,7 +746,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(str(cover_image(0)), placeholder)
 
-        book = self.add(db.book, dict(name='test__cover_image'))
+        book = self.add(Book, dict(name='test__cover_image'))
 
         # Book has no pages
         self.assertEqual(str(cover_image(book)), placeholder)
@@ -738,7 +757,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             'book_page.image.page_birds.png',
         ]
         for count, i in enumerate(book_images):
-            self.add(db.book_page, dict(
+            self.add(BookPage, dict(
                 book_id=book.id,
                 page_no=(count + 1),
                 image=i,
@@ -778,7 +797,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             tests.append((1000, 20.00))
 
         for t in tests:
-            self._set_pages(book.id, t[0])
+            self._set_pages(book, t[0])
             self.assertEqual(default_contribute_amount(book), t[1])
 
     def test__defaults(self):
@@ -998,10 +1017,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(formatted_number(book), t[3])
 
     def test__get_page(self):
-        book = Book(dict(
-            id=-1,
-            name='test__get_page'
-        ))
+        book = self.add(Book, dict(name='test__get_page'))
 
         def do_test(page_no, expect):
             kwargs = {}
@@ -1016,7 +1032,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         for page_no in ['first', 'last', 'indicia', 1, 2, None]:
             do_test(page_no, None)
 
-        book_page_1 = self.add(db.book_page, dict(
+        book_page_1 = self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
         ))
@@ -1026,7 +1042,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         do_test(2, None)
 
-        book_page_2 = self.add(db.book_page, dict(
+        book_page_2 = self.add(BookPage, dict(
             book_id=book.id,
             page_no=2,
         ))
@@ -1048,14 +1064,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(html_metadata(None), {})
 
-        auth_user = self.add(db.auth_user, dict(name='First Last'))
+        auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = self.add(Creator, dict(
             auth_user_id=auth_user.id,
             name_for_url='FirstLast',
             twitter='@firstlast',
         ))
-        book = Book(dict(
-            id=-1,
+        book = self.add(Book, dict(
             name='My Book',
             number=2,
             of_number=1,
@@ -1079,7 +1094,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(html_metadata(book), expect)
 
         # Book with cover
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
             image='book_page.image.aaa.000.jpg',
@@ -1092,16 +1107,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(html_metadata(book), expect)
 
     def test__images(self):
-        book = Book(dict(
-            id=-1,
-            name='test_images'
-        ))
+        book = self.add(Book, dict(name='test_images'))
 
-        book_page_1 = self.add(db.book_page, dict(
+        book_page_1 = self.add(BookPage, dict(
             book_id=book.id
         ))
 
-        book_page_2 = self.add(db.book_page, dict(
+        book_page_2 = self.add(BookPage, dict(
             book_id=book.id
         ))
 
@@ -1430,7 +1442,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name_for_url='FirstLast',
         ))
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='My Book',
             creator_id=creator.id,
             name_for_url='MyBook-01of999',
@@ -1495,7 +1507,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name_for_url='TestReadLink',
         ))
 
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
         ))
@@ -1586,7 +1598,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(book.status, s)
 
     def test__short_page_img_url(self):
-        book = self.add(db.book, dict())
+        book = self.add(Book, dict())
         book_page = BookPage(dict(book_id=book.id))
         tests = [
             # (creator_id, book name_for_url, page_no, image,  expect)
@@ -1622,7 +1634,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(short_page_img_url(book_page), t[4])
 
     def test__short_page_url(self):
-        book = self.add(db.book, dict())
+        book = self.add(Book, dict())
         book_page = BookPage(dict(book_id=book.id))
         tests = [
             # (creator_id, book name_for_url, page_no, expect)
@@ -1658,8 +1670,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name_for_url='FirstLast',
         ))
 
-        book = Book(dict(
-            id=-1,
+        book = self.add(Book, dict(
             name='My Book',
             number=2,
             of_number=4,
@@ -1688,7 +1699,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(social_media_data(book), expect)
 
         # Book with cover
-        self.add(db.book_page, dict(
+        self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
             image='book_page.image.aaa.000.jpg',
@@ -1827,13 +1838,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             creator_id=creator.id,
             status=BOOK_STATUS_ACTIVE,
         ))
-        self._set_pages(book.id, 10)
+        self._set_pages(book, 10)
         update_contributions_remaining(book)
         self.assertEqual(creator_contributions(creator), 100.00)
         self.assertEqual(calc_contributions_remaining(book), 100.00)
 
         # Book has one contribution
-        self.add(db.contribution, dict(
+        self.add(Contribution, dict(
             book_id=book.id,
             amount=15.00,
         ))
@@ -1842,7 +1853,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(calc_contributions_remaining(book), 85.00)
 
         # Book has multiple contribution
-        self.add(db.contribution, dict(
+        self.add(Contribution, dict(
             book_id=book.id,
             amount=35.99,
         ))
@@ -1856,7 +1867,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             creator_id=creator.id,
             status=BOOK_STATUS_ACTIVE,
         ))
-        self._set_pages(book_2.id, 5)
+        self._set_pages(book_2, 5)
         update_contributions_remaining(book_2)
         self.assertAlmostEqual(creator_contributions(creator), 99.01)
         self.assertEqual(calc_contributions_remaining(book), 49.01)
@@ -1872,7 +1883,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__update_rating(self):
         book = self.add(Book, dict(name='test__update_rating'))
-        self._set_pages(book.id, 10)
+        self._set_pages(book, 10)
 
         def reset(book):
             data = dict(
@@ -2022,16 +2033,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(url(book), t[2])
 
 
-def set_pages(obj, book_id, num_of_pages):
+def set_pages(obj, book, num_of_pages):
     """Create pages for a book."""
-    # protected-access (W0212): *Access to a protected member
-    # pylint: disable=W0212
-    def page_count():
-        return db(db.book_page.book_id == book_id).count()
-    while page_count() < num_of_pages:
-        obj.add(db.book_page, dict(
-            book_id=book_id,
-            page_no=(page_count() + 1),
+    while book.page_count() < num_of_pages:
+        obj.add(BookPage, dict(
+            book_id=book.id,
+            page_no=(book.page_count() + 1),
         ))
 
 

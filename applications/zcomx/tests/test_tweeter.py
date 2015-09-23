@@ -13,8 +13,11 @@ import string
 import unittest
 import uuid
 from twitter import TwitterHTTPError
+from applications.zcomx.modules.activity_logs import ActivityLog
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import ImageDescriptor, UploadImage
+from applications.zcomx.modules.social_media import OngoingPost
 from applications.zcomx.modules.tweeter import \
     Authenticator, \
     BaseTweet, \
@@ -642,7 +645,7 @@ class TestTruncatedOngoingUpdateTweet(WithOngoingPostTestCase):
 class TestFunctions(LocalTestCase):
 
     def test__creators_in_ongoing_post(self):
-        ongoing_post = self.add(db.ongoing_post, dict(
+        ongoing_post = self.add(OngoingPost, dict(
             post_date=datetime.date.today(),
         ))
 
@@ -654,22 +657,22 @@ class TestFunctions(LocalTestCase):
             name_for_url='Creator Two',
         ))
 
-        book_1 = self.add(db.book, dict(
+        book_1 = self.add(Book, dict(
             name='Book One',
             creator_id=creator_1.id,
         ))
 
-        book_2 = self.add(db.book, dict(
+        book_2 = self.add(Book, dict(
             name='Book Two',
             creator_id=creator_2.id,
         ))
 
-        activity_log_1 = self.add(db.activity_log, dict(
+        activity_log_1 = self.add(ActivityLog, dict(
             book_id=book_1.id,
             ongoing_post_id=None,
         ))
 
-        activity_log_2 = self.add(db.activity_log, dict(
+        activity_log_2 = self.add(ActivityLog, dict(
             book_id=book_2.id,
             ongoing_post_id=None,
         ))

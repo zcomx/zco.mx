@@ -375,7 +375,7 @@ def creators_in_ongoing_post(ongoing_post):
     """Return the ids of creators involved in an ongoing post.
 
     Args:
-        ongoing_post: Row representing an ongoing_post record.
+        ongoing_post: OngoingPost instance
 
     Returns:
         list of integers, creator record ids

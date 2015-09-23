@@ -26,6 +26,7 @@ from applications.zcomx.modules.facebook import \
     FacebookAPIError, \
     PhotoDataPreparer as FbPhotoDataPreparer, \
     Poster as FbPoster
+from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.tumblr import \
     Authenticator, \
     PhotoDataPreparer, \
@@ -38,6 +39,11 @@ from applications.zcomx.modules.utils import ClassFactory
 from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = logging.getLogger('app')
+
+
+class OngoingPost(Record):
+    """Class representing a ongoing_post record"""
+    db_table = 'ongoing_post'
 
 
 class SocialMedia(object):

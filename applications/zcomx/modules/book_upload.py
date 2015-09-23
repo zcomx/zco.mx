@@ -37,7 +37,10 @@ import zipfile
 from gluon import *
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.book_pages import BookPage
-from applications.zcomx.modules.books import book_page_for_json
+from applications.zcomx.modules.books import \
+    Book, \
+    book_page_for_json, \
+    get_page
 from applications.zcomx.modules.images import \
     is_image, \
     store
@@ -432,18 +435,17 @@ def create_book_page(db, book_id, image_filename):
         LOG.error('IOError: %s', str(err))
         return
 
-    max_page = db.book_page.page_no.max()
-    query = (db.book_page.book_id == book_id)
+    book = Book.from_id(book_id)
     try:
-        page_no = db(query).select(max_page)[0][max_page] + 1
-    except TypeError:
-        page_no = 1
+        last_page = get_page(book, page_no='last')
+    except LookupError:
+        last_page = None
+    page_no = last_page.page_no + 1 if last_page else 1
 
     data = dict(
         book_id=book_id,
         page_no=page_no,
         image=stored_filename,
     )
-    book_page_id = db.book_page.insert(**data)
-    db.commit()
-    return book_page_id
+    book_page = BookPage.from_add(data)
+    return book_page.id

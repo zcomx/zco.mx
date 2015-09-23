@@ -18,6 +18,7 @@ from applications.zcomx.modules.activity_logs import \
     TentativeActivityLog, \
     TentativeLogSet
 from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -51,15 +52,15 @@ class TestActivityLogMixin(LocalTestCase):
         self.assertRaises(SyntaxError, log.age)
 
     def test__verified_book_page_ids(self):
-        book_id = -9
+        book = self.add(Book, dict(name='test__verified_book_page_ids'))
 
-        book_page_1 = self.add(db.book_page, dict(
-            book_id=book_id,
+        book_page_1 = self.add(BookPage, dict(
+            book_id=book.id,
             page_no=1,
         ))
 
-        book_page_2 = self.add(db.book_page, dict(
-            book_id=book_id,
+        book_page_2 = self.add(BookPage, dict(
+            book_id=book.id,
             page_no=2,
         ))
 
@@ -94,7 +95,7 @@ class TestBaseTentativeLogSet(LocalTestCase):
         self.assertRaises(NotImplementedError, log_set.as_activity_log)
 
     def test__load(self):
-        tentative_activity_log = self.add(db.tentative_activity_log, dict(
+        tentative_activity_log = self.add(TentativeActivityLog, dict(
             book_id=-1,
             action='_test__load_',
         ))
@@ -153,6 +154,8 @@ class TestBaseTentativeLogSet(LocalTestCase):
 class TestCompletedTentativeLogSet(LocalTestCase):
 
     def test__as_activity_log(self):
+        book = self.add(Book, dict(name='test__as_activity_log'))
+        book_2 = self.add(Book, dict(name='test__as_activity_log_2'))
         time_stamp = datetime.datetime(2015, 1, 31, 12, 31, 59)
 
         # Empty set
@@ -163,7 +166,7 @@ class TestCompletedTentativeLogSet(LocalTestCase):
         tentative_records = [
             TentativeActivityLog({
                 'id': 1,
-                'book_id': -1,
+                'book_id': book.id,
                 'book_page_id': -2,
                 'action': 'completed',
                 'time_stamp': time_stamp,
@@ -172,7 +175,7 @@ class TestCompletedTentativeLogSet(LocalTestCase):
         log_set = CompletedTentativeLogSet(tentative_records)
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
-        self.assertEqual(got.book_id, -1)
+        self.assertEqual(got.book_id, book.id)
         self.assertEqual(got.book_page_ids, [-2])
         self.assertEqual(got.action, 'completed')
         self.assertEqual(got.time_stamp, time_stamp)
@@ -181,14 +184,14 @@ class TestCompletedTentativeLogSet(LocalTestCase):
         tentative_records = [
             TentativeActivityLog({
                 'id': 1,
-                'book_id': -1,
+                'book_id': book.id,
                 'book_page_id': -2,
                 'action': 'completed',
                 'time_stamp': time_stamp,
             }),
             TentativeActivityLog({
                 'id': 2,
-                'book_id': -3,
+                'book_id': book_2.id,
                 'book_page_id': -4,
                 'action': 'completed',
                 'time_stamp': time_stamp + datetime.timedelta(days=1),
@@ -197,19 +200,19 @@ class TestCompletedTentativeLogSet(LocalTestCase):
         log_set = CompletedTentativeLogSet(tentative_records)
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
-        self.assertEqual(got.book_id, -3)
+        self.assertEqual(got.book_id, book_2.id)
         self.assertEqual(got.book_page_ids, [-4])
         self.assertEqual(got.action, 'completed')
         self.assertEqual(
             got.time_stamp, time_stamp + datetime.timedelta(days=1))
 
     def test__load(self):
-        completed_log = self.add(db.tentative_activity_log, dict(
+        completed_log = self.add(TentativeActivityLog, dict(
             book_id=-1,
             action='completed',
         ))
 
-        page_added_log = self.add(db.tentative_activity_log, dict(
+        page_added_log = self.add(TentativeActivityLog, dict(
             book_id=-1,
             action='page added',
         ))
@@ -235,16 +238,16 @@ class TestCompletedTentativeLogSet(LocalTestCase):
 class TestPageAddedTentativeLogSet(LocalTestCase):
 
     def test__as_book_pages(self):
-        book_id = -2
+        book = self.add(Book, dict(name='test__as_book_pages'))
 
-        page_1 = self.add(db.book_page, dict(
-            book_id=book_id,
+        page_1 = self.add(BookPage, dict(
+            book_id=book.id,
             page_no=1,
         ))
         book_page_1 = BookPage.from_id(page_1)
 
-        page_2 = self.add(db.book_page, dict(
-            book_id=book_id,
+        page_2 = self.add(BookPage, dict(
+            book_id=book.id,
             page_no=1,
         ))
         book_page_2 = BookPage.from_id(page_2)
@@ -255,12 +258,12 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
 
         tentative_records = [
             TentativeActivityLog({
-                'book_id': -1,
+                'book_id': book.id,
                 'book_page_id': book_page_1.id,
                 'action': 'page added',
             }),
             TentativeActivityLog({
-                'book_id': -1,
+                'book_id': book.id,
                 'book_page_id': book_page_2.id,
                 'action': 'page added',
             }),
@@ -271,22 +274,23 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         self.assertEqual(got, [book_page_1, book_page_2])
 
     def test__as_activity_log(self):
+        book = self.add(Book, dict(name='test__as_activity_log'))
 
         book_id = -1
         time_stamp = datetime.datetime(2015, 1, 31, 12, 31, 59)
 
-        book_page_1 = self.add(db.book_page, dict(
-            book_id=book_id,
+        book_page_1 = self.add(BookPage, dict(
+            book_id=book.id,
             page_no=3,
         ))
 
-        book_page_2 = self.add(db.book_page, dict(
-            book_id=book_id,
+        book_page_2 = self.add(BookPage, dict(
+            book_id=book.id,
             page_no=2,
         ))
 
-        book_page_3 = self.add(db.book_page, dict(
-            book_id=book_id,
+        book_page_3 = self.add(BookPage, dict(
+            book_id=book.id,
             page_no=1,
         ))
 
@@ -298,7 +302,7 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         tentative_records = [
             TentativeActivityLog({
                 'id': 1,
-                'book_id': -1,
+                'book_id': book.id,
                 'book_page_id': book_page_1.id,
                 'action': 'page added',
                 'time_stamp': time_stamp,
@@ -307,7 +311,7 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         log_set = PageAddedTentativeLogSet(tentative_records)
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
-        self.assertEqual(got.book_id, -1)
+        self.assertEqual(got.book_id, book.id)
         self.assertEqual(got.book_page_ids, [book_page_1.id])
         self.assertEqual(got.action, 'page added')
         self.assertEqual(got.time_stamp, time_stamp)
@@ -316,21 +320,21 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         tentative_records = [
             TentativeActivityLog({
                 'id': 1,
-                'book_id': -1,
+                'book_id': book.id,
                 'book_page_id': book_page_1.id,
                 'action': 'page added',
                 'time_stamp': time_stamp,
             }),
             TentativeActivityLog({
                 'id': 2,
-                'book_id': -1,
+                'book_id': book.id,
                 'book_page_id': book_page_2.id,
                 'action': 'page added',
                 'time_stamp': time_stamp + datetime.timedelta(days=1),
             }),
             TentativeActivityLog({
                 'id': 3,
-                'book_id': -1,
+                'book_id': book.id,
                 'book_page_id': book_page_3.id,
                 'action': 'page added',
                 'time_stamp': time_stamp - datetime.timedelta(days=1),
@@ -339,7 +343,7 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
         log_set = PageAddedTentativeLogSet(tentative_records)
         got = log_set.as_activity_log()
         self.assertTrue(isinstance(got, ActivityLog))
-        self.assertEqual(got.book_id, -1)
+        self.assertEqual(got.book_id, book.id)
         self.assertEqual(
             got.book_page_ids,
             [book_page_3.id, book_page_2.id, book_page_1.id]
@@ -349,12 +353,12 @@ class TestPageAddedTentativeLogSet(LocalTestCase):
             got.time_stamp, time_stamp + datetime.timedelta(days=1))
 
     def test__load(self):
-        completed_log = self.add(db.tentative_activity_log, dict(
+        completed_log = self.add(TentativeActivityLog, dict(
             book_id=-1,
             action='completed',
         ))
 
-        page_added_log = self.add(db.tentative_activity_log, dict(
+        page_added_log = self.add(TentativeActivityLog, dict(
             book_id=-1,
             action='page added',
         ))

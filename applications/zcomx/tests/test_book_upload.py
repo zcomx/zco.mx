@@ -10,7 +10,6 @@ import os
 import shutil
 import unittest
 from gluon.storage import Storage
-from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_upload import \
     BookPageUploader, \
     FileTypeError, \
@@ -25,6 +24,7 @@ from applications.zcomx.modules.book_upload import \
     UploadedUnsupported, \
     classify_uploaded_file, \
     create_book_page
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     WithTestDataDirTestCase
@@ -61,9 +61,8 @@ class TestBookPageUploader(ImageTestCase):
         pass         # This is tested by test__upload
 
     def test__upload(self):
-        book = self.add(db.book, dict(name='test__load_file'))
-        pages = db(db.book_page.book_id == book.id).select()
-        self.assertEqual(len(pages), 0)
+        book = self.add(Book, dict(name='test__load_file'))
+        self.assertEqual(book.page_count(), 0)
 
         sample_file = os.path.join(self._test_data_dir, 'file.jpg')
         with open(sample_file, 'r') as f:
@@ -73,7 +72,7 @@ class TestBookPageUploader(ImageTestCase):
             })
             uploader = BookPageUploader(book.id, [up_file])
             uploader.upload()
-        pages = db(db.book_page.book_id == book.id).select()
+        pages = book.pages()
         self.assertEqual(len(pages), 1)
         self._objects.append(pages[0])
 
@@ -210,19 +209,17 @@ class TestUploadedFile(ImageTestCase):
         self.assertEqual(uploaded.errors, [])
 
     def test__create_book_pages(self):
-        book = self.add(db.book, dict(name='test__create_book_pages'))
-        pages = db(db.book_page.book_id == book.id).select()
-        self.assertEqual(len(pages), 0)
+        book = self.add(Book, dict(name='test__create_book_pages'))
+        self.assertEqual(book.page_count(), 0)
 
         filename = self._prep_image('file.jpg')
         uploaded = UploadedFile(filename)
         uploaded.image_filenames.append(filename)
         uploaded.create_book_pages(book.id)
 
-        pages = db(db.book_page.book_id == book.id).select()
+        pages = book.pages()
         self.assertEqual(len(pages), 1)
-        book_page = BookPage.from_id(pages[0]['id'])
-        self._objects.append(book_page)
+        self._objects.append(pages[0])
 
     def test__for_json(self):
         filename = self._prep_image('file.jpg')
@@ -230,16 +227,15 @@ class TestUploadedFile(ImageTestCase):
         self.assertRaises(NotImplementedError, uploaded.for_json)
 
     def test__load(self):
-        book = self.add(db.book, dict(name='test__load'))
+        book = self.add(Book, dict(name='test__load'))
         filename = self._prep_image('file.jpg')
         # Use UploadedImage as UploadedFile won't have methods implemented
         uploaded = UploadedImage(filename)
         uploaded.load(book.id)
 
-        pages = db(db.book_page.book_id == book.id).select()
+        pages = book.pages()
         self.assertEqual(len(pages), 1)
-        book_page = BookPage.from_id(pages[0]['id'])
-        self._objects.append(book_page)
+        self._objects.append(pages[0])
 
     def test__unpack(self):
         filename = self._prep_image('file.jpg')
@@ -281,7 +277,7 @@ class TestUploadedImage(ImageTestCase):
         self.assertEqual(uploaded.filename, filename)
 
     def test__for_json(self):
-        book = self.add(db.book, dict(name='test__for_json'))
+        book = self.add(Book, dict(name='test__for_json'))
         filename = self._prep_image('file.jpg')
         uploaded = UploadedImage(filename)
         uploaded.image_filenames.append(filename)
@@ -291,10 +287,9 @@ class TestUploadedImage(ImageTestCase):
         self.assertEqual(json['name'], 'file.jpg')
         self.assertEqual(json['size'], 23127)
 
-        pages = db(db.book_page.book_id == book.id).select()
+        pages = book.pages()
         self.assertEqual(len(pages), 1)
-        book_page = BookPage.from_id(pages[0]['id'])
-        self._objects.append(book_page)
+        self._objects.append(pages[0])
 
     def test__unpack(self):
         filename = self._prep_image('file.jpg')
@@ -367,32 +362,25 @@ class TestFunctions(ImageTestCase):
     def test__create_book_page(self):
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
-        book = self.add(db.book, dict(name='test__add'))
-
-        def pages(book_id):
-            """Get pages of book"""
-            return db(db.book_page.book_id == book_id).select(
-                orderby=[db.book_page.page_no, db.book_page.id]
-            )
-
-        self.assertEqual(len(pages(book.id)), 0)
+        book = self.add(Book, dict(name='test__add'))
+        self.assertEqual(book.page_count(), 0)
 
         for filename in ['file.jpg', 'file.png']:
             sample_file = self._prep_image(filename)
             book_page_id = create_book_page(db, book.id, sample_file)
             self.assertTrue(book_page_id)
 
-        book_pages = pages(book.id)
-        self.assertEqual(len(book_pages), 2)
-        for book_page in book_pages:
-            self._objects.append(book_page)
+        pages = book.pages()
+        self.assertEqual(len(pages), 2)
+        for page in pages:
+            self._objects.append(page)
 
         for i, filename in enumerate(['file.jpg', 'file.png']):
-            self.assertEqual(book_pages[i].book_id, book.id)
-            self.assertEqual(book_pages[i].page_no, i + 1)
+            self.assertEqual(pages[i].book_id, book.id)
+            self.assertEqual(pages[i].page_no, i + 1)
 
             original_filename, unused_fullname = db.book_page.image.retrieve(
-                book_pages[i].image,
+                pages[i].image,
                 nameonly=True,
             )
             self.assertEqual(original_filename, filename)

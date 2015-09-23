@@ -27,7 +27,9 @@ from applications.zcomx.modules.names import \
     BookNumber, \
     BookTitle, \
     names as name_values
-from applications.zcomx.modules.records import Record
+from applications.zcomx.modules.records import \
+    Record, \
+    Records
 from applications.zcomx.modules.shell_utils import tthsum
 from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
@@ -44,6 +46,31 @@ LOG = logging.getLogger('app')
 class Book(Record):
     """Class representing a book record."""
     db_table = 'book'
+
+    def page_count(self):
+        """return the number of pages in the book.
+
+        returns:
+            integer, the number of pages
+        """
+        return len(self.pages())
+
+    def pages(self, orderby=None, limitby=None):
+        """Return a list of pages of the book.
+
+        Args:
+            orderby: orderby expression, see select()
+                Default, [page_no, id]
+            limitby: limitby expression, see seelct()
+
+        Returns:
+            list of BookPage instances
+        """
+        if orderby is None:
+            db = current.app.db
+            orderby = [db.book_page.page_no, db.book_page.id]
+        return Records.from_key(
+            BookPage, dict(book_id=self.id), orderby=orderby, limitby=limitby)
 
 
 def book_name(book, use='file'):
@@ -117,32 +144,11 @@ def book_page_for_json(book_page):
     )
 
 
-def book_pages(book):
-    """Return a list of BookPage instances representing the pages in the book.
-
-    Args:
-        book: Book instance
-
-    Returns:
-        list of BookPage instances
-    """
-    db = current.app.db
-    pages = []
-    query = (db.book_page.book_id == book.id)
-    ids = db(query).select(
-        db.book_page.id,
-        orderby=[db.book_page.page_no, db.book_page.id]
-    )
-    for page_id in ids:
-        pages.append(BookPage.from_id(page_id))
-    return pages
-
-
-def book_pages_as_json(book_id, book_page_ids=None):
+def book_pages_as_json(book, book_page_ids=None):
     """Return the book pages formated as json suitable for jquery-file-upload.
 
     Args:
-        book_id: integer, the id of the book record
+        book: Book instance
         book_page_ids: list of ids, integers of book_page records. By default
             all pages of book are returned. With this option only pages with
             ids in this list are returned.
@@ -157,16 +163,12 @@ def book_pages_as_json(book_id, book_page_ids=None):
             }
 
     """
-    db = current.app.db
     pages = []
-    query = (db.book_page.book_id == book_id)
-    if book_page_ids:
-        query = query & (db.book_page.id.belongs(book_page_ids))
-    records = db(query).select(db.book_page.id, orderby=db.book_page.page_no)
-    for record in records:
-        book_page = BookPage.from_id(record.id)
-        pages.append(book_page_for_json(book_page))
-    return dumps(dict(files=pages))
+    for page in book.pages():
+        if not book_page_ids or page.id in book_page_ids:
+            pages.append(page)
+    json_pages = [book_page_for_json(p) for p in pages]
+    return dumps(dict(files=json_pages))
 
 
 def book_pages_years(book):
@@ -180,11 +182,7 @@ def book_pages_years(book):
     Returns:
         list of integers
     """
-    db = current.app.db
-    query = (db.book_page.book_id == book.id)
-    return sorted(set(
-        [x.created_on.year for x in db(query).select(db.book_page.created_on)]
-    ))
+    return sorted(set([x.created_on.year for x in book.pages()]))
 
 
 def book_tables():
@@ -265,12 +263,9 @@ def calc_status(book):
     Returns:
         string, the status of a book, eg BOOK_STATUS_ACTIVE
     """
-    db = current.app.db
     if book.status == BOOK_STATUS_DISABLED:
         return BOOK_STATUS_DISABLED
-
-    page_count = db(db.book_page.book_id == book.id).count()
-    return BOOK_STATUS_ACTIVE if page_count > 0 else BOOK_STATUS_DRAFT
+    return BOOK_STATUS_ACTIVE if book.page_count() > 0 else BOOK_STATUS_DRAFT
 
 
 def cbz_comment(book):
@@ -486,9 +481,7 @@ def contributions_target(book):
     if not book:
         return 0.00
 
-    db = current.app.db
-    page_count = db(db.book_page.book_id == book.id).count()
-    amount = round(rate_per_page * page_count)
+    amount = round(rate_per_page * book.page_count())
     return amount
 
 
@@ -526,10 +519,8 @@ def default_contribute_amount(book):
     minimum = 1
     maximum = 20
     rate_per_page = 1.0 / 20
-    db = current.app.db
 
-    page_count = db(db.book_page.book_id == book.id).count()
-    amount = round(rate_per_page * page_count)
+    amount = round(rate_per_page * book.page_count())
     if amount < minimum:
         amount = minimum
     if amount > maximum:
@@ -684,7 +675,8 @@ def get_page(book, page_no=1):
                     image: None
 
     Returns:
-        Row instance representing a book_page.
+        BookPage instance
+
     Raises:
         LookupError, if book doesn't have a page associated with the provided
             page_no value.
@@ -712,9 +704,6 @@ def get_page(book, page_no=1):
         'page_no': want_page_no,
     }
     book_page = BookPage.from_key(key)
-    if not book_page:
-        raise LookupError('Book id {b}, page not found, {p}'.format(
-            b=book.id, p=page_no))
 
     if page_no == 'indicia':
         book_page.id = None
@@ -788,7 +777,7 @@ def images(book):
             continue
         image_names.append(book[field])
 
-    for page in book_pages(book):
+    for page in book.pages():
         for field in db.book_page.fields:
             if db.book_page[field].type != 'upload':
                 continue

@@ -54,7 +54,7 @@ class TestFunctions(LocalTestCase):
         # Prevent 'Changed session ID' warnings.
         web.sessions = {}
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='test__download_click_handler',
             creator_id=self._creator.id,
         ))

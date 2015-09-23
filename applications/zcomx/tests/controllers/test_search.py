@@ -184,14 +184,14 @@ class TestFunctions(WithObjectsTestCase):
         # Test list view
         self.assertTrue(web.test(
             '{url}/index?view={v}'.format(url=self.url, v='list'),
-            [self.titles['list_grid'], self._book.name]
+            [self.titles['list_grid'], self._book.name_for_url]
         ))
 
         # Test tile view
         self.assertTrue(web.test(
             '{url}/index?view={v}'.format(
                 url=self.url, v='tile'),
-            [self.titles['tile_grid'], self._book.name]
+            [self.titles['tile_grid'], self._book.name_for_url]
         ))
 
         # Test cartoonists table
@@ -214,7 +214,7 @@ class TestFunctions(WithObjectsTestCase):
         self.assertTrue(web.test(
             '{url}/index?view={v}&o={o}'.format(
                 url=self.url, v='tile', o='creators'),
-            [self.titles['tile_grid'], creator.name]
+            [self.titles['tile_grid'], creator.name_for_url]
         ))
 
 

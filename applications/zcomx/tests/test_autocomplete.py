@@ -17,7 +17,10 @@ from applications.zcomx.modules.autocomplete import \
     CreatorAutocompleter, \
     autocompleter_class
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.creators import \
+    AuthUser, \
+    Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
@@ -107,7 +110,7 @@ class TestBaseAutocompleter(DumpTestCase):
 
     def test__row_to_json(self):
 
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='My Book',
             number=1,
             book_type_id=BookType.by_name('ongoing').id,
@@ -174,7 +177,7 @@ class TestBookAutocompleter(LocalTestCase):
         )
 
     def test__formatted_value(self):
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='My Book',
             number=1,
             book_type_id=BookType.by_name('ongoing').id,
@@ -187,7 +190,7 @@ class TestBookAutocompleter(LocalTestCase):
         self.assertEqual(autocompleter.orderby(), db.book.name)
 
     def test_search(self):
-        book = self.add(db.book, dict(
+        book = self.add(Book, dict(
             name='My Book',
             number=1,
             book_type_id=BookType.by_name('ongoing').id,
@@ -230,7 +233,7 @@ class TestBookAutocompleter(LocalTestCase):
         # Test multiple matches and order of results.
         book.update_record(status=BOOK_STATUS_ACTIVE)
         db.commit()
-        book_2 = self.add(db.book, dict(
+        book_2 = self.add(Book, dict(
             name='Another Book',
             number=2,
             of_number=4,
@@ -279,7 +282,7 @@ class TestCreatorAutocompleter(LocalTestCase):
         )
 
     def test__formatted_value(self):
-        auth_user = self.add(db.auth_user, dict(
+        auth_user = self.add(AuthUser, dict(
             name='First Last'
         ))
 
@@ -298,7 +301,7 @@ class TestCreatorAutocompleter(LocalTestCase):
         self.assertEqual(str(got[0]), 'book ON (book.creator_id = creator.id)')
 
     def test_search(self):
-        auth_user = self.add(db.auth_user, dict(
+        auth_user = self.add(AuthUser, dict(
             name='First Last'
         ))
 
@@ -330,7 +333,7 @@ class TestCreatorAutocompleter(LocalTestCase):
         # creator does not have book
         self.assertFalse(creator_as_item in results)
 
-        self.add(db.book, dict(
+        self.add(Book, dict(
             creator_id=creator.id
         ))
         results = autocompleter.search()
@@ -345,7 +348,7 @@ class TestCreatorAutocompleter(LocalTestCase):
         self.assertEqual(autocompleter.search(), [])
 
         # Test multiple matches and order of results.
-        auth_user_2 = self.add(db.auth_user, dict(
+        auth_user_2 = self.add(AuthUser, dict(
             name='Second Prime'
         ))
 
@@ -360,7 +363,7 @@ class TestCreatorAutocompleter(LocalTestCase):
             'value': 'Second Prime'
         }
 
-        self.add(db.book, dict(
+        self.add(Book, dict(
             creator_id=creator_2.id
         ))
 
