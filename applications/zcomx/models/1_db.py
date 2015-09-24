@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 
 #########################################################################
-## This scaffolding model makes your app work on Google App Engine too
-## File is released under public domain and you can use without limitations
+# # This scaffolding model makes your app work on Google App Engine too
+# # File is released under public domain and you can use without limitations
 #########################################################################
 
-## if SSL/HTTPS is properly configured and you want all HTTP requests to
-## be redirected to HTTPS, uncomment the line below:
+# # if SSL/HTTPS is properly configured and you want all HTTP requests to
+# # be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
 
 # E0601: *Using variable %%r before assignment*
 # pylint: disable=E0601
 
-## by default give a view/generic.extension to all actions from localhost
-## none otherwise. a pattern can be 'controller/function.extension'
+# # by default give a view/generic.extension to all actions from localhost
+# # none otherwise. a pattern can be 'controller/function.extension'
 response.generic_patterns = ['*'] if request.is_local else []
-## (optional) optimize handling of static files
+# # (optional) optimize handling of static files
 # response.optimize_css = 'concat,minify,inline'
 # response.optimize_js = 'concat,minify,inline'
-## (optional) static assets folder versioning
+# # (optional) static assets folder versioning
 # response.static_version = '0.0.0'
 
 import datetime
@@ -27,6 +27,8 @@ import re
 from gluon import *
 from gluon.storage import Storage
 from gluon.tools import PluginManager
+from applications.zcomx.modules.book_page.utils import \
+    before_delete as book_page_before_delete
 from applications.zcomx.modules.books import publication_year_range
 from applications.zcomx.modules.creators import add_creator
 from applications.zcomx.modules.files import FileName
@@ -54,10 +56,10 @@ mail = model_db.mail
 local_settings = model_db.local_settings
 plugins = PluginManager()
 
-## create all tables needed by auth if not custom tables
+# create all tables needed by auth if not custom tables
 auth.define_tables(username=False, signature=False)
 
-## configure auth policy
+# configure auth policy
 auth.settings.mailer = mail                    # for user email verification
 auth.settings.registration_requires_verification = True
 auth.settings.registration_requires_approval = False
@@ -69,7 +71,7 @@ auth.settings.logout_next = URL('index')
 auth.settings.renew_session_onlogin = False
 auth.settings.renew_session_onlogout = False
 auth.settings.formstyle = formstyle_bootstrap3_custom
-auth.default_messages['profile_save_button']='Submit'
+auth.default_messages['profile_save_button'] = 'Submit'
 auth.messages.verify_email = 'Click on the link http://' + request.env.http_host + URL('default', 'user', args=['verify_email']) + '/%(key)s to verify your email'
 auth.messages.reset_password = 'Click on the link http://' + request.env.http_host + URL('default', 'user', args=['reset_password']) + '?key=%(key)s to reset your password'
 auth.messages.logged_out = ''               # Suppress flash message
@@ -84,10 +86,10 @@ current.app.service = service
 current.app.mail = mail
 current.app.local_settings = local_settings
 
-## if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
-## register with janrain.com, write your domain:api_key in private/janrain.key
-#from gluon.contrib.login_methods.rpx_account import use_janrain
-#use_janrain(auth, filename='private/janrain.key')
+# # if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
+# # register with janrain.com, write your domain:api_key in private/janrain.key
+# from gluon.contrib.login_methods.rpx_account import use_janrain
+# use_janrain(auth, filename='private/janrain.key')
 
 crud.settings.auth = None                      # =auth to enforce authorization on crud
 
@@ -124,12 +126,18 @@ db.define_table('activity_log',
     Field(
         'book_page_ids',
         'list:reference book_page',
+        default=[],
     ),
     Field('action'),
     Field('time_stamp', 'datetime'),
     Field(
         'ongoing_post_id',
         'integer',
+    ),
+    Field(
+        'deleted_book_page_ids',
+        'list:integer',
+        default=[],
     ),
 )
 
@@ -150,13 +158,13 @@ db.define_table('book',
         'number',
         'integer',
         default=1,
-        requires = IS_INT_IN_RANGE(),
+        requires=IS_INT_IN_RANGE(),
     ),
     Field(
         'of_number',
         'integer',
         default=1,
-        requires = IS_INT_IN_RANGE(),
+        requires=IS_INT_IN_RANGE(),
     ),
     Field(
         'creator_id',
@@ -170,7 +178,7 @@ db.define_table('book',
         default=datetime.date.today().year,
         label='Published',
         represent=lambda v, row: str(v) if v else 'N/A',
-        requires = IS_INT_IN_RANGE(*publication_year_range(),
+        requires=IS_INT_IN_RANGE(*publication_year_range(),
             error_message='Enter a valid year')
     ),
     Field(
@@ -356,7 +364,7 @@ db.define_table('creator',
             re.sub(r'^http[s]*://', '', url),
             _href=url,
             _target="_blank",
-            ) if url else '',
+        ) if url else '',
         requires=IS_EMPTY_OR(IS_URL(error_message='Enter a valid URL')),
     ),
     Field('twitter',
@@ -396,11 +404,11 @@ db.define_table('creator',
         represent=lambda url, row: A(url,
             _href=url,
             _target="_blank",
-            ) if url else '',
+        ) if url else '',
         requires=IS_EMPTY_OR(IS_URL_FOR_DOMAIN(
             'facebook.com',
             error_message='Enter a valid facebook url, eg.\nhttp://www.facebook.com/username'
-            )
+        )
         ),
     ),
     Field('bio', 'text',
@@ -425,7 +433,7 @@ db.define_table('creator',
             re.sub(r'^http[s]*://', '', url),
             _href=url,
             _target="_blank",
-            ) if url else '',
+        ) if url else '',
         requires=IS_EMPTY_OR(IS_URL(error_message='Enter a valid URL')),
     ),
     Field(
@@ -816,6 +824,7 @@ db.book_page.book_id.requires = IS_IN_DB(
     '%(name)s',
     zero=None
 )
+db.book_page._before_delete.append(book_page_before_delete)
 
 db.book_view.auth_user_id.requires = IS_IN_DB(
     db,
@@ -885,4 +894,3 @@ db.rating.book_id.requires = IS_IN_DB(
     '%(name)s',
     zero=None
 )
-

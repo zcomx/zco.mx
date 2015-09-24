@@ -60,6 +60,24 @@ class ActivityLog(Record, ActivityLogMixin):
     """Class representing a activity_log record"""
     db_table = 'activity_log'
 
+    def set_page_deleted(self, book_page):
+        """Set a page in the activity log as deleted.
+
+        Args:
+            book_page: BookPage instance representing page to delete
+
+        Return:
+            ActivityLog instance updated.
+        """
+        data = {}
+        if book_page.id in self.book_page_ids:
+            data['book_page_ids'] = \
+                [x for x in self.book_page_ids if x != book_page.id]
+
+        data['deleted_book_page_ids'] = \
+            sorted(self.deleted_book_page_ids + [book_page.id])
+        return ActivityLog.from_updated(self, data)
+
 
 class TentativeActivityLog(Record, ActivityLogMixin):
     """Class representing a tentative_activity_log record"""
@@ -156,6 +174,7 @@ class CompletedTentativeLogSet(BaseTentativeLogSet):
             book_page_ids=book_page_ids,
             action='completed',
             time_stamp=youngest_log.time_stamp,
+            deleted_book_page_ids=[],
         )
 
         return activity_log_class(**record)
@@ -175,8 +194,8 @@ class PageAddedTentativeLogSet(BaseTentativeLogSet):
     """
 
     def as_book_pages(self):
-        """Return a list of Row instances representing book_page records
-            associated wiht the set tentative_activity_log records.
+        """Return a list of book pages associated with the set
+        tentative_activity_log records.
 
         Returns:
             list of BookPage instances
@@ -207,6 +226,7 @@ class PageAddedTentativeLogSet(BaseTentativeLogSet):
             book_page_ids=book_page_ids,
             action='page added',
             time_stamp=youngest_log.time_stamp,
+            deleted_book_page_ids=[],
         )
 
         return activity_log_class(**record)
