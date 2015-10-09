@@ -93,7 +93,10 @@ def index():
     try:
         grid = Grid.class_factory(request.vars.o or 'completed')
     except KeyError:
-        LOG.error('Invalid front view requested: o=%s', request.vars.o)
+        # 'releases' is deprecated, logging errors for it creates too much
+        # noise.
+        log_func = LOG.info if request.vars.o == 'releases' else LOG.error
+        log_func('Invalid front view requested: o=%s', request.vars.o)
         raise HTTP(404, "Page not found")
 
     return dict(
