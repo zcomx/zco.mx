@@ -54,6 +54,7 @@ class TestRouter(LocalTestCase):
     _creator_2 = None
     _creator_2_name = None
     _creator_name = None
+    _creator_no_books = None
     _first_creator_links = {}
     _keys_for_view = {}
     _page_2_name = None
@@ -123,6 +124,12 @@ class TestRouter(LocalTestCase):
             auth_user_id=self._auth_user.id,
             email='test__creator_2@test.com',
             name_for_url='JohnHancock',
+        ))
+
+        self._creator_no_books = self.add(Creator, dict(
+            auth_user_id=self._auth_user.id,
+            email='test__creator@test.com',
+            name_for_url='NoBooks',
         ))
 
         self._book = self.add(Book, dict(
@@ -575,6 +582,12 @@ class TestRouter(LocalTestCase):
 
         request_vars.creator = self._creator_2_name
         do_test(request_vars, expect_2)
+
+        # If creator has no books, random released book is used.
+        request_vars.page = '001'
+        request_vars.book = '_Fake_Book_'
+        request_vars.creator = self._creator_no_books.name_for_url
+        do_test_random(request_vars)
 
         # If invalid creator, random released book is used.
         if request_vars.page:

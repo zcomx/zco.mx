@@ -232,15 +232,15 @@ class Router(object):
             query_wants.append((db.book.id == book.id))
         if creator and creator.id:
             query_wants.append((db.creator.id == creator.id))
-        if not query_wants:
-            # random released book
-            random_book = db(db.book.release_date != None).select(
-                db.book.id,
-                orderby='<random>',
-                limitby=(0, 1),
-            ).first()
-            if random_book:
-                query_wants.append((db.book.id == random_book.id))
+
+        # random released book
+        random_book = db(db.book.release_date != None).select(
+            db.book.id,
+            orderby='<random>',
+            limitby=(0, 1),
+        ).first()
+        if random_book:
+            query_wants.append((db.book.id == random_book.id))
 
         url_book_page = None
         url_book = None
