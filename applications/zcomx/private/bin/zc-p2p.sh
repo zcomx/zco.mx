@@ -98,9 +98,9 @@ _announce() {
     msg1="${msg1%)*}) | http://$end"    ## output: Jordan Crane | Uptight 001 (2006) | http://103.zco.mx
     msg2="magnet:?xt=urn:tree:tiger:$tth&xl=$fs&dn=${fn// /+}"  ## magnet:?xt=urn:tree:tiger:IENTQM74OF2UH7DMMNHKLBU6HGW2ZO4DUGAQATY&xl=44519398&dn=Gutter+Magic+001+(2013)+(Digital)+(Darkness-Empire).cbr
 
-    tmux send-keys -t ncdc M-2 Enter     && sleep 0.2
-    tmux send-keys -t ncdc "$msg1" Enter && sleep 0.2
-    tmux send-keys -t ncdc "$msg2" Enter && sleep 0.2
+    tmux send-keys -t ncdc:1.1 M-2 Enter     && sleep 0.2
+    tmux send-keys -t ncdc:1.1 "$msg1" Enter && sleep 0.2
+    tmux send-keys -t ncdc:1.1 "$msg2" Enter && sleep 0.2
 
     #    announce twitter
     #    announce tumblr
