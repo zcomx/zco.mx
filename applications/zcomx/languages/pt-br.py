@@ -116,6 +116,7 @@
 'next 100 rows': 'próximas 100 linhas',
 'No completed books': 'No completed books',
 'No databases in this application': 'Sem bancos de dados nesta aplicação',
+'No ongoing series': 'No ongoing series',
 'No records found': 'No records found',
 'Online examples': 'Alguns exemplos',
 'or import from csv file': 'ou importar de um arquivo csv',

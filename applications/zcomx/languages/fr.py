@@ -128,6 +128,7 @@
 'next 100 rows': '100 prochaines lignes',
 'No completed books': 'No completed books',
 'No databases in this application': "Cette application n'a pas de bases de données",
+'No matches found': 'No matches found',
 'No ongoing series': 'No ongoing series',
 'No records found': 'No records found',
 'Object or table name': 'Objet ou nom de table',
