@@ -404,8 +404,15 @@
         },
 
         post_on_web: function(dialog) {
+            var that = this;
+
             $('#fileupload').addClass('fileupload-processing');
             $('.btn_upload_close').addClass('disabled');
+
+            var message_panel = $(this.options.message_panel);
+            if (message_panel) {
+                message_panel.hide();
+            }
 
             var activeUploads = $('#fileupload').fileupload('active');
             if (activeUploads > 0) {
@@ -433,10 +440,23 @@
                     book_page_ids: this.get_page_ids(dialog),
                     original_page_count: this.$page_count,
                 },
+                success: function (data, textStatus, jqXHR) {
+                    console.log('data: %o', data);
+                    if (data.status === 'error') {
+                        var msg = 'ERROR: ' + data.msg || 'Server request failed';
+                        that.display_message('', msg, 'panel-danger');
+                    }
+                    else {
+                        that.$dialog.close();
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var msg = 'ERROR: Unable to ' + action + ' record. Server request failed.';
+                    that.display_message('', msg, 'panel-danger');
+                }
             }).always(function () {
                 $('.btn_upload_close').removeClass('disabled');
                 $('#fileupload').removeClass('fileupload-processing');
-                dialog.close();
             })
         }
     });

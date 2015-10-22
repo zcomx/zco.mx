@@ -536,9 +536,10 @@ def book_post_upload_session():
     request.vars.original_page_count, integer, number of pages before upload
         session.
     """
-    def do_error(msg):
+    def do_error(msg=None):
         """Error handler."""
-        return dumps({'success': False, 'error': msg})
+        return dumps(
+            {'status': 'error', 'msg': msg or 'Server request failed'})
 
     # Verify user is legit
     try:
@@ -579,9 +580,11 @@ def book_post_upload_session():
         try:
             page_ids.append(int(page_id))
         except (TypeError, ValueError):
-            # reordering pages isn't critical, if page is not valid, just
-            # move on
-            continue
+            return do_error((
+                'An error occurred. '
+                'The pages of the book could not be updated. '
+                'Retry if necessary. Refresh the page to start over.'
+            ))
 
     delete_pages_not_in_ids(book.id, page_ids)
     reset_book_page_nos(page_ids)
@@ -600,7 +603,7 @@ def book_post_upload_session():
     # Step 5:  Trigger optimization of book images
     AllSizesImages.from_names(images(book)).optimize()
 
-    return dumps({'success': True})
+    return dumps({'status': 'ok'})
 
 
 @auth.requires_login()
