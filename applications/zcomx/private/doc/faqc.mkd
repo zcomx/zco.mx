@@ -90,8 +90,8 @@ longer anthology by a cartoonist than it is to open and close many small cbz
 files.
 
 For anthologies, be sure the word "end" is visible on the last page of each
-story and/or add a full page illustration between the stories to help separate
-them.
+story and/or add a blank page (or a watermark of a full page illustration),
+between the stories to help separate them.
 
 
 [[colab]]
