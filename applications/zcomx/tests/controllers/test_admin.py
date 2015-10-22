@@ -7,7 +7,6 @@ Test suite for zcomx/controllers/admin.py
 
 """
 import unittest
-import urllib2
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -18,21 +17,30 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 
 class TestFunctions(LocalTestCase):
 
-    _creator = None
-
     titles = {
-        'default': '<div id="front_page">',
+        'admin': '<div id="admin_page">',
+        'login': '<div id="login_page">',
     }
     url = '/zcomx/admin'
 
-
     def test__index(self):
-        current.request.client = '123.123.123.123'
+
+        # Not logged in, redirects to login page
+        web.logout()
         self.assertTrue(web.test(
             '{url}/index'.format(
                 url=self.url,
             ),
-            self.titles['default']
+            self.titles['login']
+        ))
+
+        # Logged in, displays admin
+        web.login()
+        self.assertTrue(web.test(
+            '{url}/index'.format(
+                url=self.url,
+            ),
+            self.titles['admin']
         ))
 
 

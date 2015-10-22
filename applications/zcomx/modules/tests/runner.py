@@ -533,6 +533,11 @@ class LocalWebClient(WebClient):
         )
         self.post(url, data=data)
 
+    def logout(self):
+        """Logout."""
+        url = '/{app}/default/user/logout'.format(app=self.application)
+        self.get(url)
+
     def post(
             self,
             url,

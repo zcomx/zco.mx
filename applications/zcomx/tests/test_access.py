@@ -25,6 +25,8 @@ class TestFunctions(LocalTestCase):
 
     _auth_user = None
     _request_client = None
+    _admin_ip = None
+    _non_admin_ip = '123.123.123.123'
 
     @classmethod
     def setUpClass(cls):
@@ -33,6 +35,7 @@ class TestFunctions(LocalTestCase):
         cls._auth_user = auth.user
         request = env['request']
         cls._request_client = request.client
+        cls._admin_ip = env['local_settings'].admin_ips
 
     @classmethod
     def tearDownClass(cls):
@@ -47,9 +50,6 @@ class TestFunctions(LocalTestCase):
         request = env['request']
         auth = env['auth']
 
-        admin_ip = '108.162.141.78'
-        fake_ip = '123.123.123.123'
-
         otherwise = lambda: 'Not logged in'
 
         @requires_admin_ip(requires_login=False, otherwise=otherwise)
@@ -61,19 +61,19 @@ class TestFunctions(LocalTestCase):
             return 'Success'
 
         # Valid ip, not logged in
-        request.client = admin_ip
+        request.client = self._admin_ip
         auth.user = None
         self.assertEqual(func(), 'Success')
         self.assertEqual(login_func(), 'Not logged in')
 
         # Valid ip, logged in
-        request.client = admin_ip
+        request.client = self._admin_ip
         auth.user = 'myuser'          # Anything truthy will work
         self.assertEqual(func(), 'Success')
         self.assertEqual(login_func(), 'Success')
 
         # Invalid ip, (login status should be irrelevant.
-        request.client = fake_ip
+        request.client = self._non_admin_ip
         try:
             func()
         except HTTP as err:

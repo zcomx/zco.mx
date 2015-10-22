@@ -21,11 +21,11 @@ def requires_admin_ip(requires_login=True, otherwise=None):
     def _is_admin_ip():
         """auth.requires() condition"""
         # To be safe, return False on any errors/exceptions
-        admin_ips = current.app.local_settings.admin_ips
+        admin_ips = current.app.local_settings.admin_ips.split(',')
         if not admin_ips:
             return False
 
-        if current.request.client != admin_ips:
+        if current.request.client not in admin_ips:
             return False
         return True
     return current.app.auth.requires(
