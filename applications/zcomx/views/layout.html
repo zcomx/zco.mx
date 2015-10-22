@@ -190,8 +190,11 @@
       <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
       <![endif]-->
   {{if DEBUG:}}
+    <script src="{{=URL(c='static', f='underscore/underscore.js')}}"> </script>
+
     <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.js')}}"> </script>
   {{else:}}
+    <script src="{{=URL(c='static', f='underscore/underscore-min.js')}}"> </script>
     <script src="{{=URL(c='static', f='bootstrap3-dialog/js/bootstrap-dialog.min.js')}}"> </script>
   {{pass}}
   {{block post_bootstrap_js}}
