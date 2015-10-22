@@ -50,25 +50,6 @@ CONTROLLERS = '|'.join([
     'z',
 ])
 
-# These are deprecated. Use zco.mx/z/...
-DEFAULT_FUNCTIONS = '|'.join([
-    'about',
-    'contribute',
-    'copyright_claim',
-    'expenses',
-    'faq',
-    'faqc',
-    'files',
-    'logos',
-    'modal_error',
-    'monies',
-    'overview',
-    'rss',
-    'terms',
-    'todo',
-])
-
-
 creator_re = r'(?P<creator>[^/]+)'      # Allow everything but slash
 book_re = r'(?P<book>[^/]+)'            # Allow everything but slash
 page_re = r'(?P<page>[\w.]+)'        # Allow period for extension
@@ -84,9 +65,6 @@ routes_in = (
     ('/zcomx/(?P<controller>{ctrs})'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/index'),
     ('/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/$anything'),
     ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/$anything'),
-
-    ('/(?P<function>{funcs})'.format(funcs=DEFAULT_FUNCTIONS), '/zcomx/default/\g<function>'),
-    ('/zcomx/(?P<function>{funcs})'.format(funcs=DEFAULT_FUNCTIONS), '/zcomx/default/\g<function>'),
 
     #  reroute favicon and robots
     ('/favicon.ico', '/zcomx/static/images/favicon.ico'),
@@ -153,7 +131,6 @@ routes_out = (
     ('/zcomx/$anything/(?P<rss>.*\.rss)', '/$anything/\g<rss>'),
     ('/zcomx/(?P<tor>.*\.torrent)/index', '/\g<tor>'),
     ('/zcomx/$anything/(?P<tor>.*\.torrent)', '/$anything/\g<tor>'),
-    ('/zcomx/default/(?P<function>{funcs})'.format(funcs=DEFAULT_FUNCTIONS), '/\g<function>'),
     ('/zcomx/(?P<controller>{ctrs})/index'.format(ctrs=CONTROLLERS), '/\g<controller>'),
     ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/\g<controller>/$anything'),
 )

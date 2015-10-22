@@ -27,7 +27,7 @@ class TestFunctions(LocalTestCase):
 
 
     def test__index(self):
-        # Test: no creator
+        current.request.client = '123.123.123.123'
         self.assertTrue(web.test(
             '{url}/index'.format(
                 url=self.url,
