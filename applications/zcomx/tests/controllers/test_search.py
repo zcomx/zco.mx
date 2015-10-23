@@ -7,11 +7,10 @@ Test suite for zcomx/controllers/search.py
 
 """
 import unittest
-import urllib2
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
 # C0111: Missing docstring
@@ -19,7 +18,7 @@ from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 # pylint: disable=C0111,R0904
 
 
-class WithObjectsTestCase(LocalTestCase):
+class WithObjectsTestCase(WebTestCase):
     """Class representing a WithObjectsTestCase"""
 
     _book = None
@@ -43,15 +42,6 @@ class WithObjectsTestCase(LocalTestCase):
 
 class TestFunctions(WithObjectsTestCase):
 
-    titles = {
-        'book_page': '<div id="book_page">',
-        'box': '<div id="search">',
-        'creator_page': '<div id="creator_page">',
-        'index': '<div id="front_page">',
-        'list_grid': '<div class="web2py_grid grid_view_list ',
-        'list_grid_tile': '<div class="web2py_grid grid_view_tile ',
-        'tile_grid': '<div class="row tile_view">',
-    }
     url = '/zcomx/search'
 
     def test__autocomplete(self):
@@ -131,68 +121,49 @@ class TestFunctions(WithObjectsTestCase):
 
     def test__autocomplete_selected(self):
         def is_page_not_found(url):
-            with self.assertRaises(urllib2.HTTPError) as cm:
-                web.test(url, None)
-            self.assertEqual(cm.exception.code, 404)
-            self.assertEqual(cm.exception.msg, 'NOT FOUND')
+            self.assertRaisesHTTPError(
+                404, self.assertWebTest, url, match_page_key='')
 
         # No args, redirects to page not found
-        is_page_not_found(
-            '{url}/autocomplete_selected'.format(url=self.url)
-        )
+        is_page_not_found('/search/autocomplete_selected')
 
         # Invalid table, redirects to page not found
-        is_page_not_found(
-            '{url}/autocomplete_selected/_fake_'.format(url=self.url)
-        )
+        is_page_not_found('/search/autocomplete_selected/_fake_')
 
         # Invalid record id, redirects to page not found
-        is_page_not_found(
-            '{url}/autocomplete_selected/book/0'.format(url=self.url)
-        )
+        is_page_not_found('/search/autocomplete_selected/book/0')
 
         # Valid book
-        self.assertTrue(web.test(
-            '{url}/autocomplete_selected/book/{id}'.format(
-                url=self.url,
-                id=self._book.id
-            ),
-            self.titles['book_page']
-        ))
+        self.assertWebTest(
+            '/search/autocomplete_selected/book/{id}'.format(id=self._book.id),
+            match_page_key='/search/book_page',
+        )
 
         # Valid creator
-        self.assertTrue(web.test(
-            '{url}/autocomplete_selected/creator/{id}'.format(
-                url=self.url,
+        self.assertWebTest(
+            '/search/autocomplete_selected/creator/{id}'.format(
                 id=self._book.creator_id
             ),
-            self.titles['creator_page']
-        ))
+            match_page_key='/search/creator_page',
+        )
 
     def test__box(self):
-        self.assertTrue(web.test(
-            '{url}/box.load'.format(url=self.url),
-            self.titles['box']
-        ))
+        self.assertWebTest('/search/box.load')
 
     def test__index(self):
-        self.assertTrue(web.test(
-            '{url}/index'.format(url=self.url),
-            self.titles['index']
-        ))
+        self.assertWebTest('/search/index', match_page_key='/default/index')
 
         # Test list view
-        self.assertTrue(web.test(
-            '{url}/index?view={v}'.format(url=self.url, v='list'),
-            [self.titles['list_grid'], self._book.name_for_url]
-        ))
+        self.assertWebTest(
+            '/search/index?view=list',
+            match_page_key='/search/list_grid',
+        )
 
         # Test tile view
-        self.assertTrue(web.test(
-            '{url}/index?view={v}'.format(
-                url=self.url, v='tile'),
-            [self.titles['tile_grid'], self._book.name_for_url]
-        ))
+        self.assertWebTest(
+            '/search/index?view=tile',
+            match_page_key='/search/tile_grid',
+        )
 
         # Test cartoonists table
         # Get a creator with a book.
@@ -211,18 +182,18 @@ class TestFunctions(WithObjectsTestCase):
 
         creator = Creator.from_id(creator_rows[0].id)
 
-        self.assertTrue(web.test(
-            '{url}/index?view={v}&o={o}'.format(
-                url=self.url, v='tile', o='creators'),
-            [self.titles['tile_grid'], creator.name_for_url]
-        ))
+        self.assertWebTest(
+            '/search/index?view=tile&o=creators',
+            match_page_key='/search/tile_grid',
+            match_strings=[creator.name_for_url],
+        )
 
 
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

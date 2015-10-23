@@ -8,7 +8,6 @@ Test suite for zcomx/controllers/cbz.py
 """
 import os
 import unittest
-import urllib2
 from applications.zcomx.modules.books import \
     Book, \
     book_name, \
@@ -16,29 +15,18 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.records import Records
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
+class TestFunctions(WebTestCase):
 
     _creator = None
     _book = None
     _server_ip = None
-
-    titles = {
-        'cbz': '30:http://bt.zco.mx:6969/announce',
-        'download': '<h2>Not authorized</h2>',
-        'page_not_found': '<h3>Page not found</h3>',
-    }
-    url = '/zcomx/cbz'
-
-    def setUp(self):
-        # Prevent 'Changed session ID' warnings.
-        web.sessions = {}
 
     def tearDown(self):
         for download_click in Records.from_key(
@@ -65,46 +53,39 @@ class TestFunctions(LocalTestCase):
         expect = []
         expect.append(self._book.name)
         expect.append(cbz_comment(self._book))
-        self.assertTrue(web.test(
-            '{url}/download/{bid}?no_queue=1'.format(
-                url=self.url,
-                bid=self._book.id
-            ),
-            expect
-        ))
+        url_path = '/cbz/download/{bid}?no_queue=1'.format(bid=self._book.id)
+        self.assertWebTest(url_path, match_page_key='', match_strings=expect)
+
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
 
-        web.sessions = {}    # Prevent 'Changed session ID' warnings.
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
+            '/cbz/download?no_queue=1',
+            match_page_key=''
+        )
 
-        def test_invalid(url):
-            with self.assertRaises(urllib2.HTTPError) as cm:
-                web.test(url, None)
-            self.assertEqual(cm.exception.code, 404)
-            self.assertEqual(cm.exception.msg, 'NOT FOUND')
-
-        # Test: Invalid, no book id
-        test_invalid('{url}/download?no_queue=1'.format(url=self.url))
-        # Test: Invalid, invalid book id
-        test_invalid('{url}/download/-1?no_queue=1'.format(url=self.url))
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
+            '/cbz/download/-1?no_queue=1',
+            match_page_key=''
+        )
 
     def test__route(self):
-        web.sessions = {}    # Prevent 'Changed session ID' warnings.
-
         # Test creator as id
         expect = []
         expect.append(self._book.name)
         expect.append(cbz_comment(self._book))
 
-        self.assertTrue(web.test(
-            '{url}/route?no_queue=1&creator={cid:03d}&cbz={cbz}'.format(
-                url=self.url,
-                cid=self._creator.id,
-                cbz='{n}.cbz'.format(n=book_name(self._book, use='url'))
-            ),
-            expect
-        ))
+        url_path = '/cbz/route?no_queue=1&creator={cid:03d}&cbz={cbz}'.format(
+            cid=self._creator.id,
+            cbz='{n}.cbz'.format(n=book_name(self._book, use='url'))
+        )
+        self.assertWebTest(url_path, match_page_key='', match_strings=expect)
+
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
@@ -113,61 +94,46 @@ class TestFunctions(LocalTestCase):
         expect = []
         expect.append(self._book.name)
         expect.append(cbz_comment(self._book))
-        self.assertTrue(web.test(
-            '{url}/route?no_queue=1&creator={name}&cbz={cbz}'.format(
-                url=self.url,
-                name=self._creator.name_for_url,
-                cbz='{n}.cbz'.format(n=book_name(self._book, use='url'))
-            ),
-            expect
-        ))
+        url_path = '/cbz/route?no_queue=1&creator={name}&cbz={cbz}'.format(
+            name=self._creator.name_for_url,
+            cbz='{n}.cbz'.format(n=book_name(self._book, use='url'))
+        )
+        self.assertWebTest(url_path, match_page_key='', match_strings=expect)
+
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 2)
         self._objects.append(download_clicks[1])
 
-        web.sessions = {}    # Prevent 'Changed session ID' warnings.
-
         # page not found: no args
-        self.assertTrue(web.test(
-            '{url}/route?no_queue=1'.format(url=self.url),
-            self.titles['page_not_found']
-        ))
+        url_path = '/cbz/route?no_queue=1'
+        self.assertWebTest(url_path, match_page_key='/errors/page_not_found')
 
         # page not found: invalid creator integer
-        self.assertTrue(web.test(
-            '{url}/route/{cid:03d}/{cbz}?no_queue=1'.format(
-                url=self.url,
-                cid=-1,
-                cbz=os.path.basename(self._book.cbz),
-            ),
-            self.titles['page_not_found']
-        ))
+        url_path = '/cbz/route/{cid:03d}/{cbz}?no_queue=1'.format(
+            cid=-1,
+            cbz=os.path.basename(self._book.cbz),
+        )
+        self.assertWebTest(url_path, match_page_key='/errors/page_not_found')
 
         # page not found: invalid creator name
-        self.assertTrue(web.test(
-            '{url}/route/{name}/{cbz}?no_queue=1'.format(
-                url=self.url,
-                name='_invalid_name_',
-                cbz=os.path.basename(self._book.cbz),
-            ),
-            self.titles['page_not_found']
-        ))
+        url_path = '/cbz/route/{name}/{cbz}?no_queue=1'.format(
+            name='_invalid_name_',
+            cbz=os.path.basename(self._book.cbz),
+        )
+        self.assertWebTest(url_path, match_page_key='/errors/page_not_found')
 
         # page not found: invalid cbz
-        self.assertTrue(web.test(
-            '{url}/route/{cbz}?no_queue=1'.format(
-                url=self.url,
-                cbz='_invalid_.cbz',
-            ),
-            self.titles['page_not_found']
-        ))
+        url_path = '/cbz/route/{cbz}?no_queue=1'.format(
+            cbz='_invalid_.cbz',
+        )
+        self.assertWebTest(url_path, match_page_key='/errors/page_not_found')
 
 
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

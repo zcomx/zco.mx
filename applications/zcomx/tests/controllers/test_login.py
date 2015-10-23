@@ -24,7 +24,7 @@ from applications.zcomx.modules.links import \
     Link, \
     LinkType, \
     LinksKey
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DRAFT
@@ -35,8 +35,7 @@ from applications.zcomx.modules.zco import \
 # E0602: *Undefined variable %%r*
 # pylint: disable=C0111,R0904,E0602
 
-
-class TestFunctions(LocalTestCase):
+class TestFunctions(WebTestCase):
 
     _book = None
     _book_page = None
@@ -46,48 +45,6 @@ class TestFunctions(LocalTestCase):
     _test_data_dir = None
     _max_optimize_img_log_id = None
 
-    titles = {
-        'account': ['account_profile_container', 'change_password_container'],
-        'agree_to_terms': '<div id="agree_to_terms_page">',
-        'book_delete': '<div id="book_delete_section">',
-        'book_delete_invalid': 'Invalid data provided',
-        'book_edit_no_id': '<div id="book_edit_section">',
-        'book_edit': [
-            '<div id="book_edit_section">',
-            "'label': 'Reader Background'"
-        ],
-        'book_list': '<h2>Book List</h2>',
-        'book_list_completed': '<div id="completed_container">',
-        'book_list_disabled': '<div id="disabled_container">',
-        'book_list_ongoing': '<div id="ongoing_container">',
-        'book_pages': '<div id="profile_book_pages_page">',
-        'book_pages_invalid': 'Invalid data provided',
-        'book_pages_handler_fail': [
-            '{"files":',
-            'Upload service unavailable',
-        ],
-        'book_pages_handler': [
-            '{"files":',
-            '"thumbnailUrl"',
-        ],
-        'book_post_upload_session_fail': [
-            '"success": false',
-            '"error": "Reorder service unavailable"',
-        ],
-        'book_post_upload_session': [
-            '"success": true',
-        ],
-        'book_release': '<div id="book_complete_section">',
-        'book_release_invalid': 'Invalid data provided',
-        'books': '<div id="ongoing_book_list" class="book_list">',
-        'default': '<div id="front_page">',
-        'indicia': [
-            '<div id="profile_page">',
-            '<div id="indicia_section">',
-        ],
-        'order_no_handler': '<div id="creator_page">',
-        'profile': '<div id="creator_section">',
-    }
     url = '/zcomx/login'
 
     @classmethod
@@ -136,21 +93,10 @@ class TestFunctions(LocalTestCase):
         Creator.from_updated(cls._creator, cls._creator_as_dict)
 
     def test__account(self):
-
-        self.assertTrue(
-            web.test(
-                '{url}/account'.format(url=self.url),
-                self.titles['account']
-            )
-        )
+        self.assertWebTest('/login/account')
 
     def test__agree_to_terms(self):
-        self.assertTrue(
-            web.test(
-                '{url}/agree_to_terms'.format(url=self.url),
-                self.titles['agree_to_terms']
-            )
-        )
+        self.assertWebTest('/login/agree_to_terms')
 
     def test__book_crud(self):
 
@@ -301,95 +247,51 @@ class TestFunctions(LocalTestCase):
 
     def test__book_delete(self):
         # No book id, redirect to books
-        self.assertTrue(
-            web.test(
-                '{url}/book_delete'.format(url=self.url),
-                self.titles['book_delete_invalid']
-            )
+        self.assertWebTest(
+            '/login/book_delete',
+            match_page_key='',
+            match_strings=['Invalid data provided']
         )
-
-        self.assertTrue(
-            web.test(
-                '{url}/book_delete/{bid}'.format(
-                    bid=self._book.id, url=self.url),
-                self.titles['book_delete']
-            )
+        self.assertWebTest(
+            '/login/book_delete/{bid}'.format(bid=self._book.id),
+            match_page_key='/login/book_delete'
         )
 
     def test__book_edit(self):
-        # No book id, redirect to books
-        self.assertTrue(
-            web.test(
-                '{url}/book_edit'.format(url=self.url),
-                self.titles['book_edit_no_id']
-            )
-        )
-
-        self.assertTrue(
-            web.test(
-                '{url}/book_edit/{bid}'.format(
-                    bid=self._book.id, url=self.url),
-                self.titles['book_edit']
-            )
+        self.assertWebTest('/login/book_edit')
+        self.assertWebTest(
+            '/login/book_edit/{bid}'.format(bid=self._book.id),
+            match_page_key='/login/book_edit',
+            match_strings=["'label': 'Reader Background'"],
         )
 
     def test__book_list(self):
-        # No type indicator
-        self.assertTrue(
-            web.test(
-                '{url}/book_list'.format(url=self.url),
-                self.titles['book_list']
-            )
-        )
-
-        # Completed
-        self.assertTrue(
-            web.test(
-                '{url}/book_list.load/completed'.format(url=self.url),
-                self.titles['book_list_completed']
-            )
-        )
-
-        # Ongoing
-        self.assertTrue(
-            web.test(
-                '{url}/book_list.load/ongoing'.format(url=self.url),
-                self.titles['book_list_ongoing']
-            )
-        )
-
-        # Disabled
-        self.assertTrue(
-            web.test(
-                '{url}/book_list.load/disabled'.format(url=self.url),
-                self.titles['book_list_disabled']
-            )
-        )
+        self.assertWebTest('/login/book_list')
+        self.assertWebTest('/login/book_list.load/completed')
+        self.assertWebTest('/login/book_list.load/ongoing')
+        self.assertWebTest('/login/book_list.load/disabled')
 
     def test__book_pages(self):
-        # No book_id, redirects to books page
-        self.assertTrue(
-            web.test(
-                '{url}/book_pages'.format(url=self.url),
-                self.titles['book_pages_invalid']
-            )
+        self.assertWebTest(
+            '/login/book_pages',
+            match_page_key='',
+            match_strings=['Invalid data provided'],
         )
 
-        self.assertTrue(
-            web.test(
-                '{url}/book_pages/{bid}'.format(
-                    bid=self._book.id, url=self.url),
-                self.titles['book_pages']
-            )
+        self.assertWebTest(
+            '/login/book_pages/{bid}'.format(bid=self._book.id),
+            match_page_key='/login/book_pages',
         )
 
     def test__book_pages_handler(self):
         # No book_id, return fail message
-        self.assertTrue(
-            web.test(
-                '{url}/book_pages_handler'.format(url=self.url),
-                self.titles['book_pages_handler_fail']
-            )
+        self.assertWebTest(
+            '/login/book_pages_handler',
+            match_page_key='',
+            match_strings=[
+                '{"files":',
+                'Upload service unavailable',
+            ],
         )
 
         def get_book_page_ids(book):
@@ -454,20 +356,23 @@ class TestFunctions(LocalTestCase):
 
     def test__book_post_upload_session(self):
         # No book_id, return fail message
-        self.assertTrue(
-            web.test(
-                '{url}/book_post_upload_session'.format(url=self.url),
-                self.titles['book_post_upload_session_fail']
-            )
+        self.assertWebTest(
+            '/login/book_post_upload_session',
+            match_page_key='',
+            match_strings=[
+                '"status": "error"',
+                '"msg": "Reorder service unavailable"',
+            ],
         )
 
         # Invalid book_id, return fail message
-        self.assertTrue(
-            web.test(
-                '{url}/book_post_upload_session/{bid}'.format(
-                    bid=999999, url=self.url),
-                self.titles['book_post_upload_session_fail']
-            )
+        self.assertWebTest(
+            '/login/book_post_upload_session/{bid}'.format(bid=999999),
+            match_page_key='',
+            match_strings=[
+                '"status": "error"',
+                '"msg": "Reorder service unavailable"',
+            ],
         )
 
         # Valid book_id, no book pages returns success
@@ -484,15 +389,11 @@ class TestFunctions(LocalTestCase):
 
         self._book.update_record(status=BOOK_STATUS_DRAFT)
         db.commit()
-        self.assertTrue(
-            web.test(
-                '{url}/book_post_upload_session/{bid}'.format(
-                    bid=self._book.id,
-                    url=self.url,
-                ),
-                self.titles['book_post_upload_session']
-            )
+        self.assertWebTest(
+            '/login/book_post_upload_session/{bid}'.format(bid=self._book.id),
+            match_page_key='/login/book_post_upload_session',
         )
+
         # book has no pages, so it should status should be set accordingly
         book = Book.from_id(self._book.id)
         self.assertEqual(book.status, BOOK_STATUS_DRAFT)
@@ -501,43 +402,33 @@ class TestFunctions(LocalTestCase):
         set_book_page_book_ids(temp_book.id, self._book.id)
         book_page_ids = [x.id for x in self._book.pages()]
         bp_ids = ['book_page_ids[]={pid}'.format(pid=x) for x in book_page_ids]
-        self.assertTrue(
-            web.test(
-                '{url}/book_post_upload_session/{bid}?{bpid}'.format(
-                    bid=self._book.id,
-                    bpid='&'.join(bp_ids),
-                    url=self.url),
-                self.titles['book_post_upload_session']
-            )
+        self.assertWebTest(
+            '/login/book_post_upload_session/{bid}?{bpid}'.format(
+                bid=self._book.id,
+                bpid='&'.join(bp_ids),
+            ),
+            match_page_key='/login/book_post_upload_session',
         )
+
         # book has pages, so it should status should be set accordingly
         book = Book.from_id(self._book.id)
         self.assertEqual(book.status, BOOK_STATUS_ACTIVE)
 
     def test__book_release(self):
         # No book_id, redirects to books page
-        self.assertTrue(
-            web.test(
-                '{url}/book_release'.format(url=self.url),
-                self.titles['book_release_invalid']
-            )
+        self.assertWebTest(
+            '/login/book_release',
+            match_page_key='',
+            match_strings=['Invalid data provided']
         )
 
-        self.assertTrue(
-            web.test(
-                '{url}/book_release/{bid}'.format(
-                    bid=self._book.id, url=self.url),
-                self.titles['book_release']
-            )
+        self.assertWebTest(
+            '/login/book_release/{bid}'.format(bid=self._book.id),
+            match_page_key='/login/book_release',
         )
 
     def test__books(self):
-        self.assertTrue(
-            web.test(
-                '{url}/books'.format(url=self.url),
-                self.titles['books']
-            )
-        )
+        self.assertWebTest('/login/books')
 
     def test__creator_crud(self):
         if self._opts.quick:
@@ -633,20 +524,10 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(response.status_code, 200)
 
     def test__index(self):
-        self.assertTrue(
-            web.test(
-                '{url}/index'.format(url=self.url),
-                self.titles['books']
-            )
-        )
+        self.assertWebTest('/login/index', match_page_key='/login/books')
 
     def test__indicia(self):
-        self.assertTrue(
-            web.test(
-                '{url}/indicia'.format(url=self.url),
-                self.titles['indicia']
-            )
-        )
+        self.assertWebTest('/login/indicia')
 
     def test__indicia_preview_urls(self):
         if self._opts.quick:
@@ -1058,19 +939,14 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(result['msg'], 'Invalid data provided')
 
     def test__profile(self):
-        self.assertTrue(
-            web.test(
-                '{url}/profile'.format(url=self.url),
-                self.titles['profile']
-            )
-        )
+        self.assertWebTest('/login/profile')
 
 
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

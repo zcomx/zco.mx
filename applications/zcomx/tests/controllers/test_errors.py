@@ -7,8 +7,7 @@ Test suite for zcomx/controllers/errors.py
 
 """
 import unittest
-import urllib2
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 
 # C0111: Missing docstring
@@ -16,51 +15,27 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
-
-    titles = {
-        'index': '<h3>Server error</h3>',
-        'page_not_found': '<h3>Page not found</h3>',
-    }
-    url = '/zcomx/errors'
-
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
-    def setUp(self):
-        # Prevent 'Changed session ID' warnings.
-        web.sessions = {}
+class TestFunctions(WebTestCase):
 
     def test__handler(self):
-        self.assertTrue(web.test(
-            '{url}/handler'.format(url=self.url),
-            self.titles['index']
-        ))
-
+        self.assertWebTest('/errors/handler', match_page_key='/errors/index')
 
     def test__index(self):
-        self.assertTrue(web.test(
-            '{url}/index'.format(url=self.url),
-            self.titles['index']
-        ))
+        self.assertWebTest('/errors/index')
 
     def test__page_not_found(self):
-        self.assertTrue(web.test(
-            '{url}/page_not_found'.format(url=self.url),
-            self.titles['page_not_found']
-        ))
+        self.assertWebTest('/errors/page_not_found')
 
     def test__test_exception(self):
-        self.assertTrue(web.test(
-            '{url}/test_exception'.format(url=self.url),
-            self.titles['index']
-        ))
+        self.assertWebTest(
+            '/errors/test_exception', match_page_key='/errors/index')
 
 
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

@@ -23,6 +23,7 @@ from gluon.contrib.webclient import \
     WebClient, \
     DEFAULT_HEADERS as webclient_default_headers
 from gluon.globals import current
+from gluon.http import HTTP
 import gluon.shell
 from gluon.storage import \
     List, \
@@ -122,16 +123,17 @@ class LocalTestCase(unittest.TestCase):
         cls._objects.append(record)
         return record
 
-    def assertIsTwo(self, number, msg=None):
-        """Test assert."""
-        if number != 2:
-            msg = self._formatMessage(msg, "%s is not two" % unittest.util.safe_repr(number))
-            raise self.failureException(msg)
-
-    def assertRaisesHTTPError(self, expected_code, callable_obj, *args, **kwargs):
-        """Fail unless an HTTPError is raised with the expected code.
+    def _assertRaisesHTTPError(
+            self,
+            exception,
+            expected_code,
+            callable_obj,
+            *args,
+            **kwargs):
+        """Helper function for asserts for HTTP errors.
 
         Args:
+            exception: Exception instance
             expected_code: integer, eg 404
             callable_obj: Function to be called. (see assertRaises)
             args: Extra args. (see assertRaises)
@@ -140,14 +142,117 @@ class LocalTestCase(unittest.TestCase):
         safe_repr = unittest.util.safe_repr
         try:
             callable_obj(*args, **kwargs)
-        except urllib2.HTTPError as err:
-            if err.code != expected_code:
+        except exception as err:
+            code = 'n/a'
+            if hasattr(err, 'code'):
+                code = err.code
+            elif hasattr(err, 'status'):
+                code = err.status
+            if code != expected_code:
                 msg = "HTTPError code %s is not %s" % (
-                    safe_repr(err.code), safe_repr(expected_code))
+                    safe_repr(code), safe_repr(expected_code))
                 raise self.failureException(msg)
         else:
             msg = "HTTPError not raised"
             raise self.failureException(msg)
+
+    def assertRaisesHTTP(self, expected_code, callable_obj, *args, **kwargs):
+        """Fail unless an HTTP (gluon.http.py) is raised with the expected
+        code.
+
+        Args:
+            See _assertRaisesHTTPError
+        """
+        self._assertRaisesHTTPError(
+            HTTP, expected_code, callable_obj, *args, **kwargs)
+
+    def assertRaisesHTTPError(
+            self,
+            expected_code,
+            callable_obj,
+            *args,
+            **kwargs):
+        """Fail unless an HTTPError is raised with the expected code.
+
+        Args:
+            See _assertRaisesHTTPError
+        """
+        self._assertRaisesHTTPError(
+            urllib2.HTTPError, expected_code, callable_obj, *args, **kwargs)
+
+    def assertWebTest(
+            self,
+            url_path,
+            app=None,
+            match_page_key=None,
+            match_strings=None,
+            match_type='all',
+            tolerate_whitespace=False,
+            post_data=None):
+        """Fail if the content of the page returned by url does not match page
+        key and optional strings.
+
+        Args:
+            url_path: string, the path of the url.
+            app: string, application name, if None, get_app() is called.
+            match_page_key: string, key to WebTestCase.page_identifiers
+                if None, url_path is used.
+                if '', no page_identifier is matched.
+            match_strings: list of strings
+            match_type: see LocalWebClient.match_type
+            tolerate_whitespace: see LocalWebClient.tolerate_whitespace
+            post_data: see LocalWebClient.post_data
+        """
+        if match_page_key is None:
+            match_page_key = url_path
+        if app is None:
+            app = self.get_app()
+        url = '/' + '/'.join([app, url_path])
+        matches = []
+        if match_page_key:
+            page_identifiers = self.page_identifiers[match_page_key]
+            if not isinstance(page_identifiers, list):
+                page_identifiers = [page_identifiers]
+            matches.extend(page_identifiers)
+        if match_strings:
+            matches.extend(match_strings)
+        current.app.web.sessions = {}   # Avoid: 'Changed session ID' warnings
+        if not current.app.web.test(
+                url,
+                matches,
+                match_type=match_type,
+                tolerate_whitespace=tolerate_whitespace,
+                post_data=post_data):
+            first = current.app.web.errors
+            second = []
+
+            err_msg = ''
+            try:
+                self.assertEqual(first, second)
+            except self.failureException as err:
+                err_msg = str(err)
+
+            # assertion_func = self._getAssertEqualityFunc(first, second)
+            # assertion_func(first, second, msg='Page identifiers not found')
+            msg = 'Unmatched page identifier list not empty. ' + err_msg
+            raise self.failureException(msg)
+
+    @classmethod
+    def get_app(cls):
+        """Get the web2py app.
+
+        Returns:
+            str: web2py application
+        """
+        filename = inspect.getouterframes(inspect.currentframe())[1][1]
+        subdirs = filename.split(os.sep)
+        # The app is the subdirectory just after 'applications'
+        dirs = [i for i, x in enumerate(subdirs) if x == 'applications']
+        try:
+            app = subdirs[dirs[0] + 1]
+        except IndexError:
+            app = 'zcomx'
+        return app
 
     def run(self, result=None):
         """Run test fixture."""
@@ -165,14 +270,7 @@ class LocalTestCase(unittest.TestCase):
         Returns:
             current: threading.local()
         """
-        filename = inspect.getouterframes(inspect.currentframe())[1][1]
-        subdirs = filename.split(os.sep)
-        # The app is the subdirectory just after 'applications'
-        dirs = [i for i, x in enumerate(subdirs) if x == 'applications']
-        try:
-            app = subdirs[dirs[0] + 1]
-        except IndexError:
-            app = 'zcomx'
+        app = cls.get_app()
         if app not in APP_ENV:
             APP_ENV[app] = gluon.shell.env(app, import_models=True)
         if 'current' not in APP_ENV[app]:
@@ -214,7 +312,8 @@ class LocalTestCase(unittest.TestCase):
             dump=LocalTestCase._opts.dump,
             login_required=login_required,
         )
-        env['web'] = web
+        current.app.web = web
+        env['web'] = APP_ENV[app]['current'].app.web
         return APP_ENV[app]['current']
 
     @classmethod
@@ -451,6 +550,7 @@ class LocalWebClient(WebClient):
         self.login_required = login_required
         self.db = db
         self.dump = dump
+        self.errors = []
         headers = dict(webclient_default_headers)
         headers['user-agent'] = ' '.join((
             'Mozilla/5.0',
@@ -689,10 +789,18 @@ class LocalWebClient(WebClient):
                 filename = 'dump'
             with open(os.path.join(dump_dir, filename + '.htm'), 'w') as f:
                 f.write(match_text + "\n")
-        if isinstance(expect, list):
-            match_func = any if match_type == 'any' else all
-            return match_func([x in match_text for x in expect])
-        return expect in match_text
+
+        expects = expect
+        if not isinstance(expect, list):
+            expects = [expect]
+
+        self.errors = []
+        for match_string in expects:
+            if match_string not in match_text:
+                self.errors.append(match_string)
+                if match_type != 'all':
+                    break
+        return not self.errors
 
 
 class TableTracker(object):

@@ -15,7 +15,7 @@ from applications.zcomx.modules.events import \
     Contribution, \
     PaypalLog
 from applications.zcomx.modules.records import Records
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 
 # C0111: Missing docstring
@@ -23,31 +23,10 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
+class TestFunctions(WebTestCase):
     _book = None
     _creator = None
     _invalid_book_id = None
-
-    titles = {
-        'faq': '<h1>FAQ</h1>',
-        'index': '<div id="front_page">',
-        'modal': [
-            '<div id="contribute_modal_page">',
-            'Your donations help cover the'
-        ],
-        'modal_book': [
-            '<div id="contribute_modal_page">',
-            'Contributions go directly to the cartoonist',
-        ],
-        'paypal': '<form id="paypal_form"',
-        'widget': [
-            '<div class="row contribute_widget"></div>'
-        ],
-        'widget_nada': [
-            '<div class="row contribute_widget"></div>'
-        ],
-    }
-    url = '/zcomx/contributions'
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
@@ -78,76 +57,52 @@ class TestFunctions(LocalTestCase):
             raise SyntaxError('Unable to get creator.')
 
     def test__index(self):
-        self.assertTrue(
-            web.test(
-                '{url}/index'.format(url=self.url),
-                self.titles['index']
-            )
-        )
+        self.assertWebTest(
+            '/contributions/index', match_page_key='/default/index')
 
     def test__modal(self):
-        self.assertTrue(
-            web.test(
-                '{url}/modal'.format(url=self.url),
-                self.titles['modal']
-            )
-        )
+        self.assertWebTest('/contributions/modal')
 
         # Test with book_id
-        expect = list(self.titles['modal_book'])
-        expect.append(self._book.name)
-        self.assertTrue(
-            web.test(
-                '{url}/modal?book_id={bid}'.format(
-                    url=self.url,
-                    bid=self._book.id
-                ),
-                expect
-            )
+        url_path = '/contributions/modal?book_id={bid}'.format(
+            bid=self._book.id
         )
+        self.assertWebTest(
+            url_path,
+            match_page_key='/contributions/modal/book',
+            match_strings=[self._book.name]
+        )
+
         # Test with creator_id
-        expect = list(self.titles['modal_book'])
-        expect.append(self._creator.name)
-        self.assertTrue(
-            web.test(
-                '{url}/modal?creator_id={cid}'.format(
-                    url=self.url,
-                    cid=self._creator.id
-                ),
-                expect
-            )
+        url_path = '/contributions/modal?creator_id={cid}'.format(
+            cid=self._creator.id
         )
-        # Book is not found.
-        self.assertFalse(
-            web.test(
-                '{url}/modal?creator_id={cid}'.format(
-                    url=self.url,
-                    cid=self._creator.id
-                ),
-                self._book.name
-            )
+        self.assertWebTest(
+            url_path,
+            match_page_key='/contributions/modal/book',
+            match_strings=[self._creator.name]
+        )
+
+        # Book is not found in results.
+        self.assertRaises(
+            self.failureException,
+            self.assertWebTest,
+            url_path,
+            match_page_key='/contributions/modal/book',
+            match_strings=[self._book.name]
         )
 
         # Test with book_id and creator_id
-        expect = list(self.titles['modal_book'])
-        expect.append(self._book.name)
-        self.assertTrue(
-            web.test(
-                '{url}/modal?book_id={bid}'.format(
-                    url=self.url,
-                    bid=self._book.id
-                ),
-                expect
-            )
+        fmt = '/contributions/modal?book_id={bid}&creator_id={cid}'
+        url_path = fmt.format(bid=self._book.id, cid=self._creator.id)
+        self.assertWebTest(
+            url_path,
+            match_page_key='/contributions/modal/book',
+            match_strings=[self._book.name]
         )
 
     def test__paypal(self):
-        self.assertTrue(
-            web.test(
-                '{url}/paypal'.format(url=self.url),
-                self.titles['paypal']
-            )
-        )
+        self.assertWebTest('/contributions/paypal')
 
     def test__paypal_notify(self):
         book = self.add(Book, dict(name='Text Book'))
@@ -179,7 +134,7 @@ class TestFunctions(LocalTestCase):
             'address_zip': 'M5A 1E1',
             'business': 'showme@zco.mx',
             'charset': 'windows-1252',
-            'custom': '/faq',
+            'custom': '/z/faq',
             'first_name': 'Test',
             'ipn_track_id': '9313257df1a27',
             'item_name': 'Test Book',
@@ -215,15 +170,10 @@ class TestFunctions(LocalTestCase):
         logs = get_paypal_log(txn_id)
         self.assertEqual(len(logs), 0)
 
-        self.assertTrue(
-            web.test(
-                '{url}/paypal_notify?{q}'.format(
-                    url=self.url,
-                    q=urllib.urlencode(notify_vars),
-                ),
-                self.titles['faq']
-            )
+        url_path = '/contributions/paypal_notify?{q}'.format(
+            q=urllib.urlencode(notify_vars),
         )
+        self.assertWebTest(url_path, match_page_key='/z/faq')
 
         contributions = get_contributions()
         self.assertEqual(len(contributions), 1)
@@ -247,15 +197,10 @@ class TestFunctions(LocalTestCase):
         del notify_vars['item_number']
         before_zco_contributions = get_zco_contributions()
 
-        self.assertTrue(
-            web.test(
-                '{url}/paypal_notify?{q}'.format(
-                    url=self.url,
-                    q=urllib.urlencode(notify_vars),
-                ),
-                self.titles['faq']
-            )
+        url_path = '/contributions/paypal_notify?{q}'.format(
+            q=urllib.urlencode(notify_vars),
         )
+        self.assertWebTest(url_path, match_page_key='/z/faq')
 
         after_zco_contributions = get_zco_contributions()
         self.assertEqual(
@@ -285,15 +230,10 @@ class TestFunctions(LocalTestCase):
             txn_id = '_test_paypal_notify_{idx:03d}'.format(idx=count)
             notify_vars['payment_status'] = status
             notify_vars['txn_id'] = txn_id
-            self.assertTrue(
-                web.test(
-                    '{url}/paypal_notify?{q}'.format(
-                        url=self.url,
-                        q=urllib.urlencode(notify_vars),
-                    ),
-                    self.titles['faq']
-                )
+            url_path = '/contributions/paypal_notify?{q}'.format(
+                q=urllib.urlencode(notify_vars),
             )
+            self.assertWebTest(url_path, match_page_key='/z/faq')
 
             contributions = get_contributions()
             self.assertEqual(len(contributions), 1)
@@ -308,35 +248,26 @@ class TestFunctions(LocalTestCase):
 
     def test__widget(self):
         # Should handle no id, but display nothing.
-        self.assertTrue(web.test(
-            '{url}/widget.load'.format(url=self.url),
-            self.titles['widget']
-        ))
+        self.assertWebTest(
+            '/contributions/widget.load',
+            match_page_key='/contributions/widget'
+        )
 
         # Invalid id, should handle gracefully
-        self.assertTrue(web.test(
-            '{url}/widget.load/{bid}'.format(
-                url=self.url,
-                bid=self._invalid_book_id
-            ),
-            self.titles['widget']
-        ))
+        url_path = '/contributions/widget.load/{bid}'.format(
+            bid=self._invalid_book_id)
+        self.assertWebTest(url_path, match_page_key='/contributions/widget')
 
         # Test valid id
-        self.assertTrue(web.test(
-            '{url}/widget.load/{bid}'.format(
-                url=self.url,
-                bid=self._book.id
-            ),
-            self.titles['widget']
-        ))
+        url_path = '/contributions/widget.load/{bid}'.format(bid=self._book.id)
+        self.assertWebTest(url_path, match_page_key='/contributions/widget')
 
 
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

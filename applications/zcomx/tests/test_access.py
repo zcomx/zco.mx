@@ -35,7 +35,7 @@ class TestFunctions(LocalTestCase):
         cls._auth_user = auth.user
         request = env['request']
         cls._request_client = request.client
-        cls._admin_ip = env['local_settings'].admin_ips
+        cls._admin_ip = env['local_settings'].admin_ips.split(',')[0]
 
     @classmethod
     def tearDownClass(cls):
@@ -74,19 +74,8 @@ class TestFunctions(LocalTestCase):
 
         # Invalid ip, (login status should be irrelevant.
         request.client = self._non_admin_ip
-        try:
-            func()
-        except HTTP as err:
-            self.assertEqual(str(err), '303 SEE OTHER')
-        else:
-            self.fail('HTTP exception not raised.')
-
-        try:
-            login_func()
-        except HTTP as err:
-            self.assertEqual(str(err), '303 SEE OTHER')
-        else:
-            self.fail('HTTP exception not raised.')
+        self.assertRaisesHTTP(303, func)
+        self.assertRaisesHTTP(303, login_func)
 
     def test__requires_agreed_to_terms(self):
         env = globals()
@@ -110,12 +99,7 @@ class TestFunctions(LocalTestCase):
             return 'Success'
 
         # agreed_to_terms=False, should not permit access
-        try:
-            func()
-        except HTTP as err:
-            self.assertEqual(str(err), '303 SEE OTHER')
-        else:
-            self.fail('HTTP exception not raised.')
+        self.assertRaisesHTTP(303, func)
 
         # auth_user is impersonating, should permit access
         # Simulate a logged in session
@@ -129,12 +113,7 @@ class TestFunctions(LocalTestCase):
 
         # Reset membership
         session.auth = Storage(user=auth_user)   # No longer impersonating
-        try:
-            func()
-        except HTTP as err:
-            self.assertEqual(str(err), '303 SEE OTHER')
-        else:
-            self.fail('HTTP exception not raised.')
+        self.assertRaisesHTTP(303, func)
 
         # agreed_to_terms=False, should permit access
         Creator.from_updated(creator, dict(agreed_to_terms=True))
