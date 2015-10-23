@@ -8,7 +8,6 @@ Test suite for zcomx/controllers/torrents.py
 """
 import os
 import unittest
-import urllib2
 from applications.zcomx.modules.books import \
     Book, \
     book_name
@@ -76,7 +75,6 @@ class TestFunctions(LocalTestCase):
         return db(query).select()
 
     def test__download(self):
-
         # Test book torrent.
         expect = []
         expect.append(self.titles['torrent'])
@@ -124,10 +122,7 @@ class TestFunctions(LocalTestCase):
         web.sessions = {}    # Prevent 'Changed session ID' warnings.
 
         def test_invalid(url):
-            with self.assertRaises(urllib2.HTTPError) as cm:
-                web.test(url, None)
-            self.assertEqual(cm.exception.code, 404)
-            self.assertEqual(cm.exception.msg, 'NOT FOUND')
+            self.assertRaisesHTTPError(404, web.test, url, None)
 
         # Test: Invalid, no torrent type provided
         test_invalid('{url}/download?no_queue=1'.format(url=self.url))

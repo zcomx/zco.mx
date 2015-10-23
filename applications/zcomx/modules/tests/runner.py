@@ -16,6 +16,7 @@ import sys
 import time
 import unittest
 import urllib
+import urllib2
 import urlparse
 
 from gluon.contrib.webclient import \
@@ -120,6 +121,33 @@ class LocalTestCase(unittest.TestCase):
             record = obj.from_add(data)
         cls._objects.append(record)
         return record
+
+    def assertIsTwo(self, number, msg=None):
+        """Test assert."""
+        if number != 2:
+            msg = self._formatMessage(msg, "%s is not two" % unittest.util.safe_repr(number))
+            raise self.failureException(msg)
+
+    def assertRaisesHTTPError(self, expected_code, callable_obj, *args, **kwargs):
+        """Fail unless an HTTPError is raised with the expected code.
+
+        Args:
+            expected_code: integer, eg 404
+            callable_obj: Function to be called. (see assertRaises)
+            args: Extra args. (see assertRaises)
+            kwargs: Extra kwargs. (see assertRaises)
+        """
+        safe_repr = unittest.util.safe_repr
+        try:
+            callable_obj(*args, **kwargs)
+        except urllib2.HTTPError as err:
+            if err.code != expected_code:
+                msg = "HTTPError code %s is not %s" % (
+                    safe_repr(err.code), safe_repr(expected_code))
+                raise self.failureException(msg)
+        else:
+            msg = "HTTPError not raised"
+            raise self.failureException(msg)
 
     def run(self, result=None):
         """Run test fixture."""
