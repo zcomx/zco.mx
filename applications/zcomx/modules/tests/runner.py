@@ -119,7 +119,7 @@ class LocalTestCase(unittest.TestCase):
             db.commit()
             record = db(obj.id == record_id).select(limitby=(0, 1)).first()
         elif hasattr(obj, 'from_add'):
-            record = obj.from_add(data)
+            record = obj.from_add(data, validate=False)
         cls._objects.append(record)
         return record
 

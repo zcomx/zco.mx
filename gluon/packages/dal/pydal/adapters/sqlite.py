@@ -41,6 +41,8 @@ class SQLiteAdapter(BaseAdapter):
 
     @staticmethod
     def web2py_regexp(expression, item):
+        if item is None:
+            return False
         return re.compile(expression).search(item) is not None
 
     def __init__(self, db, uri, pool_size=0, folder=None, db_codec ='UTF-8',
@@ -123,7 +125,7 @@ class SQLiteAdapter(BaseAdapter):
 
 
 SPATIALLIBS = {
-    'Windows':'libspatialite',
+    'Windows':'mod_spatialite.dll',
     'Linux':'libspatialite.so',
     'Darwin':'libspatialite.dylib'
     }

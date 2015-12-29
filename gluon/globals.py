@@ -208,7 +208,7 @@ class Request(Storage):
     def parse_get_vars(self):
         """Takes the QUERY_STRING and unpacks it to get_vars
         """
-        query_string = self.env.get('QUERY_STRING', '')
+        query_string = self.env.get('query_string', '')
         dget = urlparse.parse_qs(query_string, keep_blank_values=1)  # Ref: https://docs.python.org/2/library/cgi.html#cgi.parse_qs
         get_vars = self._get_vars = Storage(dget)
         for (key, value) in get_vars.iteritems():
@@ -1023,10 +1023,16 @@ class Session(Storage):
     def _fixup_before_save(self):
         response = current.response
         rcookies = response.cookies
-        if self._forget and response.session_id_name in rcookies:
+        scookies = rcookies.get(response.session_id_name)
+        if not scookies:
+            return
+        if self._forget:
             del rcookies[response.session_id_name]
-        elif self._secure and response.session_id_name in rcookies:
-            rcookies[response.session_id_name]['secure'] = True
+            return
+        if self.get('httponly_cookies',True):
+            scookies['HttpOnly'] = True
+        if self._secure:
+            scookies['secure'] = True
 
     def clear_session_cookies(self):
         request = current.request
@@ -1074,6 +1080,7 @@ class Session(Storage):
         if response.session_storage_type == 'file':
             target = recfile.generate(response.session_filename)
             try:
+                self._close(response)
                 os.unlink(target)
             except:
                 pass
