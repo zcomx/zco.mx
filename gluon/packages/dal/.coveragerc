@@ -1,9 +1,7 @@
 [run]
 branch = True
 parallel = True
-source = gluon
-## remove comment if you want applications coverage too
-#source = gluon, applications
+source = pydal
 
 [report]
 # Regexes for lines to exclude from consideration
@@ -24,9 +22,8 @@ exclude_lines =
     if __name__ == .__main__.:
 
 ignore_errors = True
-omit = gluon/contrib/*
-       gluon/tests/*
-       gluon/packages/*
+omit = pydal/tests/*
+       pydal/contrib/*
 
 [html]
 directory = coverage_html_report

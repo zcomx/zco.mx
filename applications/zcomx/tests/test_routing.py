@@ -1061,17 +1061,6 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/zcomx/creators/index', '/zcomx/creators/index'),
             ('https://my.domain.com/zcomx/search/index', '/zcomx/search/index'),
 
-            # Test default functions
-            ('http://my.domain.com/about', '/zcomx/default/about'),
-            ('http://my.domain.com/contribute', '/zcomx/default/contribute'),
-            ('http://my.domain.com/expenses', '/zcomx/default/expenses'),
-            ('http://my.domain.com/faq', '/zcomx/default/faq'),
-            ('http://my.domain.com/faqc', '/zcomx/default/faqc'),
-            ('http://my.domain.com/files', '/zcomx/default/files'),
-            ('http://my.domain.com/logos', '/zcomx/default/logos'),
-            ('http://my.domain.com/overview', '/zcomx/default/overview'),
-            ('http://my.domain.com/todo', '/zcomx/default/todo'),
-
             # Test: default/user/???
             ('http://my.domain.com/login', "/zcomx/default/user ['login']"),
             ('http://my.domain.com/default/user/login', "/zcomx/default/user ['login']"),
@@ -1173,17 +1162,6 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/zcomx/books/book/1', '/books/book/1'),
             # Test: creators controller
             ('http://my.domain.com/zcomx/creators/index', '/creators'),
-
-            # Test default functions
-            ('http://my.domain.com/zcomx/default/about', '/about'),
-            ('http://my.domain.com/zcomx/default/contribute', '/contribute'),
-            ('http://my.domain.com/zcomx/default/expenses', '/expenses'),
-            ('http://my.domain.com/zcomx/default/faq', '/faq'),
-            ('http://my.domain.com/zcomx/default/faqc', '/faqc'),
-            ('http://my.domain.com/zcomx/default/files', '/files'),
-            ('http://my.domain.com/zcomx/default/logos', '/logos'),
-            ('http://my.domain.com/zcomx/default/overview', '/overview'),
-            ('http://my.domain.com/zcomx/default/todo', '/todo'),
 
             # Test: default/user/???
             ('http://my.domain.com/zcomx/default/user/login', '/login'),

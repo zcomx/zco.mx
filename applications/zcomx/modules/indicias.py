@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """
@@ -974,7 +973,7 @@ class BookPublicationMetadata(object):
 
         if not existing:
             data = dict(book_id=self.book.id)
-            PublicationMetadata.from_add(data)
+            PublicationMetadata.from_add(data, validate=False)
 
         publication_metadata = PublicationMetadata.from_query(query)
         if not publication_metadata:
@@ -1010,7 +1009,7 @@ class BookPublicationMetadata(object):
         if len(self.serials) > len(existing):
             data = dict(book_id=self.book.id)
             for serial in self.serials[len(existing):]:
-                PublicationSerial.from_add(data)
+                PublicationSerial.from_add(data, validate=False)
 
         query = (db.publication_serial.book_id == self.book.id)
         existing = db(query).select(

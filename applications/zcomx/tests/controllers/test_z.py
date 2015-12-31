@@ -7,7 +7,7 @@ Test suite for zcomx/controllers/default.py
 
 """
 import unittest
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 
 # C0111: Missing docstring
@@ -15,179 +15,74 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
-
-    titles = {
-        '404': 'Page not found',
-        'about': '<h1>About</h1>',
-        'cartoonists': '<div id="front_page">',
-        'completed': '<div id="front_page">',
-        'contribute': '<form id="paypal_form"',
-        'copyright_claim':
-            '<h3>Notice and Procedure for Making Claims of Copyright',
-        'data': '<h2>Not authorized</h2>',
-        'expenses': '<h1>Expenses</h1>',
-        'faq': '<h1>FAQ</h1>',
-        'faqc': [
-            '<h1>FAQ</h1>',
-            '<div class="faq_options_container">',
-        ],
-        'files': '<div id="files_page">',
-        'index': '<div id="front_page">',
-        'login': '<h2>Cartoonist Login</h2>',
-        'logos': '<h1>Logos</h1>',
-        'modal_error': 'An error occurred. Please try again.',
-        'ongoing': '<div id="front_page">',
-        'overview': '<h1>Overview</h1>',
-        'page_not_found': '<h3>Page not found</h3>',
-        'rss': '<div id="rss_page">',
-        'search': '<div id="front_page">',
-        'terms': '<h1>Terms and Conditions</h1>',
-        'todo': '<h1>TODO</h1>',
-        'top': '<h2>Top</h2>',
-        'user': [
-            'web2py_user_form',
-            'web2py_user_form_container',
-            'forgot_password_container',
-            'register_container'
-        ],
-    }
-    url = '/zcomx/z'
-
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
-    def setUp(self):
-        # Prevent 'Changed session ID' warnings.
-        web.sessions = {}
+class TestFunctions(WebTestCase):
 
     def test__about(self):
-        self.assertTrue(web.test(
-            '{url}/about'.format(url=self.url),
-            self.titles['about']
-        ))
+        self.assertWebTest('/z/about')
 
     def test__cartoonists(self):
-        self.assertTrue(web.test(
-            '{url}/cartoonists'.format(url=self.url),
-            self.titles['cartoonists']
-        ))
+        self.assertWebTest('/z/cartoonists')
 
     def test__completed(self):
-        self.assertTrue(web.test(
-            '{url}/completed'.format(url=self.url),
-            self.titles['completed']
-        ))
+        self.assertWebTest('/z/completed')
 
     def test__contribute(self):
-        self.assertTrue(web.test(
-            '{url}/contribute'.format(url=self.url),
-            self.titles['contribute']
-        ))
+        self.assertWebTest('/z/contribute')
 
     def test__copyright_claim(self):
-        self.assertTrue(web.test(
-            '{url}/copyright_claim'.format(url=self.url),
-            self.titles['copyright_claim']
-        ))
+        self.assertWebTest('/z/copyright_claim')
 
     def test__expenses(self):
-        self.assertTrue(web.test(
-            '{url}/expenses'.format(url=self.url),
-            self.titles['expenses']
-        ))
+        self.assertWebTest('/z/expenses')
 
     def test__faq(self):
-        self.assertTrue(web.test(
-            '{url}/faq'.format(url=self.url),
-            self.titles['faq']
-        ))
+        self.assertWebTest('/z/faq')
 
     def test__faqc(self):
-        self.assertTrue(web.test(
-            '{url}/faqc'.format(url=self.url),
-            self.titles['faqc']
-        ))
+        self.assertWebTest('/z/faqc')
 
     def test__files(self):
-        self.assertTrue(web.test(
-            '{url}/files'.format(url=self.url),
-            self.titles['files']
-        ))
+        self.assertWebTest('/z/files')
 
     def test__index(self):
-        self.assertTrue(web.test(
-            '{url}/index'.format(url=self.url),
-            self.titles['index']
-        ))
+        self.assertWebTest('/z/index')
 
     def test__logos(self):
-        self.assertTrue(web.test(
-            '{url}/logos'.format(url=self.url),
-            self.titles['logos']
-        ))
+        self.assertWebTest('/z/logos')
 
     def test__modal_error(self):
-        self.assertTrue(
-            web.test(
-                '{url}/modal_error'.format(url=self.url),
-                self.titles['modal_error']
-            )
-        )
+        self.assertWebTest('/z/modal_error')
 
     def test__monies(self):
-        self.assertTrue(web.test(
-            '{url}/monies'.format(url=self.url),
-            self.titles['index']
-        ))
+        self.assertWebTest('/z/monies', match_page_key='/default/index')
 
     def test__ongoing(self):
-        self.assertTrue(web.test(
-            '{url}/ongoing'.format(url=self.url),
-            self.titles['ongoing']
-        ))
+        self.assertWebTest('/z/ongoing')
 
     def test__overview(self):
-        self.assertTrue(web.test(
-            '{url}/overview'.format(url=self.url),
-            self.titles['overview']
-        ))
+        self.assertWebTest('/z/overview')
 
     def test__rss(self):
-        self.assertTrue(web.test(
-            '{url}/rss'.format(url=self.url),
-            self.titles['rss']
-        ))
+        self.assertWebTest('/z/rss')
 
     def test__search(self):
-        self.assertTrue(web.test(
-            '{url}/search'.format(url=self.url),
-            self.titles['search']
-        ))
+        self.assertWebTest('/z/search')
 
     def test__terms(self):
-        self.assertTrue(web.test(
-            '{url}/terms'.format(url=self.url),
-            self.titles['terms']
-        ))
+        self.assertWebTest('/z/terms')
 
     def test__todo(self):
-        self.assertTrue(web.test(
-            '{url}/todo'.format(url=self.url),
-            self.titles['todo']
-        ))
+        self.assertWebTest('/z/todo')
 
     def test__top(self):
-        self.assertTrue(web.test(
-            '{url}/top'.format(url=self.url),
-            self.titles['top']
-        ))
+        self.assertWebTest('/z/top')
 
 
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ Test suite for zcomx/controllers/admin.py
 
 """
 import unittest
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 
 # C0111: Missing docstring
@@ -15,40 +15,24 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
-
-    titles = {
-        'admin': '<div id="admin_page">',
-        'login': '<div id="login_page">',
-    }
-    url = '/zcomx/admin'
+class TestFunctions(WebTestCase):
 
     def test__index(self):
-
         # Not logged in, redirects to login page
         web.logout()
-        self.assertTrue(web.test(
-            '{url}/index'.format(
-                url=self.url,
-            ),
-            self.titles['login']
-        ))
+        self.assertWebTest(
+            '/admin/index', match_page_key='/default/user/login')
 
         # Logged in, displays admin
         web.login()
-        self.assertTrue(web.test(
-            '{url}/index'.format(
-                url=self.url,
-            ),
-            self.titles['admin']
-        ))
+        self.assertWebTest('/admin/index')
 
 
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

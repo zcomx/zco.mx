@@ -7,9 +7,8 @@ Test suite for zcomx/controllers/creators.py
 
 """
 import unittest
-import urllib2
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 
 # C0111: Missing docstring
@@ -17,15 +16,9 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
+class TestFunctions(WebTestCase):
 
     _creator = None
-
-    titles = {
-        'creator': '<div id="creator_page">',
-        'page_not_found': '<h3>Page not found</h3>',
-    }
-    url = '/zcomx/creators'
 
     @classmethod
     def setUpClass(cls):
@@ -35,50 +28,41 @@ class TestFunctions(LocalTestCase):
         cls._creator = Creator.by_email(web.username)
 
     def test__creator(self):
-        with self.assertRaises(urllib2.HTTPError) as cm:
-            web.test('{url}/creator'.format(url=self.url), None)
-        self.assertEqual(cm.exception.code, 404)
-        self.assertEqual(cm.exception.msg, 'NOT FOUND')
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
+            '/creators/creator',
+            match_page_key='',
+        )
 
     def test__index(self):
         # Test: no creator
-        self.assertTrue(web.test(
-            '{url}/index'.format(
-                url=self.url,
-            ),
-            self.titles['page_not_found']
-        ))
+        self.assertWebTest(
+            '/creators/index', match_page_key='/errors/page_not_found')
 
         # Test: creator as integer
-        self.assertTrue(web.test(
-            '{url}/index?creator={cid}'.format(
-                url=self.url,
-                cid=self._creator.id
-            ),
-            self.titles['creator']
-        ))
+        url_path = '/creators/index?creator={cid}'.format(cid=self._creator.id)
+        self.assertWebTest(url_path, match_page_key='/creators/creator')
 
         # Test: creator as name
-        self.assertTrue(web.test(
-            '{url}/index?creator={name}'.format(
-                url=self.url,
-                name=self._creator.name_for_url
-            ),
-            self.titles['creator']
-        ))
+        url_path = '/creators/index?creator={name}'.format(
+            name=self._creator.name_for_url)
+        self.assertWebTest(url_path, match_page_key='/creators/creator')
 
     def test__monies(self):
-        with self.assertRaises(urllib2.HTTPError) as cm:
-            web.test('{url}/monies'.format(url=self.url), None)
-        self.assertEqual(cm.exception.code, 404)
-        self.assertEqual(cm.exception.msg, 'NOT FOUND')
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
+            '/creators/monies',
+            match_page_key='',
+        )
 
 
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

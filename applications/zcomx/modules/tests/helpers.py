@@ -251,3 +251,100 @@ class ResizerQuick(TempDirectoryMixin):
             matches = glob.glob(path)
             if matches:
                 self.filenames[prefix] = matches[0]
+
+
+class WebTestCase(LocalTestCase):
+    """Test case for controller tests."""
+    page_identifiers = {
+        '/admin/index': '<div id="admin_page">',
+        '/contributions/modal': [
+            '<div id="contribute_modal_page">',
+            'Your donations help cover the'
+        ],
+        '/contributions/modal/book': [
+            '<div id="contribute_modal_page">',
+            'Contributions go directly to the cartoonist',
+        ],
+        '/contributions/paypal': '<form id="paypal_form"',
+        '/contributions/widget': '<div class="row contribute_widget"></div>',
+        '/creators/creator': '<div id="creator_page">',
+        '/default/data': '<h2>Not authorized</h2>',
+        '/default/index': '<div id="front_page">',
+        '/default/user': [
+            'web2py_user_form',
+            'web2py_user_form_container',
+            'forgot_password_container',
+            'register_container'
+        ],
+        '/default/user/login': [
+            '<div id="login_page">',
+            '<h2>Cartoonist Login</h2>',
+        ],
+        '/downloads/modal': [
+            '<div id="download_modal_page">',
+            'magnet:?xt=urn:tree:tiger',
+        ],
+        '/errors/index': '<h3>Server error</h3>',
+        '/errors/page_not_found': '<h3>Page not found</h3>',
+        '/login/account': [
+            'account_profile_container',
+            'change_password_container'
+        ],
+        '/login/agree_to_terms': '<div id="agree_to_terms_page">',
+        '/login/book_delete': '<div id="book_delete_section">',
+        '/login/book_edit': '<div id="book_edit_section">',
+        '/login/book_list': '<h2>Book List</h2>',
+        '/login/book_list.load/completed': '<div id="completed_container">',
+        '/login/book_list.load/disabled': '<div id="disabled_container">',
+        '/login/book_list.load/ongoing': '<div id="ongoing_container">',
+        '/login/book_pages': '<div id="profile_book_pages_page">',
+        '/login/book_post_upload_session': [
+            '"status": "ok"',
+        ],
+        '/login/book_release': '<div id="book_complete_section">',
+        '/login/books': '<div id="ongoing_book_list" class="book_list">',
+        '/login/indicia': [
+            '<div id="profile_page">',
+            '<div id="indicia_section">',
+        ],
+        '/login/order_no_handler': '<div id="creator_page">',
+        '/login/profile': '<div id="creator_section">',
+        '/rss/modal': '<div id="rss_modal">',
+        '/rss/rss': [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">',
+        ],
+        '/rss/widget.load': '<div class="rss_widget_body">',
+        '/search/book_page': '<div id="book_page">',
+        '/search/box.load': '<div id="search">',
+        '/search/creator_page': '<div id="creator_page">',
+        '/search/index': '<div id="front_page">',
+        '/search/list_grid': '<div class="web2py_grid grid_view_list ',
+        '/search/list_grid_tile': '<div class="web2py_grid grid_view_tile ',
+        '/search/tile_grid': '<div class="row tile_view">',
+        '/torrents/torrent': '30:http://bt.zco.mx:6969/announce',
+        '/z/about': '<h1>About</h1>',
+        '/z/cartoonists': '<div id="front_page">',
+        '/z/completed': '<div id="front_page">',
+        '/z/contribute': '<form id="paypal_form"',
+        '/z/copyright_claim':
+            '<h3>Notice and Procedure for Making Claims of Copyright',
+        '/z/expenses': '<h1>Expenses</h1>',
+        '/z/faq': '<h1>FAQ</h1>',
+        '/z/faqc': [
+            '<h1>FAQ</h1>',
+            '<div class="faq_options_container">',
+        ],
+        '/z/files': '<div id="files_page">',
+        '/z/index': '<div id="front_page">',
+        '/z/login': '<h2>Cartoonist Login</h2>',
+        '/z/logos': '<h1>Logos</h1>',
+        '/z/modal_error': 'An error occurred. Please try again.',
+        '/z/ongoing': '<div id="front_page">',
+        '/z/overview': '<h1>Overview</h1>',
+        '/z/rss': '<div id="rss_page">',
+        '/z/search': '<div id="front_page">',
+        '/z/terms': '<h1>Terms and Conditions</h1>',
+        '/z/todo': '<h1>TODO</h1>',
+        '/z/top': '<h2>Top</h2>',
+    }

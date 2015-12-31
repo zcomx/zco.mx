@@ -7,8 +7,7 @@ Test suite for zcomx/controllers/images.py
 
 """
 import unittest
-import urllib2
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 
 # C0111: Missing docstring
@@ -16,18 +15,11 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
-
-    titles = {
-        'download': '<h2>Not authorized</h2>',
-    }
-    url = '/zcomx/images'
+class TestFunctions(WebTestCase):
 
     def test__download(self):
-        with self.assertRaises(urllib2.HTTPError) as cm:
-            web.test('{url}/download'.format(url=self.url), None)
-        self.assertEqual(cm.exception.code, 404)
-        self.assertEqual(cm.exception.msg, 'NOT FOUND')
+        self.assertRaisesHTTPError(
+            404, self.assertWebTest, '/images/download', match_page_key='')
 
     def test__resize(self):
         pass        # This controller doesn't need testing.
@@ -37,7 +29,7 @@ def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

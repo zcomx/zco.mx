@@ -11,7 +11,7 @@ from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.events import DownloadClick
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 
 # C0111: Missing docstring
@@ -19,20 +19,10 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
+class TestFunctions(WebTestCase):
     _book = None
     _creator = None
     _invalid_book_id = None
-
-    titles = {
-        'index': '<div id="front_page">',
-        'modal_book': [
-            '<div id="download_modal_page">',
-            'magnet:?xt=urn:tree:tiger',
-        ],
-        'modal_invalid': 'Invalid data provided',
-    }
-    url = '/zcomx/downloads'
 
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
@@ -59,9 +49,7 @@ class TestFunctions(LocalTestCase):
             creator_id=self._creator.id,
         ))
 
-        url_fmt = '{url}/download_click_handler.json?no_queue=1'.format(
-            url=self.url)
-
+        url_fmt = '/zcomx/downloads/download_click_handler.json?no_queue=1'
         url = url_fmt + '&record_table={t}&record_id={i}'.format(
             t='book',
             i=str(book.id),
@@ -129,39 +117,23 @@ class TestFunctions(LocalTestCase):
         )
         test_invalid(url)
 
-        web.sessions = {}
-
     def test__index(self):
-        self.assertTrue(
-            web.test(
-                '{url}/index'.format(url=self.url),
-                self.titles['index']
-            )
-        )
+        self.assertWebTest('/downloads/index', match_page_key='/default/index')
 
     def test__modal(self):
         # No book id
-        self.assertTrue(
-            web.test(
-                '{url}/modal'.format(
-                    url=self.url,
-                ),
-                self.titles['modal_invalid']
-            )
+        self.assertWebTest(
+            '/downloads/modal',
+            match_page_key='',
+            match_strings=['Invalid data provided']
         )
 
         # Test with book_id
         self.assertTrue(self._book.cbz)
-        expect = list(self.titles['modal_book'])
-        expect.append(self._book.name)
-        self.assertTrue(
-            web.test(
-                '{url}/modal/{bid}'.format(
-                    url=self.url,
-                    bid=self._book.id
-                ),
-                expect
-            )
+        self.assertWebTest(
+            '/downloads/modal/{bid}'.format(bid=self._book.id),
+            match_page_key='/downloads/modal',
+            match_strings=[self._book.name]
         )
 
 
@@ -169,7 +141,7 @@ def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':

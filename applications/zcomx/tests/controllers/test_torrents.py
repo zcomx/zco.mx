@@ -16,29 +16,18 @@ from applications.zcomx.modules.creators import \
     creator_name
 from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.records import Records
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods
 # pylint: disable=C0111,R0904
 
 
-class TestFunctions(LocalTestCase):
+class TestFunctions(WebTestCase):
 
     _creator = None
     _book = None
     _server_ip = None
-
-    titles = {
-        'download': '<h2>Not authorized</h2>',
-        'page_not_found': '<h3>Page not found</h3>',
-        'torrent': '30:http://bt.zco.mx:6969/announce',
-    }
-    url = '/zcomx/torrents'
-
-    def setUp(self):
-        # Prevent 'Changed session ID' warnings.
-        web.sessions = {}
 
     def tearDown(self):
         for download_click in Records.from_key(
@@ -76,31 +65,25 @@ class TestFunctions(LocalTestCase):
 
     def test__download(self):
         # Test book torrent.
-        expect = []
-        expect.append(self.titles['torrent'])
-        expect.append(self._book.name)
-        self.assertTrue(web.test(
-            '{url}/download/book/{bid}?no_queue=1'.format(
-                url=self.url,
+        self.assertWebTest(
+            '/torrents/download/book/{bid}?no_queue=1'.format(
                 bid=self._book.id
             ),
-            expect
-        ))
+            match_page_key='/torrents/torrent',
+            match_strings=[self._book.name],
+        )
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
 
         # Test creator torrent.
-        expect = []
-        expect.append(self.titles['torrent'])
-        expect.append(creator_name(self._creator, use='file'))
-        self.assertTrue(web.test(
-            '{url}/download/creator/{cid}?no_queue=1'.format(
-                url=self.url,
+        self.assertWebTest(
+            '/torrents/download/creator/{cid}?no_queue=1'.format(
                 cid=self._creator.id
             ),
-            expect
-        ))
+            match_page_key='/torrents/torrent',
+            match_strings=[creator_name(self._creator, use='file')],
+        )
         download_clicks = self._get_download_clicks(
             'creator', self._creator.id)
         self.assertEqual(len(download_clicks), 1)
@@ -108,145 +91,130 @@ class TestFunctions(LocalTestCase):
 
         # Test 'all' torrent.
         expect = []
-        expect.append(self.titles['torrent'])
         expect.append(creator_name(self._creator, use='file'))
         expect.append(self._book.name)
-        self.assertTrue(web.test(
-            '{url}/download/all?no_queue=1'.format(url=self.url),
-            expect
-        ))
+        self.assertWebTest(
+            '/torrents/download/all?no_queue=1',
+            match_page_key='/torrents/torrent',
+            match_strings=expect,
+        )
         download_clicks = self._get_download_clicks('all', 0)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
 
-        web.sessions = {}    # Prevent 'Changed session ID' warnings.
-
         def test_invalid(url):
-            self.assertRaisesHTTPError(404, web.test, url, None)
+            self.assertRaisesHTTPError(
+                404, self.assertWebTest, url, match_page_key='')
 
         # Test: Invalid, no torrent type provided
-        test_invalid('{url}/download?no_queue=1'.format(url=self.url))
+        test_invalid('/torrents/download?no_queue=1')
         # Test: Invalid, invalid torrent type provided
-        test_invalid('{url}/download/_fake_?no_queue=1'.format(url=self.url))
+        test_invalid('/torrents/download/_fake_?no_queue=1')
         # Test: Invalid, book torrent with no id
-        test_invalid('{url}/download/book?no_queue=1'.format(url=self.url))
+        test_invalid('/torrents/download/book?no_queue=1')
         # Test: Invalid, creator torrent with no id
-        test_invalid('{url}/download/creator?no_queue=1'.format(url=self.url))
+        test_invalid('/torrents/download/creator?no_queue=1')
         # Test: Invalid, book torrent with invalid id
-        test_invalid('{url}/download/book/-1?no_queue=1'.format(url=self.url))
+        test_invalid('/torrents/download/book/-1?no_queue=1')
         # Test: Invalid, creator torrent with invalid id
-        test_invalid('{url}/download/creator/-1?no_queue=1'.format(
-            url=self.url))
+        test_invalid('/torrents/download/creator/-1?no_queue=1')
 
     def test__route(self):
 
         # Test creator torrent
         expect = []
-        expect.append(self.titles['torrent'])
         expect.append(creator_name(self._creator, use='file'))
         expect.append(self._book.name)
-        self.assertTrue(web.test(
-            '{url}/route?no_queue=1&torrent={tor}'.format(
-                url=self.url,
+        self.assertWebTest(
+            '/torrents/route?no_queue=1&torrent={tor}'.format(
                 tor=os.path.basename(self._creator.torrent),
             ),
-            expect
-        ))
+            match_page_key='/torrents/torrent',
+            match_strings=expect,
+        )
         download_clicks = self._get_download_clicks(
             'creator', self._creator.id)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
 
         # Test book torrent, creator as id
-        expect = []
-        expect.append(self.titles['torrent'])
-        expect.append(self._book.name)
-
-        self.assertTrue(web.test(
-            '{url}/route?no_queue=1&creator={cid:03d}&torrent={tor}'.format(
-                url=self.url,
+        fmt = '/torrents/route?no_queue=1&creator={cid:03d}&torrent={tor}'
+        self.assertWebTest(
+            fmt.format(
                 cid=self._creator.id,
                 tor='{n}.torrent'.format(n=book_name(self._book, use='url'))
             ),
-            expect
-        ))
+            match_page_key='/torrents/torrent',
+            match_strings=[self._book.name],
+        )
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
 
         # Test book torrent, creator as name
-        expect = []
-        expect.append(self.titles['torrent'])
-        expect.append(self._book.name)
-        self.assertTrue(web.test(
-            '{url}/route?no_queue=1&creator={name}&torrent={tor}'.format(
-                url=self.url,
+        self.assertWebTest(
+            '/torrents/route?no_queue=1&creator={name}&torrent={tor}'.format(
                 name=self._creator.name_for_url,
                 tor='{n}.torrent'.format(n=book_name(self._book, use='url'))
             ),
-            expect
-        ))
+            match_page_key='/torrents/torrent',
+            match_strings=[self._book.name],
+        )
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 2)
         self._objects.append(download_clicks[1])
 
         # Test 'all' torrent
         expect = []
-        expect.append(self.titles['torrent'])
         expect.append(creator_name(self._creator, use='file'))
         expect.append(self._book.name)
-        self.assertTrue(web.test(
-            '{url}/route?no_queue=1&torrent=zco.mx.torrent'.format(
-                url=self.url),
-            expect
-        ))
+        self.assertWebTest(
+            '/torrents/route?no_queue=1&torrent=zco.mx.torrent',
+            match_page_key='/torrents/torrent',
+            match_strings=expect,
+        )
         download_clicks = self._get_download_clicks('all', 0)
         self.assertEqual(len(download_clicks), 1)
         self._objects.append(download_clicks[0])
 
-        web.sessions = {}    # Prevent 'Changed session ID' warnings.
-
         # page not found: no args
-        self.assertTrue(web.test(
-            '{url}/route?no_queue=1'.format(url=self.url),
-            self.titles['page_not_found']
-        ))
+        self.assertWebTest(
+            '/torrents/route?no_queue=1',
+            match_page_key='/errors/page_not_found',
+        )
 
         # page not found: invalid creator integer
-        self.assertTrue(web.test(
-            '{url}/route/{cid:03d}/{tor}?no_queue=1'.format(
-                url=self.url,
+        self.assertWebTest(
+            '/torrents/route/{cid:03d}/{tor}?no_queue=1'.format(
                 cid=-1,
                 tor=os.path.basename(self._book.torrent),
             ),
-            self.titles['page_not_found']
-        ))
+            match_page_key='/errors/page_not_found',
+        )
 
         # page not found: invalid creator name
-        self.assertTrue(web.test(
-            '{url}/route/{name}/{tor}?no_queue=1'.format(
-                url=self.url,
+        self.assertWebTest(
+            '/torrents/route/{name}/{tor}?no_queue=1'.format(
                 name='_invalid_name_',
                 tor=os.path.basename(self._book.torrent),
             ),
-            self.titles['page_not_found']
-        ))
+            match_page_key='/errors/page_not_found',
+        )
 
         # page not found: invalid torrent
-        self.assertTrue(web.test(
-            '{url}/route/{tor}?no_queue=1'.format(
-                url=self.url,
+        self.assertWebTest(
+            '/torrents/route/{tor}?no_queue=1'.format(
                 tor='_invalid_.torrent',
             ),
-            self.titles['page_not_found']
-        ))
+            match_page_key='/errors/page_not_found',
+        )
 
 
 def setUpModule():
     """Set up web2py environment."""
     # C0103: *Invalid name "%%s" (should match %%s)*
     # pylint: disable=C0103
-    LocalTestCase.set_env(globals())
+    WebTestCase.set_env(globals())
 
 
 if __name__ == '__main__':
