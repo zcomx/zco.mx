@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Torrent controller functions"""
-import cgi
 import logging
 import traceback
 from gluon.storage import Storage
@@ -50,22 +49,6 @@ def route():
 
     request.vars.no_queue: boolean, if set, don't queue a logs_download job
     """
-    # Note: there is a bug in web2py Ver 2.9.11-stable where request.vars
-    # is not set by routes.
-    # Ticket: http://code.google.com/p/web2py/issues/detail?id=1990
-    # If necessary, parse request.env.query_string for the values.
-    def parse_get_vars():
-        """Adapted from gluon/globals.py class Request"""
-        query_string = request.env.get('query_string', '')
-        dget = cgi.parse_qs(query_string, keep_blank_values=1)
-        get_vars = Storage(dget)
-        for (key, value) in get_vars.iteritems():
-            if isinstance(value, list) and len(value) == 1:
-                get_vars[key] = value[0]
-        return get_vars
-
-    request.vars.update(parse_get_vars())
-
     def page_not_found():
         """Handle page not found.
 
