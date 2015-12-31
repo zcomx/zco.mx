@@ -593,10 +593,17 @@ class LocalWebClient(WebClient):
     @property
     def flash(self):
         """Return the flash message in the response text."""
-        try:
-            return self.as_soup().find('div', {'class': 'flash'}).string
-        except AttributeError:
+        flash_class = 'w2p_flash'
+        soup = self.as_soup()
+        divs = soup.findAll('div')
+        flash_div = None
+        for div in divs:
+            if flash_class in div['class']:
+                flash_div = div
+                break
+        if not flash_div:
             return
+        return flash_div.string
 
     def get(self, url, cookies=None, headers=None, auth=None):
         """Override base class method.
