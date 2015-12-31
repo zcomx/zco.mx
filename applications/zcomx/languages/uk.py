@@ -3,6 +3,7 @@
 '!langcode!': 'uk',
 '!langname!': 'Українська',
 '"update" is an optional expression like "field1=\'newvalue\'". You cannot update or delete the results of a JOIN': '"Оновити" це додатковий вираз, такий, як "field1=\'нове_значення\'". Ви не можете змінювати або вилучати дані об\'єднаних таблиць.',
+'%(nrows)s records found': '%(nrows)s records found',
 '%d days ago': '%d %%{день} тому',
 '%d hours ago': '%d %%{годину} тому',
 '%d minutes ago': '%d %%{хвилину} тому',

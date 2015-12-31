@@ -125,6 +125,7 @@
 'next 100 rows': 'следующие 100 строк',
 'No completed books': 'No completed books',
 'No databases in this application': 'В приложении нет баз данных',
+'No matches found': 'No matches found',
 'No ongoing series': 'No ongoing series',
 'No records found': 'No records found',
 'now': 'сейчас',
