@@ -256,7 +256,7 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         zipper = zipfile.ZipFile(zip_file)
-        fmt = '2015|Jim Karsten|My CBZ Test||CC BY-ND|http://{cid}.zco.mx'
+        fmt = '2016|Jim Karsten|My CBZ Test||CC BY-ND|http://{cid}.zco.mx'
         self.assertEqual(zipper.comment, fmt.format(cid=self._creator.id))
 
     def test__working_directory(self):
@@ -310,7 +310,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             cbz_filename,
-            '/tmp/cbz_archive/cbz/zco.mx/J/JimKarsten/My CBZ Test (2015) ({i}.zco.mx).cbz'.format(i=self._creator.id)
+            '/tmp/cbz_archive/cbz/zco.mx/J/JimKarsten/My CBZ Test (2016) ({i}.zco.mx).cbz'.format(i=self._creator.id)
         )
 
         book = Book.from_id(self._book.id)

@@ -490,7 +490,7 @@ class TestIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(len(lines), 1)
         self.assertEqual(
             lines[0],
-            """ "IMAGE TEST CASE" IS COPYRIGHT (C) 2015 BY FIRST LAST.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
+            """ "IMAGE TEST CASE" IS COPYRIGHT (C) 2016 BY FIRST LAST.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
         )
 
     def test__get_indicia_filename(self):
