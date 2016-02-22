@@ -6,16 +6,14 @@ book_page_added_on_init.py
 
 Script to initialize book.page_added_on field.
 """
-import logging
 import sys
 import traceback
 from gluon import *
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-
-LOG = logging.getLogger('cli')
 
 
 def set_page_added_on(book_id):
@@ -88,12 +86,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.info('Started.')
 

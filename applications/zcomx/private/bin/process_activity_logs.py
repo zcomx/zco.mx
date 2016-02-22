@@ -8,7 +8,6 @@ Script to process activity_log records.
 * Create activity_log records from tentative_activity_log records.
 * Delete tentative_activity_log records converted thus.
 """
-import logging
 from optparse import OptionParser
 from applications.zcomx.modules.activity_logs import \
     ActivityLog, \
@@ -19,7 +18,7 @@ from applications.zcomx.modules.activity_logs import \
 
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():
@@ -80,12 +79,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.debug('Starting')
     logs = db(db.tentative_activity_log).select(

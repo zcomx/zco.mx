@@ -6,7 +6,6 @@ add_user.py
 
 Script to create a user account from the cli.
 """
-import logging
 import os
 from gluon import *
 from gluon.shell import env
@@ -18,7 +17,7 @@ APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # pylint: disable=C0103
 db = APP_ENV['db']
 
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def create_user(info):
@@ -118,10 +117,8 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
+    set_cli_logging(LOG, options.verbose, options.vv)
         for h in LOG.handlers:
-            if h.__class__ == logging.StreamHandler:
                 h.setLevel(level)
 
     LOG.info('Started.')

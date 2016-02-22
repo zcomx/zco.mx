@@ -5,7 +5,6 @@
 
 Classes and functions related to twitter posts.
 """
-import logging
 import re
 from gluon import *
 from twitter import Twitter
@@ -13,7 +12,7 @@ from twitter.oauth import OAuth
 from applications.zcomx.modules.images import UploadImage
 from applications.zcomx.modules.zco import TUMBLR_USERNAME
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class Authenticator(object):

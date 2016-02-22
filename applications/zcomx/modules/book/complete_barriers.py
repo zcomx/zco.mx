@@ -5,13 +5,12 @@
 
 Classes and functions related to book complete barriers.
 """
-import logging
 import os
 from gluon import *
 from applications.zcomx.modules.images import ImageDescriptor
 from applications.zcomx.modules.indicias import PublicationMetadata
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class BaseCompleteBarrier(object):

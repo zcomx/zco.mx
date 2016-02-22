@@ -8,7 +8,6 @@ Script to fix activity_log records.
 Set activity_log.deleted_book_page_ids where applicable.
 See mod 13050.
 """
-import logging
 import os
 import sys
 import traceback
@@ -17,14 +16,13 @@ from gluon.shell import env
 from optparse import OptionParser
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # C0103: *Invalid name "%%s" (should match %%s)*
 # pylint: disable=C0103
 db = APP_ENV['db']
-
-LOG = logging.getLogger('cli')
 
 
 def set_deleted(activity_log):
@@ -96,12 +94,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.info('Started.')
     ids = [x.id for x in db(db.activity_log).select(db.activity_log.id)]

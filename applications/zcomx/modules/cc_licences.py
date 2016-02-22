@@ -5,11 +5,8 @@
 
 Classes and functions related to CC (Creative Commons) licences.
 """
-import logging
 
 from applications.zcomx.modules.records import Record
-
-LOG = logging.getLogger('app')
 
 
 class CCLicence(Record):

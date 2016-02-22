@@ -2,12 +2,9 @@
 """
 Controllers related to downloads.
 """
-import logging
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.events import log_download_click
-
-LOG = logging.getLogger('app')
 
 
 def download_click_handler():

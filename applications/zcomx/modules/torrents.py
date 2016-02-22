@@ -5,7 +5,6 @@
 
 Classes and functions related to torrents.
 """
-import logging
 import os
 import subprocess
 from gluon import *
@@ -24,7 +23,7 @@ from applications.zcomx.modules.shell_utils import \
     os_nice
 from applications.zcomx.modules.zco import NICES
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class TorrentCreateError(Exception):

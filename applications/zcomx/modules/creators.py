@@ -5,7 +5,6 @@
 
 Creator classes and functions.
 """
-import logging
 import os
 from gluon import *
 from gluon.contrib.simplejson import dumps
@@ -23,7 +22,7 @@ from applications.zcomx.modules.strings import \
     squeeze_whitespace
 from applications.zcomx.modules.zco import SITE_NAME
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class AuthUser(Record):

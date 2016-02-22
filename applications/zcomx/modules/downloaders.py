@@ -5,7 +5,6 @@
 
 Classes and functions related to images.
 """
-import logging
 import os
 import re
 from gluon import *
@@ -19,7 +18,7 @@ from applications.zcomx.modules.images import \
     filename_for_size, \
     SIZES
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class CBZDownloader(Response):

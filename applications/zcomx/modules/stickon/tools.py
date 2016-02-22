@@ -17,7 +17,6 @@ from gluon.tools import \
     Expose, \
     Mail, \
     Service
-import logging
 import os
 import ConfigParser
 from applications.zcomx.modules.ConfigParser_improved import  \
@@ -26,8 +25,6 @@ from applications.zcomx.modules.ConfigParser_improved import  \
 # C0103: *Invalid name "%s" (should match %s)*
 # Some variable names are adapted from web2py.
 # pylint: disable=C0103
-
-LOG = logging.getLogger('app')
 
 
 class ConfigFileError(Exception):

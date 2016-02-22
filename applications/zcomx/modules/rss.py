@@ -6,7 +6,6 @@
 Classes and functions related to rss feeds.
 """
 import datetime
-import logging
 import os
 import gluon.contrib.rss2 as rss2
 from gluon import *
@@ -27,7 +26,7 @@ from applications.zcomx.modules.zco import \
     SITE_NAME, \
     Zco
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 MINIMUM_AGE_TO_LOG_IN_SECONDS = 4 * 60 * 60       # 4 hours
 

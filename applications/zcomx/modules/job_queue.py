@@ -8,7 +8,6 @@ Classes related to job queues.
 
 """
 import datetime
-import logging
 import os
 import pipes
 import shlex
@@ -50,7 +49,7 @@ PRIORITIES = list(reversed([
 ]))
 
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class DaemonSignalError(Exception):

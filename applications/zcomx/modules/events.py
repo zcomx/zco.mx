@@ -6,14 +6,13 @@
 Classes and functions related to events.
 """
 import datetime
-import logging
 from gluon import *
 from applications.zcomx.modules.books import update_rating
 from applications.zcomx.modules.job_queue import \
     LogDownloadsQueuer
 from applications.zcomx.modules.records import Record
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 LOG_DOWNLOADS_LIMIT = 1000
 
 

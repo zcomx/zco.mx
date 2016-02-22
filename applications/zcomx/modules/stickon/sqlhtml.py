@@ -9,14 +9,13 @@ Classes extending functionality of gluon/sqlhtml.py particular to the zcomx
 application.
 
 """
-import logging
 from gluon import *
 from gluon.sqlhtml import FormWidget, UploadWidget
 
 # E1101: *%s %r has no %r member*
 # pylint: disable=E1101
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class InputWidget(FormWidget):

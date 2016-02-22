@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 """Creator controller functions"""
 
-import logging
 import traceback
 from applications.zcomx.modules.access import requires_login_if_configured
 from applications.zcomx.modules.routing import Router
 from applications.zcomx.modules.zco import Zco
-
-LOG = logging.getLogger('app')
 
 
 def creator():

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Torrent controller functions"""
-import logging
 import traceback
 from gluon.storage import Storage
 from applications.zcomx.modules.books import \
@@ -11,8 +10,6 @@ from applications.zcomx.modules.creators import \
     url as creator_url
 from applications.zcomx.modules.downloaders import CBZDownloader
 from applications.zcomx.modules.events import log_download_click
-
-LOG = logging.getLogger('app')
 
 
 def download():

@@ -5,11 +5,8 @@
 
 Zco: System globals, constants and session classes and functions.
 """
-import logging
 from gluon import *
 from gluon.storage import Storage
-
-LOG = logging.getLogger('app')
 
 # Constants
 

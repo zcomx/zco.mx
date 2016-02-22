@@ -29,7 +29,6 @@ record.
 If an archive file is uploaded, there is one UploadedArchive instance and many
 book_page records, one for each image file extracted from the archive.
 """
-import logging
 import os
 import shutil
 import subprocess
@@ -49,7 +48,7 @@ from applications.zcomx.modules.shell_utils import \
     TemporaryDirectory, \
     UnixFile
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class BookPageUploader(object):

@@ -11,9 +11,6 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.search import Grid
 from applications.zcomx.modules.zco import Zco
 
-import logging
-LOG = logging.getLogger('app')
-
 
 def autocomplete():
     """Return autocomplete results for search input.

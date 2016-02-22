@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Creator login controller functions"""
 import collections
-import logging
 import os
 import shutil
 from PIL import Image
@@ -63,7 +62,6 @@ from applications.zcomx.modules.utils import \
     reorder
 from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
 
-LOG = logging.getLogger('app')
 
 MODAL_ERROR = lambda msg: redirect(
     URL(c='z', f='modal_error', vars={'message': msg}))

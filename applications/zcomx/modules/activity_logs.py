@@ -5,7 +5,6 @@
 Classes and functions related to activity logs
 """
 import datetime
-import logging
 from gluon import *
 from applications.zcomx.modules.book_pages import \
     BookPage, \
@@ -15,7 +14,7 @@ from applications.zcomx.modules.books import \
     get_page
 from applications.zcomx.modules.records import Record
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 MINIMUM_AGE_TO_LOG_IN_SECONDS = 4 * 60 * 60       # 4 hours
 

@@ -6,7 +6,6 @@ Indicias classes and functions.
 """
 import datetime
 import glob
-import logging
 import os
 import shutil
 import subprocess
@@ -40,7 +39,7 @@ from applications.zcomx.modules.utils import \
     vars_to_records
 from applications.zcomx.modules.zco import NICES
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 DEFAULT_BOOK_TYPE = 'one-shot'
 
 

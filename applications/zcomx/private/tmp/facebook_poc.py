@@ -8,7 +8,6 @@ Script to POC test using facebook API (facepy)
 https://pypi.python.org/pypi/facepy/1.0.6
 """
 import datetime
-import logging
 import requests
 import sys
 import traceback
@@ -16,10 +15,9 @@ import urlparse
 from BeautifulSoup import BeautifulSoup
 from optparse import OptionParser
 import applications.zcomx.modules.facepy as facepy
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-
-LOG = logging.getLogger('cli')
 
 # line-too-long (C0301): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
@@ -300,12 +298,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.info('Started.')
 

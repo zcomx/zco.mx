@@ -5,7 +5,6 @@
 
 Book page classes and functions.
 """
-import logging
 from gluon import *
 from applications.zcomx.modules.images import \
     ImageDescriptor, \
@@ -14,7 +13,7 @@ from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.utils import abridged_list
 from applications.zcomx.modules.zco import SITE_NAME
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class BookPage(Record):

@@ -5,7 +5,6 @@
 
 Classes and functions related to tumblr posts.
 """
-import logging
 import pytumblr
 from gluon import *
 from applications.zcomx.modules.book_pages import \
@@ -23,7 +22,7 @@ from applications.zcomx.modules.utils import joined_list
 from applications.zcomx.modules.zco import SITE_NAME
 
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class Authenticator(object):

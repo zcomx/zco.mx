@@ -8,7 +8,6 @@ Script to create cc_licence records. Script can be re-run without creating
 duplicate records, but will update/replace existing records.
 The --clear is not recommended if books already have cc_licences.
 """
-import logging
 import os
 from gluon import *
 from gluon.shell import env
@@ -21,7 +20,7 @@ APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # pylint: disable=C0103
 db = APP_ENV['db']
 
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 # line-too-long (C0301): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
@@ -182,12 +181,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if options.clear:
         LOG.debug('Truncating cc_licence table.')

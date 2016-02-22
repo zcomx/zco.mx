@@ -7,20 +7,17 @@ tumblr_poc.py
 Script to POC test using pytumblr api.
 https://pypi.python.org/pypi/PyTumblr
 """
-import logging
 import sys
 import traceback
 import pytumblr
 from gluon import *
 from optparse import OptionParser
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 
-LOG = logging.getLogger('cli')
-
 # C0301 (line-too-long): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
-
 
 def clear(client):
     """Delete existing posts.
@@ -174,12 +171,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if args:
         post_id = args[0]

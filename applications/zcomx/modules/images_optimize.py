@@ -5,7 +5,6 @@
 
 Classes and functions related to optimizing images.
 """
-import logging
 from gluon import *
 from applications.zcomx.modules.job_queue import \
     OptimizeCBZImgForReleaseQueuer, \
@@ -14,7 +13,7 @@ from applications.zcomx.modules.job_queue import \
     OptimizeWebImgQueuer
 from applications.zcomx.modules.records import Record
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class OptimizeImgLog(Record):

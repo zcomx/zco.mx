@@ -13,7 +13,6 @@ The update_creator_indicia is not queued.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-import logging
 import os
 import shutil
 import sys
@@ -24,7 +23,7 @@ from applications.zcomx.modules.images import \
     store
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():
@@ -80,12 +79,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) != 2:
         parser.print_help()

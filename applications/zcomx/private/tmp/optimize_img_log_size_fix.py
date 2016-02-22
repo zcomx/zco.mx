@@ -9,7 +9,6 @@ For every optimize_img_log record where size is null, create records for each
 size.
 
 """
-import logging
 import os
 import sys
 import traceback
@@ -19,14 +18,13 @@ from optparse import OptionParser
 from applications.zcomx.modules.images import SIZES
 from applications.zcomx.modules.images_optimize import OptimizeImgLog
 from applications.zcomx.modules.records import Records
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # C0103: *Invalid name "%%s" (should match %%s)*
 # pylint: disable=C0103
 db = APP_ENV['db']
-
-LOG = logging.getLogger('cli')
 
 
 def add_sizes(log):
@@ -97,12 +95,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.info('Started.')
     for log in Records.from_key(OptimizeImgLog, dict(size=None)):

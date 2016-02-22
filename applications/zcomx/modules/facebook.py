@@ -5,14 +5,13 @@
 
 Classes and functions related to facebook posts.
 """
-import logging
 import requests
 import urlparse
 from BeautifulSoup import BeautifulSoup
 from gluon import *
 import applications.zcomx.modules.facepy as facepy
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class FacebookAPIError(Exception):

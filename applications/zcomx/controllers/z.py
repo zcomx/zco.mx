@@ -2,7 +2,6 @@
 """
 Default controller.
 """
-import logging
 import os
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
@@ -18,8 +17,6 @@ from applications.zcomx.modules.utils import \
     faq_tabs, \
     markmin
 from applications.zcomx.modules.zco import Zco
-
-LOG = logging.getLogger('app')
 
 
 def _search_results(request, response, orderby):

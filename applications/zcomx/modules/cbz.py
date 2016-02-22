@@ -5,7 +5,6 @@
 
 CBZ classes and functions.
 """
-import logging
 import math
 import os
 import subprocess
@@ -27,7 +26,7 @@ from applications.zcomx.modules.shell_utils import \
     os_nice
 from applications.zcomx.modules.zco import NICES
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class CBZCreateError(Exception):

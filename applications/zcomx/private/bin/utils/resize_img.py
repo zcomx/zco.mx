@@ -6,7 +6,6 @@ resize_images.py
 
 Script to simulate resize_img.sh from python.
 """
-import logging
 import os
 import shutil
 from gluon import *
@@ -20,7 +19,7 @@ APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # pylint: disable=C0103
 db = APP_ENV['db']
 
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():
@@ -91,12 +90,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1:
         parser.print_help()

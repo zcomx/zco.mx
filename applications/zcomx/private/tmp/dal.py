@@ -6,15 +6,13 @@ dal.py
 
 Script to test dal commands.
 """
-import logging
 import sys
 import traceback
 from gluon import *
 from optparse import OptionParser
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-
-LOG = logging.getLogger('cli')
 
 
 def man_page():
@@ -67,19 +65,13 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.info('Started.')
     groupby = db.book_page.book_id
     page_count = db.book.id.count()
     max_on = db.book_page.created_on.max()
     page2 = db.book_page.with_alias('page2')
-
 
     rows = db(db.book).select(
         db.book.id,
@@ -102,6 +94,8 @@ def main():
     )
     for r in rows:
         print r.book.id, ' ', r.book.name, ' ', r[page_count], r[max_on]
+    # protected-access (W0212): *Access to a protected member %%s of a client class*
+    # pylint: disable=W0212
     print 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
 
     LOG.info('Done.')

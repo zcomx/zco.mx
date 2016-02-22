@@ -7,7 +7,6 @@ Classes and functions related to images.
 """
 import glob
 import imghdr
-import logging
 import os
 import shutil
 import subprocess
@@ -23,7 +22,7 @@ from applications.zcomx.modules.shell_utils import \
     set_owner
 from applications.zcomx.modules.zco import NICES
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 SIZES = [
     'original',

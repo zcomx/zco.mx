@@ -6,11 +6,10 @@ sql_integrity.py
 
 Compare the 'define_tables' table fields to actual table fields in sqlite db.
 """
-import logging
 from optparse import OptionParser
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def compare_fields():
@@ -128,12 +127,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     compare_tables()
     compare_fields()

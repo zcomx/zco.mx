@@ -2,7 +2,6 @@
 """
 Default controller.
 """
-import logging
 from applications.zcomx.modules.creators import \
     add_creator, \
     for_path, \
@@ -13,8 +12,6 @@ from applications.zcomx.modules.stickon.sqlhtml import \
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_NOT_IN_DB_SCRUBBED
-
-LOG = logging.getLogger('app')
 
 
 def index():

@@ -8,14 +8,13 @@ Script to update a creator's indicia.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-import logging
 from optparse import OptionParser
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import on_delete_image
 from applications.zcomx.modules.indicias import create_creator_indicia
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def clear_creator_indicia(creator):
@@ -119,12 +118,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1:
         parser.print_help()

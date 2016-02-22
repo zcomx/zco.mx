@@ -7,13 +7,12 @@ modules/stickon/dal.py
 Classes extending functionality of gluon/dal.py.
 
 """
-import logging
 from gluon import *
 
 # C0103: Invalid name
 # pylint: disable=C0103
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class RecordGenerator(object):

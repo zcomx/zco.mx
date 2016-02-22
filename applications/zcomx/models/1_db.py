@@ -22,17 +22,12 @@ response.generic_patterns = ['*'] if request.is_local else []
 # response.static_version = '0.0.0'
 
 import datetime
+import logging
 import os
 import re
 from gluon import *
 from gluon.storage import Storage
 from gluon.tools import PluginManager
-from applications.zcomx.modules.book_page.utils import \
-    before_delete as book_page_before_delete
-from applications.zcomx.modules.books import publication_year_range
-from applications.zcomx.modules.creators import add_creator
-from applications.zcomx.modules.files import FileName
-from applications.zcomx.modules.stickon.sqlhtml import formstyle_bootstrap3_custom
 from applications.zcomx.modules.stickon.tools import ModelDb, MigratedModelDb
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
@@ -56,6 +51,29 @@ mail = model_db.mail
 local_settings = model_db.local_settings
 plugins = PluginManager()
 
+current.app = Storage()
+current.app.auth = auth
+current.app.crud = crud
+current.app.db = db
+current.app.service = service
+current.app.mail = mail
+current.app.local_settings = local_settings
+if request.is_shell:
+    logger_name = request.env.cmd_options.run.replace('/', '.')
+else:
+    logger_name = 'applications.{a}.{c}.{f}'.format(
+        a=request.application, f=request.function, c=request.controller)
+LOG = logging.getLogger(logger_name)
+current.app.logger = LOG
+
+from applications.zcomx.modules.book_page.utils import \
+    before_delete as book_page_before_delete
+from applications.zcomx.modules.books import publication_year_range
+from applications.zcomx.modules.creators import add_creator
+from applications.zcomx.modules.files import FileName
+from applications.zcomx.modules.stickon.sqlhtml import \
+    formstyle_bootstrap3_custom
+
 # create all tables needed by auth if not custom tables
 auth.define_tables(username=False, signature=False)
 
@@ -78,13 +96,6 @@ auth.messages.logged_out = ''               # Suppress flash message
 auth.messages.profile_updated = ''          # Suppress flash message
 auth.messages.password_changed = ''         # Suppress flash message
 
-current.app = Storage()
-current.app.auth = auth
-current.app.crud = crud
-current.app.db = db
-current.app.service = service
-current.app.mail = mail
-current.app.local_settings = local_settings
 
 # # if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
 # # register with janrain.com, write your domain:api_key in private/janrain.key

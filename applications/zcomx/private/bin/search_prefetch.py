@@ -6,13 +6,12 @@ search_prefetch.py
 
 Script to build search autocomplete prefetch json files.
 """
-import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.autocomplete import autocompleter_class
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
 TABLES = ['book', 'creator']
 DEFAULT_OUTPUT = os.path.join(
     request.folder,
@@ -96,12 +95,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.debug('Starting')
 

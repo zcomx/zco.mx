@@ -5,7 +5,6 @@
 
 Classes and functions related to book page utilities.
 """
-import logging
 from gluon import *
 from applications.zcomx.modules.activity_logs import \
     ActivityLog, \
@@ -13,7 +12,7 @@ from applications.zcomx.modules.activity_logs import \
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.records import Records
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class ActivityLogDeleter(object):

@@ -5,7 +5,6 @@
 
 Routing classes and functions.
 """
-import logging
 import os
 import re
 from gluon import *
@@ -40,7 +39,7 @@ from applications.zcomx.modules.zco import \
     BOOK_STATUS_DISABLED, \
     BOOK_STATUS_DRAFT
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class Router(object):

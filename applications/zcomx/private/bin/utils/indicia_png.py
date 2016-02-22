@@ -8,7 +8,6 @@ Script to create indicia png files for a creator or a book.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-import logging
 import os
 import shutil
 from optparse import OptionParser
@@ -21,7 +20,7 @@ from applications.zcomx.modules.indicias import \
     IndiciaSh
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def create_generic_png(options):
@@ -160,12 +159,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1:
         parser.print_help()

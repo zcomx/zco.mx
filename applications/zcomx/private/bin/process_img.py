@@ -8,7 +8,6 @@ Script to process an image.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.images import \
@@ -18,7 +17,7 @@ from applications.zcomx.modules.images import \
 from applications.zcomx.modules.images_optimize import AllSizesImages
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def run_delete(image, options):
@@ -193,12 +192,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.debug('Starting')
     for image in args:

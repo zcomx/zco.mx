@@ -7,7 +7,6 @@ stickon/validators.py
 Classes extending functionality of gluon/validators.py.
 
 """
-import logging
 import urlparse
 from gluon.sqlhtml import safe_float, safe_int
 from gluon.validators import \
@@ -19,8 +18,6 @@ from gluon.validators import \
 
 # C0103: Invalid name
 # pylint: disable=C0103
-
-LOG = logging.getLogger('app')
 
 
 class IS_ALLOWED_CHARS(Validator):

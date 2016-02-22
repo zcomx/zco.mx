@@ -8,13 +8,12 @@ Script to notify p2p networks of addition or deletion of a cbz file.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-import logging
 from optparse import OptionParser
 from applications.zcomx.modules.torrents import \
     P2PNotifier
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():
@@ -78,12 +77,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1:
         parser.print_help()

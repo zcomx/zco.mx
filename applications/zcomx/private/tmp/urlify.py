@@ -6,16 +6,14 @@ urlify.py
 
 Script to test urlify commands.
 """
-import logging
 import sys
 import traceback
 from gluon import *
 from optparse import OptionParser
 from gluon.validators import urlify
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-
-LOG = logging.getLogger('cli')
 
 
 def man_page():
@@ -68,12 +66,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.info('Started.')
 

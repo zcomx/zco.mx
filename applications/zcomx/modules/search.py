@@ -5,7 +5,6 @@
 
 Search classes and functions.
 """
-import logging
 from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.tools import prettydate
@@ -36,7 +35,7 @@ from applications.zcomx.modules.utils import \
     replace_in_elements
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class Grid(object):

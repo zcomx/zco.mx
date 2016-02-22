@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """RSS controller functions"""
-import logging
 import traceback
 from gluon.storage import Storage
 from applications.zcomx.modules.book_lists import OngoingBookList
@@ -13,8 +12,6 @@ from applications.zcomx.modules.creators import \
     url as creator_url
 from applications.zcomx.modules.rss import channel_from_type
 from applications.zcomx.modules.zco import Zco
-
-LOG = logging.getLogger('app')
 
 
 def modal():

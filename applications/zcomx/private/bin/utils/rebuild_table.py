@@ -6,14 +6,13 @@ rebuild_table.py
 
 A script to rebuild db tables.
 """
-import logging
 import os
 import tarfile
 import tempfile
 from optparse import OptionParser
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 class RebuildError(Exception):
@@ -181,12 +180,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1:
         parser.print_help()

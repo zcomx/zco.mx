@@ -7,12 +7,11 @@ integrity.py
 Script to run integrity checks.
 """
 import datetime
-import logging
 from optparse import OptionParser
 from applications.zcomx.modules.zco import IN_PROGRESS
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
 
 
 class BaseChecker(object):
@@ -137,12 +136,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.debug('Starting')
     one_hour_ago = datetime.datetime.now() \

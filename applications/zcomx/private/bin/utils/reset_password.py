@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +6,6 @@ reset_password.py
 Script reset the password of a auth_user record.
 """
 import getpass
-import logging
 import os
 from gluon import *
 from gluon.shell import env
@@ -21,7 +19,7 @@ APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # pylint: disable=C0103
 db = APP_ENV['db']
 
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 # line-too-long (C0301): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
@@ -91,12 +89,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     emails = []
     passwd = None

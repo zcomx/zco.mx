@@ -5,12 +5,11 @@
 
 Class and functions relatedo database records.
 """
-import logging
 import traceback
 from gluon import *
 from pydal.objects import Row
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class Record(Row):

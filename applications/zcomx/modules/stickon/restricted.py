@@ -9,7 +9,6 @@ Classes extending functionality of gluon/restricted.py particular to the zcomx
 application.
 
 """
-import logging
 import os
 from gluon import *
 from gluon.restricted import TicketStorage
@@ -17,7 +16,7 @@ from gluon.restricted import TicketStorage
 # E1101: *%s %r has no %r member*
 # pylint: disable=E1101
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 def log_ticket(ticket):

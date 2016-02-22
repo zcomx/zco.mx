@@ -6,7 +6,6 @@ resize_images.py
 
 Script to create and maintain images and their sizes.
 """
-import logging
 import os
 import shutil
 import subprocess
@@ -28,7 +27,7 @@ APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # pylint: disable=C0103
 db = APP_ENV['db']
 
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 FIELDS = [
     'creator.image',
@@ -263,12 +262,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     quick_exit = False
 

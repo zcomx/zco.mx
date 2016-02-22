@@ -7,14 +7,13 @@ purge_torrents.py
 This script purges empty creator and 'all' torrent files as necessary.
 """
 import errno
-import logging
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.archives import TorrentArchive
 from applications.zcomx.modules.creators import Creator
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def creators_needing_purge():
@@ -137,12 +136,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) > 0:
         parser.print_help()

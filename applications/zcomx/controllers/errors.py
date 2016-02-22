@@ -2,11 +2,8 @@
 """
 Controller for error handling.
 """
-import logging
 from gluon.storage import Storage
 from applications.zcomx.modules.stickon.restricted import log_ticket
-
-LOG = logging.getLogger('app')
 
 
 def index():

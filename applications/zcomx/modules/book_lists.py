@@ -5,14 +5,13 @@
 
 Classes and functions related to book lists.
 """
-import logging
 from gluon import *
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
     BOOK_STATUS_DRAFT
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class BaseBookList(object):

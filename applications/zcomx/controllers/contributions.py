@@ -2,7 +2,6 @@
 """
 Controllers for contributions.
 """
-import logging
 from applications.zcomx.modules.books import \
     Book, \
     default_contribute_amount
@@ -14,8 +13,6 @@ from applications.zcomx.modules.events import \
     PaypalLog, \
     ZcoContributionEvent
 from applications.zcomx.modules.zco import Zco
-
-LOG = logging.getLogger('app')
 
 
 def modal():

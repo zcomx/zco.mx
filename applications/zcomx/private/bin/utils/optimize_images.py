@@ -8,7 +8,6 @@ Utility script to optimize all images for a book, creator or all.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-import logging
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
@@ -20,7 +19,7 @@ from applications.zcomx.modules.images_optimize import \
     AllSizesImages
 
 VERSION = 'Version 0.1'
-LOG = logging.getLogger('cli')
+from applications.zcomx.modules.logger import set_cli_logging
 
 
 def optimize_all_images(debug=False, force=False):
@@ -155,12 +154,7 @@ def main():
         man_page()
         quit(0)
 
-    if options.verbose or options.vv:
-        level = logging.DEBUG if options.vv else logging.INFO
-        unused_h = [
-            h.setLevel(level) for h in LOG.handlers
-            if h.__class__ == logging.StreamHandler
-        ]
+    set_cli_logging(LOG, options.verbose, options.vv)
 
     if not args:
         optimize_all_images(debug=options.debug, force=options.force)

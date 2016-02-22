@@ -6,7 +6,6 @@
 Classes and functions related to social media.
 """
 import json
-import logging
 import time
 import urllib
 import urlparse
@@ -38,7 +37,7 @@ from applications.zcomx.modules.tweeter import \
 from applications.zcomx.modules.utils import ClassFactory
 from applications.zcomx.modules.zco import SITE_NAME
 
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class OngoingPost(Record):

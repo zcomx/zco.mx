@@ -6,7 +6,6 @@
 Book classes and functions.
 """
 import datetime
-import logging
 import os
 import urlparse
 from gluon import *
@@ -40,7 +39,7 @@ from applications.zcomx.modules.zco import \
 
 
 DEFAULT_BOOK_TYPE = 'one-shot'
-LOG = logging.getLogger('app')
+LOG = current.app.logger
 
 
 class Book(Record):
