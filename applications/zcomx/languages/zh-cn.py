@@ -203,6 +203,7 @@
 'Registration key': '注册密钥',
 'reload': 'reload',
 'Remember me (for 30 days)': '记住我(30 天)',
+'Request reset password': 'Request reset password',
 'Reset Password key': '重置密码',
 'Resolve Conflict file': '解决冲突文件',
 'Role': '角色',

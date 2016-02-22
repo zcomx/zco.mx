@@ -1,6 +1,6 @@
 ``
 INCOME
-    Apr                                 $  5
+    Apr 2015                            $  5
   TOTAL Income                                  $   5
 
 EXPENSES
@@ -28,8 +28,10 @@ EXPENSES
     Aug 2015    Server Hosting          $ 40
     Sep 2015    Server Hosting          $ 40
     Oct 2015    Server Hosting          $ 40
-  TOTAL Expense                                 $1962
+    Nov 2015    Server Hosting          $ 40
+    Dec 2015    Server Hosting          $ 40
+  TOTAL Expense                                 $2042
 
 
-NET TOTAL                                      -$1957
+NET TOTAL                                      -$2037
 ``
