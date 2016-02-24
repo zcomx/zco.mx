@@ -118,8 +118,6 @@ def main():
         quit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
-        for h in LOG.handlers:
-                h.setLevel(level)
 
     LOG.info('Started.')
     while True:
