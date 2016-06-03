@@ -25,6 +25,7 @@ from applications.zcomx.modules.books import \
     defaults as book_defaults, \
     images, \
     names, \
+    publication_months, \
     publication_year_range, \
     read_link, \
     set_status
@@ -1223,6 +1224,11 @@ def metadata_crud():
             ],
         }
 
+        month_ddm = {
+            'type': 'select',
+            'source': publication_months(),
+        }
+
         year_ddm = {
             'type': 'select',
             'source': [
@@ -1262,7 +1268,9 @@ def metadata_crud():
         data['publication_metadata']['fields']['publisher_type'].update(
             publisher_type_ddm)
         data['publication_metadata']['fields']['from_year'].update(year_ddm)
+        data['publication_metadata']['fields']['from_month'].update(month_ddm)
         data['publication_metadata']['fields']['to_year'].update(year_ddm)
+        data['publication_metadata']['fields']['to_month'].update(month_ddm)
 
         for f in db.publication_serial.fields:
             data['publication_serial']['fields'][f] = {
@@ -1279,7 +1287,9 @@ def metadata_crud():
         data['publication_serial']['fields']['story_number'].update(
             number_ddm)
         data['publication_serial']['fields']['from_year'].update(year_ddm)
+        data['publication_serial']['fields']['from_month'].update(month_ddm)
         data['publication_serial']['fields']['to_year'].update(year_ddm)
+        data['publication_serial']['fields']['to_month'].update(month_ddm)
 
         for f in db.derivative.fields:
             data['derivative']['fields'][f] = {

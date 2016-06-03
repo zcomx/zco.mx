@@ -990,6 +990,28 @@ def page_url(book_page, reader=None, **url_kwargs):
     )
 
 
+def publication_months(format_directive='%b'):
+    """Return a list of dicts representing months of the year suitable for a
+    drop down menu.
+
+    Args:
+        format_directive: str, directive to use for strftime when determining
+            the text of months.
+                format_directive            Results
+                %b                          Jan, Feb, ..., Dec
+                %B                          January, February, ..., December
+
+    Returns:
+        list of dicts, Example:
+            [{'value': 1, 'text': 'Jan'}, {'value': 2, 'text': 'Feb'},...]
+    """
+    values = []
+    for x in range(1, 13):
+        date = datetime.date(1970, x, 1)
+        values.append({'value': x, 'text': date.strftime(format_directive)})
+    return values
+
+
 def publication_year_range():
     """Return a tuple representing the start and end range of publication years
     """

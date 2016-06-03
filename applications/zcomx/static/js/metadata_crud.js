@@ -209,8 +209,8 @@
                       return '<p>The name of the small press/publishing company.</p>'
                   }
             },
-            'publication_metadata_from_year': '<p>The year the work was first published (online or paper).</p>',
-            'publication_metadata_to_year': '<p>If published in parts, the year publishing was completed (online or paper).</p>',
+            'publication_metadata_from_month': '<p>The year the work was first published (online or paper).</p>',
+            'publication_metadata_to_month': '<p>If published in parts, the year publishing was completed (online or paper).</p>',
             'publication_serial_serial_title': function() {
                   var is_anthology = vars.containers['is_anthology'].find('select').val();
                   if (is_anthology === 'yes') {
@@ -227,8 +227,8 @@
         }
 
         _tooltip_titles['publication_serial_publisher'] = _tooltip_titles['publication_metadata_publisher'];
-        _tooltip_titles['publication_serial_from_year'] = _tooltip_titles['publication_metadata_from_year'];
-        _tooltip_titles['publication_serial_to_year'] = _tooltip_titles['publication_metadata_to_year'];
+        _tooltip_titles['publication_serial_from_month'] = _tooltip_titles['publication_metadata_from_year'];
+        _tooltip_titles['publication_serial_to_month'] = _tooltip_titles['publication_metadata_to_year'];
 
         var methods = {
             _append_error: function(container, msg) {
@@ -278,6 +278,24 @@
                 row.appendTo(elem);
 
                 return row;
+            },
+
+            _append_input: function(elem, input_data, options) {
+                var input;
+                var input_options = {
+                    'class': input_data._class_name + '_input',
+                    events: options.events,
+                    name: input_data._input_name,
+                    source: input_data.source,
+                    value: options.value,
+                    display_zero: options.display_zero || false,
+                };
+
+                input = $('<div class="editable-input"></div>')
+                    .metadata_crud_input(input_data.type, input_options);
+
+                elem.append(input);
+                return input;
             },
 
             _create_form: function(elem) {
@@ -568,16 +586,31 @@
                         }
                     },
                     'publisher': {},
-                    'from_year': {},
-                    'to_year': {},
+                    'from_month': {},
+                    'to_month': {},
+                }
+
+                var append_fields = {
+                    'from_month': ['from_year', {}],
+                    'to_month': ['to_year', {}],
                 }
 
                 $.each(display_fields, function(field, options) {
-                    methods._append_row(
+                    var $row = methods._append_row(
                         serial_container,
                         fields[field],
                         $.extend({value: record[field]}, options)
                     );
+                    if (append_fields[field]) {
+                        var append_field = append_fields[field][0];
+                        var $append_to = $row.find('.field_container').eq(0);
+                        var options = append_fields[field][1];
+                        methods._append_input(
+                            $append_to,
+                            fields[append_field],
+                            $.extend({value: record[append_field]}, options)
+                        );
+                    }
                 });
 
                 return serial_container;
@@ -790,16 +823,31 @@
                         }
                     },
                     'publisher': {},
-                    'from_year': {},
-                    'to_year': {},
+                    'from_month': {},
+                    'to_month': {},
+                }
+
+                var append_fields = {
+                    'from_month': ['from_year', {}],
+                    'to_month': ['to_year', {}],
                 }
 
                 $.each(display_fields, function(field, options) {
-                    methods._append_row(
+                    var $row = methods._append_row(
                         whole_container,
                         fields[field],
                         $.extend({value: record[field]}, options)
                     );
+                    if (append_fields[field]) {
+                        var append_field = append_fields[field][0];
+                        var $append_to = $row.find('.field_container').eq(0);
+                        var options = append_fields[field][1];
+                        methods._append_input(
+                            $append_to,
+                            fields[append_field],
+                            $.extend({value: record[append_field]}, options)
+                        );
+                    }
                 });
             }
         };

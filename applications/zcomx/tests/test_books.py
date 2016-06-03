@@ -54,6 +54,7 @@ from applications.zcomx.modules.books import \
     names, \
     next_book_in_series, \
     page_url, \
+    publication_months, \
     publication_year_range, \
     publication_years, \
     read_link, \
@@ -1471,6 +1472,43 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(
             page_url(book_page),
             '/FirstLast/MyBook-01of999/099'
+        )
+
+    def test__publication_months(self):
+        self.assertEqual(
+            publication_months(),
+            [
+                {'value': 1, 'text': 'Jan'},
+                {'value': 2, 'text': 'Feb'},
+                {'value': 3, 'text': 'Mar'},
+                {'value': 4, 'text': 'Apr'},
+                {'value': 5, 'text': 'May'},
+                {'value': 6, 'text': 'Jun'},
+                {'value': 7, 'text': 'Jul'},
+                {'value': 8, 'text': 'Aug'},
+                {'value': 9, 'text': 'Sep'},
+                {'value': 10, 'text': 'Oct'},
+                {'value': 11, 'text': 'Nov'},
+                {'value': 12, 'text': 'Dec'},
+            ]
+        )
+
+        self.assertEqual(
+            publication_months(format_directive='%B'),
+            [
+                {'value': 1, 'text': 'January'},
+                {'value': 2, 'text': 'February'},
+                {'value': 3, 'text': 'March'},
+                {'value': 4, 'text': 'April'},
+                {'value': 5, 'text': 'May'},
+                {'value': 6, 'text': 'June'},
+                {'value': 7, 'text': 'July'},
+                {'value': 8, 'text': 'August'},
+                {'value': 9, 'text': 'September'},
+                {'value': 10, 'text': 'October'},
+                {'value': 11, 'text': 'November'},
+                {'value': 12, 'text': 'December'},
+            ]
         )
 
     def test__publication_year_range(self):

@@ -721,16 +721,28 @@ db.define_table('publication_metadata',
         default='',
     ),
     Field(
+        'from_month',
+        'integer',
+        default=request.now.month,
+        label='Month/Year',
+    ),
+    Field(
         'from_year',
         'integer',
         default=request.now.year,
-        label='Year',
+        label='Month/Year',
+    ),
+    Field(
+        'to_month',
+        'integer',
+        default=request.now.month,
+        label='To',
     ),
     Field(
         'to_year',
         'integer',
         default=request.now.year,
-        label='To',
+        label='',
     ),
 )
 
@@ -776,16 +788,28 @@ db.define_table('publication_serial',
         default=1,
     ),
     Field(
+        'from_month',
+        'integer',
+        default=request.now.month,
+        label='Month/Year',
+    ),
+    Field(
         'from_year',
         'integer',
         default=request.now.year,
-        label='Year',
+        label='',
+    ),
+    Field(
+        'to_month',
+        'integer',
+        default=request.now.month,
+        label='To',
     ),
     Field(
         'to_year',
         'integer',
         default=request.now.year,
-        label='To',
+        label='',
     ),
 )
 
