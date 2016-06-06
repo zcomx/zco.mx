@@ -209,8 +209,9 @@
                       return '<p>The name of the small press/publishing company.</p>'
                   }
             },
-            'publication_metadata_from_month': '<p>The year the work was first published (online or paper).</p>',
+            'publication_metadata_from_month': '<p>The month the work was first published (online or paper). If published in parts, the month publishing started.</p>',
             'publication_metadata_to_month': '<p>If published in parts, the year publishing was completed (online or paper).</p>',
+
             'publication_serial_serial_title': function() {
                   var is_anthology = vars.containers['is_anthology'].find('select').val();
                   if (is_anthology === 'yes') {
@@ -227,8 +228,8 @@
         }
 
         _tooltip_titles['publication_serial_publisher'] = _tooltip_titles['publication_metadata_publisher'];
-        _tooltip_titles['publication_serial_from_month'] = _tooltip_titles['publication_metadata_from_year'];
-        _tooltip_titles['publication_serial_to_month'] = _tooltip_titles['publication_metadata_to_year'];
+        _tooltip_titles['publication_serial_from_month'] = _tooltip_titles['publication_metadata_from_month'];
+        _tooltip_titles['publication_serial_to_month'] = _tooltip_titles['publication_metadata_to_month'];
 
         var methods = {
             _append_error: function(container, msg) {
@@ -248,20 +249,11 @@
             },
 
             _append_row: function(elem, input_data, options) {
-                var input, row_options, row;
-                var input_options = {
-                    'class': input_data._class_name + '_input',
-                    events: options.events,
-                    name: input_data._input_name,
-                    source: input_data.source,
-                    value: options.value,
-                    display_zero: options.display_zero || false,
-                };
+                var icon, input, row_options, row;
 
-                input = $('<div class="editable-input"></div>')
-                    .metadata_crud_input(input_data.type, input_options);
+                input = methods._create_input(input_data, options);
 
-                var icon = null;
+                icon = null;
                 if (_tooltip_titles[input_data._input_name]) {
                     icon = $.fn.zco_utils.tooltip(
                         input_data._input_name,
@@ -281,19 +273,7 @@
             },
 
             _append_input: function(elem, input_data, options) {
-                var input;
-                var input_options = {
-                    'class': input_data._class_name + '_input',
-                    events: options.events,
-                    name: input_data._input_name,
-                    source: input_data.source,
-                    value: options.value,
-                    display_zero: options.display_zero || false,
-                };
-
-                input = $('<div class="editable-input"></div>')
-                    .metadata_crud_input(input_data.type, input_options);
-
+                var input = methods._create_input(input_data, options);
                 elem.append(input);
                 return input;
             },
@@ -365,6 +345,23 @@
                     });
                     e.preventDefault();
                 });
+            },
+
+            _create_input: function(input_data, options) {
+                var input;
+                var input_options = {
+                    'class': input_data._class_name + '_input',
+                    events: options.events,
+                    name: input_data._input_name,
+                    source: input_data.source,
+                    value: options.value,
+                    display_zero: options.display_zero || false,
+                };
+
+                input = $('<div class="editable-input"></div>')
+                    .metadata_crud_input(input_data.type, input_options);
+
+                return input;
             },
 
             _derivative_container: function(fields, record) {

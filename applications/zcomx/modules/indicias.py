@@ -607,6 +607,9 @@ class IndiciaSh(TempDirectoryMixin):
 class BookPublicationMetadata(object):
     """Class representing publication metadata for a book."""
 
+    to_month_err_msg = \
+        'The "Finish" must be the same as or after the "Start" month/year.'
+
     def __init__(
             self,
             book,
@@ -939,6 +942,31 @@ class BookPublicationMetadata(object):
         data.append(self.derivative_text())
         return [x for x in data if x]
 
+    def to_month_requires(self, from_month_str, from_year_str, to_year_str):
+        """Return requires for to_month.
+
+        Args:
+            from_year: value of the record from_year
+        """
+        min_month = 1
+        max_month = 12
+
+        from_month = int(from_month_str)
+        from_year = int(from_year_str)
+        to_year = int(to_year_str)
+
+        if from_year > to_year:
+            # If the from year is greater than the to year, no value of
+            # month is valid. Force the value to be invalid.
+            max_month = 0
+        elif from_year == to_year:
+            min_month = from_month
+
+        return IS_INT_IN_RANGE(
+            min_month, max_month + 1,
+            error_message=self.to_month_err_msg
+        )
+
     def to_year_requires(self, from_year):
         """Return requires for to_year.
 
@@ -1086,6 +1114,7 @@ class BookPublicationMetadata(object):
         published_types = ['whole', 'serial']
         published_formats = ['digital', 'paper']
         publisher_types = ['press', 'self']
+        min_month, max_month = (1, 12)
         min_year, max_year = self.year_range()
 
         self.errors = {}
@@ -1105,10 +1134,17 @@ class BookPublicationMetadata(object):
                     if self.metadata.published_format == 'paper' and \
                             self.metadata.publisher_type == 'self':
                         db_meta.publisher.requires = None
+                    db_meta.from_month.requires = IS_INT_IN_RANGE(
+                        min_month, max_month + 1)
                     db_meta.from_year.requires = IS_INT_IN_RANGE(
                         min_year, max_year)
-                    db_meta.to_year.requires = self.to_year_requires(
-                        self.metadata.from_year)
+                    db_meta.to_month.requires = self.to_month_requires(
+                        self.metadata.from_month,
+                        self.metadata.from_year,
+                        self.metadata.to_year,
+                    )
+                    db_meta.to_year.requires = IS_INT_IN_RANGE(
+                        min_year, max_year)
                     for f in db_serial.fields:
                         db_serial[f].requires = None
                 elif self.metadata.published_type == 'serial':
@@ -1124,7 +1160,11 @@ class BookPublicationMetadata(object):
                         published_formats)
                     db_serial.publisher_type.requires = IS_IN_SET(
                         publisher_types)
+                    db_serial.from_month.requires = IS_INT_IN_RANGE(
+                        min_month, max_month + 1)
                     db_serial.from_year.requires = IS_INT_IN_RANGE(
+                        min_year, max_year)
+                    db_serial.to_year.requires = IS_INT_IN_RANGE(
                         min_year, max_year)
 
             for field, value in self.metadata.items():
@@ -1145,8 +1185,11 @@ class BookPublicationMetadata(object):
                                 serial.publisher_type == 'self':
                             db_serial.publisher.requires = None
                     if field == 'to_year':
-                        db_serial.to_year.requires = self.to_year_requires(
-                            serial.from_year)
+                        db_serial.to_month.requires = self.to_month_requires(
+                            serial.from_month,
+                            serial.from_year,
+                            serial.to_year,
+                        )
                     value, error = db_serial[field].validate(value)
                     if error:
                         key = '{t}_{f}__{i}'.format(
