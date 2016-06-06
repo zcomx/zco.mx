@@ -24,6 +24,7 @@
 '1 hour ago': '1 hour ago',
 '1 month ago': '1 month ago',
 '1 week ago': '1 week ago',
+'1 year ago': '1 year ago',
 '@markmin\x01(file **gluon/contrib/plural_rules/%s.py** is not found)': '(soubor **gluon/contrib/plural_rules/%s.py** nenalezen)',
 '@markmin\x01An error occured, please [[reload %s]] the page': 'An error occured, please [[reload %s]] the page',
 '@markmin\x01Searching: **%s** %%{file}': 'Hledání: **%s** %%{soubor}',

@@ -247,6 +247,7 @@
 'NO': 'NO',
 'No completed books': 'No completed books',
 'No databases in this application': 'No hay bases de datos en esta aplicación',
+'No matches found': 'No matches found',
 'No ongoing series': 'No ongoing series',
 'No records found': 'No records found',
 'Not authorized': 'No autorizado',

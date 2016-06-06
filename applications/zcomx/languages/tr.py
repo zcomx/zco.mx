@@ -2,6 +2,9 @@
 {
 '!langcode!': 'tr',
 '!langname!': 'Türkçe',
+'%(nrows)s records found': '%(nrows)s records found',
+'%d days ago': '%d days ago',
+'%d months ago': '%d months ago',
 '%s %%(shop)': '%s %%(shop)',
 '%s %%(shop[0])': '%s %%(shop[0])',
 '%s %%{quark[0]}': '%s %%{quark[0]}',
@@ -9,6 +12,8 @@
 '%s %%{shop}': '%s %%{shop}',
 '%Y-%m-%d': '%Y-%m-%d',
 '%Y-%m-%d %H:%M:%S': '%Y-%m-%d %H:%M:%S',
+'1 month ago': '1 month ago',
+'1 week ago': '1 week ago',
 '@markmin\x01**Hello World**': '**Merhaba Dünya**',
 '@markmin\x01An error occured, please [[reload %s]] the page': 'An error occured, please [[reload %s]] the page',
 'About': 'Hakkında',

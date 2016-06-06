@@ -9,6 +9,7 @@
 '%d minutes ago': '%d minutes ago',
 '%d months ago': '%d months ago',
 '%d weeks ago': '%d weeks ago',
+'%d years ago': '%d years ago',
 '%s %%{row} deleted': '已删除 %s 笔',
 '%s %%{row} updated': '已更新 %s 笔',
 '%s selected': '%s 已选择',

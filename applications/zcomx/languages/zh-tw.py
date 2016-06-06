@@ -15,6 +15,7 @@
 '%Y-%m-%d %H:%M:%S': '%Y-%m-%d %H:%M:%S',
 '(something like "it-it")': '(格式類似 "zh-tw")',
 '1 day ago': '1 day ago',
+'1 hour ago': '1 hour ago',
 '1 month ago': '1 month ago',
 '1 week ago': '1 week ago',
 '1 year ago': '1 year ago',

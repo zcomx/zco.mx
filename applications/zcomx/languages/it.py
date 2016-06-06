@@ -20,6 +20,7 @@
 '1 hour ago': '1 hour ago',
 '1 month ago': '1 month ago',
 '1 week ago': '1 week ago',
+'1 year ago': '1 year ago',
 '<': '<',
 '<=': '<=',
 '=': '=',
