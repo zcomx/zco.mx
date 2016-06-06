@@ -56,7 +56,6 @@ from applications.zcomx.modules.books import \
     page_url, \
     publication_months, \
     publication_year_range, \
-    publication_years, \
     read_link, \
     rss_url, \
     set_status, \
@@ -1515,18 +1514,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         start, end = publication_year_range()
         self.assertEqual(start, 1970)
         self.assertEqual(end, datetime.date.today().year + 5)
-
-    def test__publication_years(self):
-        xml = publication_years()
-        got = ast.literal_eval(xml.xml())
-        self.assertEqual(got[0], {'value':'1970', 'text':'1970'})
-        self.assertEqual(got[1], {'value':'1971', 'text':'1971'})
-        self.assertEqual(got[30], {'value':'2000', 'text':'2000'})
-        final_year = datetime.date.today().year + 5 - 1
-        self.assertEqual(
-            got[-1],
-            {'value':str(final_year), 'text':str(final_year)}
-        )
 
     def test__read_link(self):
         empty = '<span></span>'

@@ -1018,21 +1018,6 @@ def publication_year_range():
     return (1970, datetime.date.today().year + 5)
 
 
-def publication_years():
-    """Return a XML instance representing publication years suitable for
-    drop down menu.
-    """
-    # {'value': '1970', 'text': '1970'}, ...
-    return XML(
-        ','.join(
-            [
-                '{{"value":"{x}", "text":"{x}"}}'.format(x=x)
-                for x in range(*publication_year_range())
-            ]
-        )
-    )
-
-
 def read_link(book, components=None, **attributes):
     """Return html code suitable for a 'Read' link.
 

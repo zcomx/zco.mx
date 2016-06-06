@@ -9,6 +9,7 @@ Test suite for zcomx/modules/records.py
 import unittest
 from gluon import *
 from pydal.objects import Row
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.records import \
     Record, \
@@ -79,10 +80,16 @@ class TestRecord(LocalTestCase):
         self.assertRaises(LookupError, DubBook.from_id, saved_book.id)
 
     def test__from_add(self):
+        creator = self.add(DubCreator, dict(
+            name_for_url='test__from_add',
+        ))
+
         data = dict(
             name='_test__from_add_',
             name_for_url='_TestFromAdd_',
             name_for_search='_test-from-add_',
+            creator_id=creator.id,
+            book_type_id=BookType.by_name('one-shot').id,
         )
         book = DubBook.from_add(data)
         self.assertTrue(book.id)
@@ -92,7 +99,8 @@ class TestRecord(LocalTestCase):
         self._objects.append(book)
 
         # Test data with validate errors
-        invalid_data = dict(name='')
+        invalid_data = dict(data)
+        invalid_data['name'] = ''
         self.assertRaises(
             SyntaxError, DubBook.from_add, invalid_data, validate=True)
 
@@ -174,10 +182,16 @@ class TestRecord(LocalTestCase):
         self.assertRaises(LookupError, DubBook.from_query, query)
 
     def test__from_updated(self):
+        creator = self.add(DubCreator, dict(
+            name_for_url='test__from_update',
+        ))
+
         data = dict(
             name='_test__from_update_',
             name_for_url='_TestFromUpdate_',
             name_for_search='_test-from-update_',
+            creator_id=creator.id,
+            book_type_id=BookType.by_name('one-shot').id,
         )
         book = DubBook.from_add(data)
         self.assertTrue(book.id)

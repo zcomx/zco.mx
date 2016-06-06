@@ -1412,6 +1412,34 @@ class TestBookPublicationMetadata(LocalTestCase):
             ]
         )
 
+    def test__to_month_requires(self):
+        meta = BookPublicationMetadata(Book())
+
+        err_msg = (
+            'The "Finish" must be the same as or after'
+            ' the "Start" month/year.'
+        )
+
+        tests = [
+            # from_month, from_year, to_month, to_year, expect
+            (01, 1999, 01, 1999, None),
+            (01, 1999, 01, 2000, None),
+            (12, 1999, 01, 2000, None),
+            (11, 1999, 12, 1999, None),
+            (12, 1999, 11, 1999, err_msg),
+        ]
+
+        for t in tests:
+            # test as integers
+            requires = meta.to_month_requires(t[0], t[1], t[3])
+            expect = (t[2], t[4])
+            self.assertEqual(requires(t[2]), expect)
+
+            # test as strings
+            requires = meta.to_month_requires(str(t[0]), str(t[1]), str(t[3]))
+            expect = (t[2], t[4])
+            self.assertEqual(requires(t[2]), expect)
+
     def test__to_year_requires(self):
         book = self.add(Book, dict(
             name='test__to_year_requires',
@@ -1572,7 +1600,9 @@ class TestBookPublicationMetadata(LocalTestCase):
             published_format='paper',
             publisher_type='press',
             publisher='Acme',
+            from_month=11,
             from_year=1999,
+            to_month=12,
             to_year=2000,
         )
 
@@ -1585,7 +1615,9 @@ class TestBookPublicationMetadata(LocalTestCase):
                 story_number=1,
                 serial_title='Aaa Series',
                 serial_number=2,
+                from_month=11,
                 from_year=2014,
+                to_month=12,
                 to_year=2015,
             ),
             dict(
@@ -1596,7 +1628,9 @@ class TestBookPublicationMetadata(LocalTestCase):
                 story_number=2,
                 serial_title='Aaa Series',
                 serial_number=2,
+                from_month=11,
                 from_year=2014,
+                to_month=12,
                 to_year=2015,
             )
         ]
@@ -1626,7 +1660,9 @@ class TestBookPublicationMetadata(LocalTestCase):
         meta.metadata.published_format = '_fake_'
         meta.metadata.publisher_type = '_fake_'
         meta.metadata.publisher = ''
+        meta.metadata.from_month = -1
         meta.metadata.from_year = -1
+        meta.metadata.to_month = -2
         meta.metadata.to_year = -2
         meta.validate()
         self.assertEqual(
@@ -1636,7 +1672,9 @@ class TestBookPublicationMetadata(LocalTestCase):
                 'publication_metadata_published_format',
                 'publication_metadata_publisher_type',
                 'publication_metadata_publisher',
+                'publication_metadata_from_month',
                 'publication_metadata_from_year',
+                'publication_metadata_to_month',
                 'publication_metadata_to_year',
             ])
         )
@@ -1647,7 +1685,9 @@ class TestBookPublicationMetadata(LocalTestCase):
         meta.metadata.published_format = 'paper'
         meta.metadata.publisher_type = 'self'
         meta.metadata.publisher = ''
+        meta.metadata.from_month = 1
         meta.metadata.from_year = 2000
+        meta.metadata.to_month = 12
         meta.metadata.to_year = 2001
         meta.validate()
         self.assertEqual(meta.errors, {})
@@ -1661,15 +1701,30 @@ class TestBookPublicationMetadata(LocalTestCase):
             'Enter a value'
         )
 
-        # Invalid years
-        meta.metadata = PublicationMetadata(metadata)
-        meta.metadata.from_year = 2000
-        meta.metadata.to_year = 1999
-        meta.validate()
-        self.assertEqual(
-            meta.errors['publication_metadata_to_year'],
-            'Enter a year 2000 or greater'
-        )
+        # Invalid to_month/to_year
+        tests = [
+            # from_month, from_year, to_month, to_year, expect
+            (01, 1999, 01, 1999, None),
+            (01, 1999, 01, 2000, None),
+            (12, 1999, 01, 2000, None),
+            (11, 1999, 12, 1999, None),
+            (12, 1999, 11, 1999, meta.to_month_err_msg),
+        ]
+
+        for t in tests:
+            meta.metadata = PublicationMetadata(metadata)
+            meta.metadata.from_month = t[0]
+            meta.metadata.from_year = t[1]
+            meta.metadata.to_month = t[2]
+            meta.metadata.to_year = t[3]
+            meta.validate()
+            if t[4]:
+                self.assertEqual(
+                    meta.errors['publication_metadata_to_month'],
+                    t[4]
+                )
+            else:
+                self.assertEqual(meta.errors, {})
 
         # serial
         meta.metadata = PublicationMetadata(metadata)
@@ -1687,7 +1742,9 @@ class TestBookPublicationMetadata(LocalTestCase):
         meta.serials[0].published_format = '_fake_'
         meta.serials[0].publisher_type = '_fake_'
         meta.serials[0].publisher = ''
+        meta.serials[0].from_month = -1
         meta.serials[0].from_year = -1
+        meta.serials[0].to_month = -2
         meta.serials[0].to_year = -2
         meta.validate()
         self.assertEqual(
@@ -1697,7 +1754,9 @@ class TestBookPublicationMetadata(LocalTestCase):
                 'publication_serial_published_format__0',
                 'publication_serial_publisher_type__0',
                 'publication_serial_publisher__0',
+                'publication_serial_from_month__0',
                 'publication_serial_from_year__0',
+                'publication_serial_to_month__0',
                 'publication_serial_to_year__0',
             ])
         )
@@ -1708,7 +1767,9 @@ class TestBookPublicationMetadata(LocalTestCase):
         meta.serials[0].published_format = '_fake_'
         meta.serials[0].publisher_type = '_fake_'
         meta.serials[0].publisher = ''
+        meta.serials[0].from_month = -1
         meta.serials[0].from_year = -1
+        meta.serials[0].to_month = -2
         meta.serials[0].to_year = -2
         meta.validate()
         self.assertEqual(
@@ -1717,7 +1778,9 @@ class TestBookPublicationMetadata(LocalTestCase):
                 'publication_serial_published_format__0',
                 'publication_serial_publisher_type__0',
                 'publication_serial_publisher__0',
+                'publication_serial_from_month__0',
                 'publication_serial_from_year__0',
+                'publication_serial_to_month__0',
                 'publication_serial_to_year__0',
             ])
         )
@@ -1726,12 +1789,14 @@ class TestBookPublicationMetadata(LocalTestCase):
         meta.serials = [PublicationSerial(serials[0])]
         meta.validate()
         self.assertEqual(meta.errors, {})
+        meta.serials[0].from_month = 1
         meta.serials[0].from_year = 1981
+        meta.serials[0].to_month = 12
         meta.serials[0].to_year = 1980
         meta.validate()
         self.assertEqual(
-            meta.errors['publication_serial_to_year__0'],
-            'Enter a year 1981 or greater'
+            meta.errors['publication_serial_to_month__0'],
+            meta.to_month_err_msg
         )
 
         meta.serials = [PublicationSerial(x) for x in list(serials)]
