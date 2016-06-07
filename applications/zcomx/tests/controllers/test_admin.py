@@ -21,7 +21,10 @@ class TestFunctions(WebTestCase):
         # Not logged in, redirects to login page
         web.logout()
         self.assertWebTest(
-            '/admin/index', match_page_key='/default/user/login')
+            '/admin/index',
+            match_page_key='/default/user/login',
+            login_required=False
+        )
 
         # Logged in, displays admin
         web.login()

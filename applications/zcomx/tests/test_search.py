@@ -1488,7 +1488,8 @@ class TestFunctions(LocalTestCase):
     def test__link_for_creator_torrent(self):
         self.assertEqual(link_for_creator_torrent({}), '')
 
-        self._creator = Creator.from_updated(self._creator, dict(torrent=None))
+        self._creator = Creator.from_updated(
+            self._creator, dict(torrent=None), validate=False)
         self.assertEqual(self._row().creator.torrent, None)
         self.assertEqual(link_for_creator_torrent(self._row()), '')
 

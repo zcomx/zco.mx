@@ -256,6 +256,8 @@ class TestFunctions(LocalTestCase):
             )
             del record[date_field]
 
+        this_year = datetime.date.today().year
+
         self.assertEqual(
             record,
             {
@@ -278,7 +280,7 @@ class TestFunctions(LocalTestCase):
                 'number': 1,
                 'of_number': 1,
                 'page_added_on': None,
-                'publication_year': 2015,
+                'publication_year': this_year,
                 'rating': 0,
                 'reader': 'slider',
                 'release_date': None,

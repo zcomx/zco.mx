@@ -186,7 +186,7 @@ class TestFacebookAPIAuthenticator(LocalTestCase):
     def test__get_token(self):
         self.assertTrue(self.api_authenticator.login())
         token = self.api_authenticator.get_token()
-        self.assertTrue(len(token) > 200)
+        self.assertTrue(len(token) > 170)
         self.assertTrue(len(token) < 300)
         self.assertTrue(re.match(r'^[\w]+$', token) is not None)
 

@@ -384,7 +384,7 @@ class TestFunctions(LocalTestCase):
             description=None,
             publication_year=1997,
             creator_id=creator.id,
-            book_type_id=BookType.by_name('one-shot'),
+            book_type_id=BookType.by_name('one-shot').id,
             name_for_url='MyBook',
         ))
 

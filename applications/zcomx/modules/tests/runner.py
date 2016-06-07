@@ -188,7 +188,8 @@ class LocalTestCase(unittest.TestCase):
             match_strings=None,
             match_type='all',
             tolerate_whitespace=False,
-            post_data=None):
+            post_data=None,
+            login_required=True):
         """Fail if the content of the page returned by url does not match page
         key and optional strings.
 
@@ -202,6 +203,7 @@ class LocalTestCase(unittest.TestCase):
             match_type: see LocalWebClient.match_type
             tolerate_whitespace: see LocalWebClient.tolerate_whitespace
             post_data: see LocalWebClient.post_data
+            login_required: see LocalWebClient.login_required
         """
         if match_page_key is None:
             match_page_key = url_path
@@ -217,6 +219,7 @@ class LocalTestCase(unittest.TestCase):
         if match_strings:
             matches.extend(match_strings)
         current.app.web.sessions = {}   # Avoid: 'Changed session ID' warnings
+        current.app.web.login_required = login_required
         if not current.app.web.test(
                 url,
                 matches,

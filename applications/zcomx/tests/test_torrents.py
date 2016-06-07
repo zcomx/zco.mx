@@ -228,7 +228,7 @@ class TestBookTorrentCreator(TorrentTestCase):
             name='My Book',
             publication_year=1999,
             creator_id=creator.id,
-            book_type_id=BookType.by_name('one-shot'),
+            book_type_id=BookType.by_name('one-shot').id,
         ))
         tor_creator = BookTorrentCreator(book)
         # book.cbz is not defined, should fail
@@ -257,7 +257,7 @@ class TestBookTorrentCreator(TorrentTestCase):
             name='My Book',
             publication_year=1999,
             creator_id=creator.id,
-            book_type_id=BookType.by_name('one-shot'),
+            book_type_id=BookType.by_name('one-shot').id,
         ))
 
         tor_creator = BookTorrentCreator(book)

@@ -13,9 +13,11 @@ import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
 from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import \
     Book, \
     get_page
+from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.indicias import \
     BookPublicationMetadata, \
@@ -797,7 +799,10 @@ class TestFunctions(WebTestCase):
         book = self.add(Book, dict(
             name='test__metadata_crud',
             creator_id=self._creator.id,
+            book_type_id=BookType.by_name('ongoing').id,
+            cc_licence_id=CCLicence.by_code('CC BY').id,
         ))
+        db.commit()
 
         def get_records(table, book_id):
             """Return a book"""
@@ -820,20 +825,28 @@ class TestFunctions(WebTestCase):
             '_action': 'update',
             'publication_metadata_republished': 'repub',
             'publication_metadata_published_type': 'serial',
+            'publication_metadata_from_month': '1',
             'publication_metadata_from_year': '1997',
+            'publication_metadata_to_month': '12',
             'publication_metadata_to_year': '1998',
             'publication_serial_published_name__0': 'My Story',
             'publication_serial_story_number__0': '1',
+            'publication_serial_from_month__0': '1',
             'publication_serial_from_year__0': '2001',
+            'publication_serial_to_month__0': '2',
             'publication_serial_to_year__0': '2002',
             'publication_serial_published_name__1': 'My Story',
             'publication_serial_story_number__1': '2',
+            'publication_serial_from_month__1': '1',
             'publication_serial_from_year__1': '2005',
+            'publication_serial_to_month__1': '2',
             'publication_serial_to_year__1': '2006',
             'is_derivative': 'yes',
             'derivative_title': 'My D Title',
             'derivative_creator': 'Creator Smith',
             'derivative_cc_licence_id': '1',
+            'derivative_from_year': '1970',
+            'derivative_to_year': '1971',
         }
         web.post(url, data)
         result = loads(web.text)

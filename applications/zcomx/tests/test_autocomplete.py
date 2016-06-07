@@ -89,7 +89,7 @@ class TestBaseAutocompleter(DumpTestCase):
         self.assertEqual(len(queries), 1)
         self.assertEqual(
             str(queries[0]),
-            "(LOWER(book.name_for_search) LIKE '%abc-def%')"
+            "(LOWER(book.name_for_search) LIKE '%abc-def%' ESCAPE '\\')"
         )
 
     def test__formatted_value(self):
@@ -169,7 +169,7 @@ class TestBookAutocompleter(LocalTestCase):
         self.assertEqual(len(queries), 2)
         self.assertEqual(
             str(queries[0]),
-            "(LOWER(book.name_for_search) LIKE '%abc-def%')"
+            "(LOWER(book.name_for_search) LIKE '%abc-def%' ESCAPE '\\')"
         )
         self.assertEqual(
             str(queries[1]),
@@ -274,7 +274,7 @@ class TestCreatorAutocompleter(LocalTestCase):
         self.assertEqual(len(queries), 2)
         self.assertEqual(
             str(queries[0]),
-            "(LOWER(creator.name_for_search) LIKE '%abc-def%')"
+            "(LOWER(creator.name_for_search) LIKE '%abc-def%' ESCAPE '\\')"
         )
         self.assertEqual(
             str(queries[1]),

@@ -1078,7 +1078,7 @@ class BookPublicationMetadata(object):
 
             if not existing:
                 data = dict(book_id=self.book.id)
-                Derivative.from_add(data)
+                Derivative.from_add(data, validate=False)
 
             derivative = Derivative.from_query(query)
             if not derivative:
