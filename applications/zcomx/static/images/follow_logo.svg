@@ -1,50 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   version="1.1"
-   width="64"
-   height="64"
    id="svg3228"
-   inkscape:version="0.48.5 r10040"
-   sodipodi:docname="logo-follow.svg"
-   inkscape:export-filename="/root/code/zco.mx/logo/logo-follow.png"
-   inkscape:export-xdpi="89.93"
-   inkscape:export-ydpi="89.93">
-  <sodipodi:namedview
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:window-width="860"
-     inkscape:window-height="1056"
-     id="namedview9"
-     showgrid="false"
-     inkscape:zoom="5.6568544"
-     inkscape:cx="25.964905"
-     inkscape:cy="47.264038"
-     inkscape:window-x="0"
-     inkscape:window-y="20"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="svg3228"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
-     fit-margin-bottom="0"
-     inkscape:snap-global="false"
-     showborder="true"
-     inkscape:showpageshadow="true" />
+   height="64"
+   width="64"
+   version="1.1">
   <defs
      id="defs3230" />
   <metadata
@@ -55,42 +19,33 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     id="g3060"
-     transform="matrix(1.6122035,0,0,1.6122035,-169.77998,-140.72103)">
-    <rect
-       ry="4.0658641"
-       y="89.455849"
-       x="107.48022"
-       height="35.355339"
-       width="35.355339"
+     id="g4147">
+    <path
        id="rect3027-1-1"
+       d="m 10.055001,3.5000029 43.889999,0 c 3.631472,0 6.55501,2.9235295 6.55501,6.5550001 l 0,43.889995 c 0,3.631472 -2.923538,6.555009 -6.55501,6.555009 l -43.889999,0 c -3.6314727,0 -6.5549941,-2.923537 -6.5549941,-6.555009 l 0,-43.889995 c 0,-3.6314706 2.9235214,-6.5550001 6.5549941,-6.5550001 z"
        style="fill:#ff6600;fill-opacity:1;stroke:none" />
-    <text
-       x="94.404137"
-       y="138.66225"
-       transform="scale(1.1721071,0.85316435)"
-       id="text3772-6-2-5-4-4-8-6-8-6-4-9-2-8-7-9"
-       xml:space="preserve"
-       style="font-size:38.25694275px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:HVD Comic Serif Pro;-inkscape-font-specification:HVD Comic Serif Pro"
-       sodipodi:linespacing="125%"><tspan
-         x="94.404137"
-         y="138.66225"
-         id="tspan3774-1-4-4-1-9-1-1-5-1-4-5-08-4-8-5"
-         style="font-size:38.25694275px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;font-family:HVD Comic Serif Pro;-inkscape-font-specification:HVD Comic Serif Pro">Z</tspan></text>
     <g
-       transform="matrix(0.87606201,0,0,0.96671574,-55.158683,72.529445)"
-       id="text3977-1-7"
-       style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#333333;fill-opacity:1;stroke:#ffffff;stroke-width:0.5;stroke-miterlimit:4;stroke-opacity:1;font-family:Acknowledgement;-inkscape-font-specification:Acknowledgement Bold">
+       id="text3772-6-2-5-4-4-8-6-8-6-4-9-2-8-7-9"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:38.25694275px;line-height:125%;font-family:'HVD Comic Serif Pro';-inkscape-font-specification:'HVD Comic Serif Pro';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none"
+       transform="matrix(1.8896752,0,0,1.3754746,-169.77998,-140.72103)">
       <path
-         inkscape:connector-curvature="0"
-         id="path4094-3"
+         id="path4140"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:38.25694275px;line-height:125%;font-family:'HVD Comic Serif Pro';-inkscape-font-specification:'HVD Comic Serif Pro';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1"
+         d="m 97.12038,111.84413 c -0.03826,0.0383 -0.229542,8.2635 0.153027,8.45478 0.38257,0.19129 5.241203,0.49734 5.241203,0.49734 0,0 0.65037,-3.29009 0.76514,-3.36661 0.11477,-0.0765 5.08817,-0.19128 5.27946,-0.19128 0.19128,0 -12.586539,14.99672 -12.663053,15.11149 -0.07651,0.11477 0.87991,6.12111 0.918167,6.12111 l 20.582236,0 c 0,0 0.45908,-9.9468 0.19128,-10.29112 -0.26779,-0.34431 -4.74386,-0.45908 -4.85863,-0.45908 -0.11477,0 -0.65037,4.09349 -0.72688,4.20826 -0.0765,0.11478 -6.15937,0.38257 -6.27414,0.38257 -0.11477,0 11.78314,-14.72892 11.93617,-14.80543 0.15303,-0.0765 -0.61211,-5.39423 -0.61211,-5.54726 0,-0.15303 -19.93187,-0.11477 -19.93187,-0.11477 z" />
+    </g>
+    <g
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:125%;font-family:Acknowledgement;-inkscape-font-specification:'Acknowledgement Bold';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#333333;fill-opacity:1;stroke:#ffffff;stroke-width:0.5;stroke-miterlimit:4;stroke-opacity:1"
+       id="text3977-1-7"
+       transform="matrix(1.4123902,0,0,1.5585425,-258.707,-23.788805)">
+      <path
+         d="m 218.84043,41.246026 0,3.363868 3.77117,0 0,3.188362 -3.77117,0 0,3.39312 -3.37935,0 0,-3.39312 -3.82014,0 0,-3.188362 3.82014,0 0,-3.363868 3.37935,0"
          style="stroke-width:0.4181847"
-         d="m 218.84043,41.246026 0,3.363868 3.77117,0 0,3.188362 -3.77117,0 0,3.39312 -3.37935,0 0,-3.39312 -3.82014,0 0,-3.188362 3.82014,0 0,-3.363868 3.37935,0" />
+         id="path4094-3" />
     </g>
   </g>
 </svg>
