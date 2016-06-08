@@ -703,12 +703,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .grid_section .tile_view .item_container {
     display: inline-block;
-    max-height: 448px;
     margin: 0 0.15em 3.4em;
+    max-height: 448px;
     padding: 0.6em;
     vertical-align: top;
     width: 280px;
-    vertical-align: top;
 }
 @media (max-width: 767px) {
     .grid_section .tile_view .item_container {
@@ -730,15 +729,19 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-bottom: 0.2em;
 }
 
-.grid_section .tile_view .item_container img {
+.grid_section .tile_view .image_container_wrapper {
     outline: 0.1em solid #DDDDDD;
-    display: block;
+    overflow: hidden;
     width: 100%;
-    height: auto%;
 }
 
-.grid_section .tile_view .item_container img:hover, img:focus {
+.grid_section .tile_view .image_container_wrapper:hover, image_container_wrapper:focus {
     outline: 0.2em solid #FF6600;
+}
+
+.grid_section .tile_view .item_container img {
+    max-height: 440px;
+    max-width: 264px;
 }
 
 .grid_section .tile_view .item_container .name {
@@ -2407,17 +2410,18 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .placeholder_torso {
-    height: 12em;
-    max-width: 10em;
+    border: 8px solid #EEEEEE;
+    height: 333px;
+    margin-bottom: -0.4em;
+    max-width: 264px;
     overflow: hidden;
     padding: 0em;
-    border: 8px solid #DDDDDD;
 }
 
 .placeholder_torso i {
+    color: #EEEEEE;
     float: right;
-    font-size: 11em;
-    color: #DDDDDD;
+    font-size: 22em;
     line-height: 1.1em;
     width: 112%;
 }

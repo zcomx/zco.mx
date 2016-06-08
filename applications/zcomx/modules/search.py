@@ -115,8 +115,10 @@ class Grid(object):
             _href=creator_url(row.creator, extension=False)
         )
 
-        def book_name_rep(v, row):
+        def book_name_rep(value, row):
             """db.book.name.represent."""
+            # unused-argument (W0613): *Unused argument %%r*
+            # pylint: disable=W0613
             book = Book.from_id(row.book.id)
             return A(
                 formatted_name(book, include_publication_year=False),
@@ -934,10 +936,13 @@ class BookTile(Tile):
     def image(self):
         """Return a div for the tile image."""
         return DIV(
-            book_read_link(
-                self.book,
-                components=[cover_image(self.book, size='web')],
-                **dict(_class='book_page_image', _title='')
+            DIV(
+                book_read_link(
+                    self.book,
+                    components=[cover_image(self.book, size='web')],
+                    **dict(_class='book_page_image', _title='')
+                ),
+                _class='image_container_wrapper',
             ),
             _class='col-sm-12 image_container',
         )
@@ -1050,7 +1055,10 @@ class CartoonistTile(Tile):
             _title=''
         )
         return DIV(
-            creator_image,
+            DIV(
+                creator_image,
+                _class='image_container_wrapper',
+            ),
             _class='col-sm-12 image_container',
         )
 
