@@ -8,9 +8,11 @@ from gluon.contrib.simplejson import dumps, loads
 from applications.zcomx.modules.access import requires_agreed_to_terms
 from applications.zcomx.modules.book_lists import \
     class_from_code as book_list_class_from_code
-from applications.zcomx.modules.book.complete_barriers import \
+from applications.zcomx.modules.book.release_barriers import \
     complete_barriers, \
-    has_complete_barriers
+    filesharing_barriers, \
+    has_complete_barriers, \
+    has_filesharing_barriers
 from applications.zcomx.modules.book_pages import \
     BookPage, \
     delete_pages_not_in_ids, \
@@ -182,7 +184,7 @@ def book_crud():
             return do_error('Invalid data provided')
 
     if action == 'complete':
-        if has_complete_barriers(book):
+        if has_complete_barriers(book) or has_filesharing_barriers(book):
             return do_error('This book cannot be released.')
 
         book = Book.from_updated(book, dict(releasing=True))
@@ -627,9 +629,11 @@ def book_release():
     if not book or book.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
+    barriers = complete_barriers(book) + filesharing_barriers(book)
+
     return dict(
         book=book,
-        barriers=complete_barriers(book),
+        barriers=barriers,
     )
 
 

@@ -3,7 +3,7 @@
 
 """
 
-Test suite for zcomx/modules/book/complete_barriers.py
+Test suite for zcomx/modules/book/release_barriers.py
 
 """
 import inspect
@@ -13,10 +13,11 @@ import shutil
 import unittest
 from gluon import *
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.book.complete_barriers import \
+from applications.zcomx.modules.book.release_barriers import \
     AllRightsReservedBarrier, \
-    BARRIER_CLASSES, \
-    BaseCompleteBarrier, \
+    COMPLETE_BARRIER_CLASSES, \
+    FILESHARING_BARRIER_CLASSES, \
+    BaseReleaseBarrier, \
     DupeNameBarrier, \
     DupeNumberBarrier, \
     InvalidPageNoBarrier, \
@@ -25,9 +26,12 @@ from applications.zcomx.modules.book.complete_barriers import \
     NoLicenceBarrier, \
     NoPagesBarrier, \
     NoPublicationMetadataBarrier, \
+    NotCompletedBarrier, \
     barriers_for_book, \
     complete_barriers, \
-    has_complete_barriers
+    filesharing_barriers, \
+    has_complete_barriers, \
+    has_filesharing_barriers
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
@@ -89,18 +93,18 @@ class TestAllRightsReservedBarrier(LocalTestCase):
         self.assertTrue('All Rights Reserved' in barrier.reason)
 
 
-class TestBaseCompleteBarrier(LocalTestCase):
+class TestBaseReleaseBarrier(LocalTestCase):
 
     def test____init__(self):
-        barrier = BaseCompleteBarrier({})
+        barrier = BaseReleaseBarrier({})
         self.assertTrue(barrier)
 
     def test__applies(self):
-        barrier = BaseCompleteBarrier({})
+        barrier = BaseReleaseBarrier({})
         self.assertRaises(NotImplementedError, barrier.applies)
 
     def test__code(self):
-        barrier = BaseCompleteBarrier({})
+        barrier = BaseReleaseBarrier({})
         try:
             barrier.code
         except NotImplementedError:
@@ -109,11 +113,11 @@ class TestBaseCompleteBarrier(LocalTestCase):
             self.fail('NotImplementedError not raised')
 
     def test__description(self):
-        barrier = BaseCompleteBarrier({})
+        barrier = BaseReleaseBarrier({})
         self.assertEqual(barrier.description, '')
 
     def test__fixes(self):
-        barrier = BaseCompleteBarrier({})
+        barrier = BaseReleaseBarrier({})
         try:
             barrier.fixes
         except NotImplementedError:
@@ -122,7 +126,7 @@ class TestBaseCompleteBarrier(LocalTestCase):
             self.fail('NotImplementedError not raised')
 
     def test__reason(self):
-        barrier = BaseCompleteBarrier({})
+        barrier = BaseReleaseBarrier({})
         try:
             barrier.reason
         except NotImplementedError:
@@ -580,9 +584,43 @@ class TestNoPublicationMetadataBarrier(LocalTestCase):
             'publication metadata has not been set' in barrier.reason)
 
 
+class TestNotCompletedBarrier(LocalTestCase):
+
+    def test__applies(self):
+        book = Book(dict(
+            release_date=datetime.date.today()
+        ))
+
+        barrier = NotCompletedBarrier(book)
+        self.assertFalse(barrier.applies())
+
+        book.update(release_date=None)
+        barrier = NotCompletedBarrier(book)
+        self.assertTrue(barrier.applies())
+
+    def test__code(self):
+        barrier = NotCompletedBarrier({})
+        self.assertEqual(barrier.code, 'not_completed')
+
+    def test__description(self):
+        barrier = NotCompletedBarrier({})
+        self.assertTrue('It must be set as completed' in barrier.description)
+
+    def test__fixes(self):
+        barrier = NotCompletedBarrier({})
+
+        self.assertEqual(len(barrier.fixes), 1)
+        self.assertTrue(
+            'Click the "Set as completed" checkbox' in barrier.fixes[0])
+
+    def test__reason(self):
+        barrier = NotCompletedBarrier({})
+        self.assertTrue('book is not completed' in barrier.reason)
+
+
 class TestConstants(LocalTestCase):
     def test_barrier_classes(self):
-        base_class = BaseCompleteBarrier
+        base_class = BaseReleaseBarrier
         base_classes = []
 
         classes = [x for x in globals().values() if inspect.isclass(x)]
@@ -592,26 +630,101 @@ class TestConstants(LocalTestCase):
                 base_classes.append(c)
         self.assertEqual(
             sorted(base_classes),
-            sorted(BARRIER_CLASSES)
+            sorted(COMPLETE_BARRIER_CLASSES + FILESHARING_BARRIER_CLASSES)
         )
 
 
 class TestFunctions(ImageTestCase):
 
+    _incomplete_book = None
+    _complete_book = None
+    _sharable_book = None
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    def setUp(self):
+        creator = self.add(Creator, dict(
+            email='test__complete_barriers@gmail.com',
+        ))
+
+        self._incomplete_book = self.add(Book, dict(
+            name='',
+            number=0,
+            creator_id=creator.id,
+            book_type_id=BookType.by_name('ongoing').id,
+            cc_licence_id=0,
+        ))
+
+        cc_arr = CCLicence.by_code('All Rights Reserved')
+        self._complete_book = self.add(Book, dict(
+            name='test__complete_barriers',
+            number=999,
+            creator_id=creator.id,
+            book_type_id=BookType.by_name('ongoing').id,
+            cc_licence_id=cc_arr.id,
+        ))
+
+        complete_book_page = self.add(BookPage, dict(
+            book_id=self._complete_book.id,
+            page_no=1,
+        ))
+
+        self._set_image(
+            db.book_page.image,
+            complete_book_page,
+            self._create_image('file.jpg', (1600, 1600)),
+            resizer=ResizerQuick
+        )
+
+        self.add(PublicationMetadata, dict(
+            book_id=self._complete_book.id,
+            republished=False,
+        ))
+
+        cc0 = CCLicence.by_code('CC0')
+
+        self._sharable_book = self.add(Book, dict(
+            name='test__filesharing_barriers',
+            number=999,
+            creator_id=creator.id,
+            book_type_id=BookType.by_name('ongoing').id,
+            cc_licence_id=cc0.id,
+            release_date=datetime.date.today(),
+        ))
+
+        sharable_book_page = self.add(BookPage, dict(
+            book_id=self._sharable_book.id,
+            page_no=1,
+        ))
+
+        self._set_image(
+            db.book_page.image,
+            sharable_book_page,
+            self._create_image('file.jpg', (1600, 1600)),
+            resizer=ResizerQuick
+        )
+
+        self.add(PublicationMetadata, dict(
+            book_id=self._sharable_book.id,
+            republished=False,
+        ))
+
+        _create_cbz(sharable_book_page)
+
     def test__barriers_for_book(self):
         # W0223: *Method ??? is abstract in class
         # pylint: disable=W0223
 
-        class DubAppliesBarrier(BaseCompleteBarrier):
+        class DubAppliesBarrier(BaseReleaseBarrier):
             """Class representing a dub barrier that applies."""
             def applies(self):
                 return True
 
-        class DubApplies2Barrier(BaseCompleteBarrier):
+        class DubApplies2Barrier(BaseReleaseBarrier):
             def applies(self):
                 return True
 
-        class DubNotAppliesBarrier(BaseCompleteBarrier):
+        class DubNotAppliesBarrier(BaseReleaseBarrier):
             """Class representing a dub barrier that does not apply"""
             def applies(self):
                 return False
@@ -633,77 +746,29 @@ class TestFunctions(ImageTestCase):
         self.assertTrue(isinstance(barriers[0], DubAppliesBarrier))
 
     def test__complete_barriers(self):
-        creator = self.add(Creator, dict(
-            email='test__complete_barriers@gmail.com',
-        ))
+        got = complete_barriers(self._incomplete_book)
+        self.assertTrue(isinstance(got[0], NoBookNameBarrier))
+        self.assertTrue(isinstance(got[1], NoPagesBarrier))
+        self.assertTrue(isinstance(got[2], NoLicenceBarrier))
+        self.assertTrue(isinstance(got[3], NoPublicationMetadataBarrier))
+        self.assertTrue(isinstance(got[4], InvalidPageNoBarrier))
 
-        cc0 = CCLicence.by_code('CC0')
+        self.assertEqual(complete_barriers(self._complete_book), [])
 
-        book = self.add(Book, dict(
-            name='test__complete_barriers',
-            number=999,
-            creator_id=creator.id,
-            book_type_id=BookType.by_name('ongoing').id,
-            cc_licence_id=cc0.id,
-        ))
+    def test__filesharing_barriers(self):
+        got = filesharing_barriers(self._complete_book)
+        self.assertTrue(isinstance(got[0], NotCompletedBarrier))
+        self.assertTrue(isinstance(got[1], AllRightsReservedBarrier))
 
-        book_page = self.add(BookPage, dict(
-            book_id=book.id,
-            page_no=1,
-        ))
-        self._set_image(
-            db.book_page.image,
-            book_page,
-            self._create_image('file.jpg', (1600, 1600)),
-            resizer=ResizerQuick
-        )
-
-        _create_cbz(book_page)
-
-        self.add(PublicationMetadata, dict(
-            book_id=book.id,
-            republished=False,
-        ))
-
-        # Has all criteria
-        self.assertEqual(complete_barriers(book), [])
+        self.assertEqual(filesharing_barriers(self._sharable_book), [])
 
     def test__has_complete_barriers(self):
-        creator = self.add(Creator, dict(
-            email='test__complete_barriers@gmail.com',
-        ))
+        self.assertTrue(has_complete_barriers(self._incomplete_book))
+        self.assertFalse(has_complete_barriers(self._complete_book))
 
-        cc0 = CCLicence.by_code('CC0')
-
-        book = self.add(Book, dict(
-            name='test__complete_barriers',
-            number=999,
-            creator_id=creator.id,
-            book_type_id=BookType.by_name('ongoing').id,
-            cc_licence_id=cc0.id,
-        ))
-
-        book_page = self.add(BookPage, dict(
-            book_id=book.id,
-            page_no=1,
-        ))
-        self._set_image(
-            db.book_page.image,
-            book_page,
-            self._create_image('file.jpg', (1600, 1600)),
-            resizer=ResizerQuick
-        )
-
-        _create_cbz(book_page)
-
-        self.add(PublicationMetadata, dict(
-            book_id=book.id,
-            republished=False,
-        ))
-        self.assertFalse(has_complete_barriers(book))
-
-        book = Book.from_updated(book, dict(cc_licence_id=None))
-        self.assertTrue(has_complete_barriers(book))
+    def test__has_filesharing_barriers(self):
+        self.assertTrue(has_filesharing_barriers(self._complete_book))
+        self.assertFalse(has_filesharing_barriers(self._sharable_book))
 
 
 def setUpModule():
