@@ -787,6 +787,18 @@ def images(book):
     return image_names
 
 
+def is_completed(book):
+    """Determine if the book is completed.
+
+    Args:
+        book: Row instance representing a book.
+    """
+    return True if book.status == BOOK_STATUS_ACTIVE \
+        and not book.complete_in_progress \
+        and book.release_date \
+        else False
+
+
 def is_downloadable(book):
     """Determine if the book can be downloaded.
 
@@ -806,19 +818,7 @@ def is_followable(book):
         book: Row instance representing a book.
     """
     return True if book.status == BOOK_STATUS_ACTIVE \
-        and not is_released(book) \
-        else False
-
-
-def is_released(book):
-    """Determine if the book is released.
-
-    Args:
-        book: Row instance representing a book.
-    """
-    return True if book.status == BOOK_STATUS_ACTIVE \
-        and not book.releasing \
-        and book.release_date \
+        and not is_completed(book) \
         else False
 
 

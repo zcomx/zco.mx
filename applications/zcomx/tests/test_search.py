@@ -1355,7 +1355,7 @@ class TestFunctions(LocalTestCase):
             cbz='_fake_cbz_',
             torrent='_fake_torrent_',
             name_for_url='MyFunctionsBook',
-            releasing=False,
+            complete_in_progress=False,
             status='a',
         ))
 
@@ -1367,7 +1367,7 @@ class TestFunctions(LocalTestCase):
             book_type_id=book_type_id,
             release_date=None,
             name_for_url='MyFunctionsBook',
-            releasing=False,
+            complete_in_progress=False,
             status='a',
         ))
 

@@ -49,8 +49,9 @@ from applications.zcomx.modules.indicias import \
     create_creator_indicia
 from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
-    ReleaseBookQueuer, \
-    ReverseReleaseBookQueuer, \
+    FileshareBookQueuer, \
+    SetBookCompletedQueuer, \
+    ReverseSetBookCompletedQueuer, \
     queue_search_prefetch
 from applications.zcomx.modules.links import \
     Link, \
@@ -187,9 +188,22 @@ def book_crud():
         if has_complete_barriers(book) or has_filesharing_barriers(book):
             return do_error('This book cannot be released.')
 
-        book = Book.from_updated(book, dict(releasing=True))
+        book = Book.from_updated(book, dict(complete_in_progress=True))
         db.commit()
-        job = ReleaseBookQueuer(
+        job = SetBookCompletedQueuer(
+            db.job,
+            cli_args=[str(book.id)],
+        ).queue()
+        if not job:
+            msg = (
+                'Complete process failed. '
+                'The book cannot be set as completed at this time.'
+            )
+            return do_error(msg)
+
+        book = Book.from_updated(book, dict(fileshare_in_progress=True))
+        db.commit()
+        job = FileshareBookQueuer(
             db.job,
             cli_args=[str(book.id)],
         ).queue()
@@ -228,7 +242,7 @@ def book_crud():
         book = Book.from_updated(book, dict(status=False))
         err_msg = 'Delete failed. The book cannot be deleted at this time.'
 
-        job = ReverseReleaseBookQueuer(
+        job = ReverseSetBookCompletedQueuer(
             db.job,
             cli_args=[str(book.id)],
         ).queue()

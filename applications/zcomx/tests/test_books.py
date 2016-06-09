@@ -5,7 +5,6 @@
 Test suite for zcomx/modules/books.py
 
 """
-import ast
 import datetime
 import unittest
 import urlparse
@@ -45,9 +44,9 @@ from applications.zcomx.modules.books import \
     get_page, \
     html_metadata, \
     images, \
+    is_completed, \
     is_downloadable, \
     is_followable, \
-    is_released, \
     magnet_link, \
     magnet_uri, \
     name_fields, \
@@ -543,10 +542,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         book = Book(dict(
             id=123,
             name='test__complete_link',
-            releasing=False,
+            complete_in_progress=False,
         ))
 
-        self.assertEqual(book.releasing, False)
+        self.assertEqual(book.complete_in_progress, False)
 
         link = complete_link(book)
         soup = BeautifulSoup(str(link))
@@ -1127,6 +1126,25 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         db.commit()
         self.assertEqual(sorted(images(book)), ['a.1.jpg', 'b.2.jpg'])
 
+    def test__is_completed(self):
+        now = datetime.datetime.now()
+        tests = [
+            # (status, complete_in_progress, release_date, expect)
+            ('a', False, now, True),
+            ('d', False, now, False),
+            ('x', False, now, False),
+            ('a', True, now, False),
+            ('a', False, None, False),
+        ]
+        for t in tests:
+            book = Row(dict(
+                name='test_is_completed',
+                status=t[0],
+                complete_in_progress=t[1],
+                release_date=t[2],
+            ))
+            self.assertEqual(is_completed(book), t[3])
+
     def test__is_downloadable(self):
         tests = [
             # (status, cbz, torrent, expect)
@@ -1148,7 +1166,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__is_followable(self):
         now = datetime.datetime.now()
         tests = [
-            # (status, releasing, release_date, expect)
+            # (status, complete_in_progress, release_date, expect)
             ('a', False, None, True),
             ('d', False, None, False),
             ('x', False, None, False),
@@ -1160,29 +1178,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             book = Row(dict(
                 name='test_is_followable',
                 status=t[0],
-                releasing=t[1],
+                complete_in_progress=t[1],
                 release_date=t[2],
             ))
             self.assertEqual(is_followable(book), t[3])
-
-    def test__is_released(self):
-        now = datetime.datetime.now()
-        tests = [
-            # (status, releasing, release_date, expect)
-            ('a', False, now, True),
-            ('d', False, now, False),
-            ('x', False, now, False),
-            ('a', True, now, False),
-            ('a', False, None, False),
-        ]
-        for t in tests:
-            book = Row(dict(
-                name='test_is_released',
-                status=t[0],
-                releasing=t[1],
-                release_date=t[2],
-            ))
-            self.assertEqual(is_released(book), t[3])
 
     def test__magnet_link(self):
         # Invalid book

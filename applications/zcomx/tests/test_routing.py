@@ -1139,11 +1139,6 @@ class TestFunctions(LocalTestCase):
 
             # Invalid controller (treated as creator name)
             ('http://my.domain.com/something', "/zcomx/creators/index ?creator=something"),
-
-            # Special characters
-            ('http://my.domain.com/zcomx/a%26b', "/zcomx/creators/index ?creator=a%26b"),
-            ('http://my.domain.com/zcomx/a+b', "/zcomx/creators/index ?creator=a%2Bb"),
-
         ]
         for t in in_tests:
             self.assertEqual(filter_url(t[0]), t[1])

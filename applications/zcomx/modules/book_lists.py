@@ -72,10 +72,18 @@ class BaseBookList(object):
         return []
 
     @property
-    def has_releasing_books(self):
-        """Return whether the list has books where release is in progress."""
+    def has_complete_in_progress(self):
+        """Return whether the list has books where complete is in progress."""
         for book in self.books():
-            if book.releasing:
+            if book.complete_in_progress:
+                return True
+        return False
+
+    @property
+    def has_fileshare_in_progress(self):
+        """Return whether the list has books where complete is in progress."""
+        for book in self.books():
+            if book.fileshare_in_progress:
                 return True
         return False
 
@@ -149,7 +157,7 @@ class CompletedBookList(BaseBookList):
         queries.append((db.book.status == BOOK_STATUS_ACTIVE))
         queries.append((
             (db.book.release_date != None)
-            | (db.book.releasing == True)
+            | (db.book.complete_in_progress == True)
         ))
         return queries
 
@@ -257,7 +265,7 @@ class OngoingBookList(BaseBookList):
         queries = []
         queries.append((db.book.status == BOOK_STATUS_ACTIVE))
         queries.append((db.book.release_date == None))
-        queries.append((db.book.releasing != True))
+        queries.append((db.book.complete_in_progress != True))
         return queries
 
     def headers(self):

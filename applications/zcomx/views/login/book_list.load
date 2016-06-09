@@ -38,7 +38,7 @@
         {{book_name = formatted_name(book, include_publication_year=False)}}
         <tr>
             <td class="book_name_column">
-                {{if book.releasing:}}*{{else:}}{{pass}}
+                {{if book.complete_in_progress:}}*{{else:}}{{pass}}
                 {{if lister.link_to_book_page:}}{{=A(book_name, _href=book_url(book, extension=False))}}{{else:}}{{=book_name}}{{pass}}
             </td>
             {{if lister.include_publication_year:}}
@@ -83,11 +83,20 @@
             {{pass}}
         </tr>
         {{pass}}
-        {{if lister.has_releasing_books:}}
+        {{if lister.has_complete_in_progress:}}
         <tr>
             <td colspan="7">
                 <span class="release_in_progress_footnote">
-                    * <i>Set as complete</i>&nbsp; in progress (this can take up to an hour)
+                    * <i>Set as complete</i>&nbsp; in progress (this can take several minutes)
+                </span>
+            </td>
+        </tr>
+        {{pass}}
+        {{if lister.has_fileshare_in_progress:}}
+        <tr>
+            <td colspan="7">
+                <span class="release_in_progress_footnote">
+                    * <i>Release for filesharing</i>&nbsp; in progress (this can take up to an hour)
                 </span>
             </td>
         </tr>

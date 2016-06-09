@@ -97,26 +97,15 @@ class TestBaseBookList(LocalTestCase):
         book_list = BaseBookList({})
         self.assertEqual(book_list.filters(), [])
 
-    def test__has_releasing_books(self):
-        creator = self.add(Creator, dict(
-            email='test__books@email.com',
-        ))
-
-        book_list = BaseBookList(creator)
-        self.assertEqual(book_list.has_releasing_books, False)
-
-        book_1 = self.add(Book, dict(
-            name='My Book 1',
-            creator_id=creator.id,
-        ))
-
-        book_2 = self.add(Book, dict(
-            name='My Book 2',
-            creator_id=creator.id,
-        ))
+    def test__has_complete_in_progress(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        book_list = BaseBookList(Creator())
+        book_list._books = []
+        self.assertEqual(book_list.has_complete_in_progress, False)
 
         tests = [
-            # (book_1.releasing, book_2.releasing, expect)
+            # (book_1.complete_in_progress, book_2.complete_in_progress, expct)
             (False, False, False),
             (True, False, True),
             (False, True, True),
@@ -124,12 +113,33 @@ class TestBaseBookList(LocalTestCase):
         ]
 
         for t in tests:
-            book_1.update_record(releasing=t[0])
-            db.commit()
-            book_2.update_record(releasing=t[1])
-            db.commit()
-            book_list = BaseBookList(creator)
-            self.assertEqual(book_list.has_releasing_books, t[2])
+            book_1 = Book(name='My Book 1', complete_in_progress=t[0])
+            book_2 = Book(name='My Book 2', complete_in_progress=t[1])
+            book_list = BaseBookList(Creator())
+            book_list._books = [book_1, book_2]
+            self.assertEqual(book_list.has_complete_in_progress, t[2])
+
+    def test__has_fileshare_in_progress(self):
+        # protected-access (W0212): *Access to a protected member %%s
+        # pylint: disable=W0212
+        book_list = BaseBookList(Creator())
+        book_list._books = []
+        self.assertEqual(book_list.has_fileshare_in_progress, False)
+
+        tests = [
+            # (book_1.fileshare_in_progress, book_2.fileshare_in_progress, exp)
+            (False, False, False),
+            (True, False, True),
+            (False, True, True),
+            (True, True, True),
+        ]
+
+        for t in tests:
+            book_1 = Book(name='My Book 1', fileshare_in_progress=t[0])
+            book_2 = Book(name='My Book 2', fileshare_in_progress=t[1])
+            book_list = BaseBookList(Creator())
+            book_list._books = [book_1, book_2]
+            self.assertEqual(book_list.has_fileshare_in_progress, t[2])
 
     def test__headers(self):
         book_list = BaseBookList({})
@@ -183,9 +193,11 @@ class TestCompletedBookList(LocalTestCase):
         filters = book_list.filters()
         self.assertEqual(len(filters), 2)
         self.assertEqual(str(filters[0]), "(book.status = 'a')")
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         self.assertEqual(
             str(filters[1]),
-            "((book.release_date IS NOT NULL) OR (book.releasing = 'T'))"
+            "((book.release_date IS NOT NULL) OR (book.complete_in_progress = 'T'))"
         )
 
     def test__include_publication_year(self):
@@ -283,7 +295,7 @@ class TestOngoingBookList(LocalTestCase):
         self.assertEqual(len(filters), 3)
         self.assertEqual(str(filters[0]), "(book.status = 'a')")
         self.assertEqual(str(filters[1]), "(book.release_date IS NULL)")
-        self.assertEqual(str(filters[2]), "(book.releasing <> 'T')")
+        self.assertEqual(str(filters[2]), "(book.complete_in_progress <> 'T')")
 
     def test__headers(self):
         book_list = OngoingBookList({})

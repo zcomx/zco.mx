@@ -2,31 +2,19 @@
 # -*- coding: utf-8 -*-
 
 """
-release_book.py
+set_book_completed.py
 
-Script to release a book.
+Script to set a book completed
 """
 import datetime
-import os
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
-    get_page, \
-    images as book_images
-from applications.zcomx.modules.creators import \
-    Creator, \
-    images as creator_images
-from applications.zcomx.modules.images_optimize import \
-    CBZImagesForRelease
+    get_page
+from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.job_queue import \
-    CreateAllTorrentQueuer, \
-    CreateBookTorrentQueuer, \
-    CreateCBZQueuer, \
-    CreateCreatorTorrentQueuer, \
-    NotifyP2PQueuer, \
     PostOnSocialMediaQueuer, \
-    ReleaseBookQueuer, \
-    UpdateIndiciaForReleaseQueuer
+    SetBookCompletedQueuer
 from applications.zcomx.modules.zco import IN_PROGRESS
 
 VERSION = 'Version 0.1'
@@ -50,7 +38,7 @@ class Releaser(object):
     def requeue(self, requeues, max_requeues):
         """Requeue release job."""
         if requeues < max_requeues:
-            queuer = ReleaseBookQueuer(
+            queuer = SetBookCompletedQueuer(
                 db.job,
                 cli_options=self.requeue_cli_options(requeues, max_requeues),
                 cli_args=[str(self.book.id)],
@@ -78,57 +66,6 @@ class ReleaseBook(Releaser):
 
     def run(self):
 
-        book_image_set = CBZImagesForRelease.from_names(book_images(self.book))
-        if book_image_set.has_unoptimized():
-            book_image_set.optimize()
-            self.needs_requeue = True
-            return
-
-        if not self.creator.indicia_portrait or \
-                not self.creator.indicia_landscape:
-            UpdateIndiciaForReleaseQueuer(
-                db.job,
-                cli_args=[str(self.creator.id)],
-            ).queue()
-            self.needs_requeue = True
-            return
-
-        creator_image_set = CBZImagesForRelease.from_names(
-            creator_images(self.creator))
-        if creator_image_set.has_unoptimized():
-            creator_image_set.optimize()
-            self.needs_requeue = True
-            return
-
-        if not self.book.cbz:
-            CreateCBZQueuer(
-                db.job,
-                cli_args=[str(self.book.id)],
-            ).queue()
-            self.needs_requeue = True
-            return
-
-        if not self.book.torrent:
-            CreateBookTorrentQueuer(
-                db.job,
-                cli_args=[str(self.book.id)],
-            ).queue()
-
-            CreateCreatorTorrentQueuer(
-                db.job,
-                cli_args=[str(self.book.creator_id)],
-            ).queue()
-
-            CreateAllTorrentQueuer(db.job).queue()
-
-            NotifyP2PQueuer(
-                db.job,
-                cli_args=[self.book.cbz],
-            ).queue()
-
-            self.needs_requeue = True
-            return
-
         if not self.book.tumblr_post_id:
             PostOnSocialMediaQueuer(
                 db.job,
@@ -149,7 +86,7 @@ class ReleaseBook(Releaser):
         # Everythings good. Release the book.
         data = dict(
             release_date=datetime.datetime.today(),
-            releasing=False,
+            complete_in_progress=False,
         )
         self.book = Book.from_updated(self.book, data)
 
@@ -180,35 +117,10 @@ class UnreleaseBook(Releaser):
 
     def run(self):
 
-        if self.book.cbz:
-            LOG.debug('Removing cbz file: %s', self.book.cbz)
-            if os.path.exists(self.book.cbz):
-                os.unlink(self.book.cbz)
-
-            CreateCreatorTorrentQueuer(
-                db.job,
-                cli_args=[str(self.book.creator_id)],
-            ).queue()
-
-            CreateAllTorrentQueuer(db.job).queue()
-
-            NotifyP2PQueuer(
-                db.job,
-                cli_options={'--delete': True},
-                cli_args=[self.book.cbz],
-            ).queue()
-
-        if self.book.torrent:
-            LOG.debug('Removing torrent file: %s', self.book.torrent)
-            if os.path.exists(self.book.torrent):
-                os.unlink(self.book.torrent)
-
         # Everythings good. Unrelease the book.
         data = dict(
-            cbz=None,
-            torrent=None,
             release_date=None,
-            releasing=False,
+            complete_in_progress=False,
         )
 
         if self.book.tumblr_post_id == IN_PROGRESS:
@@ -222,8 +134,8 @@ def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    release_book.py [OPTIONS] book_id               # Release book
-    release_book.py [OPTIONS] --reverse book_id     # Reverse the release
+    set_book_completed.py [OPTIONS] book_id               # Set completed
+    set_book_completed.py [OPTIONS] --reverse book_id     # Reverse it
 
 OPTIONS
     -h, --help

@@ -30,7 +30,8 @@ PRIORITIES = list(reversed([
     'create_cbz',
     'create_book_torrent',
     'post_book_completed',
-    'release_book',
+    'set_book_completed',
+    'fileshare_book',
     'optimize_cbz_img',
     'optimize_img',
     'update_creator_indicia',
@@ -38,7 +39,8 @@ PRIORITIES = list(reversed([
     'create_creator_torrent',
     'create_all_torrent',
     'notify_p2p_networks',
-    'reverse_release_book',
+    'reverse_set_book_completed',
+    'reverse_fileshare_book',
     'delete_book',
     'delete_img',
     'log_downloads',
@@ -615,6 +617,21 @@ class DeleteBookQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
+class FileshareBookQueuer(JobQueuer):
+    """Class representing a queuer for fileshare_book jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'fileshare_book.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('fileshare_book'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-m', '--max-requeues',
+        '-r', '--requeues',
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
 class LogDownloadsQueuer(JobQueuer):
     """Class representing a queuer for 'log downloads' jobs."""
     program = os.path.join(JobQueuer.bin_path, 'log_downloads.py')
@@ -731,28 +748,14 @@ class PurgeTorrentsQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
-class ReleaseBookQueuer(JobQueuer):
-    """Class representing a queuer for release_book jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'release_book.py')
-    default_job_options = {
-        'priority': PRIORITIES.index('release_book'),
-        'status': 'a',
-    }
-    valid_cli_options = [
-        '-m', '--max-requeues',
-        '-r', '--requeues',
-        '-v', '--vv',
-    ]
-    queue_class = QueueWithSignal
-
-
-class ReverseReleaseBookQueuer(ReleaseBookQueuer):
-    """Class representing a queuer for reversing release_book jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'release_book.py')
-    default_job_options = dict(ReleaseBookQueuer.default_job_options)
-    default_job_options['priority'] = PRIORITIES.index('reverse_release_book')
+class ReverseFileshareBookQueuer(FileshareBookQueuer):
+    """Class representing a queuer for reversing fileshare_book jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'fileshare_book.py')
+    default_job_options = dict(FileshareBookQueuer.default_job_options)
+    default_job_options['priority'] = \
+        PRIORITIES.index('reverse_fileshare_book')
     default_cli_options = {'--reverse': True}
-    valid_cli_options = list(ReleaseBookQueuer.valid_cli_options)
+    valid_cli_options = list(FileshareBookQueuer.valid_cli_options)
     valid_cli_options.append('--reverse')
 
 
@@ -769,6 +772,32 @@ class SearchPrefetchQueuer(JobQueuer):
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal
+
+
+class SetBookCompletedQueuer(JobQueuer):
+    """Class representing a queuer for set_book_completed jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'set_book_completed.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('set_book_completed'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-m', '--max-requeues',
+        '-r', '--requeues',
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
+
+class ReverseSetBookCompletedQueuer(SetBookCompletedQueuer):
+    """Class representing a queuer for reversing set_book_completed jobs."""
+    program = os.path.join(JobQueuer.bin_path, 'set_book_completed.py')
+    default_job_options = dict(SetBookCompletedQueuer.default_job_options)
+    default_job_options['priority'] = \
+        PRIORITIES.index('reverse_set_book_completed')
+    default_cli_options = {'--reverse': True}
+    valid_cli_options = list(SetBookCompletedQueuer.valid_cli_options)
+    valid_cli_options.append('--reverse')
 
 
 class UpdateIndiciaQueuer(JobQueuer):

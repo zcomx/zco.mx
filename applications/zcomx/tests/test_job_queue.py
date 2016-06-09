@@ -24,6 +24,7 @@ from applications.zcomx.modules.job_queue import \
     DaemonSignalError, \
     DeleteBookQueuer, \
     DeleteImgQueuer, \
+    FileshareBookQueuer, \
     InvalidCLIOptionError, \
     InvalidJobOptionError, \
     InvalidStatusError, \
@@ -44,9 +45,10 @@ from applications.zcomx.modules.job_queue import \
     QueueLockedError, \
     QueueLockedExtendedError, \
     QueueWithSignal, \
-    ReleaseBookQueuer, \
-    ReverseReleaseBookQueuer, \
+    ReverseFileshareBookQueuer, \
+    ReverseSetBookCompletedQueuer, \
     SearchPrefetchQueuer, \
+    SetBookCompletedQueuer, \
     UpdateIndiciaQueuer, \
     UpdateIndiciaForReleaseQueuer, \
     queue_search_prefetch
@@ -359,6 +361,28 @@ class TestDeleteImgQueuer(LocalTestCase):
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/process_img.py --delete -f'
+        )
+
+
+class TestFileshareBookQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = FileshareBookQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'--requeues': '4', '-m': '10'},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/fileshare_book.py --requeues 4 -m 10 123'
         )
 
 
@@ -1016,10 +1040,10 @@ class TestQueueWithSignal(LocalTestCase):
             self.fail('post_add_job produced exception.')
 
 
-class TestReleaseBookQueuer(LocalTestCase):
+class TestReverseFileshareBookQueuer(LocalTestCase):
 
     def test_queue(self):
-        queuer = ReleaseBookQueuer(
+        queuer = ReverseFileshareBookQueuer(
             db.job,
             job_options={'status': 'd'},
             cli_options={'--requeues': '4', '-m': '10'},
@@ -1034,14 +1058,14 @@ class TestReleaseBookQueuer(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/release_book.py --requeues 4 -m 10 123'
+            'applications/zcomx/private/bin/fileshare_book.py --requeues 4 --reverse -m 10 123'
         )
 
 
-class TestReverseReleaseBookQueuer(LocalTestCase):
+class TestReverseSetBookCompletedQueuer(LocalTestCase):
 
     def test_queue(self):
-        queuer = ReverseReleaseBookQueuer(
+        queuer = ReverseSetBookCompletedQueuer(
             db.job,
             job_options={'status': 'd'},
             cli_options={'--requeues': '4', '-m': '10'},
@@ -1056,7 +1080,7 @@ class TestReverseReleaseBookQueuer(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/release_book.py --requeues 4 --reverse -m 10 123'
+            'applications/zcomx/private/bin/set_book_completed.py --requeues 4 --reverse -m 10 123'
         )
 
 
@@ -1079,6 +1103,28 @@ class TestSearchPrefetchQueuer(LocalTestCase):
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/search_prefetch.py -t book'
+        )
+
+
+class TestSetBookCompletedQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = SetBookCompletedQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'--requeues': '4', '-m': '10'},
+            cli_args=[str(123)],
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/set_book_completed.py --requeues 4 -m 10 123'
         )
 
 
