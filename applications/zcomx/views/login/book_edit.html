@@ -177,7 +177,7 @@
                     }
                 },
                 'x_editable_settings': {
-                    'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
+                    'disabled': {{if book and book.fileshare_date:}}true{{else:}}false{{pass}},
                     'emptytext': 'Click to select',
                     'inputclass': 'inplace_crud cc_licence_id_input',
                     'source': [ {{=cc_licences(book)}} ],
