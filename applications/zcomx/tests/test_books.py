@@ -62,6 +62,7 @@ from applications.zcomx.modules.books import \
     short_page_img_url, \
     short_page_url, \
     short_url, \
+    show_download_link, \
     social_media_data, \
     torrent_file_name, \
     torrent_link, \
@@ -1748,6 +1749,25 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         for t in tests:
             book.update(creator_id=t[0], name_for_url=t[1])
             self.assertEqual(short_url(book), t[2])
+
+    def test__show_download_link(self):
+        now = datetime.datetime.now()
+        tests = [
+            # (status, complete_in_progress, release_date, expect)
+            ('a', False, now, True),
+            ('d', False, now, False),
+            ('x', False, now, False),
+            ('a', True, now, False),
+            ('a', False, None, False),
+        ]
+        for t in tests:
+            book = Row(dict(
+                name='test_show_download_link',
+                status=t[0],
+                complete_in_progress=t[1],
+                release_date=t[2],
+            ))
+            self.assertEqual(show_download_link(book), t[3])
 
     def test__social_media_data(self):
 

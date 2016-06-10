@@ -11,17 +11,19 @@
 
         var methods = {
             _load: function(elem) {
-                $(elem).click(function (e) {
-                    var url = $(elem).attr('href');
-                    var dialog = new BootstrapDialog({
-                        title: ' ',
-                        message: $('<div></div>').load(url),
-                        buttons: [],
-                        cssClass: settings.cssClass,
-                    });
-                    dialog.open();
-                    e.preventDefault();
-                })
+                if(!$(elem).hasClass('disabled')) {
+                    $(elem).click(function (e) {
+                        var url = $(elem).attr('href');
+                        var dialog = new BootstrapDialog({
+                            title: ' ',
+                            message: $('<div></div>').load(url),
+                            buttons: [],
+                            cssClass: settings.cssClass,
+                        });
+                        dialog.open();
+                        e.preventDefault();
+                    })
+                }
             },
         };
 

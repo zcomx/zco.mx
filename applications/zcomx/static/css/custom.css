@@ -156,6 +156,10 @@ div.centered table {
     width: 272px;
 }
 
+.download_button.disabled {
+    color: #BBBBBB;
+}
+
 .error_extra {
     background: #ffeeee;
     border: 1px solid #FF0000;
@@ -696,6 +700,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .grid_section_header h4 {
     font-size: 22px;
     margin: 0px;
+}
+
+.grid_section .grid_view_list .btn.disabled {
+    opacity: 0.4;
+    pointer-events: auto;
 }
 
 .grid_section .tile_view {

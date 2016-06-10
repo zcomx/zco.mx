@@ -582,15 +582,27 @@ def download_link(book, components=None, **attributes):
     kwargs = {}
     kwargs.update(attributes)
 
-    if '_href' not in attributes:
-        kwargs['_href'] = URL(
-            c='downloads',
-            f='modal',
-            args=[book.id],
-            extension=False
-        )
+    if is_downloadable(book):
+        if '_href' not in attributes:
+            kwargs['_href'] = URL(
+                c='downloads',
+                f='modal',
+                args=[book.id],
+                extension=False,
+            )
+        class_attr = attributes['_class'] if '_class' in attributes else ''
+        kwargs['_class'] = (class_attr + ' enabled').strip()
+        tag = A
+    else:
+        kwargs['_href'] = None
+        if '_title' not in attributes:
+            kwargs['_title'] = \
+                'This book has not been released for file sharing.'
+        class_attr = attributes['_class'] if '_class' in attributes else ''
+        kwargs['_class'] = (class_attr + ' disabled').strip()
+        tag = SPAN
 
-    return A(*components, **kwargs)
+    return tag(*components, **kwargs)
 
 
 def fileshare_link(book, components=None, **attributes):
@@ -1192,6 +1204,17 @@ def short_url(book):
         return
 
     return urlparse.urljoin(url_for_creator, name)
+
+
+def show_download_link(book):
+    """Determine if the download link should be displayed for the book.
+
+    Args:
+        book: Row instance representing a book.
+    """
+    return True if book.status == BOOK_STATUS_ACTIVE \
+        and is_completed(book) \
+        else False
 
 
 def social_media_data(book):

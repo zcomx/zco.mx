@@ -16,9 +16,9 @@ from applications.zcomx.modules.books import \
     download_link as book_download_link, \
     follow_link as book_follow_link, \
     formatted_name, \
-    is_downloadable, \
     is_followable, \
     read_link as book_read_link, \
+    show_download_link, \
     url as book_url
 from applications.zcomx.modules.creators import \
     Creator, \
@@ -909,7 +909,7 @@ class BookTile(Tile):
 
     def download_link(self):
         """Return the tile download link."""
-        if not is_downloadable(self.book):
+        if not show_download_link(self.book):
             return SPAN('')
 
         return book_download_link(
@@ -1196,7 +1196,7 @@ def download_link(row):
         return ''
 
     book = Book.from_id(book_id)
-    if not is_downloadable(book):
+    if not show_download_link(book):
         return ''
 
     return book_download_link(

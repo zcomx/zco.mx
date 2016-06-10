@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import download_link, formatted_name as formatted_book_name, get_page, is_downloadable, url as book_url}}
+{{from applications.zcomx.modules.books import download_link, formatted_name as formatted_book_name, get_page, show_download_link, url as book_url}}
 {{from applications.zcomx.modules.creators import can_receive_contributions, follow_link, url as creator_url}}
 {{extend 'layout.html'}}
 <div class="container">
@@ -83,7 +83,7 @@
                             </div>
                         </li>
                         {{pass}}
-                        {{if is_downloadable(book):}}
+                        {{if show_download_link(book):}}
                         <li>
                             {{=download_link(book, components=['download'], **dict(_class='breadcrumb download_button no_rclick_menu'))}}
                         </li>
