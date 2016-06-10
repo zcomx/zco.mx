@@ -443,7 +443,7 @@ COMPLETE_BARRIER_CLASSES = [
 ]
 
 FILESHARING_BARRIER_CLASSES = [
-    # NotCompletedBarrier,
+    NotCompletedBarrier,
     AllRightsReservedBarrier,
     NoCBZImageBarrier,
 ]
