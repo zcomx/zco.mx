@@ -190,6 +190,10 @@ class TestCompletedBookList(LocalTestCase):
         book_list = CompletedBookList({})
         self.assertEqual(book_list.code, 'completed')
 
+    def test__display_headers_if_none(self):
+        book_list = CompletedBookList({})
+        self.assertFalse(book_list.display_headers_if_none)
+
     def test__display_if_none(self):
         book_list = CompletedBookList({})
         self.assertTrue(book_list.display_if_none)
