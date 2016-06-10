@@ -153,6 +153,10 @@ class CompletedBookList(BaseBookList):
         return 'completed'
 
     @property
+    def display_headers_if_none(self):
+        return False
+
+    @property
     def display_if_none(self):
         return True
 
