@@ -101,6 +101,11 @@ class BaseBookList(object):
         return False
 
     @property
+    def include_fileshare_checkbox(self):
+        """Return whether to include the complete checkbox."""
+        return False
+
+    @property
     def include_publication_year(self):
         """Return whether to include the publication year."""
         return False
@@ -160,6 +165,23 @@ class CompletedBookList(BaseBookList):
             | (db.book.complete_in_progress == True)
         ))
         return queries
+
+    def headers(self):
+        return {
+            'name': None,
+            'publication_year': None,
+            'read': None,
+            'edit': None,
+            'delete': None,
+            'fileshare_checkbox': DIV(
+                'Release for filesharing',
+                _class="checkbox_header text-muted",
+            ),
+        }
+
+    @property
+    def include_fileshare_checkbox(self):
+        return True
 
     @property
     def include_publication_year(self):
@@ -277,7 +299,7 @@ class OngoingBookList(BaseBookList):
             'delete': None,
             'complete_checkbox': DIV(
                 'Set as completed',
-                _class="set_as_completed text-muted",
+                _class="checkbox_header text-muted",
             ),
         }
 

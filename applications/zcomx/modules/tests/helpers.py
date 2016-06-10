@@ -291,8 +291,10 @@ class WebTestCase(LocalTestCase):
             'change_password_container'
         ],
         '/login/agree_to_terms': '<div id="agree_to_terms_page">',
+        '/login/book_complete': '<div id="book_complete_section">',
         '/login/book_delete': '<div id="book_delete_section">',
         '/login/book_edit': '<div id="book_edit_section">',
+        '/login/book_fileshare': '<div id="book_fileshare_section">',
         '/login/book_list': '<h2>Book List</h2>',
         '/login/book_list.load/completed': '<div id="completed_container">',
         '/login/book_list.load/disabled': '<div id="disabled_container">',
@@ -301,7 +303,6 @@ class WebTestCase(LocalTestCase):
         '/login/book_post_upload_session': [
             '"status": "ok"',
         ],
-        '/login/book_release': '<div id="book_complete_section">',
         '/login/books': '<div id="ongoing_book_list" class="book_list">',
         '/login/indicia': [
             '<div id="profile_page">',

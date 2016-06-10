@@ -405,20 +405,20 @@ div.centered table {
     font-weight: normal;
 }
 
-#profile_page .book_list .set_as_completed {
+#profile_page .book_list .checkbox_header {
     font-size: 9pt;
     max-width: 5em;
     padding-left: 1em;
 }
 
-#profile_page .book_list span.disabled {
-    opacity: 0.4;
-}
-
-#profile_page .book_list .completed_checkbox_wrapper {
+#profile_page .book_list .checkbox_wrapper {
     width: 4em;
     text-align: center;
     margin-left: 1em;
+}
+
+#profile_page .book_list span.disabled {
+    opacity: 0.4;
 }
 
 #profile_page .book_list .table-condensed td:nth-last-child(-n+1) {
@@ -458,7 +458,8 @@ div.centered table {
 }
 
 #book_complete_section #message_panel,
-#book_delete_section #message_panel{
+#book_delete_section #message_panel,
+#book_fileshare_section #message_panel {
     margin-top: 1em;
 }
 
@@ -2850,15 +2851,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #book_delete_section .instruction em {
     color: #8A6D3B;
-    padding: 0 2px;
-}
-
-#profile_book_release_page .instruction em {
-    color: #8A6D3B;
-    padding: 0 2px;
-}
-
-#profile_book_release_page .panel-heading em {
     padding: 0 2px;
 }
 

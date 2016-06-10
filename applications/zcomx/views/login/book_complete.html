@@ -1,0 +1,74 @@
+{{from applications.zcomx.modules.books import formatted_name}}
+<div id="book_complete_section">
+
+<div>
+    <p>
+    Marking a book complete publishes the book online.
+    It will be displayed on the <i>completed</i> page instead of the <i>ongoing</i> page.
+    </p>
+    <p>Before proceeding:</p>
+    <ul>
+        <li>Ensure all images have been uploaded and are in the correct order.</li>
+        <li>Ensure you are happy with the copyright licence selected. Edit the book to make changes. You can change the licence at a later time if desired.</li>
+    </ul>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        Marking a book as complete has the following effect:
+    </div>
+    <div class="panel-body">
+        <ul>
+            <li>The book is moved to the <i>completed</i> page</li>
+            <li>The book pages are locked from further modifications</li>
+        </ul>
+        <p>The process can take several minutes.</p>
+    </div>
+</div>
+
+{{if not barriers:}}
+    <div class="instruction">
+        Click the <em>Complete</em> button to mark <em>{{=formatted_name(book)}}</em> as complete.
+        Click the <em>Cancel</em> button if you've changed your mind.
+    </div>
+{{else:}}
+    <div class="panel panel-danger">
+        <div class="panel-heading">
+            The book <em>{{=formatted_name(book)}}</em> cannot be marked complete.
+        </div>
+        <div class="panel-body">
+            {{if len(barriers) > 1:}}<ol>{{else:}}<ul>{{pass}}
+
+            {{for barrier in barriers:}}
+            <li>
+                {{=barrier.reason}}
+                {{if barrier.description:}}
+                <div class="barrier_description">
+                    {{=barrier.description}}
+                </div>
+                {{pass}}
+                <ul>
+                    {{for fix in barrier.fixes:}}
+                    <li>{{=fix}}</li>
+                    {{pass}}
+                </ul>
+            </li>
+            {{pass}}
+            {{if len(barriers) > 1:}}</ol>{{else:}}</ul>{{pass}}
+        </div>
+        <div class="panel-footer">
+            Once all problems have been resolved, try again.
+        </div>
+    </div>
+{{pass}}
+
+<div id="message_panel" class="panel panel-default" style="display: none;">
+    <div class="panel-body"></div>
+</div>
+
+</div>
+<script>
+//<![CDATA[
+    var complete_enabled = {{if barriers:}}false{{else:}}true{{pass}};
+//]]>
+</script>

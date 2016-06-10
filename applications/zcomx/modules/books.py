@@ -394,7 +394,7 @@ def complete_link(book, components=None, **attributes):
         components = [
             DIV(
                 INPUT(_type='checkbox', _value='off'),
-                _class="completed_checkbox_wrapper"
+                _class="checkbox_wrapper"
             )
         ]
 
@@ -403,7 +403,7 @@ def complete_link(book, components=None, **attributes):
 
     if '_href' not in attributes:
         kwargs['_href'] = URL(
-            c='login', f='book_release', args=book.id, extension=False)
+            c='login', f='book_complete', args=book.id, extension=False)
 
     return A(*components, **kwargs)
 
@@ -589,6 +589,37 @@ def download_link(book, components=None, **attributes):
             args=[book.id],
             extension=False
         )
+
+    return A(*components, **kwargs)
+
+
+def fileshare_link(book, components=None, **attributes):
+    """Return html code suitable for a 'release for filesharing'
+    link/button/checkbox.
+
+    Args:
+        book: Book instance
+        components: list, passed to A(*components)
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+    if not book:
+        return empty
+
+    if not components:
+        components = [
+            DIV(
+                INPUT(_type='checkbox', _value='off'),
+                _class="checkbox_wrapper"
+            )
+        ]
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='login', f='book_fileshare', args=book.id, extension=False)
 
     return A(*components, **kwargs)
 

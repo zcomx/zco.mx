@@ -361,6 +361,26 @@
         }
     });
 
+    var FileshareModalize = function (element, action, options) {
+        this.init(element, action, options);
+    }
+    $.fn.zco_utils.inherit(FileshareModalize, Modalize);
+    $.extend(FileshareModalize.prototype, {
+        buttons: function() {
+            var that = this;
+            var btns = [];
+            btns.push({
+                label: 'Release for filesharing',
+                cssClass: 'btn_fileshare',
+                action : function(dialog){
+                    that.update();
+                }
+            });
+            btns.push(this.close_button('Cancel'));
+            return btns;
+        }
+    });
+
     var UploadModalize = function (element, action, options) {
         this.init(element, action, options);
     }
@@ -485,6 +505,9 @@
                     case 'edit_ongoing':
                         obj = new EditOngoingModalize(this, 'edit', options);
                         break;
+                    case 'fileshare':
+                        obj = new FileshareModalize(this, action, options);
+                        break;
                     case 'upload':
                         obj = new UploadModalize(this, action, options);
                         break;
@@ -555,6 +578,14 @@
             'bootstrap_dialog_options':  {
                 'onshown': function(dialog) {
                     $('.btn_complete').prop('disabled', !complete_enabled).toggleClass('disabled', !complete_enabled);
+                }
+            }
+        });
+        $('.modal-fileshare-btn').modalize('fileshare', {
+            'onhidden': display_book_lists,
+            'bootstrap_dialog_options':  {
+                'onshown': function(dialog) {
+                    $('.btn_fileshare').prop('disabled', !fileshare_enabled).toggleClass('disabled', !fileshare_enabled);
                 }
             }
         });

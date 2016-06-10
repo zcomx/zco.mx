@@ -1,4 +1,4 @@
-{{from applications.zcomx.modules.books import complete_link, formatted_name, read_link, url as book_url}}
+{{from applications.zcomx.modules.books import complete_link, fileshare_link, formatted_name, read_link, url as book_url}}
 
 {{if lister and (lister.books() or lister.display_if_none):}}
 <div class="books_list_title">
@@ -30,7 +30,9 @@
                 {{if lister.include_complete_checkbox:}}
                     <th>{{=headers['complete_checkbox'] or blank}}</th>
                 {{pass}}
-
+                {{if lister.include_fileshare_checkbox:}}
+                    <th>{{=headers['fileshare_checkbox'] or blank}}</th>
+                {{pass}}
             </tr>
             </thead>
         {{pass}}
@@ -79,6 +81,14 @@
             {{if lister.include_complete_checkbox:}}
             <td>
                 {{=complete_link(book, **{'_class': 'modal-complete-btn no_rclick_menu', '_data-book_id': book.id})}}
+            </td>
+            {{pass}}
+            {{if lister.include_fileshare_checkbox:}}
+            <td>
+                {{if lister.include_fileshare_checkbox and not book.fileshare_date and not book.fileshare_in_progress:}}
+                    {{=fileshare_link(book, **{'_class': 'modal-fileshare-btn no_rclick_menu', '_data-book_id': book.id})}}
+                {{else:}}&nbsp;
+                {{pass}}
             </td>
             {{pass}}
         </tr>

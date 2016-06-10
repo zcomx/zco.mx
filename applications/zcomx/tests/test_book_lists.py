@@ -149,6 +149,12 @@ class TestBaseBookList(LocalTestCase):
         book_list = BaseBookList({})
         self.assertFalse(book_list.include_complete_checkbox)
 
+    def test__include_fileshare_checkbox(self):
+        # invalid-name (C0103): *Invalid %%s name "%%s"%%s*
+        # pylint: disable=C0103
+        book_list = BaseBookList({})
+        self.assertFalse(book_list.include_fileshare_checkbox)
+
     def test__include_publication_year(self):
         book_list = BaseBookList({})
         self.assertFalse(book_list.include_publication_year)
@@ -199,6 +205,26 @@ class TestCompletedBookList(LocalTestCase):
             str(filters[1]),
             "((book.release_date IS NOT NULL) OR (book.complete_in_progress = 'T'))"
         )
+
+    def test__headers(self):
+        book_list = CompletedBookList({})
+        headers = book_list.headers()
+        for k, v in headers.iteritems():
+            if k == 'fileshare_checkbox':
+                continue
+            self.assertEqual(v, None)
+
+        soup = BeautifulSoup(str(headers['fileshare_checkbox']))
+        # <div class="fileshare_header text-muted">Set as completed</div>
+        div = soup.find('div')
+        self.assertEqual(div.string, 'Release for filesharing')
+        self.assertEqual(div['class'], 'checkbox_header text-muted')
+
+    def test__include_fileshare_checkbox(self):
+        # invalid-name (C0103): *Invalid %%s name "%%s"%%s*
+        # pylint: disable=C0103
+        book_list = CompletedBookList({})
+        self.assertTrue(book_list.include_fileshare_checkbox)
 
     def test__include_publication_year(self):
         book_list = CompletedBookList({})
@@ -306,10 +332,10 @@ class TestOngoingBookList(LocalTestCase):
             self.assertEqual(v, None)
 
         soup = BeautifulSoup(str(headers['complete_checkbox']))
-        # <div class="set_as_completed text-muted">Set as completed</div>
+        # <div class="checkbox_header text-muted">Set as completed</div>
         div = soup.find('div')
         self.assertEqual(div.string, 'Set as completed')
-        self.assertEqual(div['class'], 'set_as_completed text-muted')
+        self.assertEqual(div['class'], 'checkbox_header text-muted')
 
     def test__include_complete_checkbox(self):
         book_list = OngoingBookList({})

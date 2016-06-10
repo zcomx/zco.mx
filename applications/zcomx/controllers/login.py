@@ -126,6 +126,36 @@ def agree_to_terms():
 
 
 @auth.requires_login()
+def book_complete():
+    """Book 'set as completed' controller for modal view.
+
+    request.args(0): integer, id of book.
+    """
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
+        MODAL_ERROR('Permission denied')
+
+    book = None
+    if request.args(0):
+        try:
+            book = Book.from_id(request.args(0))
+        except LookupError:
+            MODAL_ERROR('Invalid data provided')
+    if not book or book.creator_id != creator.id:
+        MODAL_ERROR('Invalid data provided')
+
+    barriers = complete_barriers(book)
+
+    return dict(
+        book=book,
+        barriers=barriers,
+    )
+
+
+@auth.requires_login()
 def book_crud():
     """Handler for ajax book CRUD calls.
 
@@ -388,6 +418,36 @@ def book_edit():
 
 
 @auth.requires_login()
+def book_fileshare():
+    """Book release for filesharing controller for modal view.
+
+    request.args(0): integer, id of book.
+    """
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
+        MODAL_ERROR('Permission denied')
+
+    book = None
+    if request.args(0):
+        try:
+            book = Book.from_id(request.args(0))
+        except LookupError:
+            MODAL_ERROR('Invalid data provided')
+    if not book or book.creator_id != creator.id:
+        MODAL_ERROR('Invalid data provided')
+
+    barriers = filesharing_barriers(book)
+
+    return dict(
+        book=book,
+        barriers=barriers,
+    )
+
+
+@auth.requires_login()
 def book_list():
     """Book list component controller.
 
@@ -619,36 +679,6 @@ def book_post_upload_session():
     AllSizesImages.from_names(images(book)).optimize()
 
     return dumps({'status': 'ok'})
-
-
-@auth.requires_login()
-def book_release():
-    """Book release controller for modal view.
-
-    request.args(0): integer, id of book.
-    """
-    try:
-        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
-    except LookupError:
-        creator = None
-    if not creator:
-        MODAL_ERROR('Permission denied')
-
-    book = None
-    if request.args(0):
-        try:
-            book = Book.from_id(request.args(0))
-        except LookupError:
-            MODAL_ERROR('Invalid data provided')
-    if not book or book.creator_id != creator.id:
-        MODAL_ERROR('Invalid data provided')
-
-    barriers = complete_barriers(book) + filesharing_barriers(book)
-
-    return dict(
-        book=book,
-        barriers=barriers,
-    )
 
 
 @auth.requires_login()

@@ -1,22 +1,23 @@
 {{from applications.zcomx.modules.books import formatted_name}}
-<div id="book_complete_section">
+<div id="book_fileshare_section">
 
 <div>
     <p>
-    Marking a book complete means a CBZ file will be created and shared with
-    others via two file sharing networks: bittorrent and direct connect.
+    Releasing a book for filesharing means a CBZ file will be created and
+    shared with others via two file sharing networks: bittorrent and direct
+    connect.
     </p>
     <p>Before proceeding:</p>
     <ul>
-        <li>Ensure all images have been uploaded and are in the correct order.</li>
+        <li>Ensure the book is set as completed.</li>
         <li>If you want to use a custom indicia image, make sure it has been uploaded before
-marking the book complete.</li>
+releasing the book for filesharing.</li>
     </ul>
 </div>
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        Marking a book as complete has the following effect:
+        Releasing a book for filesharing has the following effect:
     </div>
     <div class="panel-body">
         <ul>
@@ -25,21 +26,21 @@ marking the book complete.</li>
             <li>A torrent is created for the file and the torrent is seeded</li>
             <li>The file is added to the torrent containing all books from the cartoonist</li>
             <li>The file is added to the torrent containing all books from zco.mx</li>
-            <li>The file pages are locked from further modifications</li>
+            <li>The book is locked from further modifications</li>
         </ul>
-        <p>The process can take several minutes.</p>
+        <p>The process can take up to an hour if many images need to be resized to fit the CBZ format.</p>
     </div>
 </div>
 
 {{if not barriers:}}
     <div class="instruction">
-        Click the <em>Complete</em> button to mark <em>{{=formatted_name(book)}}</em> as complete.
+        Click the <em>Release for filesharing</em> button to release <em>{{=formatted_name(book)}}</em> for filesharing.
         Click the <em>Cancel</em> button if you've changed your mind.
     </div>
 {{else:}}
     <div class="panel panel-danger">
         <div class="panel-heading">
-            The book <em>{{=formatted_name(book)}}</em> cannot be marked complete.
+            The book <em>{{=formatted_name(book)}}</em> cannot be released for filesharing.
         </div>
         <div class="panel-body">
             {{if len(barriers) > 1:}}<ol>{{else:}}<ul>{{pass}}
@@ -48,7 +49,7 @@ marking the book complete.</li>
             <li>
                 {{=barrier.reason}}
                 {{if barrier.description:}}
-                <div class="complete_barrier_description">
+                <div class="barrier_description">
                     {{=barrier.description}}
                 </div>
                 {{pass}}
@@ -74,6 +75,6 @@ marking the book complete.</li>
 </div>
 <script>
 //<![CDATA[
-    var complete_enabled = {{if barriers:}}false{{else:}}true{{pass}};
+    var fileshare_enabled = {{if barriers:}}false{{else:}}true{{pass}};
 //]]>
 </script>

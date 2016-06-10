@@ -100,6 +100,19 @@ class TestFunctions(WebTestCase):
     def test__agree_to_terms(self):
         self.assertWebTest('/login/agree_to_terms')
 
+    def test__book_complete(self):
+        # No book_id, redirects to books page
+        self.assertWebTest(
+            '/login/book_complete',
+            match_page_key='',
+            match_strings=['Invalid data provided']
+        )
+
+        self.assertWebTest(
+            '/login/book_complete/{bid}'.format(bid=self._book.id),
+            match_page_key='/login/book_complete',
+        )
+
     def test__book_crud(self):
 
         def get_book(book_id):
@@ -267,6 +280,19 @@ class TestFunctions(WebTestCase):
             match_strings=["'label': 'Reader Background'"],
         )
 
+    def test__book_fileshare(self):
+        # No book_id, redirects to books page
+        self.assertWebTest(
+            '/login/book_fileshare',
+            match_page_key='',
+            match_strings=['Invalid data provided']
+        )
+
+        self.assertWebTest(
+            '/login/book_fileshare/{bid}'.format(bid=self._book.id),
+            match_page_key='/login/book_fileshare',
+        )
+
     def test__book_list(self):
         self.assertWebTest('/login/book_list')
         self.assertWebTest('/login/book_list.load/completed')
@@ -415,19 +441,6 @@ class TestFunctions(WebTestCase):
         # book has pages, so it should status should be set accordingly
         book = Book.from_id(self._book.id)
         self.assertEqual(book.status, BOOK_STATUS_ACTIVE)
-
-    def test__book_release(self):
-        # No book_id, redirects to books page
-        self.assertWebTest(
-            '/login/book_release',
-            match_page_key='',
-            match_strings=['Invalid data provided']
-        )
-
-        self.assertWebTest(
-            '/login/book_release/{bid}'.format(bid=self._book.id),
-            match_page_key='/login/book_release',
-        )
 
     def test__books(self):
         self.assertWebTest('/login/books')

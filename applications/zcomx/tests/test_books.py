@@ -38,6 +38,7 @@ from applications.zcomx.modules.books import \
     default_contribute_amount, \
     defaults, \
     download_link, \
+    fileshare_link, \
     follow_link, \
     formatted_name, \
     formatted_number, \
@@ -549,18 +550,18 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         link = complete_link(book)
         soup = BeautifulSoup(str(link))
-        # <a href="/login/book_release/2876">
-        #   <div class="completed_checkbox_wrapper">
+        # <a href="/login/book_complete/2876">
+        #   <div class="checkbox_wrapper">
         #     <input type="checkbox" value="off" />
         #   </div>
         # </a>
         anchor = soup.find('a')
         self.assertEqual(
             anchor['href'],
-            '/login/book_release/123'
+            '/login/book_complete/123'
         )
         div = anchor.find('div')
-        self.assertEqual(div['class'], 'completed_checkbox_wrapper')
+        self.assertEqual(div['class'], 'checkbox_wrapper')
         checkbox_input = div.find('input')
         self.assertEqual(checkbox_input['type'], 'checkbox')
         self.assertEqual(checkbox_input['value'], 'off')
@@ -593,7 +594,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         div = anchor.find('div')
-        self.assertEqual(div['class'], 'completed_checkbox_wrapper')
+        self.assertEqual(div['class'], 'checkbox_wrapper')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
@@ -912,6 +913,68 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Download')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['target'], '_blank')
+
+    def test__fileshare_link(self):
+        empty = '<span></span>'
+
+        book = Book(dict(
+            id=123,
+            name='test__fileshare_link',
+            fileshare_in_progress=False,
+        ))
+
+        self.assertEqual(book.fileshare_in_progress, False)
+
+        link = fileshare_link(book)
+        soup = BeautifulSoup(str(link))
+        # <a href="/login/book_fileshare/2876">
+        #   <div class="checkbox_wrapper">
+        #     <input type="checkbox" value="off" />
+        #   </div>
+        # </a>
+        anchor = soup.find('a')
+        self.assertEqual(
+            anchor['href'],
+            '/login/book_fileshare/123'
+        )
+        div = anchor.find('div')
+        self.assertEqual(div['class'], 'checkbox_wrapper')
+        checkbox_input = div.find('input')
+        self.assertEqual(checkbox_input['type'], 'checkbox')
+        self.assertEqual(checkbox_input['value'], 'off')
+
+        # Invalid id
+        link = fileshare_link(None)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = fileshare_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = fileshare_link(book, components=components)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+        )
+        link = fileshare_link(book, **attributes)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        div = anchor.find('div')
+        self.assertEqual(div['class'], 'checkbox_wrapper')
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
