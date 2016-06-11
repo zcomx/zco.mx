@@ -194,7 +194,7 @@ def book_crud():
 
     # W0212 (protected-access): *Access to a protected member
     # pylint: disable=W0212
-    actions = ['complete', 'create', 'delete', 'update']
+    actions = ['complete', 'create', 'delete', 'fileshare', 'update']
     if not request.vars._action or request.vars._action not in actions:
         return do_error('Invalid data provided')
     action = request.vars._action
@@ -215,25 +215,12 @@ def book_crud():
             return do_error('Invalid data provided')
 
     if action == 'complete':
-        if has_complete_barriers(book) or has_filesharing_barriers(book):
-            return do_error('This book cannot be released.')
+        if has_complete_barriers(book):
+            return do_error('This book cannot be set as completed.')
 
         book = Book.from_updated(book, dict(complete_in_progress=True))
         db.commit()
         job = SetBookCompletedQueuer(
-            db.job,
-            cli_args=[str(book.id)],
-        ).queue()
-        if not job:
-            msg = (
-                'Complete process failed. '
-                'The book cannot be set as completed at this time.'
-            )
-            return do_error(msg)
-
-        book = Book.from_updated(book, dict(fileshare_in_progress=True))
-        db.commit()
-        job = FileshareBookQueuer(
             db.job,
             cli_args=[str(book.id)],
         ).queue()
@@ -285,6 +272,25 @@ def book_crud():
         ).queue()
         if not job:
             return do_error(err_msg)
+
+        return {'status': 'ok'}
+
+    if action == 'fileshare':
+        if has_filesharing_barriers(book):
+            return do_error('This book cannot be released for filesharing.')
+
+        book = Book.from_updated(book, dict(fileshare_in_progress=True))
+        db.commit()
+        job = FileshareBookQueuer(
+            db.job,
+            cli_args=[str(book.id)],
+        ).queue()
+        if not job:
+            msg = (
+                'Fileshare process failed. '
+                'The book cannot be released for filesharing at this time.'
+            )
+            return do_error(msg)
 
         return {'status': 'ok'}
 
