@@ -833,7 +833,10 @@ class TestBookTile(TileTestCase):
         # <a class="download_button no_rclick_menu"
         #       href="/downloads/modal/93">download</a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], 'download_button no_rclick_menu')
+        self.assertEqual(
+            anchor['class'],
+            'download_button no_rclick_menu enabled'
+        )
         self.assertEqual(anchor['href'], '/downloads/modal/{i}'.format(
             i=self._row.book.id))
         self.assertEqual(anchor.string, 'download')
@@ -920,7 +923,10 @@ class TestBookTile(TileTestCase):
         dl_li = li.nextSibling
 
         anchor = dl_li.a
-        self.assertEqual(anchor['class'], 'download_button no_rclick_menu')
+        self.assertEqual(
+            anchor['class'],
+            'download_button no_rclick_menu enabled'
+        )
         self.assertEqual(anchor['href'], '/downloads/modal/{i}'.format(
             i=self._row.book.id))
         self.assertEqual(anchor.string, 'download')
@@ -1447,7 +1453,7 @@ class TestFunctions(LocalTestCase):
             i=row.book.id))
         self.assertEqual(
             data['class'],
-            'btn btn-default download_button no_rclick_menu'
+            'btn btn-default download_button no_rclick_menu enabled'
         )
 
     def test__follow_link(self):

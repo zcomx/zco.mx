@@ -874,6 +874,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             name='test__download_link',
             cbz='_test_cbz_',
             torrent='_test_torrent_',
+            status=BOOK_STATUS_ACTIVE,
         ))
 
         link = download_link(book)
@@ -915,8 +916,24 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Download')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], 'btn btn-large enabled')
         self.assertEqual(anchor['target'], '_blank')
+
+        # Test disabled
+        book.cbz = ''
+        link = download_link(book)
+        soup = BeautifulSoup(str(link))
+        self.assertEqual(soup.find('a'), None)
+        span = soup.find('span')
+        # <span class="disabled"
+        #   title="This book has not been released for file sharing."
+        # >Download</span>
+        self.assertEqual(span.string, 'Download')
+        self.assertEqual(span['class'], 'disabled')
+        self.assertEqual(
+            span['title'],
+            'This book has not been released for file sharing.'
+        )
 
     def test__fileshare_link(self):
         empty = '<span></span>'
