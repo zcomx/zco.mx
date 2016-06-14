@@ -106,6 +106,9 @@ def main():
     LOG.debug('Starting')
     book_id = args[0]
     book = Book.from_id(book_id)
+    if not options.reverse and not book.release_date:
+        fmt = 'Release for fileshare fail. Book not set completed, id: {i}'
+        raise SyntaxError(fmt.format(i=book_id))
     creator = Creator.from_id(book.creator_id)
     release_class = UnfileshareBook if options.reverse else FileshareBook
     releaser = release_class(book, creator)
