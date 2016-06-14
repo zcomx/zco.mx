@@ -39,8 +39,8 @@ PRIORITIES = list(reversed([
     'create_creator_torrent',
     'create_all_torrent',
     'notify_p2p_networks',
-    'reverse_set_book_completed',
-    'reverse_fileshare_book',
+    'reverse_fileshare_book',               # above reverse_set_book_completed
+    'reverse_set_book_completed',           # above delete_book
     'delete_book',
     'delete_img',
     'log_downloads',

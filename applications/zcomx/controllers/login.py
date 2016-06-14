@@ -51,6 +51,7 @@ from applications.zcomx.modules.job_queue import \
     DeleteBookQueuer, \
     FileshareBookQueuer, \
     SetBookCompletedQueuer, \
+    ReverseFileshareBookQueuer, \
     ReverseSetBookCompletedQueuer, \
     queue_search_prefetch
 from applications.zcomx.modules.links import \
@@ -258,6 +259,13 @@ def book_crud():
         # take care of it. Flag the book status=False so it is hidden.
         book = Book.from_updated(book, dict(status=False))
         err_msg = 'Delete failed. The book cannot be deleted at this time.'
+
+        job = ReverseFileshareBookQueuer(
+            db.job,
+            cli_args=[str(book.id)],
+        ).queue()
+        if not job:
+            return do_error(err_msg)
 
         job = ReverseSetBookCompletedQueuer(
             db.job,
