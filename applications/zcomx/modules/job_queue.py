@@ -297,6 +297,53 @@ class JobQueuer(object):
         return self.queue_class(self.tbl).add_job(self.job_data())
 
 
+class JobRequeuer(object):
+    """Class representing a job requeuer. A requeuer queues a job
+    repeatedly up to a maximum number of times.
+    """
+
+    def __init__(self, queuer, requeues=0, max_requeues=1):
+        """Initializer
+
+        Args:
+            queuer: JobQueuer instance
+            requeues: integer, the number of times the job has been requeued
+            max_requeues: integer, the maximum number of times to requeue job
+
+        """
+        self.queuer = queuer
+        self.requeues = requeues
+        self.max_requeues = max_requeues
+
+    def requeue(self):
+        """Requeue the job.
+
+        Args:
+            self.assertRaises(exception, func, arguments)g
+
+        Returns:
+            Job instance representing job requeued.
+
+        Raises:
+            StopIteration if max_requeues reached.
+        """
+        if self.requeues >= self.max_requeues:
+            msg = 'The maximum requeues, {m}, reached.'.format(
+                m=self.max_requeues)
+            raise StopIteration(msg)
+
+        self.queuer.cli_options.update(self.requeue_cli_options())
+        return self.queuer.queue()
+
+    def requeue_cli_options(self):
+        """Return dict of cli options on requeue."""
+
+        return {
+            '--requeues': self.requeues + 1,
+            '--max-requeues': self.max_requeues,
+        }
+
+
 class Queue(object):
     """Class representing a job queue."""
     job_statuses = {

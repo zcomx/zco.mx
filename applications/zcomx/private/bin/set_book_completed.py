@@ -6,128 +6,16 @@ set_book_completed.py
 
 Script to set a book completed
 """
-import datetime
 from optparse import OptionParser
-from applications.zcomx.modules.books import \
-    Book, \
-    get_page
+from applications.zcomx.modules.book.releasers import \
+    ReleaseBook, \
+    UnreleaseBook
+from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.job_queue import \
-    PostOnSocialMediaQueuer, \
-    SetBookCompletedQueuer
-from applications.zcomx.modules.zco import IN_PROGRESS
-
-VERSION = 'Version 0.1'
+from applications.zcomx.modules.job_queue import JobRequeuer
 from applications.zcomx.modules.logger import set_cli_logging
 
-
-class Releaser(object):
-    """Class representing a Releaser"""
-
-    def __init__(self, book_id):
-        """Constructor
-
-        Args:
-            book_id: string, first arg
-        """
-        self.book_id = book_id
-        self.book = Book.from_id(self.book_id)
-        self.creator = Creator.from_id(self.book.creator_id)
-        self.needs_requeue = False
-
-    def requeue(self, requeues, max_requeues):
-        """Requeue release job."""
-        if requeues < max_requeues:
-            queuer = SetBookCompletedQueuer(
-                db.job,
-                cli_options=self.requeue_cli_options(requeues, max_requeues),
-                cli_args=[str(self.book.id)],
-            )
-            queuer.queue()
-
-    def requeue_cli_options(self, requeues, max_requeues):
-        """Return dict of cli options on requeue."""
-
-        # R0201: *Method could be a function*
-        # pylint: disable=R0201
-
-        return {
-            '-r': requeues + 1,
-            '-m': max_requeues,
-        }
-
-    def run(self):
-        """Run the release."""
-        raise NotImplementedError()
-
-
-class ReleaseBook(Releaser):
-    """Class representing a ReleaseBook"""
-
-    def run(self):
-
-        if not self.book.tumblr_post_id:
-            PostOnSocialMediaQueuer(
-                db.job,
-                cli_args=[str(self.book.id)],
-            ).queue()
-            self.needs_requeue = True
-            # Set the tumblr post id to a dummy value to prevent this step
-            # from running over and over.
-            data = dict(
-                tumblr_post_id=IN_PROGRESS,
-                twitter_post_id=IN_PROGRESS
-            )
-            self.book = Book.from_updated(self.book, data)
-
-            self.needs_requeue = True
-            return
-
-        # Everythings good. Release the book.
-        data = dict(
-            release_date=datetime.datetime.today(),
-            complete_in_progress=False,
-        )
-        self.book = Book.from_updated(self.book, data)
-
-        # Log activity
-        try:
-            first_page = get_page(self.book, page_no='first')
-        except LookupError:
-            LOG.error('First page not found: %s', self.book.name)
-        else:
-            db.tentative_activity_log.insert(
-                book_id=self.book.id,
-                book_page_id=first_page.id,
-                action='completed',
-                time_stamp=datetime.datetime.now(),
-            )
-            db.commit()
-
-
-class UnreleaseBook(Releaser):
-    """Class representing a releaser that reverses the release."""
-
-    def requeue_cli_options(self, requeues, max_requeues):
-        """Return dict of cli options on requeue."""
-        options = super(UnreleaseBook, self).requeue_cli_options(
-            requeues, max_requeues)
-        options.update({'--reverse': True})
-        return options
-
-    def run(self):
-
-        # Everythings good. Unrelease the book.
-        data = dict(
-            release_date=None,
-            complete_in_progress=False,
-        )
-
-        if self.book.tumblr_post_id == IN_PROGRESS:
-            data['tumblr_post_id'] = None
-        if self.book.twitter_post_id == IN_PROGRESS:
-            data['twitter_post_id'] = None
-        self.book = Book.from_updated(self.book, data)
+VERSION = 'Version 0.1'
 
 
 def man_page():
@@ -217,11 +105,22 @@ def main():
 
     LOG.debug('Starting')
     book_id = args[0]
+    book = Book.from_id(book_id)
+    creator = Creator.from_id(book.creator_id)
     release_class = UnreleaseBook if options.reverse else ReleaseBook
-    releaser = release_class(book_id)
+    releaser = release_class(book, creator)
     releaser.run()
     if releaser.needs_requeue:
-        releaser.requeue(options.requeues, options.max_requeues)
+        queuer = release_class.queuer_class(
+            db.job,
+            cli_args=[str(book_id)],
+        )
+        requeuer = JobRequeuer(
+            queuer,
+            requeues=options.requeues,
+            max_requeues=options.max_requeues,
+        )
+        requeuer.requeue()
 
     LOG.debug('Done')
 

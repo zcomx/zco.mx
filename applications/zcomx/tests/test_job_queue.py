@@ -30,6 +30,7 @@ from applications.zcomx.modules.job_queue import \
     InvalidStatusError, \
     Job, \
     JobQueuer, \
+    JobRequeuer, \
     LogDownloadsQueuer, \
     NotifyP2PQueuer, \
     OptimizeCBZImgForReleaseQueuer, \
@@ -494,6 +495,77 @@ class TestJobQueuer(LocalTestCase):
         self.assertTrue(new_job.id in job_ids)
         job = Job.from_id(new_job.id)
         self._objects.append(job)
+
+
+class TestJobRequeuer(LocalTestCase):
+
+    def test____init__(self):
+        queuer = SubJobQueuer(db.job)
+        requeuer = JobRequeuer(queuer)
+        self.assertTrue(requeuer)
+        self.assertEqual(requeuer.requeues, 0)
+        self.assertEqual(requeuer.max_requeues, 1)
+
+    def test__requeue(self):
+        queuer = SubJobQueuer(db.job)
+        requeuer = JobRequeuer(queuer)
+        self.assertRaises(InvalidCLIOptionError, requeuer.requeue)
+
+        class ReJobQueuer(SubJobQueuer):
+            valid_cli_options = ['-a', '-c', '--requeues', '--max-requeues']
+            default_cli_options = {
+                '-a': True,
+                '-c': 'ccc',
+            }
+
+        queuer = ReJobQueuer(db.job)
+        requeuer = JobRequeuer(queuer)
+        tracker = TableTracker(db.job)
+        job = requeuer.requeue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'some_program.py --max-requeues 1 --requeues 1 -a -c ccc'
+        )
+
+        requeuer = JobRequeuer(queuer, requeues=33, max_requeues=99)
+        tracker = TableTracker(db.job)
+        job = requeuer.requeue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'some_program.py --max-requeues 99 --requeues 34 -a -c ccc'
+        )
+
+        requeuer = JobRequeuer(queuer, requeues=99, max_requeues=99)
+        self.assertRaises(StopIteration, requeuer.requeue)
+
+        requeuer = JobRequeuer(queuer, requeues=100, max_requeues=99)
+        self.assertRaises(StopIteration, requeuer.requeue)
+
+    def test__requeue_cli_options(self):
+
+        requeuer = JobRequeuer(JobQueuer(db.job))
+        self.assertEqual(
+            requeuer.requeue_cli_options(),
+            {
+                '--requeues': 1,
+                '--max-requeues': 1,
+            }
+        )
+
+        requeuer = JobRequeuer(JobQueuer(db.job), requeues=33, max_requeues=99)
+        self.assertEqual(
+            requeuer.requeue_cli_options(),
+            {
+                '--requeues': 34,
+                '--max-requeues': 99,
+            }
+        )
 
 
 class TestLogDownloadsQueuer(LocalTestCase):
