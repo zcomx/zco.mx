@@ -73,6 +73,17 @@
             message_panel.addClass(new_class).show();
         },
 
+        format: function(template, vars) {
+            // Source: http://stackoverflow.com/users/98517/ianj
+            vars = typeof vars === 'object' ? vars : Array.prototype.slice.call(arguments, 1);
+
+            return template.replace(/\{\{|\}\}|\{(\w+)\}/g, function (m, n) {
+                if (m == "{{") { return "{"; }
+                if (m == "}}") { return "}"; }
+                return vars[n];
+            });
+        },
+
         get_book_id: function() {
             if (!this.$book_id) {
                 if (this.options.book_id) {
@@ -92,7 +103,7 @@
                 } else {
                     var tr = this.$element.closest('tr');
                     var td = tr.find('td').first();
-                    this.$book_title = td.text();
+                    this.$book_title = $.trim(td.text());
                 }
             }
             return this.$book_title;
@@ -105,7 +116,7 @@
                     true,
                     {},
                     {
-                        title: this.options.title || this.modal_title(),
+                        title: this.modal_title(),
                         message: this.get_message(),
                         onhide: function(dialog) {
                             var ok = that.onhide(dialog);
@@ -189,12 +200,11 @@
         },
 
         modal_title: function() {
-            var title = '';
-            if (this.$action) {
-                title += $.fn.zco_utils.toTitleCase(this.$action) + ': ';
+            var data = {
+                book_title: this.get_book_title(),
+                action: $.fn.zco_utils.toTitleCase(this.$action),
             }
-            title += this.get_book_title();
-            return title;
+            return this.format(this.options.title_template, data);
         },
 
         onhide: function(dialog) {
@@ -370,7 +380,7 @@
             var that = this;
             var btns = [];
             btns.push({
-                label: 'Release for filesharing',
+                label: 'Release For Filesharing',
                 cssClass: 'btn_fileshare',
                 action : function(dialog){
                     that.update();
@@ -528,7 +538,7 @@
         message_panel: '#message_panel',
         onhidden: null,
         onshow: null,
-        title: null,
+        title_template: '{action}: {book_title}',
         url: null,
     };
 
@@ -554,7 +564,7 @@
     $.fn.set_modal_events = function() {
         $('.modal-add-btn').modalize('add', {
             'onhidden': display_book_lists,
-            'title': 'Add book'
+            'title_template': 'Add Book'
         });
         $('.modal-delete-btn').modalize('delete', {'onhidden': display_book_lists});
         $('.modal-edit-btn').modalize('edit', {
@@ -579,7 +589,8 @@
                 'onshown': function(dialog) {
                     $('.btn_complete').prop('disabled', !complete_enabled).toggleClass('disabled', !complete_enabled);
                 }
-            }
+            },
+            'title_template': 'STEP 1: Set a Book as Completed \n {book_title}',
         });
         $('.modal-fileshare-btn').modalize('fileshare', {
             'onhidden': display_book_lists,
@@ -587,7 +598,8 @@
                 'onshown': function(dialog) {
                     $('.btn_fileshare').prop('disabled', !fileshare_enabled).toggleClass('disabled', !fileshare_enabled);
                 }
-            }
+            },
+            'title_template': 'STEP 2: Release a Book on the Filesharing Networks \n {book_title}',
         });
         $('.modal-upload-btn').modalize('upload', {
             'onhidden': display_book_lists,
