@@ -105,8 +105,6 @@ class TestBookPage(ImageTestCase):
         # protected-access (W0212): *Access to a protected member
         # pylint: disable=W0212
         self.assertEqual(page._upload_image, None)
-        self.assertEqual(page.min_cbz_width, 1600)
-        self.assertEqual(page.min_cbz_height_to_exempt, 2560)
 
     def test__orientation(self):
         # Test book without an image.

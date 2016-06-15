@@ -25,6 +25,7 @@ from applications.zcomx.modules.book_upload import \
     classify_uploaded_file, \
     create_book_page
 from applications.zcomx.modules.books import Book
+from applications.zcomx.modules.image.validators import InvalidImageError
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     WithTestDataDirTestCase
@@ -64,11 +65,11 @@ class TestBookPageUploader(ImageTestCase):
         book = self.add(Book, dict(name='test__load_file'))
         self.assertEqual(book.page_count(), 0)
 
-        sample_file = os.path.join(self._test_data_dir, 'file.jpg')
+        sample_file = os.path.join(self._test_data_dir, 'cbz.jpg')
         with open(sample_file, 'r') as f:
             up_file = Storage({
                 'file': f,
-                'filename': 'file.jpg',
+                'filename': 'cbz.jpg',
             })
             uploader = BookPageUploader(book.id, [up_file])
             uploader.upload()
@@ -228,7 +229,7 @@ class TestUploadedFile(ImageTestCase):
 
     def test__load(self):
         book = self.add(Book, dict(name='test__load'))
-        filename = self._prep_image('file.jpg')
+        filename = self._prep_image('cbz.jpg')
         # Use UploadedImage as UploadedFile won't have methods implemented
         uploaded = UploadedImage(filename)
         uploaded.load(book.id)
@@ -241,6 +242,33 @@ class TestUploadedFile(ImageTestCase):
         filename = self._prep_image('file.jpg')
         uploaded = UploadedFile(filename)
         self.assertRaises(NotImplementedError, uploaded.unpack)
+
+    def test__validate_images(self):
+        image_dimensions = [
+            (1600, 1600),
+            (1600, 2000),
+            (2650, 1000),
+        ]
+        filenames = []
+        for count, dims in enumerate(image_dimensions):
+            filename = self._create_image('file_{c}.jpg'.format(c=count), dims)
+            filenames.append(filename)
+        uploaded = UploadedFile('fake/path/to/file.jpg')
+        uploaded.image_filenames = filenames
+        self.assertTrue(uploaded.validate_images())
+
+        invalid_dimensions = [
+            (100, 100),
+            (100, 1000),
+            (1000, 100),
+        ]
+        valid_filenames = list(filenames)
+        for dims in invalid_dimensions:
+            filenames = list(valid_filenames)
+            filename = self._create_image('file.jpg', dims)
+            filenames.append(filename)
+            uploaded.image_filenames = filenames
+            self.assertRaises(InvalidImageError, uploaded.validate_images)
 
 
 class TestUploadedArchive(WithTestDataDirTestCase):

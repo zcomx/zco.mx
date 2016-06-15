@@ -20,8 +20,6 @@ class BookPage(Record):
     """Class representing a book page"""
 
     db_table = 'book_page'
-    min_cbz_width = 1600                # pixels
-    min_cbz_height_to_exempt = 2560     # pixels
 
     def __init__(self, *args, **kwargs):
         """Initializer"""

@@ -40,7 +40,9 @@ from applications.zcomx.modules.books import \
     Book, \
     book_page_for_json, \
     get_page
+from applications.zcomx.modules.image.validators import CBZValidator
 from applications.zcomx.modules.images import \
+    ImageDescriptor, \
     is_image, \
     store
 from applications.zcomx.modules.shell_utils import \
@@ -260,6 +262,7 @@ class UploadedFile(object):
     def load(self, book_id):
         """Load uploaded file into database."""
         self.unpack()
+        self.validate_images()
         self.create_book_pages(book_id)
         if self.unpacker:
             self.unpacker.cleanup()
@@ -267,6 +270,17 @@ class UploadedFile(object):
     def unpack(self):
         """Unpack file."""
         raise NotImplementedError()
+
+    def validate_images(self):
+        """Validate images.
+
+        Raises:
+            InvalidImageError
+        """
+        for image_filename in self.image_filenames:
+            validator = CBZValidator(image_filename)
+            validator.validate(image_descriptor=ImageDescriptor)
+        return True
 
 
 class UploadedArchive(UploadedFile):

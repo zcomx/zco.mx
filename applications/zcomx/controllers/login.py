@@ -37,6 +37,7 @@ from applications.zcomx.modules.creators import \
     image_as_json, \
     queue_update_indicia, \
     short_url
+from applications.zcomx.modules.image.validators import InvalidImageError
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
     on_delete_image, \
@@ -571,6 +572,11 @@ def book_pages_handler():
         # pylint: disable=W0703
         try:
             result_json = BookPageUploader(book.id, files).upload()
+        except InvalidImageError as err:
+            return do_error(
+                str(err),
+                files=[x.filename for x in files]
+            )
         except Exception as err:
             LOG.error('Upload failed, err: %s', str(err))
             return do_error(

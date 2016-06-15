@@ -333,8 +333,22 @@ class TestFunctions(WebTestCase):
         before_ids = get_book_page_ids(self._book)
         before_activity_ids = get_activity_log_ids(self._book.id)
 
-        # Test add file.
+        # Test add invalid file (add image too small for cbz)
         sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')
+        files = {'up_files[]': open(sample_file, 'rb')}
+        response = requests.post(
+            web.app + '/login/book_pages_handler/{i}'.format(i=self._book.id),
+            files=files,
+            cookies=web.cookies,
+            verify=False,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        after_ids = get_book_page_ids(self._book)
+        self.assertEqual(before_ids, after_ids)
+
+        # Test add file.
+        sample_file = os.path.join(self._test_data_dir, 'cbz_plus.jpg')
         files = {'up_files[]': open(sample_file, 'rb')}
         response = requests.post(
             web.app + '/login/book_pages_handler/{i}'.format(i=self._book.id),
