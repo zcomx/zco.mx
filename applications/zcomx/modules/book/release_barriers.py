@@ -13,6 +13,38 @@ from applications.zcomx.modules.indicias import PublicationMetadata
 LOG = current.app.logger
 
 
+class ModalLink(object):
+    """Class representing a link that opens a modal."""
+    def __init__(self, book, text, modal_btn_class, controller_func):
+        """Initializer
+
+        Args:
+            book: Book instance
+            text: str, anchor tag text, <a>text</a>
+            modal_btn_class: str, Modalize class value
+            controller_func: str, name of login.py controller function
+        """
+        self.book = book
+        self.text = text
+        self.modal_btn_class = modal_btn_class
+        self.controller_func = controller_func
+
+    def link(self):
+        """Return the link."""
+        a_class = self.modal_btn_class + ' close_current_dialog no_rclick_menu'
+        return A(
+            self.text,
+            _class=a_class,
+            _href=URL(
+                c='login',
+                f=self.controller_func,
+                args=self.book.id,
+                extension=False
+            ),
+            **{'_data-book_id': self.book.id}
+        )
+
+
 class BaseReleaseBarrier(object):
     """Class representing a complete barrier"""
 
@@ -37,12 +69,52 @@ class BaseReleaseBarrier(object):
         """The complete barrier code."""
         raise NotImplementedError
 
+    def complete_link(self, text, modal_class=ModalLink):
+        """Return a link to the book set as completed modal.
+
+        Args:
+            text: str, text of link, eg <a>text</a>
+            modal_class: class to create link with
+
+        Returns:
+            A() instance.
+        """
+        return modal_class(
+            self.book, text, 'modal-complete-btn', 'book_complete').link()
+
+    def delete_link(self, text, modal_class=ModalLink):
+        """Return a link to the book delete modal.
+
+        Args:
+            text: str, text of link, eg <a>text</a>
+            modal_class: class to create link with
+
+        Returns:
+            A() instance.
+        """
+        return modal_class(
+            self.book, text, 'modal-delete-btn', 'book_delete').link()
+
     @property
     def description(self):
         """A description of the barrier."""
         # no-self-use (R0201): *Method could be a function*
         # pylint: disable=R0201
         return ''   # This is optional
+
+    def edit_link(self, text, modal_class=ModalLink):
+        """Return a link to the book edit modal.
+
+        Args:
+            text: str, text of link, eg <a>text</a>
+            modal_class: class to create link with
+
+        Returns:
+            A() instance.
+        """
+        modal_btn = 'modal-edit-btn' if self.book.release_date \
+            else 'modal-edit-ongoing-btn'
+        return modal_class(self.book, text, modal_btn, 'book_edit').link()
 
     @property
     def fixes(self):
@@ -53,6 +125,19 @@ class BaseReleaseBarrier(object):
     def reason(self):
         """An explanation of why the barrier failed."""
         raise NotImplementedError
+
+    def upload_link(self, text, modal_class=ModalLink):
+        """Return a link to the book pages (Upload) modal.
+
+        Args:
+            text: str, text of link, eg <a>text</a>
+            modal_class: class to create link with
+
+        Returns:
+            A() instance.
+        """
+        return modal_class(
+            self.book, text, 'modal-upload-btn', 'book_pages').link()
 
 
 class AllRightsReservedBarrier(BaseReleaseBarrier):
@@ -80,7 +165,8 @@ class AllRightsReservedBarrier(BaseReleaseBarrier):
     @property
     def fixes(self):
         return [
-            'Edit the book and change the licence.',
+            '{l} the book and change the licence.'.format(
+                l=self.edit_link('Edit')),
         ]
 
     @property
@@ -122,8 +208,10 @@ class DupeNameBarrier(BaseReleaseBarrier):
     @property
     def fixes(self):
         return [
-            'Modify the name of the book to make it unique.',
-            'If this is a duplicate, delete the book.',
+            '{l} the name of the book to make it unique.'.format(
+                l=self.edit_link('Modify')),
+            'If this is a duplicate, {l} the book.'.format(
+                l=self.delete_link('delete')),
         ]
 
     @property
@@ -163,9 +251,12 @@ class DupeNumberBarrier(BaseReleaseBarrier):
         return [
             (
                 'Verify the number of the book is correct. '
-                'Possibly it needs to be incremented.'
+                'Possibly it needs to be incremented. '
+                '{l} the book and make changes as necessary.'.format(
+                    l=self.edit_link('Edit'))
             ),
-            'If this is a duplicate, delete the book.',
+            'If this is a duplicate, {l} the book.'.format(
+                l=self.delete_link('delete')),
         ]
 
     @property
@@ -207,9 +298,11 @@ class InvalidPageNoBarrier(BaseReleaseBarrier):
 
     @property
     def fixes(self):
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
         return [
-            'Click the Upload button associated with the book.',
-            'Check that images are in the correct order and fix as necessary.',
+            '{l} that images are in the correct order and fix as necessary.'.format(
+                l=self.upload_link('Check')),
             'Then click the "Post On Web" button.',
         ]
 
@@ -238,7 +331,8 @@ class NoBookNameBarrier(BaseReleaseBarrier):
     @property
     def fixes(self):
         return [
-            'Edit the book and set the name.',
+            '{l} the book and set the name.'.format(
+                l=self.edit_link('Edit')),
         ]
 
     @property
@@ -270,7 +364,8 @@ class NoCBZImageBarrier(BaseReleaseBarrier):
     def description(self):
         return (
             'A minimum width of 2560px is recommended. '
-            'The following images should be replaced:'
+            'The following images should be {l}:'.format(
+                l=self.upload_link('replaced'))
         )
 
     @property
@@ -336,7 +431,8 @@ class NoLicenceBarrier(BaseReleaseBarrier):
     @property
     def fixes(self):
         return [
-            'Edit the book and set the licence.',
+            '{l} the book and set the licence.'.format(
+                l=self.edit_link('Edit')),
         ]
 
     @property
@@ -357,7 +453,8 @@ class NoPagesBarrier(BaseReleaseBarrier):
     @property
     def fixes(self):
         return [
-            'Upload images to create pages for the book.',
+            '{l} images to create pages for the book.'.format(
+                l=self.upload_link('Upload')),
         ]
 
     @property
@@ -395,7 +492,8 @@ class NoPublicationMetadataBarrier(BaseReleaseBarrier):
     @property
     def fixes(self):
         return [
-            'Edit the book and set the publication metadata.',
+            '{l} the book and set the publication metadata.'.format(
+                l=self.edit_link('Edit'))
         ]
 
     @property
@@ -416,15 +514,15 @@ class NotCompletedBarrier(BaseReleaseBarrier):
     @property
     def description(self):
         return (
-            'The book cannot be edited '
-            'once released for file sharing networks. '
-            'It must be set as completed.'
+            'It must be set as completed '
+            'before it can be released for filesharing.'
         )
 
     @property
     def fixes(self):
         return [
-            'Click the "Set as completed" checkbox for the book.',
+            '{l}.'.format(
+                l=self.complete_link('Set the book as completed'))
         ]
 
     @property

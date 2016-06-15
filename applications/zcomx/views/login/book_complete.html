@@ -3,35 +3,21 @@
 
 <div>
     <p>
-    Marking a book complete publishes the book online.
-    It will be displayed on the <i>completed</i> page instead of the <i>ongoing</i> page.
+    Setting a book as <i>Completed</i> moves the book from the <i>Ongoing</i>
+    section to the <i>Completed</i> section.  This step will not release the
+    book on the filesharing networks. Releasing the book on the filesharing
+    networks is optional and is done in <i>Step 2</i>.
     </p>
-    <p>Before proceeding:</p>
-    <ul>
-        <li>Ensure all images have been uploaded and are in the correct order.</li>
-        <li>Ensure you are happy with the copyright licence selected. Edit the book to make changes. You can change the licence at a later time if desired.</li>
-    </ul>
+    <p>
+    <b>NOTICE:</b><br/>
+    Completed books are locked from further changes.  Make sure all pages are
+    in the correct order before proceeding.  To check the order of the pages,
+    click
+    <a href="{{=URL(c='login', f='book_pages', args=book.id, extension=False)}}" class="modal-upload-btn close_current_dialog no_rclick_menu" data-book_id="{{=book.id}}">here</a>.
+    </p>
 </div>
 
-<div class="panel panel-default">
-    <div class="panel-heading">
-        Marking a book as complete has the following effect:
-    </div>
-    <div class="panel-body">
-        <ul>
-            <li>The book is moved to the <i>completed</i> page</li>
-            <li>The book pages are locked from further modifications</li>
-        </ul>
-        <p>The process can take several minutes.</p>
-    </div>
-</div>
-
-{{if not barriers:}}
-    <div class="instruction">
-        Click the <em>Complete</em> button to mark <em>{{=formatted_name(book)}}</em> as complete.
-        Click the <em>Cancel</em> button if you've changed your mind.
-    </div>
-{{else:}}
+{{if barriers:}}
     <div class="panel panel-danger">
         <div class="panel-heading">
             The book <em>{{=formatted_name(book)}}</em> cannot be marked complete.
@@ -44,12 +30,12 @@
                 {{=barrier.reason}}
                 {{if barrier.description:}}
                 <div class="barrier_description">
-                    {{=barrier.description}}
+                    {{=XML(barrier.description)}}
                 </div>
                 {{pass}}
                 <ul>
                     {{for fix in barrier.fixes:}}
-                    <li>{{=fix}}</li>
+                    <li>{{=XML(fix)}}</li>
                     {{pass}}
                 </ul>
             </li>
@@ -60,6 +46,17 @@
             Once all problems have been resolved, try again.
         </div>
     </div>
+{{else:}}
+    {{if metadata:}}
+        <p>
+        The publication metadata is set to:
+        <br />
+        <span class="text-muted">{{=metadata}}</span>
+        <br />
+        To make changes to the metadata, go to the book's
+        <a href="{{=URL(c='login', f='book_edit', args=book.id, extension=False)}}" class="modal-edit-ongoing-btn close_current_dialog no_rclick_menu" data-book_id="{{=book.id}}">edit page</a>.
+        </p>
+    {{pass}}
 {{pass}}
 
 <div id="message_panel" class="panel panel-default" style="display: none;">
@@ -70,5 +67,8 @@
 <script>
 //<![CDATA[
     var complete_enabled = {{if barriers:}}false{{else:}}true{{pass}};
+    $(document).ready(function(){
+        $.fn.set_modal_events({'book_title': '{{=formatted_name(book, include_publication_year=False)}}'});
+    });
 //]]>
 </script>

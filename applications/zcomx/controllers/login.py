@@ -149,11 +149,13 @@ def book_complete():
     if not book or book.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
+    meta = BookPublicationMetadata.from_book(book)
     barriers = complete_barriers(book)
 
     return dict(
         book=book,
         barriers=barriers,
+        metadata=str(meta) if meta else '',
     )
 
 

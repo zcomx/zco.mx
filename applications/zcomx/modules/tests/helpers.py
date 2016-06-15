@@ -12,6 +12,7 @@ import subprocess
 import glob
 from PIL import Image
 from gluon import *
+from gluon.storage import Storage
 from applications.zcomx.modules.images import \
     ImageDescriptor, \
     UploadImage, \
@@ -19,6 +20,94 @@ from applications.zcomx.modules.images import \
 from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.shell_utils import TempDirectoryMixin
+
+
+class DubMeta(type):
+    """Class for creating dub classes with prescribed method behaviour."""
+
+    def __new__(mcs, name, bases, dct):
+
+        def find_method(method):
+            """Find a method in all base classes
+
+            Args:
+                method: class method
+            """
+            for base in bases:
+                try:
+                    return getattr(base, method)
+                except AttributeError:
+                    pass
+            raise AttributeError("No bases have method '{}'".format(method))
+
+        def call_recorder(func):
+            """Record every call to func.
+
+            Args:
+                func: class method
+            """
+            def wrapper(self, *args, **kwargs):
+                """Wrapper replacing func with call recorder."""
+                dub_translate = getattr(self, '_dub_translate')
+                calls = getattr(self, dub_translate['calls'])
+                if calls is not None:
+                    calls.append((func.__name__, args, kwargs))
+                # W0212: *Access to a protected member %%s of a client class*
+                # pylint: disable=W0212
+                dub = getattr(self, dub_translate['dub'])
+                if func.__name__ in dub:
+                    settings = dub[func.__name__]
+                    if 'raise' in settings:
+                        if callable(settings['raise']):
+                            exception = settings['raise'](
+                                self, *args, **kwargs)
+                            if exception is not None:
+                                raise exception
+                        else:
+                            if settings['raise'] is not None:
+                                raise settings['raise']
+                    if 'return' in settings:
+                        if callable(settings['return']):
+                            return settings['return'](self, *args, **kwargs)
+                        else:
+                            return settings['return']
+                return func(self, *args, **kwargs)
+            return wrapper
+
+        def init_calls(self):
+            """Initialize calls."""
+            dub_translate = getattr(self, '_dub_translate')
+            setattr(self, dub_translate['calls'], [])
+
+        _dub_translate = {
+            'dub': 'dub',
+            'calls': 'calls',
+            'init_calls': 'init_calls',
+        }
+
+        if '_dub_names' in dct:
+            _dub_translate.update(dct['_dub_names'])
+
+        dct['_dub_translate'] = _dub_translate
+
+        dub_name = _dub_translate['dub']
+        calls_name = _dub_translate['calls']
+        init_calls_name = _dub_translate['init_calls']
+
+        if init_calls_name not in dct:
+            dct[init_calls_name] = init_calls
+
+        if dub_name not in dct:
+            dct[dub_name] = Storage({})
+
+        if calls_name not in dct:
+            dct[calls_name] = []
+
+        for method in dct['_dub_methods']:
+            dct[dub_name][method] = Storage({})
+            dct[method] = call_recorder(find_method(method))
+
+        return type(name, bases, dct)
 
 
 class FileTestCase(LocalTestCase):
@@ -147,6 +236,8 @@ class ImageTestCase(WithTestDataDirTestCase):
         Returns:
             Name of the stored image file.
         """
+        # no-self-use (R0201): *Method could be a function*
+        # pylint: disable=R0201
         # Delete images if record field is set.
         db = current.app.db
         if record[field.name]:

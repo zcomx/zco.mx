@@ -471,7 +471,6 @@
                     original_page_count: this.$page_count,
                 },
                 success: function (data, textStatus, jqXHR) {
-                    console.log('data: %o', data);
                     if (data.status === 'error') {
                         var msg = 'ERROR: ' + data.msg || 'Server request failed';
                         that.display_message('', msg, 'panel-danger');
@@ -561,49 +560,67 @@
         });
     }
 
-    $.fn.set_modal_events = function() {
-        $('.modal-add-btn').modalize('add', {
-            'onhidden': display_book_lists,
-            'title_template': 'Add Book'
-        });
-        $('.modal-delete-btn').modalize('delete', {'onhidden': display_book_lists});
-        $('.modal-edit-btn').modalize('edit', {
-            'onhidden': display_book_lists,
-            'bootstrap_dialog_options':  {
-                'closable': true,
-                'closeByBackdrop': false,
-                'closeByKeyboard': false,
-            }
-        });
-        $('.modal-edit-ongoing-btn').modalize('edit_ongoing', {
-            'onhidden': display_book_lists,
-            'bootstrap_dialog_options':  {
-                'closable': true,
-                'closeByBackdrop': false,
-                'closeByKeyboard': false,
-            }
-        });
-        $('.modal-complete-btn').modalize('complete', {
-            'onhidden': display_book_lists,
-            'bootstrap_dialog_options':  {
-                'onshown': function(dialog) {
-                    $('.btn_complete').prop('disabled', !complete_enabled).toggleClass('disabled', !complete_enabled);
-                }
-            },
-            'title_template': 'STEP 1: Set a Book as Completed \n {book_title}',
-        });
-        $('.modal-fileshare-btn').modalize('fileshare', {
-            'onhidden': display_book_lists,
-            'bootstrap_dialog_options':  {
-                'onshown': function(dialog) {
-                    $('.btn_fileshare').prop('disabled', !fileshare_enabled).toggleClass('disabled', !fileshare_enabled);
-                }
-            },
-            'title_template': 'STEP 2: Release a Book on the Filesharing Networks \n {book_title}',
-        });
-        $('.modal-upload-btn').modalize('upload', {
-            'onhidden': display_book_lists,
-        });
+    $.fn.set_modal_events = function(options) {
+        $('.modal-add-btn').modalize('add',
+            $.extend({}, options, {
+                'onhidden': display_book_lists,
+                'title_template': 'Add Book'
+            })
+        );
+        $('.modal-delete-btn').modalize('delete',
+            $.extend({}, options, {'onhidden': display_book_lists})
+        );
+        $('.modal-edit-btn').modalize('edit',
+            $.extend({}, options, {
+                'onhidden': display_book_lists,
+                'bootstrap_dialog_options':  {
+                    'closable': true,
+                    'closeByBackdrop': false,
+                    'closeByKeyboard': false,
+                },
+            })
+        );
+        $('.modal-edit-ongoing-btn').modalize('edit_ongoing',
+            $.extend({}, options, {
+                'onhidden': display_book_lists,
+                'bootstrap_dialog_options':  {
+                    'closable': true,
+                    'closeByBackdrop': false,
+                    'closeByKeyboard': false,
+                },
+            })
+        );
+        $('.modal-complete-btn').modalize('complete',
+            $.extend({}, options, {
+                'onhidden': display_book_lists,
+                'bootstrap_dialog_options':  {
+                    'onshown': function(dialog) {
+                        $('.btn_complete').prop('disabled', !complete_enabled).toggleClass('disabled', !complete_enabled);
+                        $('.close_current_dialog').on('click', function(e) {
+                            dialog.close();
+                        });
+                    }
+                },
+                'title_template': 'STEP 1: Set a Book as Completed \n {book_title}',
+            })
+        );
+        $('.modal-fileshare-btn').modalize('fileshare',
+            $.extend({}, options, {
+                'onhidden': display_book_lists,
+                'bootstrap_dialog_options':  {
+                    'onshown': function(dialog) {
+                        $('.btn_fileshare').prop('disabled', !fileshare_enabled).toggleClass('disabled', !fileshare_enabled);
+                        $('.close_current_dialog').on('click', function(e) {
+                            dialog.close();
+                        });
+                    }
+                },
+                'title_template': 'STEP 2: Release a Book on the Filesharing Networks \n {book_title}',
+            })
+        );
+        $('.modal-upload-btn').modalize('upload',
+            $.extend({}, options, {'onhidden': display_book_lists})
+        );
     }
 
     $(document).ready(function(){

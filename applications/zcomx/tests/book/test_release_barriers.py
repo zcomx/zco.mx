@@ -11,6 +11,7 @@ import os
 import datetime
 import shutil
 import unittest
+from BeautifulSoup import BeautifulSoup
 from gluon import *
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.book.release_barriers import \
@@ -21,6 +22,7 @@ from applications.zcomx.modules.book.release_barriers import \
     DupeNameBarrier, \
     DupeNumberBarrier, \
     InvalidPageNoBarrier, \
+    ModalLink, \
     NoBookNameBarrier, \
     NoCBZImageBarrier, \
     NoLicenceBarrier, \
@@ -38,6 +40,7 @@ from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.indicias import PublicationMetadata
 from applications.zcomx.modules.tests.helpers import \
+    DubMeta, \
     ImageTestCase, \
     ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -83,7 +86,7 @@ class TestAllRightsReservedBarrier(LocalTestCase):
         self.assertTrue('published on public file' in barrier.description)
 
     def test__fixes(self):
-        barrier = AllRightsReservedBarrier({})
+        barrier = AllRightsReservedBarrier(Book(id=123, release_date=None))
 
         self.assertEqual(len(barrier.fixes), 1)
         self.assertTrue('change the licence' in barrier.fixes[0])
@@ -94,6 +97,27 @@ class TestAllRightsReservedBarrier(LocalTestCase):
 
 
 class TestBaseReleaseBarrier(LocalTestCase):
+
+    _dub_modal_link = None
+
+    # C0103: *Invalid name "%s" (should match %s)*
+    # pylint: disable=C0103
+    def setUp(self):
+        class DubModalLink(ModalLink):
+            __metaclass__ = DubMeta
+            _dub_methods = [
+                'link',
+            ]
+
+        def override_link(self):
+            return [
+                self.book,
+                self.text,
+                self.modal_btn_class,
+                self.controller_func,
+            ]
+        DubModalLink.dub.link['return'] = override_link
+        self._dub_modal_link = DubModalLink
 
     def test____init__(self):
         barrier = BaseReleaseBarrier({})
@@ -112,9 +136,71 @@ class TestBaseReleaseBarrier(LocalTestCase):
         else:
             self.fail('NotImplementedError not raised')
 
+    def test__complete_link(self):
+        barrier = BaseReleaseBarrier(Book(id=123))
+        complete_link = barrier.complete_link(
+            'Complete Me', modal_class=self._dub_modal_link)
+        self.assertTrue(isinstance(complete_link[0], Book))
+        self.assertEqual(complete_link[0].id, 123)
+        self.assertEqual(
+            complete_link[1:],
+            [
+                'Complete Me',
+                'modal-complete-btn',
+                'book_complete',
+            ]
+        )
+
+    def test__delete_link(self):
+        barrier = BaseReleaseBarrier(Book(id=123))
+        delete_link = barrier.delete_link(
+            'Delete Me', modal_class=self._dub_modal_link)
+        self.assertTrue(isinstance(delete_link[0], Book))
+        self.assertEqual(delete_link[0].id, 123)
+        self.assertEqual(
+            delete_link[1:],
+            [
+                'Delete Me',
+                'modal-delete-btn',
+                'book_delete',
+            ]
+        )
+
     def test__description(self):
         barrier = BaseReleaseBarrier({})
         self.assertEqual(barrier.description, '')
+
+    def test__edit_link(self):
+        # With no release date
+        barrier = BaseReleaseBarrier(Book(id=123, release_date=None))
+        edit_link = barrier.edit_link(
+            'Edit Me', modal_class=self._dub_modal_link)
+        self.assertTrue(isinstance(edit_link[0], Book))
+        self.assertEqual(edit_link[0].id, 123)
+        self.assertEqual(
+            edit_link[1:],
+            [
+                'Edit Me',
+                'modal-edit-ongoing-btn',
+                'book_edit',
+            ]
+        )
+
+        # With release date
+        barrier = BaseReleaseBarrier(
+            Book(id=123, release_date=datetime.date.today()))
+        edit_link = barrier.edit_link(
+            'Edit Me', modal_class=self._dub_modal_link)
+        self.assertTrue(isinstance(edit_link[0], Book))
+        self.assertEqual(edit_link[0].id, 123)
+        self.assertEqual(
+            edit_link[1:],
+            [
+                'Edit Me',
+                'modal-edit-btn',
+                'book_edit',
+            ]
+        )
 
     def test__fixes(self):
         barrier = BaseReleaseBarrier({})
@@ -133,6 +219,21 @@ class TestBaseReleaseBarrier(LocalTestCase):
             pass
         else:
             self.fail('NotImplementedError not raised')
+
+    def test__upload_link(self):
+        barrier = BaseReleaseBarrier(Book(id=123))
+        upload_link = barrier.upload_link(
+            'Upload Me', modal_class=self._dub_modal_link)
+        self.assertTrue(isinstance(upload_link[0], Book))
+        self.assertEqual(upload_link[0].id, 123)
+        self.assertEqual(
+            upload_link[1:],
+            [
+                'Upload Me',
+                'modal-upload-btn',
+                'book_pages',
+            ]
+        )
 
 
 class TestDupeNameBarrier(LocalTestCase):
@@ -186,11 +287,11 @@ class TestDupeNameBarrier(LocalTestCase):
             'name of the book must be unique' in barrier.description)
 
     def test__fixes(self):
-        barrier = DupeNameBarrier({})
+        barrier = DupeNameBarrier(Book(id=123, release_date=None))
 
         self.assertEqual(len(barrier.fixes), 2)
-        self.assertTrue('Modify the name' in barrier.fixes[0])
-        self.assertTrue('delete the book' in barrier.fixes[1])
+        self.assertTrue('>Modify</a> the name' in barrier.fixes[0])
+        self.assertTrue('>delete</a> the book' in barrier.fixes[1])
 
     def test__reason(self):
         barrier = DupeNameBarrier({})
@@ -250,11 +351,11 @@ class TestDupeNumberBarrier(LocalTestCase):
             'name/number of the book must be unique' in barrier.description)
 
     def test__fixes(self):
-        barrier = DupeNumberBarrier({})
+        barrier = DupeNumberBarrier(Book(id=123, release_date=None))
 
         self.assertEqual(len(barrier.fixes), 2)
         self.assertTrue('Verify the number' in barrier.fixes[0])
-        self.assertTrue('delete the book' in barrier.fixes[1])
+        self.assertTrue('>delete</a> the book' in barrier.fixes[1])
 
     def test__reason(self):
         barrier = DupeNumberBarrier({})
@@ -309,14 +410,47 @@ class TestInvalidPageNoBarrier(LocalTestCase):
             'numbers are assigned improperly' in barrier.description)
 
     def test__fixes(self):
-        barrier = InvalidPageNoBarrier({})
+        barrier = InvalidPageNoBarrier(Book(id=123))
 
-        self.assertEqual(len(barrier.fixes), 3)
-        self.assertTrue('Click the Upload' in barrier.fixes[0])
+        self.assertEqual(len(barrier.fixes), 2)
+        self.assertTrue('>Check</a> that images are' in barrier.fixes[0])
 
     def test__reason(self):
         barrier = InvalidPageNoBarrier({})
         self.assertTrue('numbers were not set properly' in barrier.reason)
+
+
+class TestModalLink(LocalTestCase):
+
+    def test____init__(self):
+        modal_link = ModalLink(
+            Book(id=123, release_date=None),
+            'My Link',
+            'modal-action-btn',
+            'book_action'
+        )
+        self.assertTrue(modal_link)
+
+    def test__link(self):
+        modal_link = ModalLink(
+            Book(id=123, release_date=None),
+            'My Link',
+            'modal-action-btn',
+            'book_action'
+        )
+        link = modal_link.link()
+        soup = BeautifulSoup(str(link))
+        # Expect:
+        # <a class="modal-action-btn close_current_dialog no_rclick_menu"
+        #   data-book_id="123" href="/login/book_action/123">My Link</a>
+        anchor = soup.a
+        self.assertEqual(anchor.string, 'My Link')
+        self.assertEqual(
+            anchor['class'],
+            'modal-action-btn close_current_dialog no_rclick_menu'
+        )
+        self.assertEqual(anchor['data-book_id'], '123')
+        self.assertEqual(anchor['href'], '/login/book_action/123')
 
 
 class TestNoBookNameBarrier(LocalTestCase):
@@ -342,10 +476,10 @@ class TestNoBookNameBarrier(LocalTestCase):
         self.assertTrue('Without a name' in barrier.description)
 
     def test__fixes(self):
-        barrier = NoBookNameBarrier({})
+        barrier = NoBookNameBarrier(Book(id=123, release_date=None))
 
         self.assertEqual(len(barrier.fixes), 1)
-        self.assertTrue('Edit the book' in barrier.fixes[0])
+        self.assertTrue('>Edit</a> the book' in barrier.fixes[0])
 
     def test__reason(self):
         barrier = NoBookNameBarrier({})
@@ -377,8 +511,9 @@ class TestNoCBZImageBarrier(ImageTestCase):
         self.assertEqual(barrier.code, 'no_cbz_images')
 
     def test__description(self):
-        barrier = NoCBZImageBarrier({})
-        self.assertTrue('images should be replaced' in barrier.description)
+        barrier = NoCBZImageBarrier(Book(id=123))
+        self.assertTrue('following images should be' in barrier.description)
+        self.assertTrue('>replaced</a>' in barrier.description)
 
     def test__fixes(self):
         # W0212 (protected-access): *Access to a protected member
@@ -504,7 +639,7 @@ class TestNoLicenceBarrier(LocalTestCase):
         self.assertTrue('licence must be set' in barrier.description)
 
     def test__fixes(self):
-        barrier = NoLicenceBarrier({})
+        barrier = NoLicenceBarrier(Book(id=123, release_date=None))
 
         self.assertEqual(len(barrier.fixes), 1)
         self.assertTrue('set the licence' in barrier.fixes[0])
@@ -536,9 +671,9 @@ class TestNoPagesBarrier(LocalTestCase):
         self.assertEqual(barrier.description, '')
 
     def test__fixes(self):
-        barrier = NoPagesBarrier({})
+        barrier = NoPagesBarrier(Book(id=123))
         self.assertEqual(len(barrier.fixes), 1)
-        self.assertTrue('Upload images' in barrier.fixes[0])
+        self.assertTrue('>Upload</a> images' in barrier.fixes[0])
 
     def test__reason(self):
         barrier = NoPagesBarrier({})
@@ -574,7 +709,7 @@ class TestNoPublicationMetadataBarrier(LocalTestCase):
         self.assertTrue('metadata has to be set' in barrier.description)
 
     def test__fixes(self):
-        barrier = NoPublicationMetadataBarrier({})
+        barrier = NoPublicationMetadataBarrier(Book(id=123, release_date=None))
         self.assertEqual(len(barrier.fixes), 1)
         self.assertTrue('set the publication metadata' in barrier.fixes[0])
 
@@ -607,11 +742,10 @@ class TestNotCompletedBarrier(LocalTestCase):
         self.assertTrue('It must be set as completed' in barrier.description)
 
     def test__fixes(self):
-        barrier = NotCompletedBarrier({})
+        barrier = NotCompletedBarrier(Book(id=123))
 
         self.assertEqual(len(barrier.fixes), 1)
-        self.assertTrue(
-            'Click the "Set as completed" checkbox' in barrier.fixes[0])
+        self.assertTrue('>Set the book as completed</a>' in barrier.fixes[0])
 
     def test__reason(self):
         barrier = NotCompletedBarrier({})

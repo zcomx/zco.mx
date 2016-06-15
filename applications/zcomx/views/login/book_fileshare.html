@@ -50,12 +50,12 @@ releasing the book for filesharing.</li>
                 {{=barrier.reason}}
                 {{if barrier.description:}}
                 <div class="barrier_description">
-                    {{=barrier.description}}
+                    {{=XML(barrier.description)}}
                 </div>
                 {{pass}}
                 <ul>
                     {{for fix in barrier.fixes:}}
-                    <li>{{=fix}}</li>
+                    <li>{{=XML(fix)}}</li>
                     {{pass}}
                 </ul>
             </li>
@@ -76,5 +76,8 @@ releasing the book for filesharing.</li>
 <script>
 //<![CDATA[
     var fileshare_enabled = {{if barriers:}}false{{else:}}true{{pass}};
+    $(document).ready(function(){
+        $.fn.set_modal_events({'book_title': '{{=formatted_name(book, include_publication_year=False)}}'});
+    });
 //]]>
 </script>
