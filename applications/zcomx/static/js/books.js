@@ -101,9 +101,13 @@
                 if (this.options.book_title) {
                     this.$book_title = this.options.book_title;
                 } else {
-                    var tr = this.$element.closest('tr');
-                    var td = tr.find('td').first();
-                    this.$book_title = $.trim(td.text());
+                    var $td = this.$element.closest('tr').find('td').first();
+                    var $anchor = $td.find('a').first();
+                    if ($anchor.length) {
+                        this.$book_title = $.trim($anchor.text());
+                    } else {
+                        this.$book_title = $.trim($td.text());
+                    }
                 }
             }
             return this.$book_title;
