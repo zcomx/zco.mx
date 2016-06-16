@@ -83,13 +83,14 @@ class TestAllRightsReservedBarrier(LocalTestCase):
 
     def test__description(self):
         barrier = AllRightsReservedBarrier({})
-        self.assertTrue('published on public file' in barrier.description)
+        self.assertTrue(
+            'you need to grant them permission' in barrier.description)
 
     def test__fixes(self):
         barrier = AllRightsReservedBarrier(Book(id=123, release_date=None))
 
         self.assertEqual(len(barrier.fixes), 1)
-        self.assertTrue('change the licence' in barrier.fixes[0])
+        self.assertTrue('change the Copyright Licence' in barrier.fixes[0])
 
     def test__reason(self):
         barrier = AllRightsReservedBarrier({})
@@ -575,9 +576,9 @@ class TestNoCBZImageBarrier(ImageTestCase):
         self.assertEqual(
             got,
             [
-                'landscape.png (width: 370 px)',
-                'portrait.png (width: 140 px)',
-                'square.png (width: 200 px)',
+                'landscape.png (landscape, width: 370 px)',
+                'portrait.png (portrait, width: 140 px)',
+                'square.png (square, width: 200 px)',
             ]
         )
 
@@ -596,8 +597,8 @@ class TestNoCBZImageBarrier(ImageTestCase):
         self.assertEqual(
             got,
             [
-                'portrait.png (width: 140 px)',
-                'square.png (width: 200 px)',
+                'portrait.png (portrait, width: 140 px)',
+                'square.png (square, width: 200 px)',
             ]
         )
 

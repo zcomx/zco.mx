@@ -380,7 +380,7 @@
             var that = this;
             var btns = [];
             btns.push({
-                label: 'Release For Filesharing',
+                label: 'Release',
                 cssClass: 'btn_fileshare',
                 action : function(dialog){
                     that.update();
@@ -615,7 +615,7 @@
                         });
                     }
                 },
-                'title_template': 'STEP 2: Release a Book on the Filesharing Networks \n {book_title}',
+                'title_template': 'STEP 2: Release Book on Filesharing Networks \n {book_title}',
             })
         );
         $('.modal-upload-btn').modalize('upload',

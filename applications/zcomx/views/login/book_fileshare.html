@@ -3,41 +3,35 @@
 
 <div>
     <p>
-    Releasing a book for filesharing means a CBZ file will be created and
+    Releasing a book for filesharing means a cbz file will be created and
     shared with others via two file sharing networks: bittorrent and direct
     connect.
     </p>
-    <p>Before proceeding:</p>
-    <ul>
-        <li>Ensure the book is set as completed.</li>
-        <li>If you want to use a custom indicia image, make sure it has been uploaded before
-releasing the book for filesharing.</li>
-    </ul>
 </div>
 
-<div class="panel panel-default">
+<div class="show_more_info">
+    <p>
+    <a href="#" class="show_more_info_link">+ more info</a>
+    </p>
+</div>
+<div class="panel panel-default more_info_panel hidden">
     <div class="panel-heading">
-        Releasing a book for filesharing has the following effect:
+        Releasing a book on the filesharing networks has the following effect:
     </div>
     <div class="panel-body">
         <ul>
-            <li>A CBZ file is created</li>
-            <li>The file is added to the Direct Connect network</li>
-            <li>A torrent is created for the file and the torrent is seeded</li>
-            <li>The file is added to the torrent containing all books from the cartoonist</li>
-            <li>The file is added to the torrent containing all books from zco.mx</li>
+            <li>A cbz file is created</li>
+            <li>The cbz file is added to the Direct Connect network</li>
+            <li>A torrent is created for the cbz file</li>
+            <li>The cbz file is added to another torrent, one that contains all books from the cartoonist</li>
+            <li>The cbz file is added to a third torrent, one that contains all books from zco.mx</li>
             <li>The book is locked from further modifications</li>
         </ul>
-        <p>The process can take up to an hour if many images need to be resized to fit the CBZ format.</p>
+        <p>The process can take up to an hour.</p>
     </div>
 </div>
 
-{{if not barriers:}}
-    <div class="instruction">
-        Click the <em>Release for filesharing</em> button to release <em>{{=formatted_name(book)}}</em> for filesharing.
-        Click the <em>Cancel</em> button if you've changed your mind.
-    </div>
-{{else:}}
+{{if barriers:}}
     <div class="panel panel-danger">
         <div class="panel-heading">
             The book <em>{{=formatted_name(book)}}</em> cannot be released for filesharing.
@@ -78,6 +72,10 @@ releasing the book for filesharing.</li>
     var fileshare_enabled = {{if barriers:}}false{{else:}}true{{pass}};
     $(document).ready(function(){
         $.fn.set_modal_events({'book_title': '{{=formatted_name(book, include_publication_year=False)}}'});
+        $('.show_more_info_link').on('click', function(e){
+            $('.more_info_panel').removeClass('hidden');
+            $(this).addClass('hidden');
+        });
     });
 //]]>
 </script>

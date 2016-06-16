@@ -156,18 +156,16 @@ class AllRightsReservedBarrier(BaseReleaseBarrier):
     @property
     def description(self):
         return (
-            'On zco.mx, completed books'
-            'are published on public file sharing networks. '
-            'This is not permitted if the licence is '
-            '"All Rights Reserved".'
+            'In order for users to legally share your work, '
+            'you need to grant them permission. '
+            'The best way to do this '
+            'is to use one of the Creative Commons licences.'
         )
 
     @property
     def fixes(self):
-        return [
-            '{l} the book and change the licence.'.format(
-                l=self.edit_link('Edit')),
-        ]
+        fmt = "Go to the book's {l} and change the Copyright Licence."
+        return [fmt.format(l=self.edit_link('edit page'))]
 
     @property
     def reason(self):
@@ -363,7 +361,8 @@ class NoCBZImageBarrier(BaseReleaseBarrier):
     @property
     def description(self):
         return (
-            'A minimum width of 2560px is recommended. '
+            'Images must have a minimum width of 1600px (portrait) '
+            'and 2560px (landscape).'
             'The following images should be {l}:'.format(
                 l=self.upload_link('replaced'))
         )
@@ -389,18 +388,23 @@ class NoCBZImageBarrier(BaseReleaseBarrier):
                 if not os.path.exists(fullname):
                     # Get width and original name
                     try:
-                        dims = ImageDescriptor(fullname).dimensions()
+                        descriptor = ImageDescriptor(fullname)
+                        dims = descriptor.dimensions()
+                        orientation = descriptor.orientation()
                     except IOError:
                         # The 'cbz' size may not exist.
                         dims = None
                     if not dims:
-                        dims = ImageDescriptor(
+                        descriptor = ImageDescriptor(
                             upload_img.fullname(size='original')
-                        ).dimensions()
+                        )
+                        dims = descriptor.dimensions()
+                        orientation = descriptor.orientation()
                     width = dims[0]
                     original_name = upload_img.original_name()
                     violating_images.append(
-                        '{n} (width: {w} px)'.format(n=original_name, w=width)
+                        '{n} ({o}, width: {w} px)'.format(
+                            n=original_name, o=orientation, w=width)
                     )
             self._no_cbz_images = violating_images
         return self._no_cbz_images
