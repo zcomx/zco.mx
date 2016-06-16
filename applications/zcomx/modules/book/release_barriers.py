@@ -268,9 +268,9 @@ class InvalidPageNoBarrier(BaseReleaseBarrier):
     def applies(self):
         pages = self.book.pages()
 
-        # Must have a pages
+        # A book must have pages, but let NoPagesBarrier take care of this
         if not pages:
-            return True
+            return False
 
         page_nos = [x.page_no for x in pages]
 

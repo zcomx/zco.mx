@@ -368,6 +368,10 @@ class TestInvalidPageNoBarrier(LocalTestCase):
     def test__applies(self):
         book = self.add(Book, dict(name='test__applies'))
 
+        # Has no pages, alls good (NoPagesBarrier takes care of this)
+        barrier = InvalidPageNoBarrier(book)
+        self.assertFalse(barrier.applies())
+
         book_page_1 = self.add(BookPage, dict(
             book_id=book.id,
             page_no=1,
