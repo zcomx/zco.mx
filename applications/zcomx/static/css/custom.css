@@ -1023,6 +1023,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     .contribute_modal .modal-dialog,
     .download_modal .modal-dialog,
     .modal_dialog_complete .modal-dialog,
+    .modal_dialog_fileshare .modal-dialog,
     .rss_modal .modal-dialog {
         width: 50em;
     }

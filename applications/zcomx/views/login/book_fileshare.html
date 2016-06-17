@@ -36,29 +36,7 @@
         <div class="panel-heading">
             The book <em>{{=formatted_name(book)}}</em> cannot be released for filesharing.
         </div>
-        <div class="panel-body">
-            {{if len(barriers) > 1:}}<ol>{{else:}}<ul>{{pass}}
-
-            {{for barrier in barriers:}}
-            <li>
-                {{=barrier.reason}}
-                {{if barrier.description:}}
-                <div class="barrier_description">
-                    {{=XML(barrier.description)}}
-                </div>
-                {{pass}}
-                <ul>
-                    {{for fix in barrier.fixes:}}
-                    <li>{{=XML(fix)}}</li>
-                    {{pass}}
-                </ul>
-            </li>
-            {{pass}}
-            {{if len(barriers) > 1:}}</ol>{{else:}}</ul>{{pass}}
-        </div>
-        <div class="panel-footer">
-            Once all problems have been resolved, try again.
-        </div>
+        {{include 'login/release_barriers.html'}}
     </div>
 {{pass}}
 

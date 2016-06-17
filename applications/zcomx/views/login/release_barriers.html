@@ -1,0 +1,23 @@
+<div class="panel-body release_barriers">
+    {{if len(barriers) > 1:}}<ol>{{else:}}<ul>{{pass}}
+
+    {{for barrier in barriers:}}
+    <li>
+        <span class="emphasize">{{=barrier.reason}}</span>
+        {{if barrier.description:}}
+        <div class="barrier_description">
+            {{=XML(barrier.description)}}
+        </div>
+        {{pass}}
+        <ul class="bulletless release_barrier_fixes">
+            {{for fix in barrier.fixes:}}
+            <li>{{=XML(fix)}}</li>
+            {{pass}}
+        </ul>
+    </li>
+    {{pass}}
+    {{if len(barriers) > 1:}}</ol>{{else:}}</ul>{{pass}}
+</div>
+<div class="panel-footer">
+    Once all problems have been resolved, try again.
+</div>
