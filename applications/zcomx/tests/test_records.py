@@ -125,6 +125,9 @@ class TestRecord(LocalTestCase):
             sorted(db.book.fields)
         )
 
+        # Test non-digit record_id
+        self.assertRaises(LookupError, DubBook.from_id, '_invalid_')
+
     def test__from_key(self):
         data = dict(
             name='_test__from_key_',

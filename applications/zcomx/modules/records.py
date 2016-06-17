@@ -92,6 +92,11 @@ class Record(Row):
         Returns:
             cls instance
         """
+        try:
+            record_id = int(record_id)
+        except (TypeError, ValueError) as err:
+            raise LookupError('Record not found, table {t}, id {i}'.format(
+                t=cls.db_table, i=record_id))
         db = current.app.db
         query = (db[cls.db_table].id == record_id)
         record = db(query).select(limitby=(0, 1)).first()
