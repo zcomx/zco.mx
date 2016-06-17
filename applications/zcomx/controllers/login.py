@@ -667,11 +667,20 @@ def book_post_upload_session():
         original_page_count = int(request.vars.original_page_count)
     except (TypeError, ValueError):
         original_page_count = 0
-    pages_added = len(book_page_ids) - original_page_count
+    pages_added = len([x for x in book_page_ids if x]) - original_page_count
     if pages_added > 0:
         book = Book.from_updated(book, dict(page_added_on=request.now))
 
-    # Step 2: Reorder book pages
+    # Step 2: Check for errors.
+    if '' in book_page_ids:
+        return do_error((
+            'One or more images could not be uploaded. '
+            'Check error messages. '
+            'Use Add files... to reload those images if desired. '
+            'Click the Refresh button to clear error messages.'
+        ))
+
+    # Step 3: Reorder book pages
     page_ids = []
     for page_id in book_page_ids:
         try:
@@ -686,10 +695,10 @@ def book_post_upload_session():
     delete_pages_not_in_ids(book.id, page_ids)
     reset_book_page_nos(page_ids)
 
-    # Step 3:  Set book status
+    # Step 4:  Set book status
     book = set_status(book, calc_status(book))
 
-    # Step 4:  Trigger search prefetch
+    # Step 5:  Trigger search prefetch
     # A book with no pages is not in search results. Adding pages makes it
     # searchable. A book is disabled while pages are are added. Disabled books
     # are taken out of search results. Ending the Upload session may make the

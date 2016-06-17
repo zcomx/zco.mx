@@ -239,6 +239,30 @@
             return;  // implement in sub-class
         },
 
+        reload_button: function(label, css_class) {
+            var that = this;
+            label = typeof label !== 'undefined' ? label : 'Reload';
+            css_class = typeof css_class !== 'undefined' ? css_class : 'reload_button';
+            var options = $.extend(
+                {},
+                that.options,
+                {
+                    'book_id': that.$book_id,
+                    'book_title': that.$book_title,
+                    'url': that.get_url(),
+                }
+            );
+            return {
+                label: label,
+                cssClass: css_class,
+                action: function(dialog){
+                    dialog.close();
+                    var modal = new that.constructor(null, that.$action, options)
+                    modal.get_dialog().open();
+                }
+            };
+        },
+
         update: function() {
             var that = this;
             var url = '/zcomx/login/book_crud.json';
@@ -404,6 +428,7 @@
         buttons: function() {
             var that = this;
             var btns = [];
+            btns.push(that.reload_button('Refresh', 'reload_button hidden'));
             btns.push({
                 label: 'Close',
                 cssClass: 'btn_upload_close',
@@ -467,6 +492,8 @@
             var url = '/zcomx/login/book_post_upload_session'
             url = url + '/' + this.$book_id;
 
+            var error_msg = null;
+
             $.ajax({
                 url: url,
                 type: 'POST',
@@ -477,20 +504,23 @@
                 },
                 success: function (data, textStatus, jqXHR) {
                     if (data.status === 'error') {
-                        var msg = 'ERROR: ' + data.msg || 'Server request failed';
-                        that.display_message('', msg, 'panel-danger');
+                        error_msg = 'ERROR: ' + data.msg || 'Server request failed';
                     }
                     else {
                         that.$dialog.close();
                     }
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    var msg = 'ERROR: Unable to ' + action + ' record. Server request failed.';
-                    that.display_message('', msg, 'panel-danger');
+                    error_msg = 'ERROR: Unable to ' + action + ' record. Server request failed.';
                 }
             }).always(function () {
                 $('.btn_upload_close').removeClass('disabled');
                 $('#fileupload').removeClass('fileupload-processing');
+                if (error_msg) {
+                    that.display_message('', error_msg, 'panel-danger');
+                    $('.btn_upload_close').addClass('hidden');
+                    $('.reload_button').removeClass('hidden');
+                }
             })
         }
     });
