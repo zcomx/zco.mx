@@ -164,8 +164,9 @@ class AllRightsReservedBarrier(BaseReleaseBarrier):
 
     @property
     def fixes(self):
-        fmt = "Go to the book's {l} and change the Copyright Licence."
-        return [fmt.format(l=self.edit_link('edit page'))]
+        return [
+            self.edit_link('Edit the book and change the Copyright Licence.'),
+        ]
 
     @property
     def reason(self):
@@ -329,8 +330,7 @@ class NoBookNameBarrier(BaseReleaseBarrier):
     @property
     def fixes(self):
         return [
-            '{l} the book and set the name.'.format(
-                l=self.edit_link('Edit')),
+            self.edit_link('Edit the book and set the name.'),
         ]
 
     @property
@@ -435,8 +435,7 @@ class NoLicenceBarrier(BaseReleaseBarrier):
     @property
     def fixes(self):
         return [
-            '{l} the book and set the licence.'.format(
-                l=self.edit_link('Edit')),
+            self.edit_link('Edit the book and change the Copyright Licence.'),
         ]
 
     @property
@@ -496,8 +495,7 @@ class NoPublicationMetadataBarrier(BaseReleaseBarrier):
     @property
     def fixes(self):
         return [
-            '{l} the book and set the publication metadata.'.format(
-                l=self.edit_link('Edit'))
+            self.edit_link('Edit the book and set the Publication Metadata.')
         ]
 
     @property

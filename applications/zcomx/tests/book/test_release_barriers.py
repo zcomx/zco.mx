@@ -90,7 +90,8 @@ class TestAllRightsReservedBarrier(LocalTestCase):
         barrier = AllRightsReservedBarrier(Book(id=123, release_date=None))
 
         self.assertEqual(len(barrier.fixes), 1)
-        self.assertTrue('change the Copyright Licence' in barrier.fixes[0])
+        self.assertTrue(
+            'change the Copyright Licence' in str(barrier.fixes[0]))
 
     def test__reason(self):
         barrier = AllRightsReservedBarrier({})
@@ -484,7 +485,7 @@ class TestNoBookNameBarrier(LocalTestCase):
         barrier = NoBookNameBarrier(Book(id=123, release_date=None))
 
         self.assertEqual(len(barrier.fixes), 1)
-        self.assertTrue('>Edit</a> the book' in barrier.fixes[0])
+        self.assertTrue('Edit the book' in str(barrier.fixes[0]))
 
     def test__reason(self):
         barrier = NoBookNameBarrier({})
@@ -647,7 +648,8 @@ class TestNoLicenceBarrier(LocalTestCase):
         barrier = NoLicenceBarrier(Book(id=123, release_date=None))
 
         self.assertEqual(len(barrier.fixes), 1)
-        self.assertTrue('set the licence' in barrier.fixes[0])
+        self.assertTrue(
+            'change the Copyright Licence' in str(barrier.fixes[0]))
 
     def test__reason(self):
         barrier = NoLicenceBarrier({})
@@ -716,7 +718,8 @@ class TestNoPublicationMetadataBarrier(LocalTestCase):
     def test__fixes(self):
         barrier = NoPublicationMetadataBarrier(Book(id=123, release_date=None))
         self.assertEqual(len(barrier.fixes), 1)
-        self.assertTrue('set the publication metadata' in barrier.fixes[0])
+        self.assertTrue(
+            'set the Publication Metadata' in str(barrier.fixes[0]))
 
     def test__reason(self):
         barrier = NoPublicationMetadataBarrier({})
@@ -890,7 +893,6 @@ class TestFunctions(ImageTestCase):
         self.assertTrue(isinstance(got[1], NoPagesBarrier))
         self.assertTrue(isinstance(got[2], NoLicenceBarrier))
         self.assertTrue(isinstance(got[3], NoPublicationMetadataBarrier))
-        self.assertTrue(isinstance(got[4], InvalidPageNoBarrier))
 
         self.assertEqual(complete_barriers(self._complete_book), [])
 

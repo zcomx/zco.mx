@@ -120,6 +120,7 @@
                     true,
                     {},
                     {
+                        cssClass: 'modal_dialog_' + this.$action,
                         title: this.modal_title(),
                         message: this.get_message(),
                         onhide: function(dialog) {
@@ -231,7 +232,7 @@
         },
 
         onshow: function(dialog) {
-            dialog.getModalDialog().addClass('modal-lg');
+            return;  // implement in sub-class
         },
 
         onshown: function(dialog) {

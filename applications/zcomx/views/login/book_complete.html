@@ -9,7 +9,7 @@
     networks is optional and is done in <i>Step 2</i>.
     </p>
     <p>
-    <b>NOTICE:</b><br/>
+    <span class="emphasize">NOTICE:</span><br/>
     Completed books are locked from further changes.  Make sure all pages are
     in the correct order before proceeding.  To check the order of the pages,
     click
@@ -22,18 +22,18 @@
         <div class="panel-heading">
             The book <em>{{=formatted_name(book)}}</em> cannot be marked complete.
         </div>
-        <div class="panel-body">
+        <div class="panel-body release_barriers">
             {{if len(barriers) > 1:}}<ol>{{else:}}<ul>{{pass}}
 
             {{for barrier in barriers:}}
             <li>
-                {{=barrier.reason}}
+                <span class="emphasize">{{=barrier.reason}}</span>
                 {{if barrier.description:}}
                 <div class="barrier_description">
                     {{=XML(barrier.description)}}
                 </div>
                 {{pass}}
-                <ul>
+                <ul class="bulletless release_barrier_fixes">
                     {{for fix in barrier.fixes:}}
                     <li>{{=XML(fix)}}</li>
                     {{pass}}
