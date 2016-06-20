@@ -6,6 +6,7 @@ original_images.py
 
 Script to print a report on the original images of a book.
 """
+import os
 from gluon import *
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
@@ -21,19 +22,24 @@ def print_report(book):
     Args:
         book: Book instance
     """
-    fmt = '{p:4s} {w:>4s}x{h:>4s} {n:50s}'
-    print fmt.format(p='Pg#', n='Name', w='Wdth', h='Hght')
+    fmt = '{p:4s} {w:>4s}x{h:>4s} {n:30s} {f}'
+    original_path = os.path.join(
+        current.request.folder, 'uploads', 'original', 'book_page.image')
+    print (fmt + ' in {o}').format(
+        p='Pg#', n='Name', w='Wdth', h='Hght', f='Filename', o=original_path)
     for book_page in book.pages():
         upload_image = book_page.upload_image()
         descriptor = ImageDescriptor(upload_image.fullname())
         # unpacking-non-sequence (W0633): *Attempting to unpack a non-sequence
         # pylint: disable=W0633
         width, height = descriptor.dimensions()
+        fullname = upload_image.fullname().replace(original_path, '')
         print fmt.format(
             p=str(book_page.page_no),
             n=upload_image.original_name(),
             w=str(width),
             h=str(height),
+            f=fullname,
         )
 
 
