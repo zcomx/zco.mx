@@ -199,7 +199,7 @@ class FacebookAPIClient(object):
                 'is_transient', 'error_data', 'error_user_title']
             for field in error_fields:
                 LOG.error('%s: %s', field, getattr(err, field))
-            return
+            raise FacebookAPIError('Facebook post failed.')
         return result
 
 

@@ -75,6 +75,9 @@ def post_on_facebook(ongoing_post):
         LOG.error(
             'Facebook post failed for ongoing_post: %s', ongoing_post.id
         )
+        LOG.error(
+            'Fix: post_ongoing_update.py --facebook %s', str(ongoing_post.date)
+        )
         if error:
             LOG.error(err)
         return
