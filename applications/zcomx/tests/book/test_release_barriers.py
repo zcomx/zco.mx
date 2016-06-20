@@ -19,6 +19,7 @@ from applications.zcomx.modules.book.release_barriers import \
     COMPLETE_BARRIER_CLASSES, \
     FILESHARING_BARRIER_CLASSES, \
     BaseReleaseBarrier, \
+    CompleteInProgressBarrier, \
     DupeNameBarrier, \
     DupeNumberBarrier, \
     InvalidPageNoBarrier, \
@@ -236,6 +237,41 @@ class TestBaseReleaseBarrier(LocalTestCase):
                 'book_pages',
             ]
         )
+
+
+class TestCompleteInProgressBarrier(LocalTestCase):
+
+    def test__applies(self):
+        book = Book(dict(
+            complete_in_progress=False
+        ))
+
+        barrier = CompleteInProgressBarrier(book)
+        self.assertFalse(barrier.applies())
+
+        book.update(complete_in_progress=True)
+        barrier = CompleteInProgressBarrier(book)
+        self.assertTrue(barrier.applies())
+
+    def test__code(self):
+        barrier = CompleteInProgressBarrier({})
+        self.assertEqual(barrier.code, 'complete_in_progress')
+
+    def test__description(self):
+        barrier = CompleteInProgressBarrier({})
+        self.assertTrue(
+            'process for setting the book as completed' in barrier.description)
+        self.assertTrue('is still in progress' in barrier.description)
+
+    def test__fixes(self):
+        barrier = CompleteInProgressBarrier({})
+
+        self.assertEqual(len(barrier.fixes), 1)
+        self.assertTrue('try again in a few minutes' in barrier.fixes[0])
+
+    def test__reason(self):
+        barrier = CompleteInProgressBarrier({})
+        self.assertTrue('book is not set as completed yet' in barrier.reason)
 
 
 class TestDupeNameBarrier(LocalTestCase):
@@ -731,6 +767,7 @@ class TestNotCompletedBarrier(LocalTestCase):
 
     def test__applies(self):
         book = Book(dict(
+            complete_in_progress=False,
             release_date=datetime.date.today()
         ))
 
@@ -740,6 +777,11 @@ class TestNotCompletedBarrier(LocalTestCase):
         book.update(release_date=None)
         barrier = NotCompletedBarrier(book)
         self.assertTrue(barrier.applies())
+
+        # CompleteInProgress Barrier will handle if complete is in progress
+        book.update(complete_in_progress=True)
+        barrier = NotCompletedBarrier(book)
+        self.assertFalse(barrier.applies())
 
     def test__code(self):
         barrier = NotCompletedBarrier({})
@@ -757,7 +799,7 @@ class TestNotCompletedBarrier(LocalTestCase):
 
     def test__reason(self):
         barrier = NotCompletedBarrier({})
-        self.assertTrue('book is not completed' in barrier.reason)
+        self.assertTrue('book is not set as completed' in barrier.reason)
 
 
 class TestConstants(LocalTestCase):

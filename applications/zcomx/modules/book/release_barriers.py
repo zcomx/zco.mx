@@ -173,6 +173,35 @@ class AllRightsReservedBarrier(BaseReleaseBarrier):
         return "The licence on the book is set to 'All Rights Reserved'."
 
 
+class CompleteInProgressBarrier(BaseReleaseBarrier):
+    """Class representing a 'complete in progress' barrier."""
+
+    def applies(self):
+        return self.book.complete_in_progress
+
+    @property
+    def code(self):
+        return 'complete_in_progress'
+
+    @property
+    def description(self):
+        return (
+            'The process for setting the book as completed '
+            'is still in progress. '
+            'It can take up to five minutes. '
+        )
+
+    @property
+    def fixes(self):
+        return [
+            'Click the Cancel button and try again in a few minutes.'
+        ]
+
+    @property
+    def reason(self):
+        return 'The book is not set as completed yet.'
+
+
 class DupeNameBarrier(BaseReleaseBarrier):
     """Class representing a 'duplicate name' barrier.
 
@@ -507,7 +536,8 @@ class NotCompletedBarrier(BaseReleaseBarrier):
     """Class representing a 'not completed' barrier."""
 
     def applies(self):
-        return not self.book.release_date
+        return not self.book.release_date and \
+            not self.book.complete_in_progress
 
     @property
     def code(self):
@@ -529,7 +559,7 @@ class NotCompletedBarrier(BaseReleaseBarrier):
 
     @property
     def reason(self):
-        return 'The book is not completed.'
+        return 'The book is not set as completed.'
 
 
 COMPLETE_BARRIER_CLASSES = [
@@ -543,6 +573,7 @@ COMPLETE_BARRIER_CLASSES = [
 ]
 
 FILESHARING_BARRIER_CLASSES = [
+    CompleteInProgressBarrier,
     NotCompletedBarrier,
     AllRightsReservedBarrier,
     NoCBZImageBarrier,
