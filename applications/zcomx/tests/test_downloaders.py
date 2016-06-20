@@ -125,6 +125,7 @@ class TestCBZDownloader(LocalTestCase):
 class TestImageDownloader(WithObjectsTestCase, ImageTestCase):
 
     def test__download(self):
+
         if self._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run test.')
         downloader = ImageDownloader()
@@ -178,6 +179,14 @@ class TestImageDownloader(WithObjectsTestCase, ImageTestCase):
         test_http('cbz')
         request.vars.size = 'original'
         test_http('original')
+
+        # Test invalid url          web.jpg?size=web => web.jpg_size=web
+        # line-too-long (C0301): *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        correct_query = 'book_page.image.ab7ec55b2ce97d6f.626c75655f30302e706e67.png?size=web'
+        incorrect_query = correct_query.replace('?', '_')
+        request.args = List([incorrect_query])
+        self.assertRaises(HTTP, downloader.download, request, db)
 
 
 class TestTorrentDownloader(LocalTestCase):

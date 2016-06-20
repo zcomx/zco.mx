@@ -91,7 +91,7 @@ class ImageDownloader(Response):
             raise HTTP(404)
         try:
             (filename, stream) = field.retrieve(name, nameonly=True)
-        except IOError:
+        except (IOError, TypeError):
             raise HTTP(404)
 
         # Customization: start
