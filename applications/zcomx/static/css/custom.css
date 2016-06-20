@@ -999,16 +999,18 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
-.modal-body {
-    padding: 2.8em;
-}
-
-.modal-dialog {
-    min-width: 32em;
-}
-
 .modal-dialog .emphasize {
     font-weight: bold;
+}
+
+@media (min-width: 480px){
+    .modal-body {
+        padding: 2.8em;
+    }
+
+    .modal-dialog {
+        min-width: 32em;
+    }
 }
 
 @media (min-width: 768px){
