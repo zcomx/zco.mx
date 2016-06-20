@@ -37,10 +37,20 @@
                 'Unsupported file type.': 'Invalid file or unsupported file type.',
                 'cannot identify image file': 'Invalid file or unsupported file type.',
             }
-            if (translation.hasOwnProperty(raw_msg)) {
-                return translation[raw_msg];
-            }
-            return raw_msg;
+            var return_msg = raw_msg;
+
+            $.each(translation, function(old_msg, new_msg) {
+                var cmp_msg = raw_msg.substring(0, old_msg.length);
+                if (cmp_msg === old_msg) {
+                    return_msg = new_msg;
+                    return false;
+                }
+            });
+            return return_msg;
+        },
+
+        failed_callback: function(e, data) {
+            return;
         },
 
         img_count: function() {
@@ -77,6 +87,9 @@
                     },
                     destroyed: function(e, data) {
                         that.deleted_callback(e, data);
+                    },
+                    failed: function(e, data) {
+                        that.failed_callback(e, data);
                     },
                     processdone: function(e, data) {
                         that.processdone_callback(e, data);
@@ -162,6 +175,10 @@
             this.set_tooltip_text();
         },
 
+        failed_callback: function(e, data) {
+            $('.fileupload-process').hide();
+        },
+
         loaded_callback: function(e) {
             $('span.preview').removeClass('hidden');
             this.set_tooltip_text();
@@ -235,6 +252,10 @@
 
         deleted_callback: function(e, data) {
             this.show_buttons();
+        },
+
+        failed_callback: function(e, data) {
+            $('.fileupload-process').hide();
         },
 
         loaded_callback: function(e) {
