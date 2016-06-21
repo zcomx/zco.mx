@@ -75,6 +75,9 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(logger.handlers[0].formatter._fmt, fmt)
         self.assertEqual(logger.handlers[0].level, logging.DEBUG)
 
+        # cleanup
+        logger.removeHandler(logger.handlers[0])
+
 
 def setUpModule():
     """Set up web2py environment."""
