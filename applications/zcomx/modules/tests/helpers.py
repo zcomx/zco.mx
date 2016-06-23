@@ -440,3 +440,17 @@ class WebTestCase(LocalTestCase):
         '/z/todo': '<h1>TODO</h1>',
         '/z/top': '<h2>Top</h2>',
     }
+
+
+def reset_signature_timestamps(table):
+    """Reset the default timestamps set on the signature fields
+
+    Args:
+        table: db.table
+
+    """
+    if 'created_on' in table.fields:
+        table.created_on.default = datetime.datetime.now()
+    if 'updated_on' in table.fields:
+        table.updated_on.default = datetime.datetime.now()
+        table.updated_on.update = datetime.datetime.now()
