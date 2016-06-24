@@ -27,8 +27,9 @@ class FacebookAPIAuthenticator(object):
     """Class representing a Facebook API Authenticator"""
 
     page_titles = {
-        'login': 'Welcome to Facebook',
-        'logged_in': 'Facebook',
+        # page key: list of possible titles of page <title></title>
+        'login': ['Welcome to Facebook', 'Log into Facebook | Facebook'],
+        'logged_in': ['Facebook'],
     }
 
     def __init__(self, email, password, client_id, redirect_uri, page_name):
@@ -108,11 +109,11 @@ class FacebookAPIAuthenticator(object):
         response = self.session.get(url)
         soup = BeautifulSoup(response.text)
         title = soup.html.head.title.string
-        if not title or title != self.page_titles['login']:
+        if not title or title not in self.page_titles['login']:
             LOG.error('Unable to access facebook login page')
             LOG.error(
-                'Page titles do not match, expected: %s, got: %s',
-                self.page_titles['login'],
+                'Page title does not match, expected one of: %s, got: %s',
+                str(self.page_titles['login']),
                 title,
             )
             return False
@@ -120,11 +121,18 @@ class FacebookAPIAuthenticator(object):
         inputs = form.findAll('input')
         post_data = {}
         for form_input in inputs:
-            if form_input['type'] == 'hidden':
+            # pylint complains about has_key, but this is a custom
+            # BeautifulSoup Tag method.
+            if not form_input.has_key('type'):
+                continue
+            if form_input['type'] != 'hidden':
+                continue
+            if form_input.has_key('value'):
                 post_data[form_input['name']] = form_input['value']
+            elif form_input.has_key('checked'):
+                post_data[form_input['name']] = form_input['checked']
         post_data['email'] = self.email
         post_data['pass'] = self.password
-        post_data['persistent'] = 1
 
         # Submit the login form
         self.session.headers.update({'referer': 'url'})
@@ -132,11 +140,11 @@ class FacebookAPIAuthenticator(object):
         response = self.session.post(url, data=post_data)
         soup = BeautifulSoup(response.text)
         title = soup.html.head.title.string
-        if not title or title != self.page_titles['logged_in']:
+        if not title or title not in self.page_titles['logged_in']:
             LOG.error('Unable to login into facebook page')
             LOG.error(
-                'Page titles do not match, expected: %s, got: %s',
-                self.page_titles['logged_in'],
+                'Page title does not match, expected one of: %s, got: %s',
+                str(self.page_titles['logged_in']),
                 title,
             )
             return False
