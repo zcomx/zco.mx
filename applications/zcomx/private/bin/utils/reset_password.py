@@ -53,6 +53,9 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
+    -x EMAIL, --exclude=EMAIL
+        Exclude the account with this email when updating users.
+        Use with --all option.
     """
 
 
@@ -81,6 +84,11 @@ def main():
         '--vv',
         action='store_true', dest='vv', default=False,
         help='More verbose.',
+    )
+    parser.add_option(
+        '-x', '--exclude',
+        dest='exclude', default=None,
+        help='Exclude this account from update.',
     )
 
     (options, args) = parser.parse_args()
@@ -112,6 +120,9 @@ def main():
         passwd = getpass.getpass()
 
     for email in emails:
+        if options.exclude and options.exclude == email:
+            continue
+        LOG.debug('Updating: %s', email)
         auth_user = AuthUser.from_key(dict(email=email))
         alg = 'pbkdf2(1000,20,sha512)'
         passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
