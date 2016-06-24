@@ -7,6 +7,7 @@
 '%d days ago': '%d days ago',
 '%d hours ago': '%d hours ago',
 '%d minutes ago': '%d minutes ago',
+'%d months ago': '%d months ago',
 '%s %%{row} deleted': '%s sorok törlődtek',
 '%s %%{row} updated': '%s sorok frissítődtek',
 '%s selected': '%s kiválasztott',

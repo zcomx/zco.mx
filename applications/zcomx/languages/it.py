@@ -11,6 +11,7 @@
 '%d months ago': '%d months ago',
 '%d seconds ago': '%d secondi fa',
 '%d weeks ago': '%d weeks ago',
+'%d years ago': '%d years ago',
 '%s %%{row} deleted': '%s righe ("record") cancellate',
 '%s %%{row} updated': '%s righe ("record") modificate',
 '%s selected': '%s selezionato',
