@@ -828,12 +828,18 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         pass        # FIXME this is due for overhaul.
 
     def test__optimize(self):
+
         for img in ['unoptimized.png', 'unoptimized.jpg']:
-            working_image = self._prep_image(img)
-            size_bef = os.stat(working_image).st_size
-            optimize(working_image)
-            size_aft = os.stat(working_image).st_size
-            self.assertTrue(size_aft < size_bef)
+            quick_opts = [False]
+            if img.endswith('.png'):
+                quick_opts.append(True)
+            for quick in quick_opts:
+                working_image = self._prep_image(img)
+                size_bef = os.stat(working_image).st_size
+                optimize(working_image, quick=quick)
+                size_aft = os.stat(working_image).st_size
+                self.assertTrue(size_aft < size_bef)
+
 
     def test__scrub_extension_for_store(self):
         tests = [

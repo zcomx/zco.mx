@@ -90,7 +90,7 @@ def run_optimize(image, options):
 
         if os.path.exists(os.path.abspath(filename)):
             LOG.debug('Optimizing filename: %s', filename)
-            optimize(filename)
+            optimize(filename, quick=DEBUG)
 
         db.optimize_img_log.insert(image=image, size=size)
         db.commit()

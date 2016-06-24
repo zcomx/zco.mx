@@ -489,13 +489,14 @@ def on_delete_image(image):
     return job
 
 
-def optimize(filename, nice=NICES['optimize']):
+def optimize(filename, nice=NICES['optimize'], quick=False):
     """Optimize an image file in place.
 
     Args:
         filename: string, name of file.
         nice: If True, run resize script with nice. See os_nice for
             acceptable values.
+        quick: Use quick optimize routine (png only)
     """
     optimize_script = os.path.abspath(
         os.path.join(
@@ -503,6 +504,8 @@ def optimize(filename, nice=NICES['optimize']):
     )
     args = []
     args.append(optimize_script)
+    if quick:
+        args.append('--quick')
     args.append(os.path.abspath(filename))
 
     # optimize_img.sh creates temporary files in the current directory.

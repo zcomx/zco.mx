@@ -8,9 +8,30 @@ _u() { script=${0##*/}; cat << EOF
 usage: $script [file1, file2... fileN]
 
 This script optimizes JPG and PNG files.
+    --quick      Quick png optimization. Uses zopflipng -q
 
 EOF
 }
+
+_options() {
+    # set defaults
+    args=()
+    unset quick
+
+    while [[ $1 ]]; do
+        case "$1" in
+       --quick) quick=1 ;;
+            -h) _u; exit 0      ;;
+            --) shift; [[ $* ]] && args+=( "$@" ); break;;
+            -*) _u; exit 0      ;;
+             *) args+=( "$1" )  ;;
+        esac
+        shift
+    done
+
+    (( ${#args[@]} == 0 )) && { _u; exit 1; }
+}
+
 
 _check_files() {
     r1='JPEG|PNG'
@@ -27,7 +48,8 @@ _optimize() {
 
     tmp=tmp.$RANDOM
     if [[ $ff == PNG ]]; then
-        zopflipng "$i" "$tmp.png" >/dev/null || { break && _me "zopflipng failed on file: $i"; }
+        [[ $quick ]] && q='-q' || q=''
+        zopflipng $q "$i" "$tmp.png" >/dev/null || { break && _me "zopflipng failed on file: $i"; }
         [[ $tmp.png ]] && defluff < "$tmp.png" > "$i" 2>/dev/null
         rm "$tmp.png" &>/dev/null
     elif [[ $ff == JPG ]]; then
@@ -40,7 +62,8 @@ _optimize() {
     return 0
 }
 
+_options "$@"
+
 for i in defluff identify jpegoptim zopflipng; do command -v "$i" &>/dev/null || _me "$i not installed"; done
-(( $# == 0 )) && { _u; exit 1; }
-for i in "$@"; do _check_files; done
-for i in "$@"; do _optimize; done
+for i in "${args[@]}"; do _check_files; done
+for i in "${args[@]}"; do _optimize; done
