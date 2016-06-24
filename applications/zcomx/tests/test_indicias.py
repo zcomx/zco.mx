@@ -49,7 +49,8 @@ from applications.zcomx.modules.links import \
     LinkType
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
-    ResizerQuick
+    ResizerQuick, \
+    skip_if_quick
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     _mock_date as mock_date
@@ -208,11 +209,10 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         img = anchor.img
         self.assertEqual(img['src'], '/zcomx/static/images/twitter_logo.svg')
 
+    @skip_if_quick
     def test__get_orientation(self):
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         indicia = BookIndiciaPage(self._book)
         self.assertEqual(indicia._orientation, None)
 
@@ -1921,10 +1921,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             cc_licence = db(query).select(limitby=(0, 1)).first()
             self.assertEqual(cc_licence.code, d['text'])
 
+    @skip_if_quick
     def test__create_creator_indicia(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
         fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
 
         def exists(field, img_name):

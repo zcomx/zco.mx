@@ -26,7 +26,9 @@ from applications.zcomx.modules.links import \
     Link, \
     LinkType, \
     LinksKey
-from applications.zcomx.modules.tests.helpers import WebTestCase
+from applications.zcomx.modules.tests.helpers import \
+    WebTestCase, \
+    skip_if_quick
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DRAFT
@@ -311,6 +313,7 @@ class TestFunctions(WebTestCase):
             match_page_key='/login/book_pages',
         )
 
+    @skip_if_quick
     def test__book_pages_handler(self):
         # No book_id, return fail message
         self.assertWebTest(
@@ -459,9 +462,8 @@ class TestFunctions(WebTestCase):
     def test__books(self):
         self.assertWebTest('/login/books')
 
+    @skip_if_quick
     def test__creator_crud(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def get_creator():
             """Return a creator"""
@@ -505,9 +507,8 @@ class TestFunctions(WebTestCase):
 
         Creator.from_updated(self._creator, old_creator.as_dict())
 
+    @skip_if_quick
     def test__creator_img_handler(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def get_creator():
             """Return a Creator instance"""
@@ -558,9 +559,8 @@ class TestFunctions(WebTestCase):
     def test__indicia(self):
         self.assertWebTest('/login/indicia')
 
+    @skip_if_quick
     def test__indicia_preview_urls(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def get_creator():
             """Return creator"""
@@ -622,9 +622,8 @@ class TestFunctions(WebTestCase):
         creator_2 = get_creator()
         self.assertEqual(creator, creator_2)
 
+    @skip_if_quick
     def test__link_crud(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def do_test(links_key, data, expect_names, expect_errors):
             url = '{url}/link_crud.json/{t}/{i}'.format(

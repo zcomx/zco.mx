@@ -28,7 +28,8 @@ from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.image.validators import InvalidImageError
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
-    WithTestDataDirTestCase
+    WithTestDataDirTestCase, \
+    skip_if_quick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -61,6 +62,7 @@ class TestBookPageUploader(ImageTestCase):
     def test__load_file(self):
         pass         # This is tested by test__upload
 
+    @skip_if_quick
     def test__upload(self):
         book = self.add(Book, dict(name='test__load_file'))
         self.assertEqual(book.page_count(), 0)
@@ -227,6 +229,7 @@ class TestUploadedFile(ImageTestCase):
         uploaded = UploadedFile(filename)
         self.assertRaises(NotImplementedError, uploaded.for_json)
 
+    @skip_if_quick
     def test__load(self):
         book = self.add(Book, dict(name='test__load'))
         filename = self._prep_image('cbz.jpg')
@@ -387,9 +390,8 @@ class TestFunctions(ImageTestCase):
                 self.assertTrue(uploaded.unpacker is None)
             self.assertEqual(uploaded.errors, t[3])
 
+    @skip_if_quick
     def test__create_book_page(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         book = self.add(Book, dict(name='test__add'))
         self.assertEqual(book.page_count(), 0)
 

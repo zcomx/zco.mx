@@ -39,7 +39,8 @@ from applications.zcomx.modules.images import \
 from applications.zcomx.modules.tests.helpers import \
     FileTestCase, \
     ImageTestCase, \
-    ResizerQuick
+    ResizerQuick, \
+    skip_if_quick
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase
 from applications.zcomx.modules.shell_utils import imagemagick_version
@@ -354,9 +355,8 @@ class TestResizeImg(ImageTestCase, WithObjectsTestCase, FileTestCase):
             }
         )
 
+    @skip_if_quick
     def test__run(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         # !!!! ResizeImg.run() moves the image to a working directory.
         # Make copies of test data images before using so they don't get
         # removed from test data.
@@ -601,10 +601,8 @@ class TestResizeImgIndicia(WithObjectsTestCase, ImageTestCase, FileTestCase):
             {'ori': None}
         )
 
+    @skip_if_quick
     def test__run(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
         filename = self._prep_image('256colour-jpg.jpg')
         resize_img = ResizeImgIndicia(filename)
         resize_img.run()
@@ -665,9 +663,8 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(up_image._full_name, None)
         self.assertEqual(up_image._original_name, None)
 
+    @skip_if_quick
     def test__delete(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(
             db.creator.image, self._creator, filename, resizer=ResizerQuick)
@@ -683,9 +680,8 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
         up_image.delete('original')
         self._exist(have_not=['original', 'cbz', 'web'])
 
+    @skip_if_quick
     def test__delete_all(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(
             db.creator.image, self._creator, filename, resizer=ResizerQuick)
@@ -698,9 +694,8 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
         up_image.delete_all()        # Handle subsequent delete gracefully
         self._exist(have_not=['original', 'cbz', 'web'])
 
+    @skip_if_quick
     def test__fullname(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(
             db.creator.image, self._creator, filename, resizer=ResizerQuick)
@@ -738,9 +733,8 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
             ),
         )
 
+    @skip_if_quick
     def test__original_name(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='abc.jpg')
         self._set_image(
             db.creator.image, self._creator, filename, resizer=ResizerQuick)
@@ -748,9 +742,8 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
         up_image = UploadImage(db.creator.image, self._creator.image)
         self.assertEqual(up_image.original_name(), 'abc.jpg')
 
+    @skip_if_quick
     def test__retrieve(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(
             db.creator.image, self._creator, filename, resizer=ResizerQuick)
@@ -855,9 +848,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         for t in tests:
             self.assertEqual(scrub_extension_for_store(t[0]), t[1])
 
+    @skip_if_quick
     def test__store(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
 
         def owner(filename):
             """Return the owner (user, group) of the file."""

@@ -25,7 +25,8 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     filename_for_size
 from applications.zcomx.modules.tests.helpers import \
-    ImageTestCase
+    ImageTestCase, \
+    skip_if_quick
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase
 
@@ -124,10 +125,8 @@ class TestCBZDownloader(LocalTestCase):
 
 class TestImageDownloader(WithObjectsTestCase, ImageTestCase):
 
+    @skip_if_quick
     def test__download(self):
-
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
         downloader = ImageDownloader()
         self.assertTrue(downloader)
         env = globals()

@@ -7,7 +7,9 @@ Test suite for zcomx/controllers/default.py
 
 """
 import unittest
-from applications.zcomx.modules.tests.helpers import WebTestCase
+from applications.zcomx.modules.tests.helpers import \
+    WebTestCase, \
+    skip_if_quick
 
 
 # C0111: Missing docstring
@@ -41,6 +43,7 @@ class TestFunctions(WebTestCase):
     def test__user(self):
         self.assertWebTest('/default/user/login')
 
+    @skip_if_quick
     def test_routes(self):
         # Test various urls and make sure they behave.
         tests = [

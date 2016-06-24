@@ -15,7 +15,9 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.records import Records
-from applications.zcomx.modules.tests.helpers import WebTestCase
+from applications.zcomx.modules.tests.helpers import \
+    WebTestCase, \
+    skip_if_quick
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -48,6 +50,7 @@ class TestFunctions(WebTestCase):
                 (db.download_click.ip_address == self._server_ip)
         return db(query).select()
 
+    @skip_if_quick
     def test__download(self):
 
         expect = []
@@ -74,6 +77,7 @@ class TestFunctions(WebTestCase):
             match_page_key=''
         )
 
+    @skip_if_quick
     def test__route(self):
         # Test creator as id
         expect = []

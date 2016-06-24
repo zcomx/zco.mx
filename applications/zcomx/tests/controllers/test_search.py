@@ -10,7 +10,9 @@ import unittest
 from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.tests.helpers import WebTestCase
+from applications.zcomx.modules.tests.helpers import \
+    WebTestCase, \
+    skip_if_quick
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
 # C0111: Missing docstring
@@ -150,6 +152,7 @@ class TestFunctions(WithObjectsTestCase):
     def test__box(self):
         self.assertWebTest('/search/box.load')
 
+    @skip_if_quick
     def test__index(self):
         self.assertWebTest('/search/index', match_page_key='/default/index')
 

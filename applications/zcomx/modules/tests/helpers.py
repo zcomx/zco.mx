@@ -5,14 +5,17 @@
 
 Unit test helper classes and functions.
 """
+import datetime
 import hashlib
 import os
 import shutil
 import subprocess
 import glob
+import unittest
 from PIL import Image
 from gluon import *
 from gluon.storage import Storage
+from applications.zcomx.modules.environ import has_terminal
 from applications.zcomx.modules.images import \
     ImageDescriptor, \
     UploadImage, \
@@ -454,3 +457,43 @@ def reset_signature_timestamps(table):
     if 'updated_on' in table.fields:
         table.updated_on.default = datetime.datetime.now()
         table.updated_on.update = datetime.datetime.now()
+
+
+def skip_if_not_terminal(func):
+    """Decorator to skip tests if test requires a terminal."""
+    def wrapper(*args):
+        # C0111: *Missing docstring*
+        # pylint: disable=C0111
+        if not has_terminal():
+            raise unittest.SkipTest('Tests requires terminal: {t}'.format(
+                t=func.func_name))
+        return func(*args)
+    return wrapper
+
+
+def skip_if_quick(func):
+    """Decorator to skip tests if quick option is used."""
+    def wrapper(*args):
+        # C0111: *Missing docstring*
+        # pylint: disable=C0111
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        if args[0]._opts.quick:
+            raise unittest.SkipTest('Remove --quick option to run {t}'.format(
+                t=func.func_name))
+        return func(*args)
+    return wrapper
+
+
+def skip_unless_force(func):
+    """Decorator to skip tests unless force options is used."""
+    def wrapper(*args):
+        # C0111: *Missing docstring*
+        # pylint: disable=C0111
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        if not args[0]._opts.force:
+            raise unittest.SkipTest('Provide --force option to run {t}'.format(
+                t=func.func_name))
+        return func(*args)
+    return wrapper

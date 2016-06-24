@@ -10,6 +10,7 @@ This tests nginx settings on the live server.
 import requests
 import unittest
 from requests.exceptions import SSLError
+from applications.zcomx.modules.tests.helpers import skip_if_quick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -34,10 +35,8 @@ class TestFunctions(LocalTestCase):
         # Prevent 'Changed session ID' warnings.
         web.sessions = {}
 
+    @skip_if_quick
     def test_routes(self):
-        if self._opts.quick:
-            raise unittest.SkipTest('Remove --quick option to run test.')
-
         tests = [
             # (url, verify ssl cert, expect title)
             ('http://zco.mx', False, 'index'),
