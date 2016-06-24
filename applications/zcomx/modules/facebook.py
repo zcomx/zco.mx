@@ -41,7 +41,13 @@ class FacebookAPIAuthenticator(object):
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         self.session.headers.update({
-            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.00',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'DNT': '1',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.00',
         })
 
     def authenticate(self):
@@ -101,7 +107,8 @@ class FacebookAPIAuthenticator(object):
         """Log into facebook."""
         # Access the login page for the form inputs
         url = 'https://www.facebook.com/login.php'
-        response = self.session.get(url)
+        cookies = dict(wd='1920x1200')
+        response = self.session.get(url, cookies=cookies)
         soup = BeautifulSoup(response.text)
         title = soup.html.head.title.string
         if not title or title not in self.page_titles['login']:
@@ -136,8 +143,13 @@ class FacebookAPIAuthenticator(object):
         post_data['timezone'] = '240'
 
         # Submit the login form
-        self.session.headers.update({'referer': 'url'})
+        self.session.headers.update({
+            'Host': 'www.facebook.com',
+            'Referer': url,
+        })
         url = 'https://www.facebook.com/login.php?login_attempt=1&lwv=100'
+        # Post two times. The first post sets cookie info.
+        response = self.session.post(url, data=post_data)
         response = self.session.post(url, data=post_data)
         soup = BeautifulSoup(response.text)
         title = soup.html.head.title.string
