@@ -5,6 +5,8 @@
 
 Classes and functions related to facebook posts.
 """
+import base64
+import datetime
 import requests
 import urlparse
 from BeautifulSoup import BeautifulSoup
@@ -126,6 +128,12 @@ class FacebookAPIAuthenticator(object):
                 post_data[form_input['name']] = form_input['checked']
         post_data['email'] = self.email
         post_data['pass'] = self.password
+
+        # These are set by facebook's js, so hard code
+        viewport_dim = '{"w":1920,"h":1200,"aw":1920,"ah":1200,"c":24}'
+        post_data['lgndim'] = base64.b64encode(viewport_dim)
+        post_data['lgnjs'] = datetime.datetime.now().strftime("%s")
+        post_data['timezone'] = '240'
 
         # Submit the login form
         self.session.headers.update({'referer': 'url'})
