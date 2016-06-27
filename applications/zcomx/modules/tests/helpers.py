@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import glob
 import unittest
+from functools import wraps
 from PIL import Image
 from gluon import *
 from gluon.storage import Storage
@@ -461,6 +462,7 @@ def reset_signature_timestamps(table):
 
 def skip_if_not_terminal(func):
     """Decorator to skip tests if test requires a terminal."""
+    @wraps(func)
     def wrapper(*args):
         # C0111: *Missing docstring*
         # pylint: disable=C0111
@@ -473,6 +475,7 @@ def skip_if_not_terminal(func):
 
 def skip_if_quick(func):
     """Decorator to skip tests if quick option is used."""
+    @wraps(func)
     def wrapper(*args):
         # C0111: *Missing docstring*
         # pylint: disable=C0111
@@ -487,6 +490,7 @@ def skip_if_quick(func):
 
 def skip_unless_force(func):
     """Decorator to skip tests unless force options is used."""
+    @wraps(func)
     def wrapper(*args):
         # C0111: *Missing docstring*
         # pylint: disable=C0111
