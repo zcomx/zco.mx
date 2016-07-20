@@ -57,7 +57,7 @@ class IndiciaPage(object):
     }
     call_to_action_fmt = (
         'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!'
-        '{space} OR BY TELLING OTHERS ON {twitter}, {tumblr} AND {facebook}.'
+        '  OR BY TELLING OTHERS ON {twitter}, {tumblr} AND {facebook}.'
     )
     default_indicia_paths = ['static', 'images', 'indicia_image.png']
 
