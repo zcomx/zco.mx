@@ -6,11 +6,9 @@
     font-family: 'brushy_creregular';
     src: url('brushy_cre-webfont.eot');
     src: url('brushy_cre-webfont.eot?#iefix') format('embedded-opentype'),
-         url('brushy_cre-webfont.woff2') format('woff2'),
          url('brushy_cre-webfont.woff') format('woff'),
          url('brushy_cre-webfont.ttf') format('truetype'),
          url('brushy_cre-webfont.svg#brushy_creregular') format('svg');
     font-weight: normal;
     font-style: normal;
-
 }

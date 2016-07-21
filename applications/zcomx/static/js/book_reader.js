@@ -242,6 +242,7 @@
         },
 
         set_overlays: function(num) {
+            var that = this;
             var img = this.$reader_section.find('img:visible'),
                 left_section = $('#slider_overlay_left'),
                 right_section = $('#slider_overlay_right');
