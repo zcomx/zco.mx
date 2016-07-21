@@ -1157,6 +1157,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #creator_page .shortened_url {
     color: #999999;
+    display: inline;
 }
 
 #creator_page #report_section {
@@ -1205,6 +1206,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
     background-color: inherit;
     border-style: none;
     color: #666666;
+    display: inline;
     font-size: 21px;
     padding: 0 0.1em 0 0;
 }
@@ -1225,6 +1227,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #reader_page_footer .contribute_widget .input-group-addon,
 #reader_page_footer .contribute_widget input {
+    display: inline;
     font-size: 12px;
 }
 
@@ -1577,7 +1580,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #reader_section #slider_page .vertical_align_helper {
-    display: inline-block;
+    display: inline;
     height: 100%;
     vertical-align: middle;
 }
