@@ -437,6 +437,14 @@ class TestResizeImg(ImageTestCase, WithObjectsTestCase, FileTestCase):
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
                 'web-256colour-jpg.jpg': 'd4643040166b53463d04947677b72c74',
             },
+            '6.9.4-6': {
+                'cbz-256+colour.jpg': '3d1a235236bf77ea5eabff502c6e4b52',
+                'cbz-256colour-jpg.jpg': 'bf72084e0bf5d630a5e595e82c0ea4c6',
+                'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
+                'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
+                'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
+                'web-256colour-jpg.jpg': '63026c1b335b1aa5edb2b675013091d3',
+            },
         }
 
         # Test 256 colour jpg.
@@ -615,6 +623,9 @@ class TestResizeImgIndicia(WithObjectsTestCase, ImageTestCase, FileTestCase):
 
         md5s = {
             '6.9.0-0': {
+                'ori-256colour-jpg.jpg': 'c7d7ec3181be621f576111a2569935f2'
+            },
+            '6.9.4-6': {
                 'ori-256colour-jpg.jpg': 'c7d7ec3181be621f576111a2569935f2'
             },
         }
@@ -839,7 +850,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 optimize(working_image, quick=quick)
                 size_aft = os.stat(working_image).st_size
                 self.assertTrue(size_aft < size_bef)
-
 
     def test__scrub_extension_for_store(self):
         tests = [

@@ -40,7 +40,7 @@
         {{book_name = formatted_name(book, include_publication_year=False)}}
         <tr>
             <td class="book_name_column">
-                {{if book.complete_in_progress:}}*{{else:}}{{pass}}
+                {{if book.complete_in_progress or book.fileshare_in_progress:}}*{{else:}}{{pass}}
                 {{if lister.link_to_book_page:}}{{=A(book_name, _href=book_url(book, extension=False))}}{{else:}}{{=book_name}}{{pass}}
             </td>
             {{if lister.include_publication_year:}}

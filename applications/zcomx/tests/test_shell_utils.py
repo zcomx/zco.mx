@@ -124,8 +124,8 @@ class TestFunctions(LocalTestCase):
     def test__imagemagick_version(self):
         by_host = {
             'dtjimk': '6.7.0-8',
-            'jimk': '6.9.0-0',
-            'zc': '6.9.0-0',
+            'jimk': '6.9.4-6',
+            'zc': '6.9.4-6',
         }
         self.assertEqual(
             imagemagick_version(),
