@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-tumblr_poc.py
+tumblr_api.py
 
-Script to POC test using pytumblr api.
+Script to test using pytumblr api.
 https://pypi.python.org/pypi/PyTumblr
 """
 import sys
@@ -32,7 +32,7 @@ def clear(client):
 
 
 def create_photo(client):
-    """POC tumblr API create_photo."""
+    """tumblr API create_photo."""
     photo_data = dict(
         state="private",
         tags=['tag1', 'tag2', 'zco.mx'],
@@ -53,7 +53,7 @@ def create_photo(client):
 
 
 def create_quote(client):
-    """POC tumblr API create_quote."""
+    """tumblr API create_quote."""
     quote_data = dict(
         state="private",
         tags=['Uptight', 'JordanCrane', 'zco.mx'],
@@ -67,7 +67,7 @@ def create_quote(client):
 
 
 def create_text(client):
-    """POC tumblr API create_text."""
+    """tumblr API create_text."""
     text_data = dict(
         state="private",
         tags=['Uptight', 'JordanCrane', 'zco.mx'],
@@ -87,7 +87,7 @@ def create_text(client):
 
 
 def delete_post(client, post_id):
-    """POC tumblr API delete_post."""
+    """tumblr API delete_post."""
     result = client.delete_post('zcomx', post_id)
     print 'client.delete_post: {r}'.format(r=result)
 
@@ -117,7 +117,7 @@ def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    tumblr_poc.py
+    tumblr_api.py
 
 OPTIONS
     -c, --clear

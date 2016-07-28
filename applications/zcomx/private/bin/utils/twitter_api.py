@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-twitter_poc.py
+twitter_api.py
 
-Script to POC test using python-twitter api.
+Script to test using python-twitter api.
 https://pypi.python.org/pypi/twitter
 """
 import os
@@ -76,7 +76,7 @@ def man_page():
     """Print manual page-like help"""
     print """
 USAGE
-    twitter_poc.py
+    twitter_api.py
 
 OPTIONS
     -h, --help

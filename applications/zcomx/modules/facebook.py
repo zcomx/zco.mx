@@ -7,8 +7,8 @@ Classes and functions related to facebook posts.
 """
 import base64
 import datetime
-import requests
 import urlparse
+import requests
 from BeautifulSoup import BeautifulSoup
 from gluon import *
 import applications.zcomx.modules.facepy as facepy
@@ -26,7 +26,11 @@ class FacebookAPIAuthenticator(object):
 
     page_titles = {
         # page key: list of possible titles of page <title></title>
-        'login': ['Welcome to Facebook', 'Log into Facebook | Facebook'],
+        'login': [
+            'Welcome to Facebook',
+            'Log into Facebook | Facebook',
+            'Log in to Facebook | Facebook',
+        ],
         'logged_in': ['Facebook'],
     }
 
@@ -50,8 +54,11 @@ class FacebookAPIAuthenticator(object):
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.00',
         })
 
-    def authenticate(self):
+    def authenticate(self, client_class=None):
         """Authenticate."""
+        if client_class is None:
+            client_class = FacebookAPIClient
+
         if not self.login():
             raise FacebookAPIError('Login failed')
         LOG.debug('Login success')
@@ -60,7 +67,7 @@ class FacebookAPIAuthenticator(object):
             raise FacebookAPIError('Unable to acquire access token')
 
         graph = facepy.GraphAPI(access_token, version='2.4')
-        client = FacebookAPIClient(graph)
+        client = client_class(graph)
         accounts = client.accounts()
         if not accounts:
             raise FacebookAPIError('Unable to access user accounts.')
@@ -80,7 +87,7 @@ class FacebookAPIAuthenticator(object):
 
         # Reset the graph to use the page token.
         graph = facepy.GraphAPI(page_access_token, version='2.4')
-        return FacebookAPIClient(graph, user_id)
+        return client_class(graph, user_id)
 
     def get_token(self):
         """Get the access token."""
@@ -111,6 +118,7 @@ class FacebookAPIAuthenticator(object):
         response = self.session.get(url, cookies=cookies)
         soup = BeautifulSoup(response.text)
         title = soup.html.head.title.string
+        LOG.debug('Login title: "%s"', title)
         if not title or title not in self.page_titles['login']:
             LOG.error('Unable to access facebook login page')
             LOG.error(
@@ -153,6 +161,7 @@ class FacebookAPIAuthenticator(object):
         response = self.session.post(url, data=post_data)
         soup = BeautifulSoup(response.text)
         title = soup.html.head.title.string
+        LOG.debug('Logged in title: "%s"', title)
         if not title or title not in self.page_titles['logged_in']:
             LOG.error('Unable to login into facebook page')
             LOG.error(
@@ -232,7 +241,7 @@ class FacebookAPIClient(object):
 
 
 class Authenticator(object):
-    """Class representing a tumblr authenticator"""
+    """Class representing a facebook authenticator"""
 
     def __init__(self, credentials):
         """Constructor
@@ -243,10 +252,10 @@ class Authenticator(object):
         self.credentials = credentials
 
     def authenticate(self):
-        """Authenticate on tumblr.
+        """Authenticate on facebook.
 
         Returns:
-            client, FacebookAPIClient instance
+            authenticator, FacebookAPIAuthenticator instance
         """
         auth = FacebookAPIAuthenticator(
             self.credentials['email'],
