@@ -26,28 +26,6 @@ _migrate() {
     [[ $exit_status != 0 ]] && __me 'migrate failed'
 }
 
-_update_static_version () {
-    local file new_version today version version_date version_num
-    file=$1
-
-    # Sample line from settings.conf
-    # response.static_version = 2013.11.283
-    version=$(grep '^response.static_version =' $file | awk '{print $3}')
-    [[ ! $version ]] && __me "response.static_version not found in $file"
-
-    version_date=$(echo $version | cut -c 1-10)
-    version_num=$(echo $version | cut -c 11-)
-    today=$(date "+%Y.%m.%d")
-    if [[ $version_date == $today ]]; then
-        let version_num++
-    else
-        version_num=0
-    fi
-    new_version="${today}${version_num}"
-    __v && __mi "New version: $new_version"
-    sed -i "s/^response.static_version = $version$/response.static_version = $new_version/" $file
-}
-
 _views() {
     for f in $(find applications/$APP -path "*/private/sqlite/$VIEWS_SQL"); do
         __v && __mi "Applying $f"
@@ -98,7 +76,7 @@ find . -path ./applications/$APP/sessions -prune -o -type f -name "*.pyc" -exec 
 
 
 __v && __mi "Updating response.static_version"
-_update_static_version "$SETTINGS_CONF"
+web2py_static_version_bump.sh "$SETTINGS_CONF"
 
 __v && __mi "Restarting uwsgi emperor"
 systemctl restart emperor.uwsgi.service
