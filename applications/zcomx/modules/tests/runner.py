@@ -896,26 +896,19 @@ def count_diff(func):
         """
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
+        args = ['/root/bin/sql_record_count.sh']
         tmp_dir = '/tmp/test_suite/count_diff'
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
         with open(os.path.join(tmp_dir, 'before.txt'), "w") as bef:
-            subprocess.call(
-                ["/root/bin/sql_record_count.sh -s applications/zcomx/databases/storage.sqlite"],
-                stdout=bef,
-                shell=True
-            )
+            subprocess.call(args, stdout=bef)
         try:
             func(*arg)
         except (SystemExit, KeyboardInterrupt):
             # This prevents a unittest.py exit from killing the wrapper
             pass
         with open(os.path.join(tmp_dir, 'after.txt'), "w") as aft:
-            subprocess.call(
-                ["/root/bin/sql_record_count.sh -s applications/zcomx/databases/storage.sqlite"],
-                stdout=aft,
-                shell=True
-            )
+            subprocess.call(args, stdout=aft)
         subprocess.call(
             [
                 'diff',
