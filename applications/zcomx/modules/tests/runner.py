@@ -5,7 +5,6 @@ tests/runner.py
 
 Classes for local python test_suite scripts.
 """
-from BeautifulSoup import BeautifulSoup
 import StringIO
 import datetime
 import inspect
@@ -18,6 +17,7 @@ import unittest
 import urllib
 import urllib2
 import urlparse
+from BeautifulSoup import BeautifulSoup
 
 from gluon.contrib.webclient import \
     WebClient, \
@@ -894,27 +894,18 @@ def count_diff(func):
         Args:
             arg: args passed to decorated function.
         """
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-        args = ['/root/bin/sql_record_count.sh']
-        tmp_dir = '/tmp/test_suite/count_diff'
-        if not os.path.exists(tmp_dir):
-            os.makedirs(tmp_dir)
-        with open(os.path.join(tmp_dir, 'before.txt'), "w") as bef:
-            subprocess.call(args, stdout=bef)
+        count_script = '/root/bin/sql_record_count.sh'
+        args = [count_script, '-a', 'before']
+        subprocess.call(args)
+
         try:
             func(*arg)
         except (SystemExit, KeyboardInterrupt):
             # This prevents a unittest.py exit from killing the wrapper
             pass
-        with open(os.path.join(tmp_dir, 'after.txt'), "w") as aft:
-            subprocess.call(args, stdout=aft)
-        subprocess.call(
-            [
-                'diff',
-                '{dir}/before.txt'.format(dir=tmp_dir),
-                '{dir}/after.txt'.format(dir=tmp_dir),
-            ]
-        )
-        return
+
+        args = [count_script, '-a', 'after']
+        subprocess.call(args)
+        args = [count_script, '-a', 'diff']
+        subprocess.call(args)
     return wrapper
