@@ -2,18 +2,17 @@
 # -*- coding: utf-8 -*-
 
 """
-test_phone.py
+test_ConfigParser_improved.py
 
-Test suite for zcomx/modules/ConfigParser_improved.py
+Test suite for modules/ConfigParser_improved.py
 
 """
 # C0103: *Invalid name "%%s" (should match %%s)*
 # pylint: disable=C0103
-
-import os
 import unittest
+import cStringIO
 from applications.zcomx.modules.ConfigParser_improved import \
-        ConfigParserImproved
+    ConfigParserImproved
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # pylint: disable=C0111,R0904
@@ -40,15 +39,16 @@ str1 = my setting value
 str2 = 'This is my setting value'
 
 """
-        f_text = '/tmp/TestConfigParserImproved.txt'
-        _config_file_from_text(f_text, text)
+        f = cStringIO.StringIO(text)
         config = ConfigParserImproved()
-        config.read(f_text)
-        # items() and items_scrubbed() should return strings identically
-        self.assertEqual(config.items('strings'),
-                config.items_scrubbed('strings'))
+        config.readfp(f)
+        self.assertEqual(
+            config.items('strings'),
+            config.items_scrubbed('strings')
+        )
 
-        self.assertEqual(sorted(config.items_scrubbed('section')),
+        self.assertEqual(
+            sorted(config.items_scrubbed('section')),
             [
                 ('s01_true', True),
                 ('s02_false', False),
@@ -59,9 +59,8 @@ str2 = 'This is my setting value'
                 ('s07_str_true', 'True'),
                 ('s08_str_int', '123'),
                 ('s09_str_float', '123.45'),
-                ])
-
-        os.unlink(f_text)
+            ]
+        )
 
 
 def _config_file_from_text(filename, text):
