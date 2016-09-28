@@ -28,18 +28,20 @@ import re
 from gluon import *
 from gluon.storage import Storage
 from gluon.tools import PluginManager
-from applications.zcomx.modules.stickon.tools import ModelDb, MigratedModelDb
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
     IS_TWITTER_HANDLE, \
     IS_URL_FOR_DOMAIN
-from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
+from applications.zcomx.modules.zco import \
+    BOOK_STATUS_DRAFT, \
+    ZcoMigratedModelDb, \
+    ZcoModelDb
 
 try:
     # MIGRATE is optionally defined in models/0_migrate.py
-    model_class = MigratedModelDb if MIGRATE else ModelDb
+    model_class = ZcoMigratedModelDb if MIGRATE else ZcoModelDb
 except NameError:
-    model_class = ModelDb
+    model_class = ZcoModelDb
 
 model_db = model_class(globals())
 
@@ -74,9 +76,6 @@ from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.stickon.sqlhtml import \
     formstyle_bootstrap3_custom
 
-# create all tables needed by auth if not custom tables
-auth.define_tables(username=False, signature=False)
-
 # configure auth policy
 auth.settings.mailer = mail                    # for user email verification
 auth.settings.registration_requires_verification = True
@@ -103,29 +102,6 @@ auth.messages.password_changed = ''         # Suppress flash message
 # use_janrain(auth, filename='private/janrain.key')
 
 crud.settings.auth = None                      # =auth to enforce authorization on crud
-
-
-auth.signature = db.Table(
-    db,
-    'auth_signature',
-    Field(
-        'created_on',
-        'datetime',
-        default=request.now,
-        represent=lambda dt, row: str(dt),
-        readable=False,
-        writable=False,
-    ),
-    Field(
-        'updated_on',
-        'datetime',
-        default=request.now,
-        update=request.now,
-        represent=lambda dt, row: str(dt),
-        readable=False,
-        writable=False,
-    )
-)
 
 db._common_fields = [auth.signature]
 

@@ -7,6 +7,7 @@ Zco: System globals, constants and session classes and functions.
 """
 from gluon import *
 from gluon.storage import Storage
+from applications.zcomx.modules.stickon.tools import ModelDb
 
 # Constants
 
@@ -103,6 +104,19 @@ class Zco(object):
     def all_torrent_url(self):
         """Url for all-torrent."""
         return dict(c='zco.mx.torrent', f='index')
+
+
+class ZcoModelDb(ModelDb):
+    """ModelDb with Zco customizations."""
+
+    def _auth_post_hook(self, auth):
+        if not self.local_settings.disable_authentication:
+            auth.settings.extra_fields['auth_user'] = [Field('name')]
+
+
+class ZcoMigratedModelDb(ZcoModelDb):
+    """Class representing the db.py model with migration enabled."""
+    migrate = True
 
 
 def html_metadata():

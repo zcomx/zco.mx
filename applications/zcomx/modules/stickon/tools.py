@@ -1,4 +1,4 @@
-    #!/usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """
@@ -7,9 +7,11 @@ stickon/tools.py
 Classes extending functionality of gluon/tools.py.
 
 """
-from applications.zcomx.modules.environ import server_production_mode
+import os
+import ConfigParser
 from gluon import *
-from pydal import Field
+from gluon.contrib.memdb import MEMDB
+from gluon.dal import Field
 from gluon.storage import Settings
 from gluon.tools import \
     Auth, \
@@ -17,10 +19,11 @@ from gluon.tools import \
     Expose, \
     Mail, \
     Service
-import os
-import ConfigParser
-from applications.zcomx.modules.ConfigParser_improved import  \
+from applications.zcomx.modules.ConfigParser_improved import \
     ConfigParserImproved
+from applications.zcomx.modules.environ import server_production_mode
+from applications.zcomx.modules.memcache import MemcacheClient
+from applications.zcomx.modules.mysql import LocalMySQL
 
 # C0103: *Invalid name "%s" (should match %s)*
 # Some variable names are adapted from web2py.
@@ -37,7 +40,6 @@ class ExposeImproved(Expose):
     Sub classes gluon/tools.py class Expose
     Modifications:
         * Fixes raw_args bug
-          http://code.google.com/p/web2py/issues/detail?id=1947
         * breadcrumbs are optional
         * .svg are considered images.
 
@@ -86,6 +88,7 @@ class ExposeImproved(Expose):
 class ModelDb(object):
     """Class representing the db.py model"""
     migrate = False
+    db_driver_args = {'timeout': 500}          # milliseconds
 
     def __init__(self, environment, config_file=None, init_all=True):
         """Constructor.
@@ -108,6 +111,7 @@ class ModelDb(object):
             # The order of these is intentional. Some depend on each other.
             self.DAL = self.environment['DAL']
             self.db = self._db()
+            self.cache = self._cache()
             self.mail = self._mail()
             self.auth = self._auth()
             self.crud = self._crud()
@@ -121,10 +125,11 @@ class ModelDb(object):
         """Create a auth instance. """
 
         auth = Auth(db=self.db, hmac_key=self.local_settings.hmac_key)
+        self._auth_post_hook(auth)
         # This may need to be set to True the first time an app is used.
         if not self.local_settings.disable_authentication:
-            auth.settings.extra_fields['auth_user'] = [Field('name')]
-            auth.define_tables(username=False, signature=False, migrate=True)
+            # Create auth_* tables without signature
+            auth.define_tables(username=False, signature=False, migrate=False)
         if self.settings_loader:
             self.settings_loader.import_settings(
                 group='auth', storage=auth.settings)
@@ -181,6 +186,38 @@ class ModelDb(object):
         )
         return auth
 
+    def _auth_post_hook(self, auth):
+        """Hook for post auth creation. Subclasses can add code here to be
+        run directly following the creation of an Auth instance.
+
+        Args:
+            auth: Auth instance
+        """
+        pass
+
+    def _cache(self):
+        """Implement cache.
+
+        """
+        cache = self.environment['cache']
+
+        if self.settings_loader and self.local_settings.memcached_socket:
+            memcache_servers = [self.local_settings.memcached_socket]
+            request = self.environment['request']
+            cache.memcache = MemcacheClient(
+                request,
+                memcache_servers,
+                default_time_expire=Auth.default_settings['expiration'],
+            )
+            cache.ram = cache.disk = cache.memcache
+
+            if self.settings_loader and self.local_settings.memcache_sessions:
+                response = self.environment['response']
+                session = self.environment['session']
+                session.connect(request, response, db=MEMDB(cache.memcache))
+
+        return cache
+
     def _crud(self):
         """Create a Crud instance
         """
@@ -198,27 +235,51 @@ class ModelDb(object):
         response = self.environment['response']
         session = self.environment['session']
         if request.env.web2py_runtime_gae:
-
             # if running on Google App Engine connect to Google BigTable and
             # store sessions and tickets there.
-
-            db = self.DAL('gae')
-            session.connect(request, response, db=db)
-        else:
-            driver_args={
-                'timeout': 500          # milliseconds
-            }
-
             # or use the following lines to store sessions in Memcache
             #   from gluon.contrib.memdb import MEMDB
             #   from google.appengine.api.memcache import Client
             #   session.connect(request, response, db=MEMDB(Client())
             db = self.DAL(
+                'gae',
+                migrate=self.migrate
+            )
+            session.connect(request, response, db=db)
+            return db
+
+        if not self.settings_loader:
+            # With not configuation, default to standard sqlite
+            return self.DAL(
                 'sqlite://storage.sqlite',
                 migrate=self.migrate,
-                debug=True,
-                driver_args=driver_args,
+                driver_args=self.db_driver_args
             )
+
+        if self.local_settings.db_adapter == 'sqlite':
+            db_uri = self.local_settings.db_uri or 'sqlite://storage.sqlite'
+            return self.DAL(
+                db_uri,
+                migrate=self.migrate,
+                driver_args=self.db_driver_args
+            )
+
+        # MySQL
+        # load using custom mysql class
+        local_mysql = LocalMySQL(request=request,
+                database=self.local_settings.database,
+                user=self.local_settings.mysql_user,
+                password=self.local_settings.mysql_password)
+        check_reserved = None
+        if self.local_settings.check_reserved and \
+                self.local_settings.check_reserved != 'None':
+            check_reserved = self.local_settings.check_reserved.split(
+                    ',')
+        db = self.DAL(
+            local_mysql.sqldb,
+            check_reserved=check_reserved,
+            migrate=self.migrate
+        )
         return db
 
     def _mail(self):
@@ -241,18 +302,38 @@ class ModelDb(object):
         service = Service(self.environment)
         return service
 
+    def _settings_config_file(self):
+        """Return the file name where config settings are stored.
+
+        Returns:
+            str, full filename.
+        """
+        if self.config_file:
+            return self.config_file
+
+        request = self.environment['request']
+
+        settings_conf = os.path.join(
+                request.folder, 'private', 'settings.conf')
+        if os.path.exists(settings_conf):
+            return settings_conf
+
+        local_conf = os.path.join(
+            '/srv/http/local',
+            '{mode}.conf'.format(mode=self.get_server_mode())
+        )
+        return local_conf
+
     def _settings_loader(self):
         """Create a settings loader object instance
 
         """
         request = self.environment['request']
-        etc_conf_file = self.config_file if self.config_file else \
-            os.path.join(request.folder, 'private', 'settings.conf')
+        etc_conf_file = self._settings_config_file()
         if not os.path.exists(etc_conf_file):
             raise ConfigFileError(
-                'Local configuration file not found: {file}'.format(
-                    file=etc_conf_file)
-            )
+                    'Local configuration file not found: {file}'.format(
+                    file=etc_conf_file))
         settings_loader = SettingsLoader(
             config_file=etc_conf_file, application=request.application)
         settings_loader.import_settings(

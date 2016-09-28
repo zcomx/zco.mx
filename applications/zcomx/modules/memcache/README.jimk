@@ -1,0 +1,8 @@
+This is a copy of gluon/contrib/memcache
+The contrib version requires the six package.
+
+    import six
+
+That isn't installed on dtjimk and input servers.
+The code is modified so six is not needed.
+    six.iterkeys() -> dict.iterkeys()
