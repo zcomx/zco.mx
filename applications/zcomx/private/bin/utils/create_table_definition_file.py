@@ -18,7 +18,7 @@ from gluon.dal import Field, Table, SQLCustomType
 from pydal.base import BaseAdapter
 from pydal._compat import hashlib_md5, pjoin, pickle
 from pydal._load import portalocker
-from applications.shared.modules.logger import set_cli_logging
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('root')
