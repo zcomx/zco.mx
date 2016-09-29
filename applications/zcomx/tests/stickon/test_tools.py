@@ -88,9 +88,9 @@ class TestExposeImproved(LocalTestCase):
 class TestMigratedModelDb(LocalTestCase):
 
     def test_parent__init__(self):
-        model_db = ModelDb(APP_ENV, init_all=False)
+        model_db = MigratedModelDb(APP_ENV, init_all=False)
         self.assertTrue(model_db)
-        self.assertEqual(model_db.migrate, False)
+        self.assertEqual(model_db.migrate, True)
 
 
 class TestModelDb(LocalTestCase):
