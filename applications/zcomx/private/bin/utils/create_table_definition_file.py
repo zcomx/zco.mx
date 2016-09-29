@@ -8,15 +8,17 @@ A script to create table definition files. An example table definition
 file is:
 
     applications/<app>/databases/07e0a7454f3966e22c43693c8e02ebc2_mystuff.table
+
+This script is meant to be a template. Copy and edit before using.
 """
+# pylint: disable=import-error
 import logging
-from pydal.objects import Field, Table
+from optparse import OptionParser
+from gluon.dal import Field, Table, SQLCustomType
 from pydal.base import BaseAdapter
-from pydal.helpers.classes import SQLCustomType
 from pydal._compat import hashlib_md5, pjoin, pickle
 from pydal._load import portalocker
-from optparse import OptionParser
-from applications.zcomx.modules.logger import set_cli_logging
+from applications.shared.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 LOG = logging.getLogger('root')
@@ -24,13 +26,16 @@ LOG = logging.getLogger('root')
 
 class DubBaseAdapter(BaseAdapter):
     """Class representing a DubBaseAdapter"""
+    # pylint: disable=missing-docstring
 
     @classmethod
     def ALLOW_NULL(cls):
+        # pylint: disable=invalid-name
         return ''
 
     @classmethod
     def file_open(cls, filename, mode='rb', lock=True):
+        # pylint: disable=bad-whitespace
         #to be used ONLY for files that on GAE may not be on filesystem
         if lock:
             fileobj = portalocker.LockedFile(filename,mode)
@@ -45,9 +50,14 @@ class DubBaseAdapter(BaseAdapter):
             fileobj.close()
 
 
-
 def get_ftype(table, field):
     """Get the ftype of a field."""
+    # pylint: disable=bad-builtin
+    # pylint: disable=protected-access
+    # pylint: disable=unused-variable
+    # pylint: disable=invalid-name
+    # pylint: disable=line-too-long
+    # pylint: disable=bad-whitespace
     field_name = field.name
     field_type = field.type
     self = DubBaseAdapter
@@ -195,8 +205,9 @@ def man_page():
     """Print manual page-like help"""
     print """
 OVERVIEW
-    This script
     This script can be used to create table definition files.
+    !! This script is meant to be a template. Copy and edit before using. !!
+
     An example table definition file is:
 
     applications/<app>/databases/07e0a7454f3966e22c43693c8e02ebc2_mystuff.table
@@ -204,10 +215,22 @@ OVERVIEW
     This script will not work with py_web2py.sh
 
 USAGE
-    create_table_definition_file.py [OPTIONS]
+    !!! This script has hard coded values. Not intended to be used directly !!!
 
-EXAMPLE
-    create_table_definition_file.py
+    1. Copy script to temp script, and edit and use temp.script
+    2. Update tablename
+    2. Update table definition including all Field() definitions.
+    3. Remove all Field attributes *except*
+        name
+        type (string, integer, etc)
+        length
+        unique
+        notnull
+        ondelete
+        custom_qualifier
+
+    Then:
+    python web2py.py -S app -R applications/app/private/bin/tmp/tmp_create_table_definition_file.py
 
 OPTIONS
 
@@ -256,30 +279,20 @@ def main():
     set_cli_logging(LOG, options.verbose, options.vv)
 
     db = None
-    tablename = 'activity_log'
+
+    app = 'app'                 # Replace with actual app name
+    tablename = 'tablename'     # Replace with actual table name
     table = Table(
         db,
         tablename,
+                                # Replace with actual Field() instances
+                                # Remove unneeded attributes. See --man
+        Field('name'),
         Field(
-            'book_id',
+            'another_table_id',
             'integer',
         ),
-        Field(
-            'book_page_ids',
-            'list:reference book_page',
-            default=[],
-        ),
-        Field('action'),
         Field('time_stamp', 'datetime'),
-        Field(
-            'ongoing_post_id',
-            'integer',
-        ),
-        Field(
-            'deleted_book_page_ids',
-            'list:integer',
-            default=[],
-        ),
     )
 
     sql_fields = {}
@@ -296,15 +309,16 @@ def main():
             type=str(field_type),
             sql=ftype)
 
-    dbpath = 'applications/zcomx/databases'     # FIXME zcomx should be var
-    adapter_uri = 'sqlite://zcomx.sqlite'       # read from local settings?
+    dbpath = 'applications/{a}/databases'.format(a=app)
+    adapter_uri = 'sqlite://{a}.sqlite'.format(a=app)
 
     uri_hash = hashlib_md5(adapter_uri).hexdigest()
-    print 'FIXME uri_hash: {var}'.format(var=uri_hash)
+    print 'uri_hash: {var}'.format(var=uri_hash)
 
+    # pylint: disable=protected-access
     table._dbt = pjoin(
         dbpath, '%s_%s.table' % (uri_hash, tablename))
-    print 'FIXME table._dbt: {var}'.format(var=table._dbt)
+    print 'table._dbt: {var}'.format(var=table._dbt)
 
     if table._dbt:
         tfile = DubBaseAdapter.file_open(table._dbt, 'wb')
