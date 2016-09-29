@@ -306,12 +306,15 @@ class LocalTestCase(unittest.TestCase):
             login_employee_id = env['local_settings'].login_employee_id
 
         login_required = True if 'auth_user' in env['db'].tables else False
+        web_client_url = current.app.local_settings.web_site_url \
+            if current.app.local_settings.web_site_url else ''
         web = LocalWebClient(
             app,
             login_user,
             login_password,
             db=env['db'],
             login_employee_id=login_employee_id,
+            url=web_client_url,
             dump=LocalTestCase._opts.dump,
             login_required=login_required,
         )
@@ -548,7 +551,7 @@ class LocalWebClient(WebClient):
         self.username = username
         self.password = password
         self.login_employee_id = login_employee_id
-        self.url = url if url else 'https://jimk.zsw.ca'
+        self.url = url
         self.postbacks = postbacks
         self.login_required = login_required
         self.db = db
