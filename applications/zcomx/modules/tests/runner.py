@@ -411,13 +411,24 @@ class LocalTextTestResult(unittest._TextTestResult):
             #     self.getDescription(test)))
             # self.stream_err.writeln(self.separator2)
             # Print a command that will demonstrate the error.
-            self.stream_err.writeln(
-                '$ unit {fname} {case} {method}'.format(
-                    fname=test.__module__.replace('.', '/') + '.py',
-                    case=test.__class__.__name__,
-                    method=test._testMethodName,
-                )
-            )
+            if hasattr(test, '_testMethodName'):
+                self.stream_err.writeln(
+                       '$ unit {fname} {case} {method}'.format(
+                            fname=test.__module__.replace('.', '/') + '.py',
+                            case=test.__class__.__name__,
+                            method=test._testMethodName,
+                            ))
+            elif hasattr(test, 'description'):
+                parts = test.description.split()
+                if str(parts[1]).startswith('(') and str(parts[1]).endswith(')'):
+                    fname = str(parts[1])[1:-1].replace('.', '/') + '.py'
+                    self.stream_err.writeln(
+                        '$ unit {fname}'.format(fname=fname)
+                    )
+                else:
+                    self.stream_err.writeln('ERROR: ' + str(test))
+            else:
+                self.stream_err.writeln('ERROR: ' + str(test))
             self.stream_err.writeln("%s" % err)
 
     def printTestResult(self, test, msg):
