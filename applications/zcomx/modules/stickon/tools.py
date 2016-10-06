@@ -10,6 +10,7 @@ Classes extending functionality of gluon/tools.py.
 import os
 import ConfigParser
 from gluon import *
+from gluon.contrib.appconfig import AppConfig
 from gluon.contrib.memdb import MEMDB
 from gluon.dal import Field
 from gluon.storage import Settings
@@ -19,7 +20,7 @@ from gluon.tools import \
     Expose, \
     Mail, \
     Service
-from applications.zcomx.modules.ConfigParser_improved import \
+from applications.zcomx.modules.ConfigParser_improved import  \
     ConfigParserImproved
 from applications.zcomx.modules.environ import server_production_mode
 from applications.zcomx.modules.memcache import MemcacheClient
@@ -90,7 +91,7 @@ class ModelDb(object):
     migrate = False
     db_driver_args = {'timeout': 500}          # milliseconds
 
-    def __init__(self, environment, config_file=None, init_all=True):
+    def __init__(self, environment, config_file=None):
         """Constructor.
 
         Args:
@@ -102,24 +103,16 @@ class ModelDb(object):
         """
         self.environment = environment
         self.config_file = config_file
+        self.DAL = None
+        self.db = None
+        self.cache = None
+        self.mail = None
+        self.auth = None
+        self.crud = None
+        self.service = None
+        self.local_settings = None
+        self.settings_loader = None
         self._server_mode = None
-
-        self.local_settings = Settings()
-        self.settings_loader = self._settings_loader()
-
-        if init_all:
-            # The order of these is intentional. Some depend on each other.
-            self.DAL = self.environment['DAL']
-            self.db = self._db()
-            self.cache = self._cache()
-            self.mail = self._mail()
-            self.auth = self._auth()
-            self.crud = self._crud()
-            self.service = self._service()
-
-        if self.settings_loader and 'response' in self.environment:
-            self.settings_loader.import_settings(
-                group='response', storage=self.environment['response'])
 
     def _auth(self):
         """Create a auth instance. """
@@ -132,7 +125,7 @@ class ModelDb(object):
             auth.define_tables(username=False, signature=False, migrate=False)
         if self.settings_loader:
             self.settings_loader.import_settings(
-                group='auth', storage=auth.settings)
+                group=['auth', 'settings'], storage=auth.settings)
         auth.settings.mailer = self.mail
         auth.settings.verify_email_onaccept = self.verify_email_onaccept
         # Controller tests scripts require login's with same session.
@@ -290,7 +283,7 @@ class ModelDb(object):
         mail = Mail()  # mailer
         if self.settings_loader:
             self.settings_loader.import_settings(
-                group='mail', storage=mail.settings)
+                group=['mail', 'settings'], storage=mail.settings)
         return mail
 
     def _service(self):
@@ -313,6 +306,11 @@ class ModelDb(object):
 
         request = self.environment['request']
 
+        settings_json = os.path.join(
+                request.folder, 'private', 'settings.json')
+        if os.path.exists(settings_json):
+            return settings_json
+
         settings_conf = os.path.join(
                 request.folder, 'private', 'settings.conf')
         if os.path.exists(settings_conf):
@@ -334,10 +332,20 @@ class ModelDb(object):
             raise ConfigFileError(
                     'Local configuration file not found: {file}'.format(
                     file=etc_conf_file))
-        settings_loader = SettingsLoader(
+
+        extension = os.path.splitext(etc_conf_file)[1][1:]
+        loader_class = SettingsLoaderJSON \
+                if extension == 'json' \
+                else SettingsLoader
+
+        settings_loader = loader_class(
             config_file=etc_conf_file, application=request.application)
-        settings_loader.import_settings(
-            group='local', storage=self.local_settings)
+        if extension == 'json':
+            settings_loader.import_settings(
+                group=['app'], storage=self.local_settings)
+        else:
+            settings_loader.import_settings(
+                group=['local'], storage=self.local_settings)
         return settings_loader
 
     def get_server_mode(self):
@@ -350,6 +358,29 @@ class ModelDb(object):
             request = self.environment['request']
             self._server_mode = server_production_mode(request)
         return self._server_mode
+
+    def load(self, init_all=True):
+        """Load components of model
+
+        Args:
+            init_all: If True, load all components.
+        """
+        self.local_settings = Settings()
+        self.settings_loader = self._settings_loader()
+
+        if init_all:
+            # The order of these is intentional. Some depend on each other.
+            self.DAL = self.environment['DAL']
+            self.db = self._db()
+            self.cache = self._cache()
+            self.mail = self._mail()
+            self.auth = self._auth()
+            self.crud = self._crud()
+            self.service = self._service()
+
+        if self.settings_loader and 'response' in self.environment:
+            self.settings_loader.import_settings(
+                group=['response'], storage=self.environment['response'])
 
     def verify_email_onaccept(self, user):
         """
@@ -450,6 +481,8 @@ class SettingsLoader(object):
             storage: gluon.storage Storage object instance.
 
         """
+        if isinstance(group, list):
+            group = group[0]
 
         if group == 'auth':
             storage.lock_keys = False  # Required to permit custom settings
@@ -458,3 +491,74 @@ class SettingsLoader(object):
             return
         for setting in self.settings[group].keys():
             storage[setting] = self.settings[group][setting]
+
+
+class SettingsLoaderJSON(SettingsLoader):
+
+    """Class representing a settings loader for json config file.
+
+    Object instances permit loading settings from a config file and importing
+    them into web2py storage objects.
+    """
+    def __init__(self, config_file=None, application=''):
+        super(SettingsLoaderJSON, self).__init__(config_file=config_file, application=application)
+
+    def get_settings(self):
+        """Read settings from config file."""
+
+        if not self.config_file:
+            return
+
+        settings = {}
+
+        json_settings = AppConfig(configfile=self.config_file, reload=True)
+
+        if 'web2py' in json_settings:
+            settings.update(json_settings['web2py'])
+
+        if 'app' in json_settings:
+            settings.update({'app': json_settings['app']})
+
+        self.settings.update(settings)
+
+    @classmethod
+    def get_from_dict(cls, data_dict, map_list):
+        data = dict(data_dict)
+        for k in map_list:
+            data = data[k]
+        return data
+
+    def import_settings(self, group, storage):
+        """Import a group of settings into a storage.
+
+        Args:
+            group: list or str, The name of the group of settings to import,
+                if list, represents the keys, eg ['auth', 'settings']
+                if str, just a key: 'response'
+            storage: gluon.storage Storage object instance.
+
+        """
+        if isinstance(group, str):
+            groups = [group]
+        else:
+            groups = list(group)
+
+        needs_unlock = False
+        if groups[0] == 'auth' and storage.lock_keys:
+            # auth requires lock_eyes = True permit custom settings
+            needs_unlock = True
+
+        if needs_unlock:
+            storage.lock_keys = False
+
+        try:
+            sub_dict = self.get_from_dict(self.settings, groups)
+        except KeyError:
+            # nothing to import
+            return
+
+        for setting in sub_dict.keys():
+            storage[setting] = sub_dict[setting]
+
+        if needs_unlock:
+            storage.lock_keys = True

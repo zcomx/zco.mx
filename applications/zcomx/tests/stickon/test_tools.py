@@ -16,7 +16,8 @@ from applications.zcomx.modules.stickon.tools import \
     ExposeImproved, \
     MigratedModelDb, \
     ModelDb, \
-    SettingsLoader
+    SettingsLoader, \
+    SettingsLoaderJSON
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # R0904: Too many public methods
@@ -88,7 +89,7 @@ class TestExposeImproved(LocalTestCase):
 class TestMigratedModelDb(LocalTestCase):
 
     def test_parent__init__(self):
-        model_db = MigratedModelDb(APP_ENV, init_all=False)
+        model_db = MigratedModelDb(APP_ENV)
         self.assertTrue(model_db)
         self.assertEqual(model_db.migrate, True)
 
@@ -96,14 +97,18 @@ class TestMigratedModelDb(LocalTestCase):
 class TestModelDb(LocalTestCase):
 
     def test____init__(self):
+        model_db = ModelDb(APP_ENV)
+        self.assertTrue(model_db)
+
+    def test__load(self):
         # W0212: *Access to a protected member %s of a client class*
         # pylint: disable=W0212
 
         #
         # Test with default config file.
         #
-        model_db = ModelDb(APP_ENV, init_all=False)
-        self.assertTrue(model_db)  # returns object
+        model_db = ModelDb(APP_ENV)
+        model_db.load()
 
         self.assertEqual(model_db.migrate, False)
 
@@ -135,8 +140,8 @@ version = '0.1'
         f_text = '/tmp/TestModelDb_test__init__.txt'
         _config_file_from_text(f_text, config_text)
 
-        model_db = ModelDb(APP_ENV, config_file=f_text, init_all=False)
-        self.assertTrue(model_db)
+        model_db = ModelDb(APP_ENV, config_file=f_text)
+        model_db.load(init_all=False)
 
         self.assertEqual(
             model_db.environment['response'].static_version, '2013.11.291')
@@ -146,7 +151,8 @@ version = '0.1'
     def test__get_server_mode(self):
         # W0212: *Access to a protected member %%s of a client class*
         # pylint: disable=W0212
-        model_db = ModelDb(APP_ENV, init_all=False)
+        model_db = ModelDb(APP_ENV)
+        model_db.load(init_all=False)
         # get_server_mode doesn't get called  if init_all=False
         self.assertEqual(model_db._server_mode, None)
 
@@ -387,6 +393,263 @@ email = abc@gmail.com
 
         os.unlink(f_text)
         return
+
+
+class TestSettingsLoaderJSON(LocalTestCase):
+
+    def test____init__(self):
+        settings_loader = SettingsLoaderJSON()
+        self.assertTrue(settings_loader)
+        self.assertEqual(settings_loader.settings, {})
+
+    def test__get_settings(self):
+        settings_loader = SettingsLoaderJSON()
+        settings_loader.get_settings()
+        # No config file, no settings
+        self.assertEqual(settings_loader.settings, {})
+
+        tests = [
+            {
+                'label': 'empty file',
+                'expect': {},
+                'raise': ValueError,
+                'text': '',
+            },
+            {
+                'label': 'empty json struct',
+                'expect': {},
+                'raise': None,
+                'text': '{}',
+            },
+            {
+                'label': 'no web2py section',
+                'expect': {},
+                'raise': None,
+                'text': """
+{
+    "fake_section": {
+        "setting": "value"
+    }
+}
+""",
+            },
+            {
+                'label': 'web2py section empty',
+                'expect': {},
+                'raise': None,
+                'text': """
+{
+    "web2py": {}
+}
+""",
+            },
+            {
+                'label': 'web2py one local setting',
+                'expect': {'app': {'version': '1.11'}},
+                'raise': None,
+                'text': """
+{
+    "app": {
+        "version": "1.11"
+    }
+}
+""",
+            },
+            {
+                'label': 'web2py two local setting',
+                'expect': {
+                    'app': {'username': 'jimk', 'version': '1.11'}
+                },
+                'raise': None,
+                'text': """
+{
+    "app": {
+        "username": "jimk",
+        "version": "1.11"
+    }
+}
+""",
+            },
+            {
+                'label': 'app section',
+                'expect': {
+                    'app': {
+                        'email': 'abc@gmail.com',
+                        'version': '2.22'
+                    },
+                    'username': 'jimk',
+                    'version': '1.11'
+                },
+                'raise': None,
+                'text': """
+{
+    "web2py": {
+        "username": "jimk",
+        "version": "1.11"
+    },
+    "app": {
+        "version": "2.22",
+        "email": "abc@gmail.com"
+    }
+}
+""",
+            },
+            {
+                'label': 'app section auth/mail',
+                'expect': {
+                    'auth': {
+                        'settings': {'username': 'admin', 'version': '5.55'},
+                    },
+                    'mail': {
+                        'settings': {'username': 'mailer', 'version': '6.66'},
+                    },
+                    'app': {
+                        'email': 'abc@gmail.com',
+                        'username': 'jimk',
+                        'version': '2.22'
+                    }
+                },
+                'raise': None,
+                'text': """
+{
+    "web2py": {
+        "auth": {
+            "settings": {
+                "username": "admin",
+                "version": "5.55"
+            }
+        },
+        "mail": {
+            "settings": {
+                "username": "mailer",
+                "version": "6.66"
+            }
+        }
+    },
+    "app": {
+        "email": "abc@gmail.com",
+        "username": "jimk",
+        "version": "2.22"
+    }
+}
+""",
+            },
+        ]
+
+        f_text = '/tmp/settings_loader_config.json'
+        for t in tests:
+            settings_loader = SettingsLoaderJSON()
+            _config_file_from_text(f_text, t['text'])
+            settings_loader.config_file = f_text
+            settings_loader.application = 'app'
+            if t['raise']:
+                self.assertRaises(t['raise'],
+                                  settings_loader.get_settings)
+            else:
+                settings_loader.get_settings()
+            self.assertEqual(settings_loader.settings, t['expect'])
+
+        # Test datatype handling.
+        text = \
+            """
+{
+    "app": {
+        "s01_true": true,
+        "s02_false": false,
+        "s03_int": 123,
+        "s04_float": 123.45,
+        "s05_str1": "my setting",
+        "s06_str2": "'my setting'",
+        "s07_str_true": "True",
+        "s08_str_int": "123",
+        "s09_str_float": "123.45"
+    }
+}
+"""
+        settings_loader = SettingsLoaderJSON()
+        _config_file_from_text(f_text, text)
+        settings_loader.config_file = f_text
+        settings_loader.application = 'app'
+        settings_loader.get_settings()
+
+        self.assertEqual(
+            sorted(settings_loader.settings['app'].keys()),
+            [
+                's01_true',
+                's02_false',
+                's03_int',
+                's04_float',
+                's05_str1',
+                's06_str2',
+                's07_str_true',
+                's08_str_int',
+                's09_str_float',
+            ]
+        )
+
+        s_app = settings_loader.settings['app']
+        self.assertEqual(s_app['s01_true'], True)
+        self.assertEqual(s_app['s02_false'], False)
+        self.assertEqual(s_app['s03_int'], 123)
+        self.assertEqual(s_app['s04_float'], 123.45)
+        self.assertEqual(s_app['s05_str1'], 'my setting')
+        self.assertEqual(s_app['s06_str2'], "'my setting'")
+        self.assertEqual(s_app['s07_str_true'], 'True')
+        self.assertEqual(s_app['s08_str_int'], '123')
+        self.assertEqual(s_app['s09_str_float'], '123.45')
+
+        os.unlink(f_text)
+
+    def test__get_from_dict(self):
+        data = {
+            'a': {
+                'aa': {
+                    'aaa': 111,
+                    'aab': 112,
+                },
+                'ab': {
+                    'aba': 121,
+                    'abb': 122,
+                },
+            },
+            'b': {
+                'ba': {
+                    'baa': 211,
+                    'bab': 212,
+                },
+                'bb': {
+                    'bba': 221,
+                    'bbb': 222,
+                },
+            },
+        }
+
+        tests = [
+            # (map_list, expect)
+            ([], data),
+            (
+                ['a'],
+                {
+                    'aa': {'aaa': 111, 'aab': 112},
+                    'ab': {'aba': 121, 'abb': 122},
+                }
+            ),
+            (['a', 'aa'], {'aaa': 111, 'aab': 112}),
+            (['a', 'aa', 'aaa'], 111),
+            (['b', 'bb', 'bbb'], 222),
+            (['c'], KeyError),
+            (['a', 'ac'], KeyError),
+            (['a', 'aa', 'aac'], KeyError),
+        ]
+        for t in tests:
+            if t[1] == KeyError:
+                self.assertRaises(
+                    t[1], SettingsLoaderJSON.get_from_dict, data, t[0])
+            else:
+                self.assertEqual(
+                    SettingsLoaderJSON.get_from_dict(data, t[0]),
+                    t[1]
+                )
 
 
 def _config_file_from_text(filename, text):

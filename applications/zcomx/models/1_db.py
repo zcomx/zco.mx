@@ -44,6 +44,7 @@ except NameError:
     model_class = ZcoModelDb
 
 model_db = model_class(globals())
+model_db.load()
 
 db = model_db.db
 auth = model_db.auth
