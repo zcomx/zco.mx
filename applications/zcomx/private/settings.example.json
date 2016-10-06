@@ -1,0 +1,51 @@
+#  web2py configuration settings file.
+#
+#  To use this file, copy it to settings.json and edit settings.json as required.
+#  Remove this comment :)
+#
+{
+    "web2py": {
+        "auth": {
+            "settings": {
+                "expiration": 86400,
+                "registration_requires_approval": false,
+                "registration_requires_verification": true,
+                "reset_password_requires_verification": true
+            }
+        },
+        "mail": {
+            "settings": {
+                "login": "username:password",
+                "sender": "username@example.com",
+                "server": "logging"
+            }
+        },
+        "response": {
+            "static_version": "2016.09.280"
+        }
+    },
+    "app": {
+        "admin_email": "username@example.com",
+        "admin_ips": "123.123.123.123,255.255.255.255",
+        "db_sessions": "db",
+        "db_adapter": "sqlite",
+        "db_uri": "sqlite://zcomx.sqlite",
+        "facebook_client_id": 12345678,
+        "facebook_email": "username@example.com",
+        "facebook_page_name": "facebook.com test page",
+        "facebook_password": "****************",
+        "facebook_redirect_uri": "https://mydomain.com/about",
+        "require_login": false,
+        "tumblr_consumer_key": "******************",
+        "tumblr_consumer_secret": "******************",
+        "tumblr_oauth_secret": "******************",
+        "tumblr_oauth_token": "******************",
+        "tumblr_post_state": "draft",
+        "tumblr_username": "username",
+        "twitter_consumer_key": "******************",
+        "twitter_consumer_secret": "******************",
+        "twitter_oauth_secret": "******************",
+        "twitter_oauth_token": "******************-********************",
+        "twitter_username": "username",
+        "web_site_url": "https://mydomain.com"
+    }
