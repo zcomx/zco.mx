@@ -128,7 +128,7 @@ mail.sender = myusername@example.com
 mail.login = myusername:fakepassword
 auth.registration_requires_verification = True
 auth.registration_requires_approval = False
-auth.admin_email = myadmin@example.com
+admin_email = myadmin@example.com
 response.static_version = 2013.11.291
 
 [zcomx]

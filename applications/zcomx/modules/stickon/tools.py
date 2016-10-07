@@ -125,7 +125,10 @@ class ModelDb(object):
             auth.define_tables(username=False, signature=False, migrate=False)
         if self.settings_loader:
             self.settings_loader.import_settings(
-                group=['auth', 'settings'], storage=auth.settings)
+                group=['auth', 'settings'],
+                storage=auth.settings,
+                unicode_to_str=True
+            )
         auth.settings.mailer = self.mail
         auth.settings.verify_email_onaccept = self.verify_email_onaccept
         # Controller tests scripts require login's with same session.
@@ -283,7 +286,10 @@ class ModelDb(object):
         mail = Mail()  # mailer
         if self.settings_loader:
             self.settings_loader.import_settings(
-                group=['mail', 'settings'], storage=mail.settings)
+                group=['mail', 'settings'],
+                storage=mail.settings,
+                unicode_to_str=True
+            )
         return mail
 
     def _service(self):
@@ -380,7 +386,10 @@ class ModelDb(object):
 
         if self.settings_loader and 'response' in self.environment:
             self.settings_loader.import_settings(
-                group=['response'], storage=self.environment['response'])
+                group=['response'],
+                storage=self.environment['response'],
+                unicode_to_str=True
+            )
 
     def verify_email_onaccept(self, user):
         """
@@ -393,12 +402,13 @@ class ModelDb(object):
             self.auth.add_group(admin,
                                 description='Administration group')
 
-        # Add user to admin group if email matches admin_email.
-        if user.email == self.auth.settings.admin_email:
-            if not self.auth.has_membership(
-                    self.auth.id_group(admin), user.id):
-                self.auth.add_membership(
-                    self.auth.id_group(admin), user.id)
+        if self.local_settings.admin_email:
+            if user.email == self.local_settings.admin_email:
+                if not self.auth.has_membership(
+                        self.auth.id_group(admin), user.id):
+                    admin_id = self.auth.id_group(admin)
+                    self.auth.add_membership(
+                        self.auth.id_group(admin), user.id)
 
 
 class MigratedModelDb(ModelDb):
@@ -414,20 +424,20 @@ class SettingsLoader(object):
     them into web2py storage objects.
     """
 
-    def __init__(self, config_file=None, application=''):
+    def __init__(self, config_file=None, application='', unicode_to_str=False):
         """Constructor.
 
         Args:
             config_file: string, name of file containing configuration settings
             application: string, name of web2py application
-
+            unicode_to_str: If True, unicode values are converted to str
         """
 
         self.config_file = config_file
         self.application = application
+        self.unicode_to_str = unicode_to_str
 
         # settings = {'grp1': {set1:val1, set2:val2}, 'grp2': {...}
-
         self.settings = {}
         self.get_settings()
 
@@ -472,14 +482,14 @@ class SettingsLoader(object):
                 self.settings[group] = {}
             self.settings[group][setting] = settings[key]
 
-    def import_settings(self, group, storage):
+    def import_settings(self, group, storage, unicode_to_str=False):
         """Import a group of settings into a storage.
 
         Args:
             group: string, The name of the group of settings to import,
                 eg 'auth'
             storage: gluon.storage Storage object instance.
-
+            unicode_to_str: If True, unicode values are converted to str
         """
         if isinstance(group, list):
             group = group[0]
@@ -490,7 +500,21 @@ class SettingsLoader(object):
             # nothing to import
             return
         for setting in self.settings[group].keys():
-            storage[setting] = self.settings[group][setting]
+            raw_value = self.settings[group][setting]
+            storage[setting] = self.scrub_unicode(raw_value) \
+                if unicode_to_str else raw_value
+
+    @classmethod
+    def scrub_unicode(cls, setting_value):
+        """Return the setting value scrubbed of unicide.
+
+        Args:
+            setting_value, mixed
+            unicode_to_str: If True, unicode values are converted to str
+        """
+        if not isinstance(setting_value, unicode):
+            return setting_value
+        return str(setting_value)
 
 
 class SettingsLoaderJSON(SettingsLoader):
@@ -501,7 +525,8 @@ class SettingsLoaderJSON(SettingsLoader):
     them into web2py storage objects.
     """
     def __init__(self, config_file=None, application=''):
-        super(SettingsLoaderJSON, self).__init__(config_file=config_file, application=application)
+        super(SettingsLoaderJSON, self).__init__(
+            config_file=config_file, application=application)
 
     def get_settings(self):
         """Read settings from config file."""
@@ -523,12 +548,13 @@ class SettingsLoaderJSON(SettingsLoader):
 
     @classmethod
     def get_from_dict(cls, data_dict, map_list):
+        """Get value from dict following maplist of keys."""
         data = dict(data_dict)
         for k in map_list:
             data = data[k]
         return data
 
-    def import_settings(self, group, storage):
+    def import_settings(self, group, storage, unicode_to_str=False):
         """Import a group of settings into a storage.
 
         Args:
@@ -558,7 +584,9 @@ class SettingsLoaderJSON(SettingsLoader):
             return
 
         for setting in sub_dict.keys():
-            storage[setting] = sub_dict[setting]
+            raw_value = sub_dict[setting]
+            storage[setting] = self.scrub_unicode(raw_value) \
+                if unicode_to_str else raw_value
 
         if needs_unlock:
             storage.lock_keys = True
