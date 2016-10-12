@@ -13,8 +13,6 @@ python web2py.py -S app -M -R path/to/unittest.py path.to.test.module
 
 """
 import logging
-import os
-import subprocess
 import sys
 # E0611: *No name %%r in module %%r*
 # pylint: disable=E0611
@@ -25,8 +23,6 @@ from applications.zcomx.modules.tests.runner import \
         LocalTestCase, \
         LocalTextTestRunner, \
         count_diff
-
-LOG = logging.getLogger('cli')
 
 
 @count_diff
@@ -41,8 +37,8 @@ def main():
     # Replicate logging to local7
     formatter = logging.Formatter(
             fmt='%(name)s [%(levelname)s %(filename)s %(lineno)d] %(message)s')
-    handler = logging.handlers.SysLogHandler("/dev/log",
-            logging.handlers.SysLogHandler.LOG_LOCAL7)
+    handler = logging.handlers.SysLogHandler(
+        "/dev/log", logging.handlers.SysLogHandler.LOG_LOCAL7)
     handler.setFormatter(formatter)
 
     logger = logging.getLogger()
@@ -69,29 +65,6 @@ def main():
     if '--dump' in sys.argv:
         options['dump'] = True
         sys.argv[:] = [x for x in sys.argv if x != '--dump']
-    if '--editor' in sys.argv:
-        position = sys.argv.index('--editor')
-        package = '_x_'
-        if position + 1 < len(sys.argv):
-            package = sys.argv[position + 1]
-        sys.argv[:] = [x for x in sys.argv if x != '--editor' and x != package]
-        servername = os.environ.get('VIM_SERVER', 'UNITTEST')
-        if package:
-            files = [package]
-            if '/controllers/' in package:
-                # pkge: applications/app/tests/controllers/test_employees.py
-                # file: applications/app/controllers/employees.py
-                files.append(
-                        package.replace('/tests', '').replace('/test_', '/'))
-            else:
-                # pkge: applications/app/tests/test_employees.py
-                # file: applications/app/modules/employees.py
-                files.append(
-                        package.replace('/tests', '/modules')
-                        .replace('/test_', '/'))
-            for f in files:
-                subprocess.Popen(['vim', '--servername', servername,
-                    '--remote-tab', f])
 
     # W0212: *Access to a protected member %%s of a client class*
     # pylint: disable=W0212
@@ -107,9 +80,10 @@ def main():
     except AttributeError:
         # If a module produces an error on import, unittest traps the
         # ImportError exception and raises an AttributeError instead. The
-        # message from the AttributeError isn't useful. It's the ImportError
-        # message we want. Import the module again so ImportError is raised
-        # with its message reported in all its glory. (See mod 11898)
+        # message from the AttributeError isn't useful. It's the
+        # ImportError message we want. Import the module again so
+        # ImportError is raised with its message reported in all its glory.
+        # (See mod 11898)
         __import__(sys.argv[-1])
 
 
@@ -118,6 +92,6 @@ if __name__ == '__main__':
     # pylint: disable=W0703
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)
