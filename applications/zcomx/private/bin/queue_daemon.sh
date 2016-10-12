@@ -49,16 +49,8 @@ _options "$@"
 __v && __md "Starting:"
 
 __v && __md "Setting up environment"
-bin=$(cd -- "$(dirname "$0")" && pwd)
-regex="/srv/http/(.*)/web2py/applications/zcomx/*"
-[[ $bin =~ $regex ]]
-server="${BASH_REMATCH[1]}"
-web2py_root="/srv/http/$server/web2py"
 
-export PYTHONPATH="/srv/http/$server/web2py"
-cd $PYTHONPATH
-
-py=$PYTHONPATH/applications/zcomx/private/bin/python_web2py.sh
+py=applications/zcomx/private/bin/python_web2py.sh
 
 mkdir -p "$PID_PATH"
 echo "pid: $$" > $PID_FILE
