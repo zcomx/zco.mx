@@ -310,23 +310,15 @@ class ModelDb(object):
         if self.config_file:
             return self.config_file
 
+        env_config_file = os.environ.get('WEB2PY_SETTINGS_CONF_FILE', None)
+        if env_config_file:
+            return env_config_file
+
         request = self.environment['request']
 
         settings_json = os.path.join(
                 request.folder, 'private', 'settings.json')
-        if os.path.exists(settings_json):
-            return settings_json
-
-        settings_conf = os.path.join(
-                request.folder, 'private', 'settings.conf')
-        if os.path.exists(settings_conf):
-            return settings_conf
-
-        local_conf = os.path.join(
-            '/srv/http/local',
-            '{mode}.conf'.format(mode=self.get_server_mode())
-        )
-        return local_conf
+        return settings_json
 
     def _settings_loader(self):
         """Create a settings loader object instance
@@ -339,19 +331,10 @@ class ModelDb(object):
                     'Local configuration file not found: {file}'.format(
                     file=etc_conf_file))
 
-        extension = os.path.splitext(etc_conf_file)[1][1:]
-        loader_class = SettingsLoaderJSON \
-                if extension == 'json' \
-                else SettingsLoader
-
-        settings_loader = loader_class(
+        settings_loader = SettingsLoaderJSON(
             config_file=etc_conf_file, application=request.application)
-        if extension == 'json':
-            settings_loader.import_settings(
-                group=['app'], storage=self.local_settings)
-        else:
-            settings_loader.import_settings(
-                group=['local'], storage=self.local_settings)
+        settings_loader.import_settings(
+            group=['app'], storage=self.local_settings)
         return settings_loader
 
     def get_server_mode(self):

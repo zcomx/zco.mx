@@ -8,8 +8,8 @@ Test suite for zcomx/modules/stickon/tools.py
 """
 import os
 import unittest
-from BeautifulSoup import BeautifulSoup
 from ConfigParser import NoSectionError
+from BeautifulSoup import BeautifulSoup
 from gluon.shell import env
 from gluon.storage import Storage
 from applications.zcomx.modules.stickon.tools import \
@@ -35,7 +35,7 @@ class TestExposeImproved(LocalTestCase):
 
     def test__isimage(self):
         tests = [
-            #(path, expect),
+            # (path, expect),
             ('/path/to/file.bmp', True),
             ('/path/to/file.png', True),
             ('/path/to/file.jpg', True),
@@ -122,22 +122,36 @@ class TestModelDb(LocalTestCase):
         # Test with custom config file.
         #
         config_text = """
-[web2py]
-mail.server = smtp.mymailserver.com:587
-mail.sender = myusername@example.com
-mail.login = myusername:fakepassword
-auth.registration_requires_verification = True
-auth.registration_requires_approval = False
-admin_email = myadmin@example.com
-response.static_version = 2013.11.291
-
-[zcomx]
-auth.registration_requires_verification = False
-auth.registration_requires_approval = True
-hmac_key = 12345678901234
-version = '0.1'
+{
+    "web2py": {
+        "auth": {
+            "settings": {
+                "registration_requires_verification": true,
+                "registration_requires_approval": false
+            }
+        },
+        "mail": {
+            "settings": {
+                "server": "smtp.mymailserver.com:587",
+                "sender": "myusername@example.com",
+                "login": "myusername:fakepassword"
+            }
+        },
+        "response": {
+            "static_version": "2013.11.291"
+        }
+    },
+    "app": {
+        "admin_email": "myadmin@example.com",
+        "database": "shared",
+        "db_adapter": "sqlite",
+        "db_uri": "http://zcomx.sqlite",
+        "hmac_key": "12345678901234",
+        "version": "0.1"
+    }
+}
 """
-        f_text = '/tmp/TestModelDb_test__init__.txt'
+        f_text = '/tmp/TestModelDb_test__init__.json'
         _config_file_from_text(f_text, config_text)
 
         model_db = ModelDb(APP_ENV, config_file=f_text)
@@ -238,8 +252,13 @@ version = '1.11'
             },
             {
                 'label': 'app section',
-                'expect': {'local': {'email': 'abc@gmail.com',
-                           'username': 'jimk', 'version': '2.22'}},
+                'expect': {
+                    'local': {
+                        'email': 'abc@gmail.com',
+                        'username': 'jimk',
+                        'version': '2.22'
+                    }
+                },
                 'raise': None,
                 'text': """
 [web2py]
@@ -382,8 +401,8 @@ email = abc@gmail.com
         # Group has no settings, storage unchanged
         self.assertEqual(storage.keys(), [])
         settings_loader.import_settings(group, storage)
-        self.assertEqual(sorted(storage.keys()), ['email', 'username',
-                         'version'])
+        self.assertEqual(
+            sorted(storage.keys()), ['email', 'username', 'version'])
 
         # Group has settings, storage changed
 
