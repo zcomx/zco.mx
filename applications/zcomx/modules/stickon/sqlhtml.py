@@ -10,7 +10,11 @@ application.
 
 """
 from gluon import *
-from gluon.sqlhtml import FormWidget, UploadWidget
+from gluon.sqlhtml import \
+    ExporterCSV, \
+    ExporterTSV, \
+    FormWidget, \
+    UploadWidget
 
 # E1101: *%s %r has no %r member*
 # pylint: disable=E1101
@@ -127,34 +131,38 @@ class SimpleUploadWidget(UploadWidget):
         return inp
 
 
+class LocalSQLFORMExtender(type):
+    """Auto extender for LocalSQLFORM.
+
+    Permits updating the grid_defaults class property.
+    """
+    def __new__(mcs, name, bases, attrs):
+        grid_defaults = {}
+        for base in bases:
+            try:
+                grid_defaults.update(getattr(base, 'grid_defaults'))
+            except AttributeError:
+                pass
+        try:
+            grid_defaults.update(attrs.pop('grid_default_additions'))
+        except KeyError:
+            pass
+        attrs['grid_defaults'] = grid_defaults
+        return type.__new__(mcs, name, bases, attrs)
+
+
 class LocalSQLFORM(SQLFORM):
     """Class representing a SQLFORM with preset defaults and customizations.
     """
-    grid_defaults = {
-            'paginate': 35,
-            'ui': dict(widget='grid_widget',
-                  header='grid_header',
-                  content='',
-                  default='grid_default',
-                  cornerall='',
-                  cornertop='',
-                  cornerbottom='',
-                  button='button btn btn-default',
-                  buttontext='buttontext button',
-                  buttonadd='glyphicon glyphicon-plus',
-                  buttonback='glyphicon glyphicon-arrow-left',
-                  buttonexport='glyphicon glyphicon-download',
-                  buttondelete='glyphicon glyphicon-trash',
-                  buttonedit='glyphicon glyphicon-pencil',
-                  buttontable='glyphicon glyphicon-arrow-right',
-                  buttonview='glyphicon glyphicon-zoom-in',
-                  ),
-            }
+    __metaclass__ = LocalSQLFORMExtender
+    grid_default_additions = {
+        'paginate': 35,
+    }
 
-    @staticmethod
-    def grid(*args, **kwargs):
+    @classmethod
+    def grid(cls, *args, **kwargs):
         """Override grid method and set ui defaults."""
-        for k, v in LocalSQLFORM.grid_defaults.items():
+        for k, v in cls.grid_defaults.items():
             if k not in kwargs:
                 kwargs[k] = v
         return SQLFORM.grid(*args, **kwargs)
@@ -295,3 +303,144 @@ def formstyle_bootstrap3_login(form, fields):
             # unwrapped label
             parent.append(DIV(label, _controls, _class='form-group', _id=id))
     return parent
+
+
+def make_grid_class(export=None, search=None, ui=None, **kwargs):
+    """Test make grid class.
+
+    Args:
+        export: str, one of 'simple', 'none'. Determines the SQLFORM.grid csv
+            and exportclasses parameters.
+                simple: csv and tsv
+                none: no export options
+            If None the SQLFORM.grid default is used.
+        search: str, one of 'simple', 'none'
+                simple: single input
+                none: no search
+            If None the SQLFORM.grid default is used.
+        ui: str, one of 'no_icon', 'icon', 'glyphicon'
+            If None the SQLFORM.grid default is used.
+        kwargs: dict, grid param defaults are updated with this
+    """
+    defaults = {}
+
+    # Export classes
+    export_keys = [
+        'csv',
+        'csv_with_hidden_cols',
+        'html',
+        'json',
+        'tsv',
+        'tsv_with_hidden_cols',
+        'xml',
+    ]
+
+    no_exporters = dict([(x, False) for x in export_keys])
+    simple_exporters = dict(no_exporters)
+    simple_exporters.update(dict(
+        csv=(ExporterCSV, 'CSV'),
+        tsv=(ExporterTSV, 'TSV (Excel compatible)'),
+    ))
+
+    export_classes = {
+        # export: (csv, exportclasses)
+        'none': (False, no_exporters),
+        'simple': (True, simple_exporters),
+    }
+
+    if export is not None:
+        defaults['csv'] = export_classes[export][0]
+        defaults['exportclasses'] = export_classes[export][1]
+
+
+    # Search
+    def _searchable(sfields, keywords):
+        """Simple searchable callback."""
+        # The default web2m searchable doesn't handle spaces well.
+        queries = []
+        for sfield in sfields:
+            queries.append((sfield.like('%' + keywords + '%')))
+        query = reduce(lambda x, y: x | y, queries) if queries else None
+        return query
+
+    searches = {
+        'none': False,
+        'simple': _searchable,
+    }
+
+    if search is not None:
+        defaults['searchable'] = searches[search]
+
+    # UI
+    uis = {
+        'no_icon': dict(
+            widget='grid_widget',
+            header='grid_header',
+            content='',
+            default='grid_default',
+            cornerall='',
+            cornertop='',
+            cornerbottom='',
+            button='button btn',
+            buttontext='buttontext button',
+            buttonadd='',
+            buttonback='',
+            buttonexport='',
+            buttondelete='',
+            buttonedit='',
+            buttontable='',
+            buttonview='',
+        ),
+        'icon': dict(
+            widget='grid_widget',
+            header='grid_header',
+            content='',
+            default='grid_default',
+            cornerall='',
+            cornertop='',
+            cornerbottom='',
+            button='button btn',
+            buttontext='buttontext button',
+            buttonadd='icon plus icon-plus',
+            buttonback='icon leftarrow icon-arrow-left',
+            buttonexport='icon downarrow icon-download',
+            buttondelete='icon trash icon-trash',
+            buttonedit='icon pen icon-pencil',
+            buttontable='icon rightarrow icon-arrow-right',
+            buttonview='icon magnifier icon-zoom-in',
+        ),
+        'glyphicon': dict(
+            widget='grid_widget',
+            header='grid_header',
+            content='',
+            default='grid_default',
+            cornerall='',
+            cornertop='',
+            cornerbottom='',
+            button='button btn btn-default',
+            buttontext='buttontext button',
+            buttonadd='glyphicon glyphicon-plus',
+            buttonback='glyphicon glyphicon-arrow-left',
+            buttonexport='glyphicon glyphicon-download',
+            buttondelete='glyphicon glyphicon-trash',
+            buttonedit='glyphicon glyphicon-pencil',
+            buttontable='glyphicon glyphicon-arrow-right',
+            buttonview='glyphicon glyphicon-zoom-in',
+        ),
+    }
+
+    if ui is not None:
+        defaults['ui'] = uis[ui]
+
+    if kwargs:
+        defaults.update(kwargs)
+
+    class PseudoLocalSQLFORM(LocalSQLFORM):
+        """LocalSQLFORM class with updated grid_default class property."""
+        grid_default_additions = defaults
+    return PseudoLocalSQLFORM
+
+
+plain_grid = make_grid_class(export='none', search='none', ui='no_icon').grid
+simple_grid = make_grid_class(export='simple', search='none', ui='no_icon').grid
+searchable_grid = make_grid_class(export='simple', search='simple', ui='no_icon').grid

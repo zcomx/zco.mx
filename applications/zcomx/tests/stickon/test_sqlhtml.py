@@ -14,7 +14,8 @@ from applications.zcomx.modules.stickon.sqlhtml import \
     SimpleUploadWidget, \
     LocalSQLFORM, \
     formstyle_bootstrap3_custom, \
-    formstyle_bootstrap3_login
+    formstyle_bootstrap3_login, \
+    make_grid_class
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -102,6 +103,8 @@ class TestSimpleUploadWidget(LocalTestCase):
         widget = SimpleUploadWidget()
         soup = BeautifulSoup(
             str(widget.widget(field, value, download_url=url)))
+
+        # pylint: disable=line-too-long
         # Example:
         # <div class="image_widget_container row">
         # <div class="image_widget_img">
@@ -174,52 +177,22 @@ class TestSimpleUploadWidget(LocalTestCase):
 
 class TestLocalSQLFORM(LocalTestCase):
 
-    def test_parent__init__(self):
-        form = LocalSQLFORM(db.book)
+    def test_parent___init__(self):
+        form = LocalSQLFORM(db.book_page)
         self.assertTrue(form)
-        self.assertTrue('paginate' in form.grid_defaults)
-        self.assertTrue('ui' in form.grid_defaults)
 
     def test__grid(self):
-        # Use table with many records so pagination is required.
-        table = db.book_page
+        grid = LocalSQLFORM(db.book_page).grid(db.book_page)
+        soup = as_soup(str(grid))
+        # <div class="web2py_grid grid_widget">...</div>
+        div = soup.find('div', {'class': 'web2py_grid '})
+        self.assertTrue(div)
 
-        form = LocalSQLFORM(table)
-        grid = form.grid(table)
-        soup = BeautifulSoup(str(grid))
-        # Sample outer div's of soup
-        # <div class="web2py_grid grid_widget">
-        #  <div class="web2py_console grid_header ">
-        #  ...
-        #  <div class="web2py_table">
-        #   <div class="web2py_htmltable" style="width:100%;overflow-x:auto;-ms-overflow-x:scroll">
-        #    <table>
-        #     <thead>
-        #      <tr class="grid_header">
-        #       <th class="grid_default">
-        div_1 = soup.div
-        self.assertEqual(div_1['class'], 'web2py_grid grid_widget')
-        div_2 = div_1.div
-        self.assertEqual(div_2['class'], 'web2py_console grid_header ')
-        div_3 = soup.find('div', {'class': 'web2py_table'})
-        ths = div_3.findAll('th')
-        for th in ths:
-            self.assertEqual(th['class'], 'grid_default')
 
-        # Test paginator
-        div_paginator = soup.find('div', {'class': 'web2py_paginator grid_header '})
-        lis = div_paginator.findAll('li')
-        self.assertTrue(len(lis) >= 5)
-        next_page = lis[-1]
-        # Example next page li
-        # <li><a href="/?page=7">&gt;&gt;</a></li>
-        href = next_page.a['href']
-        count = db(db.book_page).count()
-        rows_per_page = LocalSQLFORM.grid_defaults['paginate']
-        pages = int(count / rows_per_page)
-        if count % rows_per_page != 0:
-            pages = pages + 1
-        self.assertTrue('page={p}'.format(p=pages) in href)
+class TestLocalSQLFORMExtender(LocalTestCase):
+
+    def test____new__(self):
+        pass    # Test for LocalSQLFORM and make_grid_class test this
 
 
 class TestFunctions(LocalTestCase):
@@ -242,10 +215,91 @@ class TestFunctions(LocalTestCase):
             (
                 'creator.paypal_email',
                 db.creator.paypal_email.label,
-                StringWidget.widget(db.creator.paypal_email, 'paypal.username@gmail.com'),
+                StringWidget.widget(
+                    db.creator.paypal_email, 'paypal.username@gmail.com'),
                 db.creator.paypal_email.comment
             ),
         ]
+
+    def test__make_grid_class(self):
+
+        # Text export parameter
+        export_keys = [
+            'csv',
+            'csv_with_hidden_cols',
+            'html',
+            'json',
+            'tsv',
+            'tsv_with_hidden_cols',
+            'xml',
+        ]
+
+        # Test export=None
+        grid_class = make_grid_class(export=None)
+        self.assertTrue('csv' not in grid_class.grid_defaults)
+        self.assertTrue('exportclasses' not in grid_class.grid_defaults)
+
+        # Test export='none'
+        grid_class = make_grid_class(export='none')
+        for key in export_keys:
+            self.assertEqual(
+                grid_class.grid_defaults['exportclasses'][key],
+                False
+            )
+
+        # Test export='simple'
+        expect_falses = list(export_keys)
+        del expect_falses[expect_falses.index('csv')]
+        del expect_falses[expect_falses.index('tsv')]
+        grid_class = make_grid_class(export='simple')
+        for key in export_keys:
+            if key in expect_falses:
+                self.assertEqual(
+                    grid_class.grid_defaults['exportclasses'][key],
+                    False
+                )
+            else:
+                self.assertEqual(
+                    len(grid_class.grid_defaults['exportclasses'][key]),
+                    2
+                )
+
+        # Test search=None
+        grid_class = make_grid_class(search=None)
+        self.assertTrue('searchable' not in grid_class.grid_defaults)
+
+        # Test search='none'
+        grid_class = make_grid_class(search='none')
+        self.assertEqual(grid_class.grid_defaults['searchable'], False)
+
+        # Test search='simple'
+        grid_class = make_grid_class(search='simple')
+        self.assertTrue(callable(grid_class.grid_defaults['searchable']))
+
+        # test ui=None
+        grid_class = make_grid_class(ui=None)
+        self.assertTrue('ui' not in grid_class.grid_defaults)
+
+        # test ui='no_icon'
+        grid_class = make_grid_class(ui='no_icon')
+        self.assertEqual(
+            grid_class.grid_defaults['ui']['buttonedit'],
+            ''
+        )
+
+        # test ui='icon'
+        grid_class = make_grid_class(ui='icon')
+        self.assertEqual(
+            grid_class.grid_defaults['ui']['buttonedit'],
+            'icon pen icon-pencil'
+        )
+
+        # test ui='glyphicon'
+        grid_class = make_grid_class(ui='glyphicon')
+        self.assertEqual(
+            grid_class.grid_defaults['ui']['buttonedit'],
+            'glyphicon glyphicon-pencil'
+        )
 
     def test__formstyle_bootstrap3_custom(self):
         form = LocalSQLFORM(self._table)
@@ -262,6 +316,10 @@ class TestFunctions(LocalTestCase):
         fieldset = soup.find('fieldset')
         div = fieldset.div.div
         self.assertEqual(div['class'], 'col-xs-12')
+
+
+def as_soup(html):
+    return BeautifulSoup(html, smartQuotesTo=None, convertEntities='xml')
 
 
 def setUpModule():

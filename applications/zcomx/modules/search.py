@@ -29,7 +29,7 @@ from applications.zcomx.modules.creators import \
     torrent_url as creator_torrent_url, \
     url as creator_url
 from applications.zcomx.modules.images import CreatorImgTag
-from applications.zcomx.modules.stickon.sqlhtml import LocalSQLFORM
+from applications.zcomx.modules.stickon.sqlhtml import make_grid_class
 from applications.zcomx.modules.utils import \
     ClassFactory, \
     replace_in_elements
@@ -246,7 +246,9 @@ class Grid(object):
         if self.form_grid_args:
             kwargs.update(self.form_grid_args)
 
-        self.form_grid = LocalSQLFORM.grid(query, **kwargs)
+        grid_class = make_grid_class(
+            export='none', search='none', ui='glyphicon')
+        self.form_grid = grid_class.grid(query, **kwargs)
         self._paginate = kwargs['paginate']
         # Remove 'None' record count if applicable.
         for count, div in enumerate(self.form_grid[0]):
