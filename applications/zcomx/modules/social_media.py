@@ -275,6 +275,15 @@ class SocialMediaPoster(object):
         poster = self.poster_class(client)
         return self.post_data(poster, self.prepare_data(book, creator))
 
+    def post_data(self, poster, photo_data):
+        """Post the data using the api.
+
+        Args:
+            poster: Poster instance
+            photo_data: dict of data for photo
+        """
+        raise NotImplementedError
+
     def prepare_data(self, book, creator):
         """Prepare the data for the api.
 
@@ -344,6 +353,12 @@ class TumblrPoster(SocialMediaPoster):
     poster_class = Poster
     photo_data_preparer_class = PhotoDataPreparer
 
+    def additional_prepare_data(self, data):
+        settings = current.app.local_settings
+        if settings.tumblr_post_state:
+            data['state'] = settings.tumblr_post_state
+        return data
+
     def credentials(self):
         settings = current.app.local_settings
         return {
@@ -352,12 +367,6 @@ class TumblrPoster(SocialMediaPoster):
             'oauth_token': settings.tumblr_oauth_token,
             'oauth_secret': settings.tumblr_oauth_secret,
         }
-
-    def additional_prepare_data(self, data):
-        settings = current.app.local_settings
-        if settings.tumblr_post_state:
-            data['state'] = settings.tumblr_post_state
-        return data
 
     def post_data(self, poster, photo_data):
         """Post the data using the api."""
@@ -416,7 +425,7 @@ class TwitterPoster(SocialMediaPoster):
             result = {}
 
         if 'id' not in result:
-            err_msg = ''
+            err_msg = 'Twitter post failed'
             if error:
                 response_data = json.loads(error.response_data)
                 if 'errors' in response_data and response_data['errors']:

@@ -36,7 +36,7 @@ class TestZco(LocalTestCase):
         Zco()
         self.assertTrue('zco' in session.keys())
 
-    def test__next_url(self):
+    def test_next_url(self):
         Zco().next_url = 'http://www.aaa.com'
         self.assertEqual(Zco().next_url, 'http://www.aaa.com')
         Zco().next_url = 'http://www.bbb.com'
@@ -44,13 +44,31 @@ class TestZco(LocalTestCase):
         del Zco().next_url
         self.assertEqual(Zco().next_url, None)
 
-    def test__paypal_in_progress(self):
+    def test__get_next_url(self):
+        pass        # tested in test_next_url
+
+    def test__set_next_url(self):
+        pass        # tested in test_next_url
+
+    def test__del_next_url(self):
+        pass        # tested in test_next_url
+
+    def test_paypal_in_progress(self):
         Zco().paypal_in_progress = True
         self.assertEqual(Zco().paypal_in_progress, True)
         Zco().paypal_in_progress = False
         self.assertEqual(Zco().paypal_in_progress, False)
         del Zco().paypal_in_progress
         self.assertEqual(Zco().paypal_in_progress, None)
+
+    def test__get_paypal_in_progress(self):
+        pass        # tested in test_paypal_in_progress
+
+    def test__set_paypal_in_progress(self):
+        pass        # tested in test_paypal_in_progress
+
+    def test__del_paypal_in_progress(self):
+        pass        # tested in test_paypal_in_progress
 
     def test__all_rss_url(self):
         self.assertEqual(

@@ -54,20 +54,20 @@ class Zco(object):
     # next_url
     #  Stores the next url to redirect to. Can be used whenever there
     #  is an intermediate redirect out of the control of the code.
-    @property
-    def next_url(self):
+    def get_next_url(self):
         """Getter."""
         return current.session.zco.next_url
 
-    @next_url.setter
-    def next_url(self, value):
+    def set_next_url(self, value):
         """Setter."""
         current.session.zco.next_url = value
 
-    @next_url.deleter
-    def next_url(self):
+    def del_next_url(self):
         """Deleter."""
         current.session.zco.next_url = None
+
+    next_url = property(
+        get_next_url, set_next_url, del_next_url, 'Next url to redirect to')
 
     # paypal_in_progress
     #  Used to prevent endless loop on browser Back. When the contributions.py
@@ -79,20 +79,24 @@ class Zco(object):
     #  When the controller is first run, session.paypal_in_progress is set to
     #  True. When the controller is re-run on browser Back, the value is
     #  checked. If True, don't display the page, redirect to next_url.
-    @property
-    def paypal_in_progress(self):
+    def get_paypal_in_progress(self):
         """Getter."""
         return current.session.zco.paypal_in_progress
 
-    @paypal_in_progress.setter
-    def paypal_in_progress(self, value):
+    def set_paypal_in_progress(self, value):
         """Setter."""
         current.session.zco.paypal_in_progress = value
 
-    @paypal_in_progress.deleter
-    def paypal_in_progress(self):
+    def del_paypal_in_progress(self):
         """Deleter."""
         current.session.zco.paypal_in_progress = None
+
+    paypal_in_progress = property(
+        get_paypal_in_progress,
+        set_paypal_in_progress,
+        del_paypal_in_progress,
+        'Indicates if a paypal payment is in progress'
+    )
 
     # Global variables
     @property

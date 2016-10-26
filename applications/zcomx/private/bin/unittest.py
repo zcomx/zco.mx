@@ -14,6 +14,7 @@ python web2py.py -S app -M -R path/to/unittest.py path.to.test.module
 """
 import logging
 import sys
+import traceback
 # E0611: *No name %%r in module %%r*
 # pylint: disable=E0611
 # F0401: *Unable to import %%r*
