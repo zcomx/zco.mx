@@ -8,7 +8,6 @@ Classes extending functionality of gluon/tools.py.
 
 """
 import os
-import ConfigParser
 from gluon import *
 from gluon.contrib.appconfig import AppConfig
 from gluon.contrib.memdb import MEMDB
@@ -25,10 +24,12 @@ from applications.zcomx.modules.ConfigParser_improved import  \
 from applications.zcomx.modules.environ import server_production_mode
 from applications.zcomx.modules.memcache import MemcacheClient
 from applications.zcomx.modules.mysql import LocalMySQL
+from applications.zcomx.modules.python import from_dict_by_keys
 
 # C0103: *Invalid name "%s" (should match %s)*
 # Some variable names are adapted from web2py.
 # pylint: disable=C0103
+# pylint: disable=redefined-outer-name
 
 
 class ConfigFileError(Exception):
@@ -54,13 +55,12 @@ class ExposeImproved(Expose):
         basename=None,
         extensions=None,
         allow_download=True,
-        display_breadcrumbs=True
-    ):
+            display_breadcrumbs=True):
         """Constructor.
         """
         # E0602 (undefined-variable): *Undefined variable %%r*  # current
         # pylint: disable=E0602
-        if not 'raw_args' in current.request:
+        if 'raw_args' not in current.request:
             current.request.raw_args = '/'.join(current.request.args)
         Expose.__init__(
             self,
@@ -77,9 +77,11 @@ class ExposeImproved(Expose):
             in ExposeImproved.image_extensions
 
     def xml(self):
+        div_text = H2(self.breadcrumbs(self.basename)) \
+            if self.display_breadcrumbs \
+            else ''
         return DIV(
-            H2(self.breadcrumbs(self.basename))
-                if self.display_breadcrumbs else '',
+            div_text,
             self.paragraph or '',
             self.table_folders(),
             self.table_files()
@@ -262,15 +264,16 @@ class ModelDb(object):
 
         # MySQL
         # load using custom mysql class
-        local_mysql = LocalMySQL(request=request,
+        local_mysql = LocalMySQL(
+            request=request,
                 database=self.local_settings.database,
                 user=self.local_settings.mysql_user,
-                password=self.local_settings.mysql_password)
+            password=self.local_settings.mysql_password
+        )
         check_reserved = None
         if self.local_settings.check_reserved and \
                 self.local_settings.check_reserved != 'None':
-            check_reserved = self.local_settings.check_reserved.split(
-                    ',')
+            check_reserved = self.local_settings.check_reserved.split(',')
         db = self.DAL(
             local_mysql.sqldb,
             check_reserved=check_reserved,
@@ -329,10 +332,13 @@ class ModelDb(object):
         if not os.path.exists(etc_conf_file):
             raise ConfigFileError(
                     'Local configuration file not found: {file}'.format(
-                    file=etc_conf_file))
+                    file=etc_conf_file
+                )
+            )
 
-        settings_loader = SettingsLoaderJSON(
+        settings_loader = SettingsLoader(
             config_file=etc_conf_file, application=request.application)
+        settings_loader.get_settings()
         settings_loader.import_settings(
             group=['app'], storage=self.local_settings)
         return settings_loader
@@ -389,7 +395,6 @@ class ModelDb(object):
             if user.email == self.local_settings.admin_email:
                 if not self.auth.has_membership(
                         self.auth.id_group(admin), user.id):
-                    admin_id = self.auth.id_group(admin)
                     self.auth.add_membership(
                         self.auth.id_group(admin), user.id)
 
@@ -422,7 +427,6 @@ class SettingsLoader(object):
 
         # settings = {'grp1': {set1:val1, set2:val2}, 'grp2': {...}
         self.settings = {}
-        self.get_settings()
 
     def __repr__(self):
         fmt = ', '.join([
@@ -431,85 +435,6 @@ class SettingsLoader(object):
         ])
         return fmt.format(
             config_file=self.config_file, application=self.application)
-
-    def get_settings(self):
-        """Read settings from config file."""
-
-        if not self.config_file:
-            return
-        config = ConfigParserImproved()
-        config.read(self.config_file)
-        settings = {}
-
-        # The 'web2py' section is required, if not found an exception is
-        # raised.
-        for (name, value) in config.items_scrubbed('web2py'):
-            settings[name] = value
-
-        # The application section is optional, if not found the web2py
-        # values are used.
-        if self.application:
-            try:
-                for (name, value) in config.items_scrubbed(self.application):
-                    settings[name] = value
-            except ConfigParser.NoSectionError:
-                pass
-
-        for key in settings.keys():
-            # Set the group values
-            parts = key.split('.', 1)
-            if len(parts) == 1:
-                parts.insert(0, 'local')
-            (group, setting) = parts[0:2]
-            if not group in self.settings:
-                self.settings[group] = {}
-            self.settings[group][setting] = settings[key]
-
-    def import_settings(self, group, storage, unicode_to_str=False):
-        """Import a group of settings into a storage.
-
-        Args:
-            group: string, The name of the group of settings to import,
-                eg 'auth'
-            storage: gluon.storage Storage object instance.
-            unicode_to_str: If True, unicode values are converted to str
-        """
-        if isinstance(group, list):
-            group = group[0]
-
-        if group == 'auth':
-            storage.lock_keys = False  # Required to permit custom settings
-        if not group in self.settings:
-            # nothing to import
-            return
-        for setting in self.settings[group].keys():
-            raw_value = self.settings[group][setting]
-            storage[setting] = self.scrub_unicode(raw_value) \
-                if unicode_to_str else raw_value
-
-    @classmethod
-    def scrub_unicode(cls, setting_value):
-        """Return the setting value scrubbed of unicide.
-
-        Args:
-            setting_value, mixed
-            unicode_to_str: If True, unicode values are converted to str
-        """
-        if not isinstance(setting_value, unicode):
-            return setting_value
-        return str(setting_value)
-
-
-class SettingsLoaderJSON(SettingsLoader):
-
-    """Class representing a settings loader for json config file.
-
-    Object instances permit loading settings from a config file and importing
-    them into web2py storage objects.
-    """
-    def __init__(self, config_file=None, application=''):
-        super(SettingsLoaderJSON, self).__init__(
-            config_file=config_file, application=application)
 
     def get_settings(self):
         """Read settings from config file."""
@@ -528,14 +453,6 @@ class SettingsLoaderJSON(SettingsLoader):
             settings.update({'app': json_settings['app']})
 
         self.settings.update(settings)
-
-    @classmethod
-    def get_from_dict(cls, data_dict, map_list):
-        """Get value from dict following maplist of keys."""
-        data = dict(data_dict)
-        for k in map_list:
-            data = data[k]
-        return data
 
     def import_settings(self, group, storage, unicode_to_str=False):
         """Import a group of settings into a storage.
@@ -561,7 +478,7 @@ class SettingsLoaderJSON(SettingsLoader):
             storage.lock_keys = False
 
         try:
-            sub_dict = self.get_from_dict(self.settings, groups)
+            sub_dict = from_dict_by_keys(self.settings, groups)
         except KeyError:
             # nothing to import
             return
@@ -573,3 +490,15 @@ class SettingsLoaderJSON(SettingsLoader):
 
         if needs_unlock:
             storage.lock_keys = True
+
+    @classmethod
+    def scrub_unicode(cls, setting_value):
+        """Return the setting value scrubbed of unicide.
+
+        Args:
+            setting_value, mixed
+            unicode_to_str: If True, unicode values are converted to str
+        """
+        if not isinstance(setting_value, unicode):
+            return setting_value
+        return str(setting_value)

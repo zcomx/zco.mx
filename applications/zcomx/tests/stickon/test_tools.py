@@ -16,8 +16,7 @@ from applications.zcomx.modules.stickon.tools import \
     ExposeImproved, \
     MigratedModelDb, \
     ModelDb, \
-    SettingsLoader, \
-    SettingsLoaderJSON
+    SettingsLoader
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # R0904: Too many public methods
@@ -189,7 +188,6 @@ class TestSettingsLoader(LocalTestCase):
         self.assertTrue(settings_loader)  # Creates object
         # No config file, no settings
         self.assertEqual(settings_loader.settings, {})
-        return
 
     def test____repr__(self):
         settings_loader = SettingsLoader(config_file=None, application='app')
@@ -200,229 +198,6 @@ class TestSettingsLoader(LocalTestCase):
 
     def test__get_settings(self):
         settings_loader = SettingsLoader()
-        settings_loader.get_settings()
-        # No config file, no settings
-        self.assertEqual(settings_loader.settings, {})
-
-        tests = [
-            {
-                'label': 'empty file',
-                'expect': {},
-                'raise': NoSectionError,
-                'text': '',
-            },
-            {
-                'label': 'no web2py section',
-                'expect': {},
-                'raise': NoSectionError,
-                'text': """
-[fake_section]
-setting = value
-""",
-            },
-            {
-                'label': 'web2py section empty',
-                'expect': {},
-                'raise': None,
-                'text': """
-[web2py]
-""",
-            },
-            {
-                'label': 'web2py one local setting',
-                'expect': {'local': {'version': '1.11'}},
-                'raise': None,
-                'text': """
-[web2py]
-version = '1.11'
-""",
-            },
-            {
-                'label': 'web2py two local setting',
-                'expect': {
-                    'local':
-                    {'username': 'jimk', 'version': '1.11'}
-                },
-                'raise': None,
-                'text': """
-[web2py]
-username = jimk
-version = '1.11'
-""",
-            },
-            {
-                'label': 'app section',
-                'expect': {
-                    'local': {
-                        'email': 'abc@gmail.com',
-                        'username': 'jimk',
-                        'version': '2.22'
-                    }
-                },
-                'raise': None,
-                'text': """
-[web2py]
-username = jimk
-version = '1.11'
-
-[app]
-version = '2.22'
-email = abc@gmail.com
-""",
-            },
-            {
-                'label': 'app section auth/mail',
-                'expect': {
-                    'auth': {'username': 'admin', 'version': '5.55'},
-                    'mail': {'username': 'mailer', 'version': '6.66'},
-                    'local': {
-                        'email': 'abc@gmail.com',
-                        'username': 'jimk',
-                        'version': '2.22'
-                    }
-                },
-                'raise': None,
-                'text': """
-[web2py]
-auth.username = admin
-auth.version = '3.33'
-mail.username = mailer
-mail.version = '4.44'
-username = jimk
-version = '1.11'
-
-[app]
-auth.version = '5.55'
-mail.version = '6.66'
-version = '2.22'
-email = abc@gmail.com
-""",
-            },
-        ]
-
-        f_text = '/tmp/settings_loader_config.txt'
-        for t in tests:
-            settings_loader = SettingsLoader()
-            _config_file_from_text(f_text, t['text'])
-            settings_loader.config_file = f_text
-            settings_loader.application = 'app'
-            if t['raise']:
-                self.assertRaises(t['raise'],
-                                  settings_loader.get_settings)
-            else:
-                settings_loader.get_settings()
-            self.assertEqual(settings_loader.settings, t['expect'])
-
-        # Test datatype handling.
-        text = \
-            """
-[web2py]
-s01_true = True
-s02_false = False
-s03_int = 123
-s04_float = 123.45
-s05_str1 = my setting
-s06_str2 = 'my setting'
-s07_str_true = 'True'
-s08_str_int = '123'
-s09_str_float = '123.45'
-
-[app]
-"""
-        settings_loader = SettingsLoader()
-        _config_file_from_text(f_text, text)
-        settings_loader.config_file = f_text
-        settings_loader.application = 'app'
-        settings_loader.get_settings()
-
-        self.assertEqual(
-            sorted(settings_loader.settings['local'].keys()),
-            [
-                's01_true',
-                's02_false',
-                's03_int',
-                's04_float',
-                's05_str1',
-                's06_str2',
-                's07_str_true',
-                's08_str_int',
-                's09_str_float',
-            ]
-        )
-
-        slocal = settings_loader.settings['local']
-        self.assertEqual(slocal['s01_true'], True)
-        self.assertEqual(slocal['s02_false'], False)
-        self.assertEqual(slocal['s03_int'], 123)
-        self.assertEqual(slocal['s04_float'], 123.45)
-        self.assertEqual(slocal['s05_str1'], 'my setting')
-        self.assertEqual(slocal['s06_str2'], "'my setting'")
-        self.assertEqual(slocal['s07_str_true'], 'True')
-        self.assertEqual(slocal['s08_str_int'], '123')
-        self.assertEqual(slocal['s09_str_float'], '123.45')
-
-        os.unlink(f_text)
-
-    def test__import_settings(self):
-        settings_loader = SettingsLoader()
-        application = 'app'
-        group = 'local'
-        storage = Storage()
-        self.assertEqual(storage.keys(), [])  # Initialized storage is empty
-        settings_loader.import_settings(group, storage)
-        # No config file, storage unchanged
-        self.assertEqual(storage.keys(), [])
-
-        f_text = '/tmp/settings_loader_config.txt'
-
-        # Test defaults and section overrides
-        text = \
-            """
-[web2py]
-auth.username = admin
-auth.version = '3.33'
-mail.username = mailer
-mail.version = '4.44'
-username = jimk
-version = '1.11'
-
-[app]
-auth.version = '5.55'
-mail.version = '6.66'
-version = '2.22'
-email = abc@gmail.com
-"""
-        _config_file_from_text(f_text, text)
-        settings_loader.config_file = f_text
-        settings_loader.application = application
-
-        settings_loader.get_settings()
-        settings_loader.import_settings('zzz', storage)
-        # Group has no settings, storage unchanged
-        self.assertEqual(storage.keys(), [])
-        settings_loader.import_settings(group, storage)
-        self.assertEqual(
-            sorted(storage.keys()), ['email', 'username', 'version'])
-
-        # Group has settings, storage changed
-
-        self.assertEqual(storage['email'], 'abc@gmail.com')
-        self.assertEqual(storage['username'], 'jimk')
-        self.assertEqual(storage['version'], '2.22')
-
-        os.unlink(f_text)
-        return
-
-
-class TestSettingsLoaderJSON(LocalTestCase):
-
-    def test____init__(self):
-        settings_loader = SettingsLoaderJSON()
-        self.assertTrue(settings_loader)
-        self.assertEqual(settings_loader.settings, {})
-
-    def test__get_settings(self):
-        settings_loader = SettingsLoaderJSON()
         settings_loader.get_settings()
         # No config file, no settings
         self.assertEqual(settings_loader.settings, {})
@@ -557,7 +332,7 @@ class TestSettingsLoaderJSON(LocalTestCase):
 
         f_text = '/tmp/settings_loader_config.json'
         for t in tests:
-            settings_loader = SettingsLoaderJSON()
+            settings_loader = SettingsLoader()
             _config_file_from_text(f_text, t['text'])
             settings_loader.config_file = f_text
             settings_loader.application = 'app'
@@ -585,7 +360,7 @@ class TestSettingsLoaderJSON(LocalTestCase):
     }
 }
 """
-        settings_loader = SettingsLoaderJSON()
+        settings_loader = SettingsLoader()
         _config_file_from_text(f_text, text)
         settings_loader.config_file = f_text
         settings_loader.application = 'app'
@@ -619,56 +394,65 @@ class TestSettingsLoaderJSON(LocalTestCase):
 
         os.unlink(f_text)
 
-    def test__get_from_dict(self):
-        data = {
-            'a': {
-                'aa': {
-                    'aaa': 111,
-                    'aab': 112,
-                },
-                'ab': {
-                    'aba': 121,
-                    'abb': 122,
-                },
-            },
-            'b': {
-                'ba': {
-                    'baa': 211,
-                    'bab': 212,
-                },
-                'bb': {
-                    'bba': 221,
-                    'bbb': 222,
-                },
-            },
-        }
+    def test__import_settings(self):
+        settings_loader = SettingsLoader()
+        settings_loader.get_settings()
+        application = 'app'
+        group = 'app'
+        storage = Storage()
+        self.assertEqual(storage.keys(), [])  # Initialized storage is empty
+        settings_loader.import_settings(group, storage)
+        # No config file, storage unchanged
+        self.assertEqual(storage.keys(), [])
 
+        f_text = '/tmp/settings_loader_config.json'
+
+        # Test defaults and section overrides
+        text = \
+            """
+{
+    "web2py": {
+        "username": "jimk",
+        "version": "1.11"
+    },
+    "app": {
+        "email": "abc@gmail.com",
+        "username": "jimk",
+        "version": "2.22"
+    }
+}
+"""
+        _config_file_from_text(f_text, text)
+        settings_loader.config_file = f_text
+        settings_loader.application = application
+
+        settings_loader.get_settings()
+        settings_loader.import_settings('zzz', storage)
+        # Group has no settings, storage unchanged
+        self.assertEqual(storage.keys(), [])
+        settings_loader.import_settings(group, storage)
+        self.assertEqual(
+            sorted(storage.keys()),
+            ['email', 'username', 'version']
+        )
+
+        # Group has settings, storage changed
+        self.assertEqual(storage['email'], 'abc@gmail.com')
+        self.assertEqual(storage['username'], 'jimk')
+        self.assertEqual(storage['version'], '2.22')
+
+        os.unlink(f_text)
+
+    def test__scrub_unicode(self):
         tests = [
-            # (map_list, expect)
-            ([], data),
-            (
-                ['a'],
-                {
-                    'aa': {'aaa': 111, 'aab': 112},
-                    'ab': {'aba': 121, 'abb': 122},
-                }
-            ),
-            (['a', 'aa'], {'aaa': 111, 'aab': 112}),
-            (['a', 'aa', 'aaa'], 111),
-            (['b', 'bb', 'bbb'], 222),
-            (['c'], KeyError),
-            (['a', 'ac'], KeyError),
-            (['a', 'aa', 'aac'], KeyError),
+            # (raw_value, expect)
+            ('abc', 'abc'),
+            (123, 123),
+            (u'abc', 'abc'),
+            (['abc'], ['abc']),
         ]
         for t in tests:
-            if t[1] == KeyError:
-                self.assertRaises(
-                    t[1], SettingsLoaderJSON.get_from_dict, data, t[0])
-            else:
-                self.assertEqual(
-                    SettingsLoaderJSON.get_from_dict(data, t[0]),
-                    t[1]
-                )
+            self.assertEqual(SettingsLoader.scrub_unicode(t[0]), t[1])
 
 
 def _config_file_from_text(filename, text):
