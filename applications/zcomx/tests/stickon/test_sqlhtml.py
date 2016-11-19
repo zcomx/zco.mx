@@ -15,7 +15,9 @@ from applications.zcomx.modules.stickon.sqlhtml import \
     LocalSQLFORM, \
     formstyle_bootstrap3_custom, \
     formstyle_bootstrap3_login, \
-    make_grid_class
+    make_grid_class, \
+    search_fields_grid
+
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -221,6 +223,22 @@ class TestFunctions(LocalTestCase):
             ),
         ]
 
+    def test__formstyle_bootstrap3_custom(self):
+        form = LocalSQLFORM(self._table)
+        bootstrap_form = formstyle_bootstrap3_custom(form, self._fields)
+        soup = BeautifulSoup(str(bootstrap_form))
+        fieldset = soup.find('fieldset')
+        div = fieldset.div.div
+        self.assertEqual(div['class'], 'col-sm-6 col-lg-4')
+
+    def test__formstyle_bootstrap3_login(self):
+        form = LocalSQLFORM(self._table)
+        bootstrap_form = formstyle_bootstrap3_login(form, self._fields)
+        soup = BeautifulSoup(str(bootstrap_form))
+        fieldset = soup.find('fieldset')
+        div = fieldset.div.div
+        self.assertEqual(div['class'], 'col-xs-12')
+
     def test__make_grid_class(self):
 
         # Text export parameter
@@ -301,21 +319,10 @@ class TestFunctions(LocalTestCase):
             'glyphicon glyphicon-pencil'
         )
 
-    def test__formstyle_bootstrap3_custom(self):
-        form = LocalSQLFORM(self._table)
-        bootstrap_form = formstyle_bootstrap3_custom(form, self._fields)
-        soup = BeautifulSoup(str(bootstrap_form))
-        fieldset = soup.find('fieldset')
-        div = fieldset.div.div
-        self.assertEqual(div['class'], 'col-sm-6 col-lg-4')
-
-    def test__formstyle_bootstrap3_login(self):
-        form = LocalSQLFORM(self._table)
-        bootstrap_form = formstyle_bootstrap3_login(form, self._fields)
-        soup = BeautifulSoup(str(bootstrap_form))
-        fieldset = soup.find('fieldset')
-        div = fieldset.div.div
-        self.assertEqual(div['class'], 'col-xs-12')
+    def test__search_fields_grid(self):
+        fields = [db.book.name]
+        grid = search_fields_grid(fields)(db.book)
+        self.assertTrue(grid)
 
 
 def as_soup(html):

@@ -352,24 +352,27 @@ def make_grid_class(export=None, search=None, ui=None, **kwargs):
         defaults['csv'] = export_classes[export][0]
         defaults['exportclasses'] = export_classes[export][1]
 
+    def _searchable(fields=None):
+        """Searchable callback."""
+        def searchable_func(sfields, keywords):
+            """Searchable function."""
+            # The default web2m searchable doesn't handle spaces well.
+            fields_as_str = [str(x) for x in fields]
+            queries = []
+            for sfield in sfields:
+                if fields is None or str(sfield) in fields_as_str:
+                    queries.append((sfield.like('%' + keywords + '%')))
+            query = reduce(lambda x, y: x | y, queries) if queries else None
+            return query
+        return searchable_func
 
-    # Search
-    def _searchable(sfields, keywords):
-        """Simple searchable callback."""
-        # The default web2m searchable doesn't handle spaces well.
-        queries = []
-        for sfield in sfields:
-            queries.append((sfield.like('%' + keywords + '%')))
-        query = reduce(lambda x, y: x | y, queries) if queries else None
-        return query
-
-    searches = {
-        'none': False,
-        'simple': _searchable,
-    }
-
-    if search is not None:
-        defaults['searchable'] = searches[search]
+    if search:
+        if isinstance(search, list):
+            defaults['searchable'] = _searchable(fields=search)
+        elif search == 'simple':
+            defaults['searchable'] = _searchable()
+        elif search == 'none':
+            defaults['searchable'] = False
 
     # UI
     uis = {
@@ -444,3 +447,7 @@ def make_grid_class(export=None, search=None, ui=None, **kwargs):
 plain_grid = make_grid_class(export='none', search='none', ui='no_icon').grid
 simple_grid = make_grid_class(export='simple', search='none', ui='no_icon').grid
 searchable_grid = make_grid_class(export='simple', search='simple', ui='no_icon').grid
+
+
+def search_fields_grid(fields):
+    return make_grid_class(export='simple', search=fields, ui='no_icon').grid
