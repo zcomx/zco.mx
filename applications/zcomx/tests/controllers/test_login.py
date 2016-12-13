@@ -462,7 +462,6 @@ class TestFunctions(WebTestCase):
     def test__books(self):
         self.assertWebTest('/login/books')
 
-    @skip_if_quick
     def test__creator_crud(self):
 
         def get_creator():
@@ -559,7 +558,6 @@ class TestFunctions(WebTestCase):
     def test__indicia(self):
         self.assertWebTest('/login/indicia')
 
-    @skip_if_quick
     def test__indicia_preview_urls(self):
 
         def get_creator():
@@ -622,7 +620,6 @@ class TestFunctions(WebTestCase):
         creator_2 = get_creator()
         self.assertEqual(creator, creator_2)
 
-    @skip_if_quick
     def test__link_crud(self):
 
         def do_test(links_key, data, expect_names, expect_errors):

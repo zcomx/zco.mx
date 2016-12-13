@@ -209,7 +209,6 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         img = anchor.img
         self.assertEqual(img['src'], '/zcomx/static/images/twitter_logo.svg')
 
-    @skip_if_quick
     def test__get_orientation(self):
         # protected-access (W0212): *Access to a protected member %%s
         # pylint: disable=W0212
@@ -385,6 +384,7 @@ class TestBookIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
             'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
         )
 
+    @skip_if_quick
     def test__create(self):
         filename = self._prep_image('portrait.png')
         stored_filename = store(
@@ -407,6 +407,7 @@ class TestCreatorIndiciaPagePng(WithObjectsTestCase):
         self.assertTrue(png_page)
         self.assertEqual(png_page.creator.id, self._creator.id)
 
+    @skip_if_quick
     def test__create(self):
         data = dict(
             indicia_portrait=None,
@@ -546,6 +547,7 @@ class TestIndiciaSh(WithObjectsTestCase, ImageTestCase):
         )
         self.assertTrue(os.path.exists(indicia_sh.action_font))
 
+    @skip_if_quick
     def test__run(self):
         creator_id = 919
 

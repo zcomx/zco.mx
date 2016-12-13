@@ -24,8 +24,7 @@ from applications.zcomx.modules.cbz import \
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
-    ResizerQuick, \
-    skip_if_quick
+    ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # C0111: Missing docstring
@@ -260,7 +259,6 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         fmt = '2016|Jim Karsten|My CBZ Test||CC BY-ND|http://{cid}.zco.mx'
         self.assertEqual(zipper.comment, fmt.format(cid=self._creator.id))
 
-    @skip_if_quick
     def test__working_directory(self):
         creator = CBZCreator(self._book)
         work_dir = creator.working_directory()

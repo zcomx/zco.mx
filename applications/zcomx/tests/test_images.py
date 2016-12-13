@@ -609,7 +609,6 @@ class TestResizeImgIndicia(WithObjectsTestCase, ImageTestCase, FileTestCase):
             {'ori': None}
         )
 
-    @skip_if_quick
     def test__run(self):
         filename = self._prep_image('256colour-jpg.jpg')
         resize_img = ResizeImgIndicia(filename)
@@ -674,7 +673,6 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(up_image._full_name, None)
         self.assertEqual(up_image._original_name, None)
 
-    @skip_if_quick
     def test__delete(self):
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(
@@ -691,7 +689,6 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
         up_image.delete('original')
         self._exist(have_not=['original', 'cbz', 'web'])
 
-    @skip_if_quick
     def test__delete_all(self):
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(
@@ -705,7 +702,6 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
         up_image.delete_all()        # Handle subsequent delete gracefully
         self._exist(have_not=['original', 'cbz', 'web'])
 
-    @skip_if_quick
     def test__fullname(self):
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(
@@ -744,7 +740,6 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
             ),
         )
 
-    @skip_if_quick
     def test__original_name(self):
         filename = self._prep_image('cbz_plus.jpg', to_name='abc.jpg')
         self._set_image(
@@ -753,7 +748,6 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
         up_image = UploadImage(db.creator.image, self._creator.image)
         self.assertEqual(up_image.original_name(), 'abc.jpg')
 
-    @skip_if_quick
     def test__retrieve(self):
         filename = self._prep_image('cbz_plus.jpg', to_name='file.jpg')
         self._set_image(

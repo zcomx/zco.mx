@@ -21,9 +21,7 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
-from applications.zcomx.modules.tests.helpers import \
-    WebTestCase, \
-    skip_if_quick
+from applications.zcomx.modules.tests.helpers import WebTestCase
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -79,7 +77,6 @@ class TestFunctions(WebTestCase, ImageTestCase):
     def test__modal(self):
         self.assertWebTest('/rss/modal')
 
-    @skip_if_quick
     def test__route(self):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
