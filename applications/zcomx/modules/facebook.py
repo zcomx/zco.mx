@@ -268,7 +268,7 @@ class Authenticator(object):
 
 
 class PhotoDataPreparer(object):
-    """Class representing a preparer of data for tumblr photo posting."""
+    """Class representing a preparer of data for facebook photo posting."""
 
     def __init__(self, facebook_data):
         """Constructor
@@ -288,7 +288,7 @@ class PhotoDataPreparer(object):
         return 'by {c}'.format(c=self.facebook_data['creator']['name'])
 
     def data(self):
-        """Return data for a tumblr photo posting."""
+        """Return data for a facebook photo posting."""
         return {
             'caption': self.caption(),
             'description': self.facebook_data['book']['description'],
@@ -299,13 +299,13 @@ class PhotoDataPreparer(object):
 
 
 class Poster(object):
-    """Class representing a tumblr poster"""
+    """Class representing a facebook poster"""
 
     def __init__(self, client):
         """Constructor
 
         Args:
-            client,  pytumblr TumblrRestClient instance
+            client,  FacebookAPIClient instance
         """
         self.client = client
 
@@ -313,7 +313,7 @@ class Poster(object):
         """Delete a post.
 
         Args:
-            post_id, string, id of tumblr post to delete
+            post_id, string, id of facebook post to delete
         """
         return self.client.delete_post(post_id)
 
@@ -335,7 +335,7 @@ class Poster(object):
 
 
 class TextDataPreparer(object):
-    """Class representing a preparer of data for tumblr text posting."""
+    """Class representing a preparer of data for facebook text posting."""
 
     def __init__(self, facebook_data):
         """Constructor
@@ -345,6 +345,11 @@ class TextDataPreparer(object):
                 {
                     'tumblr_post_id': ...
                 }
+
+        Notes:
+            Facebook uses the tumblr post for text posts. Facebook knows to
+            format a posting with a tumblr link using data from that tumblr
+            post.
         """
         self.facebook_data = facebook_data
 
