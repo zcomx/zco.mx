@@ -4,7 +4,7 @@
 """
 test_job_queue.py
 
-Test suite for shared/modules/job_queue.py
+Test suite for zcomx/modules/job_queue.py
 
 """
 import datetime
