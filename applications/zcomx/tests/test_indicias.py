@@ -47,14 +47,13 @@ from applications.zcomx.modules.indicias import \
 from applications.zcomx.modules.links import \
     Link, \
     LinkType
+from applications.zcomx.modules.shell_utils import UnixFile
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick, \
     skip_if_quick
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase, \
-    _mock_date as mock_date
-from applications.zcomx.modules.shell_utils import UnixFile
+from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.mock import DateMock
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -606,24 +605,19 @@ class TestIndiciaSh(WithObjectsTestCase, ImageTestCase):
 
 class TestBookPublicationMetadata(LocalTestCase):
     def test____init__(self):
-        save_datetime_date = datetime.date
+        test_today = datetime.date(2014, 12, 31)
+        with DateMock(test_today):
+            self.assertEqual(datetime.date.today(), test_today)
 
-        str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
-        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
-        # date.today overridden
-        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
-
-        book = self.add(Book, dict(
-            name='TestBookPublicationMetadata',
-        ))
-        meta = BookPublicationMetadata(book)
-        self.assertTrue(meta)
-        self.assertEqual(
-            meta.first_publication_text,
-            'First publication: zco.mx 2014.'
-        )
-
-        datetime.date = save_datetime_date
+            book = self.add(Book, dict(
+                name='TestBookPublicationMetadata',
+            ))
+            meta = BookPublicationMetadata(book)
+            self.assertTrue(meta)
+            self.assertEqual(
+                meta.first_publication_text,
+                'First publication: zco.mx 2014.'
+            )
 
     def test____str__(self):
         book = self.add(Book, dict(name='My Book'))
@@ -965,122 +959,119 @@ class TestBookPublicationMetadata(LocalTestCase):
         #     ---
         # [7] This work was originally self-published in print as old_name in YYYY.
         #     ---
-        save_datetime_date = datetime.date
-        str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
-        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
-        # date.today overridden
-        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
 
-        book_name = 'My Book'
-        original_name = 'My Old Book'
+        test_today = datetime.date(2014, 12, 31)
+        with DateMock(test_today):
+            self.assertEqual(datetime.date.today(), test_today)
 
-        book = self.add(Book, dict(name=book_name))
+            book_name = 'My Book'
+            original_name = 'My Old Book'
 
-        meta = BookPublicationMetadata(book)
-        metadata = dict(
-            book_id=book.id,
-            republished=False,
-            published_type='',
-            published_name=original_name,
-            published_format='',
-            publisher_type='',
-            publisher='',
-            from_year=2014,
-            to_year=2015,
-        )
+            book = self.add(Book, dict(name=book_name))
 
-        # [1]
-        meta.metadata = PublicationMetadata(metadata)
-        self.assertEqual(
-            meta.metadata_text(),
-            'First publication: zco.mx 2014.'
-        )
-        # Test variations on first_publication_text
+            meta = BookPublicationMetadata(book)
+            metadata = dict(
+                book_id=book.id,
+                republished=False,
+                published_type='',
+                published_name=original_name,
+                published_format='',
+                publisher_type='',
+                publisher='',
+                from_year=2014,
+                to_year=2015,
+            )
 
-        meta.first_publication_text = ''
-        self.assertEqual(meta.metadata_text(), '')
-        meta.first_publication_text = 'La de do la de da'
-        self.assertEqual(meta.metadata_text(), 'La de do la de da')
+            # [1]
+            meta.metadata = PublicationMetadata(metadata)
+            self.assertEqual(
+                meta.metadata_text(),
+                'First publication: zco.mx 2014.'
+            )
+            # Test variations on first_publication_text
 
-        # [2]
-        meta.metadata = PublicationMetadata(metadata)
-        meta.metadata.republished = True
-        meta.metadata.published_type = 'whole'
-        meta.metadata.published_name = book_name
-        meta.metadata.published_format = 'digital'
-        meta.metadata.publisher_type = 'self'
-        meta.metadata.publisher = 'tumblr.com'
-        self.assertEqual(
-            meta.metadata_text(),
-            'This work was originally published digitally in 2014-2015 at tumblr.com.'
-        )
+            meta.first_publication_text = ''
+            self.assertEqual(meta.metadata_text(), '')
+            meta.first_publication_text = 'La de do la de da'
+            self.assertEqual(meta.metadata_text(), 'La de do la de da')
 
-        # [3]
-        meta.metadata = PublicationMetadata(metadata)
-        meta.metadata.republished = True
-        meta.metadata.published_type = 'whole'
-        meta.metadata.published_name = book_name
-        meta.metadata.published_format = 'paper'
-        meta.metadata.publisher_type = 'press'
-        meta.metadata.publisher = 'Acme Pub Inc.'
-        self.assertEqual(
-            meta.metadata_text(),
-            'This work was originally published in print in 2014-2015 by Acme Pub Inc.'
-        )
+            # [2]
+            meta.metadata = PublicationMetadata(metadata)
+            meta.metadata.republished = True
+            meta.metadata.published_type = 'whole'
+            meta.metadata.published_name = book_name
+            meta.metadata.published_format = 'digital'
+            meta.metadata.publisher_type = 'self'
+            meta.metadata.publisher = 'tumblr.com'
+            self.assertEqual(
+                meta.metadata_text(),
+                'This work was originally published digitally in 2014-2015 at tumblr.com.'
+            )
 
-        # [4]
-        meta.metadata = PublicationMetadata(metadata)
-        meta.metadata.republished = True
-        meta.metadata.published_type = 'whole'
-        meta.metadata.published_name = book_name
-        meta.metadata.published_format = 'paper'
-        meta.metadata.publisher_type = 'self'
-        meta.metadata.publisher = ''
-        self.assertEqual(
-            meta.metadata_text(),
-            'This work was originally self-published in print in 2014-2015.'
-        )
+            # [3]
+            meta.metadata = PublicationMetadata(metadata)
+            meta.metadata.republished = True
+            meta.metadata.published_type = 'whole'
+            meta.metadata.published_name = book_name
+            meta.metadata.published_format = 'paper'
+            meta.metadata.publisher_type = 'press'
+            meta.metadata.publisher = 'Acme Pub Inc.'
+            self.assertEqual(
+                meta.metadata_text(),
+                'This work was originally published in print in 2014-2015 by Acme Pub Inc.'
+            )
 
-        # [5]
-        meta.metadata = PublicationMetadata(metadata)
-        meta.metadata.republished = True
-        meta.metadata.published_type = 'whole'
-        meta.metadata.published_name = original_name
-        meta.metadata.published_format = 'digital'
-        meta.metadata.publisher_type = 'self'
-        meta.metadata.publisher = 'tumblr.com'
-        self.assertEqual(
-            meta.metadata_text(),
-            'This work was originally published digitally in 2014-2015 as "My Old Book" at tumblr.com.'
-        )
+            # [4]
+            meta.metadata = PublicationMetadata(metadata)
+            meta.metadata.republished = True
+            meta.metadata.published_type = 'whole'
+            meta.metadata.published_name = book_name
+            meta.metadata.published_format = 'paper'
+            meta.metadata.publisher_type = 'self'
+            meta.metadata.publisher = ''
+            self.assertEqual(
+                meta.metadata_text(),
+                'This work was originally self-published in print in 2014-2015.'
+            )
 
-        # [6]
-        meta.metadata = PublicationMetadata(metadata)
-        meta.metadata.republished = True
-        meta.metadata.published_type = 'whole'
-        meta.metadata.published_name = original_name
-        meta.metadata.published_format = 'paper'
-        meta.metadata.publisher_type = 'press'
-        meta.metadata.publisher = 'Acme Pub Inc.'
-        self.assertEqual(
-            meta.metadata_text(),
-            'This work was originally published in print in 2014-2015 as "My Old Book" by Acme Pub Inc.'
-        )
+            # [5]
+            meta.metadata = PublicationMetadata(metadata)
+            meta.metadata.republished = True
+            meta.metadata.published_type = 'whole'
+            meta.metadata.published_name = original_name
+            meta.metadata.published_format = 'digital'
+            meta.metadata.publisher_type = 'self'
+            meta.metadata.publisher = 'tumblr.com'
+            self.assertEqual(
+                meta.metadata_text(),
+                'This work was originally published digitally in 2014-2015 as "My Old Book" at tumblr.com.'
+            )
 
-        # [7]
-        meta.metadata = PublicationMetadata(metadata)
-        meta.metadata.republished = True
-        meta.metadata.published_type = 'whole'
-        meta.metadata.published_name = original_name
-        meta.metadata.published_format = 'paper'
-        meta.metadata.publisher_type = 'self'
-        meta.metadata.publisher = ''
-        self.assertEqual(
-            meta.metadata_text(),
-            'This work was originally self-published in print in 2014-2015 as "My Old Book".'
-        )
+            # [6]
+            meta.metadata = PublicationMetadata(metadata)
+            meta.metadata.republished = True
+            meta.metadata.published_type = 'whole'
+            meta.metadata.published_name = original_name
+            meta.metadata.published_format = 'paper'
+            meta.metadata.publisher_type = 'press'
+            meta.metadata.publisher = 'Acme Pub Inc.'
+            self.assertEqual(
+                meta.metadata_text(),
+                'This work was originally published in print in 2014-2015 as "My Old Book" by Acme Pub Inc.'
+            )
 
-        datetime.date = save_datetime_date
+            # [7]
+            meta.metadata = PublicationMetadata(metadata)
+            meta.metadata.republished = True
+            meta.metadata.published_type = 'whole'
+            meta.metadata.published_name = original_name
+            meta.metadata.published_format = 'paper'
+            meta.metadata.publisher_type = 'self'
+            meta.metadata.publisher = ''
+            self.assertEqual(
+                meta.metadata_text(),
+                'This work was originally self-published in print in 2014-2015 as "My Old Book".'
+            )
 
     def test__publication_year(self):
         book = self.add(Book, dict(name='test__publication_year'))
@@ -1848,37 +1839,33 @@ class TestBookPublicationMetadata(LocalTestCase):
         )
 
     def test__year_range(self):
-        save_datetime_date = datetime.date
-        str_to_date = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date()
-        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
-        # date.today overridden
-        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
+        test_today = datetime.date(2014, 12, 31)
+        with DateMock(test_today):
+            self.assertEqual(datetime.date.today(), test_today)
 
-        book = self.add(Book, dict(
-            name='test__year_range',
-        ))
+            book = self.add(Book, dict(
+                name='test__year_range',
+            ))
 
-        meta = BookPublicationMetadata(book)
+            meta = BookPublicationMetadata(book)
 
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-        self.assertEqual(
-            meta._publication_year_range,
-            (None, None)
-        )
-        min_year, max_year = meta.year_range()
-        self.assertEqual(min_year, 1970)
-        self.assertEqual(max_year, 2014 + 5)
-        self.assertEqual(
-            meta._publication_year_range,
-            (1970, 2014 + 5)
-        )
+            # protected-access (W0212): *Access to a protected member %%s
+            # pylint: disable=W0212
+            self.assertEqual(
+                meta._publication_year_range,
+                (None, None)
+            )
+            min_year, max_year = meta.year_range()
+            self.assertEqual(min_year, 1970)
+            self.assertEqual(max_year, 2014 + 5)
+            self.assertEqual(
+                meta._publication_year_range,
+                (1970, 2014 + 5)
+            )
 
-        # Test cache
-        meta._publication_year_range = (888, 999)
-        self.assertEqual(meta.year_range(), (888, 999))
-
-        datetime.date = save_datetime_date
+            # Test cache
+            meta._publication_year_range = (888, 999)
+            self.assertEqual(meta.year_range(), (888, 999))
 
 
 class TestFunctions(WithObjectsTestCase, ImageTestCase):

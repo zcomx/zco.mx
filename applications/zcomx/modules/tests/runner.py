@@ -872,30 +872,6 @@ class TableTracker(object):
         return True if row.id in ids else False
 
 
-def _mock_date(self, today_value=None):
-    """Function used to override the datetime.date function in tests."""
-    # pylint: disable=W0613
-    class MockDate(datetime.date):
-        """Class representing mock date"""
-        @classmethod
-        def today(cls):
-            """Function to override datatime.date.today()"""
-            return today_value
-    return MockDate
-
-
-def _mock_datetime(self, now_value=None):
-    """Function used to override the datetime.datetime function in tests."""
-    # pylint: disable=W0613
-    class MockDatetime(datetime.datetime):
-        """Class representing mock datetime"""
-        @classmethod
-        def now(cls):
-            """Function to override datatime.datetime.now()"""
-            return now_value
-    return MockDatetime
-
-
 # Decorator
 def count_diff(func):
     """Decorator used to display the effect of a function on sql record

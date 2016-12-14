@@ -78,9 +78,8 @@ from applications.zcomx.modules.events import Contribution
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase, \
-    _mock_date as mock_date
+from applications.zcomx.modules.tests.mock import DateMock
+from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
     BOOK_STATUS_ACTIVE, \
@@ -472,71 +471,67 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(cbz_url(book), '/FirstLast/MyBook-03of09.cbz')
 
     def test__cc_licence_data(self):
-        str_to_date = lambda x: datetime.datetime.strptime(
-            x, "%Y-%m-%d").date()
-        save_datetime_date = datetime.date
-        datetime.date = mock_date(self, today_value=str_to_date('2014-12-31'))
-        # date.today overridden
-        self.assertEqual(datetime.date.today(), str_to_date('2014-12-31'))
+        test_today = datetime.date(2009, 12, 31)
+        with DateMock(test_today):
+            self.assertEqual(datetime.date.today(), test_today)
 
-        auth_user = self.add(db.auth_user, dict(name='Test CC Licence Data'))
-        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
+            auth_user = self.add(
+                db.auth_user, dict(name='Test CC Licence Data'))
+            creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
-        book = self.add(Book, dict(
-            id=-1,
-            name='test__cc_licence_data',
-            creator_id=creator.id,
-            book_type_id=BookType.by_name('one-shot').id,
-            name_for_url='TestCcLicenceData',
-            cc_licence_place=None,
-        ))
+            book = self.add(Book, dict(
+                id=-1,
+                name='test__cc_licence_data',
+                creator_id=creator.id,
+                book_type_id=BookType.by_name('one-shot').id,
+                name_for_url='TestCcLicenceData',
+                cc_licence_place=None,
+            ))
 
-        self.add(BookPage, dict(
-            book_id=book.id,
-            page_no=1,
-            created_on='2010-12-31 01:01:01',
-        ))
+            self.add(BookPage, dict(
+                book_id=book.id,
+                page_no=1,
+                created_on='2010-12-31 01:01:01',
+            ))
 
-        self.assertEqual(
-            cc_licence_data(book),
-            {
-                'owner': 'Test CC Licence Data',
-                'owner_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
-                'year': '2010',
-                'place': None,
-                'title': 'test__cc_licence_data',
-                'title_url':
-                    'http://{cid}.zco.mx/TestCcLicenceData'.format(
-                        cid=creator.id),
-            }
-        )
+            self.assertEqual(
+                cc_licence_data(book),
+                {
+                    'owner': 'Test CC Licence Data',
+                    'owner_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
+                    'year': '2010',
+                    'place': None,
+                    'title': 'test__cc_licence_data',
+                    'title_url':
+                        'http://{cid}.zco.mx/TestCcLicenceData'.format(
+                            cid=creator.id),
+                }
+            )
 
-        book = Book.from_updated(book, dict(cc_licence_place='Canada'))
-        self.assertEqual(
-            cc_licence_data(book),
-            {
-                'owner': 'Test CC Licence Data',
-                'owner_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
-                'year': '2010',
-                'place': 'Canada',
-                'title': 'test__cc_licence_data',
-                'title_url':
-                    'http://{cid}.zco.mx/TestCcLicenceData'.format(
-                        cid=creator.id),
-            }
-        )
+            book = Book.from_updated(book, dict(cc_licence_place='Canada'))
+            self.assertEqual(
+                cc_licence_data(book),
+                {
+                    'owner': 'Test CC Licence Data',
+                    'owner_url': 'http://{cid}.zco.mx'.format(cid=creator.id),
+                    'year': '2010',
+                    'place': 'Canada',
+                    'title': 'test__cc_licence_data',
+                    'title_url':
+                        'http://{cid}.zco.mx/TestCcLicenceData'.format(
+                            cid=creator.id),
+                }
+            )
 
-        self.assertEqual(cc_licence_data(book)['year'], '2010')
-        # Add second book page with different year.
-        self.add(BookPage, dict(
-            book_id=book.id,
-            page_no=2,
-            created_on='2014-12-31 01:01:01',
-        ))
+            self.assertEqual(cc_licence_data(book)['year'], '2010')
+            # Add second book page with different year.
+            self.add(BookPage, dict(
+                book_id=book.id,
+                page_no=2,
+                created_on='2014-12-31 01:01:01',
+            ))
 
-        self.assertEqual(cc_licence_data(book)['year'], '2010-2014')
-
-        datetime.date = save_datetime_date
+            self.assertEqual(cc_licence_data(book)['year'], '2010-2014')
 
     def test__complete_link(self):
         empty = '<span></span>'
