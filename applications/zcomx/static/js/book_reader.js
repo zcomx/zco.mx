@@ -38,7 +38,8 @@
                 return;
             }
 
-            var src = '/images/download/' + div_img.data("image") + '?size=' + this.size;
+            var src = this.options.img_server + '/images/download/'
+                + div_img.data("image") + '?size=' + this.size;
 
             $('<img />').attr('src', src)
                 .addClass('book_page_img')
@@ -411,6 +412,7 @@
         start_page_no: 1,
         img_container_class: null,
         max_h_for_web: 1200,
+        img_server: '',
     };
 
 }(window.jQuery));
