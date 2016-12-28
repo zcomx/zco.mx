@@ -1,4 +1,4 @@
-(function () {
+(function ($) {
     "use strict";
 
     function set_viewport_size() {
@@ -29,7 +29,7 @@
         set_viewport_size();
     });
 
-}());
+}(window.jQuery));
 
 (function ($) {
     "use strict";
