@@ -1597,6 +1597,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-right: 0.2em;
 }
 
+.scroll_slide_options .btn:hover {
+    text-decoration: underline;
+}
+
 .scroll_slide_options .btn-lg, .btn-group-lg > .btn {
     padding-bottom: 0;
     padding-top: 0;
