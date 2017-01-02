@@ -488,9 +488,10 @@ class TestIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
             lines.append(f.read())
 
         self.assertEqual(len(lines), 1)
+        this_year = datetime.date.today().year
         self.assertEqual(
             lines[0],
-            """ "IMAGE TEST CASE" IS COPYRIGHT (C) 2016 BY FIRST LAST.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR."""
+            """ "IMAGE TEST CASE" IS COPYRIGHT (C) {y} BY FIRST LAST.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.""".format(y=this_year)
         )
 
     def test__get_indicia_filename(self):

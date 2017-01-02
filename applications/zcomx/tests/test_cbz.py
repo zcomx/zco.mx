@@ -6,6 +6,7 @@
 Test suite for zcomx/modules/cbz.py
 
 """
+import datetime
 import os
 import shutil
 import subprocess
@@ -256,8 +257,10 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         zipper = zipfile.ZipFile(zip_file)
-        fmt = '2016|Jim Karsten|My CBZ Test||CC BY-ND|http://{cid}.zco.mx'
-        self.assertEqual(zipper.comment, fmt.format(cid=self._creator.id))
+        this_year = datetime.date.today().year
+        fmt = '{y}|Jim Karsten|My CBZ Test||CC BY-ND|http://{cid}.zco.mx'
+        self.assertEqual(zipper.comment, fmt.format(
+            y=this_year, cid=self._creator.id))
 
     def test__working_directory(self):
         creator = CBZCreator(self._book)
@@ -306,9 +309,11 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
+        this_year = datetime.date.today().year
         self.assertEqual(
             cbz_filename,
-            '/tmp/cbz_archive/cbz/zco.mx/J/JimKarsten/My CBZ Test (2016) ({i}.zco.mx).cbz'.format(i=self._creator.id)
+            '/tmp/cbz_archive/cbz/zco.mx/J/JimKarsten/My CBZ Test ({y}) ({i}.zco.mx).cbz'.format(
+                y=this_year, i=self._creator.id)
         )
 
         book = Book.from_id(self._book.id)
