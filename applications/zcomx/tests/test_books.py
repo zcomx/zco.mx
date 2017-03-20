@@ -1827,7 +1827,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
 
-        expect['download_url'] = 'http://zco.mx/images/download/book_page.image.aaa.000.jpg?size=web'
+        expect['download_url'] = 'https://zco.mx/images/download/book_page.image.aaa.000.jpg?size=web'
         expect['cover_image_name'] = 'book_page.image.aaa.000.jpg'
         self.assertEqual(social_media_data(book), expect)
 

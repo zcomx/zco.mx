@@ -97,7 +97,7 @@ class PhotoDataPreparer(object):
 
     def data(self):
         """Return data for a tumblr photo posting."""
-        return {
+        photo_data = {
             'state': 'published',
             'tags': self.tags(),
             'tweet': None,
@@ -107,6 +107,7 @@ class PhotoDataPreparer(object):
             'link': self.tumblr_data['book']['url'],
             'caption': self.caption(),
         }
+        return photo_data
 
     def slug(self):
         """Return the slug."""

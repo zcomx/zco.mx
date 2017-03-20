@@ -9,15 +9,16 @@ https://pypi.python.org/pypi/PyTumblr
 """
 import sys
 import traceback
+from optparse import OptionParser
 import pytumblr
 from gluon import *
-from optparse import OptionParser
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 
 # C0301 (line-too-long): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
+
 
 def clear(client):
     """Delete existing posts.
@@ -34,13 +35,14 @@ def clear(client):
 def create_photo(client):
     """tumblr API create_photo."""
     photo_data = dict(
-        state="private",
+        state="draft",
         tags=['tag1', 'tag2', 'zco.mx'],
         format='html',
         slug='unique-slug-002',
         source='https://zco.mx/images/download/book_page.image.b224f4ba0b8dff48.757074696768742d3030312d30312e706e67.png?size=web',
         link='https://zco.mx',
         caption='This is a test',
+        tweet=None,
     )
 
     # photo['source'] = 'https://zco.mx/zcomx/static/images/zco.mx-logo-small.png'
@@ -173,6 +175,7 @@ def main():
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
+    post_id = None
     if args:
         post_id = args[0]
 
@@ -198,7 +201,7 @@ def main():
     # posts(client, hostname='charlesforsman')
     # posts_summary(client)
     # delete_post(client, post_id)
-    # create_photo(client)
+    create_photo(client)
     # create_quote(client)
     # create_text(client)
     LOG.info('Done.')

@@ -1244,6 +1244,7 @@ def social_media_data(book):
             args=first_page.image,
             vars={'size': 'web'},
             host=SITE_NAME,
+            scheme='https',
         )
 
     return {
