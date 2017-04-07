@@ -42,6 +42,11 @@ from applications.zcomx.modules.zco import \
 LOG = current.app.logger
 
 
+class SpareCreatorError(Exception):
+    """Exception class for creator errors."""
+    pass
+
+
 class Router(object):
     """Class representing a Router"""
 
@@ -119,7 +124,7 @@ class Router(object):
                     re_spare = re.compile(r'Spare\d+')
                     if re_spare.match(self.creator.name_for_url):
                         fmt = 'Spare creator requested: {c}'
-                        raise LookupError(fmt.format(
+                        raise SpareCreatorError(fmt.format(
                             c=self.creator.name_for_url))
 
         return self.creator

@@ -3,7 +3,9 @@
 
 import traceback
 from applications.zcomx.modules.access import requires_login_if_configured
-from applications.zcomx.modules.routing import Router
+from applications.zcomx.modules.routing import \
+    Router, \
+    SpareCreatorError
 from applications.zcomx.modules.zco import Zco
 
 
@@ -23,6 +25,9 @@ def index():
 
     try:
         router.route()
+    except SpareCreatorError as err:
+        LOG.info(err)
+        raise HTTP(404, "Page not found")
     except Exception:
         # Ensures that during the page_not_found formatting if any
         # exceptions happen they are logged, and a 404 is returned.
