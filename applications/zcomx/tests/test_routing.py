@@ -26,7 +26,9 @@ from applications.zcomx.modules.creators import \
     creator_name
 from applications.zcomx.modules.events import BookView
 from applications.zcomx.modules.records import Records
-from applications.zcomx.modules.routing import Router
+from applications.zcomx.modules.routing import \
+    Router, \
+    SpareCreatorError
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
@@ -336,11 +338,11 @@ class TestRouter(LocalTestCase):
         spare_creator = db(query).select(limitby=(0, 1)).first()
 
         router.request.vars.creator = spare_creator.name_for_url
-        self.assertRaises(LookupError, router.get_creator)
+        self.assertRaises(SpareCreatorError, router.get_creator)
 
         router.creator = None
         router.request.vars.creator = str(spare_creator.id)
-        self.assertRaises(LookupError, router.get_creator)
+        self.assertRaises(SpareCreatorError, router.get_creator)
 
     def test__get_book_page(self):
         router = Router(db, self._request, auth)
