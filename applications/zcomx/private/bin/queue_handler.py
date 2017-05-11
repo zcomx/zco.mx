@@ -10,11 +10,12 @@ Check queue and run any jobs found.
 # pylint: disable=W0404
 import subprocess
 from optparse import OptionParser
-from applications.zcomx.modules.job_queue import Queue
+from applications.zcomx.modules.job_queue import \
+    IgnorableJob, \
+    Queue
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def main():
@@ -46,14 +47,26 @@ def main():
     stats = {
         'checked': 0,
         'error': 0,
+        'ignored': 0,
         'success': 0,
     }
 
-    queue = Queue(db.job)
+    queue = Queue(db.job, job_class=IgnorableJob)
 
     LOG.info("Checking queue for jobs.")
     for job in queue.job_generator():
         stats['checked'] += 1
+
+        if job.is_ignored():
+            LOG.debug(
+                "job: {job}, ignored exit: {exit}".format(
+                    job=job.command, exit=0
+                )
+            )
+            job.delete()
+            stats['ignored'] += 1
+            continue
+
         queue.set_job_status(job, 'p')        # In progress
         try:
             queue.run_job(job)

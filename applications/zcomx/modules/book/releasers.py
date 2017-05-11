@@ -15,7 +15,7 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import images as creator_images
 from applications.zcomx.modules.images_optimize import \
     CBZImagesForRelease
-from applications.zcomx.modules.job_queue import \
+from applications.zcomx.modules.job_queuers import \
     CreateAllTorrentQueuer, \
     CreateBookTorrentQueuer, \
     CreateCBZQueuer, \

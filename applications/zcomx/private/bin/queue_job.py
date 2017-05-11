@@ -11,11 +11,10 @@ Queue a job.
 # pylint: disable=W0404
 import time
 from optparse import OptionParser
-import applications.zcomx.modules.job_queue as job_queue
+import applications.zcomx.modules.job_queuers as job_queuers
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def main():
@@ -64,7 +63,7 @@ def main():
 
     if options.queuer:
         try:
-            queuer_class = getattr(job_queue, options.queuer)
+            queuer_class = getattr(job_queuers, options.queuer)
         except AttributeError as err:
             queuer_class = None
             LOG.error('Invalid queuer: %s', options.queuer)
@@ -80,7 +79,7 @@ def main():
             'priority': options.priority,
         }
 
-        queue = job_queue.QueueWithSignal(db.job)
+        queue = job_queuers.QueueWithSignal(db.job)
         job = queue.add_job(job_d)
     LOG.info("Created job id: %s", str(job.id))
 

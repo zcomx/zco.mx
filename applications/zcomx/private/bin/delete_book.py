@@ -10,10 +10,10 @@ from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
     book_tables
-from applications.zcomx.modules.job_queue import queue_search_prefetch
+from applications.zcomx.modules.job_queuers import queue_search_prefetch
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def delete_records(book):

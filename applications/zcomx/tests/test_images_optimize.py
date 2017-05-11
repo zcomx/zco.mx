@@ -9,7 +9,7 @@ Test suite for zcomx/modules/images_optimize.py
 import collections
 import unittest
 from gluon import *
-from applications.zcomx.modules.job_queue import \
+from applications.zcomx.modules.job_queuers import \
     OptimizeCBZImgForReleaseQueuer, \
     OptimizeCBZImgQueuer, \
     OptimizeOriginalImgQueuer, \

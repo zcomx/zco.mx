@@ -48,7 +48,7 @@ from applications.zcomx.modules.indicias import \
     Derivative, \
     PublicationMetadata, \
     create_creator_indicia
-from applications.zcomx.modules.job_queue import \
+from applications.zcomx.modules.job_queuers import \
     DeleteBookQueuer, \
     FileshareBookQueuer, \
     SetBookCompletedQueuer, \

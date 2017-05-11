@@ -8,8 +8,7 @@ Classes and functions related to events.
 import datetime
 from gluon import *
 from applications.zcomx.modules.books import update_rating
-from applications.zcomx.modules.job_queue import \
-    LogDownloadsQueuer
+from applications.zcomx.modules.job_queuers import LogDownloadsQueuer
 from applications.zcomx.modules.records import Record
 
 LOG = current.app.logger

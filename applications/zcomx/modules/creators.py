@@ -9,7 +9,7 @@ import os
 from gluon import *
 from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.files import for_file
-from applications.zcomx.modules.job_queue import \
+from applications.zcomx.modules.job_queuers import \
     UpdateIndiciaQueuer, \
     queue_search_prefetch
 from applications.zcomx.modules.names import \

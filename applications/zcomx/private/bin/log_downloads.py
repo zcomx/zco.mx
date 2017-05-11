@@ -13,11 +13,11 @@ from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.events import \
     DownloadClick, \
     DownloadEvent
-from applications.zcomx.modules.job_queue import \
+from applications.zcomx.modules.job_queuers import \
     LogDownloadsQueuer
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def log(download_click_id, book_id):

@@ -553,6 +553,12 @@ db.define_table('job',
     Field('priority', 'integer'),
     Field('command'),
     Field(
+        'ignorable',
+        'boolean',
+        default=False,
+        represent=lambda v, r=None: 'Yes' if v is True else 'No',
+    ),
+    Field(
         'status',
         default='a',
         requires=IS_IN_SET(['a', 'd', 'p']),

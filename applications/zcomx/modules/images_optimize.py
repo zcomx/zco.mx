@@ -6,7 +6,7 @@
 Classes and functions related to optimizing images.
 """
 from gluon import *
-from applications.zcomx.modules.job_queue import \
+from applications.zcomx.modules.job_queuers import \
     OptimizeCBZImgForReleaseQueuer, \
     OptimizeCBZImgQueuer, \
     OptimizeOriginalImgQueuer, \

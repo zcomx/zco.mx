@@ -11,12 +11,12 @@ the 'all' torrent if necessary.
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
 from optparse import OptionParser
-from applications.zcomx.modules.job_queue import \
+from applications.zcomx.modules.job_queuers import \
     CreateAllTorrentQueuer, \
     CreateCreatorTorrentQueuer
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():

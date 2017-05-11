@@ -13,8 +13,7 @@ import subprocess
 from PIL import Image
 from gluon import *
 from pydal.helpers.regex import REGEX_STORE_PATTERN
-from applications.zcomx.modules.job_queue import \
-    DeleteImgQueuer
+from applications.zcomx.modules.job_queuers import DeleteImgQueuer
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
     TemporaryDirectory, \
