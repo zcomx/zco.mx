@@ -4,7 +4,8 @@
 from gluon.http import HTTP
 from applications.zcomx.modules.access import requires_admin_ip
 from applications.zcomx.modules.stickon.sqlhtml import \
-    formstyle_bootstrap3_login
+    formstyle_bootstrap3_login, \
+    search_fields_grid
 
 
 @auth.requires_membership('admin')
@@ -42,3 +43,25 @@ def index():
             ' Please make corrections.'
     impersonating = True if session.auth.impersonator else False
     return dict(form=form, impersonating=impersonating)
+
+
+@auth.requires_membership('admin')
+@requires_admin_ip()
+def job_queuers():
+    """Controller for grid crud of job_queuer records."""
+    response.files.append(URL('static', 'css/clearable_input.css'))
+    response.files.append(URL('static', 'css/grid_search_input.css'))
+
+    db.job_queuer.id.readable = False
+
+    search_fields = [
+        db.job_queuer.code,
+    ]
+
+    grid = search_fields_grid(search_fields)(
+        db.job_queuer,
+        details=False,
+        maxtextlengths={'job_queuer.code': 100},
+    )
+
+    return dict(grid=grid)

@@ -30,6 +30,19 @@ class TestFunctions(WebTestCase):
         web.login()
         self.assertWebTest('/admin/index')
 
+    def test__job_queuers(self):
+        # Not logged in, redirects to login page
+        web.logout()
+        self.assertWebTest(
+            '/admin/job_queuers',
+            match_page_key='/default/user/login',
+            login_required=False
+        )
+
+        # Logged in, displays admin
+        web.login()
+        self.assertWebTest('/admin/job_queuers')
+
 
 def setUpModule():
     """Set up web2py environment."""

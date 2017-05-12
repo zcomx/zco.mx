@@ -15,33 +15,33 @@ from applications.zcomx.modules.job_queue import \
     Queue, \
     Queuer
 
-PRIORITIES = list(reversed([
-    # Highest
-    'optimize_cbz_img_for_release',
-    'optimize_img_for_release',
-    'update_creator_indicia_for_release',
-    'create_cbz',
-    'create_book_torrent',
-    'post_book_completed',
-    'set_book_completed',
-    'fileshare_book',
-    'optimize_cbz_img',
-    'optimize_img',
-    'update_creator_indicia',
-    'optimize_web_img',
-    'create_creator_torrent',
-    'create_all_torrent',
-    'notify_p2p_networks',
-    'reverse_fileshare_book',               # above reverse_set_book_completed
-    'reverse_set_book_completed',           # above delete_book
-    'delete_book',
-    'delete_img',
-    'log_downloads',
-    'optimize_original_img',
-    'search_prefetch',
-    'purge_torrents',
+PRIORITIES = [
     # Lowest
-]))
+    'purge_torrents',
+    'search_prefetch',
+    'optimize_original_img',
+    'log_downloads',
+    'delete_img',
+    'delete_book',
+    'reverse_set_book_completed',     # higher than delete_book
+    'reverse_fileshare_book',         # higher than reverse_set_book_completed
+    'notify_p2p_networks',
+    'create_all_torrent',
+    'create_creator_torrent',
+    'optimize_web_img',
+    'update_creator_indicia',
+    'optimize_img',
+    'optimize_cbz_img',
+    'fileshare_book',
+    'set_book_completed',
+    'post_book_completed',
+    'create_book_torrent',
+    'create_cbz',
+    'update_creator_indicia_for_release',
+    'optimize_img_for_release',
+    'optimize_cbz_img_for_release',
+    # Highest
+]
 
 
 LOG = current.app.logger

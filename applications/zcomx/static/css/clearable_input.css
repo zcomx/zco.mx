@@ -1,0 +1,30 @@
+.clearable_input_container {
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    white-space: normal;
+    width: auto;
+}
+
+/* override base.css */
+.clearable_input_container input[type=text] {
+    margin: 0;
+}
+
+.clearable_input_input {
+    padding-right: 24px;
+}
+
+.clearable_input_x {
+    display: block;
+    width: 13px;
+    height: 13px;
+    position: absolute;
+    opacity: 0.6;
+    z-index: 100;
+    top: 50%;
+    right: 6px;
+    margin-top: -6px;
+    background: url('../../../shared/static/images/clear_x.png') no-repeat scroll center center transparent;
+}
+

@@ -352,6 +352,7 @@ class WebTestCase(LocalTestCase):
     """Test case for controller tests."""
     page_identifiers = {
         '/admin/index': '<div id="admin_page">',
+        '/admin/job_queuers': '<h3>Job Queuers</h3>',
         '/contributions/modal': [
             '<div id="contribute_modal_page">',
             'Your donations help cover the'

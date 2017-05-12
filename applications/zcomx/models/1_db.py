@@ -565,6 +565,11 @@ db.define_table('job',
     ),
 )
 
+db.define_table('job_queuer',
+    Field('code', 'string', requires=IS_NOT_EMPTY()),
+    Field('estimate_run_seconds', 'integer'),
+)
+
 db.define_table('link',
     Field('link_type_id', 'integer'),
     Field('record_table'),

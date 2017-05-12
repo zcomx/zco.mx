@@ -1,0 +1,28 @@
+{{extend 'layout_main.html'}}
+
+<div id="job_queuers_page">
+
+{{=LOAD(c='z', f='top', extension='load', ajax=False, content='')}}
+
+<h3>Job Queuers</h3>
+
+<div class="grid_search_container" data-keywords="{{=request.vars.keywords or ''}}"></div>
+<div class="simple_search_grid_container">
+{{=grid}}
+</div>
+
+</div>
+
+<script src="{{=URL('static','js/jquery.highlight-5.js')}}"></script>
+<script src="{{=URL('static','js/grid_search_input.js')}}"></script>
+<script src="{{=URL('static','js/clearable_input.js')}}"></script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('.grid_search_container').grid_search_input(
+            {'input_placeholder': 'code or name'}
+        );
+        $('.web2py_htmltable tbody').removeHighlight().highlight("{{=request.vars.keywords or ''}}");
+    });
+//]]>
+</script>
