@@ -364,10 +364,28 @@ class JobRequeuer(object):
 
 class Queue(object):
     """Class representing a job queue."""
+
     job_statuses = {
-        'a': 'Active',
-        'd': 'Disabled',
-        'p': 'In Progress',
+        'a': {
+            'label': 'queued',
+            'css_class': 'status_queued',
+        },
+        'c': {
+            'label': 'complete',
+            'css_class': 'status_complete',
+        },
+        'd': {
+            'label': 'FAIL',
+            'css_class': 'status_fail',
+        },
+        'p': {
+            'label': 'in progress',
+            'css_class': 'status_in_progress',
+        },
+        'default': {
+            'label': None,
+            'css_class': 'status_default',
+        },
     }
 
     lock_filename = '/var/run/job_queue.pid'

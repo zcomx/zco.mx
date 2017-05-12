@@ -15,7 +15,6 @@ from applications.zcomx.modules.job_queue import \
     JobQueuer, \
     Queue
 
-DAEMON_NAME = 'zco_queued'
 PRIORITIES = list(reversed([
     # Highest
     'optimize_cbz_img_for_release',
@@ -62,7 +61,7 @@ class QueueWithSignal(Queue):
 
     def post_add_job(self):
         """Post-processing after adding a job to queue. """
-        daemon = Daemon(DAEMON_NAME)
+        daemon = Daemon(current.app.local_settings['job_queue_daemon_name'])
         try:
             daemon.signal()
         except DaemonSignalError as err:

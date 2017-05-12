@@ -850,6 +850,17 @@ class TableTracker(object):
         db = self.table._db
         self._ids = [x.id for x in db(self.table).select()]
 
+    def diff(self):
+        """Return the diff of table ids between had and has.
+
+        Args:
+            obj: DbObject instance.
+        """
+        db = self.table._db
+        ids = [x.id for x in db(self.table).select()]
+        diff_ids = list(set(ids).difference(set(self._ids)))
+        return [db(self.table.id == x).select().first() for x in diff_ids]
+
     def had(self, row):
         """Return whether the record represented by row existed when the
         instance was initialized.

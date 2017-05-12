@@ -37,10 +37,13 @@ from applications.zcomx.modules.creators import \
     torrent_url, \
     url
 from applications.zcomx.modules.images import store
+from applications.zcomx.modules.job_queue import Job
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
-from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.runner import \
+    LocalTestCase, \
+    TableTracker
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -536,6 +539,8 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(updated_creator.name_for_url, 'TestOnChangeName')
 
     def test__profile_onaccept(self):
+        tracker = TableTracker(db.job)
+
         auth_user = self.add(AuthUser, dict(
             name='Test Profile Onaccept'
         ))
@@ -567,6 +572,10 @@ class TestFunctions(ImageTestCase):
         creator = Creator.from_id(creator.id)
         self.assertEqual(creator.name_for_search, 'test-profile-onaccept')
         self.assertEqual(creator.name_for_url, 'TestProfileOnaccept')
+
+        for record in tracker.diff():
+            job = Job.from_id(record.id)
+            self._objects.append(job)
 
     def test__queue_update_indicia(self):
         creator = Creator(dict(
