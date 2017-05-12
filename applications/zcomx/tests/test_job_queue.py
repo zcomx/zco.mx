@@ -22,12 +22,12 @@ from applications.zcomx.modules.job_queue import \
     InvalidJobOptionError, \
     InvalidStatusError, \
     Job, \
-    JobQueuer, \
-    JobRequeuer, \
     Queue, \
     QueueEmptyError, \
     QueueLockedError, \
-    QueueLockedExtendedError
+    QueueLockedExtendedError, \
+    Queuer, \
+    Requeuer
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
     TableTracker
@@ -42,8 +42,8 @@ if not os.path.exists(TMP_DIR):
     os.makedirs(TMP_DIR)
 
 
-class SubJobQueuer(JobQueuer):
-    """Sub class of JobQueuer used for testing."""
+class SubQueuer(Queuer):
+    """Sub class of Queuer used for testing."""
 
     program = 'some_program.py'
     default_job_options = {
@@ -67,7 +67,7 @@ class SubJobQueuer(JobQueuer):
             cli_args=None,
             delay_seconds=0):
 
-        JobQueuer.__init__(
+        Queuer.__init__(
             self,
             tbl,
             job_options=job_options,
@@ -206,7 +206,6 @@ class TestIgnorableJob(LocalTestCase):
             )
             return IgnorableJob.from_updated(job, data)
 
-
         job_1 = IgnorableJob.from_add({})
         self._objects.append(job_1)
 
@@ -243,187 +242,6 @@ class TestIgnorableJob(LocalTestCase):
                     job_1.is_ignored(status='d', start_limit_seconds=t[1]),
                     t[2]
                 )
-
-
-class TestJobQueuer(LocalTestCase):
-
-    def test____init__(self):
-        queuer = JobQueuer(db.job)
-        self.assertTrue(queuer)
-        self.assertEqual(queuer.queue_class, Queue)
-        self.assertEqual(JobQueuer.bin_path, 'applications/zcomx/private/bin')
-
-    def test__command(self):
-        queuer = SubJobQueuer(db.job)
-        self.assertEqual(
-            queuer.command(), 'some_program.py -b -c ccc -d d1 -d d2')
-
-        queuer = SubJobQueuer(db.job, cli_args=['file', 'arg2'])
-        self.assertEqual(
-            queuer.command(),
-            'some_program.py -b -c ccc -d d1 -d d2 file arg2'
-        )
-
-        # Disable defaults
-        queuer = SubJobQueuer(
-            db.job,
-            cli_options={
-                '-a': False,
-                '-b': False,
-                '-c': False,
-                '-d': False,
-            },
-            cli_args=['file']
-        )
-        self.assertEqual(queuer.command(), 'some_program.py file')
-
-        invalid_cli_options = {'-x': 'invalid'}
-        queuer = SubJobQueuer(db.job, cli_options=invalid_cli_options)
-        self.assertRaises(InvalidCLIOptionError, queuer.command)
-
-        # Handle quotes
-        queuer = SubJobQueuer(
-            db.job,
-            cli_options={
-                '-a': False,
-                '-b': False,
-                '-c': False,
-                '-d': False,
-                '-e': """A 'B' "C" D""",
-            },
-            cli_args=['file'],
-        )
-        self.assertEqual(
-            queuer.command(),
-            'some_program.py -e \'A \'"\'"\'B\'"\'"\' "C" D\' file'
-        )
-
-        queuer = SubJobQueuer(
-            db.job,
-            cli_options={
-                '-a': False,
-                '-b': False,
-                '-c': False,
-            },
-            cli_args=["""A 'B' "C" D"""],
-        )
-        self.assertEqual(
-            queuer.command(),
-            'some_program.py -d d1 -d d2 \'A \'"\'"\'B\'"\'"\' "C" D\''
-        )
-
-    def test__job_data(self):
-        then = datetime.datetime.now()
-        data = SubJobQueuer(db.job).job_data()
-        self.assertEqual(data.status, 'd')
-        self.assertEqual(data.priority, 1)
-        self.assertEqual(
-            data.command,
-            'some_program.py -b -c ccc -d d1 -d d2'
-        )
-        self.assertTrue(data.start >= then)
-        diff = data.start - then
-        self.assertTrue(diff.total_seconds() >= 0)
-        self.assertTrue(diff.total_seconds() < 1)
-
-        invalid_job_options = {'fake_field': 'value'}
-        queuer = SubJobQueuer(db.job, job_options=invalid_job_options)
-        self.assertRaises(InvalidJobOptionError, queuer.job_data)
-
-        # Test delay_seconds
-        then = datetime.datetime.now()
-        data = SubJobQueuer(db.job, delay_seconds=100).job_data()
-        self.assertTrue(data.start > then)
-        diff = data.start - then
-        self.assertTrue(diff.total_seconds() >= 100)
-        self.assertTrue(diff.total_seconds() < 101)
-
-    def test__queue(self):
-        def get_job_ids():
-            return sorted([x.id for x in db(db.job).select(db.job.id)])
-
-        job_ids = get_job_ids()
-
-        queuer = SubJobQueuer(db.job)
-        new_job = queuer.queue()
-        self.assertEqual(
-            new_job.command, 'some_program.py -b -c ccc -d d1 -d d2')
-        self.assertTrue(new_job.id not in job_ids)
-        job_ids = get_job_ids()
-        self.assertTrue(new_job.id in job_ids)
-        job = Job.from_id(new_job.id)
-        self._objects.append(job)
-
-
-class TestJobRequeuer(LocalTestCase):
-
-    def test____init__(self):
-        queuer = SubJobQueuer(db.job)
-        requeuer = JobRequeuer(queuer)
-        self.assertTrue(requeuer)
-        self.assertEqual(requeuer.requeues, 0)
-        self.assertEqual(requeuer.max_requeues, 1)
-
-    def test__requeue(self):
-        queuer = SubJobQueuer(db.job)
-        requeuer = JobRequeuer(queuer)
-        self.assertRaises(InvalidCLIOptionError, requeuer.requeue)
-
-        class ReJobQueuer(SubJobQueuer):
-            valid_cli_options = ['-a', '-c', '--requeues', '--max-requeues']
-            default_cli_options = {
-                '-a': True,
-                '-c': 'ccc',
-            }
-
-        queuer = ReJobQueuer(db.job)
-        requeuer = JobRequeuer(queuer)
-        tracker = TableTracker(db.job)
-        job = requeuer.requeue()
-        self.assertFalse(tracker.had(job))
-        self.assertTrue(tracker.has(job))
-        self._objects.append(job)
-        self.assertEqual(
-            job.command,
-            'some_program.py --max-requeues 1 --requeues 1 -a -c ccc'
-        )
-
-        requeuer = JobRequeuer(queuer, requeues=33, max_requeues=99)
-        tracker = TableTracker(db.job)
-        job = requeuer.requeue()
-        self.assertFalse(tracker.had(job))
-        self.assertTrue(tracker.has(job))
-        self._objects.append(job)
-        self.assertEqual(
-            job.command,
-            'some_program.py --max-requeues 99 --requeues 34 -a -c ccc'
-        )
-
-        requeuer = JobRequeuer(queuer, requeues=99, max_requeues=99)
-        self.assertRaises(StopIteration, requeuer.requeue)
-
-        requeuer = JobRequeuer(queuer, requeues=100, max_requeues=99)
-        self.assertRaises(StopIteration, requeuer.requeue)
-
-    def test__requeue_cli_options(self):
-
-        requeuer = JobRequeuer(JobQueuer(db.job))
-        self.assertEqual(
-            requeuer.requeue_cli_options(),
-            {
-                '--requeues': 1,
-                '--max-requeues': 1,
-            }
-        )
-
-        requeuer = JobRequeuer(JobQueuer(db.job), requeues=33, max_requeues=99)
-        self.assertEqual(
-            requeuer.requeue_cli_options(),
-            {
-                '--requeues': 34,
-                '--max-requeues': 99,
-            }
-        )
 
 
 class TestQueue(LocalTestCase):
@@ -465,14 +283,14 @@ class TestQueue(LocalTestCase):
                 """Test override."""
                 self.trace.append('post')
 
-        queue = MyQueue(db.job)
+        my_queue = MyQueue(db.job)
         TestQueue.clear_queue()
-        self.assertEqual(len(queue.jobs()), 0)
+        self.assertEqual(len(my_queue.jobs()), 0)
 
-        ret = queue.add_job(job_data)
+        ret = my_queue.add_job(job_data)
         self._objects.append(ret)
         self.assertTrue(ret.id > 0)
-        self.assertEqual(queue.trace, ['pre', 'post'])
+        self.assertEqual(my_queue.trace, ['pre', 'post'])
 
     def test__job_generator(self):
         queue = Queue(db.job)
@@ -751,6 +569,187 @@ if __name__ == '__main__':
     def test__unlock(self):
         # See test__lock()
         pass
+
+
+class TestQueuer(LocalTestCase):
+
+    def test____init__(self):
+        queuer = Queuer(db.job)
+        self.assertTrue(queuer)
+        self.assertEqual(queuer.queue_class, Queue)
+        self.assertEqual(Queuer.bin_path, 'applications/zcomx/private/bin')
+
+    def test__command(self):
+        queuer = SubQueuer(db.job)
+        self.assertEqual(
+            queuer.command(), 'some_program.py -b -c ccc -d d1 -d d2')
+
+        queuer = SubQueuer(db.job, cli_args=['file', 'arg2'])
+        self.assertEqual(
+            queuer.command(),
+            'some_program.py -b -c ccc -d d1 -d d2 file arg2'
+        )
+
+        # Disable defaults
+        queuer = SubQueuer(
+            db.job,
+            cli_options={
+                '-a': False,
+                '-b': False,
+                '-c': False,
+                '-d': False,
+            },
+            cli_args=['file']
+        )
+        self.assertEqual(queuer.command(), 'some_program.py file')
+
+        invalid_cli_options = {'-x': 'invalid'}
+        queuer = SubQueuer(db.job, cli_options=invalid_cli_options)
+        self.assertRaises(InvalidCLIOptionError, queuer.command)
+
+        # Handle quotes
+        queuer = SubQueuer(
+            db.job,
+            cli_options={
+                '-a': False,
+                '-b': False,
+                '-c': False,
+                '-d': False,
+                '-e': """A 'B' "C" D""",
+            },
+            cli_args=['file'],
+        )
+        self.assertEqual(
+            queuer.command(),
+            'some_program.py -e \'A \'"\'"\'B\'"\'"\' "C" D\' file'
+        )
+
+        queuer = SubQueuer(
+            db.job,
+            cli_options={
+                '-a': False,
+                '-b': False,
+                '-c': False,
+            },
+            cli_args=["""A 'B' "C" D"""],
+        )
+        self.assertEqual(
+            queuer.command(),
+            'some_program.py -d d1 -d d2 \'A \'"\'"\'B\'"\'"\' "C" D\''
+        )
+
+    def test__job_data(self):
+        then = datetime.datetime.now()
+        data = SubQueuer(db.job).job_data()
+        self.assertEqual(data.status, 'd')
+        self.assertEqual(data.priority, 1)
+        self.assertEqual(
+            data.command,
+            'some_program.py -b -c ccc -d d1 -d d2'
+        )
+        self.assertTrue(data.start >= then)
+        diff = data.start - then
+        self.assertTrue(diff.total_seconds() >= 0)
+        self.assertTrue(diff.total_seconds() < 1)
+
+        invalid_job_options = {'fake_field': 'value'}
+        queuer = SubQueuer(db.job, job_options=invalid_job_options)
+        self.assertRaises(InvalidJobOptionError, queuer.job_data)
+
+        # Test delay_seconds
+        then = datetime.datetime.now()
+        data = SubQueuer(db.job, delay_seconds=100).job_data()
+        self.assertTrue(data.start > then)
+        diff = data.start - then
+        self.assertTrue(diff.total_seconds() >= 100)
+        self.assertTrue(diff.total_seconds() < 101)
+
+    def test__queue(self):
+        def get_job_ids():
+            return sorted([x.id for x in db(db.job).select(db.job.id)])
+
+        job_ids = get_job_ids()
+
+        queuer = SubQueuer(db.job)
+        new_job = queuer.queue()
+        self.assertEqual(
+            new_job.command, 'some_program.py -b -c ccc -d d1 -d d2')
+        self.assertTrue(new_job.id not in job_ids)
+        job_ids = get_job_ids()
+        self.assertTrue(new_job.id in job_ids)
+        job = Job.from_id(new_job.id)
+        self._objects.append(job)
+
+
+class TestRequeuer(LocalTestCase):
+
+    def test____init__(self):
+        queuer = SubQueuer(db.job)
+        requeuer = Requeuer(queuer)
+        self.assertTrue(requeuer)
+        self.assertEqual(requeuer.requeues, 0)
+        self.assertEqual(requeuer.max_requeues, 1)
+
+    def test__requeue(self):
+        sub_queuer = SubQueuer(db.job)
+        requeuer = Requeuer(sub_queuer)
+        self.assertRaises(InvalidCLIOptionError, requeuer.requeue)
+
+        class ReQueuer(SubQueuer):
+            valid_cli_options = ['-a', '-c', '--requeues', '--max-requeues']
+            default_cli_options = {
+                '-a': True,
+                '-c': 'ccc',
+            }
+
+        queuer = ReQueuer(db.job)
+        requeuer = Requeuer(queuer)
+        tracker = TableTracker(db.job)
+        job = requeuer.requeue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'some_program.py --max-requeues 1 --requeues 1 -a -c ccc'
+        )
+
+        requeuer = Requeuer(queuer, requeues=33, max_requeues=99)
+        tracker = TableTracker(db.job)
+        job = requeuer.requeue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        self.assertEqual(
+            job.command,
+            'some_program.py --max-requeues 99 --requeues 34 -a -c ccc'
+        )
+
+        requeuer = Requeuer(queuer, requeues=99, max_requeues=99)
+        self.assertRaises(StopIteration, requeuer.requeue)
+
+        requeuer = Requeuer(queuer, requeues=100, max_requeues=99)
+        self.assertRaises(StopIteration, requeuer.requeue)
+
+    def test__requeue_cli_options(self):
+
+        requeuer = Requeuer(Queuer(db.job))
+        self.assertEqual(
+            requeuer.requeue_cli_options(),
+            {
+                '--requeues': 1,
+                '--max-requeues': 1,
+            }
+        )
+
+        requeuer = Requeuer(Queuer(db.job), requeues=33, max_requeues=99)
+        self.assertEqual(
+            requeuer.requeue_cli_options(),
+            {
+                '--requeues': 34,
+                '--max-requeues': 99,
+            }
+        )
 
 
 def setUpModule():

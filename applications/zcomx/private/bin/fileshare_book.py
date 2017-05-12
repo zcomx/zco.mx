@@ -12,7 +12,7 @@ from applications.zcomx.modules.book.releasers import \
     UnfileshareBook
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.job_queue import JobRequeuer
+from applications.zcomx.modules.job_queue import Requeuer
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -118,7 +118,7 @@ def main():
             db.job,
             cli_args=[str(book_id)],
         )
-        requeuer = JobRequeuer(
+        requeuer = Requeuer(
             queuer,
             requeues=options.requeues,
             max_requeues=options.max_requeues,

@@ -226,142 +226,6 @@ class IgnorableJob(Job):
         return False
 
 
-class JobQueuer(object):
-    """Class representing a job queuer base class.
-
-    A job queuer instance is used to queue jobs for a specific program,
-    defined by the class program property, with the option of changing
-    both the job parameters and the job command cli options.
-    """
-    program = ''
-    default_job_options = {'start': datetime.datetime.now(), 'status': 'a'}
-    default_cli_options = {}
-    valid_cli_options = []
-    queue_class = None
-    bin_path = 'applications/zcomx/private/bin'
-
-    def __init__(
-            self,
-            tbl,
-            job_options=None,
-            cli_options=None,
-            cli_args=None,
-            delay_seconds=0):
-
-        """Constructor
-
-        Args:
-            tbl: gluon.dal.Table of table jobs are stored in. Eg db.job
-            job_options: dict, job record attributes
-            cli_options: dict, options for command
-            cli_args: list, arguments for command
-            delay_seconds: integer, number of seconds to postpone start of job.
-        """
-        self.tbl = tbl
-        self.job_options = job_options or {}
-        self.cli_options = cli_options or {}
-        self.cli_args = cli_args or []
-        self.delay_seconds = delay_seconds
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        self.db = self.tbl._db
-        if not self.queue_class:
-            self.queue_class = Queue
-
-    def command(self):
-        """Return the command for the job to be queued."""
-        # Validate cli options
-        options = []
-        cli_options = dict(self.default_cli_options)
-        if self.cli_options:
-            cli_options.update(self.cli_options)
-        for k, v in sorted(cli_options.items()):
-            if k not in self.valid_cli_options:
-                raise InvalidCLIOptionError(
-                    'Invalid cli option: {opt}'.format(opt=k))
-            options.append(CLIOption(k, value=v))
-        options_str = ' '.join([str(x) for x in options if str(x)])
-        args_str = ' '.join([pipes.quote(x) for x in self.cli_args])
-        return '{prg} {opts} {args}'.format(
-            prg=self.program,
-            opts=options_str,
-            args=args_str
-        ).strip().replace('  ', ' ')
-
-    def job_data(self):
-        """Return the data representing job to be queued.
-
-        Returns:
-            Storage: representing job (equivalent to db.job Row.as_dict())
-        """
-        attributes = Storage(dict(self.default_job_options))
-        if self.job_options:
-            attributes.update(self.job_options)
-        for k in sorted(attributes.keys()):
-            if k not in self.tbl.fields:
-                raise InvalidJobOptionError(
-                    'Invalid job option: {opt}'.format(opt=k))
-        if 'command' not in attributes:
-            attributes['command'] = self.command()
-        if 'start' not in attributes:
-            attributes['start'] = datetime.datetime.now()
-        if self.delay_seconds:
-            attributes['start'] = attributes['start'] + \
-                datetime.timedelta(seconds=self.delay_seconds)
-        return attributes
-
-    def queue(self):
-        """Queue the job."""
-        return self.queue_class(self.tbl).add_job(self.job_data())
-
-
-class JobRequeuer(object):
-    """Class representing a job requeuer. A requeuer queues a job
-    repeatedly up to a maximum number of times.
-    """
-
-    def __init__(self, queuer, requeues=0, max_requeues=1):
-        """Initializer
-
-        Args:
-            queuer: JobQueuer instance
-            requeues: integer, the number of times the job has been requeued
-            max_requeues: integer, the maximum number of times to requeue job
-
-        """
-        self.queuer = queuer
-        self.requeues = requeues
-        self.max_requeues = max_requeues
-
-    def requeue(self):
-        """Requeue the job.
-
-        Args:
-            self.assertRaises(exception, func, arguments)g
-
-        Returns:
-            Job instance representing job requeued.
-
-        Raises:
-            StopIteration if max_requeues reached.
-        """
-        if self.requeues >= self.max_requeues:
-            msg = 'The maximum requeues, {m}, reached.'.format(
-                m=self.max_requeues)
-            raise StopIteration(msg)
-
-        self.queuer.cli_options.update(self.requeue_cli_options())
-        return self.queuer.queue()
-
-    def requeue_cli_options(self):
-        """Return dict of cli options on requeue."""
-
-        return {
-            '--requeues': self.requeues + 1,
-            '--max-requeues': self.max_requeues,
-        }
-
-
 class Queue(object):
     """Class representing a job queue."""
 
@@ -608,3 +472,139 @@ class Queue(object):
         if os.path.exists(filename):
             os.unlink(filename)
         return
+
+
+class Queuer(object):
+    """Class representing a job queuer base class.
+
+    A job queuer instance is used to queue jobs for a specific program,
+    defined by the class program property, with the option of changing
+    both the job parameters and the job command cli options.
+    """
+    program = ''
+    default_job_options = {'start': datetime.datetime.now(), 'status': 'a'}
+    default_cli_options = {}
+    valid_cli_options = []
+    queue_class = None
+    bin_path = 'applications/zcomx/private/bin'
+
+    def __init__(
+            self,
+            tbl,
+            job_options=None,
+            cli_options=None,
+            cli_args=None,
+            delay_seconds=0):
+
+        """Constructor
+
+        Args:
+            tbl: gluon.dal.Table of table jobs are stored in. Eg db.job
+            job_options: dict, job record attributes
+            cli_options: dict, options for command
+            cli_args: list, arguments for command
+            delay_seconds: integer, number of seconds to postpone start of job.
+        """
+        self.tbl = tbl
+        self.job_options = job_options or {}
+        self.cli_options = cli_options or {}
+        self.cli_args = cli_args or []
+        self.delay_seconds = delay_seconds
+        # W0212: *Access to a protected member %%s of a client class*
+        # pylint: disable=W0212
+        self.db = self.tbl._db
+        if not self.queue_class:
+            self.queue_class = Queue
+
+    def command(self):
+        """Return the command for the job to be queued."""
+        # Validate cli options
+        options = []
+        cli_options = dict(self.default_cli_options)
+        if self.cli_options:
+            cli_options.update(self.cli_options)
+        for k, v in sorted(cli_options.items()):
+            if k not in self.valid_cli_options:
+                raise InvalidCLIOptionError(
+                    'Invalid cli option: {opt}'.format(opt=k))
+            options.append(CLIOption(k, value=v))
+        options_str = ' '.join([str(x) for x in options if str(x)])
+        args_str = ' '.join([pipes.quote(x) for x in self.cli_args])
+        return '{prg} {opts} {args}'.format(
+            prg=self.program,
+            opts=options_str,
+            args=args_str
+        ).strip().replace('  ', ' ')
+
+    def job_data(self):
+        """Return the data representing job to be queued.
+
+        Returns:
+            Storage: representing job (equivalent to db.job Row.as_dict())
+        """
+        attributes = Storage(dict(self.default_job_options))
+        if self.job_options:
+            attributes.update(self.job_options)
+        for k in sorted(attributes.keys()):
+            if k not in self.tbl.fields:
+                raise InvalidJobOptionError(
+                    'Invalid job option: {opt}'.format(opt=k))
+        if 'command' not in attributes:
+            attributes['command'] = self.command()
+        if 'start' not in attributes:
+            attributes['start'] = datetime.datetime.now()
+        if self.delay_seconds:
+            attributes['start'] = attributes['start'] + \
+                datetime.timedelta(seconds=self.delay_seconds)
+        return attributes
+
+    def queue(self):
+        """Queue the job."""
+        return self.queue_class(self.tbl).add_job(self.job_data())
+
+
+class Requeuer(object):
+    """Class representing a job requeuer. A requeuer queues a job
+    repeatedly up to a maximum number of times.
+    """
+
+    def __init__(self, queuer, requeues=0, max_requeues=1):
+        """Initializer
+
+        Args:
+            queuer: Queuer instance
+            requeues: integer, the number of times the job has been requeued
+            max_requeues: integer, the maximum number of times to requeue job
+
+        """
+        self.queuer = queuer
+        self.requeues = requeues
+        self.max_requeues = max_requeues
+
+    def requeue(self):
+        """Requeue the job.
+
+        Args:
+            self.assertRaises(exception, func, arguments)g
+
+        Returns:
+            Job instance representing job requeued.
+
+        Raises:
+            StopIteration if max_requeues reached.
+        """
+        if self.requeues >= self.max_requeues:
+            msg = 'The maximum requeues, {m}, reached.'.format(
+                m=self.max_requeues)
+            raise StopIteration(msg)
+
+        self.queuer.cli_options.update(self.requeue_cli_options())
+        return self.queuer.queue()
+
+    def requeue_cli_options(self):
+        """Return dict of cli options on requeue."""
+
+        return {
+            '--requeues': self.requeues + 1,
+            '--max-requeues': self.max_requeues,
+        }

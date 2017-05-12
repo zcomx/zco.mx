@@ -12,8 +12,8 @@ from gluon import *
 from applications.zcomx.modules.job_queue import \
     Daemon, \
     DaemonSignalError, \
-    JobQueuer, \
-    Queue
+    Queue, \
+    Queuer
 
 PRIORITIES = list(reversed([
     # Highest
@@ -68,9 +68,9 @@ class QueueWithSignal(Queue):
             LOG.error(err)
 
 
-class CreateCBZQueuer(JobQueuer):
+class CreateCBZQueuer(Queuer):
     """Class representing a queuer for create_cbz jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'create_cbz.py')
+    program = os.path.join(Queuer.bin_path, 'create_cbz.py')
     default_job_options = {
         'priority': PRIORITIES.index('create_cbz'),
         'status': 'a',
@@ -81,9 +81,9 @@ class CreateCBZQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
-class CreateTorrentQueuer(JobQueuer):
+class CreateTorrentQueuer(Queuer):
     """Class representing a queuer for create torrent jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'create_torrent.py')
+    program = os.path.join(Queuer.bin_path, 'create_torrent.py')
     default_job_options = {
         'priority': PRIORITIES.index('create_book_torrent'),
         'status': 'a',
@@ -126,9 +126,9 @@ class CreateCreatorTorrentQueuer(CreateTorrentQueuer):
     ]
 
 
-class DeleteBookQueuer(JobQueuer):
+class DeleteBookQueuer(Queuer):
     """Class representing a queuer for delete_book jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'delete_book.py')
+    program = os.path.join(Queuer.bin_path, 'delete_book.py')
     default_job_options = {
         'priority': PRIORITIES.index('delete_book'),
         'status': 'a',
@@ -139,9 +139,9 @@ class DeleteBookQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
-class FileshareBookQueuer(JobQueuer):
+class FileshareBookQueuer(Queuer):
     """Class representing a queuer for fileshare_book jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'fileshare_book.py')
+    program = os.path.join(Queuer.bin_path, 'fileshare_book.py')
     default_job_options = {
         'priority': PRIORITIES.index('fileshare_book'),
         'status': 'a',
@@ -154,9 +154,9 @@ class FileshareBookQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
-class LogDownloadsQueuer(JobQueuer):
+class LogDownloadsQueuer(Queuer):
     """Class representing a queuer for 'log downloads' jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'log_downloads.py')
+    program = os.path.join(Queuer.bin_path, 'log_downloads.py')
     default_job_options = {
         'priority': PRIORITIES.index('log_downloads'),
         'status': 'a',
@@ -169,9 +169,9 @@ class LogDownloadsQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
-class NotifyP2PQueuer(JobQueuer):
+class NotifyP2PQueuer(Queuer):
     """Class representing a queuer for notify p2p network jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'notify_p2p_networks.py')
+    program = os.path.join(Queuer.bin_path, 'notify_p2p_networks.py')
     default_job_options = {
         'priority': PRIORITIES.index('notify_p2p_networks'),
         'status': 'a',
@@ -183,9 +183,9 @@ class NotifyP2PQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
-class OptimizeImgQueuer(JobQueuer):
+class OptimizeImgQueuer(Queuer):
     """Class representing a queuer for optimize_img jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'process_img.py')
+    program = os.path.join(Queuer.bin_path, 'process_img.py')
     default_job_options = {
         'priority': PRIORITIES.index('optimize_img'),
         'status': 'a',
@@ -241,12 +241,12 @@ class OptimizeCBZImgForReleaseQueuer(OptimizeImgQueuer):
     default_cli_options = {'--size': 'cbz'}
 
 
-class PostOnSocialMediaQueuer(JobQueuer):
+class PostOnSocialMediaQueuer(Queuer):
     """Class representing a queuer for post_book_completed on social_media
     jobs.
     """
     program = os.path.join(
-        JobQueuer.bin_path, 'social_media', 'post_book_completed.py')
+        Queuer.bin_path, 'social_media', 'post_book_completed.py')
     default_job_options = {
         'priority': PRIORITIES.index('post_book_completed'),
         'status': 'a',
@@ -257,9 +257,9 @@ class PostOnSocialMediaQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
-class PurgeTorrentsQueuer(JobQueuer):
+class PurgeTorrentsQueuer(Queuer):
     """Class representing a queuer for purge_torrent jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'purge_torrents.py')
+    program = os.path.join(Queuer.bin_path, 'purge_torrents.py')
     default_job_options = {
         'priority': PRIORITIES.index('purge_torrents'),
         'status': 'a',
@@ -272,7 +272,7 @@ class PurgeTorrentsQueuer(JobQueuer):
 
 class ReverseFileshareBookQueuer(FileshareBookQueuer):
     """Class representing a queuer for reversing fileshare_book jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'fileshare_book.py')
+    program = os.path.join(Queuer.bin_path, 'fileshare_book.py')
     default_job_options = dict(FileshareBookQueuer.default_job_options)
     default_job_options['priority'] = \
         PRIORITIES.index('reverse_fileshare_book')
@@ -281,9 +281,9 @@ class ReverseFileshareBookQueuer(FileshareBookQueuer):
     valid_cli_options.append('--reverse')
 
 
-class SearchPrefetchQueuer(JobQueuer):
+class SearchPrefetchQueuer(Queuer):
     """Class representing a queuer for search_prefetch jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'search_prefetch.py')
+    program = os.path.join(Queuer.bin_path, 'search_prefetch.py')
     default_job_options = {
         'priority': PRIORITIES.index('search_prefetch'),
         'status': 'a',
@@ -296,9 +296,9 @@ class SearchPrefetchQueuer(JobQueuer):
     queue_class = QueueWithSignal
 
 
-class SetBookCompletedQueuer(JobQueuer):
+class SetBookCompletedQueuer(Queuer):
     """Class representing a queuer for set_book_completed jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'set_book_completed.py')
+    program = os.path.join(Queuer.bin_path, 'set_book_completed.py')
     default_job_options = {
         'priority': PRIORITIES.index('set_book_completed'),
         'status': 'a',
@@ -313,7 +313,7 @@ class SetBookCompletedQueuer(JobQueuer):
 
 class ReverseSetBookCompletedQueuer(SetBookCompletedQueuer):
     """Class representing a queuer for reversing set_book_completed jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'set_book_completed.py')
+    program = os.path.join(Queuer.bin_path, 'set_book_completed.py')
     default_job_options = dict(SetBookCompletedQueuer.default_job_options)
     default_job_options['priority'] = \
         PRIORITIES.index('reverse_set_book_completed')
@@ -322,9 +322,9 @@ class ReverseSetBookCompletedQueuer(SetBookCompletedQueuer):
     valid_cli_options.append('--reverse')
 
 
-class UpdateIndiciaQueuer(JobQueuer):
+class UpdateIndiciaQueuer(Queuer):
     """Class representing a queuer for update_creator_indicia jobs."""
-    program = os.path.join(JobQueuer.bin_path, 'update_creator_indicia.py')
+    program = os.path.join(Queuer.bin_path, 'update_creator_indicia.py')
     default_job_options = {
         'priority': PRIORITIES.index('update_creator_indicia'),
         'status': 'a',
