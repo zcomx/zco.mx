@@ -18,8 +18,9 @@ import time
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.records import Record
-from applications.zcomx.modules.utils import default_record
-
+from applications.zcomx.modules.utils import \
+    ClassFactory, \
+    default_record
 
 LOG = current.app.logger
 
@@ -486,6 +487,7 @@ class Queuer(object):
     defined by the class program property, with the option of changing
     both the job parameters and the job command cli options.
     """
+    class_factory = ClassFactory('class_factory_id')
     program = ''
     default_job_options = {'start': datetime.datetime.now(), 'status': 'a'}
     default_cli_options = {}

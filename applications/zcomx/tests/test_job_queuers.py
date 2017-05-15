@@ -7,10 +7,13 @@ test_job_queue.py
 Test suite for zcomx/modules/job_queue.py
 
 """
+import inspect
 import os
 import unittest
 from gluon import *
-from applications.zcomx.modules.job_queue import InvalidCLIOptionError
+from applications.zcomx.modules.job_queue import \
+    InvalidCLIOptionError, \
+    Queuer
 from applications.zcomx.modules.job_queuers import \
     CreateAllTorrentQueuer, \
     CreateBookTorrentQueuer, \
@@ -592,6 +595,59 @@ class TestFunctions(LocalTestCase):
             job.command,
             'applications/zcomx/private/bin/search_prefetch.py'
         )
+
+
+class TestIntegrityChecks(LocalTestCase):
+
+    def test_queuers(self):
+        queuer_codes = [
+            x.code for x in db(db.job_queuer).select(db.job_queuer.code)
+        ]
+
+        subclasses = []
+        for element in globals().values():
+            if not inspect.isclass(element):
+                continue
+            if not element.__module__ == \
+                    'applications.zcomx.modules.job_queuers':
+                continue
+            if not str(element).endswith("Queuer'>"):
+                continue
+            subclasses.append(element)
+
+        class_factory_ids = [x.class_factory_id for x in subclasses]
+
+        # Test each subclass can be accessed by code.
+        for queuer_code in queuer_codes:
+            queuer = Queuer.class_factory(queuer_code, db.job)
+            self.assertTrue(queuer.program.startswith('applications'))
+            self.assertTrue(queuer.program.endswith('.py'))
+
+        # Test that there are no duplicates
+        self.assertEqual(sorted(list(set(queuer_codes))), sorted(queuer_codes))
+
+        # These three lists must be the same.
+        # 1. List of job_queuer.code values
+        # 2. PRIORITIES
+        # 3. List of Queuer subclass class_factory_id
+
+        self.assertEqual(
+            sorted(queuer_codes),
+            sorted(PRIORITIES)
+        )
+        self.assertEqual(
+            sorted(queuer_codes),
+            sorted(class_factory_ids)
+        )
+
+        # Test that priorities are set properly
+        for queuer_class in subclasses:
+            priority = queuer_class.default_job_options['priority']
+            queuer_priority = PRIORITIES.index(queuer_class.class_factory_id)
+            self.assertEqual(
+                queuer_priority,
+                priority
+            )
 
 
 def setUpModule():

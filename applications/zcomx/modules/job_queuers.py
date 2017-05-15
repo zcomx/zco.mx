@@ -35,10 +35,10 @@ PRIORITIES = [
     'fileshare_book',
     'set_book_completed',
     'post_book_completed',
+    'create_torrent',                 # Base class, not used
     'create_book_torrent',
     'create_cbz',
     'update_creator_indicia_for_release',
-    'optimize_img_for_release',
     'optimize_cbz_img_for_release',
     # Highest
 ]
@@ -68,8 +68,10 @@ class QueueWithSignal(Queue):
             LOG.error(err)
 
 
+@Queuer.class_factory.register
 class CreateCBZQueuer(Queuer):
     """Class representing a queuer for create_cbz jobs."""
+    class_factory_id = 'create_cbz'
     program = os.path.join(Queuer.bin_path, 'create_cbz.py')
     default_job_options = {
         'priority': PRIORITIES.index('create_cbz'),
@@ -81,11 +83,13 @@ class CreateCBZQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class CreateTorrentQueuer(Queuer):
     """Class representing a queuer for create torrent jobs."""
+    class_factory_id = 'create_torrent'
     program = os.path.join(Queuer.bin_path, 'create_torrent.py')
     default_job_options = {
-        'priority': PRIORITIES.index('create_book_torrent'),
+        'priority': PRIORITIES.index('create_torrent'),
         'status': 'a',
     }
     valid_cli_options = [
@@ -96,8 +100,10 @@ class CreateTorrentQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class CreateAllTorrentQueuer(CreateTorrentQueuer):
     """Class representing a queuer for create_all_torrent jobs."""
+    class_factory_id = 'create_all_torrent'
     default_job_options = dict(CreateTorrentQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index('create_all_torrent')
     default_cli_options = {'--all': True}
@@ -107,15 +113,22 @@ class CreateAllTorrentQueuer(CreateTorrentQueuer):
     ]
 
 
+@Queuer.class_factory.register
 class CreateBookTorrentQueuer(CreateTorrentQueuer):
     """Class representing a queuer for create_book_torrent jobs."""
+    class_factory_id = 'create_book_torrent'
+    default_job_options = dict(CreateTorrentQueuer.default_job_options)
+    default_job_options['priority'] = \
+        PRIORITIES.index('create_book_torrent')
     valid_cli_options = [
         '-v', '--vv',
     ]
 
 
+@Queuer.class_factory.register
 class CreateCreatorTorrentQueuer(CreateTorrentQueuer):
     """Class representing a queuer for create_creator_torrent jobs."""
+    class_factory_id = 'create_creator_torrent'
     default_job_options = dict(CreateTorrentQueuer.default_job_options)
     default_job_options['priority'] = \
         PRIORITIES.index('create_creator_torrent')
@@ -126,8 +139,10 @@ class CreateCreatorTorrentQueuer(CreateTorrentQueuer):
     ]
 
 
+@Queuer.class_factory.register
 class DeleteBookQueuer(Queuer):
     """Class representing a queuer for delete_book jobs."""
+    class_factory_id = 'delete_book'
     program = os.path.join(Queuer.bin_path, 'delete_book.py')
     default_job_options = {
         'priority': PRIORITIES.index('delete_book'),
@@ -139,8 +154,10 @@ class DeleteBookQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class FileshareBookQueuer(Queuer):
     """Class representing a queuer for fileshare_book jobs."""
+    class_factory_id = 'fileshare_book'
     program = os.path.join(Queuer.bin_path, 'fileshare_book.py')
     default_job_options = {
         'priority': PRIORITIES.index('fileshare_book'),
@@ -154,8 +171,10 @@ class FileshareBookQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class LogDownloadsQueuer(Queuer):
     """Class representing a queuer for 'log downloads' jobs."""
+    class_factory_id = 'log_downloads'
     program = os.path.join(Queuer.bin_path, 'log_downloads.py')
     default_job_options = {
         'priority': PRIORITIES.index('log_downloads'),
@@ -169,8 +188,10 @@ class LogDownloadsQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class NotifyP2PQueuer(Queuer):
     """Class representing a queuer for notify p2p network jobs."""
+    class_factory_id = 'notify_p2p_networks'
     program = os.path.join(Queuer.bin_path, 'notify_p2p_networks.py')
     default_job_options = {
         'priority': PRIORITIES.index('notify_p2p_networks'),
@@ -183,8 +204,10 @@ class NotifyP2PQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class OptimizeImgQueuer(Queuer):
     """Class representing a queuer for optimize_img jobs."""
+    class_factory_id = 'optimize_img'
     program = os.path.join(Queuer.bin_path, 'process_img.py')
     default_job_options = {
         'priority': PRIORITIES.index('optimize_img'),
@@ -199,8 +222,10 @@ class OptimizeImgQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class DeleteImgQueuer(OptimizeImgQueuer):
     """Class representing a queuer for deleting an image jobs."""
+    class_factory_id = 'delete_img'
     default_job_options = dict(OptimizeImgQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index('delete_img')
     default_cli_options = {'--delete': True}
@@ -209,42 +234,52 @@ class DeleteImgQueuer(OptimizeImgQueuer):
     valid_cli_options.append('--delete')
 
 
+@Queuer.class_factory.register
 class OptimizeCBZImgQueuer(OptimizeImgQueuer):
     """Class representing a queuer for optimizing cbz images."""
+    class_factory_id = 'optimize_cbz_img'
     default_job_options = dict(OptimizeImgQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index(
         'optimize_cbz_img')
     default_cli_options = {'--size': 'cbz'}
 
 
+@Queuer.class_factory.register
 class OptimizeOriginalImgQueuer(OptimizeImgQueuer):
     """Class representing a queuer for optimizing original images."""
+    class_factory_id = 'optimize_original_img'
     default_job_options = dict(OptimizeImgQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index(
         'optimize_original_img')
     default_cli_options = {'--size': 'original'}
 
 
+@Queuer.class_factory.register
 class OptimizeWebImgQueuer(OptimizeImgQueuer):
     """Class representing a queuer for optimizing web images."""
+    class_factory_id = 'optimize_web_img'
     default_job_options = dict(OptimizeImgQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index(
         'optimize_web_img')
     default_cli_options = {'--size': 'web'}
 
 
+@Queuer.class_factory.register
 class OptimizeCBZImgForReleaseQueuer(OptimizeImgQueuer):
     """Class representing a queuer for optimizing cbz images for release."""
+    class_factory_id = 'optimize_cbz_img_for_release'
     default_job_options = dict(OptimizeImgQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index(
         'optimize_cbz_img_for_release')
     default_cli_options = {'--size': 'cbz'}
 
 
+@Queuer.class_factory.register
 class PostOnSocialMediaQueuer(Queuer):
     """Class representing a queuer for post_book_completed on social_media
     jobs.
     """
+    class_factory_id = 'post_book_completed'
     program = os.path.join(
         Queuer.bin_path, 'social_media', 'post_book_completed.py')
     default_job_options = {
@@ -257,8 +292,10 @@ class PostOnSocialMediaQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class PurgeTorrentsQueuer(Queuer):
     """Class representing a queuer for purge_torrent jobs."""
+    class_factory_id = 'purge_torrents'
     program = os.path.join(Queuer.bin_path, 'purge_torrents.py')
     default_job_options = {
         'priority': PRIORITIES.index('purge_torrents'),
@@ -270,8 +307,10 @@ class PurgeTorrentsQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class ReverseFileshareBookQueuer(FileshareBookQueuer):
     """Class representing a queuer for reversing fileshare_book jobs."""
+    class_factory_id = 'reverse_fileshare_book'
     program = os.path.join(Queuer.bin_path, 'fileshare_book.py')
     default_job_options = dict(FileshareBookQueuer.default_job_options)
     default_job_options['priority'] = \
@@ -281,8 +320,10 @@ class ReverseFileshareBookQueuer(FileshareBookQueuer):
     valid_cli_options.append('--reverse')
 
 
+@Queuer.class_factory.register
 class SearchPrefetchQueuer(Queuer):
     """Class representing a queuer for search_prefetch jobs."""
+    class_factory_id = 'search_prefetch'
     program = os.path.join(Queuer.bin_path, 'search_prefetch.py')
     default_job_options = {
         'priority': PRIORITIES.index('search_prefetch'),
@@ -296,8 +337,10 @@ class SearchPrefetchQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class SetBookCompletedQueuer(Queuer):
     """Class representing a queuer for set_book_completed jobs."""
+    class_factory_id = 'set_book_completed'
     program = os.path.join(Queuer.bin_path, 'set_book_completed.py')
     default_job_options = {
         'priority': PRIORITIES.index('set_book_completed'),
@@ -311,8 +354,10 @@ class SetBookCompletedQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class ReverseSetBookCompletedQueuer(SetBookCompletedQueuer):
     """Class representing a queuer for reversing set_book_completed jobs."""
+    class_factory_id = 'reverse_set_book_completed'
     program = os.path.join(Queuer.bin_path, 'set_book_completed.py')
     default_job_options = dict(SetBookCompletedQueuer.default_job_options)
     default_job_options['priority'] = \
@@ -322,8 +367,10 @@ class ReverseSetBookCompletedQueuer(SetBookCompletedQueuer):
     valid_cli_options.append('--reverse')
 
 
+@Queuer.class_factory.register
 class UpdateIndiciaQueuer(Queuer):
     """Class representing a queuer for update_creator_indicia jobs."""
+    class_factory_id = 'update_creator_indicia'
     program = os.path.join(Queuer.bin_path, 'update_creator_indicia.py')
     default_job_options = {
         'priority': PRIORITIES.index('update_creator_indicia'),
@@ -339,9 +386,11 @@ class UpdateIndiciaQueuer(Queuer):
     queue_class = QueueWithSignal
 
 
+@Queuer.class_factory.register
 class UpdateIndiciaForReleaseQueuer(UpdateIndiciaQueuer):
     """Class representing a queuer for update_creator_indicia for release jobs.
     """
+    class_factory_id = 'update_creator_indicia_for_release'
     default_job_options = dict(UpdateIndiciaQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index(
         'update_creator_indicia_for_release')
