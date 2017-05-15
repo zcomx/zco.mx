@@ -548,22 +548,86 @@ db.define_table('download_click',
     ),
 )
 
-db.define_table('job',
-    Field('start', 'datetime'),
-    Field('priority', 'integer'),
-    Field('command'),
-    Field(
-        'ignorable',
+
+"""
+job_common_fields         # Jobs are added to a queue and processed in order.
+# Note: this isn't a database table. If defines fields shared by the
+# job and job_history tables.
+
+job_queuer_id  integer    # References job_queuer.id
+start          datetime   # Scheduled start time.
+                          # Job will not be run prior to this time.
+priority       integer    # Priority of job, higher value = higher priority
+command        varchar    # Command to execute.
+ignorable      char(1)    # Job can be ignored.
+queued_time    datetime   # Time job was added to queue.
+start_time     datetime   # Time job was started.
+end_time       datetime   # Time job was completed.
+wait_seconds   integer    # Seconds job had to wait in queue.
+run_seconds    integer    # Seconds job took to complete.
+ignored        char(1)    # Was job ignored.
+status         char       # 'a' = active (queued),
+                          # 'c' = complete
+                          # 'd' = deactive (done)
+                          # 'p' = running (in progress)
+"""
+job_common_fields = db.Table(db, 'job_common_fields',
+    Field('job_queuer_id',
+        'integer',
+    ),
+    Field('start',
+        'datetime',
+        requires=IS_DATETIME(),
+    ),
+    Field('priority',
+        'integer',
+    ),
+    Field('command',
+        'string',
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field('ignorable',
         'boolean',
         default=False,
         represent=lambda v, r=None: 'Yes' if v is True else 'No',
     ),
-    Field(
-        'status',
+    Field('queued_time',
+        'datetime',
+        requires=IS_EMPTY_OR(IS_DATETIME()),
+    ),
+    Field('start_time',
+        'datetime',
+        requires=IS_EMPTY_OR(IS_DATETIME()),
+    ),
+    Field('end_time',
+        'datetime',
+        requires=IS_EMPTY_OR(IS_DATETIME()),
+    ),
+    Field('wait_seconds',
+        'integer',
+    ),
+    Field('run_seconds',
+        'integer',
+    ),
+    Field('ignored',
+        'boolean',
+        default=False,
+        represent=lambda v, r=None: 'Yes' if v is True else 'No',
+    ),
+    Field('status',
+        'string',
         default='a',
-        requires=IS_IN_SET(['a', 'd', 'p']),
+        requires=IS_IN_SET([
+            ('a', 'Enabled'),
+            ('c', 'Complete'),
+            ('d', 'Disabled'),
+            ('p', 'In Progress')
+        ], zero=None),
     ),
 )
+
+db.define_table('job', job_common_fields)
+db.define_table('job_history', job_common_fields)
 
 db.define_table('job_queuer',
     Field('code', 'string', requires=IS_NOT_EMPTY()),

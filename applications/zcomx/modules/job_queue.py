@@ -227,6 +227,11 @@ class IgnorableJob(Job):
         return False
 
 
+class JobHistory(Record):
+    """Class representing a job_history database record."""
+    db_table = 'job_history'
+
+
 class JobQueuer(Record):
     """Class representing a job_queuer database record."""
     db_table = 'job_queuer'
@@ -549,6 +554,7 @@ class Queuer(object):
         Returns:
             Storage: representing job (equivalent to db.job Row.as_dict())
         """
+        db = current.app.db
         attributes = Storage(dict(self.default_job_options))
         if self.job_options:
             attributes.update(self.job_options)
@@ -556,13 +562,23 @@ class Queuer(object):
             if k not in self.tbl.fields:
                 raise InvalidJobOptionError(
                     'Invalid job option: {opt}'.format(opt=k))
+        now = datetime.datetime.now()
+
+        job_queuer = None
+        if self.class_factory_id:
+            query = (db.job_queuer.code == self.class_factory_id)
+            job_queuer = db(query).select().first()
+
+        attributes['job_queuer_id'] = job_queuer.id if job_queuer else 0
+
         if 'command' not in attributes:
             attributes['command'] = self.command()
         if 'start' not in attributes:
-            attributes['start'] = datetime.datetime.now()
+            attributes['start'] = now
         if self.delay_seconds:
             attributes['start'] = attributes['start'] + \
                 datetime.timedelta(seconds=self.delay_seconds)
+        attributes['queued_time'] = now
         return attributes
 
     def queue(self):

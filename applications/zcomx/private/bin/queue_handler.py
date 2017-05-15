@@ -8,10 +8,12 @@ Check queue and run any jobs found.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+import datetime
 import subprocess
 from optparse import OptionParser
 from applications.zcomx.modules.job_queue import \
     IgnorableJob, \
+    JobHistory, \
     Queue
 from applications.zcomx.modules.logger import set_cli_logging
 
@@ -53,34 +55,66 @@ def main():
 
     queue = Queue(db.job, job_class=IgnorableJob)
 
+    ignore_fields = ['id', 'created_on', 'updated_on']
+
     LOG.info("Checking queue for jobs.")
     for job in queue.job_generator():
         stats['checked'] += 1
 
-        if job.is_ignored():
-            LOG.debug(
-                "job: {job}, ignored exit: {exit}".format(
-                    job=job.command, exit=0
-                )
-            )
-            job.delete()
-            stats['ignored'] += 1
-            continue
+        is_ignored = job.is_ignored()
+        error = None
 
-        queue.set_job_status(job, 'p')        # In progress
-        try:
-            queue.run_job(job)
-        except subprocess.CalledProcessError as err:
+        start_now = datetime.datetime.now()
+        data = dict(
+            start_time=start_now,
+            wait_seconds=(start_now - job.queued_time).seconds,
+            status='p',
+        )
+        job = IgnorableJob.from_updated(job, data)
+
+        if not is_ignored:
+            try:
+                queue.run_job(job)
+            except subprocess.CalledProcessError as err:
+                error = err
+
+        end_now = datetime.datetime.now()
+        data = dict(
+            end_time=end_now,
+            run_seconds=(end_now - job.start_time).seconds,
+            ignored=is_ignored,
+            status='d' if error else 'c',
+        )
+        job = IgnorableJob.from_updated(job, data)
+
+        # Set stats
+        stats_status = 'ignored' if is_ignored else \
+            'error' if error else 'success'
+        stats[stats_status] += 1
+
+        # Log
+        if error:
             LOG.error("Job exited with error.")
-            LOG.error("job: %s, exit: %s", job.command, err.returncode)
+        log_method = LOG.error if error else LOG.debug
+        log_method(
+            "job: {job}, {ignored} exit: {exit}".format(
+                ignored='ignored' if is_ignored else '',
+                job=job.command,
+                exit=error.returncode if error else 0,
+            )
+        )
+        if error:
             for line in err.output.split("\n"):
                 LOG.error(line)
-            queue.set_job_status(job, 'd')        # Disabled
-            stats['error'] += 1
-        else:
-            LOG.debug("job: %s, exit: %s", job.command, '0')
-            job.delete()
-            stats['success'] += 1
+
+        # Move job to history
+        job_history_data = {}
+        for field in db.job.fields:
+            if field in ignore_fields:
+                continue
+            job_history_data[field] = job[field]
+        JobHistory.from_add(job_history_data)
+        job.delete()
 
     if options.summary:
         for k, v in sorted(stats.items()):

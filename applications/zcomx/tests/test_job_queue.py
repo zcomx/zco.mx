@@ -22,6 +22,7 @@ from applications.zcomx.modules.job_queue import \
     InvalidJobOptionError, \
     InvalidStatusError, \
     Job, \
+    JobHistory, \
     JobQueuer, \
     Queue, \
     QueueEmptyError, \
@@ -45,7 +46,7 @@ if not os.path.exists(TMP_DIR):
 
 class SubQueuer(Queuer):
     """Sub class of Queuer used for testing."""
-
+    class_factory_id = 'some_program'
     program = 'some_program.py'
     default_job_options = {
         'priority': 1,
@@ -249,11 +250,18 @@ class TestJob(LocalTestCase):
     pass            # Record subclass
 
 
+class TestJobHistory(LocalTestCase):
+    def test_init__(self):
+        query = (db.job_history)
+        job_history = JobHistory.from_query(query)
+        self.assertTrue(job_history)
+
+
 class TestJobQueuer(LocalTestCase):
     def test_init__(self):
         query = (db.job_queuer.code == 'search_prefetch')
-        job_queuer = Job.from_query(query)
-        self.assertTrue(query)
+        job_queuer = JobQueuer.from_query(query)
+        self.assertTrue(job_queuer)
 
 
 class TestQueue(LocalTestCase):
@@ -653,6 +661,7 @@ class TestQueuer(LocalTestCase):
     def test__job_data(self):
         then = datetime.datetime.now()
         data = SubQueuer(db.job).job_data()
+        self.assertEqual(data.job_queuer_id, 0)
         self.assertEqual(data.status, 'd')
         self.assertEqual(data.priority, 1)
         self.assertEqual(
@@ -663,6 +672,7 @@ class TestQueuer(LocalTestCase):
         diff = data.start - then
         self.assertTrue(diff.total_seconds() >= 0)
         self.assertTrue(diff.total_seconds() < 1)
+        self.assertEqual(data.start, data.queued_time)
 
         invalid_job_options = {'fake_field': 'value'}
         queuer = SubQueuer(db.job, job_options=invalid_job_options)
