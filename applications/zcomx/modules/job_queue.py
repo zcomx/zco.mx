@@ -226,6 +226,11 @@ class IgnorableJob(Job):
         return False
 
 
+class JobQueuer(Record):
+    """Class representing a job_queuer database record."""
+    db_table = 'job_queuer'
+
+
 class Queue(object):
     """Class representing a job queue."""
 

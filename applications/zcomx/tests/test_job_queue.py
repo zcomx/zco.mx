@@ -22,6 +22,7 @@ from applications.zcomx.modules.job_queue import \
     InvalidJobOptionError, \
     InvalidStatusError, \
     Job, \
+    JobQueuer, \
     Queue, \
     QueueEmptyError, \
     QueueLockedError, \
@@ -242,6 +243,17 @@ class TestIgnorableJob(LocalTestCase):
                     job_1.is_ignored(status='d', start_limit_seconds=t[1]),
                     t[2]
                 )
+
+
+class TestJob(LocalTestCase):
+    pass            # Record subclass
+
+
+class TestJobQueuer(LocalTestCase):
+    def test_init__(self):
+        query = (db.job_queuer.code == 'search_prefetch')
+        job_queuer = Job.from_query(query)
+        self.assertTrue(query)
 
 
 class TestQueue(LocalTestCase):
