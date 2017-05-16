@@ -67,9 +67,11 @@ def main():
         start_now = datetime.datetime.now()
         data = dict(
             start_time=start_now,
-            wait_seconds=(start_now - job.queued_time).seconds,
             status='p',
         )
+        if job.queued_time:
+            data['wait_seconds'] = (start_now - job.queued_time).seconds
+
         job = IgnorableJob.from_updated(job, data)
 
         if not is_ignored:
@@ -81,10 +83,12 @@ def main():
         end_now = datetime.datetime.now()
         data = dict(
             end_time=end_now,
-            run_seconds=(end_now - job.start_time).seconds,
             ignored=is_ignored,
             status='d' if error else 'c',
         )
+        if job.start_time:
+            data['run_seconds'] = (end_now - job.start_time).seconds
+
         job = IgnorableJob.from_updated(job, data)
 
         # Set stats
