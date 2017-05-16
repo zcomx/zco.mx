@@ -61,6 +61,14 @@ def main():
         parser.print_help()
         exit(1)
 
+    job_d = {
+        'start': options.start,
+        'priority': options.priority,
+        'queued_time': now,
+    }
+    if not options.queuer:
+        job_d['command'] = ' '.join(args)
+
     if options.queuer:
         try:
             queuer_class = getattr(job_queuers, options.queuer)
@@ -71,14 +79,9 @@ def main():
             exit(1)
         if queuer_class:
             queuer = queuer_class(db.job)
+            queuer.default_job_options.update(job_d)
             job = queuer.queue()
     else:
-        job_d = {
-            'command': ' '.join(args),
-            'start': options.start,
-            'priority': options.priority,
-        }
-
         queue = job_queuers.QueueWithSignal(db.job)
         job = queue.add_job(job_d)
     LOG.info("Created job id: %s", str(job.id))
