@@ -198,20 +198,23 @@ class TestIgnorableJob(LocalTestCase):
         command = 'test__is_ignored'
         priority = 10
 
-        def reset(job):
-            data = dict(
-                command=command,
-                priority=priority,
-                start=now,
-                status='d',
-                ignorable=True,
-            )
-            return IgnorableJob.from_updated(job, data)
+        data = dict(
+            command=command,
+            priority=priority,
+            start=now,
+            status='d',
+            ignorable=True,
+        )
 
-        job_1 = IgnorableJob.from_add({})
+        reset_data = dict(data)
+
+        def reset(job):
+            return IgnorableJob.from_updated(job, reset_data)
+
+        job_1 = IgnorableJob.from_add(data)
         self._objects.append(job_1)
 
-        job_2 = IgnorableJob.from_add({})
+        job_2 = IgnorableJob.from_add(data)
         self._objects.append(job_2)
 
         job_1 = reset(job_1)
@@ -280,7 +283,12 @@ class TestQueue(LocalTestCase):
         TestQueue.clear_queue()
         self.assertEqual(len(queue.jobs()), 0)
 
-        job_data = dict(command='pwd')
+        now = datetime.datetime.now()
+        job_data = dict(
+            command='pwd',
+            priority=1,
+            start=now,
+        )
         ret = queue.add_job(job_data)
         self._objects.append(ret)
         self.assertEqual(ret.command, job_data['command'])
