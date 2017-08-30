@@ -8,6 +8,7 @@ Script to create a torrent file for a book, creator or all.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
@@ -15,9 +16,9 @@ from applications.zcomx.modules.torrents import \
     AllTorrentCreator, \
     BookTorrentCreator, \
     CreatorTorrentCreator
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def all_torrent():
@@ -49,7 +50,7 @@ def creator_torrent(creator_id):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     # Create torrents for books.
     create_torrent.py [OPTIONS] book_id [book_id book_id ...]
@@ -82,7 +83,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

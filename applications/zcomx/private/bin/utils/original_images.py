@@ -6,9 +6,10 @@ original_images.py
 
 Script to print a report on the original images of a book.
 """
+from __future__ import print_function
 import os
-from gluon import *
 from optparse import OptionParser
+from gluon import *
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.images import ImageDescriptor
 from applications.zcomx.modules.logger import set_cli_logging
@@ -25,8 +26,8 @@ def print_report(book):
     fmt = '{p:4s} {w:>4s}x{h:>4s} {n:30s} {f}'
     original_path = os.path.join(
         current.request.folder, 'uploads', 'original', 'book_page.image')
-    print (fmt + ' in {o}').format(
-        p='Pg#', n='Name', w='Wdth', h='Hght', f='Filename', o=original_path)
+    print((fmt + ' in {o}').format(
+        p='Pg#', n='Name', w='Wdth', h='Hght', f='Filename', o=original_path))
     for book_page in book.pages():
         upload_image = book_page.upload_image()
         descriptor = ImageDescriptor(upload_image.fullname())
@@ -34,18 +35,18 @@ def print_report(book):
         # pylint: disable=W0633
         width, height = descriptor.dimensions()
         fullname = upload_image.fullname().replace(original_path, '')
-        print fmt.format(
+        print(fmt.format(
             p=str(book_page.page_no),
             n=upload_image.original_name(),
             w=str(width),
             h=str(height),
             f=fullname,
-        )
+        ))
 
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     original_images.py [OPTIONS] book_id [book_id ...]
 
@@ -63,7 +64,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -95,7 +96,7 @@ def main():
         quit(0)
 
     if not args:
-        print parser.print_help()
+        print(parser.print_help())
         quit(1)
 
     set_cli_logging(LOG, options.verbose, options.vv)

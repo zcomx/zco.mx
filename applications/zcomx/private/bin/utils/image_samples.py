@@ -6,21 +6,21 @@ image_samples.py
 
 Script to create image samples.
 """
+from __future__ import print_function
 import os
 import subprocess
 import sys
-from gluon import *
-from gluon.shell import env
 from optparse import OptionParser
 from PIL import Image, ImageDraw, ImageFont
+from gluon import *
+from gluon.shell import env
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # C0103: *Invalid name "%%s" (should match %%s)*
 # pylint: disable=C0103
 db = APP_ENV['db']
-
-from applications.zcomx.modules.logger import set_cli_logging
 
 FIELDS = [
     'creator.image',
@@ -118,14 +118,14 @@ def list_ttf():
     )
     p_stdout, p_stderr = p.communicate()
     if p_stderr:
-        print >> sys.stderr, 'ERROR: {err}'.format(err=p_stderr)
+        print('ERROR: {err}'.format(err=p_stderr), file=sys.stderr)
         exit(1)
-    print p_stdout
+    print(p_stdout)
 
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     image_samples.py [OPTIONS] /path/to/images
 
@@ -167,7 +167,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -250,7 +250,7 @@ def main():
         quit(0)
 
     if len(args) > 1:
-        print parser.print_help()
+        print(parser.print_help())
         quit(1)
 
     path = os.getcwd()

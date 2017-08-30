@@ -8,19 +8,19 @@ Script to create cc_licence records. Script can be re-run without creating
 duplicate records, but will update/replace existing records.
 The --clear is not recommended if books already have cc_licences.
 """
+from __future__ import print_function
 import os
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.cc_licences import CCLicence
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # C0103: *Invalid name "%%s" (should match %%s)*
 # pylint: disable=C0103
 db = APP_ENV['db']
-
-from applications.zcomx.modules.logger import set_cli_logging
 
 # line-too-long (C0301): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
@@ -114,7 +114,7 @@ def run_checks():
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     cc_licences.py [OPTIONS]
 
@@ -140,7 +140,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():

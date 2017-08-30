@@ -14,12 +14,13 @@ This script is safe to rerun.
 All is does is queue jobs to run update_creator_indicia.py for the creators
 that weren't initialized properly.
 """
+from __future__ import print_function
 import os
 import sys
 import traceback
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.creators import \
     Creator, \
     queue_update_indicia
@@ -34,7 +35,7 @@ db = APP_ENV['db']
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     init_creator_indicia.py
 
@@ -52,7 +53,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():

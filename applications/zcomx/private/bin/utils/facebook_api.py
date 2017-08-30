@@ -7,14 +7,14 @@ facebook_api.py
 Script to test using facebook API (facepy)
 https://pypi.python.org/pypi/facepy/1.0.6
 """
+from __future__ import print_function
 import base64
 import datetime
-import requests
 import sys
 import traceback
 import urlparse
-from BeautifulSoup import BeautifulSoup
 from optparse import OptionParser
+import requests
 import applications.zcomx.modules.facepy as facepy
 from applications.zcomx.modules.facebook import FacebookAPIAuthenticator
 from applications.zcomx.modules.logger import set_cli_logging
@@ -59,7 +59,7 @@ class APIClient(object):
         """Get permission settings."""
         result = self.graph.get('{i}/permissions'.format(i=self.user_id))
         for item in result['data']:
-            print item['permission'], ': ', item['status']
+            print(item['permission'], ': ', item['status'])
         return result
 
     def post_photo_link(self):
@@ -132,7 +132,7 @@ class APIClient(object):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     facebook_api.py
 
@@ -149,7 +149,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -198,21 +198,21 @@ def main():
     command = args[0] if args else 'info'
 
     if command == 'info':
-        print client.info(fields=['id', 'about', 'access_token'])
+        print(client.info(fields=['id', 'about', 'access_token']))
     elif command == 'accounts':
-        print client.accounts()
+        print(client.accounts())
     elif command == 'permissions':
-        print client.permissions()
+        print(client.permissions())
     elif command == 'post_text':
-        print client.post_text()
+        print(client.post_text())
     elif command == 'post_photo_linke':
-        print client.post_photo_link()
+        print(client.post_photo_link())
     elif command == 'post_tumblr_link':
-        print client.post_tumblr_link()
+        print(client.post_tumblr_link())
     elif command == 'post_photo':
-        print client.post_photo()
+        print(client.post_photo())
     else:
-        print 'Invalid command: {c}'.format(c=command)
+        print('Invalid command: {c}'.format(c=command))
 
     LOG.info('Done.')
 

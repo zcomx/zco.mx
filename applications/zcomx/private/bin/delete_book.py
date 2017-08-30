@@ -6,6 +6,7 @@ delete_book.py
 
 Script to delete a book.
 """
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
@@ -40,7 +41,7 @@ def delete_records(book):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     delete_book.py [OPTIONS] book_id
 
@@ -56,7 +57,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

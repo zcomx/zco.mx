@@ -8,6 +8,7 @@ Utility script to optimize all images for a book, creator or all.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
@@ -17,9 +18,9 @@ from applications.zcomx.modules.creators import \
     images as creator_images
 from applications.zcomx.modules.images_optimize import \
     AllSizesImages
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def optimize_all_images(debug=False, force=False):
@@ -70,7 +71,7 @@ def optimize_creator_images(creator_id, debug=False, force=False):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     # Optimize all images, ie for all books and creators.
     optimize_images.py [OPTIONS]
@@ -108,7 +109,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

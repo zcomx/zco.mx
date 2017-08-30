@@ -337,7 +337,7 @@ class TestLinksKey(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             str(query),
-            "(((link.link_type_id = 111) AND (link.record_table = 'fake_table')) AND (link.record_id = 222))"
+            """((("link"."link_type_id" = 111) AND ("link"."record_table" = 'fake_table')) AND ("link"."record_id" = 222))"""
         )
 
     def test__from_link(self):

@@ -6,12 +6,13 @@ dal_tests.py
 
 Script to test dal queries.
 """
+from __future__ import print_function
 import os
 import sys
 import traceback
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -23,7 +24,7 @@ db = APP_ENV['db']
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     dal_tests.py
 
@@ -41,7 +42,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -83,10 +84,11 @@ def main():
         orderby=db.book.name
     )
 
-    print 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
-    print 'FIXME len(rows): {var}'.format(var=len(rows))
+    # pylint: disable=protected-access
+    print('FIXME db._lastsql: {var}'.format(var=db._lastsql))
+    print('FIXME len(rows): {var}'.format(var=len(rows)))
     for r in rows:
-        print 'FIXME r: {var}'.format(var=r)
+        print('FIXME r: {var}'.format(var=r))
 
     LOG.info('Done.')
 

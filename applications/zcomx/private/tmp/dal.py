@@ -6,10 +6,11 @@ dal.py
 
 Script to test dal commands.
 """
+from __future__ import print_function
 import sys
 import traceback
-from gluon import *
 from optparse import OptionParser
+from gluon import *
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -17,7 +18,7 @@ VERSION = 'Version 0.1'
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     dal.py
 
@@ -34,7 +35,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -93,10 +94,9 @@ def main():
         groupby=groupby,
     )
     for r in rows:
-        print r.book.id, ' ', r.book.name, ' ', r[page_count], r[max_on]
-    # protected-access (W0212): *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
-    print 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
+        print(r.book.id, ' ', r.book.name, ' ', r[page_count], r[max_on])
+    # pylint: disable=protected-access
+    print('FIXME db._lastsql: {var}'.format(var=db._lastsql))
 
     LOG.info('Done.')
 

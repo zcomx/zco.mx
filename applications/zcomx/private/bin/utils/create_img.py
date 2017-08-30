@@ -8,11 +8,12 @@ Script to create images.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-from PIL import Image
+from __future__ import print_function
 from optparse import OptionParser
+from PIL import Image
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def create_img(filename, dimensions, color):
@@ -30,7 +31,7 @@ def create_img(filename, dimensions, color):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     create_img.py [OPTIONS] path/to/outfile.jpg width height
 
@@ -49,7 +50,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

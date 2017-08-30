@@ -6,12 +6,13 @@ optimize_img_log_fix.py
 
 Script to initialize the image field in existing optimize_img_log records.
 """
+from __future__ import print_function
 import os
 import sys
 import traceback
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -23,7 +24,7 @@ db = APP_ENV['db']
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     optimize_img_log_fix.py
 
@@ -41,7 +42,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -82,7 +83,8 @@ def main():
             optimize_img_log.record_id,
         )
         table, field = optimize_img_log.record_field.split('.')
-        record = db(db[table].id == optimize_img_log.record_id).select(limitby=(0, 1)).first()
+        record = db(db[table].id == optimize_img_log.record_id).select(
+            limitby=(0, 1)).first()
         if not record:
             LOG.info(
                 'Record not found: %s - %s',
@@ -90,7 +92,6 @@ def main():
                 optimize_img_log.record_id,
             )
             continue
-        image_name = record[field]
         optimize_img_log.update_record(image=record[field])
         db.commit()
     LOG.info('Done.')

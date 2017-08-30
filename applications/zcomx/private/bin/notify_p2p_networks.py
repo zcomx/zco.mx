@@ -8,17 +8,18 @@ Script to notify p2p networks of addition or deletion of a cbz file.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.torrents import \
     P2PNotifier
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     notify_p2p_networks.py [OPTIONS] path/to/file.cbz
 
@@ -41,7 +42,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

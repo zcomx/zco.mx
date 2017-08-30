@@ -6,19 +6,19 @@ populate_book_type.py
 
 Script to populate the book_type table.
 """
+from __future__ import print_function
 import os
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.books import DEFAULT_BOOK_TYPE
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # C0103: *Invalid name "%%s" (should match %%s)*
 # pylint: disable=C0103
 db = APP_ENV['db']
-
-from applications.zcomx.modules.logger import set_cli_logging
 
 TYPES = [
     # (sequence, name, description)
@@ -55,8 +55,8 @@ def list_records():
     """List records."""
     rows = db().select(db.book_type.ALL)
     for r in rows:
-        print '{rid} {name:20s} {seq}'.format(
-            rid=r.id, name=r.name, seq=r.sequence)
+        print('{rid} {name:20s} {seq}'.format(
+            rid=r.id, name=r.name, seq=r.sequence))
 
 
 def update_books(dry_run=False):
@@ -71,7 +71,7 @@ def update_books(dry_run=False):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     populate_book_type.py [OPTIONS]
 
@@ -99,7 +99,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -158,7 +158,7 @@ def main():
         quit(0)
 
     if len(args) > 1:
-        print parser.print_help()
+        print(parser.print_help())
         quit(1)
 
     LOG.info('Started.')

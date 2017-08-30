@@ -6,6 +6,7 @@ search_prefetch.py
 
 Script to build search autocomplete prefetch json files.
 """
+from __future__ import print_function
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.autocomplete import autocompleter_class
@@ -23,7 +24,7 @@ DEFAULT_OUTPUT = os.path.join(
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 OVERVIEW
     This script creates search autocomplete prefetch json files.
 
@@ -53,7 +54,7 @@ OPTIONS
         More verbose. Print debug messages to stdout.
     """.format(
         tables=' and '.join(TABLES)
-    )
+    ))
 
 
 def main():

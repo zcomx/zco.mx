@@ -6,10 +6,11 @@ sql_integrity.py
 
 Compare the 'define_tables' table fields to actual table fields in sqlite db.
 """
+from __future__ import print_function
 from optparse import OptionParser
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def compare_fields():
@@ -70,7 +71,7 @@ def compare_tables():
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 OVERVIEW
     Sqlite has some quirks and limitations.
     * No DROP COLUMN
@@ -96,7 +97,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

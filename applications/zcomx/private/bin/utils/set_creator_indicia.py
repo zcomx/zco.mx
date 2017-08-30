@@ -13,6 +13,7 @@ The update_creator_indicia is not queued.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+from __future__ import print_function
 import os
 import shutil
 import sys
@@ -21,14 +22,14 @@ from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
     store
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     set_creator_indicia.py [OPTIONS] id|name file.png
 
@@ -48,7 +49,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():
@@ -99,19 +100,19 @@ def main():
                 db.creator.auth_user_id == db.auth_user.id),
         )
         if not rows:
-            print 'No creator found, name: {n}'.format(n=name)
+            print('No creator found, name: {n}'.format(n=name))
             quit(1)
         if len(rows) > 1:
-            print 'Multiple creator matches, use creator id:'
+            print('Multiple creator matches, use creator id:')
             for r in rows:
-                print 'id: {i}'.format(i=r.id)
+                print('id: {i}'.format(i=r.id))
             quit(1)
         record_id = rows[0].creator.id
 
     creator = Creator.from_id(record_id)
 
     if not os.path.exists(args[1]):
-        print 'File not found: {n}'.format(n=args[1])
+        print('File not found: {n}'.format(n=args[1]))
         quit(1)
 
     image_fullname = args[1]
@@ -131,17 +132,22 @@ def main():
     # This code copied/adapted from controllers/login.py def
     # creator_img_handler.
     resizer = ResizeImgIndicia if img_field == 'indicia_image' else None
+    # pylint: disable=broad-except
     try:
         stored_filename = store(
             db.creator[img_field], local_filename, resizer=resizer)
     except Exception as err:
-        print >> sys.stderr, \
-            'Creator image upload error: {err}'.format(err=err)
+        print(
+            'Creator image upload error: {err}'.format(err=err),
+            file=sys.stderr
+        )
         stored_filename = None
 
     if not stored_filename:
-        print >> sys.stderr, \
-            'Stored filename not returned. Aborting.'
+        print(
+            'Stored filename not returned. Aborting.',
+            file=sys.stderr
+        )
         quit(1)
 
     LOG.debug('stored_filename: %s', stored_filename)

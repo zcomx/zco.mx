@@ -6,14 +6,15 @@ dal_benchmarks.py
 
 Script to benchmark dal queries.
 """
+from __future__ import print_function
 import os
 import sys
 import traceback
 import random
+from optparse import OptionParser
 from timeit import Timer
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -25,7 +26,7 @@ db = APP_ENV['db']
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     dal_tests.py
 
@@ -43,7 +44,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -80,43 +81,49 @@ def main():
     ids = [x.id for x in db(db.book).select(db.book.id)]
 
     class SQLBencher(object):
+        """Class representing an SQL query benchmarker."""
 
         count = 0
 
         def all_func(self):
+            """Select all fields."""
             book_id = ids[self.count]
             query = (db.book.id == book_id)
             db(query).select()
             self.increment()
 
         def few_func(self):
+            """Select a few fields."""
             book_id = ids[self.count]
             query = (db.book.id == book_id)
             db(query).select(db.book.id, db.book.name, db.book.release_date)
             self.increment()
 
         def only_id(self):
+            """Select only the id field."""
             book_id = ids[self.count]
             query = (db.book.id == book_id)
             db(query).select(db.book.id)
             self.increment()
 
         def increment(self):
+            """Increment counter."""
             self.count += 1
             if self.count > len(ids):
                 self.count = 0
 
         def run(self):
+            """Run tests."""
             test_runs = 100
             for func in [self.all_func, self.only_id, self.few_func]:
                 self.reset()
                 t = Timer(func)
-                print t.timeit(number=test_runs)
+                print(t.timeit(number=test_runs))
 
         def reset(self):
+            """Reset counter and shuffle ids."""
             self.count = 0
             random.shuffle(ids)
-
 
     bencher = SQLBencher()
     bencher.run()

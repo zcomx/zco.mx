@@ -6,6 +6,7 @@ batch_record_update.py
 
 Script to update records from data read from csv file.
 """
+from __future__ import print_function
 import collections
 import csv
 from optparse import OptionParser
@@ -230,7 +231,7 @@ class BatchUpdater(object):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     batch_record_update.py [OPTIONS] file.csv
 
@@ -268,7 +269,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

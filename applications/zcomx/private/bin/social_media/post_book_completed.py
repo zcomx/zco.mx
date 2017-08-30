@@ -7,21 +7,22 @@ post_book_completed.py
 Script to post a completed book on social media (eg facebook, tumblr and
 twitter).
 """
-from gluon import *
+from __future__ import print_function
 from optparse import OptionParser
+from gluon import *
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.social_media import \
     SocialMediaPostError, \
     SocialMediaPoster
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     post_book_completed.py [OPTIONS] book_id               # Post book
 
@@ -50,7 +51,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():
@@ -123,16 +124,16 @@ def main():
     if not options.facebook and not options.tumblr and not options.twitter:
         services = ['facebook', 'tumblr', 'twitter']
 
-    for service in services:
-        LOG.debug('Posting to: %s', service)
-        poster = SocialMediaPoster.class_factory(service)
+    for social_media_service in services:
+        LOG.debug('Posting to: %s', social_media_service)
+        poster = SocialMediaPoster.class_factory(social_media_service)
         try:
             post_id = poster.post(book, creator)
         except SocialMediaPostError as err:
             post_id = None
             LOG.error(
                 'Social media post (%s) failed for book: %s - %s',
-                service,
+                social_media_service,
                 book.id,
                 book.name
             )
@@ -140,7 +141,7 @@ def main():
                 LOG.error(err)
 
         if post_id:
-            field = '{s}_post_id'.format(s=service)
+            field = '{s}_post_id'.format(s=social_media_service)
             data = {field: post_id}
             book = Book.from_updated(book, data)
 

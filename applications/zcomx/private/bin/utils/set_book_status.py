@@ -8,15 +8,16 @@ Script to set the status of a book.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
     calc_status, \
     set_status
 from applications.zcomx.modules.zco import BOOK_STATUS_DISABLED
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def book_generator(query):
@@ -36,7 +37,7 @@ def book_generator(query):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     # Set the status of a books based on their calculated status
     set_book_status.py [OPTIONS] book_id [book_id book_id ...]
@@ -65,7 +66,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

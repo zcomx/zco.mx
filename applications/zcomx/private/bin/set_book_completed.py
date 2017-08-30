@@ -6,6 +6,7 @@ set_book_completed.py
 
 Script to set a book completed
 """
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.book.releasers import \
     ReleaseBook, \
@@ -20,7 +21,7 @@ VERSION = 'Version 0.1'
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     set_book_completed.py [OPTIONS] book_id               # Set completed
     set_book_completed.py [OPTIONS] --reverse book_id     # Reverse it
@@ -49,7 +50,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

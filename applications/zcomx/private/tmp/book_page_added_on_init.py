@@ -6,10 +6,11 @@ book_page_added_on_init.py
 
 Script to initialize book.page_added_on field.
 """
+from __future__ import print_function
 import sys
 import traceback
-from gluon import *
 from optparse import OptionParser
+from gluon import *
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.logger import set_cli_logging
 
@@ -38,7 +39,7 @@ def set_page_added_on(book_id):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     book_page_added_on_init.py
 
@@ -55,7 +56,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():

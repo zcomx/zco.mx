@@ -8,16 +8,17 @@ Script to run massive db io for testing.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+from __future__ import print_function
 import time
 from optparse import OptionParser
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     db_io.py [OPTIONS] iterations
 
@@ -33,7 +34,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

@@ -8,8 +8,7 @@ Script to queue create_torrent jobs. The script should be cronned. It will
 queue jobs to create torrents for any creators as necessary, and to create
 the 'all' torrent if necessary.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.job_queuers import \
     CreateAllTorrentQueuer, \
@@ -21,7 +20,7 @@ VERSION = 'Version 0.1'
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 The script should be cronned. It will queue jobs to create torrents for any
 creators as necessary, and to create the 'all' torrent if necessary.
 
@@ -41,7 +40,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

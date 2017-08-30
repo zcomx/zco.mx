@@ -6,13 +6,14 @@ populate_activity_log_12889.py
 
 Script to populate activity_log table for testing.
 """
+from __future__ import print_function
 import datetime
 import os
 import sys
 import traceback
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
     get_page
@@ -100,7 +101,7 @@ def log_page_added():
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     populate_activity_log_12889.py
 
@@ -118,7 +119,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():

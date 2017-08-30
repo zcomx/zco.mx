@@ -8,6 +8,7 @@ Script to create indicia png files for a creator or a book.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+from __future__ import print_function
 import os
 import shutil
 from optparse import OptionParser
@@ -18,9 +19,9 @@ from applications.zcomx.modules.indicias import \
     CreatorIndiciaPagePng, \
     IndiciaPage, \
     IndiciaSh
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def create_generic_png(options):
@@ -78,7 +79,7 @@ def create_png(record, options):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     indicia_png.py [OPTIONS] id|name
 
@@ -113,7 +114,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():
@@ -181,7 +182,8 @@ def main():
             try:
                 record = record_class.from_id(record_id)
             except LookupError:
-                print 'No {t} found, id: {i}'.format(t=str(table), i=record_id)
+                print(
+                    'No {t} found, id: {i}'.format(t=str(table), i=record_id))
                 quit(1)
     else:
         if options.creator:
@@ -195,12 +197,12 @@ def main():
             rows = db(query).select()
 
         if not rows:
-            print 'No {t} found, name: {n}'.format(t=str(table), n=name)
+            print('No {t} found, name: {n}'.format(t=str(table), n=name))
             quit(1)
         if len(rows) > 1:
-            print 'Multiple {t} matches, use {t} id:'.format(t=str(table))
+            print('Multiple {t} matches, use {t} id:'.format(t=str(table)))
             for r in rows:
-                print 'id: {i}'.format(i=r.id)
+                print('id: {i}'.format(i=r.id))
             quit(1)
         record = record_class.from_id(rows[0].id)
 

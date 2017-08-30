@@ -6,14 +6,15 @@ purge_torrents.py
 
 This script purges empty creator and 'all' torrent files as necessary.
 """
+from __future__ import print_function
 import errno
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.archives import TorrentArchive
 from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def creators_needing_purge():
@@ -82,7 +83,7 @@ def num_books_with_cbz():
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 This script deletes unneeded torrent files.
 Creators: if a creator torrent file exists but the creator no longer has
     any released books, the torrent file is deleted.
@@ -105,7 +106,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

@@ -6,6 +6,7 @@ integrity.py
 
 Script to run integrity checks.
 """
+from __future__ import print_function
 import datetime
 from optparse import OptionParser
 from applications.zcomx.modules.zco import IN_PROGRESS
@@ -86,7 +87,7 @@ class IncompleteOngoingPostChecker(BaseChecker):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 OVERVIEW
     This script is used to run integrity checks.
 
@@ -105,7 +106,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

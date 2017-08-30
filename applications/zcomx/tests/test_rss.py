@@ -276,10 +276,11 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
     def test__filter_query(self):
         channel = BaseRSSChannel()
         got = str(channel.filter_query())
+        # Example: ("activity_log"."time_stamp" > '2017-08-22 16:54:59')
         regexp = re.compile(
             r"""
                 \(
-                activity_log.time_stamp
+                "activity_log"."time_stamp"
                 \s
                 >
                 \s
@@ -514,13 +515,13 @@ class TestBookRSSChannel(WithObjectsTestCase):
     def test__filter_query(self):
         channel = BookRSSChannel(self._book)
         got = str(channel.filter_query())
-        # ((activity_log.time_stamp > '2015-04-22 12:46:06')
-        #     AND (activity_log.book_id = 10621))
+        # (("activity_log"."time_stamp" > '2015-04-22 12:46:06')
+        #     AND ("activity_log"."book_id" = 10621))
         regexp = re.compile(
             r"""
                 \(
                 \(
-                activity_log.time_stamp
+                "activity_log"."time_stamp"
                 \s
                 >
                 \s
@@ -529,7 +530,7 @@ class TestBookRSSChannel(WithObjectsTestCase):
                 \s
                 AND
                 \s
-                \(activity_log.book_id\s=\s\d+\)
+                \("activity_log"."book_id"\s=\s\d+\)
                 \)
             """,
             re.VERBOSE
@@ -578,13 +579,13 @@ class TestCartoonistRSSChannel(WithObjectsTestCase):
     def test__filter_query(self):
         channel = CartoonistRSSChannel(self._creator)
         got = str(channel.filter_query())
-        # ((activity_log.time_stamp > '2015-04-22 12:46:06')
-        #     AND (book.creator_id = 12345))
+        # (("activity_log"."time_stamp" > '2015-04-22 12:46:06')
+        #     AND ("book"."creator_id" = 12345))
         regexp = re.compile(
             r"""
                 \(
                 \(
-                activity_log.time_stamp
+                "activity_log"."time_stamp"
                 \s
                 >
                 \s
@@ -593,7 +594,7 @@ class TestCartoonistRSSChannel(WithObjectsTestCase):
                 \s
                 AND
                 \s
-                \(book.creator_id\s=\s\d+\)
+                \("book"."creator_id"\s=\s\d+\)
                 \)
             """,
             re.VERBOSE

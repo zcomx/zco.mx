@@ -87,9 +87,10 @@ class TestBaseAutocompleter(DumpTestCase):
         autocompleter.keyword = 'Abc Def'
         queries = autocompleter.filters()
         self.assertEqual(len(queries), 1)
+        # pylint: disable=line-too-long
         self.assertEqual(
             str(queries[0]),
-            "(LOWER(book.name_for_search) LIKE '%abc-def%' ESCAPE '\\')"
+            """(LOWER("book"."name_for_search") LIKE '%abc-def%' ESCAPE '\\')"""
         )
 
     def test__formatted_value(self):
@@ -160,20 +161,21 @@ class TestBookAutocompleter(LocalTestCase):
         self.assertEqual(len(queries), 1)
         self.assertEqual(
             str(queries[0]),
-            "(book.status = 'a')"
+            """("book"."status" = 'a')"""
         )
 
         # With keyword
         autocompleter.keyword = 'Abc Def'
         queries = autocompleter.filters()
         self.assertEqual(len(queries), 2)
+        # pylint: disable=line-too-long
         self.assertEqual(
             str(queries[0]),
-            "(LOWER(book.name_for_search) LIKE '%abc-def%' ESCAPE '\\')"
+            """(LOWER("book"."name_for_search") LIKE '%abc-def%' ESCAPE '\\')"""
         )
         self.assertEqual(
             str(queries[1]),
-            "(book.status = 'a')"
+            """("book"."status" = 'a')"""
         )
 
     def test__formatted_value(self):
@@ -265,20 +267,21 @@ class TestCreatorAutocompleter(LocalTestCase):
         self.assertEqual(len(queries), 1)
         self.assertEqual(
             str(queries[0]),
-            "(book.id IS NOT NULL)"
+            """("book"."id" IS NOT NULL)"""
         )
 
         # With keyword
         autocompleter.keyword = 'Abc Def'
         queries = autocompleter.filters()
         self.assertEqual(len(queries), 2)
+        # pylint: disable=line-too-long
         self.assertEqual(
             str(queries[0]),
-            "(LOWER(creator.name_for_search) LIKE '%abc-def%' ESCAPE '\\')"
+            """(LOWER("creator"."name_for_search") LIKE '%abc-def%' ESCAPE '\\')"""
         )
         self.assertEqual(
             str(queries[1]),
-            "(book.id IS NOT NULL)"
+            """("book"."id" IS NOT NULL)"""
         )
 
     def test__formatted_value(self):
@@ -298,7 +301,10 @@ class TestCreatorAutocompleter(LocalTestCase):
         autocompleter = CreatorAutocompleter()
         got = autocompleter.left_join()
         self.assertEqual(len(got), 1)
-        self.assertEqual(str(got[0]), 'book ON (book.creator_id = creator.id)')
+        self.assertEqual(
+            str(got[0]),
+            '"book" ON ("book"."creator_id" = "creator"."id")'
+        )
 
     def test_search(self):
         auth_user = self.add(AuthUser, dict(

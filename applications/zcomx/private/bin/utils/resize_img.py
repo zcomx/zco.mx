@@ -6,12 +6,14 @@ resize_images.py
 
 Script to simulate resize_img.sh from python.
 """
+from __future__ import print_function
 import os
 import shutil
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.images import ResizeImg
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -19,12 +21,10 @@ APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # pylint: disable=C0103
 db = APP_ENV['db']
 
-from applications.zcomx.modules.logger import set_cli_logging
-
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 resize_img.py - Simulate resize_img.sh with python.
 
 USAGE
@@ -54,7 +54,7 @@ OPTIONS
 NOTES:
 
     The original file is preserved.
-    """
+    """)
 
 
 def main():

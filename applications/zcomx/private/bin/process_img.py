@@ -6,8 +6,7 @@ process_img.py
 
 Script to process an image.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
+from __future__ import print_function
 import os
 from optparse import OptionParser
 from applications.zcomx.modules.images import \
@@ -15,9 +14,9 @@ from applications.zcomx.modules.images import \
     UploadImage, \
     optimize
 from applications.zcomx.modules.images_optimize import AllSizesImages
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def run_delete(image, options):
@@ -98,7 +97,7 @@ def run_optimize(image, options):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 
 USAGE
     process_img.py [OPTIONS] image
@@ -140,7 +139,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

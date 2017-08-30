@@ -5,13 +5,15 @@ reset_password.py
 
 Script reset the password of a auth_user record.
 """
+from __future__ import print_function
 import getpass
 import os
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
 from gluon.validators import CRYPT
-from optparse import OptionParser
 from applications.zcomx.modules.creators import AuthUser
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -19,7 +21,6 @@ APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # pylint: disable=C0103
 db = APP_ENV['db']
 
-from applications.zcomx.modules.logger import set_cli_logging
 
 # line-too-long (C0301): *Line too long (%%s/%%s)*
 # pylint: disable=C0301
@@ -27,7 +28,7 @@ from applications.zcomx.modules.logger import set_cli_logging
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     reset_password.py [OPTIONS] email [password]
 
@@ -56,7 +57,7 @@ OPTIONS
     -x EMAIL, --exclude=EMAIL
         Exclude the account with this email when updating users.
         Use with --all option.
-    """
+    """)
 
 
 def main():
@@ -103,14 +104,14 @@ def main():
     passwd = None
     if options.all:
         if len(args) > 1:
-            print parser.print_help()
+            print(parser.print_help())
             exit(1)
         emails = [x.email for x in db(db.auth_user).select(db.auth_user.email)]
         if len(args) == 1:
             passwd = args[0]
     else:
         if not args or len(args) > 2:
-            print parser.print_help()
+            print(parser.print_help())
             exit(1)
         emails = [args[0]]
         if len(args) == 2:

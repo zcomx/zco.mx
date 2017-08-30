@@ -6,6 +6,7 @@ urlify.py
 
 Script to test urlify commands.
 """
+from __future__ import print_function
 import sys
 import traceback
 from gluon import *
@@ -18,7 +19,7 @@ VERSION = 'Version 0.1'
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     urlify.py
 
@@ -35,7 +36,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -71,14 +72,14 @@ def main():
     LOG.info('Started.')
 
     x = urlify('John Smith')
-    print 'FIXME x: {var}'.format(var=x)
+    print('FIXME x: {var}'.format(var=x))
 
     x = urlify('Jøhn Smith')
-    print 'FIXME x: {var}'.format(var=x)
+    print('FIXME x: {var}'.format(var=x))
 
     y = db(db.creator.name_for_url == x).select(limitby=(0, 1)).first()
-    print 'FIXME y: {var}'.format(var=y)
-    print 'FIXME db._lastsql: {var}'.format(var=db._lastsql)
+    print('FIXME y: {var}'.format(var=y))
+    print('FIXME db._lastsql: {var}'.format(var=db._lastsql))
 
     LOG.info('Done.')
 

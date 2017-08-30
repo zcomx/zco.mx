@@ -8,12 +8,13 @@ Script to fix activity_log records.
 Set activity_log.deleted_book_page_ids where applicable.
 See mod 13050.
 """
+from __future__ import print_function
 import os
 import sys
 import traceback
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.logger import set_cli_logging
@@ -45,7 +46,7 @@ def set_deleted(activity_log):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     activity_log_fix_13050.py
 
@@ -63,7 +64,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():

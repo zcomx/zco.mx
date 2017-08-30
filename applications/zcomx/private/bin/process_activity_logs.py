@@ -8,6 +8,7 @@ Script to process activity_log records.
 * Create activity_log records from tentative_activity_log records.
 * Delete tentative_activity_log records converted thus.
 """
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.activity_logs import \
     ActivityLog, \
@@ -15,15 +16,14 @@ from applications.zcomx.modules.activity_logs import \
     MINIMUM_AGE_TO_LOG_IN_SECONDS, \
     PageAddedTentativeLogSet, \
     TentativeLogSet
-
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     process_activity_logs.py [OPTIONS]
 
@@ -43,7 +43,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """.format(m=MINIMUM_AGE_TO_LOG_IN_SECONDS)
+    """.format(m=MINIMUM_AGE_TO_LOG_IN_SECONDS))
 
 
 def main():

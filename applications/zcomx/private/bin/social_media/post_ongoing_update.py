@@ -6,12 +6,13 @@ post_ongoing_update.py
 
 Script to post an ongoing books update on tumblr.
 """
+from __future__ import print_function
 import datetime
 import json
 import random
-from gluon import *
 from optparse import OptionParser
 from twitter import TwitterHTTPError
+from gluon import *
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.stickon.dal import RecordGenerator
 from applications.zcomx.modules.facebook import \
@@ -33,9 +34,9 @@ from applications.zcomx.modules.tweeter import \
 from applications.zcomx.modules.zco import \
     IN_PROGRESS, \
     SITE_NAME
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def post_on_facebook(ongoing_post):
@@ -231,7 +232,7 @@ def get_ongoing_post(date, create=True):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     post_ongoing_update.py [OPTIONS] yyyy-mm-dd
 
@@ -268,7 +269,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

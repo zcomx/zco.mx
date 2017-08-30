@@ -11,7 +11,7 @@ file is:
 
 This script is meant to be a template. Copy and edit before using.
 """
-# pylint: disable=import-error
+from __future__ import print_function
 import logging
 from optparse import OptionParser
 from gluon.dal import Field, Table, SQLCustomType
@@ -203,7 +203,7 @@ def get_ftype(table, field):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 OVERVIEW
     This script can be used to create table definition files.
     !! This script is meant to be a template. Copy and edit before using. !!
@@ -245,7 +245,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():
@@ -313,12 +313,12 @@ def main():
     adapter_uri = 'sqlite://{a}.sqlite'.format(a=app)
 
     uri_hash = hashlib_md5(adapter_uri).hexdigest()
-    print 'uri_hash: {var}'.format(var=uri_hash)
+    print('uri_hash: {var}'.format(var=uri_hash))
 
     # pylint: disable=protected-access
     table._dbt = pjoin(
         dbpath, '%s_%s.table' % (uri_hash, tablename))
-    print 'table._dbt: {var}'.format(var=table._dbt)
+    print('table._dbt: {var}'.format(var=table._dbt))
 
     if table._dbt:
         tfile = DubBaseAdapter.file_open(table._dbt, 'wb')

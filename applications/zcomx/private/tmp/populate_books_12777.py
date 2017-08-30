@@ -6,13 +6,14 @@ populate_books_12777.py
 
 Script to populate books table for testing mod 12777.
 """
+from __future__ import print_function
 import datetime
 import os
 import sys
 import traceback
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -24,7 +25,7 @@ db = APP_ENV['db']
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     populate_books_12777.py 100         # Create 100 book records.
 
@@ -42,7 +43,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -80,7 +81,7 @@ def main():
     now = datetime.datetime.now()
     number = int(args[0])
     for num in range(1, number + 1):
-        print 'FIXME num: {var}'.format(var=num)
+        print('FIXME num: {var}'.format(var=num))
         data = dict(
             name='POC {n:06d}'.format(n=num),
             release_date=now,

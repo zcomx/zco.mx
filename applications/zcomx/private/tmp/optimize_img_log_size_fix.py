@@ -9,12 +9,13 @@ For every optimize_img_log record where size is null, create records for each
 size.
 
 """
+from __future__ import print_function
 import os
 import sys
 import traceback
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.images import SIZES
 from applications.zcomx.modules.images_optimize import OptimizeImgLog
 from applications.zcomx.modules.records import Records
@@ -46,7 +47,7 @@ def add_sizes(log):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     optimize_img_log_size_fix.py
 
@@ -64,7 +65,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():

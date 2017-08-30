@@ -6,8 +6,7 @@ queue_handler.py
 
 Check queue and run any jobs found.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
+from __future__ import print_function
 import datetime
 import subprocess
 from optparse import OptionParser
@@ -122,7 +121,7 @@ def main():
 
     if options.summary:
         for k, v in sorted(stats.items()):
-            print '{k}: {v}'.format(k=k, v=v)
+            print('{k}: {v}'.format(k=k, v=v))
 
     LOG.info("Done.")
 

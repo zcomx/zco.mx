@@ -6,28 +6,28 @@ resize_images.py
 
 Script to create and maintain images and their sizes.
 """
+from __future__ import print_function
 import os
 import shutil
 import subprocess
 import time
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from pydal.helpers.regex import REGEX_STORE_PATTERN
-from optparse import OptionParser
+from pydal.helpers.regex import REGEX_UPLOAD_PATTERN
 from applications.zcomx.modules.images import \
     SIZES, \
     UploadImage, \
     store
 from applications.zcomx.modules.shell_utils import \
     temp_directory
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # C0103: *Invalid name "%%s" (should match %%s)*
 # pylint: disable=C0103
 db = APP_ENV['db']
-
-from applications.zcomx.modules.logger import set_cli_logging
 
 FIELDS = [
     'creator.image',
@@ -145,7 +145,7 @@ class ImageHandler(object):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     resize_images.py [OPTIONS] [FILE...]
 
@@ -200,7 +200,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -267,15 +267,15 @@ def main():
     quick_exit = False
 
     if options.fields:
-        print 'Database image fields:'
+        print('Database image fields:')
         for f in FIELDS:
-            print '    {f}'.format(f=f)
+            print('    {f}'.format(f=f))
         quick_exit = True
 
     if options.sizes:
-        print 'Image sizes:'
+        print('Image sizes:')
         for name in SIZES:
-            print name
+            print(name)
         quick_exit = True
 
     if quick_exit:

@@ -6,6 +6,7 @@ fileshare_book.py
 
 Script to release a book for filesharing.
 """
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.book.releasers import \
     FileshareBook, \
@@ -20,7 +21,7 @@ VERSION = 'Version 0.1'
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     fileshare_book.py [OPTIONS] book_id               # Release book
     fileshare_book.py [OPTIONS] --reverse book_id     # Reverse the release
@@ -49,7 +50,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

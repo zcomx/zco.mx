@@ -8,13 +8,14 @@ Script to update a creator's indicia.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import on_delete_image
 from applications.zcomx.modules.indicias import create_creator_indicia
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def clear_creator_indicia(creator):
@@ -25,7 +26,6 @@ def clear_creator_indicia(creator):
     Returns:
         creator
     """
-    db = current.app.db
     fields = ['indicia_image', 'indicia_portrait', 'indicia_landscape']
 
     data = {}
@@ -39,7 +39,7 @@ def clear_creator_indicia(creator):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 Portrait and landscape versions of the indicia image are created, resized
 and stored in uploads subdirectories. These fields are updated.
     creator.indicia_portrait
@@ -72,7 +72,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():
@@ -129,7 +129,7 @@ def main():
         try:
             record_id = int(arg)
         except (TypeError, ValueError):
-            print 'Invalid creator id: {i}'.format(i=arg)
+            print('Invalid creator id: {i}'.format(i=arg))
             quit(1)
         ids.append(record_id)
 
@@ -137,7 +137,7 @@ def main():
         try:
             creator = Creator.from_id(creator_id)
         except LookupError:
-            print 'No creator found, id: {i}'.format(i=record_id)
+            print('No creator found, id: {i}'.format(i=record_id))
             quit(1)
 
         LOG.debug('Updating creator: %s', creator.name_for_url)

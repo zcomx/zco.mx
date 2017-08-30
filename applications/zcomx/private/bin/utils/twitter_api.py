@@ -7,6 +7,7 @@ twitter_api.py
 Script to test using python-twitter api.
 https://pypi.python.org/pypi/twitter
 """
+from __future__ import print_function
 import os
 import pprint
 import sys
@@ -36,9 +37,10 @@ def delete_post(client):
 def post_image(client):
     """Post tweet with image."""
     status = "This is a test 010."
+    # pylint: disable=line-too-long
     img = '/srv/http/jimk.zsw.ca/web2py/applications/zcomx/uploads/web/book_page.image/88/book_page.image.883f5a1fce8dced9.30315f31337468666c6f6f725f636f7665722e706e67.png'
     if not os.path.exists(img):
-        print 'FIXME img not found: {var}'.format(var=img)
+        print('FIXME img not found: {var}'.format(var=img))
         exit(1)
 
     with open(img, "rb") as imagefile:
@@ -50,6 +52,7 @@ def post_image(client):
 def post_tweet(client):
     """Post tweet."""
     # status = "This is a test 001."
+    # pylint: disable=line-too-long
     status = 'New pages added by @SGMosdal and Tony Zuvela on zco.mx | http://zcomx.tumblr.com/post/120738947276 | #zcomx'
     x = client.statuses.update(status=status)
     pprint.pprint(x)
@@ -74,7 +77,7 @@ def user_timeline(client):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     twitter_api.py
 
@@ -91,7 +94,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():

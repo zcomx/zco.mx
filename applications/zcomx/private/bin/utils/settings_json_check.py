@@ -7,6 +7,7 @@ settings_json_check.py
 Script for comparing settings.json to settings.conf or
 /srv/http/local/test.conf
 """
+from __future__ import print_function
 import os
 import sys
 import traceback
@@ -16,7 +17,6 @@ from optparse import OptionParser
 from gluon import *
 from gluon.contrib.appconfig import AppConfig
 from applications.zcomx.modules.logger import set_cli_logging
-
 
 VERSION = 'Version 0.1'
 SETTINGS_FILENAME = 'settings.json'
@@ -57,10 +57,9 @@ def is_same(item1, item2):
     assert cmp(sorted(item1), sorted(item2)) == 0
 
 
-def usage_full():
-    """Return full usage"""
-
-    return """
+def man_page():
+    """Print manual page-like help"""
+    print("""
 GENERAL USAGE
 
     settings_json_check.py
@@ -80,7 +79,7 @@ OPTIONS
     --vv
 
     Print more verbose output.
-"""
+    """)
 
 
 def main():
@@ -128,16 +127,16 @@ def main():
 
     if options.man_help:
         parser.print_help()
-        print
-        print usage_full()
-        return
+        print('')
+        man_page()
+        quit(0)
 
     LOG.debug('Starting.')
 
     settings = model_db.settings_loader.settings
 
     if options.dump:
-        print json.dumps(settings, indent=4, sort_keys=True)
+        print(json.dumps(settings, indent=4, sort_keys=True))
         exit(0)
 
     configfile = os.path.join(

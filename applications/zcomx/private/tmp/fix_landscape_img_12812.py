@@ -12,13 +12,14 @@ width: 750px
 * optimize images
 
 """
+from __future__ import print_function
 import os
 import shutil
 import sys
 import traceback
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
     images
@@ -39,7 +40,7 @@ db = APP_ENV['db']
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     fix_landscape_img_12812.py
 
@@ -63,7 +64,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():
@@ -165,7 +166,7 @@ def main():
             LOG.debug('Limit reached, aborting')
             break
 
-    print 'FIXME count: {var}'.format(var=count)
+    print('FIXME count: {var}'.format(var=count))
 
     if not options.debug:
         for book_id in set(book_ids):

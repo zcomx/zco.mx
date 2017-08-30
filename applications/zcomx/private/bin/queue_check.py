@@ -6,12 +6,14 @@ queue_check.py
 
 Check job queue for old or invalid jobs.
 """
+from __future__ import print_function
 import datetime
 import os
-from gluon.shell import env
 from optparse import OptionParser
+from gluon.shell import env
 from applications.zcomx.modules.job_queue import Job
 from applications.zcomx.modules.records import Records
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
@@ -19,12 +21,10 @@ APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # pylint: disable=C0103
 db = APP_ENV['db']
 
-from applications.zcomx.modules.logger import set_cli_logging
-
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 OPTIONS
     -h, --help
         Print a brief help.
@@ -42,7 +42,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

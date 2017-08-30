@@ -202,12 +202,11 @@ class TestCompletedBookList(LocalTestCase):
         book_list = CompletedBookList({})
         filters = book_list.filters()
         self.assertEqual(len(filters), 2)
-        self.assertEqual(str(filters[0]), "(book.status = 'a')")
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        self.assertEqual(str(filters[0]), """("book"."status" = 'a')""")
+        # pylint: disable=line-too-long
         self.assertEqual(
             str(filters[1]),
-            "((book.release_date IS NOT NULL) OR (book.complete_in_progress = 'T'))"
+            """(("book"."release_date" IS NOT NULL) OR ("book"."complete_in_progress" = 'T'))"""
         )
 
     def test__headers(self):
@@ -257,7 +256,7 @@ class TestDisabledBookList(LocalTestCase):
         book_list = DisabledBookList({})
         filters = book_list.filters()
         self.assertEqual(len(filters), 1)
-        self.assertEqual(str(filters[0]), "(book.status = 'x')")
+        self.assertEqual(str(filters[0]), """("book"."status" = 'x')""")
 
     def test__no_records_found_msg(self):
         book_list = DisabledBookList({})
@@ -282,7 +281,7 @@ class TestDraftBookList(LocalTestCase):
         book_list = DraftBookList({})
         filters = book_list.filters()
         self.assertEqual(len(filters), 1)
-        self.assertEqual(str(filters[0]), "(book.status = 'd')")
+        self.assertEqual(str(filters[0]), """("book"."status" = 'd')""")
 
     def test__include_upload(self):
         book_list = DraftBookList({})
@@ -323,9 +322,15 @@ class TestOngoingBookList(LocalTestCase):
         book_list = OngoingBookList({})
         filters = book_list.filters()
         self.assertEqual(len(filters), 3)
-        self.assertEqual(str(filters[0]), "(book.status = 'a')")
-        self.assertEqual(str(filters[1]), "(book.release_date IS NULL)")
-        self.assertEqual(str(filters[2]), "(book.complete_in_progress <> 'T')")
+        self.assertEqual(str(filters[0]), """("book"."status" = 'a')""")
+        self.assertEqual(
+            str(filters[1]),
+            """("book"."release_date" IS NULL)"""
+        )
+        self.assertEqual(
+            str(filters[2]),
+            """("book"."complete_in_progress" <> 'T')"""
+        )
 
     def test__headers(self):
         book_list = OngoingBookList({})

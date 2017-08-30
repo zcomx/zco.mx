@@ -8,6 +8,7 @@ Script to log download clicks.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
+from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.events import \
@@ -101,7 +102,7 @@ def unlogged_generator(limit=None):
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 
 USAGE
     log_downloads.py [OPTIONS]                 # Log all incompleted downloads
@@ -131,7 +132,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():

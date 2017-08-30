@@ -7,6 +7,7 @@ tumblr_api.py
 Script to test using pytumblr api.
 https://pypi.python.org/pypi/PyTumblr
 """
+from __future__ import print_function
 import sys
 import traceback
 from optparse import OptionParser
@@ -51,7 +52,7 @@ def create_photo(client):
 """
     # """       # fixes vim syntax highlighting.
     result = client.create_photo('zcomx', **photo_data)
-    print 'create_photo: {id}'.format(id=result)
+    print('create_photo: {id}'.format(id=result))
 
 
 def create_quote(client):
@@ -65,7 +66,7 @@ def create_quote(client):
         source='Joe Doe',
     )
     result = client.create_quote('zcomx', **quote_data)
-    print 'create_quote: {q}'.format(q=result)
+    print('create_quote: {q}'.format(q=result))
 
 
 def create_text(client):
@@ -85,23 +86,23 @@ def create_text(client):
         """,
     )
     result = client.create_text('zcomx', **text_data)
-    print 'create_text: {r}'.format(r=result)
+    print('create_text: {r}'.format(r=result))
 
 
 def delete_post(client, post_id):
     """tumblr API delete_post."""
     result = client.delete_post('zcomx', post_id)
-    print 'client.delete_post: {r}'.format(r=result)
+    print('client.delete_post: {r}'.format(r=result))
 
 
 def info(client):
     """Get client info results."""
-    print 'client.info: {i}'.format(i=client.info())
+    print('client.info: {i}'.format(i=client.info()))
 
 
 def posts(client, hostname='zcomx'):
     """Get client posts results."""
-    print 'client.posts: {p}'.format(p=client.posts(hostname))
+    print('client.posts: {p}'.format(p=client.posts(hostname)))
 
 
 def posts_summary(client, hostname='zcomx'):
@@ -112,12 +113,12 @@ def posts_summary(client, hostname='zcomx'):
         return
 
     for post in results['posts']:
-        print '{id} {slug}'.format(id=post['id'], slug=post['slug'])
+        print('{id} {slug}'.format(id=post['id'], slug=post['slug']))
 
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     tumblr_api.py
 
@@ -137,7 +138,7 @@ OPTIONS
     --vv,
         More verbose. Print debug messages to stdout.
 
-    """
+    """)
 
 
 def main():

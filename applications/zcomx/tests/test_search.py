@@ -235,7 +235,7 @@ class TestGrid(LocalTestCase):
         self.assertEqual(len(orderby), 3)
         self.assertEqual(
             [str(x) for x in orderby],
-            ['book.name DESC', 'book.number DESC', 'book.id DESC']
+            ['"book"."name" DESC', '"book"."number" DESC', '"book"."id" DESC']
         )
 
         grid._attributes['order_dir'] = 'ASC'

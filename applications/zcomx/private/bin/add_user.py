@@ -6,18 +6,18 @@ add_user.py
 
 Script to create a user account from the cli.
 """
+from __future__ import print_function
 import os
+from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from optparse import OptionParser
+from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
 # C0103: *Invalid name "%%s" (should match %%s)*
 # pylint: disable=C0103
 db = APP_ENV['db']
-
-from applications.zcomx.modules.logger import set_cli_logging
 
 
 def create_user(info):
@@ -45,7 +45,7 @@ def get_user_info():
         'email': '',
         'password': '',
     }
-    print 'Enter the user info. Leave name blank to exit.'
+    print('Enter the user info. Leave name blank to exit.')
     for k in ['name', 'email', 'password']:
         while True:
             raw_value = raw_input('{t}: '.format(t=k.title()))
@@ -62,7 +62,7 @@ def get_user_info():
                         error_msg = errors
                         break
             if error_msg:
-                print 'ERROR: ', error_msg
+                print('ERROR: ', error_msg)
             else:
                 break
     return info
@@ -70,7 +70,7 @@ def get_user_info():
 
 def man_page():
     """Print manual page-like help"""
-    print """
+    print("""
 USAGE
     add_user.py
 
@@ -86,7 +86,7 @@ OPTIONS
 
     --vv,
         More verbose. Print debug messages to stdout.
-    """
+    """)
 
 
 def main():
@@ -125,7 +125,7 @@ def main():
         if not info['name']:
             break
         create_user(info)
-        print
+        print('')
     LOG.info('Done.')
 
 
