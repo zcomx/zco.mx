@@ -1,5 +1,5 @@
 {{import datetime}}
-{{from gluon.contrib.simplejson import dumps}}
+{{import json}}
 {{from applications.zcomx.modules.books import book_types}}
 {{from applications.zcomx.modules.indicias import cc_licences, cc_licence_places}}
 {{from applications.zcomx.modules.zco import BOOK_STATUS_DISABLED}}
@@ -50,7 +50,7 @@
     var book_data = {
         'name': {
             'label': '{{=db.book.name.label}}',
-            'value': '{{=dumps(book.name or "").strip('"') if book else ""}}',
+            'value': '{{=json.dumps(book.name or "").strip('"') if book else ""}}',
             'x_editable_settings': {
                 'title': 'Enter the title of the book.',
                 'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
@@ -93,7 +93,7 @@
             },
             'description': {
                 'label': '{{=db.book.description.label}}',
-                'value': '{{=dumps(book.description or "").strip('"')}}',
+                'value': '{{=json.dumps(book.description or "").strip('"')}}',
                 'x_editable_settings': {
                     'escape': false,
                     'inputclass': 'inplace_crud book_description_input',

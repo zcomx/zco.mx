@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Creator login controller functions"""
 import collections
+import json
 import os
 import shutil
 from PIL import Image
-from gluon.contrib.simplejson import dumps, loads
 from applications.zcomx.modules.access import requires_agreed_to_terms
 from applications.zcomx.modules.book_lists import \
     class_from_code as book_list_class_from_code
@@ -429,8 +429,8 @@ def book_edit():
         cc_licence=cc_licence,
         link_types=link_types,
         metadata=str(meta) if meta else '',
-        numbers=dumps(book_type.number_field_statuses()),
-        show_cc_licence_place=dumps(show_cc_licence_place),
+        numbers=json.dumps(book_type.number_field_statuses()),
+        show_cc_licence_place=json.dumps(show_cc_licence_place),
     )
 
 
@@ -546,7 +546,7 @@ def book_pages_handler():
         if files == None:
             files = ['']
         messages = [{'name': x, 'error': msg} for x in files]
-        return dumps({'files': messages})
+        return json.dumps({'files': messages})
 
     # Verify user is legit
     try:
@@ -586,7 +586,7 @@ def book_pages_handler():
                 files=[x.filename for x in files]
             )
 
-        result = loads(result_json)
+        result = json.loads(result_json)
         if 'files' in result:
             for result_file in result['files']:
                 if 'book_page_id' in result_file:
@@ -611,7 +611,7 @@ def book_pages_handler():
         )
         on_delete_image(book_page.image)
         book_page.delete()
-        return dumps({"files": [{filename: True}]})
+        return json.dumps({"files": [{filename: True}]})
     else:
         # GET
         return book_pages_as_json(book)
@@ -635,7 +635,7 @@ def book_post_upload_session():
     """
     def do_error(msg=None):
         """Error handler."""
-        return dumps(
+        return json.dumps(
             {'status': 'error', 'msg': msg or 'Server request failed'})
 
     # Verify user is legit
@@ -709,7 +709,7 @@ def book_post_upload_session():
     # Step 5:  Trigger optimization of book images
     AllSizesImages.from_names(images(book)).optimize()
 
-    return dumps({'status': 'ok'})
+    return json.dumps({'status': 'ok'})
 
 
 @auth.requires_login()
@@ -824,7 +824,7 @@ def creator_img_handler():
         if files == None:
             files = ['']
         messages = [{'name': x, 'error': msg} for x in files]
-        return dumps({'files': messages})
+        return json.dumps({'files': messages})
 
     # Verify user is legit
     try:
@@ -941,7 +941,7 @@ def creator_img_handler():
         creator = Creator.from_updated(creator, data)
         if img_field == 'indicia_image':
             queue_update_indicia(creator)
-        return dumps({"files": [{filename: 'true'}]})
+        return json.dumps({"files": [{filename: 'true'}]})
 
     # GET
     return image_as_json(creator, field=img_field)
@@ -1020,7 +1020,7 @@ def indicia_preview_urls():
                 f='images/generic_indicia_{o}.png'.format(o=orientation),
             )
 
-    return dumps({
+    return json.dumps({
         'status': 'ok',
         'urls': urls,
     })

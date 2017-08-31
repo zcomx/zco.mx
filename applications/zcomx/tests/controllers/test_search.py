@@ -6,8 +6,8 @@
 Test suite for zcomx/controllers/search.py
 
 """
+import json
 import unittest
-from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.helpers import WebTestCase
@@ -51,7 +51,7 @@ class TestFunctions(WithObjectsTestCase):
         # No query should return all books
         url = '{url}/autocomplete.json/book'.format(url=self.url)
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertTrue('results' in result)
         count = db(db.book.status == BOOK_STATUS_ACTIVE).count()
         self.assertEqual(len(result['results']), count)
@@ -65,7 +65,7 @@ class TestFunctions(WithObjectsTestCase):
         url = '{url}/autocomplete.json/book?q={q}'.format(
             url=self.url, q=search_term)
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertTrue(len(result['results']) > 0)
         self.assertTrue(len(result['results']) < 10)
         for item in result['results']:
@@ -75,7 +75,7 @@ class TestFunctions(WithObjectsTestCase):
         # No query should return all creators
         url = '{url}/autocomplete.json/creator'.format(url=self.url)
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertTrue('results' in result)
 
         query = (db.book.id != None)
@@ -99,7 +99,7 @@ class TestFunctions(WithObjectsTestCase):
         url = '{url}/autocomplete.json/creator?q={q}'.format(
             url=self.url, q=search_term)
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertTrue(len(result['results']) > 0)
         self.assertTrue(len(result['results']) < 10)
         for item in result['results']:
@@ -108,14 +108,14 @@ class TestFunctions(WithObjectsTestCase):
         # No table
         url = '{url}/autocomplete.json'.format(url=self.url)
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertTrue('results' in result)
         self.assertEqual(result['results'], [])
 
         # Invalid table
         url = '{url}/autocomplete.json/_fake_'.format(url=self.url)
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertTrue('results' in result)
         self.assertEqual(result['results'], [])
 

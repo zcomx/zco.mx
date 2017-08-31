@@ -5,10 +5,10 @@
 
 Classes and functions related to autocompletion.
 """
+import json
 import os
 import shutil
 from gluon import *
-from gluon.contrib.simplejson import dumps
 from gluon.validators import urlify
 from applications.zcomx.modules.books import \
     Book, \
@@ -41,7 +41,7 @@ class BaseAutocompleter(object):
         with TemporaryDirectory() as tmp_dir:
             out_file = os.path.join(tmp_dir, 'output.json')
             with open(out_file, 'w') as outfile:
-                outfile.write(dumps(items))
+                outfile.write(json.dumps(items))
             shutil.move(out_file, output)
 
     def filters(self):

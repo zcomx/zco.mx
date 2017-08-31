@@ -1,5 +1,5 @@
+{{import json}}
 {{extend 'login/layout.html'}}
-{{from gluon.contrib.simplejson import dumps}}
 <div id="creator_section">
 
 <div id="editable_fields_container"></div>
@@ -223,7 +223,7 @@
     var bio_data = {
         'bio': {
             'label': '{{=db.creator.bio.label}}',
-            'value': '{{=dumps(creator.bio or "").strip('"')}}',
+            'value': '{{=json.dumps(creator.bio or "").strip('"')}}',
             'x_editable_settings': {
                 'title': 'Enter a brief biography.',
                 'escape': true,
@@ -235,7 +235,7 @@
     var photo_credit_data = {
         'photo_credit': {
             'label': '{{=db.creator.photo_credit.label}}',
-            'value': '{{=dumps(creator.photo_credit or "").strip('"')}}',
+            'value': '{{=json.dumps(creator.photo_credit or "").strip('"')}}',
             'x_editable_settings': {
                 'title': 'Enter a photo credit. (Optional)',
                 'escape': true,
@@ -246,7 +246,7 @@
         },
         'photo_credit_url': {
             'label': '{{=db.creator.photo_credit_url.label}}',
-            'value': '{{=dumps(creator.photo_credit_url or "").strip('"')}}',
+            'value': '{{=json.dumps(creator.photo_credit_url or "").strip('"')}}',
             'x_editable_settings': {
                 'title': "Enter the photo credit's url. (Optional)",
                 'escape': true,

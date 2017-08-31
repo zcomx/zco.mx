@@ -6,11 +6,11 @@
 Test suite for zcomx/controllers/login.py
 
 """
+import json
 import os
-import requests
 import time
 import unittest
-from gluon.contrib.simplejson import loads
+import requests
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
@@ -138,7 +138,7 @@ class TestFunctions(WebTestCase):
             'value': '_Untitled_',
         }
         web.post(url, data=data)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
         book_id = int(result['id'])
         self.assertTrue(book_id > 0)
@@ -249,7 +249,7 @@ class TestFunctions(WebTestCase):
             'pk': book_id,
         }
         web.post(url, data=data)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
 
         # The job to delete the book, may take a few seconds to complete
@@ -577,7 +577,7 @@ class TestFunctions(WebTestCase):
 
         url = '{url}/indicia_preview_urls.json'.format(url=self.url)
         web.post(url, data={})
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
 
         creator = get_creator()
@@ -599,7 +599,7 @@ class TestFunctions(WebTestCase):
         creator = Creator.from_updated(self._creator, data)
 
         web.post(url, data={})
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
@@ -615,7 +615,7 @@ class TestFunctions(WebTestCase):
         # Re-run should return exact same results
         url = '{url}/indicia_preview_urls.json'.format(url=self.url)
         web.post(url, data={})
-        result_2 = loads(web.text)
+        result_2 = json.loads(web.text)
         self.assertEqual(result, result_2)
         creator_2 = get_creator()
         self.assertEqual(creator, creator_2)
@@ -629,7 +629,7 @@ class TestFunctions(WebTestCase):
                 i=links_key.record_id,
             )
             web.post(url, data=data)
-            result = loads(web.text)
+            result = json.loads(web.text)
             if not expect_errors:
                 self.assertTrue('rows' in result)
                 names = [x['name'] for x in result['rows']]
@@ -872,7 +872,7 @@ class TestFunctions(WebTestCase):
             'derivative_to_year': '1971',
         }
         web.post(url, data)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
 
         metadatas = get_records(db.publication_metadata, book.id)
@@ -893,7 +893,7 @@ class TestFunctions(WebTestCase):
             '_action': 'get',
         }
         web.post(url, data)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
         self.assertTrue('data' in result)
 
@@ -916,7 +916,7 @@ class TestFunctions(WebTestCase):
             'publication_metadata_republished': 'first',
         }
         web.post(url, data)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'error')
         self.assertEqual(result['msg'], 'Invalid data provided')
 
@@ -926,7 +926,7 @@ class TestFunctions(WebTestCase):
             '_action': 'get',
         }
         web.post(url, data)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'error')
         self.assertEqual(result['msg'], 'Invalid data provided')
 
@@ -962,7 +962,7 @@ class TestFunctions(WebTestCase):
         url = '{url}/metadata_text.json/{bid}'.format(
             url=self.url, bid=str(book.id))
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
         self.assertEqual(result['text'], text)
 
@@ -970,7 +970,7 @@ class TestFunctions(WebTestCase):
         url = '{url}/metadata_text.json/{bid}'.format(
             url=self.url, bid=str(9999999))
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'error')
         self.assertEqual(result['msg'], 'Invalid data provided')
 

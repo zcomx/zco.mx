@@ -29,12 +29,12 @@ record.
 If an archive file is uploaded, there is one UploadedArchive instance and many
 book_page records, one for each image file extracted from the archive.
 """
+import json
 import os
 import shutil
 import subprocess
 import zipfile
 from gluon import *
-from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     Book, \
@@ -78,7 +78,7 @@ class BookPageUploader(object):
             for_json = f.for_json()
             for_json['book_id'] = self.book_id
             pages.append(for_json)
-        return dumps(dict(files=pages))
+        return json.dumps(dict(files=pages))
 
     def load_file(self, up_file):
         """Load files into database."""

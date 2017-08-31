@@ -5,9 +5,9 @@
 
 Creator classes and functions.
 """
+import json
 import os
 from gluon import *
-from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.files import for_file
 from applications.zcomx.modules.job_queuers import \
     UpdateIndiciaQueuer, \
@@ -274,15 +274,15 @@ def image_as_json(creator, field='image'):
     """
     image_attributes = []
     if not creator:
-        return dumps(dict(files=image_attributes))
+        return json.dumps(dict(files=image_attributes))
 
     db = current.app.db
     if field not in db.creator.fields:
         LOG.error('Invalid creator image field: %s', field)
-        return dumps(dict(files=image_attributes))
+        return json.dumps(dict(files=image_attributes))
 
     if not creator[field]:
-        return dumps(dict(files=image_attributes))
+        return json.dumps(dict(files=image_attributes))
 
     filename, original_fullname = db.creator[field].retrieve(
         creator[field],
@@ -324,7 +324,7 @@ def image_as_json(creator, field='image'):
         )
     )
 
-    return dumps(dict(files=image_attributes))
+    return json.dumps(dict(files=image_attributes))
 
 
 def images(creator):

@@ -6,8 +6,8 @@
 Test suite for zcomx/controllers/downloads.py
 
 """
+import json
 import unittest
-from gluon.contrib.simplejson import loads
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.events import DownloadClick
@@ -55,7 +55,7 @@ class TestFunctions(WebTestCase):
             i=str(book.id),
         )
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
         click_id = int(result['id'])
         self.assertTrue(click_id > 0)
@@ -70,7 +70,7 @@ class TestFunctions(WebTestCase):
         # Second post shouldn't be loggable.
         web.sessions = {}
         web.post(url)
-        result = loads(web.text)
+        result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
         click_id = int(result['id'])
         self.assertTrue(click_id > 0)
@@ -85,7 +85,7 @@ class TestFunctions(WebTestCase):
         def test_invalid(url):
             web.sessions = {}
             web.post(url)
-            result = loads(web.text)
+            result = json.loads(web.text)
             self.assertEqual(
                 result,
                 {'status': 'error', 'msg': 'Invalid data provided'}

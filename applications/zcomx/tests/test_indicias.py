@@ -7,13 +7,13 @@ Test suite for zcomx/modules/indicias.py
 
 """
 import datetime
+import json
 import os
 import time
 import unittest
 from BeautifulSoup import BeautifulSoup
 from PIL import Image
 from gluon import *
-from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from gluon.validators import IS_INT_IN_RANGE
 from applications.zcomx.modules.book_pages import BookPage
@@ -1873,7 +1873,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__cc_licence_places(self):
         places = cc_licence_places()
-        got = loads('[' + str(places) + ']')
+        got = json.loads('[' + str(places) + ']')
         self.assertTrue({'text': 'Canada', 'value': 'Canada'} in got)
         self.assertTrue(len(got) > 245)
         for d in got:
@@ -1902,8 +1902,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         licences = cc_licences(book)
-        # loads(dumps(str)) escapes double quotes.
-        got = loads('[' + str(licences) + ']')
+        # json.loads(dumps(str)) escapes double quotes.
+        got = json.loads('[' + str(licences) + ']')
         self.assertEqual(len(got), 8 + 1)
         for d in got:
             self.assertEqual(sorted(d.keys()), ['info', 'text', 'value'])

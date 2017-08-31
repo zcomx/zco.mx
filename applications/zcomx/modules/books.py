@@ -6,11 +6,11 @@
 Book classes and functions.
 """
 import datetime
+import json
 import os
 import urlparse
 from gluon import *
 from pydal.helpers.regex import REGEX_STORE_PATTERN
-from gluon.contrib.simplejson import dumps
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
@@ -167,7 +167,7 @@ def book_pages_as_json(book, book_page_ids=None):
         if not book_page_ids or page.id in book_page_ids:
             pages.append(page)
     json_pages = [book_page_for_json(p) for p in pages]
-    return dumps(dict(files=json_pages))
+    return json.dumps(dict(files=json_pages))
 
 
 def book_pages_years(book):

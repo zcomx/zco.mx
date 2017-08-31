@@ -2,7 +2,7 @@
 """
 Controllers related to downloads.
 """
-from gluon.contrib.simplejson import dumps
+import json
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.events import log_download_click
 
@@ -16,7 +16,7 @@ def download_click_handler():
     """
     def do_error(msg):
         """Error handler."""
-        return dumps({'status': 'error', 'msg': msg})
+        return json.dumps({'status': 'error', 'msg': msg})
 
     if not request.vars.record_table \
             or request.vars.record_table not in ['all', 'book', 'creator']:
@@ -37,7 +37,7 @@ def download_click_handler():
         queue_log_downloads=queue_log_downloads,
     )
 
-    return dumps({
+    return json.dumps({
         'id': click_id,
         'status': 'ok',
     })

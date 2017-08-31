@@ -6,11 +6,11 @@ Test suite for zcomx/modules/books.py
 
 """
 import datetime
+import json
 import unittest
 import urlparse
 from BeautifulSoup import BeautifulSoup
 from gluon import *
-from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from pydal.objects import Row
 from applications.zcomx.modules.book_pages import BookPage
@@ -235,7 +235,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         )
 
         as_json = book_pages_as_json(self._book)
-        data = loads(as_json)
+        data = json.loads(as_json)
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 2)
         self.assertEqual(sorted(data['files'][0].keys()), [
@@ -254,7 +254,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test book_page_ids param.
         as_json = book_pages_as_json(
             self._book, book_page_ids=[self._book_page.id])
-        data = loads(as_json)
+        data = json.loads(as_json)
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 1)
         self.assertEqual(data['files'][0]['name'], 'portrait.png')

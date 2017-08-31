@@ -6,11 +6,11 @@
 Test suite for zcomx/modules/creators.py
 
 """
+import json
 import os
 import unittest
 from BeautifulSoup import BeautifulSoup
 from gluon import *
-from gluon.contrib.simplejson import loads
 from gluon.storage import Storage
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import \
@@ -455,7 +455,7 @@ class TestFunctions(ImageTestCase):
             img=creator.image)
         expect.delete_url = '/login/creator_img_handler/image'
 
-        do_test(loads(image_json), expect)
+        do_test(json.loads(image_json), expect)
 
         # Test creator.indicia_image
         image_json = image_as_json(creator, field='indicia_image')
@@ -472,7 +472,7 @@ class TestFunctions(ImageTestCase):
             img=creator.indicia_image)
         expect.delete_url = '/login/creator_img_handler/indicia_image'
 
-        do_test(loads(image_json), expect)
+        do_test(json.loads(image_json), expect)
 
     def test__images(self):
         creator = Creator()
