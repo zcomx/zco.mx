@@ -158,7 +158,7 @@ def main():
         quit(0)
 
     if len(args) > 1:
-        print(parser.print_help())
+        parser.print_help()
         quit(1)
 
     LOG.info('Started.')

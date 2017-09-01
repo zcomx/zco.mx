@@ -104,14 +104,14 @@ def main():
     passwd = None
     if options.all:
         if len(args) > 1:
-            print(parser.print_help())
+            parser.print_help()
             exit(1)
         emails = [x.email for x in db(db.auth_user).select(db.auth_user.email)]
         if len(args) == 1:
             passwd = args[0]
     else:
         if not args or len(args) > 2:
-            print(parser.print_help())
+            parser.print_help()
             exit(1)
         emails = [args[0]]
         if len(args) == 2:

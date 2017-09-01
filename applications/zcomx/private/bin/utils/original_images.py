@@ -96,7 +96,7 @@ def main():
         quit(0)
 
     if not args:
-        print(parser.print_help())
+        parser.print_help()
         quit(1)
 
     set_cli_logging(LOG, options.verbose, options.vv)
