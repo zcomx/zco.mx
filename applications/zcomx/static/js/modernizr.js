@@ -1,1 +1,1 @@
-modernizr-custom.3.2.0.js
+modernizr/3.5.0/modernizr-custom.min.js
