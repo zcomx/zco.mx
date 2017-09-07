@@ -184,7 +184,12 @@ class TestLocalSQLFORM(LocalTestCase):
         self.assertTrue(form)
 
     def test__grid(self):
-        grid = LocalSQLFORM(db.book_page).grid(db.book_page)
+        # No field_id should error.
+        self.assertRaises(
+            LookupError, LocalSQLFORM(db.book_page).grid, db.book_page)
+
+        grid = LocalSQLFORM(db.book_page).grid(
+            db.book_page, field_id=db.book_page.id)
         soup = as_soup(str(grid))
         # <div class="web2py_grid grid_widget">...</div>
         div = soup.find('div', {'class': 'web2py_grid '})
@@ -321,7 +326,11 @@ class TestFunctions(LocalTestCase):
 
     def test__search_fields_grid(self):
         fields = [db.book.name]
-        grid = search_fields_grid(fields)(db.book)
+        # No field_id should error.
+        self.assertRaises(
+            LookupError, search_fields_grid(fields), db.book)
+
+        grid = search_fields_grid(fields)(db.book, field_id=db.book.id)
         self.assertTrue(grid)
 
 

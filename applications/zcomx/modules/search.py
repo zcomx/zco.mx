@@ -218,6 +218,7 @@ class Grid(object):
 
         kwargs = dict(
             fields=fields,
+            field_id=db[self._attributes['table']].id,
             headers=headers,
             orderby=self.orderby(),
             groupby=self.groupby(),

@@ -165,6 +165,13 @@ class LocalSQLFORM(SQLFORM):
         for k, v in cls.grid_defaults.items():
             if k not in kwargs:
                 kwargs[k] = v
+
+        if 'field_id' not in kwargs:
+            # Web2py v2.15.3 introduced a new method for determining the
+            # primary table that can go wrong. Require the primary table
+            # be explicitly determined with the field_id to prevent mess.
+            raise LookupError('The "field_id" is not explicitly set in grid.')
+
         return SQLFORM.grid(*args, **kwargs)
 
 

@@ -60,6 +60,7 @@ def job_queuers():
 
     grid = search_fields_grid(search_fields)(
         db.job_queuer,
+        field_id=db.job_queuer.id,
         details=False,
         maxtextlengths={'job_queuer.code': 100},
     )
