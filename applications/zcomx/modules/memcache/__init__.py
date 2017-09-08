@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from applications.zcomx.modules.memcache.memcache import Client
 from gluon.cache import CacheAbstract
