@@ -109,7 +109,7 @@ VERSION 6
     [ERROR queue_check.py 86] Multiple pending jobs in queue.
     * could be many jobs in the queue
     * could have 'd' jobs -- output of these would be nice
-[S] Setup On jimk.zsw.ca
+[S] Setup On dev.zco.mx
     rtorrent
     tmux+ncdc
     rtxmlrpc

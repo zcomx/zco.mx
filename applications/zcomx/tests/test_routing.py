@@ -1042,7 +1042,7 @@ class TestFunctions(LocalTestCase):
 
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
-        app_root = '/srv/http/jimk.zsw.ca/web2py/applications'
+        app_root = '/srv/http/dev.zco.mx/web2py/applications'
         in_tests = [
             # (url, URL)
             ('http://my.domain.com/', '/zcomx/search/index'),
@@ -1086,7 +1086,7 @@ class TestFunctions(LocalTestCase):
 
             # Static files
             ('http://my.domain.com/favicon.ico', app_root + '/zcomx/static/images/favicon.ico'),
-            ('http://jimk.zsw.ca/robots.txt', app_root + '/zcomx/static/robots.txt'),
+            ('http://dev.zco.mx/robots.txt', app_root + '/zcomx/static/robots.txt'),
             ('http://my.domain.com/zcomx/static/images/loading/16x16.gif', app_root + '/zcomx/static/images/loading/16x16.gif'),
             ('http://my.domain.com/zcomx/static/css/custom.css', app_root + '/zcomx/static/css/custom.css'),
             ('http://my.domain.com/zcomx/static/js/web2py.js', app_root + '/zcomx/static/js/web2py.js'),
@@ -1166,7 +1166,7 @@ class TestFunctions(LocalTestCase):
 
             # Static files
             ('http://my.domain.com/zcomx/static/images/favicon.ico', '/favicon.ico'),
-            ('http://jimk.zsw.ca/zcomx/static/robots.txt', '/robots.txt'),
+            ('http://dev.zco.mx/zcomx/static/robots.txt', '/robots.txt'),
             ('http://my.domain.com/zcomx/static/images/loading.gif', '/zcomx/static/images/loading.gif'),
             ('http://my.domain.com/zcomx/static/css/custom.css', '/zcomx/static/css/custom.css'),
             ('http://my.domain.com/zcomx/static/js/web2py.js', '/zcomx/static/js/web2py.js'),
