@@ -66,7 +66,7 @@ class FacebookAPIAuthenticator(object):
         if not access_token:
             raise FacebookAPIError('Unable to acquire access token')
 
-        graph = facepy.GraphAPI(access_token, version='2.4')
+        graph = facepy.GraphAPI(access_token, version='2.10')
         client = client_class(graph)
         accounts = client.accounts()
         if not accounts:
@@ -86,7 +86,7 @@ class FacebookAPIAuthenticator(object):
             raise FacebookAPIError('Unable to get page access_token.')
 
         # Reset the graph to use the page token.
-        graph = facepy.GraphAPI(page_access_token, version='2.4')
+        graph = facepy.GraphAPI(page_access_token, version='2.10')
         return client_class(graph, user_id)
 
     def get_token(self):
