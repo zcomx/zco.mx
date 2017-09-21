@@ -71,6 +71,7 @@ routes_in = (
     ('/robots.txt', '/zcomx/static/robots.txt'),
     ('/sitemap.xml', '/zcomx/static/sitemap.xml'),
     ('/google23f195580c35fe70.html', '/zcomx/static/google23f195580c35fe70.html'),
+    ('/BingSiteAuth.xml', '/zcomx/static/BingSiteAuth.xml'),
 
     # reroute cbz files, look for .cbz extension
     ('/zcomx/{c}/(?P<cbz>.*\.cbz)'.format(c=creator_re), '/zcomx/cbz/route?creator=\g<creator>&cbz=\g<cbz>'),
