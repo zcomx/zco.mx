@@ -21,6 +21,7 @@ gluon/tests/sql.log
 httpserver.log
 httpserver.pid
 parameters*.py
+sitemap.xml
 ./.cache
 ./deposit
 ./benchmark

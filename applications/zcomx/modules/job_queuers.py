@@ -18,6 +18,7 @@ from applications.zcomx.modules.job_queue import \
 PRIORITIES = [
     # Lowest
     'purge_torrents',
+    'create_sitemap',
     'search_prefetch',
     'optimize_original_img',
     'log_downloads',
@@ -81,6 +82,23 @@ class CreateCBZQueuer(Queuer):
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal
+
+
+@Queuer.class_factory.register
+class CreateSiteMapQueuer(Queuer):
+    """Class representing a queuer for create_sitemap jobs."""
+    class_factory_id = 'create_sitemap'
+    program = os.path.join(Queuer.bin_path, 'create_sitemap.py')
+    default_job_options = {
+        'priority': PRIORITIES.index('create_sitemap'),
+        'status': 'a',
+    }
+    valid_cli_options = [
+        '-o', '--out-file',
+        '-v', '--vv',
+    ]
+    queue_class = QueueWithSignal
+
 
 
 @Queuer.class_factory.register
@@ -394,6 +412,24 @@ class UpdateIndiciaForReleaseQueuer(UpdateIndiciaQueuer):
     default_job_options = dict(UpdateIndiciaQueuer.default_job_options)
     default_job_options['priority'] = PRIORITIES.index(
         'update_creator_indicia_for_release')
+
+
+def queue_create_sitemap():
+    """Convenience function. Quees a create sitemap job.
+
+    Since the job is generally not critical, apart from a log,
+    failures are ignored.
+    """
+    db = current.app.db
+    sitemap_file = os.path.join(current.request.folder, 'static', 'sitemap.xml')
+    job = CreateSiteMapQueuer(
+        db.job,
+        cli_options={'-o': sitemap_file},
+    ).queue()
+    if not job:
+        LOG.error('Failed to create job to create sitemap.')
+    return job
+
 
 
 def queue_search_prefetch():

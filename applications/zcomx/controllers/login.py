@@ -48,13 +48,15 @@ from applications.zcomx.modules.indicias import \
     Derivative, \
     PublicationMetadata, \
     create_creator_indicia
-from applications.zcomx.modules.job_queuers import \
-    DeleteBookQueuer, \
-    FileshareBookQueuer, \
-    SetBookCompletedQueuer, \
-    ReverseFileshareBookQueuer, \
-    ReverseSetBookCompletedQueuer, \
-    queue_search_prefetch
+from applications.zcomx.modules.job_queuers import (
+    DeleteBookQueuer,
+    FileshareBookQueuer,
+    SetBookCompletedQueuer,
+    ReverseFileshareBookQueuer,
+    ReverseSetBookCompletedQueuer,
+    queue_create_sitemap,
+    queue_search_prefetch,
+)
 from applications.zcomx.modules.links import \
     Link, \
     Links, \
@@ -331,6 +333,7 @@ def book_crud():
             return {'status': 'error', 'msg': str(err)}
 
         queue_search_prefetch()
+        queue_create_sitemap()
 
         numbers = \
             BookType.classified_from_id(
@@ -623,10 +626,12 @@ def book_post_upload_session():
         uploaded.
 
         * update book.page_added_on if applicable
+        * check for errors
         * reorder book pages
         * set book status
         * trigger queue search prefetch
         * optimize book page images
+        * trigger queue create sitemap
 
     request.args(0): integer, id of book.
     request.vars.book_page_ids[], list of book page ids.
@@ -706,8 +711,11 @@ def book_post_upload_session():
     # searchable if applicable.
     queue_search_prefetch()
 
-    # Step 5:  Trigger optimization of book images
+    # Step 6:  Trigger optimization of book images
     AllSizesImages.from_names(images(book)).optimize()
+
+    # Step 7: Trigger create sitemap
+    queue_create_sitemap()
 
     return json.dumps({'status': 'ok'})
 

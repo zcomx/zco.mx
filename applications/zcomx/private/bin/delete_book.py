@@ -11,7 +11,10 @@ from optparse import OptionParser
 from applications.zcomx.modules.books import \
     Book, \
     book_tables
-from applications.zcomx.modules.job_queuers import queue_search_prefetch
+from applications.zcomx.modules.job_queuers import (
+    queue_create_sitemap,
+    queue_search_prefetch,
+)
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -100,6 +103,7 @@ def main():
     book = Book.from_id(book_id)
     delete_records(book)
     queue_search_prefetch()
+    queue_create_sitemap()
 
     LOG.debug('Done')
 

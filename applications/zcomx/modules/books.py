@@ -1002,6 +1002,8 @@ def page_url(book_page, reader=None, **url_kwargs):
 
     Args:
         book_page: BookPage instance
+        reader: str, one of 'slider', 'scroller'
+            If not None, appends ?reader=<reader> to the url.
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url,

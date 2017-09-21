@@ -9,9 +9,11 @@ import json
 import os
 from gluon import *
 from applications.zcomx.modules.files import for_file
-from applications.zcomx.modules.job_queuers import \
-    UpdateIndiciaQueuer, \
-    queue_search_prefetch
+from applications.zcomx.modules.job_queuers import (
+    UpdateIndiciaQueuer,
+    queue_create_sitemap,
+    queue_search_prefetch,
+)
 from applications.zcomx.modules.names import \
     CreatorName, \
     names
@@ -96,6 +98,8 @@ def add_creator(form):
         creator = Creator.from_id(creator_id)
         on_change_name(creator)
         queue_update_indicia(creator)     # Create default indicia
+
+    queue_create_sitemap()
 
 
 def book_for_contributions(creator):
@@ -365,6 +369,7 @@ def on_change_name(creator):
 
     updated_creator = Creator.from_updated(creator, update_data)
     queue_search_prefetch()
+    queue_create_sitemap()
     return updated_creator
 
 

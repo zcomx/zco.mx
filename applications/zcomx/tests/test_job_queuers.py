@@ -14,33 +14,36 @@ from gluon import *
 from applications.zcomx.modules.job_queue import \
     InvalidCLIOptionError, \
     Queuer
-from applications.zcomx.modules.job_queuers import \
-    CreateAllTorrentQueuer, \
-    CreateBookTorrentQueuer, \
-    CreateCBZQueuer, \
-    CreateCreatorTorrentQueuer, \
-    CreateTorrentQueuer, \
-    DeleteBookQueuer, \
-    DeleteImgQueuer, \
-    FileshareBookQueuer, \
-    LogDownloadsQueuer, \
-    NotifyP2PQueuer, \
-    OptimizeCBZImgForReleaseQueuer, \
-    OptimizeCBZImgQueuer, \
-    OptimizeImgQueuer, \
-    OptimizeOriginalImgQueuer, \
-    OptimizeWebImgQueuer, \
-    PRIORITIES, \
-    PostOnSocialMediaQueuer, \
-    PurgeTorrentsQueuer, \
-    QueueWithSignal, \
-    ReverseFileshareBookQueuer, \
-    ReverseSetBookCompletedQueuer, \
-    SearchPrefetchQueuer, \
-    SetBookCompletedQueuer, \
-    UpdateIndiciaQueuer, \
-    UpdateIndiciaForReleaseQueuer, \
-    queue_search_prefetch
+from applications.zcomx.modules.job_queuers import (
+    CreateAllTorrentQueuer,
+    CreateBookTorrentQueuer,
+    CreateCBZQueuer,
+    CreateCreatorTorrentQueuer,
+    CreateSiteMapQueuer,
+    CreateTorrentQueuer,
+    DeleteBookQueuer,
+    DeleteImgQueuer,
+    FileshareBookQueuer,
+    LogDownloadsQueuer,
+    NotifyP2PQueuer,
+    OptimizeCBZImgForReleaseQueuer,
+    OptimizeCBZImgQueuer,
+    OptimizeImgQueuer,
+    OptimizeOriginalImgQueuer,
+    OptimizeWebImgQueuer,
+    PRIORITIES,
+    PostOnSocialMediaQueuer,
+    PurgeTorrentsQueuer,
+    QueueWithSignal,
+    ReverseFileshareBookQueuer,
+    ReverseSetBookCompletedQueuer,
+    SearchPrefetchQueuer,
+    SetBookCompletedQueuer,
+    UpdateIndiciaQueuer,
+    UpdateIndiciaForReleaseQueuer,
+    queue_create_sitemap,
+    queue_search_prefetch,
+)
 
 from applications.zcomx.modules.tests.runner import \
     LocalTestCase, \
@@ -145,6 +148,26 @@ class TestCreateCreatorTorrentQueuer(LocalTestCase):
 
         queuer.cli_options.update({'--all': True})
         self.assertRaises(InvalidCLIOptionError, queuer.queue)
+
+
+class TestCreateSiteMapQueuer(LocalTestCase):
+
+    def test_queue(self):
+        queuer = CreateSiteMapQueuer(
+            db.job,
+            job_options={'status': 'd'},
+            cli_options={'--out-file': 'aaa.txt', '-v': True},
+        )
+        tracker = TableTracker(db.job)
+        job = queuer.queue()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # pylint: disable=line-too-long
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/create_sitemap.py --out-file aaa.txt -v'
+        )
 
 
 class TestCreateTorrentQueuer(LocalTestCase):
@@ -582,6 +605,19 @@ class TestUpdateIndiciaForReleaseQueuer(LocalTestCase):
 
 
 class TestFunctions(LocalTestCase):
+
+    def test__queue_create_sitemap(self):
+        tracker = TableTracker(db.job)
+        job = queue_create_sitemap()
+        self.assertFalse(tracker.had(job))
+        self.assertTrue(tracker.has(job))
+        self._objects.append(job)
+        # C0301: *Line too long (%%s/%%s)*
+        # pylint: disable=C0301
+        self.assertEqual(
+            job.command,
+            'applications/zcomx/private/bin/create_sitemap.py -o applications/zcomx/static/sitemap.xml'
+        )
 
     def test__queue_search_prefetch(self):
         tracker = TableTracker(db.job)

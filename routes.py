@@ -69,6 +69,7 @@ routes_in = (
     #  reroute favicon and robots
     ('/favicon.ico', '/zcomx/static/images/favicon.ico'),
     ('/robots.txt', '/zcomx/static/robots.txt'),
+    ('/sitemap.xml', '/zcomx/static/sitemap.xml'),
 
     # reroute cbz files, look for .cbz extension
     ('/zcomx/{c}/(?P<cbz>.*\.cbz)'.format(c=creator_re), '/zcomx/cbz/route?creator=\g<creator>&cbz=\g<cbz>'),

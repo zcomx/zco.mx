@@ -1,3 +1,8 @@
+Sitemap: https://zco.mx/sitemap.xml
+
 User-agent: *
 Disallow: /static/
 Disallow: /contributions/
+
+Crawl-delay: 10
+Host: zco.mx
