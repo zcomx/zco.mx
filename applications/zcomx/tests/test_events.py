@@ -291,12 +291,25 @@ class TestFunctions(LocalTestCase):
     def test__is_loggable(self):
         now = request.now
 
-        # Test all
+        # Test 'all'
         download_click_all = self.add(DownloadClick, dict(
             ip_address='999.999.999.999',
             auth_user_id=1,
             record_table='all',
             record_id=999,
+            is_bot=False,
+            loggable=True,
+            time_stamp=now,
+        ))
+        self.assertFalse(is_loggable(download_click_all.id))
+
+        # Test is_bot=True
+        download_click_all = self.add(DownloadClick, dict(
+            ip_address='999.999.999.999',
+            auth_user_id=1,
+            record_table='_table_1_',
+            record_id=999,
+            is_bot=True,
             loggable=True,
             time_stamp=now,
         ))
@@ -308,6 +321,7 @@ class TestFunctions(LocalTestCase):
             auth_user_id=1,
             record_table='_table_1_',
             record_id=111,
+            is_bot=False,
             loggable=True,
             time_stamp=now,
         ))
@@ -321,6 +335,7 @@ class TestFunctions(LocalTestCase):
             auth_user_id=1,
             record_table='_table_1_',
             record_id=111,
+            is_bot=False,
             loggable=True,
             time_stamp=now,
         )

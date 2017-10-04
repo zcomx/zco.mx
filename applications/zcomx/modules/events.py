@@ -224,6 +224,9 @@ def is_loggable(download_click_id, interval_seconds=1800):
     if download_click.record_table == 'all':
         return False
 
+    if download_click.is_bot:
+        return False
+
     click_as_epoch = download_click.time_stamp.strftime('%s')
 
     # line-too-long (C0301): *Line too long (%%s/%%s)*
