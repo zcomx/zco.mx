@@ -290,6 +290,19 @@ class TestZcoContributionEvent(EventTestCase):
 class TestFunctions(LocalTestCase):
     def test__is_loggable(self):
         now = request.now
+
+        # Test all
+        download_click_all = self.add(DownloadClick, dict(
+            ip_address='999.999.999.999',
+            auth_user_id=1,
+            record_table='all',
+            record_id=999,
+            loggable=True,
+            time_stamp=now,
+        ))
+        self.assertFalse(is_loggable(download_click_all.id))
+
+        # Test non-all
         download_click_1 = self.add(DownloadClick, dict(
             ip_address='111.111.111.111',
             auth_user_id=1,

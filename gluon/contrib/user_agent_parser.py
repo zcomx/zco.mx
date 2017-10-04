@@ -349,6 +349,10 @@ class FacebookExternalHit(Browser):
     look_for = 'facebookexternalhit'
     bot = True
 
+class AhrefsBot(Browser):
+    look_for = " AhrefsBot"
+    bot = True
+
 
 class NokiaOvi(Browser):
     look_for = "S40OviBrowser"

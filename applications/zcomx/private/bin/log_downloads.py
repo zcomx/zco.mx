@@ -11,9 +11,11 @@ Script to log download clicks.
 from __future__ import print_function
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.events import \
-    DownloadClick, \
-    DownloadEvent
+from applications.zcomx.modules.events import (
+    Download,
+    DownloadClick,
+    DownloadEvent,
+)
 from applications.zcomx.modules.job_queuers import \
     LogDownloadsQueuer
 from applications.zcomx.modules.logger import set_cli_logging
@@ -35,6 +37,30 @@ def log(download_click_id, book_id):
 
     book = Book.from_id(book_id)
     return DownloadEvent(book, click.auth_user_id).log(value=click)
+
+
+def rm_unloggables():
+    """Remove unloggable download records."""
+
+    query = (db.download_click.loggable == False) & \
+        (db.download_click.completed == False)
+
+    rows = db(query).select(
+        db.download.id,
+        left=[
+            db.download_click.on(
+                db.download.download_click_id == db.download_click.id)
+        ],
+    )
+
+    for r in rows:
+        download = Download.from_id(r.id)
+        LOG.debug(
+            'Deleting download id %s for book id: %s',
+            download.id,
+            download.book_id
+        )
+        download.delete()
 
 
 def unlogged_generator(limit=None):
@@ -61,7 +87,7 @@ def unlogged_generator(limit=None):
         queries.append((db.download_click.id == click.id))
 
         downloadable_query = (db.book.release_date != None) & \
-            (db.book.torrent != None)
+            (db.book.fileshare_date != None)
         not_logged_query = (db.download.id == None)
 
         queries.append(downloadable_query)
@@ -183,6 +209,8 @@ def main():
         count = count + 1
         if limit is not None and count >= limit:
             break
+
+    rm_unloggables()
 
     sql = """
         UPDATE book SET downloads=(

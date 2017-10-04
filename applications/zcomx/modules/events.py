@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -10,6 +9,7 @@ from gluon import *
 from applications.zcomx.modules.books import update_rating
 from applications.zcomx.modules.job_queuers import LogDownloadsQueuer
 from applications.zcomx.modules.records import Record
+from applications.zcomx.modules.user_agents import is_bot
 
 LOG = current.app.logger
 LOG_DOWNLOADS_LIMIT = 1000
@@ -220,6 +220,10 @@ def is_loggable(download_click_id, interval_seconds=1800):
     """
     db = current.app.db
     download_click = DownloadClick.from_id(download_click_id)
+
+    if download_click.record_table == 'all':
+        return False
+
     click_as_epoch = download_click.time_stamp.strftime('%s')
 
     # line-too-long (C0301): *Line too long (%%s/%%s)*
@@ -260,6 +264,7 @@ def log_download_click(record_table, record_id, queue_log_downloads=True):
         auth_user_id=auth.user_id or 0,
         record_table=record_table,
         record_id=record_id,
+        is_bot=is_bot()
     )
     click_id = db.download_click.insert(**data)
     db.commit()

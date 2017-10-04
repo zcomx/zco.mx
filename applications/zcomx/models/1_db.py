@@ -537,6 +537,11 @@ db.define_table('download_click',
     Field('record_table'),
     Field('record_id', 'integer'),
     Field(
+        'is_bot',
+        'boolean',
+        default=False,
+    ),
+    Field(
         'loggable',
         'boolean',
         default=False,

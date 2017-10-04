@@ -3,6 +3,8 @@ Sitemap: https://zco.mx/sitemap.xml
 User-agent: *
 Disallow: /static/
 Disallow: /contributions/
+Disallow: /torrents/download/
+Disallow: /*.torrent$
 
 Crawl-delay: 10
 Host: zco.mx
