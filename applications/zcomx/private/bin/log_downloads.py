@@ -9,6 +9,7 @@ Script to log download clicks.
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
 from __future__ import print_function
+import time
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.events import (
@@ -53,6 +54,7 @@ def rm_unloggables():
         ],
     )
 
+    count = 0
     for r in rows:
         download = Download.from_id(r.id)
         LOG.debug(
@@ -61,6 +63,10 @@ def rm_unloggables():
             download.book_id
         )
         download.delete()
+        # Prevent script from locking db
+        count += 1
+        if count % 10 == 0:
+            time.sleep(1)
 
 
 def unlogged_generator(limit=None):
@@ -209,6 +215,8 @@ def main():
         count = count + 1
         if limit is not None and count >= limit:
             break
+        if count % 10 == 0:
+            time.sleep(1)
 
     rm_unloggables()
 
