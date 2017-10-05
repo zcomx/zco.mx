@@ -41,7 +41,9 @@ def log(download_click_id, book_id):
 
 
 def rm_unloggables():
-    """Remove unloggable download records."""
+    """Remove download records associated with unloggable download_click
+    records.
+    """
 
     query = (db.download_click.loggable == False) & \
         (db.download_click.completed == False)

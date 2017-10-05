@@ -401,7 +401,7 @@ class TestFunctions(LocalTestCase):
         db(query).delete()
         db.commit()
 
-        click_id = log_download_click('all', 0, queue_log_downloads=False)
+        click_id = log_download_click('book', 0, queue_log_downloads=False)
         download_click = DownloadClick.from_id(click_id)
         self.assertTrue(download_click)
         self.assertEqual(download_click.ip_address, test_ip)
@@ -409,7 +409,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(download_click.completed, False)
         self._objects.append(download_click)
 
-        click_id_2 = log_download_click('all', 0, queue_log_downloads=False)
+        click_id_2 = log_download_click('book', 0, queue_log_downloads=False)
         download_click_2 = DownloadClick.from_id(click_id_2)
         self.assertEqual(download_click_2.ip_address, test_ip)
         self.assertEqual(download_click_2.loggable, False)

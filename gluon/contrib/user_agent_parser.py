@@ -357,6 +357,9 @@ class YahooSlurp(Browser):
     look_for = "Yahoo! Slurp"
     bot = True
 
+class Pinterestbot(Browser):
+    look_for = "Pinterestbot"
+    bot = True
 
 class NokiaOvi(Browser):
     look_for = "S40OviBrowser"
