@@ -22,7 +22,6 @@ def is_bot():
         True if request is from a bot (ss per user_agent_parser)
 
     """
-
     result = False
     user_agent = current.request.user_agent()
     if user_agent and user_agent.bot is not None:

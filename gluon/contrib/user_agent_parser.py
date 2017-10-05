@@ -350,7 +350,11 @@ class FacebookExternalHit(Browser):
     bot = True
 
 class AhrefsBot(Browser):
-    look_for = " AhrefsBot"
+    look_for = "AhrefsBot"
+    bot = True
+
+class YahooSlurp(Browser):
+    look_for = "Yahoo! Slurp"
     bot = True
 
 

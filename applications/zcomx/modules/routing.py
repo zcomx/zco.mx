@@ -35,6 +35,7 @@ from applications.zcomx.modules.search import \
     CompletedGrid, \
     CreatorMoniesGrid, \
     OngoingGrid
+from applications.zcomx.modules.user_agents import is_bot
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_DISABLED, \
     BOOK_STATUS_DRAFT
@@ -528,7 +529,8 @@ class Router(object):
                 'content': content,
             }))
 
-        ViewEvent(book, self.auth.user_id).log()
+        if not is_bot():
+            ViewEvent(book, self.auth.user_id).log()
 
         try:
             first_page = get_page(book, page_no='first')
