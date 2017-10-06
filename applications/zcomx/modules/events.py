@@ -167,10 +167,14 @@ class ViewEvent(BookEvent):
 
     def _log(self, value=None):
         db = current.app.db
+        request = current.request
+
         data = dict(
             auth_user_id=self.user_id or 0,
             book_id=self.book.id,
-            time_stamp=datetime.datetime.now()
+            time_stamp=datetime.datetime.now(),
+            ip_address=request.client,
+            is_bot=is_bot(),
         )
         event_id = db.book_view.insert(**data)
         db.commit()

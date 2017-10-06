@@ -308,6 +308,12 @@ db.define_table('book_view',
         'integer',
     ),
     Field('time_stamp', 'datetime'),
+    Field('ip_address'),
+    Field(
+        'is_bot',
+        'boolean',
+        default=False,
+    ),
 )
 
 db.define_table('cc_licence',

@@ -349,17 +349,27 @@ class FacebookExternalHit(Browser):
     look_for = 'facebookexternalhit'
     bot = True
 
+
 class AhrefsBot(Browser):
     look_for = "AhrefsBot"
+    bot = True
+
+class GlutenFreeCrawler(Browser):
+    look_for = "Gluten Free Crawler"
+    bot = True
+
+class Pinterestbot(Browser):
+    look_for = "Pinterestbot"
+    bot = True
+
+class Wotbox(Browser):
+    look_for = "Wotbox"
     bot = True
 
 class YahooSlurp(Browser):
     look_for = "Yahoo! Slurp"
     bot = True
 
-class Pinterestbot(Browser):
-    look_for = "Pinterestbot"
-    bot = True
 
 class NokiaOvi(Browser):
     look_for = "S40OviBrowser"
