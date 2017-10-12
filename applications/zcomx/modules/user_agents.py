@@ -6,11 +6,6 @@
 User Agent classes and functions.
 """
 from gluon import *
-from gluon.contrib.user_agent_parser import (
-    Browser,
-    DetectorBase,
-    DetectorsHub,
-)
 
 LOG = current.app.logger
 
@@ -24,8 +19,12 @@ def is_bot():
     """
     result = False
     user_agent = current.request.user_agent()
-    if user_agent and user_agent.bot is not None:
-        result = user_agent.bot
+    if user_agent:
+        if user_agent.bot is not None:
+            result = user_agent.bot
+        else:
+            # Treat any unknown user agents as a bot.
+            result = True
     else:
         LOG.error(
             'Bot status unknown, user agent: %s',

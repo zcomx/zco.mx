@@ -25,11 +25,13 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=line-too-long
         tests = [
             # (user_agent, expect)
+            ("Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0", False),
             ("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www. google.com/bot.html)", True),
             ("Mozilla/5.0 (compatible; MJ12bot/v1.4.7; http://mj12bot.com/)", True),
             ("Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.  com/bingbot.htm)", True),
+            # unregistered bots
             ("Mozilla/5.0 (compatible; AhrefsBot/5.2; +http://ahrefs.com/robot/)", True),
-            ("Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0", False),
+            ("Mozilla/5.0 (compatible; Dataprovider.com;)", True),
         ]
         for t in tests:
             # pylint: disable=protected-access

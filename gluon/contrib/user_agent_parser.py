@@ -350,47 +350,6 @@ class FacebookExternalHit(Browser):
     bot = True
 
 
-class AhrefsBot(Browser):
-    look_for = "AhrefsBot"
-    bot = True
-
-class Barkrowler(Browser):
-    look_for = "Barkrowler"
-    bot = True
-
-class Cliqzbot(Browser):
-    look_for = "Cliqzbot"
-    bot = True
-
-class GlutenFreeCrawler(Browser):
-    look_for = "Gluten Free Crawler"
-    bot = True
-
-class Pinterestbot(Browser):
-    look_for = "Pinterestbot"
-    bot = True
-
-class Qwantify(Browser):
-    look_for = "Qwantify"
-    bot = True
-
-class SemrushBot(Browser):
-    look_for = "SemrushBot"
-    bot = True
-
-class SeznamBot(Browser):
-    look_for = "SeznamBot"
-    bot = True
-
-class Wotbox(Browser):
-    look_for = "Wotbox"
-    bot = True
-
-class YahooSlurp(Browser):
-    look_for = "Yahoo! Slurp"
-    bot = True
-
-
 class NokiaOvi(Browser):
     look_for = "S40OviBrowser"
 
