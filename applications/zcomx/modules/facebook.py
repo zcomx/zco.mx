@@ -45,13 +45,16 @@ class FacebookAPIAuthenticator(object):
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         self.session.headers.update({
+            'Host': 'www.facebook.com',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.5',
             'DNT': '1',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
             'Pragma': 'no-cache',
             'Cache-Control': 'no-cache',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.00',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         })
 
     def authenticate(self, client_class=None):
@@ -133,13 +136,13 @@ class FacebookAPIAuthenticator(object):
         for form_input in inputs:
             # pylint complains about has_key, but this is a custom
             # BeautifulSoup Tag method.
-            if not form_input.has_key('type'):
+            if 'type' not in form_input:
                 continue
             if form_input['type'] != 'hidden':
                 continue
-            if form_input.has_key('value'):
+            if 'value' in form_input:
                 post_data[form_input['name']] = form_input['value']
-            elif form_input.has_key('checked'):
+            elif 'checked' in form_input:
                 post_data[form_input['name']] = form_input['checked']
         post_data['email'] = self.email
         post_data['pass'] = self.password
