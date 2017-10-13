@@ -29,6 +29,7 @@ from applications.zcomx.modules.events import \
     ZcoContributionEvent, \
     is_loggable, \
     log_download_click
+from applications.zcomx.modules.user_agents import USER_AGENT
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 
@@ -392,10 +393,10 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(is_loggable(download_click_2.id, interval_seconds=5))
 
     def test__log_download_click(self):
-        env = globals()
-        request = env['request']
         test_ip = '000.111.111.333'
-        request.client = test_ip
+        current.session._user_agent = None
+        current.request.env.http_user_agent = USER_AGENT
+        current.request.client = test_ip
 
         query = (db.download_click.ip_address == test_ip)
         db(query).delete()

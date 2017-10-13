@@ -30,6 +30,7 @@ from applications.zcomx.modules.routing import \
     Router, \
     SpareCreatorError
 from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.user_agents import USER_AGENT
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
@@ -66,6 +67,10 @@ class TestRouter(LocalTestCase):
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     def setUp(self):
+        # Prevent requests from being seen as bots.
+        current.session._user_agent = None
+        current.request.env.http_user_agent = USER_AGENT
+
         self._request = Storage()
         self._request.env = Storage()
         self._request.env.wsgi_url_scheme = 'http'
@@ -677,7 +682,6 @@ class TestRouter(LocalTestCase):
     def test__route(self):
         router = Router(db, self._request, auth)
         random = '_random_placeholder_'
-
         self.assertEqual(len(self._book_views(self._book.id)), 0)
 
         def do_test(request_vars, expect):
