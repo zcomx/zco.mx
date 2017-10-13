@@ -6,10 +6,14 @@
 User Agent classes and functions.
 """
 from gluon import *
+from gluon.storage import Storage
 
 LOG = current.app.logger
 
-USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0'
+USER_AGENTS = Storage({
+    'bot': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www. google.com/bot.html)',
+    'non_bot': 'Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0',
+})
 
 def is_bot():
     """Determine if the http request is a bot or not.

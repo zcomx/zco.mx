@@ -30,7 +30,7 @@ from applications.zcomx.modules.routing import \
     Router, \
     SpareCreatorError
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.user_agents import USER_AGENT
+from applications.zcomx.modules.user_agents import USER_AGENTS
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
@@ -69,7 +69,7 @@ class TestRouter(LocalTestCase):
     def setUp(self):
         # Prevent requests from being seen as bots.
         current.session._user_agent = None
-        current.request.env.http_user_agent = USER_AGENT
+        current.request.env.http_user_agent = USER_AGENTS.non_bot
 
         self._request = Storage()
         self._request.env = Storage()

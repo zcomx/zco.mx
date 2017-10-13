@@ -10,7 +10,7 @@ import unittest
 from gluon import *
 from gluon.globals import Request
 from applications.zcomx.modules.user_agents import (
-    USER_AGENT,
+    USER_AGENTS,
     is_bot,
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -26,7 +26,8 @@ class TestFunctions(LocalTestCase):
         # pylint: disable=line-too-long
         tests = [
             # (user_agent, expect)
-            (USER_AGENT, False),
+            (USER_AGENTS.non_bot, False),
+            (USER_AGENTS.bot, True),
             ("Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0", False),
             ("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www. google.com/bot.html)", True),
             ("Mozilla/5.0 (compatible; MJ12bot/v1.4.7; http://mj12bot.com/)", True),
