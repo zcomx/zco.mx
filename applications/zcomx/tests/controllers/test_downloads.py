@@ -64,21 +64,7 @@ class TestFunctions(WebTestCase):
         self._objects.append(download_click)
         self.assertEqual(download_click.record_table, 'book')
         self.assertEqual(download_click.record_id, book.id)
-        self.assertEqual(download_click.loggable, True)
-        self.assertEqual(download_click.completed, False)
-
-        # Second post shouldn't be loggable.
-        web.sessions = {}
-        web.post(url)
-        result = json.loads(web.text)
-        self.assertEqual(result['status'], 'ok')
-        click_id = int(result['id'])
-        self.assertTrue(click_id > 0)
-        download_click = DownloadClick.from_id(click_id)
-        self.assertTrue(download_click)
-        self._objects.append(download_click)
-        self.assertEqual(download_click.record_table, 'book')
-        self.assertEqual(download_click.record_id, book.id)
+        # Test user agent will be interpreted as bot.
         self.assertEqual(download_click.loggable, False)
         self.assertEqual(download_click.completed, True)
 
