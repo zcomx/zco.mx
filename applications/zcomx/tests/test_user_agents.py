@@ -35,12 +35,21 @@ class TestFunctions(LocalTestCase):
             # unregistered bots
             ("Mozilla/5.0 (compatible; AhrefsBot/5.2; +http://ahrefs.com/robot/)", True),
             ("Mozilla/5.0 (compatible; Dataprovider.com;)", True),
+            ("", True),
+            (None, True),
         ]
         for t in tests:
             # pylint: disable=protected-access
             current.session._user_agent = None      # Clear cache
             current.request.env.http_user_agent = t[0]
             self.assertEqual(is_bot(), t[1])
+
+
+        # Test indeterminate_is_bot
+        current.session._user_agent = None      # Clear cache
+        current.request.env.http_user_agent = None
+        self.assertEqual(is_bot(indeterminate_is_bot=True), True)
+        self.assertEqual(is_bot(indeterminate_is_bot=False), False)
 
 
 def setUpModule():
