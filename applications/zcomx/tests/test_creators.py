@@ -41,9 +41,8 @@ from applications.zcomx.modules.job_queue import Job
 from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase, \
-    TableTracker
+from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.trackers import TableTracker
 
 # C0111: Missing docstring
 # R0904: Too many public methods
@@ -84,6 +83,8 @@ class TestCreator(LocalTestCase):
 class TestFunctions(ImageTestCase):
 
     def test__add_creator(self):
+        tracker = TableTracker(db.job)
+
         email = 'test__add_creator@example.com'
 
         def user_by_email(email):
@@ -137,6 +138,10 @@ class TestFunctions(ImageTestCase):
         add_creator(form)
         after = db(db.creator).count()
         self.assertEqual(before, after)
+
+        for record in tracker.diff():
+            job = Job.from_id(record.id)
+            self._objects.append(job)
 
     def test__book_for_contributions(self):
         creator = self.add(Creator, dict(
@@ -507,6 +512,8 @@ class TestFunctions(ImageTestCase):
         )
 
     def test__on_change_name(self):
+        tracker = TableTracker(db.job)
+
         auth_user = self.add(AuthUser, dict(
             name='Test On Change Name'
         ))
@@ -537,6 +544,10 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(
             updated_creator.name_for_search, 'test-on-change-name')
         self.assertEqual(updated_creator.name_for_url, 'TestOnChangeName')
+
+        for record in tracker.diff():
+            job = Job.from_id(record.id)
+            self._objects.append(job)
 
     def test__profile_onaccept(self):
         tracker = TableTracker(db.job)

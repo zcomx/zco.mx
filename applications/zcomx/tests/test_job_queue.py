@@ -30,9 +30,8 @@ from applications.zcomx.modules.job_queue import \
     QueueLockedExtendedError, \
     Queuer, \
     Requeuer
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase, \
-    TableTracker
+from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.trackers import TableTracker
 
 # C0111: *Missing docstring*
 # R0904: *Too many public methods (%s/%s)*
@@ -369,7 +368,7 @@ class TestQueue(LocalTestCase):
         self.assertEqual(len(queue.jobs()), 0)
 
         job_data = [
-            # (number, start, priority, status)
+            # (start, priority, status)
             # Do not use status='a' or status='p' or jobs will be run.
             ('2010-01-01 10:00:00', 0, 'z'),
             ('2010-01-01 10:00:00', 0, 'd'),

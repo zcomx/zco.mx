@@ -44,10 +44,8 @@ from applications.zcomx.modules.job_queuers import (
     queue_create_sitemap,
     queue_search_prefetch,
 )
-
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase, \
-    TableTracker
+from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.trackers import TableTracker
 
 # C0111: *Missing docstring*
 # R0904: *Too many public methods (%s/%s)*

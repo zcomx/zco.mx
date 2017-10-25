@@ -21,9 +21,8 @@ from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images_optimize import OptimizeImgLog
 from applications.zcomx.modules.records import Records
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase, \
-    TableTracker
+from applications.zcomx.modules.tests.runner import LocalTestCase
+from applications.zcomx.modules.tests.trackers import TableTracker
 from applications.zcomx.modules.zco import IN_PROGRESS
 
 

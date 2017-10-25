@@ -827,62 +827,6 @@ class LocalWebClient(WebClient):
         return not self.errors
 
 
-class TableTracker(object):
-    """Class representing a TableTracker used to track records in a table
-    during tests when records can be created in the background and not
-    easily controlled.
-
-    Usage:
-        tracker = TableTracker(db.job)
-        job = tested_function()
-        self.assertFalse(tracker.had(job)
-        self.assertTrue(tracker.has(job)
-    """
-    def __init__(self, table):
-        """Constructor
-
-        Args:
-            table: gluon.dal.base.Table instance
-        """
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
-        self.table = table
-        db = self.table._db
-        self._ids = [x.id for x in db(self.table).select()]
-
-    def diff(self):
-        """Return the diff of table ids between had and has.
-
-        Args:
-            obj: DbObject instance.
-        """
-        db = self.table._db
-        ids = [x.id for x in db(self.table).select()]
-        diff_ids = list(set(ids).difference(set(self._ids)))
-        return [db(self.table.id == x).select().first() for x in diff_ids]
-
-    def had(self, row):
-        """Return whether the record represented by row existed when the
-        instance was initialized.
-
-        Args:
-            row: gluon.dal.objects.Row instance.
-        """
-        return True if row.id in self._ids else False
-
-    def has(self, row):
-        """Return whether the record represented by row exists.
-
-        Args:
-            row: gluon.dal.objects.Row instance.
-        """
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
-        db = self.table._db
-        ids = [x.id for x in db(self.table).select()]
-        return True if row.id in ids else False
-
-
 # Decorator
 def count_diff(func):
     """Decorator used to display the effect of a function on sql record
