@@ -284,7 +284,10 @@ class OngoingBookListing(object):
             OngoingBookListing instance
         """
         book = Book.from_id(activity_log.book_id)
-        book_pages = [BookPage.from_id(x) for x in activity_log.book_page_ids]
+        book_pages = []
+        if activity_log.book_page_ids:
+            book_pages = \
+                [BookPage.from_id(x) for x in activity_log.book_page_ids]
         creator = Creator.from_id(book.creator_id)
         return cls(book, book_pages, creator=creator)
 

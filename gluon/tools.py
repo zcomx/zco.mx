@@ -3693,7 +3693,8 @@ class Auth(AuthAPI):
             requires = [requires]
         requires = list(filter(lambda t: isinstance(t, CRYPT), requires))
         if requires:
-            requires[0].min_length = 0
+            requires[0] = CRYPT(**requires[0].__dict__) # Copy the existing CRYPT attributes
+            requires[0].min_length = 0 # But do not enforce minimum length for the old password
         form = SQLFORM.factory(
             Field('old_password', 'password', requires=requires,
                   label=self.messages.old_password),
@@ -3777,9 +3778,9 @@ class Auth(AuthAPI):
             if any(f.compute for f in extra_fields):
                 user = table_user[self.user.id]
                 self._update_session_user(user)
+                self.update_groups()
             else:
                 self.user.update(table_user._filter_fields(form.vars))
-
             session.flash = self.messages.profile_updated
             self.log_event(log, self.user)
             callback(onaccept, form)

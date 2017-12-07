@@ -48,10 +48,11 @@ class ActivityLogMixin(object):
         """
         verified = []
         db = current.app.db
-        for book_page_id in self.book_page_ids:
-            query = (db.book_page.id == book_page_id)
-            if db(query).select(db.book_page.id).first():
-                verified.append(book_page_id)
+        if self.book_page_ids:
+            for book_page_id in self.book_page_ids:
+                query = (db.book_page.id == book_page_id)
+                if db(query).select(db.book_page.id).first():
+                    verified.append(book_page_id)
         return verified
 
 
@@ -69,9 +70,10 @@ class ActivityLog(Record, ActivityLogMixin):
             ActivityLog instance updated.
         """
         data = {}
-        if book_page.id in self.book_page_ids:
-            data['book_page_ids'] = \
-                [x for x in self.book_page_ids if x != book_page.id]
+        if self.book_page_ids:
+            if book_page.id in self.book_page_ids:
+                data['book_page_ids'] = \
+                    [x for x in self.book_page_ids if x != book_page.id]
 
         data['deleted_book_page_ids'] = \
             sorted(self.deleted_book_page_ids + [book_page.id])
