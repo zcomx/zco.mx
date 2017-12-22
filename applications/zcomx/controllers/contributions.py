@@ -175,6 +175,7 @@ def paypal_notify():
             amount = float(request.vars.payment_gross)
         except (TypeError, ValueError):
             LOG.error('Invalid gross payment: %s', request.vars.payment_gross)
+            LOG.error('request.vars: %s', str(request.vars))
             valid = False
         if valid:
             # Log the event
