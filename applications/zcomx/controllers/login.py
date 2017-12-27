@@ -29,7 +29,6 @@ from applications.zcomx.modules.books import \
     names, \
     publication_months, \
     publication_year_range, \
-    read_link, \
     set_status
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
@@ -514,17 +513,8 @@ def book_pages():
     # in search results while it is being edited.
     book = set_status(book, BOOK_STATUS_DRAFT)
 
-    read_button = read_link(
-        book,
-        **dict(
-            _class='btn btn-default btn-lg',
-            _target='_blank',
-        )
-    )
-
     return dict(
         book=book,
-        read_button=read_button,
     )
 
 

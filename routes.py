@@ -50,21 +50,19 @@ CONTROLLERS = '|'.join([
     'z',
 ])
 
-creator_re = r'(?P<creator>[^/]+)'      # Allow everything but slash
+# Creator: Allow everything but slash and keywords 'zcomx' or 'embed'
+creator_re = r'(?!zcomx|embed)(?P<creator>[^/]+)'
 book_re = r'(?P<book>[^/]+)'            # Allow everything but slash
-page_re = r'(?P<page>[\w.]+)'        # Allow period for extension
+page_re = r'(?P<page>[\w]+)'            # No period to exclude extensions
+image_re = r'(?P<page>[\w]+\.[\w]+)'      # Allow period for extension
 
 routes_in = (
     # do not reroute static files
     ('/$app/static/$anything', '/$app/static/$anything'),
-    ('/', '/zcomx/search/index'),
-    ('/zcomx', '/zcomx/search/index'),
-    ('/login', '/zcomx/default/user/login'),
-    ('/zcomx/login', '/zcomx/default/user/login'),
-    ('/(?P<controller>{ctrs})'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/index'),
-    ('/zcomx/(?P<controller>{ctrs})'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/index'),
-    ('/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/$anything'),
-    ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/zcomx/\g<controller>/$anything'),
+    ('/(zcomx)?', '/zcomx/search/index'),
+    ('/(zcomx/)?login', '/zcomx/default/user/login'),
+    ('/(zcomx/)?(?P<controller>{ctrs})'.format(ctrs=CONTROLLERS), r'/zcomx/\g<controller>/index'),
+    ('/(zcomx/)?(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), r'/zcomx/\g<controller>/$anything'),
 
     #  reroute favicon and robots
     ('/favicon.ico', '/zcomx/static/images/favicon.ico'),
@@ -74,43 +72,34 @@ routes_in = (
     ('/BingSiteAuth.xml', '/zcomx/static/BingSiteAuth.xml'),
 
     # reroute cbz files, look for .cbz extension
-    ('/zcomx/{c}/(?P<cbz>.*\.cbz)'.format(c=creator_re), '/zcomx/cbz/route?creator=\g<creator>&cbz=\g<cbz>'),
-    ('/zcomx/(?P<cbz>.*\.cbz)', '/zcomx/cbz/route?cbz=\g<cbz>'),
-    ('/{c}/(?P<cbz>.*\.cbz)'.format(c=creator_re), '/zcomx/cbz/route?creator=\g<creator>&cbz=\g<cbz>'),
-    ('/(?P<cbz>.*\.cbz)', '/zcomx/cbz/route?cbz=\g<cbz>'),
+    (r'/(zcomx/)?{c}/(?P<cbz>.*\.cbz)'.format(c=creator_re), r'/zcomx/cbz/route?creator=\g<creator>&cbz=\g<cbz>'),
+    (r'/(zcomx/)?(?P<cbz>.*\.cbz)', r'/zcomx/cbz/route?cbz=\g<cbz>'),
 
     # reroute rss feeds, look for .rss extension
-    ('/zcomx/{c}/(?P<rss>.*\.rss)'.format(c=creator_re), '/zcomx/rss/route?creator=\g<creator>&rss=\g<rss>'),
-    ('/zcomx/(?P<rss>.*\.rss)', '/zcomx/rss/route?rss=\g<rss>'),
-    ('/{c}/(?P<rss>.*\.rss)'.format(c=creator_re), '/zcomx/rss/route?creator=\g<creator>&rss=\g<rss>'),
-    ('/(?P<rss>.*\.rss)', '/zcomx/rss/route?rss=\g<rss>'),
+    (r'/(zcomx/)?{c}/(?P<rss>.*\.rss)'.format(c=creator_re), r'/zcomx/rss/route?creator=\g<creator>&rss=\g<rss>'),
+    (r'/(zcomx/)?(?P<rss>.*\.rss)', r'/zcomx/rss/route?rss=\g<rss>'),
 
     # reroute torrents, look for .torrent extension
-    ('/zcomx/{c}/(?P<tor>.*\.torrent)'.format(c=creator_re), '/zcomx/torrents/route?creator=\g<creator>&torrent=\g<tor>'),
-    ('/zcomx/(?P<tor>.*\.torrent)', '/zcomx/torrents/route?torrent=\g<tor>'),
-    ('/{c}/(?P<tor>.*\.torrent)'.format(c=creator_re), '/zcomx/torrents/route?creator=\g<creator>&torrent=\g<tor>'),
-    ('/(?P<tor>.*\.torrent)', '/zcomx/torrents/route?torrent=\g<tor>'),
+    (r'/(zcomx/)?{c}/(?P<tor>.*\.torrent)'.format(c=creator_re), r'/zcomx/torrents/route?creator=\g<creator>&torrent=\g<tor>'),
+    (r'/(zcomx/)?(?P<tor>.*\.torrent)', r'/zcomx/torrents/route?torrent=\g<tor>'),
+
+    # Handle embeded books
+    ('/(zcomx/)?embed/{c}/{b}/{p}/?'.format(c=creator_re, b=book_re, p=page_re),
+        r'/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>&embed=1'),
+    ('/(zcomx/)?embed/{c}/{b}/?'.format(c=creator_re, b=book_re),
+        r'/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=001&embed=1'),
 
     # Assume everything else doesn't match a controller and is a creator/book/page
-    ('/zcomx/{c}/{b}/{p}/?'.format(c=creator_re, b=book_re, p=page_re),
-        '/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
-    # Handle monies specifically
-    ('/zcomx/{c}/monies/?'.format(c=creator_re),
-        '/zcomx/creators/index?creator=\g<creator>&monies=1'),
-    ('/zcomx/{c}/{b}/?'.format(c=creator_re, b=book_re),
-        '/zcomx/creators/index?creator=\g<creator>&book=\g<book>'),
-    ('/zcomx/{c}/?'.format(c=creator_re),
-        '/zcomx/creators/index?creator=\g<creator>'),
-
-    ('/{c}/{b}/{p}/?'.format(c=creator_re, b=book_re, p=page_re),
-        '/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
-    # Handle monies specifically
-    ('/{c}/monies/?'.format(c=creator_re),
-        '/zcomx/creators/index?creator=\g<creator>&monies=1'),
-    ('/{c}/{b}/?'.format(c=creator_re, b=book_re),
-        '/zcomx/creators/index?creator=\g<creator>&book=\g<book>'),
-    ('/{c}/?'.format(c=creator_re),
-        '/zcomx/creators/index?creator=\g<creator>'),
+    ('/(zcomx/)?{c}/{b}/{p}/?'.format(c=creator_re, b=book_re, p=image_re),
+        r'/zcomx/creators/index?creator=\g<creator>&book=\g<book>&page=\g<page>'),
+    ('/(zcomx/)?{c}/{b}/{p}/?'.format(c=creator_re, b=book_re, p=page_re),
+        r'/zcomx/creators/index?creator=\g<creator>&book_reader_url=/\g<creator>/\g<book>/\g<page>'),
+    ('/(zcomx/)?{c}/monies/?'.format(c=creator_re),
+        r'/zcomx/creators/index?creator=\g<creator>&monies=1'),
+    ('/(zcomx/)?{c}/{b}/?'.format(c=creator_re, b=book_re),
+        r'/zcomx/creators/index?creator=\g<creator>&book=\g<book>'),
+    ('/(zcomx/)?{c}/?'.format(c=creator_re),
+        r'/zcomx/creators/index?creator=\g<creator>'),
 )
 
 # routes_out, like routes_in translates URL paths created with the web2py URL()
@@ -128,14 +117,14 @@ routes_out = (
     ('/zcomx/default/user/login', '/login'),
     ('/zcomx/creators/index/$anything', '/$anything'),
     ('/creators/index/$anything', '/$anything'),
-    ('/zcomx/(?P<cbz>.*\.cbz)/index', '/\g<cbz>'),
-    ('/zcomx/$anything/(?P<cbz>.*\.cbz)', '/$anything/\g<cbz>'),
-    ('/zcomx/(?P<rss>.*\.rss)/index', '/\g<rss>'),
-    ('/zcomx/$anything/(?P<rss>.*\.rss)', '/$anything/\g<rss>'),
-    ('/zcomx/(?P<tor>.*\.torrent)/index', '/\g<tor>'),
-    ('/zcomx/$anything/(?P<tor>.*\.torrent)', '/$anything/\g<tor>'),
-    ('/zcomx/(?P<controller>{ctrs})/index'.format(ctrs=CONTROLLERS), '/\g<controller>'),
-    ('/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), '/\g<controller>/$anything'),
+    (r'/zcomx/(?P<cbz>.*\.cbz)/index', r'/\g<cbz>'),
+    (r'/zcomx/$anything/(?P<cbz>.*\.cbz)', r'/$anything/\g<cbz>'),
+    (r'/zcomx/(?P<rss>.*\.rss)/index', r'/\g<rss>'),
+    (r'/zcomx/$anything/(?P<rss>.*\.rss)', r'/$anything/\g<rss>'),
+    (r'/zcomx/(?P<tor>.*\.torrent)/index', r'/\g<tor>'),
+    (r'/zcomx/$anything/(?P<tor>.*\.torrent)', r'/$anything/\g<tor>'),
+    (r'/zcomx/(?P<controller>{ctrs})/index'.format(ctrs=CONTROLLERS), r'/\g<controller>'),
+    (r'/zcomx/(?P<controller>{ctrs})/$anything'.format(ctrs=CONTROLLERS), r'/\g<controller>/$anything'),
 )
 
 # Specify log level for rewrite's debug logging
@@ -188,7 +177,7 @@ routes_onerror = [
 
 
 def __routes_doctest():
-    '''
+    """
     Dummy function for doctesting routes.py.
 
     Use filter_url() to test incoming or outgoing routes;
@@ -258,15 +247,15 @@ def __routes_doctest():
     'myapp'
     >>> filter_url('http://domain.com', app=True)
     'myapp'
-    >>> compile_regex('.*http://otherdomain.com.* (?P<any>.*)', '/app/ctr\g<any>')[0].pattern
+    >>> compile_regex('.*http://otherdomain.com.* (?P<any>.*)', r'/app/ctr\g<any>')[0].pattern
     '^.*http://otherdomain.com.* (?P<any>.*)$'
-    >>> compile_regex('.*http://otherdomain.com.* (?P<any>.*)', '/app/ctr\g<any>')[1]
+    >>> compile_regex('.*http://otherdomain.com.* (?P<any>.*)', r'/app/ctr\g<any>')[1]
     '/app/ctr\\\\g<any>'
     >>> compile_regex('/$c/$f', '/init/$c/$f')[0].pattern
     '^.*?:https?://[^:/]+:[a-z]+ /(?P<c>\\\\w+)/(?P<f>\\\\w+)$'
     >>> compile_regex('/$c/$f', '/init/$c/$f')[1]
     '/init/\\\\g<c>/\\\\g<f>'
-    '''
+    """
     pass
 
 if __name__ == '__main__':

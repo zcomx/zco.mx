@@ -965,7 +965,7 @@ class TestBookTile(TileTestCase):
         div = soup.div
         self.assertEqual(div['class'], 'col-sm-12 image_container')
         anchor = div.a
-        self.assertEqual(anchor['class'], 'book_page_image')
+        self.assertEqual(anchor['class'], 'book_page_image zco_book_reader')
         first = get_page(self._row.book, page_no='first')
         self.assertEqual(anchor['href'], page_url(first))
         self.assertEqual(anchor['title'], '')

@@ -1,4 +1,5 @@
-{{from applications.zcomx.modules.creators import follow_link, torrent_link, short_url}}
+{{from applications.zcomx.modules.books import read_link}}
+{{from applications.zcomx.modules.creators import follow_link, torrent_link, short_url, url as creator_url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
@@ -98,5 +99,20 @@
     </div>
 </div>
 
+{{if request.vars.book_reader_url:}}
+<div>
+    <a href="/{{=request.vars.book_reader_url}}" class="hidden zco_book_reader hidden_read_trigger">Read<a>
 </div>
+{{pass}}
+
+
+</div>
+
 <script src="{{=URL(c='static', f='js/description.js')}}"> </script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('a.hidden_read_trigger').first().trigger('click');
+    });
+//]]>
+</script>

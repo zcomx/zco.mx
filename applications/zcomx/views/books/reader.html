@@ -1,102 +1,116 @@
-{{from applications.zcomx.modules.books import download_link, formatted_name as formatted_book_name, get_page, show_download_link, url as book_url}}
-{{from applications.zcomx.modules.creators import can_receive_contributions, follow_link, url as creator_url}}
 {{extend 'layout.html'}}
-<div class="container">
-    <div id="reader_page_header_margin">
-        <div id="reader_page_header">
-            {{try:}}{{first_page = get_page(book, page_no='first')}}{{except:}}{{first_page = None}}{{pass}}
-            {{book_page_id = first_page.id if first_page else 0}}
-            {{=LOAD(c='z', f='top', args='reader', vars={'book_id': book.id, 'creator_id': book.creator_id, 'book_page_id': book_page_id}, extension='load', ajax=False, content='')}}
-            <div class="row" id="name_creator_section">
-                <div class="col-sm-12" id="name_creator_inlay">
-                    <div class="row" id="name_creator">
-                        <div id="book_name" class="col-sm-8">
-                            <a href="{{=book_url(book, extension=False)}}">
-                            {{=formatted_book_name(book, include_publication_year=(book.release_date != None))}}
-                            </a>
-                        </div>
-                        <div id="creator" class="col-sm-8">
-                            <div id="creator.name">
-                                <a href="{{=creator_url(creator, extension=False)}}" title="{{=creator.name}}">{{=creator.name}}</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="scroll_slide_options">
-                        <div class="btn-group">
-                            {{for l in links:}}
-                                {{=l}}
-                            {{pass}}
-                        </div>
-                    </div>
-                </div>
+
+<div id="contribute_widget_container" class="hidden">
+    {{=LOAD(c='contributions', f='widget', vars={'book_id': book.id}, extension='load', ajax=True, content='')}}
+</div>
+<div class="loading_gif_overlay">
+    <div class="loading_gif loading_gif_centered loading_66x66 processing"></div>
+</div>
+<div id="reader_controls_overlay">
+    <div id="reader_controls_container" class="row">
+
+        <div class="overlay_help_container">
+            <a class="btn btn-default bordered_button overlay_help_button" href="#"><span class="overlay_help_char">?</span></a>
+        </div>
+
+        <div class="overlay_close_container">
+            <div>
+            <a class="btn btn-default bordered_button overlay_close_button" href="#">×</a>
             </div>
+            <div class="slider_scroller_button">
+            {{=reader_link}}
+            </div>
+        </div>
+
+        <div class="page_nav_container">
+            <ul id="page_nav_list">
+            <li>
+                <a href="#" title="Previous page">
+                    <i class="icon zc-prev" id="page_nav_prev"></i>
+                </a>
+            </li>
+            <li>
+                <a href="#" title="First page">
+                    <i class="glyphicon glyphicon-fast-backward" id="page_nav_first"></i>
+                </a>
+            </li>
+            <li><span>
+                    Page <input class="input-sm" type="text" name="page_nav_page_no" value="1" id="page_nav_page_no">
+                    of <span id="page_nav_total">1</span>
+                </span>
+            </li>
+            <li>
+                <a href="#" title="Last page">
+                    <i class="glyphicon glyphicon-fast-forward" id="page_nav_last"></i>
+                </a>
+            </li>
+            <li>
+                <a href="#" title="Next page">
+                    <i class="icon zc-next" id="page_nav_next"></i>
+                </a>
+            </li>
+            </ul>
         </div>
     </div>
 </div>
 
-<div class="loading_gif loading_gif_centered loading_66x66 processing"></div>
+<div id="reader_controls_help">
+    <div class="float_right">
+    <a class="btn btn-default bordered_button help_close_button" href="#">×</a>
+    </div>
+    <dl>
+        <dt>Navigation</dt>
+        <dd>
+        <table>
+            <tr>
+                <th>&nbsp;</th>
+                <th colspan="2">Slider</th>
+                <th colspan="2">Scroller</th>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <th>Keyboard</th>
+                <th>Mouse</th>
+                <th>Keyboard</th>
+                <th>Mouse</th>
+            </tr>
+            <tr>
+                <td>Next page</td>
+                <td>Right arrow, Page Dn</td>
+                <td>Click right side of image</td>
+                <td>Right arrow, Page Dn</td>
+                <td>Scroll down</td>
+            </tr>
+            <tr>
+                <td>Prev page</td>
+                <td>Left arrow, Page Up</td>
+                <td>Click left side of image</td>
+                <td>Left arrow, Page Up</td>
+                <td>Scroll up</td>
+            </tr>
+            <tr>
+                <td>First page</td>
+                <td>Home, Up arrow</td>
+                <td>n/a</td>
+                <td>Home</td>
+                <td>n/a</td>
+            </tr>
+            <tr>
+                <td>Last page</td>
+                <td>End, Down arrow</td>
+                <td>n/a</td>
+                <td>End</td>
+                <td>n/a</td>
+            </tr>
+        </table>
+        </dd>
+    <dl>
+</div>
+
 <div id="reader_section">
 {{include}}
 </div>
 
-<div class="container">
-    <div id="reader_page_footer_margin">
-        <div id="reader_page_footer">
-            <div class="row" id="contribute_download_pager">
-                <div class="page_nav_container col-sm-4 col-sm-push-4">
-                    {{if reader == 'slider':}}
-                    <ul id="page_nav_list">
-                    <li>
-                        <a href="#" title="Previous page">
-                            <i class="icon zc-prev" id="page_nav_prev"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" title="First page">
-                            <i class="glyphicon glyphicon-fast-backward" id="page_nav_first"></i>
-                        </a>
-                    </li>
-                    <li><span>
-                            Page <input class="input-sm" type="text" name="page_nav_page_no" value="1" id="page_nav_page_no">
-                            of <span id="page_nav_total">1</span>
-                        </span>
-                    </li>
-                    <li>
-                        <a href="#" title="Last page">
-                            <i class="glyphicon glyphicon-fast-forward" id="page_nav_last"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" title="Next page">
-                            <i class="icon zc-next" id="page_nav_next"></i>
-                        </a>
-                    </li>
-                    </ul>
-                    {{pass}}
-                </div>
-                <div class="col-sm-4 col-sm-pull-4" id="contribute_download_container">
-                    <ul class="breadcrumb pipe_delimiter">
-                        {{if can_receive_contributions(creator):}}
-                        <li>
-                            <div id="contribute_widget_container">
-                                {{=LOAD(c='contributions', f='widget', vars={'book_id': book.id}, extension='load', ajax=True, content='')}}
-                            </div>
-                        </li>
-                        {{pass}}
-                        {{if show_download_link(book):}}
-                        <li>
-                            {{=download_link(book, components=['download'], **dict(_class='breadcrumb download_button no_rclick_menu'))}}
-                        </li>
-                        {{pass}}
-                        <li>
-                            {{=follow_link(creator, components=['follow'], **dict(_class='breadcrumb rss_button no_rclick_menu'))}}
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 <script>
 //<![CDATA[
     function better_as_scroller() {
@@ -118,27 +132,7 @@
     }
 
     $(document).ready(function(){
-
         $.fn.zco_utils.settings.reader_background_colour = "{{=book.background_colour or 'white'}}";
-
-        $('#reader_section').css(
-            {'background-color': "{{=book.background_colour or 'white'}}"}
-        );
-        $('#reader_section').find('img')
-            .not('.indicia_preview_section img')
-            .css({'border': "0.4em solid {{=book.border_colour or 'none'}}"});
-        $('#vertical_align_button').click(function(e) {
-            if ($(this).hasClass('disabled')) {
-                e.preventDefault();
-                return;
-            }
-            var data = $('#reader_container').data();
-            if (!data || !data.book_reader) {
-                return;
-            }
-            data.book_reader.align_vertically();
-            e.preventDefault();
-        });
     });
 //]]>
 </script>
@@ -147,7 +141,10 @@
     <script src="{{=URL(c='static', f='js/book_reader.js')}}"> </script>
     {{if DEBUG:}}
         <script src="{{=URL(c='static', f='imagesloaded/imagesloaded.pkgd.js')}}"> </script>
+        <script src="{{=URL(c='static', f='hammer/hammer.js')}}"> </script>
     {{else:}}
         <script src="{{=URL(c='static', f='imagesloaded/imagesloaded.pkgd.min.js')}}"> </script>
+        <script src="{{=URL(c='static', f='hammer/hammer.min.js')}}"> </script>
     {{pass}}
+    <script src="{{=URL(c='static', f='hammer/jquery.hammer.js')}}"> </script>
 {{end}}

@@ -212,7 +212,7 @@ def book_types(db):
         db: gluon.dal.DAL instance
     """
     # {'value': record_id, 'text': description}, ...
-    types = db(db.book_type).select(
+    rows = db(db.book_type).select(
         db.book_type.ALL,
         orderby=db.book_type.sequence
     )
@@ -220,7 +220,7 @@ def book_types(db):
         ','.join(
             [
                 '{{"value":"{x.id}", "text":"{x.description}"}}'.format(x=x)
-                for x in types
+                for x in rows
             ]
         )
     )
@@ -997,13 +997,14 @@ def next_book_in_series(book):
     return Book.from_id(next_book.id)
 
 
-def page_url(book_page, reader=None, **url_kwargs):
+def page_url(book_page, reader=None, embed=False, **url_kwargs):
     """Return a url suitable for the reader webpage of a book page.
 
     Args:
         book_page: BookPage instance
         reader: str, one of 'slider', 'scroller'
             If not None, appends ?reader=<reader> to the url.
+        embed: if True add embed to url
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url,
@@ -1026,11 +1027,20 @@ def page_url(book_page, reader=None, **url_kwargs):
 
     kwargs = {}
     kwargs.update(url_kwargs)
+    url_vars = {}
+    if reader:
+        url_vars['reader'] = reader
+
+    url_args = []
+    if embed:
+        url_args.append('embed')
+    url_args.extend([name_of_creator, books_name, page_name])
+
     return URL(
         c='creators',
         f='index',
-        args=[name_of_creator, books_name, page_name],
-        vars={'reader': reader} if reader else None,
+        args=url_args,
+        vars=url_vars,
         **kwargs
     )
 
@@ -1063,12 +1073,19 @@ def publication_year_range():
     return (1970, datetime.date.today().year + 5)
 
 
-def read_link(book, components=None, **attributes):
+def read_link(
+        book,
+        components=None,
+        page_no='first',
+        embed=False,
+        **attributes):
     """Return html code suitable for a 'Read' link.
 
     Args:
         book: Book instance
         components: list, passed to A(*components),  default ['Read']
+        page_no: integer or string, set def get_page()
+        embed: if True, set the link for the embeded page.
         attributes: dict of attributes for A()
     """
     empty = SPAN('')
@@ -1076,9 +1093,13 @@ def read_link(book, components=None, **attributes):
         return empty
 
     try:
-        first_page = get_page(book, page_no='first')
+        want_page = get_page(book, page_no=page_no)
     except LookupError:
-        return empty
+        # if the requested page is not found, try the first page
+        try:
+            want_page = get_page(book, page_no='first')
+        except LookupError:
+            return empty
 
     if not components:
         components = ['Read']
@@ -1087,7 +1108,7 @@ def read_link(book, components=None, **attributes):
     kwargs.update(attributes)
 
     if '_href' not in attributes:
-        kwargs['_href'] = page_url(first_page, extension=False)
+        kwargs['_href'] = page_url(want_page, embed=embed, extension=False)
 
     return A(*components, **kwargs)
 

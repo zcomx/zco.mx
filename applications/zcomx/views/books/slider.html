@@ -1,7 +1,5 @@
 {{from applications.zcomx.modules.images import ImgTag}}
 {{extend 'books/reader.html'}}
-<div id="reader_handle_left"></div>
-<div id="reader_handle_right"></div>
 <div id="slider_overlay_left"></div>
 <div id="slider_overlay_right"></div>
 <div id="slider_page">
@@ -26,7 +24,14 @@
 <script>
 //<![CDATA[
     $(document).ready(function(){
-        $('#reader_container').book_reader('slider', {'start_page_no': {{=start_page_no}}});
+        $('#reader_container').book_reader('slider',
+            {
+                'start_page_no': {{=start_page_no}},
+                'book_background_colour': '{{=book.background_colour or "white"}}',
+                'book_border_colour': '{{=book.border_colour or "white"}}',
+                'web_site_url': '{{=local_settings.web_site_url}}',
+            }
+        );
     });
 //]]>
 </script>

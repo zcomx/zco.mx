@@ -1541,8 +1541,17 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             '/FirstLast/MyBook-01of999/001?reader=slider'
         )
 
+        self.assertEqual(
+            page_url(book_page, embed=True),
+            '/embed/FirstLast/MyBook-01of999/001'
+        )
+
+        self.assertEqual(
+            page_url(book_page, reader='slider', embed=True),
+            '/embed/FirstLast/MyBook-01of999/001?reader=slider'
+        )
+
         book_page.page_no = 99
-        db.commit()
         self.assertEqual(
             page_url(book_page),
             '/FirstLast/MyBook-01of999/099'
@@ -1612,6 +1621,11 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             page_no=1,
         ))
 
+        self.add(BookPage, dict(
+            book_id=book.id,
+            page_no=2,
+        ))
+
         link = read_link(book)
         soup = BeautifulSoup(str(link))
         anchor = soup.find('a')
@@ -1649,6 +1663,32 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test page_no param
+        tests = [
+            # (page_no, expect)
+            ('first', '001'),
+            (1, '001'),
+            (2, '002'),
+            ('last', '002'),
+            ('indicia', '003'),
+        ]
+        for t in tests:
+            link = read_link(book, page_no=t[0])
+            soup = BeautifulSoup(str(link))
+            anchor = soup.find('a')
+            self.assertEqual(anchor.string, 'Read')
+            expect = '/FirstLast/TestReadLink/{p}'.format(p=t[1])
+            self.assertEqual(anchor['href'], expect)
+
+        # Test embed param
+        link = read_link(book, embed=True)
+        soup = BeautifulSoup(str(link))
+        anchor = soup.find('a')
+        self.assertEqual(
+            anchor['href'],
+            '/embed/FirstLast/TestReadLink/001'
+        )
 
         # Test attributes
         book.reader = 'slider'
@@ -1693,9 +1733,9 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertRaises(ValueError, set_status, book, '_fake_')
 
-        for s in BOOK_STATUSES:
-            book = set_status(book, s)
-            self.assertEqual(book.status, s)
+        for status in BOOK_STATUSES:
+            book = set_status(book, status)
+            self.assertEqual(book.status, status)
 
     def test__short_page_img_url(self):
         book = self.add(Book, dict())

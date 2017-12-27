@@ -228,9 +228,9 @@ class TestRouter(LocalTestCase):
             'reader': [
                 'book',
                 'creator',
-                'links',
                 'pages',
                 'reader',
+                'reader_link',
                 'size',
                 'start_page_no',
                 'use_scroller_if_short_view',
@@ -1108,16 +1108,16 @@ class TestFunctions(LocalTestCase):
             ('http://my.domain.com/aaa/bbb/', "/zcomx/creators/index ?creator=aaa&book=bbb"),
             ('http://my.domain.com/aaa/monies', "/zcomx/creators/index ?creator=aaa&monies=1"),
             ('http://my.domain.com/aaa/monies/', "/zcomx/creators/index ?creator=aaa&monies=1"),
-            ('http://my.domain.com/aaa/bbb/ccc', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
-            ('http://my.domain.com/aaa/bbb/ccc/', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
+            ('http://my.domain.com/aaa/bbb/ccc', "/zcomx/creators/index ?creator=aaa&book_reader_url=/aaa/bbb/ccc"),
+            ('http://my.domain.com/aaa/bbb/ccc/', "/zcomx/creators/index ?creator=aaa&book_reader_url=/aaa/bbb/ccc"),
             ('http://my.domain.com/zcomx/aaa', "/zcomx/creators/index ?creator=aaa"),
             ('http://my.domain.com/zcomx/aaa/', "/zcomx/creators/index ?creator=aaa"),
             ('http://my.domain.com/zcomx/aaa/bbb', "/zcomx/creators/index ?creator=aaa&book=bbb"),
             ('http://my.domain.com/zcomx/aaa/bbb/', "/zcomx/creators/index ?creator=aaa&book=bbb"),
             ('http://my.domain.com/zcomx/aaa/monies', "/zcomx/creators/index ?creator=aaa&monies=1"),
             ('http://my.domain.com/zcomx/aaa/monies/', "/zcomx/creators/index ?creator=aaa&monies=1"),
-            ('http://my.domain.com/zcomx/aaa/bbb/ccc', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
-            ('http://my.domain.com/zcomx/aaa/bbb/ccc/', "/zcomx/creators/index ?creator=aaa&book=bbb&page=ccc"),
+            ('http://my.domain.com/zcomx/aaa/bbb/ccc', "/zcomx/creators/index ?creator=aaa&book_reader_url=/aaa/bbb/ccc"),
+            ('http://my.domain.com/zcomx/aaa/bbb/ccc/', "/zcomx/creators/index ?creator=aaa&book_reader_url=/aaa/bbb/ccc"),
 
             # Creators
             ('http://my.domain.com/FirstLast', "/zcomx/creators/index ?creator=FirstLast"),
@@ -1133,11 +1133,17 @@ class TestFunctions(LocalTestCase):
             # Monies
             ('http://my.domain.com/FirstLast/monies', '/zcomx/creators/index ?creator=FirstLast&monies=1'),
             # if anything after 'monies', assume 'monies' is a book title
-            ('http://my.domain.com/zcomx/FirstLast/monies/001', '/zcomx/creators/index ?creator=FirstLast&book=monies&page=001'),
+            ('http://my.domain.com/zcomx/FirstLast/monies/001', '/zcomx/creators/index ?creator=FirstLast&book_reader_url=/FirstLast/monies/001'),
 
             # Pages
-            ('http://my.domain.com/zcomx/FirstLast/MyBook/001', '/zcomx/creators/index ?creator=FirstLast&book=MyBook&page=001'),
+            ('http://my.domain.com/zcomx/FirstLast/MyBook/001', '/zcomx/creators/index ?creator=FirstLast&book_reader_url=/FirstLast/MyBook/001'),
             ('http://my.domain.com/zcomx/FirstLast/MyBook/001.jpg', '/zcomx/creators/index ?creator=FirstLast&book=MyBook&page=001.jpg'),
+
+            # Embed books.
+            ('http://my.domain.com/embed/FirstLast/MyBook', '/zcomx/creators/index ?creator=FirstLast&book=MyBook&page=001&embed=1'),
+            ('http://my.domain.com/zcomx/embed/FirstLast/MyBook', '/zcomx/creators/index ?creator=FirstLast&book=MyBook&page=001&embed=1'),
+            ('http://my.domain.com/embed/FirstLast/MyBook/003', '/zcomx/creators/index ?creator=FirstLast&book=MyBook&page=003&embed=1'),
+            ('http://my.domain.com/zcomx/embed/FirstLast/MyBook/003', '/zcomx/creators/index ?creator=FirstLast&book=MyBook&page=003&embed=1'),
 
             # Appadmin should be routed like any other url
             ('http://my.domain.com/appadmin', "/zcomx/creators/index ?creator=appadmin"),

@@ -48,7 +48,7 @@
             {{pass}}
             {{if lister.include_read:}}
             <td>
-                {{=read_link(book, **dict(_class='btn btn-default'))}}
+                {{=read_link(book, **dict(_class='btn btn-default zco_book_reader'))}}
             </td>
             {{pass}}
             {{if lister.include_upload:}}

@@ -7,12 +7,21 @@
             The creator may be updating the contents.
             Please try again in a few minutes.
         </p>
+        <div>
+        <a class="btn btn-default bordered_button close_button" href="#">×</a>
+        </div>
     </div>
 </div>
 <script>
 //<![CDATA[
+    var web_site_url = '{{=local_settings.web_site_url}}';
+
     $(document).ready(function(){
         $('.loading_gif').removeClass('processing');
+        $('.close_button').on('click', function(e) {
+            e.preventDefault();
+            window.parent.postMessage('close', web_site_url);
+        });
     });
 //]]>
 </script>

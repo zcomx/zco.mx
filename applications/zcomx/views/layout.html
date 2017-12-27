@@ -6,7 +6,6 @@
 <!--[if IE 8]><html class="ie ie8 ie-lte9 ie-lte8 no-js" lang="{{=T.accepted_language or 'en'}}"> <![endif]-->
 <!--[if IE 9]><html class="ie9 ie-lte9 no-js" lang="{{=T.accepted_language or 'en'}}"> <![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'en'}}"> <!--<![endif]-->
-{{from applications.zcomx.modules.zco import Zco}}
 <head>
 <title>{{if DEBUG:}}{{=request.env.http_host}} {{pass}}{{=response.title or request.application}}</title>
   <!--[if !HTML5]>
@@ -72,101 +71,8 @@
 </head>
 
 <body>
-  <div class="container">
-    <!-- Masthead ================================================== -->
-    <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div>
-    <header class="mastheader row" id="header">
-      {{if response.title:}}
-        <div class="col-sm-12">
-            <div class="page-header">
-                <h1>
-                    {{=response.title}}
-                    <small>{{=response.subtitle or ''}}</small>
-                </h1>
-            </div>
-        </div>
-    {{pass}}
-    </header>
-  </div> <!-- /container -->
 
-            {{include}}
-
-    <!-- Footer ================================================== -->
-  <div class="container">
-    <div class="row">
-        <footer class="footer col-sm-12" id="footer">
-            <div class="footer-content">
-                {{block footer}}
-                <div id="logo">
-                    <a href="{{=URL(c='default', f='index')}}" title="zco.mx">
-                    <img src="{{=URL(c="static", f="images/zco.mx-logo-small.png")}}" alt=""/>
-                    </a>
-                </div>
-                <div id="footer_links">
-                    <ul class="breadcrumb pipe_delimiter">
-                    <li>
-                        <a href="{{=URL(c='z', f='about')}}" >about</a>
-                    </li>
-                    <li>
-                        <a href="{{=URL(c='z', f='faq')}}" >faq</a>
-                    </li>
-                    <li>
-                        <a href="{{=URL(c='z', f='terms')}}" >terms</a>
-                    </li>
-                    {{if auth.user_id:}}
-                        <li>
-                        <a href="{{=URL(c='login', f='books')}}" >{{try:}}{{=auth.user.name.lower()}}{{except:}}my account{{pass}}</a>
-                        </li>
-                        <li>
-                            <a href="{{=URL(c='default', f='user/logout')}}" >logout</a>
-                        </li>
-                    {{else:}}
-                        <li>
-                            <a href="{{=URL(c='default', f='user/login')}}" >login</a>
-                        </li>
-                    {{pass}}
-                    <li>
-                        <a href="{{=URL(**Zco().all_torrent_url)}}">all.torrent</a>
-                    </li>
-                    </ul>
-                </div>
-               {{end}}
-            <div id="footer_cc">
-                <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
-                <img src="{{=URL(c="static", f="/images/cc-by.png")}}" alt="CC Attribution 4.0 International">
-                </a></br>
-                Every comic on zco.mx has its own licence; all other</br>
-                content is licenced under the <a href="http://creativecommons.org/licenses/by/4.0/">CC BY 4.0 Int'l licence</a></br>
-            </div>
-            </div>
-        </footer>
-    </div>
-    {{if DEBUG:}}
-    <div class="viewport_info">
-        <span id="viewport_px"></span>
-        <span class="visible-xs">xs</span>
-        <span class="visible-sm">sm</span>
-        <span class="visible-md">md</span>
-        <span class="visible-lg">lg</span>
-        <div>
-            app: {{=request.application}}
-            <br>
-            controller: {{=request.controller}}
-            <br>
-            function: {{=request.function}}
-            <br>
-            args: {{=request.args}}
-            <br>
-            vars: {{=request.vars}}
-            <br>
-            env: {{=request.env.query_string}}
-            <br>
-            session: {{=BEAUTIFY(session)}}
-         </div>
-    </div>
-    {{pass}}
-
-  </div> <!-- /container -->
+  {{include}}
 
   <!-- The javascript =============================================
        (Placed at the end of the document so the pages load faster) -->
@@ -206,9 +112,7 @@
     'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
   });</script>
   {{pass}}
-  <!--
-  <script src="{{=URL('static','js/share.js',vars=dict(static=URL('static','images')))}}"></script>
-  -->
+
 </body>
 </html>
 

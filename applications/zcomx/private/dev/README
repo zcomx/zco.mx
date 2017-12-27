@@ -1,0 +1,54 @@
+This doc is for coders.
+
+Book Reader Plugin
+==================
+
+
+Routing
+-------
+
+To read a book, use a url like:
+    https://zco.mx/<cartoonist>/<book>/<page_no>
+
+Example:
+    https://zco.mx/FirstLast/MyBook/001         # first page
+    https://zco.mx/FirstLast/MyBook/003         # third page
+
+Routes defined in routes.py will redirect that url to the cartoonist page
+passing the creator and passing the book_reader_url parameters.
+
+For example:
+    https://zco.mx/FirstLast/MyBook/001
+
+routes to:
+    https://zco.mx/index?creator=FirstLast&book_reader_url=/FirstLast/MyBook/001
+
+
+Cartoonist Page
+---------------
+
+By default the cartoonist page displays details of the cartoonist.
+For example:
+    https://zco.mx/index?creator=FirstLast
+
+If the book_reader_url parameter is provided, the cartoonist page is displayed
+and the book reader plugin is initiated displaying the readable book over top
+it. The book_reader_url indicates which book and which page to start on in the
+reader plugin.
+
+    https://zco.mx/index?creator=FirstLast&book_reader_url=/FirstLast/MyBook/001
+
+If the book_reader_url parameter is provided:
+
+    * The cartoonist page hides a 'Read' link for the book.
+    * The reader plugin is applied to that link.
+    * A click event is triggered on the link.
+    * This creates an iframe, which is displayed over top cartoonist page.
+    * The iframe src is set to the value of the book_reader_url parameter
+        prefixed by /embed
+
+When the book reader is closed, the iframe is hidden, revealing the cartoonist
+page underneath.
+
+
+# vim: filetype=our_doc

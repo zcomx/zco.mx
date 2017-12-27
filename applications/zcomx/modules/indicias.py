@@ -374,7 +374,7 @@ class BookIndiciaPage(IndiciaPage):
                 TAG.i(_class='glyphicon glyphicon-play'),
             ]
 
-            read_next = read_link(next_book, components=components)
+            read_next = read_link(next_book, components=components, embed=True)
             text_divs.append(DIV(
                 read_next,
                 _class='read_next_link',

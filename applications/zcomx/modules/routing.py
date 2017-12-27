@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Routing classes and functions.
 """
 import os
@@ -69,6 +67,7 @@ class Router(object):
         self.auth_user_record = None
         self.book = None
         self.book_page_record = None
+        self.embed = None
 
     def get_book(self):
         """Get the record of the book based on request.vars.book.
@@ -326,8 +325,7 @@ class Router(object):
         Notes:
             the view_dict, view and optionally redirect properties are set.
         """
-        # too-many-return-statements (R0911): *Too many return statements*
-        # pylint: disable=R0911
+        # pylint: disable=too-many-return-statements
         request = self.request
         if not request.vars.creator:
             self.page_not_found()
@@ -347,6 +345,8 @@ class Router(object):
                 self.page_not_found()
                 return
 
+        self.embed = True if request.vars.embed else False
+
         # Handle redirects
         # If the creator is provided as an id, redirect to url with the creator
         # full name.
@@ -358,7 +358,8 @@ class Router(object):
             if self.book_page_record:
                 self.redirect = page_url(
                     self.book_page_record,
-                    reader=self.get_reader()
+                    reader=self.get_reader(),
+                    embed=self.embed,
                 )
                 return
             if self.book:
@@ -381,6 +382,7 @@ class Router(object):
 
         if self.book_page_record:
             if request.vars.page and os.path.splitext(request.vars.page)[1]:
+                # if page has an extension, eg .jpg, use image view
                 self.set_page_image_view()
             else:
                 self.set_reader_view()
@@ -410,7 +412,8 @@ class Router(object):
                         '_alt': book.name,
                         '_class': 'img-responsive',
                     }
-                )]
+                )],
+                _class='zco_book_reader',
             )
         else:
             cover = cover_image(
@@ -537,30 +540,16 @@ class Router(object):
         except LookupError:
             first_page = None
 
-        scroll_link = A(
-            SPAN('scroll'),
-            _href=page_url(first_page, reader='scroller'),
-            _class='btn btn-default {st}'.format(
-                st='disabled' if reader == 'scroller' else 'active'),
+        # The reader_link is the opposite of the current reader
+        reader_link_text = 'scroll' if reader == 'slider' else 'slide'
+        link_url_reader = 'scroller' if reader == 'slider' else 'slider'
+
+        reader_link = A(
+            SPAN(reader_link_text),
+            _href=page_url(
+                first_page, reader=link_url_reader, embed=self.embed),
+            _class='btn btn-default scroller_slider_link',
             cid=request.cid
-        )
-
-        slider_data = dict(
-            _href=page_url(first_page, reader='slider'),
-            _class='btn btn-default active',
-            cid=request.cid
-        )
-
-        if reader == 'slider':
-            slider_data['_id'] = 'vertical_align_button'
-            slider_data['_title'] = 'Center book page in window.'
-            current.response.files.append(
-                URL('static', 'css/slider.css')
-            )
-
-        slider_link = A(
-            SPAN('slider'),
-            **slider_data
         )
 
         # Add css for RSS modal
@@ -577,9 +566,9 @@ class Router(object):
         self.view_dict = dict(
             book=book,
             creator=creator,
-            links=[scroll_link, slider_link],
             pages=page_images,
             reader=reader,
+            reader_link=reader_link,
             size='web',
             start_page_no=book_page_record.page_no,
             use_scroller_if_short_view=use_scroller_if_short_view,

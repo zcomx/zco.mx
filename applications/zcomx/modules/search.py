@@ -943,7 +943,10 @@ class BookTile(Tile):
                 book_read_link(
                     self.book,
                     components=[cover_image(self.book, size='web')],
-                    **dict(_class='book_page_image', _title='')
+                    **dict(
+                        _class='book_page_image zco_book_reader',
+                        _title=''
+                    )
                 ),
                 _class='image_container_wrapper',
             ),
@@ -1269,5 +1272,5 @@ def read_link(row):
     book = Book.from_id(book_id)
     return book_read_link(
         book,
-        **dict(_class='btn btn-default')
+        **dict(_class='btn btn-default zco_book_reader')
     )
