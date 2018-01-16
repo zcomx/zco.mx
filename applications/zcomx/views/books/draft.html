@@ -20,7 +20,20 @@
         $('.loading_gif').removeClass('processing');
         $('.close_button').on('click', function(e) {
             e.preventDefault();
-            window.parent.postMessage('close', web_site_url);
+            var origin_url = null;
+            var parts = window.location.href.split('?');
+            var queries = parts[1].split('&');
+            for (var i=0; i < queries.length; i++) {
+                var vars = queries[i].split('=');
+                if (vars[0] == 'zbr_origin') {
+                    origin_url = decodeURIComponent(vars[1]);
+                    break;
+                }
+            }
+            if (! origin_url) {
+                origin_url = web_site_url;
+            }
+            window.parent.postMessage('close', origin_url);
         });
     });
 //]]>

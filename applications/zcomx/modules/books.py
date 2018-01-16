@@ -997,7 +997,12 @@ def next_book_in_series(book):
     return Book.from_id(next_book.id)
 
 
-def page_url(book_page, reader=None, embed=False, **url_kwargs):
+def page_url(
+        book_page,
+        reader=None,
+        embed=False,
+        zbr_origin=None,
+        **url_kwargs):
     """Return a url suitable for the reader webpage of a book page.
 
     Args:
@@ -1005,6 +1010,8 @@ def page_url(book_page, reader=None, embed=False, **url_kwargs):
         reader: str, one of 'slider', 'scroller'
             If not None, appends ?reader=<reader> to the url.
         embed: if True add embed to url
+        zbr_origin: zco book reader origin url, used by book reader
+            postMessage() calles.
         url_kwargs: dict of kwargs for URL(). Eg {'extension': False}
     Returns:
         string, url,
@@ -1030,6 +1037,8 @@ def page_url(book_page, reader=None, embed=False, **url_kwargs):
     url_vars = {}
     if reader:
         url_vars['reader'] = reader
+    if zbr_origin:
+        url_vars['zbr_origin'] = zbr_origin
 
     url_args = []
     if embed:

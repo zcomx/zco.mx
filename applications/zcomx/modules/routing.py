@@ -68,6 +68,7 @@ class Router(object):
         self.book = None
         self.book_page_record = None
         self.embed = None
+        self.zbr_origin = None
 
     def get_book(self):
         """Get the record of the book based on request.vars.book.
@@ -346,6 +347,7 @@ class Router(object):
                 return
 
         self.embed = True if request.vars.embed else False
+        self.zbr_origin = request.vars.zbr_origin
 
         # Handle redirects
         # If the creator is provided as an id, redirect to url with the creator
@@ -547,7 +549,11 @@ class Router(object):
         reader_link = A(
             SPAN(reader_link_text),
             _href=page_url(
-                first_page, reader=link_url_reader, embed=self.embed),
+                first_page,
+                reader=link_url_reader,
+                embed=self.embed,
+                zbr_origin=self.zbr_origin,
+            ),
             _class='btn btn-default scroller_slider_link',
             cid=request.cid
         )

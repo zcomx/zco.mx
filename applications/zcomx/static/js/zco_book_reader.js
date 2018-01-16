@@ -18,13 +18,18 @@
                 "position": "fixed",
                 "top": "0",
                 "width": "100%",
-                "z-index": "99",
+                "z-index": "19999",
             });
 
             $('body').append(iframe);
         }
 
-        var src = '/embed' + $(this).attr('href');
+        // Prepend url with "/embed"
+        var href = $(this).attr('href');
+        var regex = new RegExp('(http(?:s)?:\/\/(?:dev\.)?zco.mx)?(.*)', 'i');
+        var src = href.replace(regex, '$1/embed$2');
+        var query_char = src.indexOf('?') < 0 ? '?' : '&';
+        src = [src, 'zbr_origin=' + encodeURIComponent(window.location.origin)].join(query_char);
         iframe.attr('src', src);
         iframe.show();
         iframe.focus();

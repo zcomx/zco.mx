@@ -30,6 +30,7 @@
                 $.fn.book_reader.defaults,
                 options
             );
+            this.origin_url = null;
             this.set_controls_overlay_on_show_slide = true;
             this.size = 'web';
             this.timers = {
@@ -74,6 +75,21 @@
                 data.element.css({'opacity': 1});
             }
 
+        },
+
+        get_origin_url: function() {
+            if(! this.origin_url) {
+                var parts = window.location.href.split('?');
+                var queries = parts[1].split('&');
+                for (var i=0; i < queries.length; i++) {
+                    var vars = queries[i].split('=');
+                    if (vars[0] == 'zbr_origin') {
+                        this.origin_url = decodeURIComponent(vars[1]);
+                        break;
+                    }
+                }
+            }
+            return this.origin_url;
         },
 
         image_count: function() {
@@ -137,7 +153,7 @@
 
             $('.overlay_close_button').on('click', function(e) {
                 e.preventDefault();
-                window.parent.postMessage('close', that.options.web_site_url);
+                window.parent.postMessage('close', that.get_origin_url());
             });
 
             $('.overlay_help_button').on('click', function(e) {
@@ -423,7 +439,7 @@
                         case KEYCODE.ESC:
                         case KEYCODE.Q:
                             e.preventDefault();
-                            window.parent.postMessage('close', that.options.web_site_url);
+                            window.parent.postMessage('close', that.get_origin_url());
                             break;
                     }
                 })
@@ -615,7 +631,7 @@
                         case KEYCODE.ESC:
                         case KEYCODE.Q:
                             e.preventDefault();
-                            window.parent.postMessage('close', that.options.web_site_url);
+                            window.parent.postMessage('close', that.get_origin_url());
                             break;
                     }
                 })
@@ -681,7 +697,6 @@
         img_server: '',
         max_h_for_web: 1200,
         start_page_no: 1,
-        web_site_url: 'https://zco.mx',
     };
 
 }(window.jQuery));

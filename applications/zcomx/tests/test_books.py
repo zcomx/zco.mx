@@ -1551,6 +1551,11 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             '/embed/FirstLast/MyBook-01of999/001?reader=slider'
         )
 
+        self.assertEqual(
+            page_url(book_page, zbr_origin='http://zco.mx'),
+            '/FirstLast/MyBook-01of999/001?zbr_origin=http%3A%2F%2Fzco.mx'
+        )
+
         book_page.page_no = 99
         self.assertEqual(
             page_url(book_page),
