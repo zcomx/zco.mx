@@ -10,12 +10,12 @@
     <div id="reader_controls_container" class="row">
 
         <div class="overlay_help_container">
-            <a class="btn btn-default bordered_button overlay_help_button" href="#"><span class="overlay_help_char">?</span></a>
+            <a class="btn btn-default bordered_button overlay_button overlay_help_button" href="#"><span class="overlay_help_char">?</span></a>
         </div>
 
         <div class="overlay_close_container">
             <div>
-            <a class="btn btn-default bordered_button overlay_close_button" href="#">×</a>
+            <a class="btn btn-default bordered_button overlay_button overlay_close_button" href="#">×</a>
             </div>
             <div class="slider_scroller_button">
             {{=reader_link}}
@@ -130,10 +130,6 @@
         href = href + dtr + 'reader=scroller';
         location.href = href;
     }
-
-    $(document).ready(function(){
-        $.fn.zco_utils.settings.reader_background_colour = "{{=book.background_colour or 'white'}}";
-    });
 //]]>
 </script>
 {{block post_bootstrap_js}}

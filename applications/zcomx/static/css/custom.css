@@ -11,6 +11,14 @@ body {
     font-family: 'robotoregular', sans-serif;
 }
 
+/* override web2py_bootstrap.css */
+@media only screen and (max-width:479px) {
+  body{
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
 h1, h2, h3, h4, h5 {
     font-family: 'roboto_slabregular', serif;
 }
@@ -190,6 +198,7 @@ ul.bulletless {
     position: fixed;
     left: 50%;
     top: 50%;
+    margin-left: -33px;     /* 0.5 width of gif */
 }
 
 .loading_32x32 {
@@ -1440,7 +1449,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #reader_section {
     text-align: center;
-    padding: 1em 0;
 }
 
 #reader_section,
@@ -1610,9 +1618,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     text-shadow: 0 0 2px rgba(0,0,0,.5);
 }
 
-#reader_controls_container .overlay_help_container {
-    float: left;
-    text-align: left;
+#reader_controls_container .overlay_button {
+    width: 1.7em;
 }
 
 #reader_controls_container .overlay_close_container {
@@ -1629,7 +1636,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-weight: bold;
 }
 
+#reader_controls_container .overlay_help_container {
+    float: left;
+    text-align: left;
+}
+
 #reader_controls_container .slider_scroller_button {
+    padding-top: 0.8em;
     vertical-align: top;
 }
 
@@ -1695,8 +1708,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     color: #FFF;
     background-color: rgba(0, 0, 0, 0.8);
     opacity: 0;
-    width: 31em;
-    margin: 5% auto;
+    max-width: 31em;
+    margin: 15% auto;
     left: 0;
     right: 0;
     position: fixed;
