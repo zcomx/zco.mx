@@ -69,6 +69,9 @@ else:
 LOG = logging.getLogger(logger_name)
 current.app.logger = LOG
 
+_static_version = '_{ver}'.format(ver=response.static_version) if response.static_version else ''
+app_js = URL(c='static', f=(_static_version + '/js'))
+
 from applications.zcomx.modules.book_page.utils import \
     before_delete as book_page_before_delete
 from applications.zcomx.modules.books import publication_year_range

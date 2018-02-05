@@ -38,7 +38,7 @@
 
   <!-- All JavaScript at the bottom, except for Modernizr which enables
        HTML5 elements & feature detects -->
-  <script src="{{=URL('static','js/modernizr.js')}}"></script>
+  <script src="{{=app_js}}/modernizr.js"></script>
 
   <!-- include stylesheets -->
   {{
@@ -82,17 +82,17 @@
       <script src="{{=URL('static','bootstrap/js/bootstrap.min.js')}}"></script>
   {{pass}}
 
-  <script src="{{=URL('static','js/web2py_bootstrap.js')}}"></script>
-  <script src="{{=URL('static','js/zco.mx.js')}}"></script>
+  <script src="{{=app_js}}/web2py_bootstrap.js"></script>
+  <script src="{{=app_js}}/zco.mx.js"></script>
   {{if DEBUG:}}
     <script src="{{=URL(c='static', f='typeahead/typeahead.bundle.js')}}"> </script>
   {{else:}}
     <script src="{{=URL(c='static', f='typeahead/typeahead.bundle.min.js')}}"> </script>
   {{pass}}
-  <script src="{{=URL('static','js/search.js')}}"></script>
-  <script src="{{=URL('static','js/input_clear.js')}}"></script>
+  <script src="{{=app_js}}/search.js"></script>
+  <script src="{{=app_js}}/input_clear.js"></script>
   <!--[if lt IE 7 ]>
-      <script src="{{=URL('static','js/dd_belatedpng.js')}}"></script>
+      <script src="{{=app_js}}/dd_belatedpng.js"></script>
       <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
       <![endif]-->
   {{if DEBUG:}}
@@ -106,7 +106,7 @@
   {{block post_bootstrap_js}}
   {{end}}
   {{if response.google_analytics_id:}}
-  <script src="{{=URL('static','js/analytics.min.js')}}"></script>
+  <script src="{{=app_js}}/analytics.min.js"></script>
   <script type="text/javascript">
   analytics.initialize({
     'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
