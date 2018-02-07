@@ -455,31 +455,27 @@
         post_init_listeners: function() {
             var that = this;
 
-            $('#slider_overlay_left').on('click', function(e) {
-                that.prev_slide(NO_ROTATE);
-                e.preventDefault();
-            }).hammer().bind('swipeleft', function(e) {
-                that.next_slide(NO_ROTATE);
-            }).hammer().bind('swiperight', function(e) {
-                that.prev_slide(NO_ROTATE);
-            }).hammer().bind('swipeup', function(e) {
-                e.preventDefault();
-            }).hammer().bind('swipedown', function(e) {
-                e.preventDefault();
-            });
+            if (that.is_mobile) {
+                $('#reader_section').hammer().bind('swipeleft', function(e) {
+                    that.next_slide(NO_ROTATE);
+                }).hammer().bind('swiperight', function(e) {
+                    that.prev_slide(NO_ROTATE);
+                }).hammer().bind('swipeup', function(e) {
+                    e.preventDefault();
+                }).hammer().bind('swipedown', function(e) {
+                    e.preventDefault();
+                });
+            } else {
+                $('#slider_overlay_left').on('click', function(e) {
+                    that.prev_slide(NO_ROTATE);
+                    e.preventDefault();
+                });
 
-            $('#slider_overlay_right').on('click', function(e) {
-                that.next_slide(NO_ROTATE);
-                e.preventDefault();
-            }).hammer().bind('swipeleft', function(e) {
-                that.next_slide(NO_ROTATE);
-            }).hammer().bind('swiperight', function(e) {
-                that.prev_slide(NO_ROTATE);
-            }).hammer().bind('swipeup', function(e) {
-                e.preventDefault();
-            }).hammer().bind('swipedown', function(e) {
-                e.preventDefault();
-            });
+                $('#slider_overlay_right').on('click', function(e) {
+                    that.next_slide(NO_ROTATE);
+                    e.preventDefault();
+                });
+            }
 
             $(window).on('keydown', function(e) {
                     if ($(e.target).prop('tagName') == 'INPUT') {
