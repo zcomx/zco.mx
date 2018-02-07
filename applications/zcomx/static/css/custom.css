@@ -23,6 +23,15 @@ h1, h2, h3, h4, h5 {
     font-family: 'roboto_slabregular', serif;
 }
 
+/* prevent iphone zoom */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    select,
+    textarea,
+    input {
+        font-size: 16px !important;
+    }
+}
+
 /* custom \\\ */
 .table {display: table}
 .table-row {display: table-row}

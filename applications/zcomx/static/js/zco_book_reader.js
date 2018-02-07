@@ -10,14 +10,19 @@
         if ($('#zco_book_container_iframe').length) {
             iframe = $('#zco_book_container_iframe');
         } else {
-            iframe = $('<iframe id="zco_book_container_iframe"></iframe>');
+            iframe = $('<iframe id="zco_book_container_iframe">Sorry, your browser does not support iframes.</iframe>');
             iframe.css({
                 "border": "none",
+                "bottom": "0",
                 "box-shadow": "0 3px 9px rgba(0,0,0,.5)",
                 "box-sizing": "border-box",
                 "height": "100%",
                 "left": "0",
+                "margin": "0",
+                "overflow": "hidden",
+                "padding": "0",
                 "position": "fixed",
+                "right": "0",
                 "top": "0",
                 "width": "100%",
                 "z-index": iframe_z_index,
