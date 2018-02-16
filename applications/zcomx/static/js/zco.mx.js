@@ -101,6 +101,14 @@
 
         toTitleCase: function (str) {
             return str.replace(/\b\w/g, function (txt) { return txt.toUpperCase(); });
+        },
+
+        userAgent: function() {
+            var apple_mobile_re = RegExp('ipad|iphone|ipod','i');
+            return {
+                'is_apple_mobile': apple_mobile_re.test(navigator.userAgent),
+                'is_mobile': 'ontouchstart' in window || navigator.maxTouchPoints || false,
+            };
         }
     };
 }(window.jQuery));

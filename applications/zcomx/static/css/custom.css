@@ -1552,10 +1552,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     vertical-align: middle;
 }
 
-#reader_section #slider_page img {
-    vertical-align: middle;
-}
-
 .scroll_slide_options {
     float: right;
     padding-top: 0.6em;
@@ -1680,6 +1676,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #reader_controls_container #page_nav_list {
+    font-size: 18px;
+    line-height: 18px;
     padding: 0;
     margin: 0;
     white-space: nowrap;
@@ -1702,10 +1700,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #reader_controls_container #page_nav_list input {
-    border: 1px solid #666666;
     border-radius: 3px;
+    border: 1px solid #666666;
     color: #333333;
+    font-size: 18px;
     height: inherit;
+    line-height: 18px;
     margin-left: 2px;
     margin-right: 2px;
     padding: 0 3px 0 0;
@@ -2977,4 +2977,3 @@ a.modal-link-btn, a.modal-link-btn:hover {
         width: 100%;
     }
 }
-

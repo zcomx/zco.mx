@@ -21,6 +21,7 @@
         {{pass}}
     </div>
 </div>
+
 <script>
 //<![CDATA[
     $(document).ready(function(){
@@ -29,6 +30,7 @@
                 'start_page_no': {{=start_page_no}},
                 'book_background_colour': '{{=book.background_colour or "white"}}',
                 'book_border_colour': '{{=book.border_colour or "white"}}',
+                'use_scroller_if_short_view': '{{=use_scroller_if_short_view}}',
             }
         );
     });

@@ -1,8 +1,31 @@
 (function ($) {
     "use strict";
-    var iframe_z_index = 19999;
+    var iframe_wrapper_z_index = 19999;
+    var iframe_z_index = iframe_wrapper_z_index + 1;
     var overlay_z_index = iframe_z_index + 1;
     var overlay_bg_colour = 'white';
+
+    function create_iframe_wrapper() {
+        var iframe_wrapper;
+
+        if ($('#zco_book_container_wrapper').length) {
+            iframe_wrapper = $('#zco_book_container_wrapper');
+        } else {
+            iframe_wrapper = $('<div id="zco_book_container_wrapper"></div>');
+            iframe_wrapper.css({
+                "overflow-y": "scroll",
+                "-webkit-overflow-scrolling": "touch",
+                "position": "fixed",
+                "left": "0",
+                "top": "0",
+                "bottom": "0",
+                "top": "0",
+                "width": "100%",
+                "z-index": iframe_wrapper_z_index,
+            });
+        }
+        return iframe_wrapper;
+    }
 
     function create_iframe() {
         var iframe;
@@ -10,25 +33,17 @@
         if ($('#zco_book_container_iframe').length) {
             iframe = $('#zco_book_container_iframe');
         } else {
+
             iframe = $('<iframe id="zco_book_container_iframe">Sorry, your browser does not support iframes.</iframe>');
             iframe.css({
                 "border": "none",
-                "bottom": "0",
                 "box-shadow": "0 3px 9px rgba(0,0,0,.5)",
                 "box-sizing": "border-box",
                 "height": "100%",
-                "left": "0",
                 "margin": "0",
-                "overflow": "hidden",
                 "padding": "0",
-                "position": "fixed",
-                "right": "0",
-                "top": "0",
                 "width": "100%",
-                "z-index": iframe_z_index,
             });
-
-            $('body').append(iframe);
         }
         return iframe;
     }
@@ -126,7 +141,11 @@
     function reader_click_callback(e) {
         e.preventDefault();
         var overlay = create_overlay();
+        var iframe_wrapper = create_iframe_wrapper();
         var iframe = create_iframe();
+
+        iframe_wrapper.append(iframe);
+        $('body').append(iframe_wrapper);
 
         overlay.css({
             "background-color": overlay_bg_colour,
@@ -138,9 +157,14 @@
 
         var src = embed_url($(this).attr('href'));
 
-        iframe.attr('src', src);
         iframe.show();
-        iframe.focus();
+        iframe.attr('src', src);
+        var ua = $.fn.zco_utils.userAgent();
+        var timeout_delay = ua.is_apple_mobile ? 1000 : 0;
+        setTimeout( function() {
+            iframe_wrapper.show();
+            iframe.focus();
+        }, timeout_delay);
     }
 
     $(document).ready(function(){
@@ -157,8 +181,10 @@
 
             var data = e.originalEvent.data;
             var iframe = $('#zco_book_container_iframe');
+            var iframe_wrapper = $('#zco_book_container_wrapper');
 
             if (data.action == 'close') {
+                iframe_wrapper.hide();
                 iframe.hide();
                 iframe.attr('src', '');
                 $('body').focus();

@@ -111,27 +111,6 @@
 {{include}}
 </div>
 
-<script>
-//<![CDATA[
-    function better_as_scroller() {
-        if ('{{=use_scroller_if_short_view}}' !== 'True') {
-            return false;
-        }
-        var slider_min_window_h = 600;
-        if ($(window).height() > slider_min_window_h) {
-            return false;
-        }
-        return true;
-    }
-
-    if (better_as_scroller()) {
-        var href = location.href.replace(/[?&]+reader=slider$/g, '');
-        var dtr = href.indexOf('?') == -1 ? '?' : '&';
-        href = href + dtr + 'reader=scroller';
-        location.href = href;
-    }
-//]]>
-</script>
 {{block post_bootstrap_js}}
     <script src="{{=app_js}}/jquery_ui_position.js"> </script>
     <script src="{{=app_js}}/book_reader.js"> </script>
