@@ -1021,6 +1021,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
     font-weight: bold;
 }
 
+.modal-dialog.resume_page_no_modal {
+    width: 16em;
+    min-width: 16em;
+}
+
+.modal-dialog.resume_page_no_modal .modal-footer {
+    text-align: center;
+}
+
 @media (min-width: 480px){
     .modal-body {
         padding: 2.8em;

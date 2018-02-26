@@ -231,6 +231,7 @@ class TestRouter(LocalTestCase):
                 'pages',
                 'reader',
                 'reader_link',
+                'resume_page_no',
                 'size',
                 'start_page_no',
                 'use_scroller_if_short_view',

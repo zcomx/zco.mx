@@ -27,9 +27,11 @@
     $(document).ready(function(){
         $('#reader_container').book_reader('scroller',
             {
-                'start_page_no': {{=start_page_no}},
                 'book_background_colour': '{{=book.background_colour or "white"}}',
                 'book_border_colour': '{{=book.border_colour or "white"}}',
+                'book_id': '{{=book.id}}',
+                'resume_page_no': {{=resume_page_no}},
+                'start_page_no': {{=start_page_no}},
                 'use_scroller_if_short_view': '{{=use_scroller_if_short_view}}',
             }
         );

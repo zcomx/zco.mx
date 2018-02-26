@@ -36,7 +36,8 @@ from applications.zcomx.modules.search import \
 from applications.zcomx.modules.user_agents import is_bot
 from applications.zcomx.modules.zco import \
     BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_DRAFT
+    BOOK_STATUS_DRAFT, \
+    Zco
 
 LOG = current.app.logger
 
@@ -569,12 +570,20 @@ class Router(object):
                 and indicia.get_orientation() != 'landscape':
             use_scroller_if_short_view = True
 
+        book_marks = Zco().book_marks
+        resume_page_no = book_marks[book.id] if book.id in book_marks else 1
+        if resume_page_no < 1:
+            resume_page_no = 1
+        if resume_page_no > len(page_images):
+            resume_page_no = len(page_images)
+
         self.view_dict = dict(
             book=book,
             creator=creator,
             pages=page_images,
             reader=reader,
             reader_link=reader_link,
+            resume_page_no=resume_page_no,
             size='web',
             start_page_no=book_page_record.page_no,
             use_scroller_if_short_view=use_scroller_if_short_view,

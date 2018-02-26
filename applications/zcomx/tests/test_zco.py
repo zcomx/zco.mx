@@ -8,6 +8,7 @@ Test suite for zcomx/modules/zco.py
 """
 import unittest
 from gluon import *
+from gluon.storage import Storage
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
     BOOK_STATUSES, \
@@ -35,6 +36,28 @@ class TestZco(LocalTestCase):
         self.assertTrue('zco' not in session.keys())
         Zco()
         self.assertTrue('zco' in session.keys())
+
+    def test_book_marks(self):
+        self.assertEqual(Zco().book_marks, Storage({}))
+
+        Zco().book_marks = {'001': 20}
+        self.assertEqual(Zco().book_marks, {'001': 20})
+        Zco().book_marks = {'001': 20, '002': 10}
+        self.assertEqual(
+            Zco().book_marks,
+            {'001': 20, '002': 10}
+        )
+        del Zco().book_marks
+        self.assertEqual(Zco().book_marks, Storage({}))
+
+    def test__get_book_marks(self):
+        pass        # tested in test_book_marks
+
+    def test__set_book_marks(self):
+        pass        # tested in test_book_marks
+
+    def test__del_book_marks(self):
+        pass        # tested in test_book_marks
 
     def test_next_url(self):
         Zco().next_url = 'http://www.aaa.com'

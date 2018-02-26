@@ -34,7 +34,7 @@
             iframe = $('#zco_book_container_iframe');
         } else {
 
-            iframe = $('<iframe id="zco_book_container_iframe">Sorry, your browser does not support iframes.</iframe>');
+            iframe = $('<iframe id="zco_book_container_iframe" allowfullscreen="true">Sorry, your browser does not support iframes.</iframe>');
             iframe.css({
                 "border": "none",
                 "box-shadow": "0 3px 9px rgba(0,0,0,.5)",
@@ -109,6 +109,18 @@
         return src;
     }
 
+    function goFullscreen(e) {
+        if(e.requestFullscreen) {
+            e.requestFullscreen();
+        } else if(e.mozRequestFullScreen) {
+            e.mozRequestFullScreen();
+        } else if(e.webkitRequestFullscreen) {
+            e.webkitRequestFullscreen();
+        } else if(e.msRequestFullscreen) {
+            e.msRequestFullscreen();
+        }
+    }
+
     function parseURL(url) {
         // Source: https://j11y.io/javascript/parsing-urls-with-the-dom/
         var a =  document.createElement('a');
@@ -140,6 +152,7 @@
 
     function reader_click_callback(e) {
         e.preventDefault();
+        var ua = $.fn.zco_utils.userAgent();
         var overlay = create_overlay();
         var iframe_wrapper = create_iframe_wrapper();
         var iframe = create_iframe();
@@ -153,13 +166,20 @@
         overlay.fadeIn();
         iframe.off('load').on('load', function(e) {
             overlay.fadeOut();
+            if (! ua.is_mobile) {
+                $($('[id="zco_book_container_iframe"]')[0].contentWindow.document).on('keyup', function (e) {
+                    if (e.originalEvent.keyCode === 70) {
+                        var el = iframe[0];
+                        goFullscreen(el);
+                    }
+                });
+            }
         });
 
-        var src = embed_url($(this).attr('href'));
+        var src = embed_url($(e.currentTarget).attr('href'));
 
         iframe.show();
         iframe.attr('src', src);
-        var ua = $.fn.zco_utils.userAgent();
         var timeout_delay = ua.is_apple_mobile ? 1000 : 0;
         setTimeout( function() {
             iframe_wrapper.show();
@@ -168,10 +188,13 @@
     }
 
     $(document).ready(function(){
-        $('.zco_book_reader').on('click', reader_click_callback);
-        setTimeout( function() {
-            $('.zco_book_reader').off('click').on('click', reader_click_callback);
-        }, 1000);
+        if ($('.zco_book_reader').length) {
+            $('.zco_book_reader').on('click', reader_click_callback);
+        } else {
+            setTimeout( function() {
+                $('.zco_book_reader').on('click', reader_click_callback);
+            }, 1000);
+        }
 
         $(window).on("message onmessage", function(e) {
             if (e.originalEvent.origin !== "https://zco.mx" && e.originalEvent.origin !== "https://dev.zco.mx") {

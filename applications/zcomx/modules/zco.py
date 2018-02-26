@@ -51,6 +51,29 @@ class Zco(object):
             current.session.zco = Storage({})
 
     # Session variables
+    # book_marks
+    #  Stores the last page no for each book read.
+    def get_book_marks(self):
+        """Getter."""
+        if current.session.zco.book_marks is None:
+            current.session.zco.book_marks = Storage({})
+        return current.session.zco.book_marks
+
+    def set_book_marks(self, value):
+        """Setter."""
+        current.session.zco.book_marks = value
+
+    def del_book_marks(self):
+        """Deleter."""
+        current.session.zco.book_marks = None
+
+    book_marks = property(
+        get_book_marks,
+        set_book_marks,
+        del_book_marks,
+        'The last page no for each book read.'
+    )
+
     # next_url
     #  Stores the next url to redirect to. Can be used whenever there
     #  is an intermediate redirect out of the control of the code.
