@@ -1555,12 +1555,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     white-space: nowrap;
 }
 
-#reader_section #slider_page .vertical_align_helper {
-    display: inline;
-    height: 100%;
-    vertical-align: middle;
-}
-
 .scroll_slide_options {
     float: right;
     padding-top: 0.6em;
@@ -1685,11 +1679,25 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #reader_controls_container #page_nav_list {
-    font-size: 18px;
-    line-height: 18px;
-    padding: 0;
+    font-size: 20px;
+    line-height: 20px;
     margin: 0;
+    padding: 0;
     white-space: nowrap;
+}
+
+#reader_controls_container #page_nav_list input {
+    border-radius: 3px;
+    border: 1px solid #666666;
+    color: #333333;
+    font-size: 20px;
+    height: inherit;
+    line-height: 20px;
+    margin-left: 2px;
+    margin-right: 2px;
+    padding: 0 3px 0 0;
+    text-align: right;
+    width: 2.5em;
 }
 
 #reader_controls_container #page_nav_list li {
@@ -1706,20 +1714,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 #reader_controls_container #page_nav_list > li > a:hover {
     color: #ffffff;
     text-decoration: none;
-}
-
-#reader_controls_container #page_nav_list input {
-    border-radius: 3px;
-    border: 1px solid #666666;
-    color: #333333;
-    font-size: 18px;
-    height: inherit;
-    line-height: 18px;
-    margin-left: 2px;
-    margin-right: 2px;
-    padding: 0 3px 0 0;
-    text-align: right;
-    width: 2.5em;
 }
 
 #reader_controls_help {
