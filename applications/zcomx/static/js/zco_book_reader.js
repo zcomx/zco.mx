@@ -152,7 +152,7 @@
 
     function reader_click_callback(e) {
         e.preventDefault();
-        var ua = $.fn.zco_utils.userAgent();
+        var ua = userAgent();
         var overlay = create_overlay();
         var iframe_wrapper = create_iframe_wrapper();
         var iframe = create_iframe();
@@ -185,6 +185,14 @@
             iframe_wrapper.show();
             iframe.focus();
         }, timeout_delay);
+    }
+
+    function userAgent() {
+        var apple_mobile_re = RegExp('ipad|iphone|ipod','i');
+        return {
+            'is_apple_mobile': apple_mobile_re.test(navigator.userAgent),
+            'is_mobile': 'ontouchstart' in window || navigator.maxTouchPoints || false,
+        };
     }
 
     $(document).ready(function(){
