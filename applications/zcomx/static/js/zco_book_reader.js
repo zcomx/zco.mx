@@ -90,7 +90,7 @@
         var target_url = parseURL(url);
         var is_dev = target_url.host.match('^dev\.') ? true : false;
 
-        var zbr_origin = 'zbr_origin=' + encodeURIComponent(target_url.protocol + '://' + target_url.host);
+        var zbr_origin = 'zbr_origin=' + encodeURIComponent(document.location.origin);
         var query_joiner = target_url.query ? '&' : '?';
 
         var zco_reader_url = {
