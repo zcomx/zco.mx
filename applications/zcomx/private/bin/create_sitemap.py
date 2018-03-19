@@ -35,7 +35,7 @@ MAPPERS = [
     ('ongoing', 'daily', 1.0, False),
     ('cartoonist', 'daily', 1.0, False),
     ('about', 'yearly', 0.2, False),
-    ('copyright_clain', 'yearly', 0.2, False),
+    ('copyright_claim', 'yearly', 0.2, False),
     ('expenses', 'yearly', 0.2, False),
     ('faq', 'yearly', 0.2, False),
     ('logos', 'yearly', 0.2, False),

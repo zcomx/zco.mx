@@ -431,7 +431,6 @@ def queue_create_sitemap():
     return job
 
 
-
 def queue_search_prefetch():
     """Convenience function. Queues a search prefetch job.
 
