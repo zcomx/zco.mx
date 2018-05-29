@@ -100,22 +100,33 @@ class Router(object):
         db = self.db
         request = self.request
         if not self.creator:
+            request_vars_creator = None
             if request.vars.creator:
-                # Test for request.vars.creator as creator.id
+                # A url like the following can make request.vars.creator a
+                # list: https://zco.mx/123?creator=FirstLast
+                # This should never happen, but some search bots make such
+                # requests.
+                if isinstance(request.vars.creator, (list, tuple)):
+                    request_vars_creator = request.vars.creator[0]
+                else:
+                    request_vars_creator = request.vars.creator
+
+            if request_vars_creator:
+                # Test for request_vars_creator as creator.id
                 try:
-                    int(request.vars.creator)
+                    int(request_vars_creator)
                 except (TypeError, ValueError):
                     pass
                 else:
                     try:
                         self.creator = Creator.from_id(
-                            request.vars.creator)
+                            request_vars_creator)
                     except LookupError:
                         pass
 
-                # Test for request.vars.creator as creator.name_for_url
+                # Test for request_vars_creator as creator.name_for_url
                 if not self.creator:
-                    name = request.vars.creator.replace('_', ' ')
+                    name = request_vars_creator.replace('_', ' ')
                     query = (db.creator.name_for_url.lower() == name.lower())
                     creator_row = db(query).select(limitby=(0, 1)).first()
                     if creator_row:

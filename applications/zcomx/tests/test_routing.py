@@ -338,6 +338,14 @@ class TestRouter(LocalTestCase):
         self.assertEqual(got.name_for_url, 'FirstLast')
         self.assertTrue(router.creator is not None)
 
+        # Test handling of request.vars.creator is list.
+        router.creator = None
+        router.request.vars.creator = [self._creator.id, 'Fake_Creator']
+        got = router.get_creator()
+        self.assertEqual(got.email, 'test__creator@test.com')
+        self.assertEqual(got.name_for_url, 'FirstLast')
+        self.assertTrue(router.creator is not None)
+
         # Test SpareNN
         router.creator = None
         query = (db.creator.name_for_url.like('Spare%'))
