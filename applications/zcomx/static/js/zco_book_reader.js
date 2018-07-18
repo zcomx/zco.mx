@@ -164,17 +164,6 @@
             "background-color": overlay_bg_colour,
         });
         overlay.fadeIn();
-        iframe.off('load').on('load', function(e) {
-            overlay.fadeOut();
-            if (! ua.is_mobile) {
-                $($('[id="zco_book_container_iframe"]')[0].contentWindow.document).on('keyup', function (e) {
-                    if (e.originalEvent.keyCode === 70) {
-                        var el = iframe[0];
-                        goFullscreen(el);
-                    }
-                });
-            }
-        });
 
         var src = embed_url($(e.currentTarget).attr('href'));
 
@@ -214,7 +203,24 @@
             var iframe = $('#zco_book_container_iframe');
             var iframe_wrapper = $('#zco_book_container_wrapper');
 
-            if (data.action == 'close') {
+            if (data.action == 'loaded') {
+                var overlay = null;
+                if ($('#zco_book_reader_overlay').length) {
+                    overlay = $('#zco_book_reader_overlay');
+                }
+                if (overlay) {
+                    overlay.fadeOut();
+                    var ua = userAgent();
+                    if (! ua.is_mobile) {
+                        $($('[id="zco_book_container_iframe"]')[0].contentWindow.document).on('keyup', function (e) {
+                            if (e.originalEvent.keyCode === 70) {
+                                var el = iframe[0];
+                                goFullscreen(el);
+                            }
+                        });
+                    }
+                }
+            } else if (data.action == 'close') {
                 iframe_wrapper.hide();
                 iframe.hide();
                 iframe.attr('src', '');

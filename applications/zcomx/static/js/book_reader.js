@@ -73,9 +73,13 @@
             this.$reader_section.find('img')
                 .not('.indicia_preview_section img')
                 .css({'border': "0.4em solid " + this.options.book_border_colour});
+
+            var data = {'action': 'loaded'};
+            window.parent.postMessage(data, this.get_origin_url());
         },
 
         better_as_scroller: function() {
+
             if (this.ua.is_apple_mobile) {
                 return false;
             }
@@ -383,7 +387,7 @@
             for (var i=0; i < ids.length; i++) {
                 that.queue_load_image(that.$reader_section, ids[i]);
             }
-            this.$reader_section.dequeue('img');
+            that.$reader_section.dequeue('img');
 
             var div_img = this.$reader_section.find(
                 'div#img-' + (that.options.start_page_no - 1)).first();
