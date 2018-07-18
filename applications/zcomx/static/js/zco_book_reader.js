@@ -19,7 +19,6 @@
                 "left": "0",
                 "top": "0",
                 "bottom": "0",
-                "top": "0",
                 "width": "100%",
                 "z-index": iframe_wrapper_z_index,
             });
