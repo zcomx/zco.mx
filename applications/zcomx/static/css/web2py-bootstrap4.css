@@ -1,3 +1,8 @@
+
+label, th {
+    font-weigth: bold;
+    white-space: nowrap;
+}
 div.w2p_flash {
     background-image: none;
     border-radius: 4px;
@@ -99,10 +104,10 @@ select.autocomplete {
 #web2py-logo:hover {
     color: #FFF;
 }
-.footer > .container-fluid {
+.footer > .row {
     padding-left: 15px;
     padding-right: 15px;
-    margin: 20px;
+    margin-top: 20px;
 }
 .background {
     background: url(../images/background.jpg) no-repeat center center;
@@ -310,6 +315,36 @@ td.w2p_fc,
 .web2py_grid table {
     width: 100%;
 }
-input[type=checkbox], input[type=radio] {
-    margin: 4px 4px 0 0;
+
+/* form submit block */
+#submit_record__row .btn {
+    margin-bottom: .25rem;
 }
+@media (min-width: 577px) {
+    #submit_record__row .btn {
+        margin-left: .25rem;
+    }
+}
+@media (max-width: 576px) {
+    #submit_record__row .btn {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+/* for backward compatbility with pre-font-awesome */
+.icon.plus,.icon.arrowleft,.icon.download,.icon.trash,.icon.pen,.icon.arrowright,.icon.magnifier {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.icon.plus:before { content: "\f067";}
+.icon.arrowleft:before { content: "\f060";}
+.icon.download:before { content: "\f019";}
+.icon.trash:before { content: "\f1f8";}
+.icon.pen:before { content: "\f040";}
+.icon.arrowright:before { content: "\f061";}
+.icon.magnifier:before { content: "\f002";}

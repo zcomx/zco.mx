@@ -765,12 +765,12 @@ class TestValidators(unittest.TestCase):
         rtn = IS_LIST_OF(IS_INT_IN_RANGE(0, 10))(1)
         self.assertEqual(rtn, ([1], None))
         rtn = IS_LIST_OF(IS_INT_IN_RANGE(0, 10), minimum=10)([1, 2])
-        self.assertEqual(rtn, ([1, 2], 'Enter between 10 and 100 values'))
+        self.assertEqual(rtn, ([1, 2], 'Minimum length is 10'))
         rtn = IS_LIST_OF(IS_INT_IN_RANGE(0, 10), maximum=2)([1, 2, 3])
-        self.assertEqual(rtn, ([1, 2, 3], 'Enter between 0 and 2 values'))
+        self.assertEqual(rtn, ([1, 2, 3], 'Maximum length is 2'))
         # regression test for issue 742
         rtn = IS_LIST_OF(minimum=1)('')
-        self.assertEqual(rtn, ([], 'Enter between 1 and 100 values'))
+        self.assertEqual(rtn, ([], 'Minimum length is 1'))
 
     def test_IS_LOWER(self):
         rtn = IS_LOWER()('ABC')
@@ -861,6 +861,10 @@ class TestValidators(unittest.TestCase):
         self.assertEqual(rtn, [('', ''), ('id1', 'first label'), ('id2', 'second label')])
         rtn = IS_EMPTY_OR(IS_IN_SET([('id1', 'first label'), ('id2', 'second label')], zero='zero')).options()
         self.assertEqual(rtn, [('', 'zero'), ('id1', 'first label'), ('id2', 'second label')])
+        rtn = IS_EMPTY_OR((IS_LOWER(), IS_EMAIL()))('AAA')
+        self.assertEqual(rtn, ('aaa', 'Enter a valid email address'))
+        rtn = IS_EMPTY_OR([IS_LOWER(), IS_EMAIL()])('AAA')
+        self.assertEqual(rtn, ('aaa', 'Enter a valid email address'))
 
     def test_CLEANUP(self):
         rtn = CLEANUP()('helloò')

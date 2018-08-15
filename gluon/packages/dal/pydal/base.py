@@ -129,10 +129,11 @@ import socket
 import threading
 import time
 import traceback
+import urllib
 from uuid import uuid4
 
 from ._compat import PY2, pickle, hashlib_md5, pjoin, copyreg, integer_types, \
-    with_metaclass, long, unquote
+    with_metaclass, long, unquote, iteritems
 from ._globals import GLOBAL_LOCKER, THREAD_LOCAL, DEFAULT
 from ._load import OrderedDict
 from .helpers.classes import Serializable, SQLCallableList, BasicStorage, \
@@ -153,7 +154,7 @@ TABLE_ARGS = set(
 
 class MetaDAL(type):
     def __call__(cls, *args, **kwargs):
-        #: intercept arguments for DAL costumisation on call
+        #: intercept arguments for DAL customisation on call
         intercepts = [
             'logger', 'representers', 'serializers', 'uuid', 'validators',
             'validators_method', 'Table', 'Row']
@@ -400,7 +401,7 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
         if not decode_credentials:
             credential_decoder = lambda cred: cred
         else:
-            credential_decoder = lambda cred: urllib.unquote(cred)
+            credential_decoder = lambda cred: unquote(cred)
         self._folder = folder
         if folder:
             self.set_folder(folder)
@@ -483,8 +484,7 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
             self.validators = None
         adapter = self._adapter
         self._uri_hash = table_hash or hashlib_md5(adapter.uri).hexdigest()
-        self.check_reserved = check_reserved
-        if self.check_reserved:
+        if check_reserved:
             from .contrib.reserved_sql_keywords import ADAPTERS as RSK
             self.RSK = RSK
         self._migrate = migrate
@@ -518,7 +518,7 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
         else:
             pattern = pjoin(path, self._uri_hash + '_*.table')
             for filename in glob.glob(pattern):
-                tfile = self._adapter.migrator.file_open(filename, 'r')
+                tfile = self._adapter.migrator.file_open(filename, 'r' if PY2 else 'rb')
                 try:
                     sql_fields = pickle.load(tfile)
                     name = filename[len(pattern) - 7:-6]
@@ -529,9 +529,9 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
                             length=value.get('length', None),
                             notnull=value.get('notnull', False),
                             unique=value.get('unique', False)))
-                        for key, value in sql_fields.iteritems()
+                        for key, value in iteritems(sql_fields)
                     ]
-                    mf.sort(lambda a, b: cmp(a[0], b[0]))
+                    mf.sort(key=lambda a: a[0])
                     self.define_table(name, *[item[1] for item in mf],
                                       **dict(migrate=migrate,
                                              fake_migrate=fake_migrate))
@@ -541,9 +541,9 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
     def check_reserved_keyword(self, name):
         """
         Validates `name` against SQL keywords
-        Uses self.check_reserve which is a list of operators to use.
+        Uses self._check_reserved which is a list of operators to use.
         """
-        for backend in self.check_reserved:
+        for backend in self._check_reserved:
             if name.upper() in self.RSK[backend]:
                 raise SyntaxError(
                     'invalid table/column name "%s" is a "%s" reserved SQL/NOSQL keyword' % (name, backend.upper()))
@@ -553,9 +553,13 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
         return RestParser(self).parse(
             patterns, args, vars, queries, nested_select)
 
-    def define_table(self, tablename, *fields, **args):
-        if not fields and 'fields' in args:
-            fields = args.get('fields',())
+    def define_table(self, tablename, *fields, **kwargs):
+        invalid_kwargs = set(kwargs) - TABLE_ARGS
+        if invalid_kwargs:
+            raise SyntaxError('invalid table "%s" attributes: %s' %
+                              (tablename, invalid_kwargs))
+        if not fields and 'fields' in kwargs:
+            fields = kwargs.get('fields',())
         if not isinstance(tablename, str):
             if isinstance(tablename, unicode):
                 try:
@@ -564,38 +568,38 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
                     raise SyntaxError("invalid unicode table name")
             else:
                 raise SyntaxError("missing table name")
-        elif hasattr(self, tablename) or tablename in self.tables:
-            if args.get('redefine', False):
-                delattr(self, tablename)
+        redefine = kwargs.get('redefine', False)
+        if tablename in self.tables:
+            if redefine:
+                try:
+                    delattr(self, tablename)
+                except:
+                    pass
             else:
                 raise SyntaxError('table already defined: %s' % tablename)
-        elif tablename.startswith('_') or hasattr(self, tablename) or \
+        elif tablename.startswith('_') or tablename in dir(self) or \
                 REGEX_PYTHON_KEYWORDS.match(tablename):
             raise SyntaxError('invalid table name: %s' % tablename)
-        elif self.check_reserved:
+        elif self._check_reserved:
             self.check_reserved_keyword(tablename)
-        else:
-            invalid_args = set(args) - TABLE_ARGS
-            if invalid_args:
-                raise SyntaxError('invalid table "%s" attributes: %s' %
-                                  (tablename, invalid_args))
-        if self._lazy_tables and tablename not in self._LAZY_TABLES:
-            self._LAZY_TABLES[tablename] = (tablename, fields, args)
+        if self._lazy_tables:
+            if tablename not in self._LAZY_TABLES or redefine:
+                self._LAZY_TABLES[tablename] = (tablename, fields, kwargs)
             table = None
         else:
-            table = self.lazy_define_table(tablename, *fields, **args)
+            table = self.lazy_define_table(tablename, *fields, **kwargs)
         if tablename not in self.tables:
             self.tables.append(tablename)
         return table
 
-    def lazy_define_table(self, tablename, *fields, **args):
-        args_get = args.get
+    def lazy_define_table(self, tablename, *fields, **kwargs):
+        kwargs_get = kwargs.get
         common_fields = self._common_fields
         if common_fields:
             fields = list(fields) + [f if isinstance(f, Table) else f.clone() for f in common_fields]
 
-        table_class = args_get('table_class', Table)
-        table = table_class(self, tablename, *fields, **args)
+        table_class = kwargs_get('table_class', Table)
+        table = table_class(self, tablename, *fields, **kwargs)
         table._actual = True
         self[tablename] = table
         # must follow above line to handle self references
@@ -606,12 +610,12 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
             if field.represent is None:
                 field.represent = auto_represent(field)
 
-        migrate = self._migrate_enabled and args_get('migrate', self._migrate)
+        migrate = self._migrate_enabled and kwargs_get('migrate', self._migrate)
         if migrate and self._uri not in (None, 'None') \
                 or self._adapter.dbengine == 'google:datastore':
             fake_migrate = self._fake_migrate_all or \
-                args_get('fake_migrate', self._fake_migrate)
-            polymodel = args_get('polymodel', None)
+                kwargs_get('fake_migrate', self._fake_migrate)
+            polymodel = kwargs_get('polymodel', None)
             try:
                 GLOBAL_LOCKER.acquire()
                 self._adapter.create_table(
@@ -622,7 +626,7 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
                 GLOBAL_LOCKER.release()
         else:
             table._dbt = None
-        on_define = args_get('on_define', None)
+        on_define = kwargs_get('on_define', None)
         if on_define:
             on_define(table)
         return table
@@ -664,8 +668,8 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
     def __getattr__(self, key):
         if object.__getattribute__(self, '_lazy_tables') and \
                 key in object.__getattribute__(self, '_LAZY_TABLES'):
-            tablename, fields, args = self._LAZY_TABLES.pop(key)
-            return self.lazy_define_table(tablename, *fields, **args)
+            tablename, fields, kwargs = self._LAZY_TABLES.pop(key)
+            return self.lazy_define_table(tablename, *fields, **kwargs)
         return BasicStorage.__getattribute__(self, key)
 
     def __setattr__(self, key, value):
@@ -861,9 +865,10 @@ class DAL(with_metaclass(MetaDAL, Serializable, BasicStorage)):
                 continue
             elif line == 'END':
                 return
-            elif not line.startswith('TABLE ') or \
-                    not line[6:] in self.tables:
-                raise SyntaxError('invalid file format')
+            elif not line.startswith('TABLE ') :
+                raise SyntaxError('Invalid file format')
+            elif  not line[6:] in self.tables:
+                raise SyntaxError('Unknown table : %s' % line[6:])
             else:
                 tablename = line[6:]
                 tablename = map_tablenames.get(tablename,tablename)

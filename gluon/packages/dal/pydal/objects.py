@@ -46,12 +46,12 @@ DEFAULT_REGEX = {
     'id':      '[1-9]\d*',
     'decimal': '\d{1,10}\.\d{2}',
     'integer': '[+-]?\d*',
-    'float':   '[+-]?\d*(\.\d*)?', 
+    'float':   '[+-]?\d*(\.\d*)?',
     'double':  '[+-]?\d*(\.\d*)?',
     'date':    '\d{4}\-\d{2}\-\d{2}',
     'time':    '\d{2}\:\d{2}(\:\d{2}(\.\d*)?)?',
     'datetime':'\d{4}\-\d{2}\-\d{2} \d{2}\:\d{2}(\:\d{2}(\.\d*)?)?',
-    }             
+    }
 
 class Row(BasicStorage):
 
@@ -93,7 +93,7 @@ class Row(BasicStorage):
         except Exception as e:
             raise e
 
-        raise KeyError
+        raise KeyError(key)
 
     __str__ = __repr__ = lambda self: '<Row %s>' % \
         self.as_dict(custom_types=[LazySet])
@@ -234,6 +234,7 @@ class Table(Serializable, BasicStorage):
         super(Table, self).__init__()
         self._actual = False  # set to True by define_table()
         self._db = db
+        self._migrate = None
         self._tablename = self._dalname = tablename
         if not isinstance(tablename, str) or hasattr(DAL, tablename) or not \
            REGEX_VALID_TB_FLD.match(tablename) or \
@@ -337,15 +338,15 @@ class Table(Serializable, BasicStorage):
 
         fieldnames_set = set()
         reserved = dir(Table) + ['fields']
-        if (db and db.check_reserved):
-            check_reserved = db.check_reserved_keyword
+        if (db and db._check_reserved):
+            check_reserved_keyword = db.check_reserved_keyword
         else:
-            def check_reserved(field_name):
+            def check_reserved_keyword(field_name):
                 if field_name in reserved:
                     raise SyntaxError("field name %s not allowed" % field_name)
         for field in fields:
             field_name = field.name
-            check_reserved(field_name)
+            check_reserved_keyword(field_name)
             if db and db._ignore_field_case:
                 fname_item = field_name.lower()
             else:
@@ -380,9 +381,9 @@ class Table(Serializable, BasicStorage):
 
     def _structure(self):
         keys = ['name','type','writable','listable','searchable','regex','options',
-                'default','label','unique','notnull','required']        
+                'default','label','unique','notnull','required']
         def noncallable(obj): return obj if not callable(obj) else None
-        return [{key: noncallable(getattr(field, key)) for key in keys} 
+        return [{key: noncallable(getattr(field, key)) for key in keys}
                 for field in self if field.readable and not field.type=='password']
 
     @cachedprop
@@ -397,7 +398,9 @@ class Table(Serializable, BasicStorage):
                                   archive_name='%(tablename)s_archive',
                                   is_active='is_active',
                                   current_record='current_record',
-                                  current_record_label=None):
+                                  current_record_label=None,
+                                  migrate=None,
+                                  redefine=None):
         db = self._db
         archive_db = archive_db or db
         archive_name = archive_name % dict(tablename=self._dalname)
@@ -412,10 +415,20 @@ class Table(Serializable, BasicStorage):
             clones.append(
                 field.clone(unique=False, type=field.type if nfk else 'bigint')
                 )
+
+        d = dict(format=self._format)
+        if migrate:
+            d['migrate'] = migrate
+        elif isinstance(self._migrate, basestring):
+            d['migrate'] = self._migrate+'_archive'
+        elif self._migrate:
+            d['migrate'] = self._migrate
+        if redefine:
+            d['redefine'] = redefine
         archive_db.define_table(
             archive_name,
             Field(current_record, field_type, label=current_record_label),
-            *clones, **dict(format=self._format))
+            *clones, **d)
 
         self._before_update.append(
             lambda qset, fs, db=archive_db, an=archive_name, cn=current_record:
@@ -758,22 +771,26 @@ class Table(Serializable, BasicStorage):
 
     def _validate_fields(self, fields, defattr='default'):
         response = Row()
-        response.id, response.errors = None, Row()
-        new_fields = copy.copy(fields)
-        for fieldname in self.fields:
-            default = getattr(self[fieldname], defattr)
-            if callable(default):
-                default = default()
-            raw_value = fields.get(fieldname, default)
-            value, error = self[fieldname].validate(raw_value)
+        response.id, response.errors, new_fields = None, Row(), Row()
+        for field in self:
+            # we validate even if not passed in case it is required
+            error = default = None
+            if not field.required and not field.compute:
+                default = getattr(field, defattr)
+                if callable(default):
+                    default = default()
+            if not field.compute:
+                value = fields.get(field.name, default)
+                value, error = field.validate(value)
             if error:
-                response.errors[fieldname] = "%s" % error
-            elif value is not None:
-                new_fields[fieldname] = value
+                response.errors[field.name] = "%s" % error
+            elif field.name in fields:
+                # only write if the field was passed and no error
+                new_fields[field.name] = value
         return response, new_fields
 
     def validate_and_insert(self, **fields):
-        response, new_fields = self._validate_fields(fields)
+        response, new_fields = self._validate_fields(fields, 'default')
         if not response.errors:
             response.id = self.insert(**new_fields)
         return response
@@ -799,7 +816,7 @@ class Table(Serializable, BasicStorage):
                     else:
                         query = query & (getattr(self, key) == value)
                 myset = self._db(query)
-            response.id = myset.update(**new_fields)
+            response.id = myset.update(**new_fields) and record[self._id.name]
         return response
 
     def update_or_insert(self, _key=DEFAULT, **values):
@@ -874,9 +891,9 @@ class Table(Serializable, BasicStorage):
                              null = '<NULL>',
                              unique = 'uuid',
                              id_offset = None,  # id_offset used only when id_map is None
-                             transform = None,                                                          
+                             transform = None,
                              validate=False,
-                             **kwargs                      
+                             **kwargs
                              ):
         """
         Import records from csv file.
@@ -895,7 +912,6 @@ class Table(Serializable, BasicStorage):
         incrementing order.
         Will keep the id numbers in restored table.
         """
-
         if validate:
             inserting=self.validate_and_insert
         else:
@@ -1046,6 +1062,11 @@ class Table(Serializable, BasicStorage):
         return table_as_dict
 
     def with_alias(self, alias):
+        try:
+            if self._db[alias]._rname == self._rname:
+                return self._db[alias]
+        except AttributeError: # we never used this alias
+            pass
         other = copy.copy(self)
         other['ALL'] = SQLALL(other)
         other['_tablename'] = alias
@@ -1264,6 +1285,10 @@ class Expression(object):
     def abs(self):
         return Expression(
             self.db, self._dialect.aggregate, self, 'ABS', self.type)
+
+    def cast(self, cast_as, **kwargs):
+        return Expression(
+            self.db, self._dialect.cast, self, self._dialect.types[cast_as] % kwargs, cast_as)
 
     def lower(self):
         return Expression(
@@ -1520,7 +1545,7 @@ class Expression(object):
 
 class FieldVirtual(object):
     def __init__(self, name, f=None, ftype='string', label=None,
-                 table_name=None):
+                 table_name=None, readable=True, listable=True):
         # for backward compatibility
         (self.name, self.f) = (name, f) if f else ('unknown', name)
         self.type = ftype
@@ -1528,7 +1553,9 @@ class FieldVirtual(object):
         self.represent = lambda v, r=None: v
         self.formatter = IDENTITY
         self.comment = None
-        self.readable = True
+        self.readable = readable
+        self.listable = listable
+        self.searchable = False
         self.writable = False
         self.requires = None
         self.widget = None
@@ -1586,7 +1613,7 @@ class Field(Expression, Serializable):
     def __init__(self, fieldname, type='string', length=None, default=DEFAULT,
                  required=False, requires=DEFAULT, ondelete='CASCADE',
                  notnull=False, unique=False, uploadfield=True, widget=None,
-                 label=None, comment=None, 
+                 label=None, comment=None,
                  writable=True, readable=True,
                  searchable=True, listable=True,
                  regex=None, options=None,
@@ -1725,7 +1752,7 @@ class Field(Expression, Serializable):
             self_uploadfield.table.insert(**keys)
         elif self_uploadfield is True:
             if self.uploadfs:
-                dest_file = self.uploadfs.open(newfilename, 'wb')
+                dest_file = self.uploadfs.open(unicode(newfilename), 'wb')
             else:
                 if path:
                     pass
@@ -2711,10 +2738,23 @@ class Rows(BasicRows):
                             box[attribute] = method()
         return self
 
-    def __and__(self, other):
+    def __add__(self, other):
         if self.colnames != other.colnames:
             raise Exception('Cannot & incompatible Rows objects')
         records = self.records + other.records
+        return self.__class__(
+            self.db, records, self.colnames, fields=self.fields,
+            compact=self.compact or other.compact)
+
+    def __and__(self, other):
+        if self.colnames != other.colnames:
+            raise Exception('Cannot & incompatible Rows objects')
+        records = []
+        other_records = list(other.records)
+        for record in self.records:
+            if record in other_records:
+                records.append(record)
+                other_records.remove(record)
         return self.__class__(
             self.db, records, self.colnames, fields=self.fields,
             compact=self.compact or other.compact)

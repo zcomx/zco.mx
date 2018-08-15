@@ -7,6 +7,7 @@ cache: pip
 python:
   - '2.7'
   - 'pypy'
+  - 'pypy3'
   - '3.4'
   - '3.5'
   - '3.6'
@@ -21,9 +22,7 @@ env:
     - ADAPTER=sqlite
     - ADAPTER=mysql
     - ADAPTER=postgres
-    - ADAPTER=postgresPG8000
     - ADAPTER=postgres3
-    - ADAPTER=postgres3PG8000
     - ADAPTER=google
     - ADAPTER=mongo
 
@@ -35,6 +34,12 @@ matrix:
       env: ADAPTER=postgres3
     - python: 'pypy'
       env: ADAPTER=google
+    - python: 'pypy3'
+      env: ADAPTER=google
+    - python: 'pypy3'
+      env: ADAPTER=postgres
+    - python: 'pypy3'
+      env: ADAPTER=postgres3
     - python: '3.4'
       env: ADAPTER=google
     - python: '3.5'

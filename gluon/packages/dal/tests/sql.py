@@ -8,8 +8,9 @@ import os
 import glob
 import datetime
 import json
+import pickle
 
-from pydal._compat import basestring, StringIO, integer_types, xrange
+from pydal._compat import basestring, StringIO, integer_types, xrange, BytesIO, to_bytes
 from pydal import DAL, Field
 from pydal.helpers.classes import SQLALL, OpRow
 from pydal.objects import Table, Expression, Row
@@ -218,13 +219,24 @@ class TestFields(DALtest):
         except ImportError:
             pass
 
+    def testBlobBytes(self):
+        #Test blob with latin1 encoded bytes
+        db = self.connect()
+        obj = pickle.dumps('0')
+        db.define_table('tt', Field('aa', 'blob'))
+        self.assertEqual(db.tt.insert(aa=obj), 1)
+        self.assertEqual(db().select(db.tt.aa)[0].aa, obj)
+        self.assertEqual(db.tt[1].aa, obj)
+        self.assertEqual(BytesIO(to_bytes(db.tt[1].aa)).read(), obj)
+        db.tt.drop()
+
     def testRun(self):
         """Test all field types and their return values"""
         db = self.connect()
         for ft in ['string', 'text', 'password', 'upload', 'blob']:
             db.define_table('tt', Field('aa', ft, default=''))
-            self.assertEqual(db.tt.insert(aa='x'), 1)
-            self.assertEqual(db().select(db.tt.aa)[0].aa, 'x')
+            self.assertEqual(db.tt.insert(aa='ö'), 1)
+            self.assertEqual(db().select(db.tt.aa)[0].aa, 'ö')
             db.tt.drop()
         db.define_table('tt', Field('aa', 'integer', default=1))
         self.assertEqual(db.tt.insert(aa=3), 1)
@@ -1632,7 +1644,9 @@ class TestClientLevelOps(DALtest):
 
     def testRun(self):
         db = self.connect()
-        db.define_table('tt', Field('aa', represent=lambda x,r:'x'+x),
+        db.define_table(
+            'tt', 
+            Field('aa', represent=lambda x,r:'x'+x),
             Field('bb', type='integer', represent=lambda x,r:'y'+str(x)))
         db.commit()
         db.tt.insert(aa="test", bb=1)
@@ -1642,16 +1656,18 @@ class TestClientLevelOps(DALtest):
         rows1 = db(db.tt.id>0).select()
         rows2 = db(db.tt.id>0).select()
         self.assertEqual(rows1, rows2)
-        rows3 = rows1 & rows2
+        rows3 = rows1 + rows2
         self.assertEqual(len(rows3), 2)
         rows4 = rows1 | rows2
         self.assertEqual(len(rows4), 1)
-        rows5 = rows1.find(lambda row: row.aa=="test")
+        rows5 = rows1 & rows2
         self.assertEqual(len(rows5), 1)
-        rows6 = rows2.exclude(lambda row: row.aa=="test")
+        rows6 = rows1.find(lambda row: row.aa=="test")
         self.assertEqual(len(rows6), 1)
-        rows7 = rows5.sort(lambda row: row.aa)
+        rows7 = rows2.exclude(lambda row: row.aa=="test")
         self.assertEqual(len(rows7), 1)
+        rows8 = rows5.sort(lambda row: row.aa)
+        self.assertEqual(len(rows8), 1)
         def represent(f, v, r):
             return 'z' + str(v)
 
