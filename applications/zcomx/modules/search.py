@@ -94,6 +94,13 @@ class Grid(object):
             if default_viewby in self.viewbys else 'tile'
         self.db = current.app.db
         self.request = current.request
+
+        # Search engines are making requests with invalid 'order' values.
+        # Eg order=123
+        # Scrub them.
+        if self.request.vars.order and '.' not in self.request.vars.order:
+            self.request.vars.order = None
+
         self.form_grid = None
         self._paginate = None
         self.viewby = self.request.vars.view \
