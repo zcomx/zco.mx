@@ -10,8 +10,8 @@ from __future__ import print_function
 import sys
 import traceback
 from gluon import *
+from pydal.validators import urlify
 from optparse import OptionParser
-from gluon.validators import urlify
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'

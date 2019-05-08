@@ -9,7 +9,7 @@ import json
 import os
 import shutil
 from gluon import *
-from gluon.validators import urlify
+from pydal.validators import urlify
 from applications.zcomx.modules.books import \
     Book, \
     formatted_name as formatted_book_name

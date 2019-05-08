@@ -8,9 +8,10 @@ Book classes and functions.
 import datetime
 import json
 import os
+import re
 import urlparse
 from gluon import *
-from pydal.helpers.regex import REGEX_STORE_PATTERN
+from pydal.helpers.regex import REGEX_UPLOAD_EXTENSION
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
@@ -1187,8 +1188,8 @@ def short_page_img_url(book_page):
     if not book_page_url:
         return
 
-    m = REGEX_STORE_PATTERN.search(book_page.image or '')
-    extension = m and m.group('e') or ''
+    m = re.search(REGEX_UPLOAD_EXTENSION, book_page.image or '')
+    extension = m and m.group(1) or 'txt'
     if not extension:
         return book_page_url
     return '.'.join([book_page_url, extension])

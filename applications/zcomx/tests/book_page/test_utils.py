@@ -261,7 +261,7 @@ class TestFunctions(LocalTestCase):
 
         after_activity_log = ActivityLog.from_id(activity_log.id)
         self.assertEqual(after_activity_log.id, activity_log.id)
-        self.assertEqual(after_activity_log.book_page_ids, None)
+        self.assertEqual(after_activity_log.book_page_ids, [])
         self.assertEqual(
             after_activity_log.deleted_book_page_ids, [book_page.id])
 

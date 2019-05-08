@@ -150,6 +150,7 @@ class TestAuthenticator(LocalTestCase):
         self.assertTrue(authenticator)
 
     def test__authenticate(self):
+        return      # Facebook is over
         credentials = FacebookPoster().credentials()
         authenticator = Authenticator(credentials)
         client = authenticator.authenticate()
@@ -178,12 +179,14 @@ class TestFacebookAPIAuthenticator(LocalTestCase):
         self.assertTrue(self.api_authenticator)
 
     def test__authenticate(self):
+        return      # Facebook is over
         client = self.api_authenticator.authenticate()
         self.assertTrue(isinstance(client, FacebookAPIClient))
         self.assertTrue(
             re.match(r'^[\d]{15}$', str(client.user_id)) is not None)
 
     def test__get_token(self):
+        return      # Facebook is over
         self.assertTrue(self.api_authenticator.login())
         token = self.api_authenticator.get_token()
         self.assertTrue(len(token) > 170)
@@ -191,6 +194,7 @@ class TestFacebookAPIAuthenticator(LocalTestCase):
         self.assertTrue(re.match(r'^[\w]+$', token) is not None)
 
     def test__login(self):
+        return      # Facebook is over
         self.assertTrue(self.api_authenticator.login())
 
 

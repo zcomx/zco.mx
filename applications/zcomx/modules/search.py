@@ -8,7 +8,7 @@ Search classes and functions.
 from BeautifulSoup import BeautifulSoup
 from gluon import *
 from gluon.tools import prettydate
-from gluon.validators import urlify
+from pydal.validators import urlify
 from applications.zcomx.modules.books import \
     Book, \
     contribute_link as book_contribute_link, \

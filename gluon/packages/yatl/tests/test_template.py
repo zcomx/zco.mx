@@ -5,9 +5,10 @@
 """
 
 import unittest
+import sys
 
-from gluon import template
-from gluon.template import render
+from yatl import render
+from yatl.template import DummyResponse, RestrictedError, NOESCAPE
 
 
 class TestTemplate(unittest.TestCase):
@@ -24,11 +25,11 @@ class TestTemplate(unittest.TestCase):
         self.assertEqual(render(content='"abc"'), '"abc"')
         self.assertEqual(render(content='"a\'bc"'), '"a\'bc"')
         self.assertEqual(render(content='"a\"bc"'), '"a\"bc"')
-        self.assertEqual(render(content=r'''"a\"bc"'''), r'"a\"bc"')
-        self.assertEqual(render(content=r'''"""abc\""""'''), r'"""abc\""""')
+        self.assertEqual(render(content=r'"a\"bc"'), r'"a\"bc"')
+        self.assertEqual(render(content=r'"""abc\""""'), r'"""abc\""""')
 
     def testEqualWrite(self):
-        "test generation of response.write from ="
+        "test generation of response.write"
         self.assertEqual(render(content='{{=2+2}}'), '4')
         self.assertEqual(render(content='{{="abc"}}'), 'abc')
         # whitespace is stripped
@@ -63,8 +64,10 @@ class TestTemplate(unittest.TestCase):
     def testWithDummyFileSystem(self):
         from os.path import join as pjoin
         import contextlib
-        from gluon._compat import StringIO
-        from gluon.restricted import RestrictedError
+        if sys.version_info[0] == 2:
+            from cStringIO import StringIO
+        else:
+            from io import StringIO
 
         @contextlib.contextmanager
         def monkey_patch(module, fn_name, patch):
@@ -81,55 +84,55 @@ class TestTemplate(unittest.TestCase):
                 else:
                     setattr(module, fn_name, unpatch)
 
-        def dummy_open(path, mode):
+        def dummy_open(path):
             if path == pjoin('views', 'layout.html'):
-                return StringIO("{{block left_sidebar}}left{{end}}"
-                                "{{include}}"
-                                "{{block right_sidebar}}right{{end}}")
+                return ("{{block left_sidebar}}left{{end}}"
+                        "{{include}}" 
+                        "{{block right_sidebar}}right{{end}}")
             elif path == pjoin('views', 'layoutbrackets.html'):
-                return StringIO("[[block left_sidebar]]left[[end]]"
-                                "[[include]]"
-                                "[[block right_sidebar]]right[[end]]")
+                return ("[[block left_sidebar]]left[[end]]"
+                        "[[include]]"
+                        "[[block right_sidebar]]right[[end]]")
             elif path == pjoin('views', 'default', 'index.html'):
-                return StringIO("{{extend 'layout.html'}}"
-                                "{{block left_sidebar}}{{super}} {{end}}"
-                                "to"
-                                "{{block right_sidebar}} {{super}}{{end}}")
+                return ("{{extend 'layout.html'}}"
+                        "{{block left_sidebar}}{{super}} {{end}}"
+                        "to"
+                        "{{block right_sidebar}} {{super}}{{end}}")
             elif path == pjoin('views', 'default', 'indexbrackets.html'):
-                return StringIO("[[extend 'layoutbrackets.html']]"
-                                "[[block left_sidebar]][[super]] [[end]]"
-                                "to"
-                                "[[block right_sidebar]] [[super]][[end]]")
+                return ("[[extend 'layoutbrackets.html']]"
+                        "[[block left_sidebar]][[super]] [[end]]"
+                        "to"
+                        "[[block right_sidebar]] [[super]][[end]]")
             elif path == pjoin('views', 'default', 'missing.html'):
-                return StringIO("{{extend 'wut'}}"
-                                "{{block left_sidebar}}{{super}} {{end}}"
-                                "to"
-                                "{{block right_sidebar}} {{super}}{{end}}")
+                return ("{{extend 'wut'}}"
+                        "{{block left_sidebar}}{{super}} {{end}}"
+                        "to"
+                        "{{block right_sidebar}} {{super}}{{end}}")
             elif path == pjoin('views', 'default', 'noescape.html'):
-                return StringIO("""{{=NOESCAPE('<script></script>')}}""")
+                return "{{=NOESCAPE('<script></script>')}}"
             raise IOError
-
-        with monkey_patch(template, 'open', dummy_open):
-            self.assertEqual(
-                render(filename=pjoin('views', 'default', 'index.html'),
-                       path='views'),
-                'left to right')
-            self.assertEqual(
-                render(filename=pjoin('views', 'default', 'indexbrackets.html'),
-                       path='views', delimiters=('[[', ']]')),
-                'left to right')
-            self.assertRaises(
-                RestrictedError,
-                render,
-                filename=pjoin('views', 'default', 'missing.html'),
-                path='views')
-            response = template.DummyResponse()
-            response.delimiters = ('[[', ']]')
-            self.assertEqual(
-                render(filename=pjoin('views', 'default', 'indexbrackets.html'),
-                       path='views', context={'response': response}),
-                'left to right')
-            self.assertEqual(
-                render(filename=pjoin('views', 'default', 'noescape.html'),
-                       context={'NOESCAPE': template.NOESCAPE}),
-                '<script></script>')
+        
+        self.assertEqual(
+            render(filename=pjoin('views', 'default', 'index.html'),
+                   path='views', reader=dummy_open),
+            'left to right')
+        self.assertEqual(
+            render(filename=pjoin('views', 'default', 'indexbrackets.html'),
+                   path='views', delimiters='[[ ]]', reader=dummy_open),
+            'left to right')
+        #self.assertRaises(
+        #    RestrictedError,
+        #    render,
+        #    filename=pjoin('views', 'default', 'missing.html'),
+        #    path='views',
+        #    reader=dummy_open)
+        response = DummyResponse()
+        response.delimiters = ('[[', ']]')
+        self.assertEqual(
+            render(filename=pjoin('views', 'default', 'indexbrackets.html'),
+                   path='views', context={'response': response}, reader=dummy_open),
+            'left to right')
+        self.assertEqual(
+            render(filename=pjoin('views', 'default', 'noescape.html'),
+                   context={'NOESCAPE': NOESCAPE}, reader=dummy_open),
+            '<script></script>')

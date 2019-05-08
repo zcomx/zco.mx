@@ -11,7 +11,6 @@ from BeautifulSoup import BeautifulSoup
 from gluon.sqlhtml import StringWidget
 from applications.zcomx.modules.stickon.sqlhtml import \
     InputWidget, \
-    SimpleUploadWidget, \
     LocalSQLFORM, \
     formstyle_bootstrap3_custom, \
     formstyle_bootstrap3_login, \
@@ -75,106 +74,6 @@ class TestInputWidget(LocalTestCase):
         self.assertEqual(w_input['name'], 'name')
         self.assertEqual(w_input['type'], 'submit')
         self.assertEqual(w_input['value'], value)
-
-
-class TestSimpleUploadWidget(LocalTestCase):
-
-    def test_init(self):
-        widget = SimpleUploadWidget()
-        self.assertTrue(widget)
-
-    def test__widget(self):
-        field = db.creator.image
-        value = None
-
-        widget = SimpleUploadWidget()
-        soup = BeautifulSoup(str(widget.widget(field, value)))
-        w_input = soup.find('input')
-        if not w_input:
-            self.fail('Input tag not returned')
-        # Example:
-        # <input class="upload" id="creator_image" name="image" type="file" />
-        self.assertEqual(w_input['class'], 'upload')
-        self.assertEqual(w_input['id'], 'creator_image')
-        self.assertEqual(w_input['name'], 'image')
-        self.assertEqual(w_input['type'], 'file')
-
-        value = 'test_image.jpg'
-        url = 'http://www.download.com'
-
-        widget = SimpleUploadWidget()
-        soup = BeautifulSoup(
-            str(widget.widget(field, value, download_url=url)))
-
-        # pylint: disable=line-too-long
-        # Example:
-        # <div class="image_widget_container row">
-        # <div class="image_widget_img">
-        #     <img src="http://www.download.com/test_image.jpg" width="150px" />
-        # </div>
-        # <div class="image_widget_buttons">
-        #     <input class="upload" id="creator_image" name="image" type="file" />
-        #     <span style="white-space:nowrap">
-        #         <input id="image__delete" name="image__delete" type="checkbox" value="on" />
-        #         <label for="image__delete" style="display:inline">
-        #             delete
-        #         </label>
-        #     </span>
-        # </div>
-        # <script>
-        # &lt;!--
-        #
-        # jQuery('.image_widget_buttons input[type=file]').change(function(e) {
-        # $(this).closest('form').submit();
-        # });
-        #
-        # //--&gt;
-        # </script>
-        # </div>
-
-        container_div = soup.find('div')
-        if not container_div:
-            self.fail('DIV tag not returned')
-        self.assertEqual(container_div['class'], 'image_widget_container row')
-        divs = container_div.findAll('div')
-        img_div = divs[0]
-        if not img_div:
-            self.fail('Image DIV tag not returned')
-
-        img = img_div.img
-        if not img:
-            self.fail('IMG tag not returned')
-        self.assertEqual(img['src'], 'http://www.download.com/test_image.jpg')
-
-        buttons_div = divs[1]
-        if not buttons_div:
-            self.fail('Buttons DIV tag not returned')
-
-        up_input = buttons_div.input
-        if not up_input:
-            self.fail('Upload input tag not returned')
-        self.assertEqual(up_input['class'], 'upload')
-        self.assertEqual(up_input['id'], 'creator_image')
-        self.assertEqual(up_input['name'], 'image')
-        self.assertEqual(up_input['type'], 'file')
-
-        span = buttons_div.span
-        if not span:
-            self.fail('SPAN tag not returned')
-
-        del_input = span.input
-        if not del_input:
-            self.fail('Delete input tag not returned')
-        self.assertEqual(del_input['id'], 'image__delete')
-        self.assertEqual(del_input['name'], 'image__delete')
-        self.assertEqual(del_input['type'], 'checkbox')
-        self.assertEqual(del_input['value'], 'on')
-
-        label = span.label
-        if not label:
-            self.fail('Delete input label tag not returned')
-        self.assertEqual(label['for'], 'image__delete')
-        self.assertEqual(label.string, 'delete')
 
 
 class TestLocalSQLFORM(LocalTestCase):

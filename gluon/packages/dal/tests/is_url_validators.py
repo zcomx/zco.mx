@@ -6,8 +6,8 @@ Unit tests for IS_URL()
 
 import unittest
 
-from gluon.validators import IS_URL, IS_HTTP_URL, IS_GENERIC_URL
-from gluon.validators import unicode_to_ascii_authority
+from pydal.validators import IS_URL, IS_HTTP_URL, IS_GENERIC_URL
+from pydal.validators import unicode_to_ascii_authority
 
 
 class TestIsUrl(unittest.TestCase):
@@ -558,8 +558,7 @@ class TestIsHttpUrl(unittest.TestCase):
             'https://google.ca', None))  # prepends https if asked
 
         z = IS_HTTP_URL(prepend_scheme=None)
-        self.assertEqual(z('google.ca:8080'), ('google.ca:8080',
-                         None))  # prepending disabled
+        self.assertEqual(z('google.ca:8080'), ('google.ca:8080', None))  # prepending disabled
 
         try:
             IS_HTTP_URL(prepend_scheme='mailto')

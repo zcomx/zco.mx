@@ -8,11 +8,12 @@ Classes and functions related to images.
 import glob
 import imghdr
 import os
+import re
 import shutil
 import subprocess
 from PIL import Image
 from gluon import *
-from pydal.helpers.regex import REGEX_STORE_PATTERN
+from pydal.helpers.regex import REGEX_UPLOAD_EXTENSION
 from applications.zcomx.modules.job_queuers import DeleteImgQueuer
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
@@ -547,8 +548,8 @@ def scrub_extension_for_store(filename):
         'gif': 'png',
         'jpeg': 'jpg',
     }
-    m = REGEX_STORE_PATTERN.search(filename)
-    extension = m and m.group('e') or 'txt'
+    m = re.search(REGEX_UPLOAD_EXTENSION, filename)
+    extension = m and m.group(1) or 'txt'
     if extension not in translates:
         return filename
     return filename[:(len(filename) - 1 - len(extension))] \

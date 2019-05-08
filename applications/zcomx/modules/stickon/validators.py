@@ -5,16 +5,16 @@
 stickon/validators.py
 
 Classes extending functionality of gluon/validators.py.
-
 """
 import urlparse
 from gluon.sqlhtml import safe_float, safe_int
-from gluon.validators import \
-    IS_MATCH, \
-    IS_NOT_IN_DB, \
-    IS_URL, \
-    Validator, \
-    translate
+from gluon.validators import (
+    IS_MATCH,
+    IS_NOT_IN_DB,
+    IS_URL,
+    Validator,
+    ValidationError,
+)
 
 # C0103: Invalid name
 # pylint: disable=C0103
@@ -45,13 +45,14 @@ class IS_ALLOWED_CHARS(Validator):
         self.not_allowed = not_allowed or []
         self.error_message = error_message
 
-    def __call__(self, value):
+    def validate(self, value):
+        """Validate."""
         found = []
         for c in self.not_allowed:
             if c[0] in value:
                 found.append(c)
         if not found:
-            return (value, None)
+            return value
 
         list_items = []
         for c in found:
@@ -67,7 +68,7 @@ class IS_ALLOWED_CHARS(Validator):
             'Please remove or replace the following characters:',
             ', '.join(list_items),
         ])
-        return (value, msg)
+        raise ValidationError(self.translator(msg))
 
 
 class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
@@ -76,13 +77,12 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
         sensitive, it depends on the db.
     """
     def __init__(
-        self,
-        dbset,
-        field,
-        error_message='value already in database or empty',
-        allowed_override=None,
-        ignore_common_filters=False,
-    ):
+            self,
+            dbset,
+            field,
+            error_message='value already in database or empty',
+            allowed_override=None,
+            ignore_common_filters=False):
         if allowed_override is None:
             allowed_override = []
         IS_NOT_IN_DB.__init__(
@@ -94,7 +94,8 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
             ignore_common_filters
         )
 
-    def __call__(self, value):
+    def validate(self, value):
+        """Validate"""
         # W0622 (redefined-builtin): *Redefining built-in %%r*          # id
         # pylint: disable=W0622
         # W0212 : *Access to a protected member %%s of a client class*
@@ -105,9 +106,9 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
         else:
             value = str(value)
         if not value.strip():
-            return (value, translate(self.error_message))
+            raise ValidationError(self.translator(self.error_message))
         if value in self.allowed_override:
-            return (value, None)
+            return value
         (tablename, fieldname) = str(self.field).split('.')
         table = self.dbset.db[tablename]
         field = table[fieldname]
@@ -127,8 +128,7 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
             ).first()
             if row and any(str(row[f]) != str(id[f]) for f in id):
                 # Do not translate so HTML can be included in error message
-                # return (value, translate(self.error_message))
-                return (value, self.error_message)
+                raise ValidationError(self.error_message)
         else:
             row = subset.select(
                 table._id,
@@ -138,9 +138,8 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
             ).first()
             if row and str(row.id) != str(id):
                 # Do not translate so HTML can be included in error message
-                # return (value, translate(self.error_message))
-                return (value, self.error_message)
-        return (value, None)
+                raise ValidationError(self.error_message)
+        return value
 
 
 class IS_NOT_IN_DB_SCRUBBED(IS_NOT_IN_DB_ANYCASE):
@@ -150,14 +149,13 @@ class IS_NOT_IN_DB_SCRUBBED(IS_NOT_IN_DB_ANYCASE):
     exactly like IS_NOT_IN_DB.
     """
     def __init__(
-        self,
-        dbset,
-        field,
-        error_message='value already in database or empty',
-        allowed_override=None,
-        ignore_common_filters=False,
-        scrub_callback=None,
-    ):
+            self,
+            dbset,
+            field,
+            error_message='value already in database or empty',
+            allowed_override=None,
+            ignore_common_filters=False,
+            scrub_callback=None):
         if allowed_override is None:
             allowed_override = []
         IS_NOT_IN_DB_ANYCASE.__init__(
@@ -170,21 +168,19 @@ class IS_NOT_IN_DB_SCRUBBED(IS_NOT_IN_DB_ANYCASE):
         )
         self.scrub_callback = scrub_callback
 
-    def __call__(self, value):
+    def validate(self, value):
         test_value = value
         if self.scrub_callback and callable(self.scrub_callback):
             test_value = self.scrub_callback(value)
-        (unused_value, error) = IS_NOT_IN_DB_ANYCASE.__call__(self, test_value)
-        return (value, error)
+        return IS_NOT_IN_DB_ANYCASE.validate(self, test_value)
 
 
 class IS_TWITTER_HANDLE(IS_MATCH):
     """Class representing a validator for twitter handles.
     """
     def __init__(
-        self,
-        error_message=None,
-    ):
+            self,
+            error_message=None):
         """Constructor
         Args:
             error_message: see IS_MATCH
@@ -202,13 +198,12 @@ class IS_URL_FOR_DOMAIN(IS_URL):
     it is not from a specific domain.
     """
     def __init__(
-        self,
-        domain,
-        error_message=None,
-        mode='http',
-        allowed_schemes=None,
-        prepend_scheme='http',
-    ):
+            self,
+            domain,
+            error_message=None,
+            mode='http',
+            allowed_schemes=None,
+            prepend_scheme='http'):
         """Constructor
         Args:
             domain: string, eg example.com
@@ -229,18 +224,20 @@ class IS_URL_FOR_DOMAIN(IS_URL):
         )
         self.domain = domain
 
-    def __call__(self, value):
-        result, error = IS_URL()(value)
-        if error != None:
-            return (value, self.error_message)
+    def validate(self, value):
+        """Validate."""
+        try:
+            result = IS_URL().validate(value)
+        except ValidationError:
+            raise ValidationError(self.translator(self.error_message))
 
         o = urlparse.urlparse(result)
         if not o.hostname:
-            return (result, self.error_message)
+            raise ValidationError(self.translator(self.error_message))
         if not o.hostname == self.domain and \
                 not o.hostname.endswith('.{d}'.format(d=self.domain)):
-            return (result, self.error_message)
-        return (result, None)
+            raise ValidationError(self.translator(self.error_message))
+        return result
 
 
 def as_per_type(table, data):

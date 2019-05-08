@@ -5,7 +5,7 @@
 
 Classes and functions related to names.
 """
-from gluon.validators import urlify
+from pydal.validators import urlify
 from applications.zcomx.modules.files import \
     for_file, \
     for_title_file

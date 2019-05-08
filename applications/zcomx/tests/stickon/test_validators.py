@@ -10,6 +10,9 @@ import string
 import unittest
 from gluon import *
 from gluon.storage import Storage
+from gluon.validators import (
+    ValidationError,
+)
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.stickon.validators import \
     IS_ALLOWED_CHARS, \
@@ -35,17 +38,24 @@ class TestIS_ALLOWED_CHARS(LocalTestCase):
         self.assertTrue(validator)
         self.assertTrue(len(validator.error_message) > 0)
 
-    def test____call__(self):
+    def test__validate(self):
         default_err = 'This is a test error message.'
 
         def run(validator, value, error):
-            result, err_msg = validator(value)
-            self.assertEqual(result, value)
-            if error is not None:
-                self.assertTrue(error in err_msg)
+            result = value
+            err = ''
+            if error is None:
+                result = validator.validate(value)
+                self.assertEqual(result, value)
             else:
-                self.assertEqual(error, err_msg)
-            return result, err_msg
+                try:
+                    validator.validate(value)
+                except ValidationError as err:
+                    pass
+                else:
+                    self.fail('ValidationError not raised')
+
+            return result, str(err)
 
         # Test not_allowed default
         validator = IS_ALLOWED_CHARS(error_message=default_err)
@@ -98,7 +108,7 @@ class TestIS_NOT_IN_DB_ANYCASE(LocalTestCase):
         self.assertTrue(validator)
         self.assertTrue(len(validator.error_message) > 0)
 
-    def test____call__(self):
+    def test__validate(self):
         email = 'anycase@example.com'
         email_2 = 'anycase_2@example.com'
         error_msg = 'is_not_in_db_anycase error'
@@ -111,22 +121,32 @@ class TestIS_NOT_IN_DB_ANYCASE(LocalTestCase):
         self._objects.append(creator)
 
         tests = [
-            #(email, expect)
-            (email, (email, error_msg)),           # In db, so not ok
-            (email_2, (email_2, None)),            # Not in db, so ok
-            (email.upper(),
-                (email.upper(), error_msg)),       # lowercase is in db, not ok
-            (email_2.upper(), (email_2.upper(), None)),     # Not in db, so ok
+            #(email, error)
+            (email, error_msg),           # In db, so not ok
+            (email_2, None),              # Not in db, so ok
+            (email.upper(), error_msg),   # lowercase is in db, not ok
+            (email_2.upper(), None),      # Not in db, so ok
         ]
         for t in tests:
-            self.assertEqual(
-                IS_NOT_IN_DB_ANYCASE(
-                    db,
-                    db.creator.email,
-                    error_message=error_msg,
-                )(t[0]),
-                t[1]
-            )
+            if t[1] is None:
+                self.assertEqual(
+                    IS_NOT_IN_DB_ANYCASE(
+                        db,
+                        db.creator.email,
+                        error_message=error_msg,
+                    ).validate(t[0]),
+                    t[0]
+                )
+            else:
+                self.assertRaises(
+                    ValidationError,
+                    IS_NOT_IN_DB_ANYCASE(
+                        db,
+                        db.creator.email,
+                        error_message=error_msg,
+                    ).validate,
+                    t[0]
+                )
 
 
 class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
@@ -138,7 +158,7 @@ class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
         self.assertTrue(validator)
         self.assertTrue(len(validator.error_message) > 0)
 
-    def test____call__(self):
+    def test__validate(self):
 
         email = 'scrub@example.com'
         email_2 = 'scrub_2@example.com'
@@ -161,33 +181,42 @@ class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
 
         tests = [
             #(email, scrub_callback, expect)
-            (email, None, (email, error_msg)),        # In db, so not ok
-            (email_2, None, (email_2, None)),         # Not in db, so ok
-            (email.upper(), None,
-                (email.upper(), error_msg)),          # lowercase in db, not ok
-            (email_2.upper(), None,
-                (email_2.upper(), None)),             # Not in db, so ok
-            (email, 'a_str', (email, error_msg)),     # not callable, like None
-            (email_2, 'a_str', (email_2, None)),      # not callable, like None
-            (email, rm_underscore_two,
-                (email, error_msg)),            # doesn't change, in db, not ok
-            (email_2, rm_underscore_two,
-                (email_2, error_msg)),           # becomes email, in db, not ok
-            (email_2.upper(), rm_underscore_two,
-                (email_2.upper(), error_msg)),   # becomes email, in db, not ok
-            (email, rm_b, (email, None)),               # becomes unique, so ok
-            (email_2, rm_b, (email_2, None)),           # becomes unique, so ok
+            (email, None, error_msg),               # In db, so not ok
+            (email_2, None, None),                  # Not in db, so ok
+            (email.upper(), None, error_msg),       # lowercase in db, not ok
+            (email_2.upper(), None, None),          # Not in db, so ok
+            (email, 'a_str', error_msg),            # Not callable, like None
+            (email_2, 'a_str', None),               # Not callable, like None
+            (email, rm_underscore_two, error_msg),  # Doesn't change, in db, not ok
+            (email_2, rm_underscore_two, error_msg),           # becomes email, in db, not ok
+            (email_2.upper(), rm_underscore_two, error_msg),   # becomes email, in db, not ok
+            (email, rm_b, None),                    # becomes unique, so ok
+            (email_2, rm_b, None),                  # becomes unique, so ok
         ]
         for t in tests:
-            self.assertEqual(
-                IS_NOT_IN_DB_SCRUBBED(
-                    db,
-                    db.creator.email,
-                    error_message=error_msg,
-                    scrub_callback=t[1],
-                )(t[0]),
-                t[2]
-            )
+            if t[2] is None:
+                expect = t[1](t[0]) \
+                    if t[1] is not None and callable(t[1]) else t[0]
+                self.assertEqual(
+                    IS_NOT_IN_DB_SCRUBBED(
+                        db,
+                        db.creator.email,
+                        error_message=error_msg,
+                        scrub_callback=t[1],
+                    ).validate(t[0]),
+                    expect
+                )
+            else:
+                self.assertRaises(
+                    ValidationError,
+                    IS_NOT_IN_DB_SCRUBBED(
+                        db,
+                        db.creator.email,
+                        error_message=error_msg,
+                        scrub_callback=t[1],
+                    ).validate,
+                    t[0]
+                )
 
 
 class TestIS_TWITTER_HANDLE(LocalTestCase):
@@ -213,9 +242,17 @@ class TestIS_TWITTER_HANDLE(LocalTestCase):
             ('@user!name', err_msg),
         ]
         for t in tests:
-            result, error = IS_TWITTER_HANDLE()(t[0])
-            self.assertEqual(result, t[0])
-            self.assertEqual(error, t[1])
+            if t[1] is None:
+                self.assertEqual(
+                    IS_TWITTER_HANDLE().validate(t[0]),
+                    t[0]
+                )
+            else:
+                self.assertRaises(
+                    ValidationError,
+                    IS_TWITTER_HANDLE().validate,
+                    t[0],
+                )
 
 
 class TestIS_URL_FOR_DOMAIN(LocalTestCase):
@@ -228,7 +265,7 @@ class TestIS_URL_FOR_DOMAIN(LocalTestCase):
         self.assertTrue(validator)
         self.assertTrue(len(validator.error_message) > 0)
 
-    def test____call__(self):
+    def test__validate(self):
         tests = [
             #(domain, value, result, error)
             ('aaa.com', 'http://www.aaa.com/path', 'http://www.aaa.com/path',
@@ -246,9 +283,16 @@ class TestIS_URL_FOR_DOMAIN(LocalTestCase):
                 'Enter a valid aaa.com URL'),
         ]
         for t in tests:
-            result, error = IS_URL_FOR_DOMAIN(t[0])(t[1])
-            self.assertEqual(result, t[2])
-            self.assertEqual(error, t[3])
+            if t[3] is None:
+                result = IS_URL_FOR_DOMAIN(t[0]).validate(t[1])
+                self.assertEqual(result, t[2])
+            else:
+                try:
+                    IS_URL_FOR_DOMAIN(t[0]).validate(t[1])
+                except ValidationError as err:
+                    self.assertEqual(str(err), t[3])
+                else:
+                    self.fail('ValidationError not raised')
 
 
 class TestFunctions(LocalTestCase):

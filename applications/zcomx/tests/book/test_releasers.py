@@ -292,8 +292,8 @@ class TestUnfileshareBook(WithObjectsTestCase):
         self.assertEqual(releaser.needs_requeue, False)
 
         book = Book.from_id(self._book.id)      # reload
-        self.assertEqual(book.cbz, '')
-        self.assertEqual(book.torrent, '')
+        self.assertEqual(book.cbz, None)
+        self.assertEqual(book.torrent, None)
         self.assertEqual(book.fileshare_date, None)
         self.assertEqual(book.fileshare_in_progress, False)
 
@@ -333,9 +333,9 @@ class TestUnreleaseBook(WithObjectsTestCase):
 
         tests = [
             # (post_id, expect)
-            ('', ''),
+            ('', None),
             ('_fake_post_id_', '_fake_post_id_'),
-            (IN_PROGRESS, ''),
+            (IN_PROGRESS, None),
         ]
         for t in tests:
             data = dict(
