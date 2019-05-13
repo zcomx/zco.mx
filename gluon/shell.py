@@ -276,7 +276,7 @@ def run(
 
             if import_models:
                 BaseAdapter.close_all_instances('commit')
-        except:
+        except Exception:
             print(traceback.format_exc())
             if import_models:
                 BaseAdapter.close_all_instances('rollback')
@@ -285,7 +285,7 @@ def run(
             exec(python_code, _env)
             if import_models:
                 BaseAdapter.close_all_instances('commit')
-        except:
+        except Exception:
             print(traceback.format_exc())
             if import_models:
                 BaseAdapter.close_all_instances('rollback')
