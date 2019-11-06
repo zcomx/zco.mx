@@ -50,7 +50,7 @@ class TestFunctions(LocalTestCase):
             ('http://101.zco.mx', False, 'creator'),
             ('https://101.zco.mx', False, 'creator'),
             ('https://zco.mx', True, 'index'),
-            ('https://dev.zco.mx', True, SSLError),
+            ('https://dev.zco.mx', True, 'index'),
             ('https://www.zco.mx', True, SSLError),
             ('https://fake.zco.mx', True, SSLError),
             ('https://101.zco.mx', True, 'index'),

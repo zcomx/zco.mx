@@ -116,7 +116,7 @@ class TestBaseTorrentCreator(TorrentTestCase):
         )
         self.assertEqual(
             parser.get_client_name(),
-            'mktorrent 1.0'
+            'mktorrent 1.1'
         )
         self.assertEqual(
             parser.get_files_details(),
@@ -148,7 +148,7 @@ class TestBaseTorrentCreator(TorrentTestCase):
         )
         self.assertEqual(
             parser.get_client_name(),
-            'mktorrent 1.0'
+            'mktorrent 1.1'
         )
         self.assertEqual(
             parser.get_files_details(),
@@ -175,7 +175,7 @@ class TestBaseTorrentCreator(TorrentTestCase):
         )
         self.assertEqual(
             parser.get_client_name(),
-            'mktorrent 1.0'
+            'mktorrent 1.1'
         )
         self.assertEqual(
             parser.get_files_details(),

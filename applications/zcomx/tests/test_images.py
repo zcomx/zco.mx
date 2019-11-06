@@ -445,6 +445,14 @@ class TestResizeImg(ImageTestCase, WithObjectsTestCase, FileTestCase):
                 'web-256+colour.jpg': 'c74c78460486814115d351ba22fc50b5',
                 'web-256colour-jpg.jpg': '63026c1b335b1aa5edb2b675013091d3',
             },
+            '6.9.10-16': {
+                'cbz-256+colour.jpg': 'c94fb0c0f0b1328a70ed02367210455e',
+                'cbz-256colour-jpg.jpg': '3800ee82f710fcefc913ad2a9fd19d57',
+                'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
+                'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
+                'web-256+colour.jpg': '6a5073e10b0108168d3eade3ede41739',
+                'web-256colour-jpg.jpg': '493e25643f3ce4b6a72d6445c4ca1a53',
+            },
         }
 
         # Test 256 colour jpg.
@@ -626,6 +634,9 @@ class TestResizeImgIndicia(WithObjectsTestCase, ImageTestCase, FileTestCase):
             },
             '6.9.4-6': {
                 'ori-256colour-jpg.jpg': 'c7d7ec3181be621f576111a2569935f2'
+            },
+            '6.9.10-16': {
+                'ori-256colour-jpg.jpg': '9b130b9e36d3e45ee711b9cebd85cb96',
             },
         }
 
