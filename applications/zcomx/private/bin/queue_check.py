@@ -9,6 +9,8 @@ Check job queue for old or invalid jobs.
 from __future__ import print_function
 import datetime
 import os
+import sys
+import traceback
 from optparse import OptionParser
 from gluon.shell import env
 from applications.zcomx.modules.job_queue import Job
@@ -99,10 +101,11 @@ def main():
 
 
 if __name__ == '__main__':
-    # W0703: *Catch "Exception"*
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except SystemExit:
+        pass
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)

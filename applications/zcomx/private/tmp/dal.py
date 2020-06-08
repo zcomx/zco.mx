@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 dal.py
 
@@ -102,10 +101,11 @@ def main():
 
 
 if __name__ == '__main__':
-    # W0703: *Catch "Exception"*
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     try:
         main()
+    except SystemExit:
+        pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
         exit(1)

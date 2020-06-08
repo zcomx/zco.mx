@@ -9,7 +9,9 @@ Script to log download clicks.
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
 from __future__ import print_function
+import sys
 import time
+import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.events import (
@@ -249,10 +251,11 @@ def main():
 
 
 if __name__ == '__main__':
-    # W0703: *Catch "Exception"*
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except SystemExit:
+        pass
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)

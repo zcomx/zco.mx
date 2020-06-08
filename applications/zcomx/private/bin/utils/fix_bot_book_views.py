@@ -7,7 +7,9 @@ fix_bot_book_views.py
 Remove book_view records created by bots.
 """
 from __future__ import print_function
+import sys
 import time
+import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.events import (
     BookView,
@@ -105,10 +107,11 @@ def main():
 
 
 if __name__ == '__main__':
-    # W0703: *Catch "Exception"*
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except SystemExit:
+        pass
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)

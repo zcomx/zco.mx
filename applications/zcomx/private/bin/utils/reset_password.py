@@ -8,6 +8,8 @@ Script reset the password of a auth_user record.
 from __future__ import print_function
 import getpass
 import os
+import sys
+import traceback
 from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
@@ -137,10 +139,11 @@ def main():
 
 
 if __name__ == '__main__':
-    # W0703: *Catch "Exception"*
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except SystemExit:
+        pass
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)

@@ -9,6 +9,8 @@ This script purges empty creator and 'all' torrent files as necessary.
 from __future__ import print_function
 import errno
 import os
+import sys
+import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.archives import TorrentArchive
 from applications.zcomx.modules.creators import Creator
@@ -165,10 +167,11 @@ def main():
 
 
 if __name__ == '__main__':
-    # W0703: *Catch "Exception"*
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except SystemExit:
+        pass
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)

@@ -13,6 +13,8 @@ This script is meant to be a template. Copy and edit before using.
 """
 from __future__ import print_function
 import logging
+import sys
+import traceback
 from optparse import OptionParser
 from gluon.dal import Field, Table, SQLCustomType
 from pydal.base import BaseAdapter
@@ -327,10 +329,11 @@ def main():
 
 
 if __name__ == '__main__':
-    # W0703: *Catch "Exception"*
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except SystemExit:
+        pass
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)

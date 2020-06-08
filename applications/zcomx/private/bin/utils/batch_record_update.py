@@ -9,6 +9,8 @@ Script to update records from data read from csv file.
 from __future__ import print_function
 import collections
 import csv
+import sys
+import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.logger import set_cli_logging
 from applications.zcomx.modules.records import Record
@@ -338,10 +340,11 @@ def main():
     LOG.info('Done.')
 
 if __name__ == '__main__':
-    # W0703: *Catch "Exception"*
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     try:
         main()
-    except Exception as err:
-        LOG.exception(err)
+    except SystemExit:
+        pass
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
         exit(1)
