@@ -79,4 +79,4 @@ fi
 python=python
 type python2 &>/dev/null && python=python2
 
-SERVER_PRODUCTION_MODE=$SERVER_PRODUCTION_MODE "$python" $profile_opts  web2py.py --no-banner -L config.py -S "$app" -R "$script_to_run" -A "${args[@]}"
+SERVER_PRODUCTION_MODE=$SERVER_PRODUCTION_MODE "$python" $profile_opts  web2py.py --no-banner --add-options -L config.py -S "$app" -R "$script_to_run" -A "${args[@]}"

@@ -162,7 +162,10 @@ class Record(Row):
         db = current.app.db
         query = (db[record.db_table].id == record.id)
         if validate:
-            ret = db(query).validate_and_update(**data)
+            validate_data = dict(data)
+            if 'id' not in validate_data:
+                validate_data['id'] = record.id
+            ret = db(query).validate_and_update(**validate_data)
             db.commit()
             if ret.errors:
                 msg = ', '.join([

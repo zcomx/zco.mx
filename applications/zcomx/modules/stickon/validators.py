@@ -45,7 +45,7 @@ class IS_ALLOWED_CHARS(Validator):
         self.not_allowed = not_allowed or []
         self.error_message = error_message
 
-    def validate(self, value):
+    def validate(self, value, record_id=None):
         """Validate."""
         found = []
         for c in self.not_allowed:
@@ -94,7 +94,7 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
             ignore_common_filters
         )
 
-    def validate(self, value):
+    def validate(self, value, record_id=None):
         """Validate"""
         # W0622 (redefined-builtin): *Redefining built-in %%r*          # id
         # pylint: disable=W0622
@@ -168,7 +168,7 @@ class IS_NOT_IN_DB_SCRUBBED(IS_NOT_IN_DB_ANYCASE):
         )
         self.scrub_callback = scrub_callback
 
-    def validate(self, value):
+    def validate(self, value, record_id=None):
         test_value = value
         if self.scrub_callback and callable(self.scrub_callback):
             test_value = self.scrub_callback(value)
@@ -224,7 +224,7 @@ class IS_URL_FOR_DOMAIN(IS_URL):
         )
         self.domain = domain
 
-    def validate(self, value):
+    def validate(self, value, record_id=None):
         """Validate."""
         try:
             result = IS_URL().validate(value)
