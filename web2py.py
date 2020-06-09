@@ -23,6 +23,10 @@ elif '--folder' in sys.argv:
     fi = sys.argv.index('--folder')
 else:
     fi = None
+
+if fi and '-A' in sys.argv and fi > sys.argv.index('-A'):
+    fi = None
+
 if fi and fi < len(sys.argv):
     fi += 1
     folder = sys.argv[fi]
