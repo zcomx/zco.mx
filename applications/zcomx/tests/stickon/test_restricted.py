@@ -44,10 +44,6 @@ class DubLogger(object):
 class TestFunctions(WebTestCase):
 
     def test__log_ticket(self):
-        # This method is not practically testable.
-
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
 
         # Test variation on no ticket, should be handled gracefully
         log_ticket(None)
@@ -61,23 +57,27 @@ class TestFunctions(WebTestCase):
         for t in tests:
             self.assertEqual(log_ticket(t[0]), t[1])
 
-        # This will create a ticket
+        def get_files(path):
+            """Return a list of files in a directory"""
+            for unused_root, unused_dirs, files in os.walk(path):
+                return files
+
         errors_path = os.path.join(request.folder, 'errors')
-        errors_before = os.listdir(errors_path)
+        error_files_bef = get_files(errors_path)
+        # The next call will create an error ticket
         self.assertWebTest(
             '/errors/test_exception', match_page_key='/errors/index')
-        errors_after = os.listdir(errors_path)
-        self.assertEqual(len(errors_after), len(errors_before) + 1)
+        error_files_aft = get_files(errors_path)
+        self.assertEqual(len(error_files_aft), len(error_files_bef) + 1)
 
         ticket_re = re.compile(
             r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}.\d{4}-\d{2}-\d{2}.*$')
 
         ticket = None
-        for unused_root, unused_dirs, files in os.walk(errors_path):
-            for filename in files:
-                if ticket_re.match(filename):
-                    ticket = filename
-                    break
+        for filename in error_files_aft:
+            if filename not in error_files_bef and ticket_re.match(filename):
+                ticket = filename
+                break
 
         if not ticket:
             self.fail('Ticket not found.')
@@ -91,14 +91,14 @@ class TestFunctions(WebTestCase):
             words_found_status[word] = False
 
         for error in logger.errors:
-            for word in words_found_status.keys():
+            for word in words_found_status:
                 if error.startswith(word):
                     words_found_status[word] = True
-        for word in words_found_status.keys():
+        for word in words_found_status:
             self.assertTrue(words_found_status[word])
 
         # Cleanup
-        new_files = set(errors_after).difference(set(errors_before))
+        new_files = set(error_files_aft).difference(set(error_files_bef))
         for new_file in new_files:
             filename = os.path.join(errors_path, new_file)
             if os.path.exists(filename):
