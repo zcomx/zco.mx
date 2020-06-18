@@ -49,6 +49,7 @@ def index():
                 URL('static', 'fonts/brushy_cre/stylesheet.css')
             )
         response.view = router.view
+
     if router.view_dict:
         # Set next_url. Used in contributions.py def paypal()
         Zco().next_url = request.env.web2py_original_uri

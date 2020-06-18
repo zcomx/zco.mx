@@ -97,9 +97,12 @@ def route():
                 'url': book_rss_url(book, host=True),
             })
 
-        response.view = 'errors/page_not_found.html'
         message = 'The requested rss feed was not found on this server.'
-        return dict(urls=urls, message=message)
+        Zco().page_not_found = {
+            'message': message,
+            'urls': urls,
+        }
+        raise HTTP(404, 'Page not found')
 
     if not request.vars:
         return page_not_found()

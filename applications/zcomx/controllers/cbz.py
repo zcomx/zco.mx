@@ -10,6 +10,7 @@ from applications.zcomx.modules.creators import \
     url as creator_url
 from applications.zcomx.modules.downloaders import CBZDownloader
 from applications.zcomx.modules.events import log_download_click
+from applications.zcomx.modules.zco import Zco
 
 
 def download():
@@ -81,9 +82,13 @@ def route():
                 'url': cbz_url(book, host=True),
             })
 
-        response.view = 'errors/page_not_found.html'
         message = 'The requested CBZ file was not found on this server.'
-        return dict(urls=urls, message=message)
+
+        Zco().page_not_found = {
+            'message': message,
+            'urls': urls,
+        }
+        raise HTTP(404, 'Page not found')
 
     if not request.vars:
         return page_not_found()

@@ -37,8 +37,12 @@ class TestFunctions(WebTestCase):
 
     def test__index(self):
         # Test: no creator
-        self.assertWebTest(
-            '/creators/index', match_page_key='/errors/page_not_found')
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
+            '/creators/index',
+            match_page_key='/errors/page_not_found',
+        )
 
         # Test: creator as integer
         url_path = '/creators/index?creator={cid}'.format(cid=self._creator.id)

@@ -52,11 +52,23 @@ class TestFunctions(WebTestCase):
             ('/zcomx', '/default/index'),
             ('/zcomx/default', '/default/index'),
             ('/zcomx/default/index', '/default/index'),
+        ]
+        for t in tests:
+            self.assertWebTest(t[0], app='', match_page_key=t[1])
+
+        # Test pages that should not exist
+        tests = [
+            # (url, match_page_key)
             ('/appadmin', '/errors/page_not_found'),
             ('/zcomx/appadmin', '/errors/page_not_found'),
         ]
         for t in tests:
-            self.assertWebTest(t[0], app='', match_page_key=t[1])
+            self.assertRaisesHTTPError(
+                404,
+                self.assertWebTest,
+                t[0],
+                match_page_key=t[1],
+            )
 
 
 def setUpModule():

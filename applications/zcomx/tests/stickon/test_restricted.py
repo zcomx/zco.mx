@@ -64,9 +64,15 @@ class TestFunctions(WebTestCase):
 
         errors_path = os.path.join(request.folder, 'errors')
         error_files_bef = get_files(errors_path)
+
         # The next call will create an error ticket
-        self.assertWebTest(
-            '/errors/test_exception', match_page_key='/errors/index')
+        self.assertRaisesHTTPError(
+            406,
+            self.assertWebTest,
+            '/errors/test_exception',
+            match_page_key='/errors/index',
+        )
+
         error_files_aft = get_files(errors_path)
         self.assertEqual(len(error_files_aft), len(error_files_bef) + 1)
 

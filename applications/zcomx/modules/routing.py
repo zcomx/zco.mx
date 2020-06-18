@@ -49,6 +49,7 @@ class SpareCreatorError(Exception):
 
 class Router(object):
     """Class representing a Router"""
+    not_found_msg = 'The requested page was not found on this server.'
 
     def __init__(self, db, request, auth):
         """Constructor
@@ -306,10 +307,12 @@ class Router(object):
             'label': 'Read:',
             'url': page_url(url_book_page, host=True),
         })
-        message = 'The requested page was not found on this server.'
 
-        self.view_dict = dict(urls=urls, message=message)
-        self.view = 'errors/page_not_found.html'
+        Zco().page_not_found = {
+            'message': self.not_found_msg,
+            'urls': urls,
+        }
+        raise HTTP(404, 'Page not found')
 
     def preset_links(self):
         """Return a list of preset links for the creator.

@@ -19,7 +19,12 @@ from applications.zcomx.modules.tests.helpers import WebTestCase
 class TestFunctions(WebTestCase):
 
     def test__handler(self):
-        self.assertWebTest('/errors/handler', match_page_key='/errors/index')
+        self.assertRaisesHTTPError(
+            406,
+            self.assertWebTest,
+            '/errors/handler',
+            match_page_key='/errors/index',
+        )
 
     def test__index(self):
         self.assertWebTest('/errors/index')
@@ -30,8 +35,14 @@ class TestFunctions(WebTestCase):
     def test__test_exception(self):
         errors_path = os.path.join(request.folder, 'errors')
         errors_before = os.listdir(errors_path)
-        self.assertWebTest(
-            '/errors/test_exception', match_page_key='/errors/index')
+
+        self.assertRaisesHTTPError(
+            406,
+            self.assertWebTest,
+            '/errors/test_exception',
+            match_page_key='/errors/index',
+        )
+
         errors_after = os.listdir(errors_path)
         self.assertEqual(len(errors_after), len(errors_before) + 1)
 

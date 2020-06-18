@@ -178,13 +178,17 @@ class TestFunctions(WebTestCase):
         self._objects.append(download_clicks[0])
 
         # page not found: no args
-        self.assertWebTest(
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
             '/torrents/route?no_queue=1',
             match_page_key='/errors/page_not_found',
         )
 
         # page not found: invalid creator integer
-        self.assertWebTest(
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
             '/torrents/route/{cid:03d}/{tor}?no_queue=1'.format(
                 cid=-1,
                 tor=os.path.basename(self._book.torrent),
@@ -193,7 +197,9 @@ class TestFunctions(WebTestCase):
         )
 
         # page not found: invalid creator name
-        self.assertWebTest(
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
             '/torrents/route/{name}/{tor}?no_queue=1'.format(
                 name='_invalid_name_',
                 tor=os.path.basename(self._book.torrent),
@@ -202,7 +208,9 @@ class TestFunctions(WebTestCase):
         )
 
         # page not found: invalid torrent
-        self.assertWebTest(
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
             '/torrents/route/{tor}?no_queue=1'.format(
                 tor='_invalid_.torrent',
             ),

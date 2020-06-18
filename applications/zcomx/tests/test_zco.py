@@ -76,6 +76,67 @@ class TestZco(LocalTestCase):
     def test__del_next_url(self):
         pass        # tested in test_next_url
 
+    def test_page_not_found(self):
+        Zco().page_not_found = {
+            'message': 'My message',
+            'urls': {
+                'invalid': 'http://invalid.com',
+                'suggestions': [
+                    'http://suggestion1.com',
+                    'http://suggestion2.com',
+                ]
+            }
+        }
+        self.assertEqual(
+            Zco().page_not_found,
+            {
+                'message': 'My message',
+                'urls': {
+                    'invalid': 'http://invalid.com',
+                    'suggestions': [
+                        'http://suggestion1.com',
+                        'http://suggestion2.com',
+                    ]
+                }
+            }
+        )
+
+        Zco().page_not_found = {
+            'message': 'MY MESSAGE',
+            'urls': {
+                'invalid': 'http://invalid_aaa.com',
+                'suggestions': [
+                    'http://suggestion1_aaa.com',
+                    'http://suggestion2_aaa.com',
+                ]
+            }
+        }
+        self.assertEqual(
+            Zco().page_not_found,
+            {
+                'message': 'MY MESSAGE',
+                'urls': {
+                    'invalid': 'http://invalid_aaa.com',
+                    'suggestions': [
+                        'http://suggestion1_aaa.com',
+                        'http://suggestion2_aaa.com',
+                    ]
+                }
+            }
+        )
+
+        del Zco().page_not_found
+        self.assertEqual(Zco().page_not_found, None)
+
+    def test__get_page_not_found(self):
+        pass        # tested in test_page_not_found
+
+    def test__set_page_not_found(self):
+        pass        # tested in test_page_not_found
+
+    def test__del_page_not_found(self):
+        pass        # tested in test_page_not_found
+
     def test_paypal_in_progress(self):
         Zco().paypal_in_progress = True
         self.assertEqual(Zco().paypal_in_progress, True)

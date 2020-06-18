@@ -151,13 +151,17 @@ class TestFunctions(WebTestCase, ImageTestCase):
         )
 
         # page not found: no args
-        self.assertWebTest(
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
             '/rss/route',
             match_page_key='/errors/page_not_found',
         )
 
         # page not found: invalid creator integer
-        self.assertWebTest(
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
             '/rss/route/{cid:03d}/{rss}?'.format(
                 cid=-1,
                 rss='{n}.rss'.format(n=book_name(self._book, use='url'))
@@ -166,7 +170,9 @@ class TestFunctions(WebTestCase, ImageTestCase):
         )
 
         # page not found: invalid creator name
-        self.assertWebTest(
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
             '/rss/route/{name}/{rss}?'.format(
                 name='_invalid_name_',
                 rss='{n}.rss'.format(n=book_name(self._book, use='url'))
@@ -175,7 +181,9 @@ class TestFunctions(WebTestCase, ImageTestCase):
         )
 
         # page not found: invalid rss
-        self.assertWebTest(
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
             '/rss/route/_invalid_.rss',
             match_page_key='/errors/page_not_found',
         )

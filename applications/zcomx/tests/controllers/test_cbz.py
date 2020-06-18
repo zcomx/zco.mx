@@ -105,28 +105,44 @@ class TestFunctions(WebTestCase):
         self._objects.append(download_clicks[1])
 
         # page not found: no args
-        url_path = '/cbz/route?no_queue=1'
-        self.assertWebTest(url_path, match_page_key='/errors/page_not_found')
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
+            '/cbz/route?no_queue=1',
+            match_page_key='/errors/page_not_found',
+        )
 
         # page not found: invalid creator integer
-        url_path = '/cbz/route/{cid:03d}/{cbz}?no_queue=1'.format(
-            cid=-1,
-            cbz=os.path.basename(self._book.cbz),
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
+            '/cbz/route/{cid:03d}/{cbz}?no_queue=1'.format(
+                cid=-1,
+                cbz=os.path.basename(self._book.cbz),
+            ),
+            match_page_key='/errors/page_not_found',
         )
-        self.assertWebTest(url_path, match_page_key='/errors/page_not_found')
 
         # page not found: invalid creator name
-        url_path = '/cbz/route/{name}/{cbz}?no_queue=1'.format(
-            name='_invalid_name_',
-            cbz=os.path.basename(self._book.cbz),
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
+            '/cbz/route/{name}/{cbz}?no_queue=1'.format(
+                name='_invalid_name_',
+                cbz=os.path.basename(self._book.cbz),
+            ),
+            match_page_key='/errors/page_not_found',
         )
-        self.assertWebTest(url_path, match_page_key='/errors/page_not_found')
 
         # page not found: invalid cbz
-        url_path = '/cbz/route/{cbz}?no_queue=1'.format(
-            cbz='_invalid_.cbz',
+        self.assertRaisesHTTPError(
+            404,
+            self.assertWebTest,
+            '/cbz/route/{cbz}?no_queue=1'.format(
+                cbz='_invalid_.cbz',
+            ),
+            match_page_key='/errors/page_not_found',
         )
-        self.assertWebTest(url_path, match_page_key='/errors/page_not_found')
 
 
 def setUpModule():

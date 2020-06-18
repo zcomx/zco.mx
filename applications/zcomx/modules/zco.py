@@ -92,6 +92,28 @@ class Zco(object):
     next_url = property(
         get_next_url, set_next_url, del_next_url, 'Next url to redirect to')
 
+    # page_not_found
+    #  Used to store values displayed on the "Page not found" page with
+    #  raise HTTP(404).
+    def get_page_not_found(self):
+        """Getter."""
+        return current.session.zco.page_not_found
+
+    def set_page_not_found(self, value):
+        """Setter."""
+        current.session.zco.page_not_found = value
+
+    def del_page_not_found(self):
+        """Deleter."""
+        current.session.zco.page_not_found = None
+
+    page_not_found = property(
+        get_page_not_found,
+        set_page_not_found,
+        del_page_not_found,
+        'Holds values displayed on "Page not found" page.'
+    )
+
     # paypal_in_progress
     #  Used to prevent endless loop on browser Back. When the contributions.py
     #  def paypal() controller is run it redirects automatically to

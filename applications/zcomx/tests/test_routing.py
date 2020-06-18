@@ -68,6 +68,7 @@ class TestRouter(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
         # Prevent requests from being seen as bots.
+        # pylint: disable=protected-access
         current.session._user_agent = None
         current.request.env.http_user_agent = USER_AGENTS.non_bot
 
@@ -463,31 +464,47 @@ class TestRouter(LocalTestCase):
             """Run test."""
             self._request.vars = request_vars
             router = Router(db, self._request, auth)
-            router.page_not_found()
-            self.assertTrue('urls' in router.view_dict)
-            self.assertEqual(dict(router.view_dict['urls']), expect.view_dict)
-            self.assertEqual(router.view, expect.view)
+            self.assertRaisesHTTP(
+                404,
+                router.page_not_found
+            )
+
+            self.assertEqual(
+                current.session.zco.page_not_found,
+                expect.page_not_found,
+            )
 
         def do_test_random(request_vars):
             """Run test."""
             self._request.vars = request_vars
             router = Router(db, self._request, auth)
-            router.page_not_found()
+            self.assertRaisesHTTP(
+                404,
+                router.page_not_found
+            )
 
-            self.assertTrue('urls' in router.view_dict)
-            self.assertTrue('suggestions' in router.view_dict['urls'])
+            pnf = current.session.zco.page_not_found
+
+            self.assertTrue('urls' in pnf)
+            self.assertTrue('suggestions' in pnf['urls'])
             labels = [
-                x['label'] for x in router.view_dict['urls']['suggestions']]
+                x['label'] for x in pnf['urls']['suggestions']]
             self.assertEqual(
                 labels,
                 ['Cartoonist page:', 'Book page:', 'Read:']
             )
             self.assertEqual(
-                router.view_dict['urls']['invalid'],
+                pnf['urls']['invalid'],
                 'http://www.domain.com/path/to/page'
             )
-            self.assertEqual(router.view, 'errors/page_not_found.html')
-            book_url = router.view_dict['urls']['suggestions'][1]['url']
+
+            self.assertTrue('message' in pnf)
+            self.assertEqual(
+                pnf['message'],
+                Router.not_found_msg,
+            )
+
+            book_url = pnf['urls']['suggestions'][1]['url']
             # http://127.0.0.1:8000/FirstLast/MyBook
             unused_scheme, _, unused_url, creator_for_url, book_for_url = \
                 book_url.split('/')
@@ -507,60 +524,65 @@ class TestRouter(LocalTestCase):
             page=self._page_name,
         ))
         expect = Storage({
-            'view_dict': {
-                'suggestions': [
-                    {
-                        'label': 'Cartoonist page:',
-                        'url': 'http://127.0.0.1:8000/FirstLast',
-                    },
-                    {
-                        'label': 'Book page:',
-                        'url': 'http://127.0.0.1:8000/FirstLast/MyBook',
-                    },
-                    {
-                        'label': 'Read:',
-                        'url': 'http://127.0.0.1:8000/FirstLast/MyBook/001',
-                    },
-                ],
-                'invalid': 'http://www.domain.com/path/to/page',
-            },
-            'view': 'errors/page_not_found.html',
+            'page_not_found': {
+                'urls': {
+                    'suggestions': [
+                        {
+                            'label': 'Cartoonist page:',
+                            'url': 'http://127.0.0.1:8000/FirstLast',
+                        },
+                        {
+                            'label': 'Book page:',
+                            'url': 'http://127.0.0.1:8000/FirstLast/MyBook',
+                        },
+                        {
+                            'label': 'Read:',
+                            'url':
+                                'http://127.0.0.1:8000/FirstLast/MyBook/001',
+                        },
+                    ],
+                    'invalid': 'http://www.domain.com/path/to/page',
+                },
+                'message': Router.not_found_msg,
+            }
         })
         crea_url = 'http://127.0.0.1:8000/JohnHancock'
         book_url = 'http://127.0.0.1:8000/JohnHancock/MySecondBook'
         page_url = 'http://127.0.0.1:8000/JohnHancock/MySecondBook/001'
         expect_2 = Storage({
-            'view_dict': {
-                'suggestions': [
-                    {
-                        'label': 'Cartoonist page:',
-                        'url': crea_url,
-                    },
-                    {
-                        'label': 'Book page:',
-                        'url': book_url,
-                    },
-                    {
-                        'label': 'Read:',
-                        'url': page_url,
-                    },
-                ],
-                'invalid': 'http://www.domain.com/path/to/page',
-            },
-            'view': 'errors/page_not_found.html',
+            'page_not_found': {
+                'urls': {
+                    'suggestions': [
+                        {
+                            'label': 'Cartoonist page:',
+                            'url': crea_url,
+                        },
+                        {
+                            'label': 'Book page:',
+                            'url': book_url,
+                        },
+                        {
+                            'label': 'Read:',
+                            'url': page_url,
+                        },
+                    ],
+                    'invalid': 'http://www.domain.com/path/to/page',
+                },
+                'message': Router.not_found_msg,
+            }
         })
 
         do_test(request_vars, expect)
 
         # Second page should be found if indicated.
         request_vars.page = self._page_2_name
-        expect.view_dict['suggestions'][2]['url'] = \
+        expect.page_not_found['urls']['suggestions'][2]['url'] = \
             'http://127.0.0.1:8000/FirstLast/MyBook/002'
         do_test(request_vars, expect)
 
         # If page not indicated, first page of book should be found.
         del request_vars.page
-        expect.view_dict['suggestions'][2]['url'] = \
+        expect.page_not_found['urls']['suggestions'][2]['url'] = \
             'http://127.0.0.1:8000/FirstLast/MyBook/001'
 
         # If page doesn't exist, first page of book should be found.
@@ -623,13 +645,23 @@ class TestRouter(LocalTestCase):
         request_vars.book = self._book_name
         request_vars.page = self._page_name
         router = Router(db, self._request, auth)
-        router.page_not_found()
-        self.assertTrue('urls' in router.view_dict)
+        self.assertRaisesHTTP(
+            404,
+            router.page_not_found
+        )
+
+        pnf = current.session.zco.page_not_found
+
+        self.assertTrue('urls' in pnf)
         self.assertEqual(
-            router.view_dict['urls'].invalid,
+            pnf['urls'].invalid,
             'http://www.domain.com/request/uri/path'
         )
-        self.assertEqual(router.view, expect.view)
+        self.assertTrue('message' in pnf)
+        self.assertEqual(
+            pnf['message'],
+            Router.not_found_msg
+        )
 
     def test__preset_links(self):
         router = Router(db, self._request, auth)
@@ -697,44 +729,66 @@ class TestRouter(LocalTestCase):
             """Run test."""
             self._request.vars = request_vars
             router = Router(db, self._request, auth)
-            router.route()
-            if 'redirect' in expect:
+            if 'page_not_found' in expect:
+                self.assertRaisesHTTP(
+                    404,
+                    router.route
+                )
+                pnf = current.session.zco.page_not_found
+                self.assertTrue('urls' in pnf)
+                self.assertTrue('suggestions' in pnf['urls'])
+                # Value of pnf['urls']['suggestions'] is random, untestable
+                self.assertTrue(pnf['urls']['suggestions'])
+                self.assertEqual(
+                    pnf['urls']['invalid'],
+                    expect.page_not_found['urls']['invalid']
+                )
+                self.assertTrue('message' in pnf)
+                self.assertEqual(
+                    pnf['message'],
+                    Router.not_found_msg
+                )
+            else:
+                router.route()
                 self.assertEqual(router.redirect, expect.redirect)
-            if 'view_dict' in expect:
-                urls = dict(router.view_dict['urls'])
-                if 'suggestions' in expect.view_dict:
-                    if expect.view_dict['suggestions'] != random:
-                        self.assertEqual(
-                            urls['suggestions'],
-                            expect.view_dict['suggestions']
-                        )
-                self.assertEqual(
-                    urls['invalid'],
-                    expect.view_dict['invalid']
-                )
-            if 'view_dict_keys' in expect:
-                self.assertEqual(
-                    sorted(router.view_dict.keys()),
-                    expect.view_dict_keys
-                )
-            self.assertEqual(router.view, expect.view)
+                if 'view_dict' in expect:
+                    urls = dict(router.view_dict['urls'])
+                    if 'suggestions' in expect.view_dict:
+                        if expect.view_dict['suggestions'] != random:
+                            self.assertEqual(
+                                urls['suggestions'],
+                                expect.view_dict['suggestions']
+                            )
+                    self.assertEqual(
+                        urls['invalid'],
+                        expect.view_dict['invalid']
+                    )
+                if 'view_dict_keys' in expect:
+                    self.assertEqual(
+                        sorted(router.view_dict.keys()),
+                        expect.view_dict_keys
+                    )
+                self.assertEqual(router.view, expect.view)
 
         # No creator, should route to page_not_found with random creator.
         request_vars = Storage(dict())
 
         page_not_found_expect = Storage({
-            'view_dict': {
-                'suggestions': random,
-                'invalid': 'http://www.domain.com/path/to/page',
-            },
-            'view': 'errors/page_not_found.html',
+            'page_not_found': {
+                'urls': {
+                    'suggestions': random,
+                    'invalid': 'http://www.domain.com/path/to/page',
+                },
+                'message': Router.not_found_msg,
+            }
         })
 
         do_test(request_vars, page_not_found_expect)
         self.assertEqual(len(self._book_views(self._book.id)), 0)
 
-        router.route()
-        urls = router.view_dict['urls']
+        self.assertRaisesHTTP(404, router.route)
+        pnf = current.session.zco.page_not_found
+        urls = pnf['urls']
         suggestion_labels = [x['label'] for x in urls['suggestions']]
         suggestion_urls = [x['url'] for x in urls['suggestions']]
 
@@ -819,28 +873,24 @@ class TestRouter(LocalTestCase):
 
         # Nonexistent creator
         request_vars.creator = str(9999999)
-        expect_not_found = Storage({
-            'view_dict_keys': self._keys_for_view['page_not_found'],
-            'view': 'errors/page_not_found.html',
-        })
-        do_test(request_vars, expect_not_found)
+        do_test(request_vars, page_not_found_expect)
 
         request_vars.creator = '_Invalid_Creator_'
-        do_test(request_vars, expect_not_found)
+        do_test(request_vars, page_not_found_expect)
 
         # Nonexistent book
         request_vars.creator = 'FirstLast'
         request_vars.book = 'Some_Invalid_Book'
-        do_test(request_vars, expect_not_found)
+        do_test(request_vars, page_not_found_expect)
 
         # Nonexistent book page
         request_vars.creator = 'FirstLast'
         request_vars.book = 'MyBook'
         request_vars.page = '999.jpg'
-        do_test(request_vars, expect_not_found)
+        do_test(request_vars, page_not_found_expect)
 
         request_vars.page = '999'
-        do_test(request_vars, expect_not_found)
+        do_test(request_vars, page_not_found_expect)
 
     def test__set_book_view(self):
         router = Router(db, self._request, auth)

@@ -153,7 +153,8 @@ logging = 'debug'
 
 routes_onerror = [
     (r'*/404', r'/zcomx/errors/page_not_found'),
-    (r'*/*', r'/zcomx/errors/handler')
+    (r'*/406', r'/zcomx/errors/index'),
+    (r'*/*', r'/zcomx/errors/handler'),
 ]
 
 # specify action in charge of error handling
