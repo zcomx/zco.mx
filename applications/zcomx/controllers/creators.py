@@ -28,6 +28,9 @@ def index():
     except SpareCreatorError as err:
         LOG.info(err)
         raise HTTP(404, "Page not found")
+    except HTTP:
+        # These don't need to be logged as they provide no useful info.
+        raise
     except Exception:
         # Ensures that during the page_not_found formatting if any
         # exceptions happen they are logged, and a 404 is returned.
