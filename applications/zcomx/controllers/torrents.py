@@ -68,6 +68,9 @@ def route():
         """
         try:
             return formatted_page_not_found()
+        except HTTP:
+            # These don't need to be logged as they provide no useful info.
+            raise
         except Exception:
             for line in traceback.format_exc().split("\n"):
                 LOG.error(line)
