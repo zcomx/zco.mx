@@ -32,11 +32,9 @@ def index():
         # These don't need to be logged as they provide no useful info.
         raise
     except Exception:
-        # Ensures that during the page_not_found formatting if any
-        # exceptions happen they are logged, and a 404 is returned.
-        # (Then search bots, for example, see they have an invalid page)
-        for line in traceback.format_exc().split("\n"):
-            LOG.error(line)
+        # Ensure that during the page_not_found formatting if any exceptions
+        # happen a 404 is returned. Then search bots, for example, see they
+        # have an invalid page, and also fail2ban can catch them.
         raise HTTP(404, "Page not found")
 
     if router.redirect:
