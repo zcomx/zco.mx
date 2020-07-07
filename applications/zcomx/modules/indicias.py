@@ -164,7 +164,12 @@ class BookIndiciaPage(IndiciaPage):
             url = media.share_url()
             if not url:
                 continue
-            call_to_action_data[name] = A(text, _href=url, _target='_blank')
+            call_to_action_data[name] = A(
+                text,
+                _href=url,
+                _target='_blank',
+                _rel='noopener noreferrer',
+            )
 
         return XML(
             self.call_to_action_fmt.format(**call_to_action_data).strip())
@@ -183,6 +188,7 @@ class BookIndiciaPage(IndiciaPage):
                 _href=URL(c='rss', f='modal', args=[self.creator.id]),
                 _class='rss_button',
                 _target='_blank',
+                _rel='noopener noreferrer',
             )
         )
         for name in ['tumblr', 'twitter', 'facebook']:
@@ -195,6 +201,7 @@ class BookIndiciaPage(IndiciaPage):
                     IMG(_src=media.icon_url()),
                     _href=media.follow_url() or media.site,
                     _target='_blank',
+                    _rel='noopener noreferrer',
                 )
             )
         return icons

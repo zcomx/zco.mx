@@ -173,7 +173,7 @@ $(function(){
            + '          <dt>Name:</dt><dd>grand comics</dd>'
            + '          <dt>URL:</dt><dd>http://www.comics.org/issue/862697</dd>'
            + '          </dl>'
-           + '          The resulting link is: <a href="http://www.comics.org/issue/862697" target="_blank">grand comics</a>'
+           + '          The resulting link is: <a href="http://www.comics.org/issue/862697" target="_blank" rel="noopener noreferrer">grand comics</a>'
            + '      </div>'
            + '    </div>'
            + '  </div>'

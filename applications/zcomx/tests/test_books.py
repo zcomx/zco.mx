@@ -444,6 +444,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = cbz_link(book, **attributes)
         soup = BeautifulSoup(str(link))
@@ -452,6 +453,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__cbz_url(self):
         creator = self.add(Creator, dict(
@@ -585,6 +587,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = complete_link(book, **attributes)
         soup = BeautifulSoup(str(link))
@@ -594,6 +597,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__contribute_link(self):
         empty = '<span></span>'
@@ -638,6 +642,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = contribute_link(book, **attributes)
         soup = BeautifulSoup(str(link))
@@ -646,6 +651,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__contributions_remaining_by_creator(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
@@ -905,6 +911,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = download_link(book, **attributes)
         soup = BeautifulSoup(str(link))
@@ -913,6 +920,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large enabled')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
         # Test disabled
         book.cbz = ''
@@ -982,6 +990,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = fileshare_link(book, **attributes)
         soup = BeautifulSoup(str(link))
@@ -991,6 +1000,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__follow_link(self):
         book = Row(dict(
@@ -1024,6 +1034,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = follow_link(book, **attributes)
         soup = BeautifulSoup(str(link))
@@ -1032,6 +1043,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__formatted_name(self):
         book = Book(dict(name='My Book'))
@@ -1329,6 +1341,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = magnet_link(book, **attributes)
         soup = BeautifulSoup(str(link))
@@ -1337,6 +1350,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__magnet_uri(self):
         book = Book(dict(
@@ -1701,6 +1715,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = read_link(book, **attributes)
         soup = BeautifulSoup(str(link))
@@ -1709,6 +1724,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__rss_url(self):
         self.assertEqual(rss_url(None), None)
@@ -1955,6 +1971,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = torrent_link(book, **attributes)
         soup = BeautifulSoup(str(link))
@@ -1963,6 +1980,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__torrent_url(self):
         self.assertEqual(torrent_url(None), None)

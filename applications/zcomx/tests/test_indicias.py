@@ -144,7 +144,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         v = int(time.mktime(request.now.timetuple()))
         self.assertEqual(
             xml.xml(),
-            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001.jpg&amp;clickthru=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001&amp;v={v}" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
+            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" rel="noopener noreferrer" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001.jpg&amp;clickthru=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" rel="noopener noreferrer" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001&amp;v={v}" rel="noopener noreferrer" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
         )
 
     def test__follow_icons(self):
@@ -249,7 +249,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         indicia = BookIndiciaPage(self._book)
         self.assertEqual(
             indicia.licence_text(),
-            '<a href="{b_url}">IMAGE TEST CASE</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0" target="_blank">CC BY 4.0 INT`L LICENSE</a>.'.format(
+            '<a href="{b_url}">IMAGE TEST CASE</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="http://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener noreferrer">CC BY 4.0 INT`L LICENSE</a>.'.format(
                 b_url=book_short_url(self._book),
                 c_url=creator_short_url(self._creator),
                 y=this_year
@@ -282,16 +282,16 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         # <div class="indicia_preview_section portrait">
         #   <div class="indicia_image_container"><img src="/zcomx/static/images/indicia_image.png" /></div>
         #   <div class="indicia_text_container">
-        #     <div class="call_to_action">IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=Image_Test_Case&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=Image_Test_Case%2F001.png&amp;clickthru=Image_Test_Case&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=Image_Test_Case%2F001.png&amp;s=100" target="_blank">FACEBOOK</a>.
+        #     <div class="call_to_action">IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!&nbsp; OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=Image_Test_Case&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" target="_blank" rel="noopener noreferrer">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=Image_Test_Case%2F001.png&amp;clickthru=Image_Test_Case&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" target="_blank" rel="noopener noreferrer">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=Image_Test_Case%2F001.png&amp;s=100" target="_blank" rel="noopener noreferrer">FACEBOOK</a>.
         #     </div>
         #     <div class="contribute_widget"></div>
         #     <div class="follow_creator">FOLLOW<a href="None://9996.zco.mx">First Last</a></div>
         #     <div class="follow_icons">
-        #       <div class="follow_icon"><a href="https://www.tumblr.com" target="_blank"><img src="/zcomx/static/images/tumblr_logo.svg" /></a>
+        #       <div class="follow_icon"><a href="https://www.tumblr.com" target="_blank" rel="noopener noreferrer"><img src="/zcomx/static/images/tumblr_logo.svg" /></a>
         #       </div>
-        #       <div class="follow_icon"><a href="https://twitter.com" target="_blank"><img src="/zcomx/static/images/twitter_logo.svg" /></a>
+        #       <div class="follow_icon"><a href="https://twitter.com" target="_blank" rel="noopener noreferrer"><img src="/zcomx/static/images/twitter_logo.svg" /></a>
         #       </div>
-        #       <div class="follow_icon"><a href="https://www.facebook.com" target="_blank"><img src="/zcomx/static/images/facebook_logo.svg" /></a>
+        #       <div class="follow_icon"><a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer"><img src="/zcomx/static/images/facebook_logo.svg" /></a>
         #       </div>
         #     </div>
         #     <div class="copyright_licence"><a href="Image_Test_Case">IMAGE TEST CASE</a> &nbsp; IS COPYRIGHT (C) 2015 BY <a href="None://9996.zco.mx">FIRST LAST</a>.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.

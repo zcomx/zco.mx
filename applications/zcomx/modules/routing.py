@@ -330,7 +330,8 @@ class Router(object):
                     A(
                         preset,
                         _href=creator[preset],
-                        _target='_blank'
+                        _target='_blank',
+                        _rel='noopener noreferrer'
                     )
                 )
         return pre_links

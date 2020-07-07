@@ -13,7 +13,7 @@ Follow {{=form.custom.widget.creator_id}}
 <dl>
     <dt>Follow all works by {{=creator.name}}:</dt>
     <dd>
-        <a href="{{=creator_rss_url(creator, extension=False)}}" target="_blank">
+        <a href="{{=creator_rss_url(creator, extension=False)}}" target="_blank" rel="noopener noreferrer">
             {{=creator_rss_url(creator, host=True, extension=False)}}
         </a>
     </dd>
@@ -27,7 +27,7 @@ Follow {{=form.custom.widget.creator_id}}
         <span class="table_cell">
             {{=book_formatted_name(book, include_publication_year=False)}}
         </span>
-        <a href="{{=book_rss_url(book, extension=False)}}" target="_blank">
+        <a href="{{=book_rss_url(book, extension=False)}}" target="_blank" rel="noopener noreferrer">
             {{=book_rss_url(book, host=True, extension=False)}}
         </a>
     </li>
@@ -42,7 +42,7 @@ Follow {{=form.custom.widget.creator_id}}
 <dl>
     <dt>Follow everything on zco.mx:</dt>
     <dd>
-    <a href="{{=URL(extension=False, **Zco().all_rss_url)}}" target="_blank">
+    <a href="{{=URL(extension=False, **Zco().all_rss_url)}}" target="_blank" rel="noopener noreferrer">
         {{=URL(host=True, extension=False, **Zco().all_rss_url)}}
     </a>
     </dd>

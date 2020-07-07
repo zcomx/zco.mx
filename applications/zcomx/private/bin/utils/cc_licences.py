@@ -45,37 +45,37 @@ TEMPLATE_DATA = {
     'CC0': {
         'url': 'http://creativecommons.org/publicdomain/zero/1.0',
         'template_img': """TO THE EXTENT POSSIBLE UNDER LAW, {owner} HAS WAIVED ALL COPYRIGHT AND RELATED OR NEIGHBORING RIGHTS TO "{title}".  THIS WORK IS PUBLISHED FROM: {place}.  FOR MORE INFORMATION, VISIT {url}.""",
-        'template_web': """TO THE EXTENT POSSIBLE UNDER LAW, <a href="{owner_url}">{owner}</a> HAS <a href="{url}" target="_blank">WAIVED ALL COPYRIGHT AND RELATED OR NEIGHBORING RIGHTS</a> TO <a href="{title_url}">{title}</a>.&nbsp; THIS WORK IS PUBLISHED FROM: {place}."""
+        'template_web': """TO THE EXTENT POSSIBLE UNDER LAW, <a href="{owner_url}">{owner}</a> HAS <a href="{url}" target="_blank" rel="noopener noreferrer">WAIVED ALL COPYRIGHT AND RELATED OR NEIGHBORING RIGHTS</a> TO <a href="{title_url}">{title}</a>.&nbsp; THIS WORK IS PUBLISHED FROM: {place}."""
     },
     'CC BY': {
         'url': 'http://creativecommons.org/licenses/by/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
-        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY 4.0 INT`L LICENSE</a>."""
+        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank" rel="noopener noreferrer">CC BY 4.0 INT`L LICENSE</a>."""
     },
     'CC BY-SA': {
         'url': 'http://creativecommons.org/licenses/by-sa/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-SHAREALIKE 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
-        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-SA 4.0 INT`L LICENSE</a>."""
+        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0 INT`L LICENSE</a>."""
     },
     'CC BY-ND': {
         'url': 'http://creativecommons.org/licenses/by-nd/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
-        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-ND 4.0 INT`L LICENSE</a>."""
+        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank" rel="noopener noreferrer">CC BY-ND 4.0 INT`L LICENSE</a>."""
     },
     'CC BY-NC': {
         'url': 'http://creativecommons.org/licenses/by-nc/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
-        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-NC 4.0 INT`L LICENSE</a>."""
+        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank" rel="noopener noreferrer">CC BY-NC 4.0 INT`L LICENSE</a>."""
     },
     'CC BY-NC-SA': {
-        'url': 'http://creativecommons.org/licenses/by-nc-nd/4.0',
-        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
-        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-NC-ND 4.0 INT`L LICENSE</a>."""
-    },
-    'CC BY-NC-ND': {
         'url': 'http://creativecommons.org/licenses/by-nc-sa/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-SHAREALIKE 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
-        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank">CC BY-NC-SA 4.0 INT`L LICENSE</a>."""
+        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0 INT`L LICENSE</a>."""
+    },
+    'CC BY-NC-ND': {
+        'url': 'http://creativecommons.org/licenses/by-nc-nd/4.0',
+        'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
+        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank"  rel="noopener noreferrer">CC BY-NC-ND 4.0 INT`L LICENSE</a>."""
     },
     'All Rights Reserved': {
         'url': '',

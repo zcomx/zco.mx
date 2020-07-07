@@ -31,7 +31,14 @@ class Links(object):
 
     def as_links(self):
         """Return the links as HTML links."""
-        return [A(x.name, _href=x.url, _target='_blank') for x in self.links]
+        return [
+            A(
+                x.name,
+                _href=x.url,
+                _target='_blank',
+                _rel='noopener noreferrer'
+            ) for x in self.links
+        ]
 
     @classmethod
     def from_links_key(cls, links_key):

@@ -245,6 +245,7 @@ class TestFunctions(ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = contribute_link(creator, **attributes)
         soup = BeautifulSoup(str(link))
@@ -253,6 +254,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__creator_name(self):
         auth_user = self.add(AuthUser, dict(
@@ -309,6 +311,7 @@ class TestFunctions(ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = follow_link(creator, **attributes)
         soup = BeautifulSoup(str(link))
@@ -317,6 +320,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__for_path(self):
 
@@ -715,6 +719,7 @@ class TestFunctions(ImageTestCase):
             _href='/path/to/file',
             _class='btn btn-large',
             _target='_blank',
+            _rel='noopener noreferrer',
         )
         link = torrent_link(creator, **attributes)
         soup = BeautifulSoup(str(link))
@@ -723,6 +728,7 @@ class TestFunctions(ImageTestCase):
         self.assertEqual(anchor['href'], '/path/to/file')
         self.assertEqual(anchor['class'], 'btn btn-large')
         self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__torrent_url(self):
         auth_user = self.add(AuthUser, dict(name='First Last'))

@@ -131,12 +131,12 @@ class TestBaseLinkSet(LocalTestCase):
         soup = BeautifulSoup(str(got))
         # <ul class="custom_links breadcrumb pipe_delimiter">
         #  <li>
-        #   <a href="url 1" target="_blank">
+        #   <a href="url 1" target="_blank" rel="noopener noreferrer">
         #    link 1
         #   </a>
         #  </li>
         #  <li>
-        #   <a href="url 2" target="_blank">
+        #   <a href="url 2" target="_blank" rel="noopener noreferrer">
         #    link 2
         #   </a>
         #  </li>
@@ -151,6 +151,7 @@ class TestBaseLinkSet(LocalTestCase):
             self.assertEqual(anchor.string, 'link {c}'.format(c=count + 1))
             self.assertEqual(anchor['href'], 'url {c}'.format(c=count + 1))
             self.assertEqual(anchor['target'], '_blank')
+            self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
         # Test pre_links and post_links
         pre_links = [
@@ -242,6 +243,7 @@ class TestLinks(LocalTestCase):
             self.assertEqual(anchor.string, self._links[count].name)
             self.assertEqual(anchor['href'], self._links[count].url)
             self.assertEqual(anchor['target'], '_blank')
+            self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
     def test__from_links_key(self):
         links = Links.from_links_key(self._links_key)
@@ -262,17 +264,17 @@ class TestLinks(LocalTestCase):
         soup = BeautifulSoup(str(got))
         # <ul class="custom_links breadcrumb pipe_delimiter">
         #  <li>
-        #   <a href="http://site1.com" target="_blank">
+        #   <a href="http://site1.com" target="_blank" rel="noopener noreferrer">
         #    First Site
         #   </a>
         #  </li>
         #  <li>
-        #   <a href="http://site2.com" target="_blank">
+        #   <a href="http://site2.com" target="_blank" rel="noopener noreferrer">
         #    Second Site
         #   </a>
         #  </li>
         #  <li>
-        #   <a href="http://site3.com" target="_blank">
+        #   <a href="http://site3.com" target="_blank" rel="noopener noreferrer">
         #    Third Site
         #   </a>
         #  </li>
@@ -287,6 +289,7 @@ class TestLinks(LocalTestCase):
             self.assertEqual(anchor.string, self._links[count]['name'])
             self.assertEqual(anchor['href'], self._links[count]['url'])
             self.assertEqual(anchor['target'], '_blank')
+            self.assertEqual(anchor['rel'], 'noopener noreferrer')
 
         # Test pre_links and post_links
         pre_links = [
