@@ -75,7 +75,7 @@ TEMPLATE_DATA = {
     'CC BY-NC-ND': {
         'url': 'http://creativecommons.org/licenses/by-nc-nd/4.0',
         'template_img': """ "{title}" IS COPYRIGHT (C) {year} BY {owner}.  THIS WORK IS LICENSED UNDER THE CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL-NODERIVATIVES 4.0 INTERNATIONAL LICENSE. TO VIEW A COPY OF THIS LICENSE, VISIT {url}.""",
-        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank"  rel="noopener noreferrer">CC BY-NC-ND 4.0 INT`L LICENSE</a>."""
+        'template_web': """<a href="{title_url}">{title}</a>&nbsp; IS COPYRIGHT (C) {year} BY <a href="{owner_url}">{owner}</a>.&nbsp; THIS WORK IS LICENSED UNDER THE <a href="{url}" target="_blank" rel="noopener noreferrer">CC BY-NC-ND 4.0 INT`L LICENSE</a>."""
     },
     'All Rights Reserved': {
         'url': '',
