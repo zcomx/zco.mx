@@ -126,7 +126,13 @@ def main():
     if not options.facebook and not options.tumblr and not options.twitter:
         services = ['facebook', 'tumblr', 'twitter']
 
+    inactive_services = ['facebook']
+
     for social_media_service in services:
+        if social_media_service in inactive_services:
+            LOG.info('Posting discontinued for: %s', social_media_service)
+            continue
+
         LOG.debug('Posting to: %s', social_media_service)
         poster = SocialMediaPoster.class_factory(social_media_service)
         try:
