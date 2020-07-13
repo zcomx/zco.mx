@@ -171,12 +171,17 @@ def paypal_notify():
         else:
             book_id = 0     # Contribution to zco.mx
 
+        amount = 0.00
+        gross_field = 'payment_gross' if 'payment_gross' in request.vars \
+                else 'mc_gross'
+
         try:
-            amount = float(request.vars.payment_gross)
-        except (TypeError, ValueError):
+            amount = float(request.vars[gross_field])
+        except (KeyError, TypeError, ValueError):
             LOG.error('Invalid gross payment: %s', request.vars.payment_gross)
             LOG.error('request.vars: %s', str(request.vars))
             valid = False
+
         if valid:
             # Log the event
             auth_user_id = 0      # there is no user is this context

@@ -246,6 +246,53 @@ class TestFunctions(WebTestCase):
         logs = get_paypal_log(txn_id)
         self.assertEqual(len(logs), 0)
 
+        # reset
+        notify_vars['payment_status'] = 'Completed'
+
+        # Test variations on currency
+        del notify_vars['payment_gross']         # mc_gross will be used
+
+        delete_paypal_log(txn_id)
+        logs = get_paypal_log(txn_id)
+        self.assertEqual(len(logs), 0)
+
+        before_contributions = get_contributions()
+
+        url_path = '/contributions/paypal_notify?{q}'.format(
+            q=urllib.urlencode(notify_vars),
+        )
+        self.assertWebTest(url_path, match_page_key='/z/faq')
+
+        after_contributions = get_contributions()
+        self.assertEqual(
+            len(before_contributions) + 1,
+            len(after_contributions)
+        )
+        before_ids = [x.id for x in before_contributions]
+        after_ids = [x.id for x in after_contributions]
+        new_contrib_ids = set(after_ids).difference(
+            set(before_ids))
+        self.assertEqual(len(new_contrib_ids), 1)
+        new_contrib_id = list(new_contrib_ids)[0]
+        query = (db.contribution.id == new_contrib_id)
+        new_contrib = db(query).select(limitby=(0, 1)).first()
+        self._objects.append(new_contrib)
+        self.assertEqual(new_contrib.book_id, book.id)
+        self.assertEqual(new_contrib.amount, 4.44)
+        self.assertAlmostEqual(
+            new_contrib.time_stamp,
+            datetime.datetime.now(),
+            delta=datetime.timedelta(minutes=1)
+        )
+
+        logs = get_paypal_log(txn_id)
+        self.assertEqual(len(logs), 1)
+        self._objects.append(logs[0])
+        self.assertEqual(logs[0].payment_status, 'Completed')
+
+        # reset
+        notify_vars['payment_gross'] = '4.44'
+
     def test__widget(self):
         # Should handle no id, but display nothing.
         self.assertWebTest(
