@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ add_user.py
 
 Script to create a user account from the cli.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback
@@ -50,7 +50,7 @@ def get_user_info():
     print('Enter the user info. Leave name blank to exit.')
     for k in ['name', 'email', 'password']:
         while True:
-            raw_value = raw_input('{t}: '.format(t=k.title()))
+            raw_value = input('{t}: '.format(t=k.title()))
             if k == 'name' and not raw_value:
                 return info
             requires = db.auth_user[k].requires

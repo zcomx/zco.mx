@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ image_samples.py
 
 Script to create image samples.
 """
-from __future__ import print_function
+
 import os
 import subprocess
 import sys
@@ -101,7 +101,7 @@ class ImageCreator(object):
             return
 
         h = self.size
-        increments = range(self.size, self.min_size - 1, -1 * self.increment)
+        increments = list(range(self.size, self.min_size - 1, -1 * self.increment))
         for w in increments:
             yield (w, h)
         w = self.size

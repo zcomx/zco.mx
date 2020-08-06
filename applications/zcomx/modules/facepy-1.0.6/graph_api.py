@@ -10,8 +10,8 @@ try:
     import urllib.parse as urlparse
     from urllib.parse import urlencode
 except ImportError:
-    from urllib import urlencode
-    import urlparse
+    from urllib.parse import urlencode
+    import urllib.parse
 from decimal import Decimal
 
 import six
@@ -229,11 +229,11 @@ class GraphAPI(object):
 
         if(data):
             data = dict(
-                (k.replace('_sqbro_', '['), v) for k, v in data.items())
+                (k.replace('_sqbro_', '['), v) for k, v in list(data.items()))
             data = dict(
-                (k.replace('_sqbrc_', ']'), v) for k, v in data.items())
+                (k.replace('_sqbrc_', ']'), v) for k, v in list(data.items()))
             data = dict(
-                (k.replace('__', ':'), v) for k, v in data.items())
+                (k.replace('__', ':'), v) for k, v in list(data.items()))
         data = data or {}
 
         def load(method, url, data):
@@ -340,7 +340,7 @@ class GraphAPI(object):
         # When Facebook returns nested resources (like comments for a post), it
         # prepends 'https://graph.facebook.com' by itself and so we must take
         # care not to prepend it again.
-        if urlparse.urlparse(path).netloc == '':
+        if urllib.parse.urlparse(path).netloc == '':
             url = self.url
         else:
             url = ''

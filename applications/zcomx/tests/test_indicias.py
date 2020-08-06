@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -11,7 +11,7 @@ import json
 import os
 import time
 import unittest
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from PIL import Image
 from gluon import *
 from gluon.storage import Storage
@@ -142,9 +142,10 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         indicia = BookIndiciaPage(self._book)
         xml = indicia.call_to_action_text()
         v = int(time.mktime(request.now.timetuple()))
+        expect = 'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" rel="noopener noreferrer" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?clickthru=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;source=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001.jpg&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" rel="noopener noreferrer" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001&amp;v={v}" rel="noopener noreferrer" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
         self.assertEqual(
             xml.xml(),
-            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" rel="noopener noreferrer" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001.jpg&amp;clickthru=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" rel="noopener noreferrer" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001&amp;v={v}" rel="noopener noreferrer" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
+            expect.encode('utf-8')
         )
 
     def test__follow_icons(self):
@@ -162,7 +163,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(len(icons), len(icon_keys))
 
         # facebook
-        soup = BeautifulSoup(str(icons[icon_keys.index('facebook')]))
+        soup = BeautifulSoup(str(icons[icon_keys.index('facebook')]), 'html.parser')
         # <a href="http://www.facebook.com/facepalm" target="_blank">
         #     <img src="/zcomx/static/images/facebook_logo.svg"/>
         # </a>
@@ -173,7 +174,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(img['src'], '/zcomx/static/images/facebook_logo.svg')
 
         # rss
-        soup = BeautifulSoup(str(icons[icon_keys.index('rss')]))
+        soup = BeautifulSoup(str(icons[icon_keys.index('rss')]), 'html.parser')
         # <a class="rss_button" href="/rss/modal/12920" target="_blank">
         #     <img src="/zcomx/static/images/follow_logo.svg" />
         # </a>
@@ -184,7 +185,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(img['src'], '/zcomx/static/images/follow_logo.svg')
 
         # tumblr
-        soup = BeautifulSoup(str(icons[icon_keys.index('tumblr')]))
+        soup = BeautifulSoup(str(icons[icon_keys.index('tumblr')]), 'html.parser')
         # <a href="https://www.tumblr.com/follow/tmblr" target="_blank">
         #     <img src="/zcomx/static/images/tumblr_logo.svg"/>
         # </a>
@@ -195,7 +196,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(img['src'], '/zcomx/static/images/tumblr_logo.svg')
 
         # twitter
-        soup = BeautifulSoup(str(icons[icon_keys.index('twitter')]))
+        soup = BeautifulSoup(str(icons[icon_keys.index('twitter')]), 'html.parser')
         # <a href="http://twitter.com/intent/follow?screen_name=@tweeter" target="_blank">
         #     <img src="/zcomx/static/images/twitter_logo.svg"/>
         # </a>
@@ -277,7 +278,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         indicia = BookIndiciaPage(self._book)
 
         got = indicia.render()
-        soup = BeautifulSoup(str(got))
+        soup = BeautifulSoup(str(got), 'html.parser')
         div = soup.div
         # <div class="indicia_preview_section portrait">
         #   <div class="indicia_image_container"><img src="/zcomx/static/images/indicia_image.png" /></div>
@@ -299,7 +300,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         #   </div>
         # </div>
 
-        self.assertEqual(div['class'], 'indicia_preview_section portrait')
+        self.assertEqual(div['class'], ['indicia_preview_section', 'portrait'])
         div_1 = div.div
         div_2 = div_1.nextSibling
         div_2a = div_2.div
@@ -315,20 +316,20 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         div_2e = div_2d.nextSibling
         div_2f = div_2e.nextSibling
 
-        self.assertEqual(div_1['class'], 'indicia_image_container')
-        self.assertEqual(div_2['class'], 'indicia_text_container')
-        self.assertEqual(div_2a['class'], 'call_to_action')
-        self.assertEqual(div_2b['class'], 'row contribute_and_links_container non_empty bordered')
-        self.assertEqual(div_2bi['class'], 'contribute_widget_container col-xs-12 col-sm-6 col-sm-offset-0')
-        self.assertEqual(div_2bii['class'], 'book_links_container col-xs-12 col-sm-6 col-sm-offset-0')
-        self.assertEqual(div_2c['class'], 'follow_creator')
-        self.assertEqual(div_2d['class'], 'follow_icons')
-        self.assertEqual(div_2di['class'], 'follow_icon')
-        self.assertEqual(div_2dii['class'], 'follow_icon')
-        self.assertEqual(div_2diii['class'], 'follow_icon')
-        self.assertEqual(div_2diiii['class'], 'follow_icon')
-        self.assertEqual(div_2e['class'], 'read_next_link')
-        self.assertEqual(div_2f['class'], 'copyright_licence')
+        self.assertEqual(div_1['class'], ['indicia_image_container'])
+        self.assertEqual(div_2['class'], ['indicia_text_container'])
+        self.assertEqual(div_2a['class'], ['call_to_action'])
+        self.assertEqual(div_2b['class'], ['row', 'contribute_and_links_container', 'non_empty', 'bordered'])
+        self.assertEqual(div_2bi['class'], ['contribute_widget_container', 'col-xs-12', 'col-sm-6', 'col-sm-offset-0'])
+        self.assertEqual(div_2bii['class'], ['book_links_container', 'col-xs-12', 'col-sm-6', 'col-sm-offset-0'])
+        self.assertEqual(div_2c['class'], ['follow_creator'])
+        self.assertEqual(div_2d['class'], ['follow_icons'])
+        self.assertEqual(div_2di['class'], ['follow_icon'])
+        self.assertEqual(div_2dii['class'], ['follow_icon'])
+        self.assertEqual(div_2diii['class'], ['follow_icon'])
+        self.assertEqual(div_2diiii['class'], ['follow_icon'])
+        self.assertEqual(div_2e['class'], ['read_next_link'])
+        self.assertEqual(div_2f['class'], ['copyright_licence'])
 
         self.assertEqual(
             div_1.img['src'], '/zcomx/static/images/indicia_image.png')
@@ -349,7 +350,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         anchor = div_2e.find('a')
         self.assertEqual(anchor.contents[0], 'Read Next')
         icon = anchor.find('i')
-        self.assertEqual(icon['class'], 'glyphicon glyphicon-play')
+        self.assertEqual(icon['class'], ['glyphicon', 'glyphicon-play'])
 
         self.assertTrue('ALL RIGHTS RESERVED' in div_2f.contents[3])
 
@@ -365,9 +366,9 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         # pylint: disable=W0212
         indicia._orientation = None     # clear cache
         got = indicia.render()
-        soup = BeautifulSoup(str(got))
+        soup = BeautifulSoup(str(got), 'html.parser')
         div = soup.div
-        self.assertEqual(div['class'], 'indicia_preview_section landscape')
+        self.assertEqual(div['class'], ['indicia_preview_section', 'landscape'])
 
 
 class TestBookIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
@@ -396,8 +397,8 @@ class TestBookIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
         png = png_page.create()
 
         output, error = UnixFile(png).file()
-        self.assertTrue('PNG image' in output)
-        self.assertEqual(error, '')
+        self.assertTrue('PNG image' in output.decode('utf-8'))
+        self.assertEqual(error, b'')
 
 
 class TestCreatorIndiciaPagePng(WithObjectsTestCase):
@@ -416,7 +417,7 @@ class TestCreatorIndiciaPagePng(WithObjectsTestCase):
 
         png_page = CreatorIndiciaPagePng(self._creator)
         filename = png_page.create('portrait')
-        self.assertRegexpMatches(
+        self.assertRegex(
             filename,
             r'^applications/zcomx/uploads/original/../tmp/tmp.*/indicia.png$'
         )
@@ -425,7 +426,7 @@ class TestCreatorIndiciaPagePng(WithObjectsTestCase):
         self.assertTrue(height > width)
 
         filename = png_page.create('landscape')
-        self.assertRegexpMatches(
+        self.assertRegex(
             filename,
             r'^applications/zcomx/uploads/original/../tmp/tmp.*/indicia.png$'
         )
@@ -481,8 +482,8 @@ class TestIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
         png_page.create_metatext_file()
 
         output, error = UnixFile(png_page.metadata_filename).file()
-        self.assertTrue('ASCII text' in output)
-        self.assertEqual(error, '')
+        self.assertTrue('ASCII text' in output.decode('utf-8'))
+        self.assertEqual(error, b'')
         lines = []
         with open(png_page.metadata_filename, 'r') as f:
             lines.append(f.read())
@@ -567,8 +568,8 @@ class TestIndiciaSh(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(indicia_sh.png_filename, png_filename)
         self.assertTrue(os.path.exists(indicia_sh.png_filename))
         output, error = UnixFile(indicia_sh.png_filename).file()
-        self.assertTrue('PNG image' in output)
-        self.assertEqual(error, '')
+        self.assertTrue('PNG image' in output.decode('utf-8'))
+        self.assertEqual(error, b'')
 
         im = Image.open(indicia_sh.png_filename)
         width, height = im.size
@@ -873,12 +874,12 @@ class TestBookPublicationMetadata(LocalTestCase):
         )
 
         request_vars = {}
-        for k, v in metadata.items():
+        for k, v in list(metadata.items()):
             request_vars['publication_metadata_' + k] = v
         for count, serial in enumerate(serials):
-            for k, v in serial.items():
+            for k, v in list(serial.items()):
                 request_vars['publication_serial_' + k + '__' + str(count)] = v
-        for k, v in derivative.items():
+        for k, v in list(derivative.items()):
             request_vars['derivative_' + k] = v
         request_vars['is_derivative'] = 'no'
 
@@ -1416,9 +1417,9 @@ class TestBookPublicationMetadata(LocalTestCase):
 
         tests = [
             # from_month, from_year, to_month, to_year, expect
-            (01, 1999, 01, 1999, None),
-            (01, 1999, 01, 2000, None),
-            (12, 1999, 01, 2000, None),
+            (0o1, 1999, 0o1, 1999, None),
+            (0o1, 1999, 0o1, 2000, None),
+            (12, 1999, 0o1, 2000, None),
             (11, 1999, 12, 1999, None),
             (12, 1999, 11, 1999, err_msg),
         ]
@@ -1698,9 +1699,9 @@ class TestBookPublicationMetadata(LocalTestCase):
         # Invalid to_month/to_year
         tests = [
             # from_month, from_year, to_month, to_year, expect
-            (01, 1999, 01, 1999, None),
-            (01, 1999, 01, 2000, None),
-            (12, 1999, 01, 2000, None),
+            (0o1, 1999, 0o1, 1999, None),
+            (0o1, 1999, 0o1, 2000, None),
+            (12, 1999, 0o1, 2000, None),
             (11, 1999, 12, 1999, None),
             (12, 1999, 11, 1999, meta.to_month_err_msg),
         ]

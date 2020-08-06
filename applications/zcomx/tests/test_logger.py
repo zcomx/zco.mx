@@ -1,18 +1,17 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
 """
 test_logger.py
 
 Test suite for zcomx/modules/logger.py
-
 """
 import logging
 import unittest
 from gluon import *
-from applications.zcomx.modules.logger import \
-    set_cli_logging, \
-    set_stream_logging
+from applications.zcomx.modules.logger import (
+    set_cli_logging,
+    set_stream_logging,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # pylint: disable=C0111,R0904
@@ -25,19 +24,23 @@ class TestFunctions(LocalTestCase):
 
         # Test: verbose and more_verbose
         tests = [
-            # (verbose, more_verbose, except)
-            (False, False, logging.WARNING),
-            (False, True, logging.DEBUG),
-            (True, False, logging.INFO),
-            (True, True, logging.DEBUG),
+            # (verbose, more_verbose, quiet, expect)
+            (False, False, False, logging.WARNING),
+            (False, True, False, logging.DEBUG),
+            (True, False, False, logging.INFO),
+            (True, True, False, logging.DEBUG),
+            (False, False, True, logging.CRITICAL),
+            (False, True, True, logging.DEBUG),
+            (True, False, True, logging.INFO),
+            (True, True, True, logging.DEBUG),
         ]
 
         for t in tests:
             self.assertEqual(len(logger.handlers), 0)
-            set_cli_logging(logger, t[0], t[1])
+            set_cli_logging(logger, t[0], t[1], quiet=t[2])
             self.assertEqual(len(logger.handlers), 1)
             handler = logger.handlers[0]
-            self.assertEqual(handler.level, t[2])
+            self.assertEqual(handler.level, t[3])
             logger.removeHandler(handler)
             self.assertEqual(len(logger.handlers), 0)
 

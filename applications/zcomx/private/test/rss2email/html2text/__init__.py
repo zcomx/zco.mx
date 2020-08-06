@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # coding: utf-8
 """html2text: Turn HTML into equivalent Markdown-structured text."""
-from __future__ import division
+
 import re
 import cgi
 
@@ -133,7 +133,7 @@ class HTML2Text(HTMLParser.HTMLParser):
         HTMLParser.HTMLParser.close(self)
 
         try:
-            nochr = unicode('')
+            nochr = str('')
         except NameError:
             nochr = str('')
 
@@ -143,16 +143,16 @@ class HTML2Text(HTMLParser.HTMLParser):
         outtext = nochr.join(self.outtextlist)
         if self.unicode_snob:
             try:
-                nbsp = unichr(name2cp('nbsp'))
+                nbsp = chr(name2cp('nbsp'))
             except NameError:
                 nbsp = chr(name2cp('nbsp'))
         else:
             try:
-                nbsp = unichr(32)
+                nbsp = chr(32)
             except NameError:
                 nbsp = chr(32)
         try:
-            outtext = outtext.replace(unicode('&nbsp_place_holder;'), nbsp)
+            outtext = outtext.replace(str('&nbsp_place_holder;'), nbsp)
         except NameError:
             outtext = outtext.replace('&nbsp_place_holder;', nbsp)
 
@@ -670,7 +670,7 @@ class HTML2Text(HTMLParser.HTMLParser):
                 self.a = newa
 
             if self.abbr_list and force == "end":
-                for abbr, definition in self.abbr_list.items():
+                for abbr, definition in list(self.abbr_list.items()):
                     self.out("  *[" + abbr + "]: " + definition + "\n")
 
             self.p_p = 0
@@ -709,16 +709,16 @@ class HTML2Text(HTMLParser.HTMLParser):
         else:
             c = int(name)
 
-        if not self.unicode_snob and c in unifiable_n.keys():
+        if not self.unicode_snob and c in list(unifiable_n.keys()):
             return unifiable_n[c]
         else:
             try:
-                return unichr(c)
+                return chr(c)
             except NameError:  # Python3
                 return chr(c)
 
     def entityref(self, c):
-        if not self.unicode_snob and c in config.UNIFIABLE.keys():
+        if not self.unicode_snob and c in list(config.UNIFIABLE.keys()):
             return config.UNIFIABLE[c]
         else:
             try:
@@ -730,7 +730,7 @@ class HTML2Text(HTMLParser.HTMLParser):
                     return config.UNIFIABLE[c]
                 else:
                     try:
-                        return unichr(name2cp(c))
+                        return chr(name2cp(c))
                     except NameError:  # Python3
                         return chr(name2cp(c))
 

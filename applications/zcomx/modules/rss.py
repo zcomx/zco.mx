@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -495,8 +495,13 @@ def rss_serializer_with_image(feed):
 
     def _safestr(obj, key, default=''):
         """Encode string for safety."""
-        return str(obj[key]).decode('utf-8').encode('utf-8', 'replace') \
-            if key in obj else default
+        if key not in obj:
+            return default
+
+        as_bytes = obj[key]
+        if isinstance(obj[key], str):
+            as_bytes = obj[key].encode(encoding='utf-8', errors='replace')
+        return as_bytes.decode('utf-8')
 
     now = datetime.datetime.now()
     rss = RSS2WithAtom(

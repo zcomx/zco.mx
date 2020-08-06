@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -10,7 +10,7 @@ import datetime
 import os
 import shutil
 import unittest
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -323,25 +323,25 @@ class TestFunctions(LocalTestCase):
         #    </ul>
         # </div>
         tabs = faq_tabs()
-        soup = BeautifulSoup(str(tabs))
+        soup = BeautifulSoup(str(tabs), 'html.parser')
         div = soup.div
-        self.assertEqual(div['class'], 'faq_options_container')
+        self.assertEqual(div['class'], ['faq_options_container'])
 
         ul = div.ul
-        self.assertEqual(ul['class'], 'nav nav-tabs')
+        self.assertEqual(ul['class'], ['nav', 'nav-tabs'])
 
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 2)
 
         li_1 = ul.li
-        self.assertEqual(li_1['class'], 'nav-tab active')
+        self.assertEqual(li_1['class'], ['nav-tab', 'active'])
 
         anchor_1 = li_1.a
         self.assertEqual(anchor_1['href'], '/z/faq')
         self.assertEqual(anchor_1.string, 'general')
 
         li_2 = li_1.nextSibling
-        self.assertEqual(li_2['class'], 'nav-tab ')
+        self.assertEqual(li_2['class'], ['nav-tab', ''])
 
         anchor_2 = li_2.a
         self.assertEqual(anchor_2['href'], '/z/faqc')

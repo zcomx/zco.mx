@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -40,7 +40,10 @@ class BaseName(object):
         """Return the name suitable for use in urls."""
         if self.name is None:
             return
-        name = self.name
+        if isinstance(self.name, bytes):
+            name = self.name.decode('utf-8')
+        else:
+            name = self.name
         # Remove apostrophes
         # Otherwise "Fred's Smith" becomes 'FredSSmith' not 'FredsSmith'
         name = replace_punctuation(name, repl='', punctuation="""'""")
@@ -48,7 +51,7 @@ class BaseName(object):
         name = replace_punctuation(name)
         name = squeeze_whitespace(name)
         name = camelcase(name)
-        return name.decode('utf-8').encode('utf-8')
+        return name
 
 
 class BookName(BaseName):
@@ -173,5 +176,5 @@ def names(name_instance, fields=None):
     }
     if fields is not None:
         name_dict = dict(
-            [(x, name_dict[x]) for x in name_dict.keys() if x in fields])
+            [(x, name_dict[x]) for x in list(name_dict.keys()) if x in fields])
     return name_dict

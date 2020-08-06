@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,7 +8,7 @@ Script to run massive db io for testing.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-from __future__ import print_function
+
 import sys
 import time
 import traceback

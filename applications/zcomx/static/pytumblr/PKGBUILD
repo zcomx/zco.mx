@@ -4,21 +4,21 @@ pkgver=0.0.6
 pkgrel=1
 pkgdesc="A Python API v2 wrapper for Tumblr"
 arch=('any')
-url="https://pypi.python.org/pypi/PyTumblr"
+url="https://github.com/tumblr/pytumblr"
 license=('MIT')
-depends=('python python2-oauth2')
-makedepends=('python-setuptools')
-source=("https://pypi.python.org/packages/source/P/PyTumblr/PyTumblr-${pkgver}.tar.gz")
-sha256sums=('a58c8b6026d2522f1c935a0978f3d605ed1bf44dd533e68284d6ea7cb247c32f')
+depends=('python')
+makedepends=('git' 'python-setuptools')
+source=('git://github.com/tumblr/pytumblr')
+sha256sums=('SKIP')
 
 build() {
-  cd "$srcdir/PyTumblr-$pkgver"
-  python setup.py build
+  cd "$srcdir/pytumblr"
+  python3 setup.py build
 }
 
 package() {
-  cd "$srcdir/PyTumblr-$pkgver"
-  python setup.py install --root=$pkgdir --optimize=1
+  cd "$srcdir/pytumblr"
+  python3 setup.py install --root=$pkgdir --optimize=1
 }
 
 # vim:set ts=2 sw=2 et:

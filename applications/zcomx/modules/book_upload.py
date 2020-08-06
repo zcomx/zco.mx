@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -138,9 +138,9 @@ class FileTyper(UnixFile):
         output, error = self.file()
         if error:
             raise FileTypeError(error)
-        for k, types in self.types.items():
+        for k, types in list(self.types.items()):
             for t in types:
-                if t in output:
+                if t in output.decode():
                     return k
         raise FileTypeError('Unsupported file type.')
 

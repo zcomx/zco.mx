@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ populate_book_type.py
 
 Script to populate the book_type table.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback
@@ -34,7 +34,7 @@ def create_records(dry_run=False):
     """Create records."""
     fields = ['sequence', 'name', 'description']
     for record in TYPES:
-        book_type = dict(zip(fields, record))
+        book_type = dict(list(zip(fields, record)))
         LOG.debug('book_type: {var}'.format(var=book_type))
         query = (db.book_type.name == book_type['name'])
         row = db(query).select(db.book_type.ALL).first()

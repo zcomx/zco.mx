@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -9,7 +9,7 @@ For every optimize_img_log record where size is null, create records for each
 size.
 
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

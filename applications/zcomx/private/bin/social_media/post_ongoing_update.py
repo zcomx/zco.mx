@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ post_ongoing_update.py
 
 Script to post an ongoing books update on tumblr.
 """
-from __future__ import print_function
+
 import datetime
 import json
 import random

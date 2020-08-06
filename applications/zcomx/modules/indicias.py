@@ -113,8 +113,10 @@ class IndiciaPagePng(TempDirectoryMixin):
         """Create a text file containing the book metadata."""
         self.metadata_filename = os.path.join(
             self.temp_directory(), 'meta.txt')
-        with open(self.metadata_filename, 'w') as f:
-            f.write(self.licence_text(template_field='template_img'))
+        with open(self.metadata_filename, 'wb') as f:
+            f.write(
+                self.licence_text(template_field='template_img').encode('utf-8')
+            )
 
     def get_indicia_filename(self):
         """Return the name of the indicia image file."""
@@ -1174,7 +1176,7 @@ class BookPublicationMetadata(object):
                     db_serial.to_year.requires = IS_INT_IN_RANGE(
                         min_year, max_year)
 
-            for field, value in self.metadata.items():
+            for field, value in list(self.metadata.items()):
                 if field in db_meta.fields:
                     value, error = db_meta[field].validate(value)
                     if error:
@@ -1184,14 +1186,16 @@ class BookPublicationMetadata(object):
                     self.metadata[field] = value
 
         for index, serial in enumerate(self.serials):
-            for field, value in serial.items():
+            db_serial.to_month.requires = None
+            for field, value in list(serial.items()):
                 if field in db_serial.fields:
                     if field == 'publisher':
                         db_serial.publisher.requires = IS_NOT_EMPTY()
                         if serial.published_format == 'paper' and \
                                 serial.publisher_type == 'self':
                             db_serial.publisher.requires = None
-                    if field == 'to_year':
+                    if (field == 'to_month' or field == 'to_year') \
+                            and db_serial.to_month.requires is None:
                         db_serial.to_month.requires = self.to_month_requires(
                             serial.from_month,
                             serial.from_year,
@@ -1207,7 +1211,7 @@ class BookPublicationMetadata(object):
         if self.derivative:
             db.derivative.from_year.requires = IS_INT_IN_RANGE(
                 min_year, max_year)
-            for field, value in self.derivative.items():
+            for field, value in list(self.derivative.items()):
                 if field in db.derivative.fields:
                     if field == 'to_year':
                         db.derivative.to_year.requires = self.to_year_requires(

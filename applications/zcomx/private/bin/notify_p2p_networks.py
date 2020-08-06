@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,7 +8,7 @@ Script to notify p2p networks of addition or deletion of a cbz file.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-from __future__ import print_function
+
 import sys
 import traceback
 from optparse import OptionParser

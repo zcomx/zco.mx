@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,9 +6,9 @@
 Test suite for zcomx/modules/routing.py
 
 """
-import urllib
+import urllib.parse
 import unittest
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from gluon import *
 from gluon.http import HTTP
 from gluon.rewrite import filter_url
@@ -104,16 +104,16 @@ class TestRouter(LocalTestCase):
 
         self._first_creator_links = Storage({
             'creator': 'http://127.0.0.1:8000/{c}'.format(
-                c=urllib.quote(first_creator_name)
+                c=urllib.parse.quote(first_creator_name)
             ),
             'book': 'http://127.0.0.1:8000/{c}/{b}'.format(
-                c=urllib.quote(first_creator_name),
-                b=urllib.quote(first_creator_book_name)
+                c=urllib.parse.quote(first_creator_name),
+                b=urllib.parse.quote(first_creator_book_name)
             ),
             'page': 'http://127.0.0.1:8000/{c}/{b}/{p}'.format(
-                c=urllib.quote(first_creator_name),
-                b=urllib.quote(first_creator_book_name),
-                p=urllib.quote(first_creator_page_name)
+                c=urllib.parse.quote(first_creator_name),
+                b=urllib.parse.quote(first_creator_book_name),
+                p=urllib.parse.quote(first_creator_page_name)
             ),
         })
 
@@ -510,10 +510,10 @@ class TestRouter(LocalTestCase):
                 book_url.split('/')
 
             got = Creator.from_key(dict(
-                name_for_url=urllib.unquote(creator_for_url)))
+                name_for_url=urllib.parse.unquote(creator_for_url)))
             self.assertTrue(got)
             got = Book.from_key(dict(
-                name_for_url=urllib.unquote(book_for_url)))
+                name_for_url=urllib.parse.unquote(book_for_url)))
             self.assertTrue(got)
             self.assertTrue(got.release_date is not None)
 
@@ -680,7 +680,7 @@ class TestRouter(LocalTestCase):
         self.assertEqual(router.preset_links(), [])
 
         def test_presets(links, expect):
-            soups = [BeautifulSoup(str(x)) for x in links]
+            soups = [BeautifulSoup(str(x), 'html.parser') for x in links]
             anchors = [x.find('a') for x in soups]
             self.assertEqual(
                 [x.string for x in anchors],

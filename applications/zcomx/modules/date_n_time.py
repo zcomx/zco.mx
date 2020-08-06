@@ -1,17 +1,19 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
 """
 date_n_time.py
 
 Classes and functions related to dates and times.
-
 """
-
 import datetime
+import pytz
 
-from applications.zcomx.modules.my.constants import SECONDS_PER_MINUTE, \
-        SECONDS_PER_HOUR, SECONDS_PER_DAY, DAYS_PER_YEAR
+from applications.zcomx.modules.my.constants import (
+    SECONDS_PER_MINUTE,
+    SECONDS_PER_HOUR,
+    SECONDS_PER_DAY,
+    DAYS_PER_YEAR,
+)
 
 
 def age(timestamp, units='years', rounded=True, today=None):
@@ -48,8 +50,8 @@ def age(timestamp, units='years', rounded=True, today=None):
     else:
         if hasattr(timestamp, 'today'):
             # We have a datetime.date
-            datetime_stamp = datetime.datetime.combine(timestamp,
-                    datetime.time(0, 0, 0))
+            datetime_stamp = datetime.datetime.combine(
+                timestamp, datetime.time(0, 0, 0))
         elif timestamp is not None:
             # Assume we have a string
             datetime_stamp = str_to_datetime(str(timestamp))
@@ -74,8 +76,8 @@ def age(timestamp, units='years', rounded=True, today=None):
             datetime_today = today
         elif not hasattr(today, 'now'):
             if hasattr(today, 'today'):
-                datetime_today = datetime.datetime.combine(today,
-                        datetime.time(0, 0, 0))
+                datetime_today = datetime.datetime.combine(
+                    today, datetime.time(0, 0, 0))
             elif today is not None:
                 # Assume we have a string
                 datetime_today = str_to_datetime(str(today))
@@ -115,15 +117,18 @@ def english_delta(datetime1, datetime2, zeros=True, max_attributes=0):
         zeros: if True, include all attributes even if zero.
 
     Examples:
-        datetime1               datetime2       max_attributes  result
-        2011-01-01 12:30:00 2011-01-01 13:31:30   0             1 hour, 1 minute, 30 seconds
-        2011-01-01 12:30:00 2011-01-01 13:31:30   2             1 hour, 1 minute
-        2011-01-01 12:30:00 2011-01-01 13:31:30   1             1 hour
+        datetime1               datetime2   max_attributes  result
+        2011-01-01 12:30:00 2011-01-01 13:31:30 0 1 hour, 1 minute, 30 seconds
+        2011-01-01 12:30:00 2011-01-01 13:31:30 2 1 hour, 1 minute
+        2011-01-01 12:30:00 2011-01-01 13:31:30 1 1 hour
     """
     # 1 minute(s)  2 minutes
     diff = datetime1 - datetime2
-    return english_seconds(int(diff.total_seconds()), zeros=zeros,
-            max_attributes=max_attributes)
+    return english_seconds(
+        int(diff.total_seconds()),
+        zeros=zeros,
+        max_attributes=max_attributes
+    )
 
 
 def english_seconds(seconds, zeros=True, max_attributes=0):
@@ -145,17 +150,25 @@ def english_seconds(seconds, zeros=True, max_attributes=0):
     """
     # 1 minute(s)  2 minutes
     raw_units = ['day', 'hour', 'minute', 'second']
-    pluralize = lambda c, w: w if c == 1 else ''.join([w, 's'])
+
+    def _pluralize(count, word):
+        """Make a work plural if applicable."""
+        if count == 1:
+            return word
+        else:
+            return ''.join([word, 's'])
 
     days, remainder = divmod(seconds, SECONDS_PER_DAY)
     hours, remainder = divmod(remainder, SECONDS_PER_HOUR)
     minutes, seconds = divmod(remainder, SECONDS_PER_MINUTE)
 
     attributes = [days, hours, minutes, seconds]
-    units = [pluralize(attributes[c], w) for c, w in enumerate(raw_units)]
+    units = [_pluralize(attributes[c], w) for c, w in enumerate(raw_units)]
 
-    results = [' '.join([str(attributes[c]), units[c]]) \
-            for c, w in enumerate(attributes)]
+    results = [
+        ' '.join([str(attributes[c]), units[c]])
+        for c, w in enumerate(attributes)
+    ]
     if not zeros:
         new_results = []
         if days != 0:
@@ -206,6 +219,37 @@ def enumerate_year_dates(start_date, end_date):
         current = next_current
 
 
+def is_day_of_week(date, day_of_week):
+    """Determine if a date is a specific day of the week.
+
+    Args:
+        date: datetime.date instance
+        day_of_week: str, either full day of the week name or abbr
+            Eg 'Mon', 'Monday'
+
+    Returns:
+        True if the date matches the weekday.
+    """
+    fmt = '%A' if len(day_of_week) > 3 else '%a'
+    return date.strftime(fmt) == day_of_week
+
+
+def month_first_last(any_date):
+    """Return the first day and last day of the month any_date is in.
+
+    Args:
+        any_date: datetime.date instance, if None, datetime.date.today() is
+            used
+
+    Returns:
+        tuple, (datetime.date, datetime.date): (first day, last day)
+    """
+    first_of_month = any_date.replace(day=1)
+    next_month = any_date.replace(day=28) + datetime.timedelta(days=4)
+    last_of_month = next_month - datetime.timedelta(days=next_month.day)
+    return (first_of_month, last_of_month)
+
+
 def str_to_date(date_as_str):
     """Convert a string yyyy-mm-dd to a datetime.date() instance"""
     try:
@@ -221,3 +265,35 @@ def str_to_datetime(datetime_as_str):
         return datetime.datetime.strptime(datetime_as_str, "%Y-%m-%d %H:%M:%S")
     except (ValueError, TypeError):
         return None
+
+
+def utc_to_localtime(date_time, zone='America/Toronto'):
+    """Convert a UTC time to localtime.
+
+    Args:
+        date_time: datetime.datetime instance
+        zone: str, the localtime zone
+
+    Returns:
+        datetime instance in localtime
+    """
+    time_zone = pytz.timezone(zone)
+    utc_dt = datetime.datetime(
+        date_time.year,
+        date_time.month,
+        date_time.day,
+        date_time.hour,
+        date_time.minute,
+        date_time.second,
+        tzinfo=pytz.utc
+    )
+    loc_dt = utc_dt.astimezone(time_zone)
+    # Convert loc_dt to a standard datetime.datetime
+    return datetime.datetime(
+        loc_dt.year,
+        loc_dt.month,
+        loc_dt.day,
+        loc_dt.hour,
+        loc_dt.minute,
+        loc_dt.second,
+    )

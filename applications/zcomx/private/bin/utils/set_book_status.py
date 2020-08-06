@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,7 +8,7 @@ Script to set the status of a book.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-from __future__ import print_function
+
 import sys
 import traceback
 from optparse import OptionParser

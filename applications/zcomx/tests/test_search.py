@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,8 +8,8 @@ Test suite for zcomx/modules/search.py
 """
 import datetime
 import unittest
-import urllib
-from BeautifulSoup import BeautifulSoup
+import urllib.parse
+from bs4 import BeautifulSoup
 from gluon import *
 from pydal.objects import Row
 from gluon.storage import Storage
@@ -252,13 +252,13 @@ class TestGrid(LocalTestCase):
     def test__render(self):
         grid = SubGrid()
         grid_div = grid.render()
-        soup = BeautifulSoup(str(grid_div))
+        soup = BeautifulSoup(str(grid_div), 'html.parser')
         # <div class="grid_section"><div class="row tile_view">
         #    ...
         div = soup.div
-        self.assertEqual(div['class'], 'grid_section')
+        self.assertEqual(div['class'], ['grid_section'])
         div_2 = div.div
-        self.assertEqual(div_2['class'], 'row tile_view')
+        self.assertEqual(div_2['class'], ['row', 'tile_view'])
 
     def test__rows(self):
         # protected-access (W0212): *Access to a protected member %%s
@@ -294,10 +294,10 @@ class TestGrid(LocalTestCase):
     def test__tabs(self):
         grid = SubGrid()
         # Default as per front page
-        for key in grid.request.vars.keys():
+        for key in list(grid.request.vars.keys()):
             del grid.request.vars[key]
         tabs = grid.tabs()
-        soup = BeautifulSoup(str(tabs))
+        soup = BeautifulSoup(str(tabs), 'html.parser')
         # <ul class="nav nav-tabs">
         #   <li class="nav-tab ">
         #     <a href="/?o=completed">completed</a>
@@ -314,9 +314,9 @@ class TestGrid(LocalTestCase):
         # </ul>
 
         ul = soup.ul
-        self.assertEqual(ul['class'], 'nav nav-tabs')
+        self.assertEqual(ul['class'], ['nav', 'nav-tabs'])
         li_1 = ul.li
-        self.assertEqual(li_1['class'], 'nav-tab active')
+        self.assertEqual(li_1['class'], ['nav-tab', 'active'])
         anchor_1 = li_1.a
         self.assertEqual(anchor_1['href'], '/z/completed')
         self.assertEqual(anchor_1.string, 'completed')
@@ -332,7 +332,7 @@ class TestGrid(LocalTestCase):
         # self.assertEqual(anchor_2.string, 'contributions')
 
         li_3 = li_2.nextSibling
-        self.assertEqual(li_3['class'], 'nav-tab ')
+        self.assertEqual(li_3['class'], ['nav-tab', ''])
         anchor_3 = li_3.a
         self.assertEqual(anchor_3['href'], '/z/cartoonists')
         self.assertEqual(anchor_3.string, 'cartoonists')
@@ -340,7 +340,7 @@ class TestGrid(LocalTestCase):
         # Test removal of request.vars.contribute
         grid.request.vars.contribute = '1'
         tabs = grid.tabs()
-        soup = BeautifulSoup(str(tabs))
+        soup = BeautifulSoup(str(tabs), 'html.parser')
         anchor_1 = soup.ul.li.a
         self.assertEqual(anchor_1['href'], '/z/completed')
         anchor_2 = soup.ul.li.nextSibling.a
@@ -380,10 +380,10 @@ class TestGrid(LocalTestCase):
     def test__viewby_buttons(self):
         grid = SubGrid()
         # Default as per front page
-        for key in grid.request.vars.keys():
+        for key in list(grid.request.vars.keys()):
             del grid.request.vars[key]
         buttons = grid.viewby_buttons()
-        soup = BeautifulSoup(str(buttons))
+        soup = BeautifulSoup(str(buttons), 'html.parser')
         # <div class="btn-group">
         #   <a class="btn btn-default btn-lg active" href="/?view=list">
         #     <span class="glyphicon glyphicon-th-list"></span>
@@ -393,23 +393,23 @@ class TestGrid(LocalTestCase):
         #   </a>
         # </div>
         div = soup.div
-        self.assertEqual(div['class'], 'btn-group')
+        self.assertEqual(div['class'], ['btn-group'])
         anchor_1 = div.a
-        self.assertEqual(anchor_1['class'], 'btn btn-default btn-lg active')
+        self.assertEqual(anchor_1['class'], ['btn', 'btn-default', 'btn-lg', 'active'])
         self.assertEqual(anchor_1['href'], '/?view=list')
         span_1 = anchor_1.span
-        self.assertEqual(span_1['class'], 'glyphicon glyphicon-th-list')
+        self.assertEqual(span_1['class'], ['glyphicon', 'glyphicon-th-list'])
 
         anchor_2 = anchor_1.nextSibling
-        self.assertEqual(anchor_2['class'], 'btn btn-default btn-lg disabled')
+        self.assertEqual(anchor_2['class'], ['btn', 'btn-default', 'btn-lg', 'disabled'])
         self.assertEqual(anchor_2['href'], '/?view=tile')
         span_2 = anchor_2.span
-        self.assertEqual(span_2['class'], 'glyphicon glyphicon-th-large')
+        self.assertEqual(span_2['class'], ['glyphicon', 'glyphicon-th-large'])
 
         # Test removal of request.vars.contribute
         grid.request.vars.contribute = '1'
         buttons = grid.viewby_buttons()
-        soup = BeautifulSoup(str(buttons))
+        soup = BeautifulSoup(str(buttons), 'html.parser')
         anchor_1 = soup.div.a
         self.assertEqual(anchor_1['href'], '/?view=list')
         anchor_2 = soup.div.a.nextSibling
@@ -528,7 +528,7 @@ class TestMoniesBookTile(TileTestCase):
         self._row.creator.paypal_email = 'testing@paypal.com'
         tile = MoniesBookTile(db, self._value, self._row)
         footer = tile.footer()
-        soup = BeautifulSoup(str(footer))
+        soup = BeautifulSoup(str(footer), 'html.parser')
         # <div class="col-sm-12 name">
         #    <a class="contribute_button"
         #      href="/contributions/modal?book_id=64">
@@ -536,10 +536,10 @@ class TestMoniesBookTile(TileTestCase):
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 name')
+        self.assertEqual(div['class'], ['col-sm-12', 'name'])
 
         anchor = div.a
-        self.assertEqual(anchor['class'], 'contribute_button no_rclick_menu')
+        self.assertEqual(anchor['class'], ['contribute_button', 'no_rclick_menu'])
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={id}'.format(
@@ -550,10 +550,10 @@ class TestMoniesBookTile(TileTestCase):
         self._row.creator.paypal_email = None
         tile = MoniesBookTile(db, self._value, self._row)
         footer = tile.footer()
-        soup = BeautifulSoup(str(footer))
+        soup = BeautifulSoup(str(footer), 'html.parser')
         # <div class="col-sm-12 name">Test Do Not Delete 01 (of 01)</div>
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 name')
+        self.assertEqual(div['class'], ['col-sm-12', 'name'])
         self.assertEqual(
             div.string,
             'Test Do Not Delete 001'
@@ -569,7 +569,7 @@ class TestMoniesBookTile(TileTestCase):
         self._row.creator.paypal_email = 'testing@paypal.com'
         tile = MoniesBookTile(db, self._value, self._row)
         image_div = tile.image()
-        soup = BeautifulSoup(str(image_div))
+        soup = BeautifulSoup(str(image_div), 'html.parser')
         # <div class="col-sm-12 image_container">
         #   <a class="contribute_button"
         #           href="/contributions/modal?book_id=64">
@@ -579,9 +579,9 @@ class TestMoniesBookTile(TileTestCase):
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 image_container')
+        self.assertEqual(div['class'], ['col-sm-12', 'image_container'])
         anchor = div.a
-        self.assertEqual(anchor['class'], 'contribute_button no_rclick_menu')
+        self.assertEqual(anchor['class'], ['contribute_button', 'no_rclick_menu'])
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={id}'.format(
@@ -599,14 +599,14 @@ class TestMoniesBookTile(TileTestCase):
         self._row.creator.paypal_email = None
         tile = MoniesBookTile(db, self._value, self._row)
         image_div = tile.image()
-        soup = BeautifulSoup(str(image_div))
+        soup = BeautifulSoup(str(image_div), 'html.parser')
         #  <div class="col-sm-12 image_container">
         #    <img alt=""
         #       src="/images/download/book_page.image.aaa.000.png?size=web" />
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 image_container')
+        self.assertEqual(div['class'], ['col-sm-12', 'image_container'])
 
         img = div.img
         self.assertEqual(img['alt'], '')
@@ -622,17 +622,19 @@ class TestMoniesBookTile(TileTestCase):
     def test_render(self):
         tile = MoniesBookTile(db, self._value, self._row)
         div = tile.render()
-        soup = BeautifulSoup(str(div))
+        soup = BeautifulSoup(str(div), 'html.parser')
 
         div = soup.div
-        self.assertEqual(div['class'], 'item_container monies_book_tile_item')
+        self.assertEqual(div['class'], ['item_container', 'monies_book_tile_item'])
 
         div_1 = div.div
-        self.assertEqual(div_1['class'], 'row')
-        self.assertEqual(str(div_1.div), str(tile.image()))
+        self.assertEqual(div_1['class'], ['row'])
+        # web2py IMG adds a space '<img src="..." />'
+        expect = str(tile.image()).replace('" />', '"/>')
+        self.assertEqual(str(div_1.div), expect)
 
         div_2 = div_1.nextSibling
-        self.assertEqual(div_2['class'], 'row')
+        self.assertEqual(div_2['class'], ['row'])
         self.assertEqual(str(div_2.div), str(tile.footer()))
 
     def test__subtitle(self):
@@ -725,21 +727,21 @@ class TestTile(TileTestCase):
     def test__footer(self):
         tile = Tile(db, self._value, self._row)
         footer = tile.footer()
-        soup = BeautifulSoup(str(footer))
+        soup = BeautifulSoup(str(footer), 'html.parser')
         # <div class="col-sm-12">
         # <ul class="breadcrumb pipe_delimiter"></ul>
         # <div class="orderby_field_value">1 week ago</div>
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12')
+        self.assertEqual(div['class'], ['col-sm-12'])
 
         ul = div.ul
-        self.assertEqual(ul['class'], 'breadcrumb pipe_delimiter')
+        self.assertEqual(ul['class'], ['breadcrumb', 'pipe_delimiter'])
         self.assertEqual(ul.string, None)
 
         div_2 = div.div
-        self.assertEqual(div_2['class'], 'orderby_field_value')
+        self.assertEqual(div_2['class'], ['orderby_field_value'])
 
         self.assertEqual(
             div_2.string,
@@ -749,11 +751,11 @@ class TestTile(TileTestCase):
     def test__footer_links(self):
         tile = Tile(db, self._value, self._row)
         links = tile.footer_links()
-        soup = BeautifulSoup(str(links))
+        soup = BeautifulSoup(str(links), 'html.parser')
         # <ul class="breadcrumb pipe_delimiter"></ul>
 
         ul = soup.ul
-        self.assertEqual(ul['class'], 'breadcrumb pipe_delimiter')
+        self.assertEqual(ul['class'], ['breadcrumb', 'pipe_delimiter'])
         self.assertEqual(ul.string, None)
 
     def test__image(self):
@@ -763,7 +765,7 @@ class TestTile(TileTestCase):
     def test__render(self):
         tile = Tile(db, self._value, self._row)
         div = tile.render()
-        soup = BeautifulSoup(str(div))
+        soup = BeautifulSoup(str(div), 'html.parser')
         #  <div class="item_container">
         #    <div class="row">
         #      <div class="col-sm-12">
@@ -774,20 +776,20 @@ class TestTile(TileTestCase):
         #  </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'item_container tile_item')
+        self.assertEqual(div['class'], ['item_container', 'tile_item'])
 
         div_2 = div.div
-        self.assertEqual(div_2['class'], 'row')
+        self.assertEqual(div_2['class'], ['row'])
 
         div_3 = div_2.div
-        self.assertEqual(div_3['class'], 'col-sm-12')
+        self.assertEqual(div_3['class'], ['col-sm-12'])
 
         ul = div_3.ul
-        self.assertEqual(ul['class'], 'breadcrumb pipe_delimiter')
+        self.assertEqual(ul['class'], ['breadcrumb', 'pipe_delimiter'])
         self.assertEqual(ul.string, None)
 
         div_4 = div_3.div
-        self.assertEqual(div_4['class'], 'orderby_field_value')
+        self.assertEqual(div_4['class'], ['orderby_field_value'])
 
     def test__subtitle(self):
         tile = Tile(db, self._value, self._row)
@@ -807,11 +809,11 @@ class TestBookTile(TileTestCase):
     def test__contribute_link(self):
         tile = BookTile(db, self._value, self._row)
         link = tile.contribute_link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="contribute_button"
         #    href="/contributions/modal?book_id=98">contribute</a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], 'contribute_button no_rclick_menu')
+        self.assertEqual(anchor['class'], ['contribute_button', 'no_rclick_menu'])
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={i}'.format(i=self._row.book.id)
@@ -829,13 +831,13 @@ class TestBookTile(TileTestCase):
 
         tile = BookTile(db, self._value, self._row)
         link = tile.download_link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="download_button no_rclick_menu"
         #       href="/downloads/modal/93">download</a>
         anchor = soup.a
         self.assertEqual(
             anchor['class'],
-            'download_button no_rclick_menu enabled'
+            ['download_button', 'no_rclick_menu', 'enabled']
         )
         self.assertEqual(anchor['href'], '/downloads/modal/{i}'.format(
             i=self._row.book.id))
@@ -849,7 +851,7 @@ class TestBookTile(TileTestCase):
 
         tile = BookTile(db, self._value, self._row)
         link = tile.download_link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         self.assertEqual(str(soup), '<span></span>')
 
         # Reset
@@ -863,7 +865,7 @@ class TestBookTile(TileTestCase):
         self._row.book.id = released_book.id
         tile = BookTile(db, self._value, self._row)
         link = tile.follow_link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <span></span>
         span = soup.span
         self.assertEqual(span.string, None)
@@ -873,12 +875,12 @@ class TestBookTile(TileTestCase):
         self._row.book.id = released_book.id
         tile = BookTile(db, self._value, self._row)
         link = tile.follow_link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="rss_button no_rclick_menu" href="/rss/modal/98">
         # follow
         # </a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], 'rss_button no_rclick_menu')
+        self.assertEqual(anchor['class'], ['rss_button', 'no_rclick_menu'])
         self.assertEqual(anchor['href'], '/rss/modal/{i}'.format(
             i=self._row.creator.id))
         self.assertEqual(anchor.string, 'follow')
@@ -891,7 +893,7 @@ class TestBookTile(TileTestCase):
 
         tile = BookTile(db, self._value, self._row)
         footer = tile.footer()
-        soup = BeautifulSoup(str(footer))
+        soup = BeautifulSoup(str(footer), 'html.parser')
         # <div class="col-sm-12">
         #   <ul class="breadcrumb pipe_delimiter">
         #     <li><a class="download_button no_rclick_menu"
@@ -902,10 +904,10 @@ class TestBookTile(TileTestCase):
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12')
+        self.assertEqual(div['class'], ['col-sm-12'])
 
         ul = div.ul
-        self.assertEqual(ul['class'], 'breadcrumb pipe_delimiter')
+        self.assertEqual(ul['class'], ['breadcrumb', 'pipe_delimiter'])
         lis = ul.findAll('li')
         dl_li = None
 
@@ -913,7 +915,7 @@ class TestBookTile(TileTestCase):
         li = lis[0]
         anchor = li.a
         self.assertEqual(
-            anchor['class'], 'contribute_button no_rclick_menu')
+            anchor['class'], ['contribute_button', 'no_rclick_menu'])
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={id}'.format(
@@ -925,14 +927,14 @@ class TestBookTile(TileTestCase):
         anchor = dl_li.a
         self.assertEqual(
             anchor['class'],
-            'download_button no_rclick_menu enabled'
+            ['download_button', 'no_rclick_menu', 'enabled']
         )
         self.assertEqual(anchor['href'], '/downloads/modal/{i}'.format(
             i=self._row.book.id))
         self.assertEqual(anchor.string, 'download')
 
         div_2 = div.div
-        self.assertEqual(div_2['class'], 'orderby_field_value')
+        self.assertEqual(div_2['class'], ['orderby_field_value'])
         self.assertEqual(
             div_2.string,
             '_value_'
@@ -943,7 +945,7 @@ class TestBookTile(TileTestCase):
 
         tile = BookTile(db, self._value, self._row)
         footer = tile.footer()
-        soup = BeautifulSoup(str(footer))
+        soup = BeautifulSoup(str(footer), 'html.parser')
         div = soup.div
         ul = div.ul
         lis = ul.findAll('li')
@@ -953,7 +955,7 @@ class TestBookTile(TileTestCase):
     def test__image(self):
         tile = BookTile(db, self._value, self._row)
         image_div = tile.image()
-        soup = BeautifulSoup(str(image_div))
+        soup = BeautifulSoup(str(image_div), 'html.parser')
         # <div class="col-sm-12 image_container">
         #   <a class="book_page_image"
         #       href="/Jim_Karsten/Test_Do_Not_Delete_001/001" title="">
@@ -963,9 +965,9 @@ class TestBookTile(TileTestCase):
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 image_container')
+        self.assertEqual(div['class'], ['col-sm-12', 'image_container'])
         anchor = div.a
-        self.assertEqual(anchor['class'], 'book_page_image zco_book_reader')
+        self.assertEqual(anchor['class'], ['book_page_image', 'zco_book_reader'])
         first = get_page(self._row.book, page_no='first')
         self.assertEqual(anchor['href'], page_url(first))
         self.assertEqual(anchor['title'], '')
@@ -980,36 +982,38 @@ class TestBookTile(TileTestCase):
     def test_render(self):
         tile = BookTile(db, self._value, self._row)
         div = tile.render()
-        soup = BeautifulSoup(str(div))
+        soup = BeautifulSoup(str(div), 'html.parser')
 
         div = soup.div
-        self.assertEqual(div['class'], 'item_container book_tile_item')
+        self.assertEqual(div['class'], ['item_container', 'book_tile_item'])
 
         div_1 = div.div
-        self.assertEqual(div_1['class'], 'row')
+        self.assertEqual(div_1['class'], ['row'])
         self.assertEqual(str(div_1.div), str(tile.title()))
 
         div_2 = div_1.nextSibling
-        self.assertEqual(div_2['class'], 'row')
+        self.assertEqual(div_2['class'], ['row'])
         self.assertEqual(str(div_2.div), str(tile.subtitle()))
 
         div_3 = div_2.nextSibling
-        self.assertEqual(div_3['class'], 'row')
-        self.assertEqual(str(div_3.div), str(tile.image()))
+        self.assertEqual(div_3['class'], ['row'])
+        # web2py IMG adds a space '<img src="..." />'
+        expect = str(tile.image()).replace('" />', '"/>')
+        self.assertEqual(str(div_3.div), expect)
 
         div_4 = div_3.nextSibling
-        self.assertEqual(div_4['class'], 'row')
+        self.assertEqual(div_4['class'], ['row'])
         self.assertEqual(str(div_4.div), str(tile.footer()))
 
     def test__subtitle(self):
         tile = BookTile(db, self._value, self._row)
         subtitle_div = tile.subtitle()
-        soup = BeautifulSoup(str(subtitle_div))
+        soup = BeautifulSoup(str(subtitle_div), 'html.parser')
         # <div class="col-sm-12 creator">
         #   <a href="/Jim_Karsten" title="Jim Karsten">Jim Karsten</a>
         # </div>
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 creator')
+        self.assertEqual(div['class'], ['col-sm-12', 'creator'])
         anchor = div.a
         self.assertEqual(
             anchor['href'],
@@ -1023,17 +1027,17 @@ class TestBookTile(TileTestCase):
     def test__title(self):
         tile = BookTile(db, self._value, self._row)
         title_div = tile.title()
-        soup = BeautifulSoup(str(title_div))
+        soup = BeautifulSoup(str(title_div), 'html.parser')
         # <div class="col-sm-12 name">
         #   <a href="/Jim_Karsten/Test_Do_Not_Delete_001"
         #       title="Test Do Not Delete 001">Test Do Not Delete 001</a>
         # </div>
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 name')
+        self.assertEqual(div['class'], ['col-sm-12', 'name'])
         anchor = div.a
         self.assertEqual(anchor['href'], '/{c}/{b}'.format(
             c=creator_name(Creator(self._row.creator.as_dict()), use='url'),
-            b=urllib.quote(book_name(tile.book, use='url'))
+            b=urllib.parse.quote(book_name(tile.book, use='url'))
         ))
         book_formatted = formatted_name(
             tile.book, include_publication_year=False)
@@ -1041,9 +1045,9 @@ class TestBookTile(TileTestCase):
         self.assertEqual(anchor.string, book_formatted)
 
         # Completed book
-        self._row.book.release_date = datetime.date(2014, 01, 31)
+        self._row.book.release_date = datetime.date(2014, 0o1, 31)
         title_div = tile.title()
-        soup = BeautifulSoup(str(title_div))
+        soup = BeautifulSoup(str(title_div), 'html.parser')
         div = soup.div
         anchor = div.a
         book_formatted = formatted_name(
@@ -1060,11 +1064,11 @@ class TestCartoonistTile(TileTestCase):
     def test__contribute_link(self):
         tile = CartoonistTile(db, self._value, self._row)
         link = tile.contribute_link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="contribute_button"
         #    href="/contributions/modal?creator_id=98">contribute</a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], 'contribute_button no_rclick_menu')
+        self.assertEqual(anchor['class'], ['contribute_button', 'no_rclick_menu'])
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?creator_id={i}'.format(
@@ -1076,12 +1080,12 @@ class TestCartoonistTile(TileTestCase):
         self._row.creator.torrent = None
         tile = CartoonistTile(db, self._value, self._row)
         link = tile.download_link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         self.assertEqual(str(soup), '<span></span>')
 
         self._row.creator.torrent = 'file.torrent'
         link = tile.download_link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a href="/FirstLast_(123.zco.mx).torrent">download</a>
         anchor = soup.a
         self.assertEqual(anchor.string, 'download')
@@ -1097,12 +1101,12 @@ class TestCartoonistTile(TileTestCase):
     def test__follow_link(self):
         tile = CartoonistTile(db, self._value, self._row)
         link = tile.follow_link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="rss_button no_rclick_menu" href="/rss/modal/98">
         #  follow
         # </a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], 'rss_button no_rclick_menu')
+        self.assertEqual(anchor['class'], ['rss_button', 'no_rclick_menu'])
         self.assertEqual(
             anchor['href'],
             '/rss/modal/{cid}'.format(cid=self._row.creator.id)
@@ -1115,7 +1119,7 @@ class TestCartoonistTile(TileTestCase):
 
         tile = CartoonistTile(db, self._value, self._row)
         footer = tile.footer()
-        soup = BeautifulSoup(str(footer))
+        soup = BeautifulSoup(str(footer), 'html.parser')
 
         # <div class="col-sm-12">
         #  <ul class="breadcrumb pipe_delimiter">
@@ -1138,10 +1142,10 @@ class TestCartoonistTile(TileTestCase):
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12')
+        self.assertEqual(div['class'], ['col-sm-12'])
 
         ul = div.ul
-        self.assertEqual(ul['class'], 'breadcrumb pipe_delimiter')
+        self.assertEqual(ul['class'], ['breadcrumb', 'pipe_delimiter'])
 
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 3)
@@ -1149,7 +1153,7 @@ class TestCartoonistTile(TileTestCase):
         li = lis[0]
         anchor = li.a
         self.assertEqual(
-            anchor['class'], 'contribute_button no_rclick_menu')
+            anchor['class'], ['contribute_button', 'no_rclick_menu'])
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?creator_id={id}'.format(
@@ -1178,7 +1182,7 @@ class TestCartoonistTile(TileTestCase):
         self.assertEqual(anchor.string, 'follow')
 
         div_2 = div.div
-        self.assertEqual(div_2['class'], 'orderby_field_value')
+        self.assertEqual(div_2['class'], ['orderby_field_value'])
         self.assertEqual(
             div_2.string,
             None
@@ -1198,7 +1202,7 @@ class TestCartoonistTile(TileTestCase):
             self._row.creator.torrent = t[1]
             tile = CartoonistTile(db, self._value, self._row)
             footer = tile.footer()
-            soup = BeautifulSoup(str(footer))
+            soup = BeautifulSoup(str(footer), 'html.parser')
             div = soup.div
             ul = div.ul
             lis = ul.findAll('li')
@@ -1214,7 +1218,7 @@ class TestCartoonistTile(TileTestCase):
         self._row.creator.image = 'creator.image.aaa.000.png'
         tile = CartoonistTile(db, self._value, self._row)
         image_div = tile.image()
-        soup = BeautifulSoup(str(image_div))
+        soup = BeautifulSoup(str(image_div), 'html.parser')
 
         # <div class="col-sm-12 image_container">
         #   <a href="/Charles_Forsman" title="">
@@ -1223,7 +1227,7 @@ class TestCartoonistTile(TileTestCase):
         #   </a>
         # </div
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 image_container')
+        self.assertEqual(div['class'], ['col-sm-12', 'image_container'])
         anchor = div.a
         self.assertEqual(
             anchor['href'],
@@ -1245,7 +1249,7 @@ class TestCartoonistTile(TileTestCase):
         # self._row.creator.image = None        # <--- This doesn't work.
         # tile = CartoonistTile(db, self._value, self._row)
         # image_div = tile.image()
-        # soup = BeautifulSoup(str(image_div))
+        # soup = BeautifulSoup(str(image_div), 'html.parser')
 
         # # <div class="col-sm-12 image_container">
         # #   <a href="/Jim_Karsten" title="">
@@ -1255,7 +1259,7 @@ class TestCartoonistTile(TileTestCase):
         # #   </a>
         # # </div>
         # div = soup.div
-        # self.assertEqual(div['class'], 'col-sm-12 image_container')
+        # self.assertEqual(div['class'], ['col-sm-12', 'image_container'])
         # anchor = div.a
         # self.assertEqual(
         #     anchor['href'],
@@ -1264,14 +1268,14 @@ class TestCartoonistTile(TileTestCase):
         # )
         # self.assertEqual(anchor['title'], '')
         # div_2 = div.div
-        # self.assertEqual(div_2['class'], 'preview placeholder_torso')
+        # self.assertEqual(div_2['class'], ['preview', 'placeholder_torso'])
         # icon = div_2.i
-        # self.assertEqual(icon['class'], 'icon zc-torso')
+        # self.assertEqual(icon['class'], ['icon', 'zc-torso'])
 
     def test_render(self):
         tile = CartoonistTile(db, self._value, self._row)
         div = tile.render()
-        soup = BeautifulSoup(str(div))
+        soup = BeautifulSoup(str(div), 'html.parser')
 
         # <div class="item_container">
         #   <div class="row">
@@ -1299,29 +1303,31 @@ class TestCartoonistTile(TileTestCase):
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], 'item_container cartoonist_tile_item')
+        self.assertEqual(div['class'], ['item_container', 'cartoonist_tile_item'])
 
         div_1 = div.div
-        self.assertEqual(div_1['class'], 'row')
+        self.assertEqual(div_1['class'], ['row'])
         self.assertEqual(str(div_1.div), str(tile.title()))
 
         div_2 = div_1.nextSibling
-        self.assertEqual(div_2['class'], 'row')
-        self.assertEqual(str(div_2.div), str(tile.image()))
+        self.assertEqual(div_2['class'], ['row'])
+        # web2py IMG adds a space '<img src="..." />'
+        expect = str(tile.image()).replace('" />', '"/>')
+        self.assertEqual(str(div_2.div), expect)
 
         div_3 = div_2.nextSibling
-        self.assertEqual(div_3['class'], 'row')
+        self.assertEqual(div_3['class'], ['row'])
         self.assertEqual(str(div_3.div), str(tile.footer()))
 
     def test__title(self):
         tile = CartoonistTile(db, self._value, self._row)
         title_div = tile.title()
-        soup = BeautifulSoup(str(title_div))
+        soup = BeautifulSoup(str(title_div), 'html.parser')
         # <div class="col-sm-12 name">
         #   <a href="/Jim_Karsten" title="Jim Karsten">Jim Karsten</a>
         # </div>
         div = soup.div
-        self.assertEqual(div['class'], 'col-sm-12 name')
+        self.assertEqual(div['class'], ['col-sm-12', 'name'])
         anchor = div.a
         self.assertEqual(
             anchor['href'],
@@ -1397,7 +1403,7 @@ class TestFunctions(LocalTestCase):
         # no-self-use (R0201): *Method could be a function*
         # pylint: disable=R0201
         data = {}
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         if anchor:
             data['string'] = anchor.string
@@ -1453,7 +1459,7 @@ class TestFunctions(LocalTestCase):
             i=row.book.id))
         self.assertEqual(
             data['class'],
-            'btn btn-default download_button no_rclick_menu enabled'
+            ['btn', 'btn-default', 'download_button', 'no_rclick_menu', 'enabled']
         )
 
     def test__follow_link(self):
@@ -1469,7 +1475,7 @@ class TestFunctions(LocalTestCase):
             i=self._ongoing_book.creator_id))
         self.assertEqual(
             data['class'],
-            'btn btn-default rss_button no_rclick_menu'
+            ['btn', 'btn-default', 'rss_button', 'no_rclick_menu']
         )
 
     def test__link_book_id(self):
@@ -1488,7 +1494,7 @@ class TestFunctions(LocalTestCase):
             i=self._book.creator_id))
         self.assertEqual(
             data['class'],
-            'btn btn-default rss_button no_rclick_menu'
+            ['btn', 'btn-default', 'rss_button', 'no_rclick_menu']
         )
 
     def test__link_for_creator_torrent(self):

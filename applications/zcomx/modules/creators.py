@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -217,6 +217,20 @@ def follow_link(creator, components=None, **attributes):
         )
 
     return A(*components, **kwargs)
+
+
+def for_auth_user(name):
+    """Scrub name so it is suitable for auth_user.name
+
+    Args:
+        name: string, creator name to be scrubbed.
+    Returns:
+        string, scrubbed name
+    """
+    # remove underscores
+    name = replace_punctuation(name, repl='', punctuation='_')
+    name = squeeze_whitespace(name)
+    return for_file(name)
 
 
 def for_path(name):

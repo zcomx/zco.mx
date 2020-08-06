@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ post_book_completed.py
 Script to post a completed book on social media (eg facebook, tumblr and
 twitter).
 """
-from __future__ import print_function
+
 import sys
 import traceback
 from optparse import OptionParser

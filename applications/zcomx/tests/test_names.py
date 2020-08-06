@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -95,7 +95,8 @@ class TestBaseName(LocalTestCase):
             ('Prince', 'Prince'),
             ('First Last', 'FirstLast'),
             ('first last', 'FirstLast'),
-            ("Hélè d'Eñça", "H\xc3\xa9l\xc3\xa8DE\xc3\xb1\xc3\xa7a"),
+            ('SørenMosdal', 'SørenMosdal'),
+            ("Hélè d'Eñça", 'HélèDEñça'),
             # book names
             ('My Book', 'MyBook'),
             ('Tepid: Fall 2003', 'TepidFall2003'),
@@ -120,7 +121,7 @@ class TestBookName(LocalTestCase):
             ('', ''),
             ('My Book', 'My Book'),
             ('Tepid: Fall 2003', 'Tepid - Fall 2003'),
-            ("Hélè d'Eñça", "H\xc3\xa9l\xc3\xa8 d'E\xc3\xb1\xc3\xa7a"),
+            ("Hélè d'Eñça", "Hélè d'Eñça"),
             ("My Book's Trials", "My Book's Trials"),
             ('    My    Book   ', 'My Book'),
         ]

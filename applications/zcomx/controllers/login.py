@@ -858,7 +858,7 @@ def creator_img_handler():
                 # This will convert cgi.FieldStorage to a regular file.
                 shutil.copyfileobj(up_file.file, lf)
 
-            with open(local_filename, 'r') as lf:
+            with open(local_filename, 'rb') as lf:
                 try:
                     im = Image.open(lf)
                 except IOError as err:
@@ -1002,7 +1002,7 @@ def indicia_preview_urls():
         'landscape': None,
     }
 
-    for orientation in urls.keys():
+    for orientation in list(urls.keys()):
         field = 'indicia_{o}'.format(o=orientation)
         if creator[field]:
             urls[orientation] = URL(
@@ -1310,7 +1310,7 @@ def metadata_crud():
             'type': 'select',
             'source': [
                 {'value': x, 'text': x}
-                for x in sorted(range(*publication_year_range()), reverse=True)
+                for x in sorted(list(range(*publication_year_range())), reverse=True)
             ]
         }
 
@@ -1398,7 +1398,7 @@ def metadata_crud():
             'source': [{'value': x.id, 'text': x.code} for x in licences]
         })
 
-        for table in data.keys():
+        for table in list(data.keys()):
             data[table]['default'] = default_record(
                 db[table], ignore_fields='common')
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,7 +8,7 @@ Script to process activity_log records.
 * Create activity_log records from tentative_activity_log records.
 * Delete tentative_activity_log records converted thus.
 """
-from __future__ import print_function
+
 import sys
 import traceback
 from optparse import OptionParser

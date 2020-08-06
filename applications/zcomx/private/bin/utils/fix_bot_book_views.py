@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ fix_bot_book_views.py
 
 Remove book_view records created by bots.
 """
-from __future__ import print_function
+
 import sys
 import time
 import traceback

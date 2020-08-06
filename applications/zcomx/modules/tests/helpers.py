@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -146,9 +146,9 @@ class FileTestCase(LocalTestCase):
                 args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             p_stdout, p_stderr = p.communicate()
             if p_stdout:
-                print 'FIXME p_stdout: {var}'.format(var=p_stdout)
+                print('FIXME p_stdout: {var}'.format(var=p_stdout))
             if p_stderr:
-                print 'FIXME p_stderr: {var}'.format(var=p_stderr)
+                print('FIXME p_stderr: {var}'.format(var=p_stderr))
             file_to_hash = outfile
 
         return hashlib.md5(open(file_to_hash, 'rb').read()).hexdigest()
@@ -323,7 +323,7 @@ class ResizerQuick(TempDirectoryMixin):
         descriptor = ImageDescriptor(self.filename)
         width = descriptor.dimensions()[0]
 
-        for k in self.filenames.keys():
+        for k in list(self.filenames.keys()):
             if k == 'ori':
                 src = self.filename
             else:
@@ -338,7 +338,7 @@ class ResizerQuick(TempDirectoryMixin):
                 self.temp_directory(), '{k}-test.jpg'.format(k=k))
             shutil.copy(src, dst)
 
-        for prefix in self.filenames.keys():
+        for prefix in list(self.filenames.keys()):
             path = os.path.join(
                 self.temp_directory(),
                 '{pfx}-*'.format(pfx=prefix)
@@ -409,7 +409,7 @@ class WebTestCase(LocalTestCase):
         '/rss/modal': '<div id="rss_modal">',
         '/rss/rss': [
             '<?xml version="1.0" encoding="utf-8"?>',
-            '<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">',
+            '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
         ],
         '/rss/widget.load': '<div class="rss_widget_body">',
         '/search/book_page': '<div id="book_page">',
@@ -469,7 +469,7 @@ def skip_if_not_terminal(func):
         # pylint: disable=C0111
         if not has_terminal():
             raise unittest.SkipTest('Tests requires terminal: {t}'.format(
-                t=func.func_name))
+                t=func.__name__))
         return func(*args)
     return wrapper
 
@@ -484,7 +484,7 @@ def skip_if_quick(func):
         # pylint: disable=W0212
         if args[0]._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run {t}'.format(
-                t=func.func_name))
+                t=func.__name__))
         return func(*args)
     return wrapper
 
@@ -499,6 +499,6 @@ def skip_unless_force(func):
         # pylint: disable=W0212
         if not args[0]._opts.force:
             raise unittest.SkipTest('Provide --force option to run {t}'.format(
-                t=func.func_name))
+                t=func.__name__))
         return func(*args)
     return wrapper

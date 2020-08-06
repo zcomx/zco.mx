@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -14,7 +14,7 @@ This script is safe to rerun.
 All is does is queue jobs to run update_creator_indicia.py for the creators
 that weren't initialized properly.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

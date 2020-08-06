@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ rebuild_table.py
 
 A script to rebuild db tables.
 """
-from __future__ import print_function
+
 import os
 import sys
 import tarfile

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -12,7 +12,7 @@ import os
 import pwd
 import re
 import unittest
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from PIL import Image
 from gluon import *
 from gluon.html import DIV, IMG
@@ -248,7 +248,7 @@ class TestImgTag(WithObjectsTestCase, ImageTestCase):
         )
 
         def get_tag(tag, tag_type):
-            soup = BeautifulSoup(str(tag))
+            soup = BeautifulSoup(str(tag), 'html.parser')
             return soup.find(tag_type)
 
         def has_attr(element, attr, value, oper='equal'):
@@ -271,10 +271,10 @@ class TestImgTag(WithObjectsTestCase, ImageTestCase):
         # Test no image
         img_tag = ImgTag(None)
         tag = img_tag()
-        has_attr(get_tag(tag, 'div'), 'class', 'portrait_placeholder')
+        has_attr(get_tag(tag, 'div'), 'class', ['portrait_placeholder'])
         img_tag = ImgTag(None, size='web')
         tag = img_tag()
-        has_attr(get_tag(tag, 'div'), 'class', 'portrait_placeholder')
+        has_attr(get_tag(tag, 'div'), 'class', ['portrait_placeholder'])
 
         # Test: provide tag
         img_tag = ImgTag(self._creator.image, tag=SPAN)
@@ -285,7 +285,7 @@ class TestImgTag(WithObjectsTestCase, ImageTestCase):
         components = [DIV('_test_imgtag_')]
         img_tag = ImgTag(self._creator.image, tag=DIV, components=components)
         tag = img_tag()
-        soup = BeautifulSoup(str(tag))
+        soup = BeautifulSoup(str(tag), 'html.parser')
         div = soup.find('div')
         self.assertTrue(div)
         div_2 = div.find('div')
@@ -300,7 +300,7 @@ class TestImgTag(WithObjectsTestCase, ImageTestCase):
         }
         img_tag = ImgTag(self._creator.image, attributes=attrs)
         tag = img_tag()
-        has_attr(get_tag(tag, 'img'), 'class', 'img_class')
+        has_attr(get_tag(tag, 'img'), 'class', ['img_class'])
         has_attr(get_tag(tag, 'img'), 'id', 'img_id')
         has_attr(get_tag(tag, 'img'), 'src', 'http://www.aaa.com')
 
@@ -377,7 +377,7 @@ class TestResizeImg(ImageTestCase, WithObjectsTestCase, FileTestCase):
             resize_img = ResizeImg(filename)
             resize_img.run()
             tmp_dir = resize_img.temp_directory()
-            for fmt, prefixes in expect.items():
+            for fmt, prefixes in list(expect.items()):
                 for prefix in prefixes:
                     self.assertTrue(prefix in resize_img.filenames)
                     self.assertEqual(
@@ -622,7 +622,7 @@ class TestResizeImgIndicia(WithObjectsTestCase, ImageTestCase, FileTestCase):
         resize_img = ResizeImgIndicia(filename)
         resize_img.run()
         tmp_dir = resize_img.temp_directory()
-        self.assertEqual(resize_img.filenames.keys(), ['ori'])
+        self.assertEqual(list(resize_img.filenames.keys()), ['ori'])
         self.assertEqual(
             resize_img.filenames['ori'],
             os.path.join(tmp_dir, 'ori-256colour-jpg.jpg')

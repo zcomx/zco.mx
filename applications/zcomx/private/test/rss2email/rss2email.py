@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 """rss2email: get RSS feeds emailed to you
 http://rss2email.infogami.com
 
@@ -24,8 +24,9 @@ ___contributors__ = ["Dean Jackson", "Brian Lalor", "Joey Hess",
                      "Marcel Ackermann (http://www.DreamFlasher.de)",
                      "Lindsey Smith (maintainer)", "Erik Hetzner", "Aaron Swartz (original author)" ]
 
-import urllib2
-urllib2.install_opener(urllib2.build_opener())
+import urllib.error
+import urllib.request
+urllib.request.install_opener(urllib.request.build_opener())
 
 ### Options which can be overridden in your config.py ###
 
@@ -164,8 +165,8 @@ def send(sender, recipient, subject, body, contenttype, extraheaders=None, smtps
 
     # We must always pass Unicode strings to Header, otherwise it will
     # use RFC 2047 encoding even on plain ASCII strings.
-    sender_name = str(Header(unicode(sender_name), header_charset))
-    recipient_name = str(Header(unicode(recipient_name), header_charset))
+    sender_name = str(Header(str(sender_name), header_charset))
+    recipient_name = str(Header(str(recipient_name), header_charset))
 
     # Make sure email addresses do not contain non-ASCII characters
     sender_addr = sender_addr.encode('ascii')
@@ -174,10 +175,10 @@ def send(sender, recipient, subject, body, contenttype, extraheaders=None, smtps
     # Create the message ('plain' stands for Content-Type: text/plain)
     msg = MIMEText(body.encode(body_charset), contenttype, body_charset)
     msg['To'] = formataddr((recipient_name, recipient_addr))
-    msg['Subject'] = Header(unicode(subject), header_charset)
-    for hdr in extraheaders.keys():
+    msg['Subject'] = Header(str(subject), header_charset)
+    for hdr in list(extraheaders.keys()):
         try:
-            msg[hdr] = Header(unicode(extraheaders[hdr], header_charset))
+            msg[hdr] = Header(str(extraheaders[hdr], header_charset))
         except:
             msg[hdr] = Header(extraheaders[hdr])
 
@@ -191,7 +192,7 @@ def send(sender, recipient, subject, body, contenttype, extraheaders=None, smtps
 #DEPRECATED         msg_as_string = outs.getvalue()
 
 
-    if VERBOSE: print 'Sending:', unu(subject)
+    if VERBOSE: print('Sending:', unu(subject))
     return
 
     if SMTP_SEND:
@@ -206,12 +207,12 @@ def send(sender, recipient, subject, body, contenttype, extraheaders=None, smtps
                 smtpserver.connect(SMTP_SERVER)
             except KeyboardInterrupt:
                 raise
-            except Exception, e:
-                print >>warn, ""
-                print >>warn, ('Fatal error: could not connect to mail server "%s"' % SMTP_SERVER)
-                print >>warn, ('Check your config.py file to confirm that SMTP_SERVER and other mail server settings are configured properly')
+            except Exception as e:
+                print("", file=warn)
+                print(('Fatal error: could not connect to mail server "%s"' % SMTP_SERVER), file=warn)
+                print(('Check your config.py file to confirm that SMTP_SERVER and other mail server settings are configured properly'), file=warn)
                 if hasattr(e, 'reason'):
-                    print >>warn, "Reason:", e.reason
+                    print("Reason:", e.reason, file=warn)
                 sys.exit(1)
 
             if AUTHREQUIRED:
@@ -222,12 +223,12 @@ def send(sender, recipient, subject, body, contenttype, extraheaders=None, smtps
                     smtpserver.login(SMTP_USER, SMTP_PASS)
                 except KeyboardInterrupt:
                     raise
-                except Exception, e:
-                    print >>warn, ""
-                    print >>warn, ('Fatal error: could not authenticate with mail server "%s" as user "%s"' % (SMTP_SERVER, SMTP_USER))
-                    print >>warn, ('Check your config.py file to confirm that SMTP_SERVER and other mail server settings are configured properly')
+                except Exception as e:
+                    print("", file=warn)
+                    print(('Fatal error: could not authenticate with mail server "%s" as user "%s"' % (SMTP_SERVER, SMTP_USER)), file=warn)
+                    print(('Check your config.py file to confirm that SMTP_SERVER and other mail server settings are configured properly'), file=warn)
                     if hasattr(e, 'reason'):
-                        print >>warn, "Reason:", e.reason
+                        print("Reason:", e.reason, file=warn)
                     sys.exit(1)
 
         smtpserver.sendmail(sender, recipient, msg_as_string)
@@ -240,11 +241,11 @@ def send(sender, recipient, subject, body, contenttype, extraheaders=None, smtps
             status = p.returncode
             assert status != None, "just a sanity check"
             if status != 0:
-                print >>warn, ""
-                print >>warn, ('Fatal error: sendmail exited with code %s' % status)
+                print("", file=warn)
+                print(('Fatal error: sendmail exited with code %s' % status), file=warn)
                 sys.exit(1)
         except:
-            print '''Error attempting to send email via sendmail. Possibly you need to configure your config.py to use a SMTP server? Please refer to the rss2email documentation or website (http://rss2email.infogami.com) for complete documentation of config.py. The options below may suffice for configuring email:
+            print('''Error attempting to send email via sendmail. Possibly you need to configure your config.py to use a SMTP server? Please refer to the rss2email documentation or website (http://rss2email.infogami.com) for complete documentation of config.py. The options below may suffice for configuring email:
 # 1: Use SMTP_SERVER to send mail.
 # 0: Call /usr/sbin/sendmail to send mail.
 SMTP_SEND = 0
@@ -253,7 +254,7 @@ SMTP_SERVER = "smtp.yourisp.net:25"
 AUTHREQUIRED = 0 # if you need to use SMTP AUTH set to 1
 SMTP_USER = 'username'  # for SMTP AUTH, set SMTP username here
 SMTP_PASS = 'password'  # for SMTP AUTH, set SMTP password here
-'''
+''')
             sys.exit(1)
         return None
 
@@ -271,11 +272,11 @@ except:
 warn = sys.stderr
 
 if QP_REQUIRED:
-    print >>warn, "QP_REQUIRED has been deprecated in rss2email."
+    print("QP_REQUIRED has been deprecated in rss2email.", file=warn)
 
 ### Import Modules ###
 
-import cPickle as pickle, time, os, traceback, sys, types, subprocess
+import pickle as pickle, time, os, traceback, sys, types, subprocess
 hash = ()
 try:
     import hashlib
@@ -345,17 +346,17 @@ def timelimit(timeout, function):
             if c.isAlive():
                 raise TimeoutError
             if c.error:
-                raise c.error[0], c.error[1]
+                raise c.error[0](c.error[1])
             return c.result
         return internal2
 #    return internal
 
 
-def isstr(f): return isinstance(f, type('')) or isinstance(f, type(u''))
+def isstr(f): return isinstance(f, type('')) or isinstance(f, type(''))
 def ishtml(t): return type(t) is type(())
 def contains(a,b): return a.find(b) != -1
 def unu(s): # I / freakin' hate / that unicode
-    if type(s) is types.UnicodeType: return s.encode('utf-8')
+    if type(s) is str: return s.encode('utf-8')
     else: return s
 
 ### Parsing Utilities ###
@@ -404,7 +405,7 @@ def getID(entry):
         if 'id' in entry and entry.id:
             # Newer versions of feedparser could return a dictionary
             if type(entry.id) is DictType:
-                return entry.id.values()[0]
+                return list(entry.id.values())[0]
 
             return entry.id
 
@@ -419,7 +420,7 @@ def getName(r, entry):
     if NO_FRIENDLY_NAME: return ''
 
     feed = r.feed
-    if hasattr(r, "url") and r.url in OVERRIDE_FROM.keys():
+    if hasattr(r, "url") and r.url in list(OVERRIDE_FROM.keys()):
         return OVERRIDE_FROM[r.url]
 
     name = feed.get('title', '')
@@ -431,7 +432,7 @@ def getName(r, entry):
             try:
                 name +=  entry.author_detail.name
             except UnicodeDecodeError:
-                name +=  unicode(entry.author_detail.name, 'utf-8')
+                name +=  str(entry.author_detail.name, 'utf-8')
 
     elif 'name' in feed.get('author_detail', []):
         if feed.author_detail.name:
@@ -454,7 +455,7 @@ def getEmail(r, entry):
 
     if FORCE_FROM: return DEFAULT_FROM
 
-    if hasattr(r, "url") and r.url in OVERRIDE_EMAIL.keys():
+    if hasattr(r, "url") and r.url in list(OVERRIDE_EMAIL.keys()):
         return validateEmail(OVERRIDE_EMAIL[r.url], DEFAULT_FROM)
 
     if 'email' in entry.get('author_detail', []):
@@ -470,7 +471,7 @@ def getEmail(r, entry):
         if feed.get("errorreportsto", ''):
             return validateEmail(feed.errorreportsto, DEFAULT_FROM)
 
-    if hasattr(r, "url") and r.url in DEFAULT_EMAIL.keys():
+    if hasattr(r, "url") and r.url in list(DEFAULT_EMAIL.keys()):
         return DEFAULT_EMAIL[r.url]
     return DEFAULT_FROM
 
@@ -484,13 +485,13 @@ class Feed:
 
 def load(lock=1):
     if not os.path.exists(feedfile):
-        print 'Feedfile "%s" does not exist.  If you\'re using r2e for the first time, you' % feedfile
-        print "have to run 'r2e new' first."
+        print('Feedfile "%s" does not exist.  If you\'re using r2e for the first time, you' % feedfile)
+        print("have to run 'r2e new' first.")
         sys.exit(1)
     try:
         feedfileObject = open(feedfile, 'r')
-    except IOError, e:
-        print "Feedfile could not be opened: %s" % e
+    except IOError as e:
+        print("Feedfile could not be opened: %s" % e)
         sys.exit(1)
     feeds = pickle.load(feedfileObject)
 
@@ -524,7 +525,7 @@ def parse(url, etag, modified):
     if PROXY == '':
         return feedparser.parse(url, etag, modified)
     else:
-        proxy = urllib2.ProxyHandler( {"http":PROXY} )
+        proxy = urllib.request.ProxyHandler( {"http":PROXY} )
         return feedparser.parse(url, etag, modified, handlers = [proxy])
 
 
@@ -538,8 +539,8 @@ def add(*args):
 
     feeds, feedfileObject = load()
     if (feeds and not isstr(feeds[0]) and to is None) or (not len(feeds) and to is None):
-        print "No email address has been defined. Please run 'r2e email emailaddress' or"
-        print "'r2e add url emailaddress'."
+        print("No email address has been defined. Please run 'r2e email emailaddress' or")
+        print("'r2e add url emailaddress'.")
         sys.exit(1)
     for url in urls: feeds.append(Feed(url, to))
     unlock(feeds, feedfileObject)
@@ -564,88 +565,88 @@ def run(num=None):
                 feednum += 1
                 if not f.active: continue
 
-                if VERBOSE: print >>warn, 'I: Processing [%d] "%s"' % (feednum, f.url)
+                if VERBOSE: print('I: Processing [%d] "%s"' % (feednum, f.url), file=warn)
                 r = {}
                 try:
                     r = timelimit(FEED_TIMEOUT, parse)(f.url, f.etag, f.modified)
                 except TimeoutError:
-                    print >>warn, 'W: feed [%d] "%s" timed out' % (feednum, f.url)
+                    print('W: feed [%d] "%s" timed out' % (feednum, f.url), file=warn)
                     continue
 
                 # Handle various status conditions, as required
                 if 'status' in r:
                     if r.status == 301: f.url = r['url']
                     elif r.status == 410:
-                        print >>warn, "W: feed gone; deleting", f.url
+                        print("W: feed gone; deleting", f.url, file=warn)
                         feeds.remove(f)
                         continue
 
                 http_status = r.get('status', 200)
-                if VERBOSE > 1: print >>warn, "I: http status", http_status
+                if VERBOSE > 1: print("I: http status", http_status, file=warn)
                 http_headers = r.get('headers', {
                   'content-type': 'application/rss+xml',
                   'content-length':'1'})
                 exc_type = r.get("bozo_exception", Exception()).__class__
                 if http_status != 304 and not r.entries and not r.get('version', ''):
                     if http_status not in [200, 302]:
-                        print >>warn, "W: error %d [%d] %s" % (http_status, feednum, f.url)
+                        print("W: error %d [%d] %s" % (http_status, feednum, f.url), file=warn)
 
                     elif contains(http_headers.get('content-type', 'rss'), 'html'):
-                        print >>warn, "W: looks like HTML [%d] %s"  % (feednum, f.url)
+                        print("W: looks like HTML [%d] %s"  % (feednum, f.url), file=warn)
 
                     elif http_headers.get('content-length', '1') == '0':
-                        print >>warn, "W: empty page [%d] %s" % (feednum, f.url)
+                        print("W: empty page [%d] %s" % (feednum, f.url), file=warn)
 
                     elif hasattr(socket, 'timeout') and exc_type == socket.timeout:
-                        print >>warn, "W: timed out on [%d] %s" % (feednum, f.url)
+                        print("W: timed out on [%d] %s" % (feednum, f.url), file=warn)
 
                     elif exc_type == IOError:
-                        print >>warn, 'W: "%s" [%d] %s' % (r.bozo_exception, feednum, f.url)
+                        print('W: "%s" [%d] %s' % (r.bozo_exception, feednum, f.url), file=warn)
 
                     elif hasattr(feedparser, 'zlib') and exc_type == feedparser.zlib.error:
-                        print >>warn, "W: broken compression [%d] %s" % (feednum, f.url)
+                        print("W: broken compression [%d] %s" % (feednum, f.url), file=warn)
 
                     elif exc_type in socket_errors:
                         exc_reason = r.bozo_exception.args[1]
-                        print >>warn, "W: %s [%d] %s" % (exc_reason, feednum, f.url)
+                        print("W: %s [%d] %s" % (exc_reason, feednum, f.url), file=warn)
 
-                    elif exc_type == urllib2.URLError:
+                    elif exc_type == urllib.error.URLError:
                         if r.bozo_exception.reason.__class__ in socket_errors:
                             exc_reason = r.bozo_exception.reason.args[1]
                         else:
                             exc_reason = r.bozo_exception.reason
-                        print >>warn, "W: %s [%d] %s" % (exc_reason, feednum, f.url)
+                        print("W: %s [%d] %s" % (exc_reason, feednum, f.url), file=warn)
 
                     elif exc_type == AttributeError:
-                        print >>warn, "W: %s [%d] %s" % (r.bozo_exception, feednum, f.url)
+                        print("W: %s [%d] %s" % (r.bozo_exception, feednum, f.url), file=warn)
 
                     elif exc_type == KeyboardInterrupt:
                         raise r.bozo_exception
 
                     elif r.bozo:
-                        print >>warn, 'E: error in [%d] "%s" feed (%s)' % (feednum, f.url, r.get("bozo_exception", "can't process"))
+                        print('E: error in [%d] "%s" feed (%s)' % (feednum, f.url, r.get("bozo_exception", "can't process")), file=warn)
 
                     else:
-                        print >>warn, "=== rss2email encountered a problem with this feed ==="
-                        print >>warn, "=== See the rss2email FAQ at http://www.allthingsrss.com/rss2email/ for assistance ==="
-                        print >>warn, "=== If this occurs repeatedly, send this to lindsey@allthingsrss.com ==="
-                        print >>warn, "E:", r.get("bozo_exception", "can't process"), f.url
-                        print >>warn, r
-                        print >>warn, "rss2email", __version__
-                        print >>warn, "feedparser", feedparser.__version__
-                        print >>warn, "html2text", h2t.__version__
-                        print >>warn, "Python", sys.version
-                        print >>warn, "=== END HERE ==="
+                        print("=== rss2email encountered a problem with this feed ===", file=warn)
+                        print("=== See the rss2email FAQ at http://www.allthingsrss.com/rss2email/ for assistance ===", file=warn)
+                        print("=== If this occurs repeatedly, send this to lindsey@allthingsrss.com ===", file=warn)
+                        print("E:", r.get("bozo_exception", "can't process"), f.url, file=warn)
+                        print(r, file=warn)
+                        print("rss2email", __version__, file=warn)
+                        print("feedparser", feedparser.__version__, file=warn)
+                        print("html2text", h2t.__version__, file=warn)
+                        print("Python", sys.version, file=warn)
+                        print("=== END HERE ===", file=warn)
                     continue
 
                 r.entries.reverse()
 
                 for entry in r.entries:
-                    print '@@@@@@ '
-                    print
+                    print('@@@@@@ ')
+                    print()
                     pprint.pprint(entry)
                     id = getID(entry)
-                    print 'FIXME id: {var}'.format(var=id)
+                    print('FIXME id: {var}'.format(var=id))
 
                     # If TRUST_GUID isn't set, we get back hashes of the content.
                     # Instead of letting these run wild, we put them in context
@@ -654,7 +655,7 @@ def run(num=None):
                     frameid = entry.get('id')
                     if not(frameid): frameid = id
                     if type(frameid) is DictType:
-                        frameid = frameid.values()[0]
+                        frameid = list(frameid.values())[0]
 
                     # If this item's ID is in our database
                     # then it's already been sent
@@ -664,11 +665,11 @@ def run(num=None):
                         if f.seen[frameid] == id: continue
 
                     if not (f.to or default_to):
-                        print "No default email address defined. Please run 'r2e email emailaddress'"
-                        print "Ignoring feed %s" % f.url
+                        print("No default email address defined. Please run 'r2e email emailaddress'")
+                        print("Ignoring feed %s" % f.url)
                         break
 
-                    print 'FIXME entry.keys(): {var}'.format(var=entry.keys)
+                    print('FIXME entry.keys(): {var}'.format(var=entry.keys))
                     if 'title_detail' in entry and entry.title_detail:
                         title = entry.title_detail.value
                         if contains(entry.title_detail.type, 'html'):
@@ -677,7 +678,7 @@ def run(num=None):
                         title = getContent(entry)[:70]
 
                     title = title.replace("\n", " ").strip()
-                    print 'FIXME title: {var}'.format(var=title)
+                    print('FIXME title: {var}'.format(var=title))
 
                     datetime = time.gmtime()
 
@@ -694,7 +695,7 @@ def run(num=None):
                     fromhdr = formataddr((name, from_addr,))
                     tohdr = (f.to or default_to)
                     subjecthdr = title
-                    print 'FIXME subjecthdr: {var}'.format(var=subjecthdr)
+                    print('FIXME subjecthdr: {var}'.format(var=subjecthdr))
                     datehdr = time.strftime("%a, %d %b %Y %H:%M:%S -0000", datetime)
                     useragenthdr = "rss2email"
 
@@ -716,7 +717,7 @@ def run(num=None):
                             if pos > 0:
                                 extraheaders[hdr[:pos]] = hdr[pos+1:].strip()
                             else:
-                                print >>warn, "W: malformed BONUS HEADER", BONUS_HEADER
+                                print("W: malformed BONUS HEADER", BONUS_HEADER, file=warn)
 
                     entrycontent = getContent(entry, HTMLOK=HTML_MAIL)
                     contenttype = 'plain'
@@ -745,7 +746,7 @@ def run(num=None):
                                     content += ('<br/>Enclosure: <a href="'+enclosure.src+'">'+enclosure.src+'</a><br/><img src="'+enclosure.src+'"\n')
                         if 'links' in entry:
                             for extralink in entry.links:
-                                if ('rel' in extralink) and extralink['rel'] == u'via':
+                                if ('rel' in extralink) and extralink['rel'] == 'via':
                                     extraurl = extralink['href']
                                     extraurl = extraurl.replace('http://www.google.com/reader/public/atom/', 'http://www.google.com/reader/view/')
                                     viatitle = extraurl
@@ -769,7 +770,7 @@ def run(num=None):
                                         content += ('Enclosure: <a href="'+enclosure.url+'">'+enclosure.url+"</a><br/>\n")
                             if 'links' in entry:
                                 for extralink in entry.links:
-                                    if ('rel' in extralink) and extralink['rel'] == u'via':
+                                    if ('rel' in extralink) and extralink['rel'] == 'via':
                                         content += 'Via: <a href="'+extralink['href']+'">'+extralink['title']+'</a><br/>\n'
 
                             content += ("\n</body></html>")
@@ -781,7 +782,7 @@ def run(num=None):
                                         content += ('\nEnclosure: ' + enclosure.url + "\n")
                             if 'links' in entry:
                                 for extralink in entry.links:
-                                    if ('rel' in extralink) and extralink['rel'] == u'via':
+                                    if ('rel' in extralink) and extralink['rel'] == 'via':
                                         content += '<a href="'+extralink['href']+'">Via: '+extralink['title']+'</a>\n'
 
                     smtpserver = send(fromhdr, tohdr, subjecthdr, content, contenttype, extraheaders, smtpserver)
@@ -792,16 +793,16 @@ def run(num=None):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
-                print >>warn, "=== rss2email encountered a problem with this feed ==="
-                print >>warn, "=== See the rss2email FAQ at http://www.allthingsrss.com/rss2email/ for assistance ==="
-                print >>warn, "=== If this occurs repeatedly, send this to lindsey@allthingsrss.com ==="
-                print >>warn, "E: could not parse", f.url
+                print("=== rss2email encountered a problem with this feed ===", file=warn)
+                print("=== See the rss2email FAQ at http://www.allthingsrss.com/rss2email/ for assistance ===", file=warn)
+                print("=== If this occurs repeatedly, send this to lindsey@allthingsrss.com ===", file=warn)
+                print("E: could not parse", f.url, file=warn)
                 traceback.print_exc(file=warn)
-                print >>warn, "rss2email", __version__
-                print >>warn, "feedparser", feedparser.__version__
-                print >>warn, "html2text", h2t.__version__
-                print >>warn, "Python", sys.version
-                print >>warn, "=== END HERE ==="
+                print("rss2email", __version__, file=warn)
+                print("feedparser", feedparser.__version__, file=warn)
+                print("html2text", h2t.__version__, file=warn)
+                print("Python", sys.version, file=warn)
+                print("=== END HERE ===", file=warn)
                 continue
 
     finally:
@@ -815,13 +816,13 @@ def list():
 
     if feeds and isstr(feeds[0]):
         default_to = feeds[0]; ifeeds = feeds[1:]; i=1
-        print "default email:", default_to
+        print("default email:", default_to)
     else: ifeeds = feeds; i = 0
     for f in ifeeds:
         active = ('[ ]', '[*]')[f.active]
-        print `i`+':',active, f.url, '('+(f.to or ('default: '+default_to))+')'
+        print(repr(i)+':',active, f.url, '('+(f.to or ('default: '+default_to))+')')
         if not (f.to or default_to):
-            print "   W: Please define a default address with 'r2e email emailaddress'"
+            print("   W: Please define a default address with 'r2e email emailaddress'")
         i+= 1
 
 def opmlexport():
@@ -829,28 +830,28 @@ def opmlexport():
     feeds, feedfileObject = load(lock=0)
 
     if feeds:
-        print '<?xml version="1.0" encoding="UTF-8"?>\n<opml version="1.0">\n<head>\n<title>rss2email OPML export</title>\n</head>\n<body>'
+        print('<?xml version="1.0" encoding="UTF-8"?>\n<opml version="1.0">\n<head>\n<title>rss2email OPML export</title>\n</head>\n<body>')
         for f in feeds[1:]:
             url = xml.sax.saxutils.escape(f.url)
-            print '<outline type="rss" text="%s" xmlUrl="%s"/>' % (url, url)
-        print '</body>\n</opml>'
+            print('<outline type="rss" text="%s" xmlUrl="%s"/>' % (url, url))
+        print('</body>\n</opml>')
 
 def opmlimport(importfile):
     importfileObject = None
-    print 'Importing feeds from', importfile
+    print('Importing feeds from', importfile)
     if not os.path.exists(importfile):
-        print 'OPML import file "%s" does not exist.' % feedfile
+        print('OPML import file "%s" does not exist.' % feedfile)
     try:
         importfileObject = open(importfile, 'r')
-    except IOError, e:
-        print "OPML import file could not be opened: %s" % e
+    except IOError as e:
+        print("OPML import file could not be opened: %s" % e)
         sys.exit(1)
     try:
         import xml.dom.minidom
         dom = xml.dom.minidom.parse(importfileObject)
         newfeeds = dom.getElementsByTagName('outline')
     except:
-        print 'E: Unable to parse OPML file'
+        print('E: Unable to parse OPML file')
         sys.exit(1)
 
     feeds, feedfileObject = load(lock=1)
@@ -860,7 +861,7 @@ def opmlimport(importfile):
     for f in newfeeds:
         if f.hasAttribute('xmlUrl'):
             feedurl = f.getAttribute('xmlUrl')
-            print 'Adding %s' % xml.sax.saxutils.unescape(feedurl)
+            print('Adding %s' % xml.sax.saxutils.unescape(feedurl))
             feeds.append(Feed(feedurl, None))
 
     unlock(feeds, feedfileObject)
@@ -868,25 +869,25 @@ def opmlimport(importfile):
 def delete(n):
     feeds, feedfileObject = load()
     if (n == 0) and (feeds and isstr(feeds[0])):
-        print >>warn, "W: ID has to be equal to or higher than 1"
+        print("W: ID has to be equal to or higher than 1", file=warn)
     elif n >= len(feeds):
-        print >>warn, "W: no such feed"
+        print("W: no such feed", file=warn)
     else:
-        print >>warn, "W: deleting feed %s" % feeds[n].url
+        print("W: deleting feed %s" % feeds[n].url, file=warn)
         feeds = feeds[:n] + feeds[n+1:]
         if n != len(feeds):
-            print >>warn, "W: feed IDs have changed, list before deleting again"
+            print("W: feed IDs have changed, list before deleting again", file=warn)
     unlock(feeds, feedfileObject)
 
 def toggleactive(n, active):
     feeds, feedfileObject = load()
     if (n == 0) and (feeds and isstr(feeds[0])):
-        print >>warn, "W: ID has to be equal to or higher than 1"
+        print("W: ID has to be equal to or higher than 1", file=warn)
     elif n >= len(feeds):
-        print >>warn, "W: no such feed"
+        print("W: no such feed", file=warn)
     else:
         action = ('Pausing', 'Unpausing')[active]
-        print >>warn, "%s feed %s" % (action, feeds[n].url)
+        print("%s feed %s" % (action, feeds[n].url), file=warn)
         feeds[n].active = active
     unlock(feeds, feedfileObject)
 
@@ -896,7 +897,7 @@ def reset():
         ifeeds = feeds[1:]
     else: ifeeds = feeds
     for f in ifeeds:
-        if VERBOSE: print "Resetting %d already seen items" % len(f.seen)
+        if VERBOSE: print("Resetting %d already seen items" % len(f.seen))
         f.seen = {}
         f.etag = None
         f.modified = None
@@ -912,20 +913,20 @@ def email(addr):
 if __name__ == '__main__':
     args = sys.argv
     try:
-        if len(args) < 3: raise InputError, "insufficient args"
+        if len(args) < 3: raise InputError("insufficient args")
         feedfile, action, args = args[1], args[2], args[3:]
 
         if action == "run":
             if args and args[0] == "--no-send":
                 def send(sender, recipient, subject, body, contenttype, extraheaders=None, smtpserver=None):
-                    if VERBOSE: print 'Not sending:', unu(subject)
+                    if VERBOSE: print('Not sending:', unu(subject))
 
             if args and args[-1].isdigit(): run(int(args[-1]))
             else: run()
 
         elif action == "email":
             if not args:
-                raise InputError, "Action '%s' requires an argument" % action
+                raise InputError("Action '%s' requires an argument" % action)
             else:
                 email(args[0])
 
@@ -938,24 +939,24 @@ if __name__ == '__main__':
 
         elif action == "list": list()
 
-        elif action in ("help", "--help", "-h"): print __doc__
+        elif action in ("help", "--help", "-h"): print(__doc__)
 
         elif action == "delete":
             if not args:
-                raise InputError, "Action '%s' requires an argument" % action
+                raise InputError("Action '%s' requires an argument" % action)
             elif args[0].isdigit():
                 delete(int(args[0]))
             else:
-                raise InputError, "Action '%s' requires a number as its argument" % action
+                raise InputError("Action '%s' requires a number as its argument" % action)
 
         elif action in ("pause", "unpause"):
             if not args:
-                raise InputError, "Action '%s' requires an argument" % action
+                raise InputError("Action '%s' requires an argument" % action)
             elif args[0].isdigit():
                 active = (action == "unpause")
                 toggleactive(int(args[0]), active)
             else:
-                raise InputError, "Action '%s' requires a number as its argument" % action
+                raise InputError("Action '%s' requires a number as its argument" % action)
 
         elif action == "reset": reset()
 
@@ -963,14 +964,14 @@ if __name__ == '__main__':
 
         elif action == "opmlimport":
             if not args:
-                raise InputError, "OPML import '%s' requires a filename argument" % action
+                raise InputError("OPML import '%s' requires a filename argument" % action)
             opmlimport(args[0])
 
         else:
-            raise InputError, "Invalid action"
+            raise InputError("Invalid action")
 
-    except InputError, e:
-        print "E:", e
-        print
-        print __doc__
+    except InputError as e:
+        print("E:", e)
+        print()
+        print(__doc__)
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -577,7 +577,7 @@ def store(field, filename, resize=True, resizer=None):
         resize_img.run()
     else:
         # Copy the files as is
-        for size in resize_img.filenames.keys():
+        for size in list(resize_img.filenames.keys()):
             resize_img.filenames[size] = scrubbed_filename
     original_filename = resize_img.filenames['ori']
     with open(original_filename, 'r+b') as f:
@@ -587,7 +587,7 @@ def store(field, filename, resize=True, resizer=None):
     unused_name, fullname = field.retrieve(stored_filename, nameonly=True)
     set_owner(os.path.dirname(fullname))                # store creates subdir
     set_owner(fullname)
-    for size, name in resize_img.filenames.items():
+    for size, name in list(resize_img.filenames.items()):
         if size == 'ori':
             continue
         if name is None:

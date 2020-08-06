@@ -73,7 +73,10 @@ def page_not_found():
                         'label': func_name + ':',
                         'url': URL(c='z', f=func_name, host=True)
                     })
-        urls.invalid = request.vars.request_url
+        if request.vars.request_url:
+            urls.invalid = request.vars.request_url.encode('latin-1').decode('utf-8')
+        else:
+            urls.invalid = None
 
     if not message:
         message = 'The server was not able to display the requested page.'

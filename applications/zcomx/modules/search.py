@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
 
 Search classes and functions.
 """
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from gluon import *
 from gluon.tools import prettydate
 from pydal.validators import urlify
@@ -34,6 +34,7 @@ from applications.zcomx.modules.utils import \
     ClassFactory, \
     replace_in_elements
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
+from functools import reduce
 
 LOG = current.app.logger
 
@@ -335,7 +336,7 @@ class Grid(object):
         paginator = None
         if self.viewby == 'tile':
             # extract the paginator from the grid
-            soup = BeautifulSoup(str(self.form_grid))
+            soup = BeautifulSoup(str(self.form_grid), 'html.parser')
             paginator = soup.find(
                 'div',
                 {'class': 'web2py_paginator grid_header '}

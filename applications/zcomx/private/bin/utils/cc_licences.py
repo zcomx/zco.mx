@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,7 +8,7 @@ Script to create cc_licence records. Script can be re-run without creating
 duplicate records, but will update/replace existing records.
 The --clear is not recommended if books already have cc_licences.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback
@@ -95,20 +95,20 @@ def run_checks():
             LOG.error('Not found in TEMPLATE_DATA: %s', code)
 
     # Each key in TEMPLATE_DATA should be in TEMPLATES
-    for code in TEMPLATE_DATA.keys():
+    for code in list(TEMPLATE_DATA.keys()):
         if code not in TEMPLATES:
             errors += 1
             LOG.error('Not found in TEMPLATES: %s', code)
 
     # Eech element in TEMPLATE_DATA should have the required keys
     required_keys = ['url', 'template_img', 'template_web']
-    for code, data in TEMPLATE_DATA.items():
-        for k in data.keys():
+    for code, data in list(TEMPLATE_DATA.items()):
+        for k in list(data.keys()):
             if k not in required_keys:
                 errors += 1
                 LOG.error('Code %s invalid key: %s', code, k)
         for k in required_keys:
-            if k not in data.keys():
+            if k not in list(data.keys()):
                 errors += 1
                 LOG.error('Code %s missing key: %s', code, k)
     return errors

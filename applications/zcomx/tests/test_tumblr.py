@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -9,7 +9,7 @@ Test suite for zcomx/modules/tumblr.py
 import datetime
 import unittest
 import uuid
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from pydal.objects import Row
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
@@ -154,7 +154,7 @@ class TestBookListingCreator(WithObjectsTestCase):
     def test__link(self):
         listing_creator = BookListingCreator(self._creator)
         link = listing_creator.link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a href="http://123.zco.mx">First Last</a>
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'First Last')
@@ -169,7 +169,7 @@ class TestBookListingCreatorWithTumblr(WithObjectsTestCase):
     def test__link(self):
         listing_creator = BookListingCreatorWithTumblr(self._creator)
         link = listing_creator.link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a href="http://firstlast.tumblr.com">First Last</a>
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'First Last')
@@ -195,19 +195,19 @@ class TestOngoingBookListing(WithObjectsTestCase):
         self.assertEqual(got[3], ' - ')
         self.assertEqual(got[5], ' ')
 
-        soup = BeautifulSoup(str(got[0]))
+        soup = BeautifulSoup(str(got[0]), 'html.parser')
         # <a href="http://zco.mx/FirstLast/MyBook-001">My Book 001</a>
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'My Book 001')
         self.assertEqual(anchor['href'], 'http://zco.mx/FirstLast/MyBook-001')
 
-        soup = BeautifulSoup(str(got[2]))
+        soup = BeautifulSoup(str(got[2]), 'html.parser')
         # <a href="http://firstlast.tumblr.com">First Last</a>
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'First Last')
         self.assertEqual(anchor['href'], 'http://firstlast.tumblr.com')
 
-        soup = BeautifulSoup(str(got[4]))
+        soup = BeautifulSoup(str(got[4]), 'html.parser')
         # <a href="http://zco.mx/FirstLast/MyBook-001/001">01</a>
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'p01')
@@ -273,7 +273,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         )
 
         body = preparer.body()
-        soup = BeautifulSoup(body)
+        soup = BeautifulSoup(body, 'html.parser')
 
         # <ul>
         #  <li>
@@ -377,19 +377,19 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
 
         generator = preparer.book_listing_generator()
 
-        got = generator.next()
+        got = next(generator)
         self.assertTrue(isinstance(got, OngoingBookListing))
         self.assertEqual(got.book, self._book)
         self.assertEqual(got.book_pages, [self._book_page])
         self.assertEqual(got.creator, self._creator)
 
-        got = generator.next()
+        got = next(generator)
         self.assertTrue(isinstance(got, OngoingBookListing))
         self.assertEqual(got.book, self._book)
         self.assertEqual(got.book_pages, [self._book_page_2])
         self.assertEqual(got.creator, self._creator)
 
-        self.assertRaises(StopIteration, generator.next)
+        self.assertRaises(StopIteration, generator.__next__)
 
     def test__data(self):
         date = datetime.date(1999, 12, 31)

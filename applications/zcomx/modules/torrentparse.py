@@ -12,8 +12,11 @@ Parses a torrent file and provides method to access the following attributes.
 Created on 2012-03-07
 
 @author: mohanr
+
+NOTES:
+    The original is no longer developed. It's been converted to python3.
 """
-from StringIO import StringIO
+from io import BytesIO
 from datetime import datetime
 from glob import glob
 import os
@@ -45,23 +48,23 @@ class TorrentParser(object):
     INT_START = 'i'
 
     class _TorrentStr(object):
-        ''' StringIO wrapper over the torrent string.
+        ''' BytesIO wrapper over the torrent string.
 
             TODO:
                 . Create unittests to cover this class.
-                . Should this rather extend StringIO class. Explore.
+                . Should this rather extend BytesIO class. Explore.
         '''
 
         STR_LEN_VALUE_SEP = ':'
         INT_END = 'e'
 
         def __init__(self, torr_str):
-            self.torr_str = StringIO(torr_str)
+            self.torr_str = BytesIO(torr_str)
             self.curr_char = None
 
         def next_char(self):
             self.curr_char = self.torr_str.read(1) # to provide 2 ways of accessing the current parsed char - 1. as return value, 2. as self.curr_char (useful in some circumstances)
-            return self.curr_char
+            return self.curr_char.decode('utf-8')
 
         def step_back(self, position=-1, mode=1):
             ''' Step back, by default, 1 position relative to the current position. '''
@@ -136,13 +139,13 @@ class TorrentParser(object):
             IOError - when the string arg passed points to a non-existent file
 
         '''
-        if not isinstance(torrent_file_path, types.StringType):
+        if not isinstance(torrent_file_path, str):
             raise ValueError('Path of the torrent file expected in string format.')
 
         if not os.path.exists(torrent_file_path):
             raise IOError("No file found at '%s'" % torrent_file_path)
 
-        with open(torrent_file_path) as torr_file:
+        with open(torrent_file_path, 'rb') as torr_file:
             torrent_content = torr_file.read()
             self.torrent_str = self._TorrentStr(torrent_content)
 
@@ -186,7 +189,7 @@ class TorrentParser(object):
             multiple_files_info = files_info.get('files')
             if multiple_files_info: # multiple-file torrent
                 for file_info in multiple_files_info:
-                    parsed_files_info.append((os.path.sep.join(file_info.get('path')), file_info.get('length'), ))
+                    parsed_files_info.append((os.path.sep.join([x.decode('utf-8') for x in file_info.get('path')]), file_info.get('length'), ))
             else: # single file torrent
                 parsed_files_info.append((files_info.get('name'), files_info.get('length'), ))
 
@@ -222,7 +225,7 @@ class TorrentParser(object):
                 if not dict_key:
                     break # End of dict
                 dict_value = self._parse_torrent() # parse value
-                parsed_dict.setdefault(dict_key, dict_value)
+                parsed_dict.setdefault(dict_key.decode('utf-8'), dict_value)
 
             return parsed_dict
 
@@ -243,11 +246,11 @@ if __name__ == '__main__':
         torrent_files = sys.argv[1:]
         for torrent_file in torrent_files:
             if os.path.exists(torrent_file):
-                print 'Parsing file {}'.format(torrent_file)
+                print('Parsing file {}'.format(torrent_file))
             else:
                 sys.exit('Unable to find file {}'.format(torrent_file))
     else:
-        print 'Parsing test torrent files ..' # this is helpful when debugging
+        print('Parsing test torrent files ..') # this is helpful when debugging
 
         test_files_rel_path = '/../tests/test_data/'
         cwd = os.path.dirname(os.path.realpath(__file__))
@@ -256,6 +259,6 @@ if __name__ == '__main__':
 
     for torrent_file in torrent_files:
         tp = TorrentParser(torrent_file)
-        print torrent_file
-        print tp.get_tracker_url(), tp.get_creation_date(), tp.get_client_name(), tp.get_files_details()
-        print '*' * 80
+        print(torrent_file)
+        print(tp.get_tracker_url(), tp.get_creation_date(), tp.get_client_name(), tp.get_files_details())
+        print('*' * 80)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -11,7 +11,7 @@ import os
 import datetime
 import shutil
 import unittest
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from gluon import *
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.book.release_barriers import \
@@ -106,8 +106,7 @@ class TestBaseReleaseBarrier(LocalTestCase):
     # C0103: *Invalid name "%s" (should match %s)*
     # pylint: disable=C0103
     def setUp(self):
-        class DubModalLink(ModalLink):
-            __metaclass__ = DubMeta
+        class DubModalLink(ModalLink, metaclass=DubMeta):
             _dub_methods = [
                 'link',
             ]
@@ -309,7 +308,7 @@ class TestDupeNameBarrier(LocalTestCase):
             release_date=None
         )
 
-        for k, v in not_dupe_data.items():
+        for k, v in list(not_dupe_data.items()):
             data = dict(dupe_data)
             data[k] = v
             book_2 = Book.from_updated(book_2, data)
@@ -372,7 +371,7 @@ class TestDupeNumberBarrier(LocalTestCase):
             release_date=None
         )
 
-        for k, v in not_dupe_data.items():
+        for k, v in list(not_dupe_data.items()):
             data = dict(dupe_data)
             data[k] = v
             book_2.update_record(**data)
@@ -481,7 +480,7 @@ class TestModalLink(LocalTestCase):
             'book_action'
         )
         link = modal_link.link()
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # Expect:
         # <a class="modal-action-btn close_current_dialog no_rclick_menu"
         #   data-book_id="123" href="/login/book_action/123">My Link</a>
@@ -489,7 +488,7 @@ class TestModalLink(LocalTestCase):
         self.assertEqual(anchor.string, 'My Link')
         self.assertEqual(
             anchor['class'],
-            'modal-action-btn close_current_dialog no_rclick_menu'
+            ['modal-action-btn', 'close_current_dialog', 'no_rclick_menu']
         )
         self.assertEqual(anchor['data-book_id'], '123')
         self.assertEqual(anchor['href'], '/login/book_action/123')
@@ -807,14 +806,15 @@ class TestConstants(LocalTestCase):
         base_class = BaseReleaseBarrier
         base_classes = []
 
-        classes = [x for x in globals().values() if inspect.isclass(x)]
+        classes = [x for x in list(globals().values()) if inspect.isclass(x)]
         ignore_classes = [base_class]
         for c in classes:
             if c not in ignore_classes and base_class in inspect.getmro(c):
                 base_classes.append(c)
+        expect = COMPLETE_BARRIER_CLASSES + FILESHARING_BARRIER_CLASSES
         self.assertEqual(
-            sorted(base_classes),
-            sorted(COMPLETE_BARRIER_CLASSES + FILESHARING_BARRIER_CLASSES)
+            sorted([str(x) for x in base_classes]),
+            sorted([str(x) for x in expect]),
         )
 
 

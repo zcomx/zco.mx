@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -273,7 +273,7 @@ class TestRecords(LocalTestCase):
         records = Records([book_1, book_2])
         self.assertEqual(len(records), 2)
 
-    def test____nonzero__(self):
+    def test____bool__(self):
         records = Records([])
         self.assertFalse(records)
         book_1 = DubBook(name='My Book')

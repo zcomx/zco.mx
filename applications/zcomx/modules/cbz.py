@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -162,7 +162,7 @@ class CBZCreator(TempDirectoryMixin):
         os.link(src_filename, dst_filename)
         cbz_filename = self.zip()
         zipper = zipfile.ZipFile(cbz_filename, 'a')
-        zipper.comment = cbz_comment(self.book)
+        zipper.comment = cbz_comment(self.book).encode('utf-8')
         zipper.close()
         return cbz_filename
 

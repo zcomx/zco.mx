@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ create_sitemap.py
 Script to tally the yearly and monthly contributions, ratings, and views for
 each book.
 """
-from __future__ import print_function
+
 import sys
 import traceback
 from optparse import OptionParser
@@ -181,7 +181,7 @@ def main():
             )
 
     if options.outfile:
-        with open(options.outfile, 'w') as f:
+        with open(options.outfile, 'wb') as f:
             f.write(sitemap.xml())
     else:
         print(sitemap.xml())

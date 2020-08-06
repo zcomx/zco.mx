@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -10,6 +10,7 @@ from applications.zcomx.modules.zco import \
     BOOK_STATUS_ACTIVE, \
     BOOK_STATUS_DISABLED, \
     BOOK_STATUS_DRAFT
+from functools import reduce
 
 LOG = current.app.logger
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -153,7 +153,7 @@ class TestDaemon(LocalTestCase):
         open(self.pid_filename, 'w').close()            # Empty file
         daemon.update_pid()
         params = daemon.read_pid()
-        self.assertEqual(params.keys(), ['last'])
+        self.assertEqual(list(params.keys()), ['last'])
 
         data = {
             'pid': '1234',
@@ -324,7 +324,7 @@ class TestQueue(LocalTestCase):
 
         gen = queue.job_generator()
         # No jobs
-        self.assertRaises(StopIteration, gen.next)
+        self.assertRaises(StopIteration, gen.__next__)
 
         job_data = [
             # (command, start, priority, status)
@@ -341,16 +341,16 @@ class TestQueue(LocalTestCase):
             all_jobs.append(job)
 
         gen = queue.job_generator()
-        job = gen.next()
+        job = next(gen)
         self.assertEqual(job.command, 'do_c')
         all_jobs[2].delete()
-        job = gen.next()
+        job = next(gen)
         self.assertEqual(job.command, 'do_b')
         all_jobs[1].delete()
-        job = gen.next()
+        job = next(gen)
         self.assertEqual(job.command, 'do_a')
         all_jobs[0].delete()
-        self.assertRaises(StopIteration, gen.next)
+        self.assertRaises(StopIteration, gen.__next__)
 
         for j in all_jobs:
             try:
@@ -503,7 +503,7 @@ class TestQueue(LocalTestCase):
         text = 'Hello World!'
 
         script = """
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 def main():
     import sys
@@ -522,7 +522,7 @@ if __name__ == '__main__':
         script_name = os.path.join(TMP_DIR, 'test__run.py')
         with open(script_name, 'w') as f:
             f.write(script.strip())
-        os.chmod(script_name, 0700)
+        os.chmod(script_name, 0o700)
 
         # Test without args or options
         job.command = script_name

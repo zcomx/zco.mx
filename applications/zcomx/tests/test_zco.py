@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -33,9 +33,9 @@ class TestZco(LocalTestCase):
     def test____init__(self):
         env = globals()
         session = env['session']
-        self.assertTrue('zco' not in session.keys())
+        self.assertTrue('zco' not in list(session.keys()))
         Zco()
-        self.assertTrue('zco' in session.keys())
+        self.assertTrue('zco' in list(session.keys()))
 
     def test_book_marks(self):
         self.assertEqual(Zco().book_marks, Storage({}))
@@ -196,7 +196,7 @@ class TestConstants(LocalTestCase):
                 'zip',
             ]
         )
-        for v in NICES.values():
+        for v in list(NICES.values()):
             self.assertTrue(v <= 19)
             self.assertTrue(v >= 10)
 

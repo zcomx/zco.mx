@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -13,7 +13,7 @@ The update_creator_indicia is not queued.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-from __future__ import print_function
+
 import os
 import shutil
 import sys

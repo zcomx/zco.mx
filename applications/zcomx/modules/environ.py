@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -50,7 +50,9 @@ def server_production_mode(request):
         str: 'test' or 'live'
     """
     server_mode = None
-    if request.env.http_host:
+    # If http_host = '127.0.0.1:8000' then web2py started from the shell.
+    # The request.env.server_product_mode will be None then.
+    if request.env.http_host and request.env.http_host != '127.0.0.1:8000':
         server_mode = request.env.server_production_mode
 
     if not server_mode:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -59,7 +59,7 @@ class TestTorrentParser(LocalTestCase):
 
     def test__get_client_name(self):
         parser = TorrentParser(self._torrent_path('book'))
-        self.assertEqual(parser.get_client_name(), 'mktorrent 1.0')
+        self.assertEqual(parser.get_client_name(), b'mktorrent 1.0')
 
     def test__get_creation_date(self):
         parser = TorrentParser(self._torrent_path('book'))
@@ -69,14 +69,14 @@ class TestTorrentParser(LocalTestCase):
         parser = TorrentParser(self._torrent_path('book'))
         self.assertEqual(
             parser.get_files_details(),
-            [('Wolf (SO5) (2014) (101.zco.mx).cbz', 5022594)]
+            [(b'Wolf (SO5) (2014) (101.zco.mx).cbz', 5022594)]
         )
 
     def test__get_tracker_url(self):
         parser = TorrentParser(self._torrent_path('book'))
         self.assertEqual(
             parser.get_tracker_url(),
-            'http://bt.zco.mx:6969/announce'
+            b'http://bt.zco.mx:6969/announce'
         )
 
 

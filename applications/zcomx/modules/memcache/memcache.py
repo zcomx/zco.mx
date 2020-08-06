@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 """client module for memcached (memory cache daemon)
 
@@ -44,9 +44,6 @@ Detailed Documentation
 More detailed documentation is available in the L{Client} class.
 
 """
-
-from __future__ import print_function
-
 import binascii
 import os
 import pickle
@@ -56,6 +53,8 @@ import sys
 import threading
 import time
 import zlib
+
+import six
 
 
 def cmemcache_hash(key):
@@ -84,14 +83,14 @@ except ImportError:
 
 from io import BytesIO
 try:
-    unicode
+    str
 except NameError:
     _has_unicode = False
 else:
     _has_unicode = True
 
 try:
-    _str_cls = basestring
+    _str_cls = str
 except NameError:
     _str_cls = str
 
@@ -431,7 +430,7 @@ class Client(threading.local):
         dead_servers = []
 
         rc = 1
-        for server in server_keys.iterkeys():
+        for server in six.iterkeys(server_keys):
             bigcmd = []
             write = bigcmd.append
             if time is not None:
@@ -453,7 +452,7 @@ class Client(threading.local):
         for server in dead_servers:
             del server_keys[server]
 
-        for server, keys in server_keys.iteritems():
+        for server, keys in six.iteritems(server_keys):
             try:
                 for key in keys:
                     server.expect("DELETED")
@@ -792,13 +791,13 @@ class Client(threading.local):
         self._statlog('set_multi')
 
         server_keys, prefixed_to_orig_key = self._map_and_prefix_keys(
-            mapping.iterkeys(), key_prefix)
+            six.iterkeys(mapping), key_prefix)
 
         # send out all requests on each server before reading anything
         dead_servers = []
         notstored = []  # original keys.
 
-        for server in server_keys.iterkeys():
+        for server in six.iterkeys(server_keys):
             bigcmd = []
             write = bigcmd.append
             try:
@@ -828,9 +827,9 @@ class Client(threading.local):
 
         #  short-circuit if there are no servers, just return all keys
         if not server_keys:
-            return(mapping.keys())
+            return(list(mapping.keys()))
 
-        for server, keys in server_keys.iteritems():
+        for server, keys in six.iteritems(server_keys):
             try:
                 for key in keys:
                     if server.readline() == 'STORED':
@@ -858,7 +857,7 @@ class Client(threading.local):
             val = "%d" % val
             # force no attempt to compress this silly string.
             min_compress_len = 0
-        elif isinstance(val, long):
+        elif isinstance(val, int):
             flags |= Client._FLAG_LONG
             val = "%d" % val
             # force no attempt to compress this silly string.
@@ -1068,7 +1067,7 @@ class Client(threading.local):
 
         # send out all requests on each server before reading anything
         dead_servers = []
-        for server in server_keys.iterkeys():
+        for server in six.iterkeys(server_keys):
             try:
                 server.send_cmd("get %s" % " ".join(server_keys[server]))
             except socket.error as msg:
@@ -1082,7 +1081,7 @@ class Client(threading.local):
             del server_keys[server]
 
         retvals = {}
-        for server in server_keys.iterkeys():
+        for server in six.iterkeys(server_keys):
             try:
                 line = server.readline()
                 while line and line != 'END':
@@ -1140,7 +1139,7 @@ class Client(threading.local):
         elif flags & Client._FLAG_INTEGER:
             val = int(buf)
         elif flags & Client._FLAG_LONG:
-            val = long(buf)
+            val = int(buf)
         elif flags & Client._FLAG_PICKLE:
             try:
                 file = BytesIO(buf)
@@ -1176,7 +1175,7 @@ class Client(threading.local):
 
         # Make sure we're not a specific unicode type, if we're old enough that
         # it's a separate type.
-        if _has_unicode is True and isinstance(key, unicode):
+        if _has_unicode is True and isinstance(key, str):
             raise Client.MemcachedStringEncodingError(
                 "Keys must be str()'s, not unicode.  Convert your unicode "
                 "strings using mystring.encode(charset)!")
@@ -1367,7 +1366,7 @@ class _Host(object):
 
 def _doctest():
     import doctest
-    import memcache
+    from . import memcache
     servers = ["127.0.0.1:11211"]
     mc = Client(servers, debug=1)
     globs = {"mc": mc}
@@ -1393,8 +1392,12 @@ if __name__ == "__main__":
 
         def test_setget(key, val):
             global failures
-            print("Testing set/get {'%s': %s} ..."
-                  % (to_s(key), to_s(val)), end=" ")
+            print(
+                "Testing set/get {'{k}': {v}} ...".format(
+                    k=to_s(key),
+                    v=to_s(val)
+                )
+            )
             mc.set(key, val)
             newval = mc.get(key)
             if newval == val:
@@ -1420,14 +1423,14 @@ if __name__ == "__main__":
 
         test_setget("a_string", "some random string")
         test_setget("an_integer", 42)
-        if test_setget("long", long(1 << 30)):
-            print("Testing delete ...", end=" ")
+        if test_setget("long", int(1 << 30)):
+            print("Testing delete ...")
             if mc.delete("long"):
                 print("OK")
             else:
                 print("FAIL")
                 failures += 1
-            print("Checking results of delete ...", end=" ")
+            print("Checking results of delete ...")
             if mc.get("long") is None:
                 print("OK")
             else:
@@ -1451,13 +1454,13 @@ if __name__ == "__main__":
         #         print("FAIL")
         #         failures += 1
 
-        print("Testing get(unknown value) ...", end=" ")
+        print("Testing get(unknown value) ...")
         print(to_s(mc.get("unknown_value")))
 
         f = FooStruct()
         test_setget("foostruct", f)
 
-        print("Testing incr ...", end=" ")
+        print("Testing incr ...")
         x = mc.incr("an_integer", 1)
         if x == 43:
             print("OK")
@@ -1465,7 +1468,7 @@ if __name__ == "__main__":
             print("FAIL")
             failures += 1
 
-        print("Testing decr ...", end=" ")
+        print("Testing decr ...")
         x = mc.decr("an_integer", 1)
         if x == 42:
             print("OK")
@@ -1475,7 +1478,7 @@ if __name__ == "__main__":
         sys.stdout.flush()
 
         # sanity tests
-        print("Testing sending spaces...", end=" ")
+        print("Testing sending spaces...")
         sys.stdout.flush()
         try:
             x = mc.set("this has spaces", 1)
@@ -1485,7 +1488,7 @@ if __name__ == "__main__":
             print("FAIL")
             failures += 1
 
-        print("Testing sending control characters...", end=" ")
+        print("Testing sending control characters...")
         try:
             x = mc.set("this\x10has\x11control characters\x02", 1)
         except Client.MemcachedKeyCharacterError as msg:
@@ -1494,7 +1497,7 @@ if __name__ == "__main__":
             print("FAIL")
             failures += 1
 
-        print("Testing using insanely long key...", end=" ")
+        print("Testing using insanely long key...")
         try:
             x = mc.set('a'*SERVER_MAX_KEY_LENGTH, 1)
         except Client.MemcachedKeyLengthError as msg:
@@ -1510,21 +1513,21 @@ if __name__ == "__main__":
             print("FAIL")
             failures += 1
 
-        print("Testing sending a unicode-string key...", end=" ")
+        print("Testing sending a unicode-string key...")
         try:
-            x = mc.set(unicode('keyhere'), 1)
+            x = mc.set(str('keyhere'), 1)
         except Client.MemcachedStringEncodingError as msg:
-            print("OK", end=" ")
+            print("OK")
         else:
-            print("FAIL", end=" ")
+            print("FAIL")
             failures += 1
         try:
-            x = mc.set((unicode('a')*SERVER_MAX_KEY_LENGTH).encode('utf-8'), 1)
+            x = mc.set((str('a')*SERVER_MAX_KEY_LENGTH).encode('utf-8'), 1)
         except Client.MemcachedKeyError:
-            print("FAIL", end=" ")
+            print("FAIL")
             failures += 1
         else:
-            print("OK", end=" ")
+            print("OK")
         s = pickle.loads('V\\u4f1a\np0\n.')
         try:
             x = mc.set((s * SERVER_MAX_KEY_LENGTH).encode('utf-8'), 1)
@@ -1538,9 +1541,9 @@ if __name__ == "__main__":
         print('NOTE: "MemCached: while expecting[...]" is normal...')
         x = mc.set('keyhere', 'a'*SERVER_MAX_VALUE_LENGTH)
         if mc.get('keyhere') is None:
-            print("OK", end=" ")
+            print("OK")
         else:
-            print("FAIL", end=" ")
+            print("FAIL")
             failures += 1
         x = mc.set('keyhere', 'a'*SERVER_MAX_VALUE_LENGTH + 'aaa')
         if mc.get('keyhere') is None:
@@ -1549,7 +1552,7 @@ if __name__ == "__main__":
             print("FAIL")
             failures += 1
 
-        print("Testing set_multi() with no memcacheds running", end=" ")
+        print("Testing set_multi() with no memcacheds running")
         mc.disconnect_all()
         errors = mc.set_multi({'keyhere': 'a', 'keythere': 'b'})
         if errors != []:
@@ -1558,7 +1561,7 @@ if __name__ == "__main__":
         else:
             print("OK")
 
-        print("Testing delete_multi() with no memcacheds running", end=" ")
+        print("Testing delete_multi() with no memcacheds running")
         mc.disconnect_all()
         ret = mc.delete_multi({'keyhere': 'a', 'keythere': 'b'})
         if ret != 1:

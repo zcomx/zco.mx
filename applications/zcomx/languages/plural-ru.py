@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 {
 # "singular form (0)": ["first plural form (1)", "second plural form (2)", ...],
 'выбрана': ['выбраны','выбрано'],

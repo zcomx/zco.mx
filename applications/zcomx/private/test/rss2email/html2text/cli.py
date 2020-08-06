@@ -144,7 +144,7 @@ def main():
 
         if file_.startswith('http://') or file_.startswith('https://'):
             baseurl = file_
-            j = urllib.urlopen(baseurl)
+            j = urllib.request.urlopen(baseurl)
             data = j.read()
             if encoding is None:
                 try:

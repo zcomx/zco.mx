@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,7 +8,7 @@ Script to fix activity_log records.
 Set activity_log.deleted_book_page_ids where applicable.
 See mod 13050.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

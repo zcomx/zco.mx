@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ queue_handler.py
 
 Check queue and run any jobs found.
 """
-from __future__ import print_function
+
 import datetime
 import subprocess
 import sys

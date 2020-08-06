@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ process_img.py
 
 Script to process an image.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

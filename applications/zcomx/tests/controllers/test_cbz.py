@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -54,7 +54,12 @@ class TestFunctions(WebTestCase):
         expect.append(self._book.name)
         expect.append(cbz_comment(self._book))
         url_path = '/cbz/download/{bid}?no_queue=1'.format(bid=self._book.id)
-        self.assertWebTest(url_path, match_page_key='', match_strings=expect)
+        self.assertWebTest(
+            url_path,
+            match_page_key='',
+            match_strings=expect,
+            charset='latin-1'
+        )
 
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
@@ -84,7 +89,12 @@ class TestFunctions(WebTestCase):
             cid=self._creator.id,
             cbz='{n}.cbz'.format(n=book_name(self._book, use='url'))
         )
-        self.assertWebTest(url_path, match_page_key='', match_strings=expect)
+        self.assertWebTest(
+            url_path,
+            match_page_key='',
+            match_strings=expect,
+            charset='latin-1'
+        )
 
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
@@ -98,7 +108,12 @@ class TestFunctions(WebTestCase):
             name=self._creator.name_for_url,
             cbz='{n}.cbz'.format(n=book_name(self._book, use='url'))
         )
-        self.assertWebTest(url_path, match_page_key='', match_strings=expect)
+        self.assertWebTest(
+            url_path,
+            match_page_key='',
+            match_strings=expect,
+            charset='latin-1'
+        )
 
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 2)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ ConfigParser_improved.py
 ConfigParser with improvements.
 """
 
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 
 
 class ConfigParserImproved(SafeConfigParser):

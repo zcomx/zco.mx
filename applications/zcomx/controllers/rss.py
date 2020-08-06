@@ -132,7 +132,8 @@ def route():
 
         # Test for request.vars.creator as creator.name_for_url
         if not creator:
-            name = request.vars.creator.replace('_', ' ')
+            encoded_name = request.vars.creator.encode('latin-1').decode('utf-8')
+            name = encoded_name.replace('_', ' ')
             try:
                 creator = Creator.from_key({'name_for_url': name})
             except LookupError:
@@ -166,7 +167,8 @@ def route():
         creator_name = rss_name
         if rss_name.endswith(extension):
             creator_name = rss_name[:(-1 * len(extension))]
-        query = (db.creator.name_for_url == creator_name)
+        encoded_name = creator_name.encode('latin-1').decode('utf-8')
+        query = (db.creator.name_for_url == encoded_name)
         creator = db(query).select(limitby=(0, 1)).first()
         if not creator:
             return page_not_found()
@@ -178,8 +180,9 @@ def route():
     if rss_type == 'book':
         if rss_name.endswith(extension):
             book_name = rss_name[:(-1 * len(extension))]
+        encoded_name = book_name.encode('latin-1').decode('utf-8')
         query = (db.book.creator_id == creator.id) & \
-            (db.book.name_for_url == book_name)
+            (db.book.name_for_url == encoded_name)
         book = db(query).select(limitby=(0, 1)).first()
         if not book:
             return page_not_found()

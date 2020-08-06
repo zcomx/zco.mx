@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ Test suite for zcomx/modules/book_lists.py
 
 """
 import unittest
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from gluon import *
 from applications.zcomx.modules.book_lists import \
     BaseBookList, \
@@ -212,16 +212,16 @@ class TestCompletedBookList(LocalTestCase):
     def test__headers(self):
         book_list = CompletedBookList({})
         headers = book_list.headers()
-        for k, v in headers.iteritems():
+        for k, v in headers.items():
             if k == 'fileshare_checkbox':
                 continue
             self.assertEqual(v, None)
 
-        soup = BeautifulSoup(str(headers['fileshare_checkbox']))
+        soup = BeautifulSoup(str(headers['fileshare_checkbox']), 'html.parser')
         # <div class="fileshare_header text-muted">Set as completed</div>
         div = soup.find('div')
         self.assertEqual(div.string, 'Release for filesharing')
-        self.assertEqual(div['class'], 'checkbox_header text-muted')
+        self.assertEqual(div['class'], ['checkbox_header', 'text-muted'])
 
     def test__include_fileshare_checkbox(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"%%s*
@@ -335,16 +335,16 @@ class TestOngoingBookList(LocalTestCase):
     def test__headers(self):
         book_list = OngoingBookList({})
         headers = book_list.headers()
-        for k, v in headers.iteritems():
+        for k, v in headers.items():
             if k == 'complete_checkbox':
                 continue
             self.assertEqual(v, None)
 
-        soup = BeautifulSoup(str(headers['complete_checkbox']))
+        soup = BeautifulSoup(str(headers['complete_checkbox']), 'html.parser')
         # <div class="checkbox_header text-muted">Set as completed</div>
         div = soup.find('div')
         self.assertEqual(div.string, 'Set as completed')
-        self.assertEqual(div['class'], 'checkbox_header text-muted')
+        self.assertEqual(div['class'], ['checkbox_header', 'text-muted'])
 
     def test__include_complete_checkbox(self):
         book_list = OngoingBookList({})

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -10,18 +10,31 @@ Classes and functions related to logging.
 import logging
 
 
-def set_cli_logging(logger, verbose, more_verbose, with_time=False):
+def set_cli_logging(
+        logger,
+        verbose,
+        more_verbose,
+        quiet=False,
+        with_time=False):
     """Set logging for cli scripts.
 
     Args:
         logger: logging.Logger instance
         verbose: if True, level is set to logging.INFO
         more_verbose: if True, level is set to logging.DEBUG
+        quiet: if True, level is set to logging.critical
         with_time: if True formatter includes a timestamp.
+
+    Notes:
+        Order of precedence
+            more_verbose            highest
+            verbose
+            quiet                   lowest
     """
     level = logging.DEBUG if more_verbose \
-            else logging.INFO if verbose \
-            else logging.WARNING
+        else logging.INFO if verbose \
+        else logging.CRITICAL if quiet \
+        else logging.WARNING
     formats = {
         'default': '%(levelname)s - %(message)s',
         'with_time': '%(asctime)s - %(levelname)s - %(message)s',

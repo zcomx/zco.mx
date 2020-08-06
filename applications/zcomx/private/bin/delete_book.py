@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ delete_book.py
 
 Script to delete a book.
 """
-from __future__ import print_function
+
 import sys
 import traceback
 from optparse import OptionParser

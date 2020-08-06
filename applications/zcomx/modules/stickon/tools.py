@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -10,26 +10,21 @@ Classes extending functionality of gluon/tools.py.
 import os
 from gluon import *
 from gluon.contrib.appconfig import AppConfig
-from gluon.contrib.memdb import MEMDB
 from gluon.dal import Field
 from gluon.storage import Settings
-from gluon.tools import \
-    Auth, \
-    Crud, \
-    Expose, \
-    Mail, \
-    Service
+from gluon.tools import (
+    Auth,
+    Crud,
+    Expose,
+    Mail,
+    Service,
+)
 from applications.zcomx.modules.ConfigParser_improved import  \
     ConfigParserImproved
 from applications.zcomx.modules.environ import server_production_mode
 from applications.zcomx.modules.memcache import MemcacheClient
 from applications.zcomx.modules.mysql import LocalMySQL
 from applications.zcomx.modules.python import from_dict_by_keys
-
-# C0103: *Invalid name "%s" (should match %s)*
-# Some variable names are adapted from web2py.
-# pylint: disable=C0103
-# pylint: disable=redefined-outer-name
 
 
 class ConfigFileError(Exception):
@@ -144,12 +139,12 @@ class ModelDb(object):
 
         host = ''
         request = self.environment['request']
-        if 'wsgi' in request.keys():
+        if 'wsgi' in list(request.keys()):
             if hasattr(request['wsgi'], 'environ') and \
                     request['wsgi'].environ and \
                     'HTTP_HOST' in request['wsgi'].environ:
                 host = request['wsgi'].environ['HTTP_HOST']
-        elif 'env' in request.keys():
+        elif 'env' in list(request.keys()):
             host = request.env.http_post
         if host:
             auth.messages.verify_email = 'Click on the link http://' + host \
@@ -168,7 +163,7 @@ class ModelDb(object):
                 'created_on',
                 'datetime',
                 default=request.now,
-                represent=lambda x: str(x),
+                represent=lambda v, r=None: str(v),
                 readable=False,
                 writable=False,
             ),
@@ -177,7 +172,7 @@ class ModelDb(object):
                 'datetime',
                 default=request.now,
                 update=request.now,
-                represent=lambda x: str(x),
+                represent=lambda v, r=None: str(v),
                 readable=False,
                 writable=False,
             )
@@ -208,11 +203,6 @@ class ModelDb(object):
                 default_time_expire=Auth.default_settings['expiration'],
             )
             cache.ram = cache.disk = cache.memcache
-
-            if self.settings_loader and self.local_settings.memcache_sessions:
-                response = self.environment['response']
-                session = self.environment['session']
-                session.connect(request, response, db=MEMDB(cache.memcache))
 
         return cache
 
@@ -483,7 +473,7 @@ class SettingsLoader(object):
             # nothing to import
             return
 
-        for setting in sub_dict.keys():
+        for setting in list(sub_dict.keys()):
             raw_value = sub_dict[setting]
             storage[setting] = self.scrub_unicode(raw_value) \
                 if unicode_to_str else raw_value
@@ -499,6 +489,6 @@ class SettingsLoader(object):
             setting_value, mixed
             unicode_to_str: If True, unicode values are converted to str
         """
-        if not isinstance(setting_value, unicode):
+        if not isinstance(setting_value, str):
             return setting_value
         return str(setting_value)

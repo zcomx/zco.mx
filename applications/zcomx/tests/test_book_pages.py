@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ Test suite for zcomx/modules/book_pages.py
 
 """
 import unittest
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from gluon import *
 from applications.zcomx.modules.book_pages import \
     AbridgedBookPageNumbers, \
@@ -150,7 +150,7 @@ class TestBookPageNumber(WithPagesTestCase):
     def test__link(self):
         number = BookPageNumber(self._book_pages[2])
         got = number.link(url_func)
-        soup = BeautifulSoup(str(got))
+        soup = BeautifulSoup(str(got), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'p03')
         self.assertEqual(anchor['href'], 'http://page/003')
@@ -167,17 +167,17 @@ class TestBookPageNumbers(WithPagesTestCase):
         got = numbers.links(url_func)
         self.assertEqual(len(got), 3)
 
-        soup = BeautifulSoup(str(got[0]))
+        soup = BeautifulSoup(str(got[0]), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'p01')
         self.assertEqual(anchor['href'], 'http://page/001')
 
-        soup = BeautifulSoup(str(got[1]))
+        soup = BeautifulSoup(str(got[1]), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'p02')
         self.assertEqual(anchor['href'], 'http://page/002')
 
-        soup = BeautifulSoup(str(got[2]))
+        soup = BeautifulSoup(str(got[2]), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'p03')
         self.assertEqual(anchor['href'], 'http://page/003')

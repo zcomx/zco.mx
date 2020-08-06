@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -33,18 +33,9 @@ class FileName(str):
 
     invalid_chars = allowed_in_inputs + not_allowed_in_inputs
 
-    def __init__(self, raw):
-        """Constructor
-
-        Args:
-            raw: string, the raw name of the file
-        """
-        self.raw = raw
-        str.__init__(self, self.raw)
-
     def pre_scrub(self):
         """Overridable method to implement pre-scrub formatting."""
-        return self.raw
+        return self
 
     def scrubbed(self):
         """Return the filename scrubbed.
@@ -70,14 +61,6 @@ class TitleFileName(FileName):
     # R0904 (too-many-public-methods): *Too many public methods (%%s/%%s)*
     # pylint: disable=R0904
 
-    def __init__(self, raw):
-        """Constructor
-
-        Args:
-            raw: string, the raw name of the file
-        """
-        FileName.__init__(self, raw)
-
     def pre_scrub(self):
         """Return the filename scrubbed.
 
@@ -85,7 +68,7 @@ class TitleFileName(FileName):
             string
         """
         # Replace colon wrapped in optional space with space hyphen space
-        return re.sub(r'\s*:\s*', ':', self.raw).replace(':', ' - ')
+        return re.sub(r'\s*:\s*', ':', self).replace(':', ' - ')
 
 
 def for_file(text):

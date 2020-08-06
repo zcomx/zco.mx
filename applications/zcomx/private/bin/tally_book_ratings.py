@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ tally_book_ratings.py
 Script to tally the yearly and monthly contributions, ratings, and views for
 each book.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

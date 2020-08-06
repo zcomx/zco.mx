@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -35,18 +35,16 @@ class TestSiteMapUrl(LocalTestCase):
             last_modified=last_modified,
         )
         got = sitemap_url.xml_component()
-        self.assertEqual(
-            got.xml(),
-            rm_whitespace(
-                """<url>
-                    <loc>http://example.com</loc>
-                    <lastmod>2001-12-31</lastmod>
-                    <changefreq>daily</changefreq>
-                    <priority>1.0</priority>
-                </url>
-                """
-            )
-        )
+        expect = rm_whitespace(
+            """<url>
+                <loc>http://example.com</loc>
+                <lastmod>2001-12-31</lastmod>
+                <changefreq>daily</changefreq>
+                <priority>1.0</priority>
+            </url>
+            """
+        ).encode('utf-8')
+        self.assertEqual(got.xml(), expect)
 
         sitemap_url = SiteMapUrl(
             'http://example.com',
@@ -55,18 +53,16 @@ class TestSiteMapUrl(LocalTestCase):
             priority=0.3,
         )
         got = sitemap_url.xml_component()
-        self.assertEqual(
-            got.xml(),
-            rm_whitespace(
-                """<url>
-                    <loc>http://example.com</loc>
-                    <lastmod>2001-12-31</lastmod>
-                    <changefreq>monthly</changefreq>
-                    <priority>0.3</priority>
-                </url>
-                """
-            )
-        )
+        expect = rm_whitespace(
+            """<url>
+                <loc>http://example.com</loc>
+                <lastmod>2001-12-31</lastmod>
+                <changefreq>monthly</changefreq>
+                <priority>0.3</priority>
+            </url>
+            """
+        ).encode('utf-8')
+        self.assertEqual(got.xml(), expect)
 
 
 def setUpModule():

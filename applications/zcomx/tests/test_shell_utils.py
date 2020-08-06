@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -84,14 +84,15 @@ class TestUnixFile(LocalTestCase):
         self.assertTrue(unix_file)
 
     def test__file(self):
-        filename = inspect.getfile(inspect.currentframe())
+        filename = 'applications/zcomx/tests/test_shell_utils.py'
         unix_file = UnixFile(filename)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        output, errors = unix_file.file()
+        # pylint: disable=line-too-long
         self.assertEqual(
-            unix_file.file(),
-            ('applications/zcomx/tests/test_shell_utils.py: Python script, ASCII text executable\n', '')
+            output.decode(),
+            'applications/zcomx/tests/test_shell_utils.py: Python script, ASCII text executable\n'
         )
+        self.assertEqual(errors.decode(), '')
 
 
 class TestFunctions(LocalTestCase):
@@ -179,7 +180,7 @@ class TestFunctions(LocalTestCase):
             self.assertEqual(dirs[1], 'zcomx')
             self.assertEqual(dirs[2], 'uploads')
             self.assertEqual(dirs[-2], 'tmp')
-            self.assertRegexpMatches(
+            self.assertRegex(
                 dirs[-1],
                 re.compile(r'tmp[a-zA-Z0-9_].*')
             )

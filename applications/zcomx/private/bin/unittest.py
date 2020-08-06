@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 Unittest wrapper. Allows unittest discovery in web2py.
@@ -19,11 +19,12 @@ import traceback
 # pylint: disable=E0611
 # F0401: *Unable to import %%r*
 # pylint: disable=F0401
-from unittest.main import TestProgram, USAGE_AS_MAIN
-from applications.zcomx.modules.tests.runner import \
-        LocalTestCase, \
-        LocalTextTestRunner, \
-        count_diff
+from unittest.main import TestProgram
+from applications.zcomx.modules.tests.runner import (
+    LocalTestCase,
+    LocalTextTestRunner,
+    count_diff,
+)
 
 
 @count_diff
@@ -47,9 +48,8 @@ def main():
     logger.handlers = []
     logger.addHandler(handler)
 
-    # Note: TestProgam has its own cli options parser.
+    # Note: TestProgram has its own cli options parser.
     __unittest = True
-    TestProgram.USAGE = USAGE_AS_MAIN
     verbosity = 2
 
     if '--max-diff' in sys.argv:

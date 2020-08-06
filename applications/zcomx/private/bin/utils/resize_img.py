@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ resize_images.py
 
 Script to simulate resize_img.sh from python.
 """
-from __future__ import print_function
+
 import os
 import shutil
 import sys
@@ -110,7 +110,7 @@ def main():
 
         resize_img = ResizeImg(dest_filename)
         resize_img.run()
-        for size, name in resize_img.filenames.items():
+        for size, name in list(resize_img.filenames.items()):
             LOG.info('{size}: {name}'.format(size=size, name=name))
     LOG.info('Done.')
 

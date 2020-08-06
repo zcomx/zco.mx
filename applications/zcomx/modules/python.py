@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -41,9 +41,9 @@ class List(list):
         if rows is None and columns is None:
             return self
         elif rows is None:
-            rows = len(self) / columns + incomplete(columns)
+            rows = int(len(self) / columns) + incomplete(columns)
         elif columns is None:
-            columns = len(self) / rows + incomplete(rows)
+            columns = int(len(self) / rows) + incomplete(rows)
         reshaped = []
         for count, item in enumerate(self):
             row = int(count / columns)

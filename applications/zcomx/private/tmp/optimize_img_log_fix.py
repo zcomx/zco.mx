@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ optimize_img_log_fix.py
 
 Script to initialize the image field in existing optimize_img_log records.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

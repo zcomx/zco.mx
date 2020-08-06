@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,6 +8,7 @@ Class and functions relatedo database records.
 import traceback
 from gluon import *
 from pydal.objects import Row
+from functools import reduce
 
 LOG = current.app.logger
 
@@ -36,7 +37,7 @@ class Record(Row):
         if not key_fields:
             key_fields = {'id': '{t}_id'.format(t=record_class.db_table)}
         key = {}
-        for record_field, self_field in key_fields.iteritems():
+        for record_field, self_field in key_fields.items():
             key[record_field] = self[self_field]
         return record_class.from_key(key)
 
@@ -73,7 +74,7 @@ class Record(Row):
             if ret.errors:
                 msg = ', '.join([
                     '{k}: {v}'.format(k=k, v=v)
-                    for k, v in ret.errors.items()
+                    for k, v in list(ret.errors.items())
                 ])
                 raise SyntaxError(msg)
             record_id = ret.id
@@ -117,7 +118,7 @@ class Record(Row):
         """
         db = current.app.db
         queries = []
-        for k, v in key.iteritems():
+        for k, v in key.items():
             queries.append((db[cls.db_table][k] == v))
         query = reduce(lambda x, y: x & y, queries) if queries else None
         return cls.from_query(query)
@@ -170,7 +171,7 @@ class Record(Row):
             if ret.errors:
                 msg = ', '.join([
                     '{k}: {v}'.format(k=k, v=v)
-                    for k, v in ret.errors.items()
+                    for k, v in list(ret.errors.items())
                 ])
                 raise SyntaxError(msg)
         else:
@@ -214,11 +215,11 @@ class Records(object):
         """Return length of object."""
         return len(self.records)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Return truth value of object."""
         if len(self.records):
-            return 1
-        return 0
+            return True
+        return False
 
     def first(self):
         """Return the first of the records."""
@@ -241,7 +242,7 @@ class Records(object):
         """
         db = current.app.db
         queries = []
-        for k, v in key.iteritems():
+        for k, v in key.items():
             queries.append((db[record_class.db_table][k] == v))
         query = reduce(lambda x, y: x & y, queries) if queries else None
         return cls.from_query(record_class, query, orderby=orderby, limitby=limitby)

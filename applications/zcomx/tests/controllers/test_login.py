@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -61,14 +61,14 @@ class TestFunctions(WebTestCase):
         cls._user = db(query).select(limitby=(0, 1)).first()
         if not cls._user:
             msg = 'No user with email: {e}'.format(e=email)
-            print msg
+            print(msg)
             raise SyntaxError(msg)
 
         query = db.creator.auth_user_id == cls._user.id
         cls._creator = Creator.from_query(query)
         if not cls._creator:
             msg = 'No creator with email: {e}'.format(e=email)
-            print msg
+            print(msg)
             raise SyntaxError(msg)
 
         cls._creator_as_dict = cls._creator.as_dict()
@@ -242,6 +242,11 @@ class TestFunctions(WebTestCase):
             '{"status": "error", "msg": "Invalid data provided"}\n'
         )
 
+        if self._opts.quick:
+            db(db.book.id == book_id).delete()
+            db.commit()
+            return
+
         # Delete book
         url = '{url}/book_crud.json/{bid}'.format(bid=book_id, url=self.url)
         data = {
@@ -253,13 +258,15 @@ class TestFunctions(WebTestCase):
         self.assertEqual(result['status'], 'ok')
 
         # The job to delete the book, may take a few seconds to complete
-        tries = 10
-        while tries:
+        retry_seconds = [1, 2, 5, 10, 30]
+        tries = 0
+        while True:
             book = get_book(book_id)
             if not book:
                 break
-            tries -= 1
-            time.sleep(1)
+            key = len(retry_seconds) - 1 if tries >= len(retry_seconds) else tries
+            time.sleep(retry_seconds[key])
+            tries += 1
         self.assertFalse(book)
 
     def test__book_delete(self):

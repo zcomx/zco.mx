@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ search_prefetch.py
 
 Script to build search autocomplete prefetch json files.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

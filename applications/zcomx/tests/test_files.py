@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -21,7 +21,7 @@ from applications.zcomx.modules.tests.runner import LocalTestCase
 
 class TestFileName(LocalTestCase):
 
-    def test____init__(self):
+    def test_init__(self):
         filename = FileName('abc.txt')
         self.assertTrue(filename)
         # Test that filename has str properties.
@@ -85,7 +85,7 @@ class TestFileName(LocalTestCase):
 
 class TestTitleFileName(LocalTestCase):
 
-    def test____init__(self):
+    def test_init__(self):
         filename = TitleFileName('abc.txt')
         self.assertTrue(filename)
 

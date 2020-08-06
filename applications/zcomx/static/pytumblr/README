@@ -1,6 +1,11 @@
+Source: https://github.com/tumblr/pytumblr
+Note: the AUR python-tumblr uses the pypi version which is python2. Do not use.
+
 # Install pytumblr
 $ mkdir ~/tmp/tumblr
 $ cp PKGBUILD ~/tmp/tumblr
+$ v ~/tmp/tumblr/PKGBUILD
+# double check that /usr/bin/python is correct. Hard code to make it correct
 $ cd ~/tmp/tumblr
 $ makepkg --asroot
 # In the following command, the version in the tar file may be different.

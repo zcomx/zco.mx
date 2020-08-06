@@ -4,7 +4,7 @@ Default controller.
 """
 from applications.zcomx.modules.creators import \
     add_creator, \
-    for_path, \
+    for_auth_user, \
     profile_onaccept
 from applications.zcomx.modules.files import FileName
 from applications.zcomx.modules.stickon.sqlhtml import \
@@ -105,7 +105,7 @@ def user():
                 db.creator.name_for_url,
                 error_message=error_msg,
                 allowed_override=allowed_override,
-                scrub_callback=for_path,
+                scrub_callback=for_auth_user,
             ),
         ]
 
@@ -116,7 +116,7 @@ def user():
     if request.args(0) != 'register':
         if form.custom.label[userfield]:
             form.custom.label[userfield] = 'Email Address'
-        for f in form.custom.widget.keys():
+        for f in list(form.custom.widget.keys()):
             if hasattr(form.custom.widget[f], 'update'):
                 if form.custom.widget[f].attributes['_type'] \
                         not in ['checkbox']:

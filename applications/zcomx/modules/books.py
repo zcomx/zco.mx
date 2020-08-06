@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -9,7 +9,7 @@ import datetime
 import json
 import os
 import re
-import urlparse
+import urllib.parse
 from gluon import *
 from pydal.helpers.regex import REGEX_UPLOAD_EXTENSION
 from applications.zcomx.modules.book_pages import BookPage
@@ -481,7 +481,7 @@ def contributions_target(book):
     if not book:
         return 0.00
 
-    amount = round(rate_per_page * book.page_count())
+    amount = int((rate_per_page * book.page_count()) + 0.5)
     return amount
 
 
@@ -520,7 +520,7 @@ def default_contribute_amount(book):
     maximum = 20
     rate_per_page = 1.0 / 20
 
-    amount = round(rate_per_page * book.page_count())
+    amount = int((rate_per_page * book.page_count()) + 0.5)
     if amount < minimum:
         amount = minimum
     if amount > maximum:
@@ -1236,7 +1236,7 @@ def short_url(book):
     if not url_for_creator:
         return
 
-    return urlparse.urljoin(url_for_creator, name)
+    return urllib.parse.urljoin(url_for_creator, name)
 
 
 def show_download_link(book):
@@ -1432,10 +1432,10 @@ def update_rating(book, rating=None):
         ],
     }
 
-    if rating is not None and rating not in ratings_data.keys():
+    if rating is not None and rating not in list(ratings_data.keys()):
         raise SyntaxError('Invalid rating: {r}'.format(r=rating))
 
-    ratings = [rating] if rating is not None else ratings_data.keys()
+    ratings = [rating] if rating is not None else list(ratings_data.keys())
 
     rating_data = []
     for r in ratings:

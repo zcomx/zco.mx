@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ integrity.py
 
 Script to run integrity checks.
 """
-from __future__ import print_function
+
 import datetime
 import sys
 import traceback

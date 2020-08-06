@@ -61,9 +61,13 @@ current.app.db = db
 current.app.service = service
 current.app.mail = mail
 current.app.local_settings = local_settings
+logger_name = None
 if request.is_shell:
-    logger_name = request.env.cmd_options.run.replace('/', '.')
-else:
+    try:
+        logger_name = request.env.cmd_options.run.replace('/', '.')
+    except AttributeError:
+        pass
+if not logger_name:
     logger_name = 'applications.{a}.{c}.{f}'.format(
         a=request.application, f=request.function, c=request.controller)
 LOG = logging.getLogger(logger_name)

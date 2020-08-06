@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,12 +6,13 @@
 Test suite for zcomx/modules/rss.py
 
 """
-import cStringIO
+import io
 import datetime
 import re
 import unittest
 import gluon.contrib.rss2 as rss2
 from xml.sax import saxutils
+from xml.etree import ElementTree as element_tree
 from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
@@ -289,7 +290,7 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
             """,
             re.VERBOSE
         )
-        self.assertRegexpMatches(got, regexp)
+        self.assertRegex(got, regexp)
         m = re.match(regexp, got)
         if not m:
             self.fail('Time does not match regexp')
@@ -535,7 +536,7 @@ class TestBookRSSChannel(WithObjectsTestCase):
             """,
             re.VERBOSE
         )
-        self.assertRegexpMatches(got, regexp)
+        self.assertRegex(got, regexp)
         m = re.match(regexp, got)
         if not m:
             self.fail('Time does not match regexp')
@@ -599,7 +600,7 @@ class TestCartoonistRSSChannel(WithObjectsTestCase):
             """,
             re.VERBOSE
         )
-        self.assertRegexpMatches(got, regexp)
+        self.assertRegex(got, regexp)
         m = re.match(regexp, got)
         if not m:
             self.fail('Time does not match regexp')
@@ -715,7 +716,7 @@ class TestRSS2WithAtom(LocalTestCase):
 
     def test__publish_extensions(self):
         rss = RSS2WithAtom('title', 'link', 'description')
-        outfile = cStringIO.StringIO()
+        outfile = io.BytesIO()
         handler = saxutils.XMLGenerator(outfile)
         handler.startDocument()
         rss.publish_extensions(handler)
@@ -724,7 +725,7 @@ class TestRSS2WithAtom(LocalTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             outfile.getvalue(),
-            '<?xml version="1.0" encoding="iso-8859-1"?>\n<atom:link href="link" type="application/rss+xml" rel="self"></atom:link>'
+            b'<?xml version="1.0" encoding="iso-8859-1"?>\n<atom:link href="link" rel="self" type="application/rss+xml"></atom:link>'
         )
 
 
@@ -834,66 +835,27 @@ class TestFunctions(WithObjectsTestCase):
         #     </channel>
         #   </rss>
 
-        tag = TAG(got)
-        self.assertEqual(
-            tag.element('channel').element('title').components[0],
-            feed['title']
-        )
-        # The link is formatted oddly by TAG. No idea why.
-        # Should be
-        #     <link>http://www.test.com</link>
-        # Have
-        #     <link />http://www.test.com
-        self.assertEqual(
-            str(tag.element('channel').element('link')),
-            '<link />'
-        )
-        self.assertEqual(
-            tag.element('channel').element('description').components[0],
-            feed['description']
-        )
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
-        self.assertEqual(
-            tag.element('channel').element('lastbuilddate').components[0],
-            rss2._format_date(created_on)
-        )
+        root = element_tree.fromstring(got)
+        channel = root.find('channel')
 
-        image = tag.element('channel').element('image')
-        self.assertEqual(
-            image.element('url').components[0],
-            'http://page.com'
-        )
-        self.assertEqual(
-            image.element('title').components[0],
-            'My Image'
-        )
-        self.assertEqual(
-            str(image.element('link')),
-            '<link />'
-        )
+        self.assertEqual(channel.find('title').text, feed['title'])
+        self.assertEqual(channel.find('link').text, feed['link'])
+        self.assertEqual(channel.find('description').text, feed['description'])
 
-        item = tag.element('channel').element('item')
-        self.assertEqual(
-            item.element('title').components[0],
-            'My Title'
-        )
-        self.assertEqual(
-            str(image.element('link')),
-            '<link />'
-        )
-        self.assertEqual(
-            item.element('description').components[0],
-            'The description'
-        )
-        self.assertEqual(
-            item.element('guid').components[0],
-            'guid-999'
-        )
-        self.assertEqual(
-            item.element('pubdate').components[0],
-            '1999-12-31 12:30:59'
-        )
+        last_build_date = channel.find('lastBuildDate').text
+        self.assertEqual(last_build_date, rss2._format_date(created_on))
+
+        image = channel.find('image')
+        self.assertEqual(image.find('url').text, 'http://page.com')
+        self.assertEqual(image.find('title').text, 'My Image')
+        self.assertEqual(image.find('link').text, 'http://image.com')
+
+        item = channel.find('item')
+        self.assertEqual(item.find('title').text, 'My Title')
+        self.assertEqual(item.find('link').text, 'http://my_link.com')
+        self.assertEqual(item.find('description').text, 'The description')
+        self.assertEqual(item.find('guid').text, 'guid-999')
+        self.assertEqual(item.find('pubDate').text, '1999-12-31 12:30:59')
 
 
 def setUpModule():

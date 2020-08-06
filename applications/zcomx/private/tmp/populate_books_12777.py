@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ populate_books_12777.py
 
 Script to populate books table for testing mod 12777.
 """
-from __future__ import print_function
+
 import datetime
 import os
 import sys

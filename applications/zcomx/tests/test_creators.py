@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -9,7 +9,7 @@ Test suite for zcomx/modules/creators.py
 import json
 import os
 import unittest
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.books import Book
@@ -22,6 +22,7 @@ from applications.zcomx.modules.creators import \
     contribute_link, \
     creator_name, \
     follow_link, \
+    for_auth_user, \
     for_path, \
     html_metadata, \
     image_as_json, \
@@ -214,7 +215,7 @@ class TestFunctions(ImageTestCase):
         # Eg   <a href="/contributions/paypal?creator_id=123" target="_blank">
         #       Contribute
         #      </a>
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(
@@ -229,13 +230,13 @@ class TestFunctions(ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = contribute_link(creator, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = contribute_link(creator, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -248,13 +249,13 @@ class TestFunctions(ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = contribute_link(creator, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__creator_name(self):
         auth_user = self.add(AuthUser, dict(
@@ -284,7 +285,7 @@ class TestFunctions(ImageTestCase):
         ))
 
         link = follow_link(creator)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # Eg   <a href="/rss/paypal?creator_id=3713" target="_blank">
         #       Follow
         #      </a>
@@ -295,13 +296,13 @@ class TestFunctions(ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = follow_link(creator, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = follow_link(creator, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -314,13 +315,54 @@ class TestFunctions(ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = follow_link(creator, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Follow')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
+
+    def test__for_auth_user(self):
+
+        tests = [
+            # (name, expect)
+            ('Fred Smith', 'Fred Smith'),
+            ("Sean O'Reilly", "Sean O'Reilly"),
+            ('  Sander  van   Dorn  ', 'Sander van Dorn'),
+
+            # Unicode should be preserved in these.
+            ('Sverre Årnes', 'Sverre Årnes'),
+            ('Bjørn Eidsvåg', 'Bjørn Eidsvåg'),
+            ('Frode Øverli', 'Frode Øverli'),
+            ('Dražen Kovačević', 'Dražen Kovačević'),
+            ('Yıldıray Çınar', 'Yıldıray Çınar'),
+            ('Alain Saint-Ogan', 'Alain Saint-Ogan'),
+            ('José Muñoz', 'José Muñoz'),
+            ('Ralf König', 'Ralf König'),
+            ('Ted Benoît', 'Ted Benoît'),
+            ('Gilbert G. Groud', 'Gilbert G. Groud'),
+            ('Samuel (Mark) Clemens', 'Samuel (Mark) Clemens'),
+            ('Alfa _Rant_ Tamil', 'Alfa Rant Tamil'),
+            ('Too     Close', 'Too Close'),
+
+            # These names are scrubed
+            ('Fred/ Smith', 'Fred Smith'),
+            (r'Fred\ Smith', 'Fred Smith'),
+            ('Fred? Smith', 'Fred Smith'),
+            ('Fred% Smith', 'Fred Smith'),
+            ('Fred* Smith', 'Fred Smith'),
+            ('Fred: Smith', 'Fred Smith'),
+            ('Fred| Smith', 'Fred Smith'),
+            ('Fred" Smith', 'Fred Smith'),
+            ('Fred< Smith', 'Fred Smith'),
+            ('Fred> Smith', 'Fred Smith'),
+            (' Fred Smith ', 'Fred Smith'),
+            ('Kevin "Kev" Walker', 'Kevin Kev Walker'),
+        ]
+
+        for t in tests:
+            self.assertEqual(for_auth_user(t[0]), t[1])
 
     def test__for_path(self):
 
@@ -434,7 +476,7 @@ class TestFunctions(ImageTestCase):
         self.assertTrue(creator)
 
         def do_test(image, expect):
-            self.assertTrue('files' in image.keys())
+            self.assertTrue('files' in list(image.keys()))
             self.assertEqual(len(image['files']), 1)
             self.assertEqual(
                 image['files'][0],
@@ -692,7 +734,7 @@ class TestFunctions(ImageTestCase):
         # Eg <a class="log_download_link"
         #   data-record_id="8979" data-record_table="book"
         #   href="/First_Last_(123.zco.mx).torrent">first_last.torrent</a>
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'FirstLast.torrent')
         self.assertEqual(
@@ -703,13 +745,13 @@ class TestFunctions(ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = torrent_link(creator, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = torrent_link(creator, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -722,13 +764,13 @@ class TestFunctions(ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = torrent_link(creator, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'FirstLast.torrent')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__torrent_url(self):
         auth_user = self.add(AuthUser, dict(name='First Last'))

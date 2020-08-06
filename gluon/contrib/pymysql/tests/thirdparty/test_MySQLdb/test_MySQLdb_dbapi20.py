@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 from . import dbapi20
 import pymysql
 from pymysql.tests import base

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -12,7 +12,7 @@ width: 750px
 * optimize images
 
 """
-from __future__ import print_function
+
 import os
 import shutil
 import sys

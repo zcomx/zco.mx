@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -247,20 +247,22 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p_stdout, p_stderr = p.communicate()
         self.assertFalse(p.returncode)
-        self.assertTrue('Everything is Ok' in p_stdout)
-        self.assertEqual(p_stderr, '')
+        self.assertTrue('Everything is Ok' in p_stdout.decode('utf-8'))
+        self.assertEqual(p_stderr, b'')
 
         page_count = self._book.page_count() + 1       # +1 for indicia
         files_comment = 'Files: {c}'.format(c=page_count)
-        self.assertTrue(files_comment in p_stdout)
+        self.assertTrue(files_comment in p_stdout.decode('utf-8'))
 
         # C0301 (line-too-long): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
         zipper = zipfile.ZipFile(zip_file)
         this_year = datetime.date.today().year
         fmt = '{y}|Jim Karsten|My CBZ Test||CC BY-ND|http://{cid}.zco.mx'
-        self.assertEqual(zipper.comment, fmt.format(
-            y=this_year, cid=self._creator.id))
+        self.assertEqual(
+            zipper.comment,
+            fmt.format(y=this_year, cid=self._creator.id).encode('utf-8')
+        )
 
     def test__working_directory(self):
         creator = CBZCreator(self._book)
@@ -281,8 +283,8 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         # E1101 (no-member): *%%s %%r has no %%r member*
         # pylint: disable=E1101
         self.assertFalse(p.returncode)
-        self.assertTrue('Everything is Ok' in p_stdout)
-        self.assertEqual(p_stderr, '')
+        self.assertTrue('Everything is Ok' in p_stdout.decode('utf-8'))
+        self.assertEqual(p_stderr, b'')
 
 
 class TestFunctions(WithObjectsTestCase, ImageTestCase):
@@ -328,8 +330,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # E1101 (no-member): *%%s %%r has no %%r member*
         # pylint: disable=E1101
         self.assertFalse(p.returncode)
-        self.assertTrue('Everything is Ok' in p_stdout)
-        self.assertEqual(p_stderr, '')
+        self.assertTrue('Everything is Ok' in p_stdout.decode('utf-8'))
+        self.assertEqual(p_stderr, b'')
 
 
 def setUpModule():

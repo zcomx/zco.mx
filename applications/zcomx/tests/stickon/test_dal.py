@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -37,37 +37,37 @@ class TestRecordGenerator(LocalTestCase):
             )
 
         generator = record_gen.generator()
-        record_1 = generator.next()
+        record_1 = next(generator)
         test_book_type(record_1)
-        record_2 = generator.next()
+        record_2 = next(generator)
         test_book_type(record_2)
-        record_3 = generator.next()
+        record_3 = next(generator)
         test_book_type(record_3)
         self.assertEqual(
             sorted([x['name'] for x in [record_1, record_2, record_3]]),
             ['mini-series', 'one-shot', 'ongoing']
         )
-        self.assertRaises(StopIteration, generator.next)
+        self.assertRaises(StopIteration, generator.__next__)
 
         # Test fields
         field_names = ['name', 'sequence']
         fields = [db.book_type[x] for x in field_names]
         record_gen = RecordGenerator(query, fields=fields)
         generator = record_gen.generator()
-        record_1 = generator.next()
+        record_1 = next(generator)
         test_book_type(record_1, field_names)
-        record_2 = generator.next()
+        record_2 = next(generator)
         test_book_type(record_2, field_names)
-        record_3 = generator.next()
+        record_3 = next(generator)
         test_book_type(record_3, field_names)
 
         # Test orderby
         orderby = [~db.book_type.name]
         record_gen = RecordGenerator(query, orderby=orderby)
         generator = record_gen.generator()
-        record_1 = generator.next()
-        record_2 = generator.next()
-        record_3 = generator.next()
+        record_1 = next(generator)
+        record_2 = next(generator)
+        record_3 = next(generator)
         self.assertEqual(
             [x['name'] for x in [record_1, record_2, record_3]],
             ['ongoing', 'one-shot', 'mini-series']
@@ -77,8 +77,8 @@ class TestRecordGenerator(LocalTestCase):
         limitby = (0, 1)
         record_gen = RecordGenerator(query, limitby=limitby)
         generator = record_gen.generator()
-        record_1 = generator.next()
-        self.assertRaises(StopIteration, generator.next)
+        record_1 = next(generator)
+        self.assertRaises(StopIteration, generator.__next__)
 
 
 def setUpModule():

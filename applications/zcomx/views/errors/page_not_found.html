@@ -27,7 +27,7 @@ Suggestions:
         {{if suggestion['url']:}}
         <li>
             <span class="table_cell">{{=suggestion['label']}}</span>
-            <a href="{{=suggestion['url']}}">{{=urllib.unquote(suggestion['url'])}}</a>
+            <a href="{{=suggestion['url']}}">{{=urllib.parse.unquote(suggestion['url'])}}</a>
         </li>
         {{pass}}
     {{pass}}

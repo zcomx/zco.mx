@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ populate_activity_log_12889.py
 
 Script to populate activity_log table for testing.
 """
-from __future__ import print_function
+
 import datetime
 import os
 import sys

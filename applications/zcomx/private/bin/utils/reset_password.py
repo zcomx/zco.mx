@@ -5,7 +5,7 @@ reset_password.py
 
 Script reset the password of a auth_user record.
 """
-from __future__ import print_function
+
 import getpass
 import os
 import sys

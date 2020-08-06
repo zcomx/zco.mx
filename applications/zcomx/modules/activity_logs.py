@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -13,6 +13,7 @@ from applications.zcomx.modules.books import \
     Book, \
     get_page
 from applications.zcomx.modules.records import Record
+from functools import reduce
 
 LOG = current.app.logger
 
@@ -34,7 +35,7 @@ class ActivityLogMixin(object):
         """
         if as_of is None:
             as_of = datetime.datetime.now()
-        if 'time_stamp' not in self.keys() or not self.time_stamp:
+        if 'time_stamp' not in list(self.keys()) or not self.time_stamp:
             raise SyntaxError(
                 'Activity log has no timestamp, age indeterminate')
         return as_of - self.time_stamp
@@ -124,7 +125,7 @@ class BaseTentativeLogSet(object):
         tentative_records = []
         queries = []
         if filters:
-            for field, value in filters.iteritems():
+            for field, value in filters.items():
                 if field not in db.tentative_activity_log.fields:
                     continue
                 queries.append((db.tentative_activity_log[field] == value))

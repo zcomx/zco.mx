@@ -11,7 +11,7 @@ except ImportError:
 try:
     from urllib.parse import parse_qs
 except ImportError:
-    from urlparse import parse_qs
+    from urllib.parse import parse_qs
 
 
 from datetime import datetime
@@ -67,10 +67,9 @@ class SignedRequest(object):
             id=self.raw.get('user_id'),
             locale=self.raw['user'].get('locale', None),
             country=self.raw['user'].get('country', None),
-            age=range(
+            age=list(range(
                 self.raw['user']['age']['min'],
-                self.raw['user']['age']['max'] + 1 if 'max' in self.raw['user']['age'] else 100
-            ) if 'age' in self.raw['user'] else None,
+                self.raw['user']['age']['max'] + 1 if 'max' in self.raw['user']['age'] else 100)) if 'age' in self.raw['user'] else None,
             oauth_token=self.User.OAuthToken(
                 token=self.raw['oauth_token'],
                 issued_at=datetime.fromtimestamp(self.raw['issued_at']),

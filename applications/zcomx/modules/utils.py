@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -231,7 +231,7 @@ def joined_list(items, element):
         element: anything that can be an element of a list,
     """
     work_items = list(items)
-    for x in sorted(range(0, len(work_items) - 1), reverse=True):
+    for x in sorted(list(range(0, len(work_items) - 1)), reverse=True):
         work_items[x + 1:x + 1] = element
     return work_items
 
@@ -269,9 +269,9 @@ def markmin_content(filename):
     """Return markmin content."""
     content = ''
     fullname = os.path.join(current.request.folder, 'private', 'doc', filename)
-    with open(fullname) as f:
+    with open(fullname, 'rb') as f:
         content = f.read()
-    return content
+    return content.decode('utf-8')
 
 
 def move_record(sequential_field, record_id, direction='up', query=None,

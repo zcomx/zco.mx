@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -112,15 +112,15 @@ class TestBaseTorrentCreator(TorrentTestCase):
         parser = TorrentParser(tor_file)
         self.assertEqual(
             parser.get_tracker_url(),
-            'http://bt.zco.mx:6969/announce'
+            b'http://bt.zco.mx:6969/announce'
         )
         self.assertEqual(
             parser.get_client_name(),
-            'mktorrent 1.1'
+            b'mktorrent 1.1'
         )
         self.assertEqual(
             parser.get_files_details(),
-            [('file.cbz', 7)]
+            [(b'file.cbz', 7)]
         )
 
     def test__create(self):
@@ -144,15 +144,15 @@ class TestBaseTorrentCreator(TorrentTestCase):
         parser = TorrentParser(tor_file)
         self.assertEqual(
             parser.get_tracker_url(),
-            'http://bt.zco.mx:6969/announce'
+            b'http://bt.zco.mx:6969/announce'
         )
         self.assertEqual(
             parser.get_client_name(),
-            'mktorrent 1.1'
+            b'mktorrent 1.1'
         )
         self.assertEqual(
             parser.get_files_details(),
-            [('file.cbz', 7)]
+            [(b'file.cbz', 7)]
         )
 
         # Test creating torrent for a directory.
@@ -171,11 +171,11 @@ class TestBaseTorrentCreator(TorrentTestCase):
         parser = TorrentParser(tor_file)
         self.assertEqual(
             parser.get_tracker_url(),
-            'http://bt.zco.mx:6969/announce'
+            b'http://bt.zco.mx:6969/announce'
         )
         self.assertEqual(
             parser.get_client_name(),
-            'mktorrent 1.1'
+            b'mktorrent 1.1'
         )
         self.assertEqual(
             parser.get_files_details(),

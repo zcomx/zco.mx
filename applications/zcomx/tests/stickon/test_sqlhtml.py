@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,15 +7,16 @@ Test suite for modules/stickon/sqlhtml.py
 
 """
 import unittest
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from gluon.sqlhtml import StringWidget
-from applications.zcomx.modules.stickon.sqlhtml import \
-    InputWidget, \
-    LocalSQLFORM, \
-    formstyle_bootstrap3_custom, \
-    formstyle_bootstrap3_login, \
-    make_grid_class, \
+from applications.zcomx.modules.stickon.sqlhtml import (
+    InputWidget,
+    LocalSQLFORM,
+    formstyle_bootstrap3_custom,
+    formstyle_bootstrap3_login,
+    make_grid_class,
     search_fields_grid
+)
 
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
@@ -37,14 +38,14 @@ class TestInputWidget(LocalTestCase):
         value = '_some_fake_value__'
 
         widget = InputWidget()
-        soup = BeautifulSoup(str(widget.widget(field, value)))
+        soup = as_soup(str(widget.widget(field, value)))
         w_input = soup.find('input')
         if not w_input:
             self.fail('Input tag not returned')
         # Example:
         # <input class="generic-widget" id="account_number" name="number"
         #   type="text" value="_some_fake_value__" />
-        self.assertEqual(w_input['class'], 'generic-widget')
+        self.assertEqual(w_input['class'], ['generic-widget'])
         self.assertEqual(w_input['id'], 'book_name')
         self.assertEqual(w_input['name'], 'name')
         self.assertEqual(w_input['type'], 'text')
@@ -54,22 +55,22 @@ class TestInputWidget(LocalTestCase):
             attributes=dict(_type='hidden', _id='my_fake_id'),
             class_extra='id_widget'
         )
-        soup = BeautifulSoup(str(widget.widget(field, value)))
+        soup = as_soup(str(widget.widget(field, value)))
         w_input = soup.find('input')
         if not w_input:
             self.fail('Input tag not returned')
-        self.assertEqual(w_input['class'], 'generic-widget id_widget')
+        self.assertEqual(w_input['class'], ['generic-widget', 'id_widget'])
         self.assertEqual(w_input['id'], 'my_fake_id')
         self.assertEqual(w_input['name'], 'name')
         self.assertEqual(w_input['type'], 'hidden')
         self.assertEqual(w_input['value'], value)
 
         widget = InputWidget(attributes=dict(_type='submit'))
-        soup = BeautifulSoup(str(widget.widget(field, value)))
+        soup = as_soup(str(widget.widget(field, value)))
         w_input = soup.find('input')
         if not w_input:
             self.fail('Input tag not returned')
-        self.assertEqual(w_input['class'], 'generic-widget')
+        self.assertEqual(w_input['class'], ['generic-widget'])
         self.assertEqual(w_input['id'], 'book_name')
         self.assertEqual(w_input['name'], 'name')
         self.assertEqual(w_input['type'], 'submit')
@@ -130,18 +131,18 @@ class TestFunctions(LocalTestCase):
     def test__formstyle_bootstrap3_custom(self):
         form = LocalSQLFORM(self._table)
         bootstrap_form = formstyle_bootstrap3_custom(form, self._fields)
-        soup = BeautifulSoup(str(bootstrap_form))
+        soup = as_soup(str(bootstrap_form))
         fieldset = soup.find('fieldset')
         div = fieldset.div.div
-        self.assertEqual(div['class'], 'col-sm-6 col-lg-4')
+        self.assertEqual(div['class'], ['col-sm-6', 'col-lg-4'])
 
     def test__formstyle_bootstrap3_login(self):
         form = LocalSQLFORM(self._table)
         bootstrap_form = formstyle_bootstrap3_login(form, self._fields)
-        soup = BeautifulSoup(str(bootstrap_form))
+        soup = as_soup(str(bootstrap_form))
         fieldset = soup.find('fieldset')
         div = fieldset.div.div
-        self.assertEqual(div['class'], 'col-xs-12')
+        self.assertEqual(div['class'], ['col-xs-12'])
 
     def test__make_grid_class(self):
 
@@ -234,7 +235,7 @@ class TestFunctions(LocalTestCase):
 
 
 def as_soup(html):
-    return BeautifulSoup(html, smartQuotesTo=None, convertEntities='xml')
+    return BeautifulSoup(html, 'html.parser')
 
 
 def setUpModule():

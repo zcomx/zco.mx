@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -145,7 +145,11 @@ class TestAuthenticator(LocalTestCase):
         try:
             client.statuses.home_timeline()
         except TwitterHTTPError as err:
-            response_data = json.loads(err.response_data)
+            if isinstance(err.response_data, dict):
+                json_data = str(err.response_data).replace("'", '"')
+            else:
+                json_data = err.response_data
+            response_data = json.loads(json_data)
             errors = response_data['errors']
             self.assertEqual(len(errors), 1)
             self.assertEqual(errors[0]['message'], 'Bad Authentication data.')

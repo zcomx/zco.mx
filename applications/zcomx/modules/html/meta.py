@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -46,7 +46,7 @@ class BaseMetaPreparer(object):
                 }
         """
         meta = {}
-        for k, v in metadata.items():
+        for k, v in list(metadata.items()):
             meta[k] = {'property': k, 'content': v}
         return meta
 

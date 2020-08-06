@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -43,7 +43,7 @@ class TestIS_ALLOWED_CHARS(LocalTestCase):
 
         def run(validator, value, error):
             result = value
-            err = ''
+            err_msg = ''
             if error is None:
                 result = validator.validate(value)
                 self.assertEqual(result, value)
@@ -51,11 +51,12 @@ class TestIS_ALLOWED_CHARS(LocalTestCase):
                 try:
                     validator.validate(value)
                 except ValidationError as err:
+                    err_msg = str(err)
                     pass
                 else:
                     self.fail('ValidationError not raised')
 
-            return result, str(err)
+            return result, err_msg
 
         # Test not_allowed default
         validator = IS_ALLOWED_CHARS(error_message=default_err)
@@ -323,8 +324,8 @@ class TestFunctions(LocalTestCase):
 
         data = {}
 
-        for field_type, fields in values.items():
-            for k, v in fields.items():
+        for field_type, fields in list(values.items()):
+            for k, v in list(fields.items()):
                 table.fields.append(k)
                 table[k] = Storage()
                 table[k].type = field_type

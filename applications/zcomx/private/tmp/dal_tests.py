@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ dal_tests.py
 
 Script to test dal queries.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

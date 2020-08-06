@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ purge_torrents.py
 
 This script purges empty creator and 'all' torrent files as necessary.
 """
-from __future__ import print_function
+
 import errno
 import os
 import sys

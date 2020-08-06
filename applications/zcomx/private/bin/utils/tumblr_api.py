@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ tumblr_api.py
 Script to test using pytumblr api.
 https://pypi.python.org/pypi/PyTumblr
 """
-from __future__ import print_function
+
 import sys
 import traceback
 from optparse import OptionParser

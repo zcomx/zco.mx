@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -16,6 +16,7 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
+from functools import reduce
 
 
 class BaseAutocompleter(object):

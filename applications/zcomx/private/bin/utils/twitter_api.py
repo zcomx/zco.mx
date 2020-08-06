@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ twitter_api.py
 Script to test using python-twitter api.
 https://pypi.python.org/pypi/twitter
 """
-from __future__ import print_function
+
 import os
 import pprint
 import sys

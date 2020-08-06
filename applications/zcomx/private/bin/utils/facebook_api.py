@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,12 +7,12 @@ facebook_api.py
 Script to test using facebook API (facepy)
 https://pypi.python.org/pypi/facepy/1.0.6
 """
-from __future__ import print_function
+
 import base64
 import datetime
 import sys
 import traceback
-import urlparse
+import urllib.parse
 from optparse import OptionParser
 import requests
 import applications.zcomx.modules.facepy as facepy

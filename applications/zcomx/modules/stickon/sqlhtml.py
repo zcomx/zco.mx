@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -14,6 +14,7 @@ from gluon.sqlhtml import \
     ExporterCSV, \
     ExporterTSV, \
     FormWidget
+from functools import reduce
 
 # E1101: *%s %r has no %r member*
 # pylint: disable=E1101
@@ -22,7 +23,10 @@ LOG = current.app.logger
 
 
 class InputWidget(FormWidget):
-    """Custom input widget."""
+    """Custom input widget.
+
+    Customize the class and other attributes of the input.
+    """
 
     def __init__(self, attributes=None, class_extra=''):
         """Constructor.
@@ -49,7 +53,7 @@ class InputWidget(FormWidget):
         new_attributes = dict(
             _type='text',
             _value=(value != None and str(value)) or '',
-            )
+        )
         new_attributes.update(self.attributes)
         attr = self._attributes(field, new_attributes, **attributes)
         if self.class_extra:
@@ -77,10 +81,9 @@ class LocalSQLFORMExtender(type):
         return type.__new__(mcs, name, bases, attrs)
 
 
-class LocalSQLFORM(SQLFORM):
+class LocalSQLFORM(SQLFORM, metaclass=LocalSQLFORMExtender):
     """Class representing a SQLFORM with preset defaults and customizations.
     """
-    __metaclass__ = LocalSQLFORMExtender
     grid_default_additions = {
         'paginate': 35,
     }
@@ -88,7 +91,7 @@ class LocalSQLFORM(SQLFORM):
     @classmethod
     def grid(cls, *args, **kwargs):
         """Override grid method and set ui defaults."""
-        for k, v in cls.grid_defaults.items():
+        for k, v in list(cls.grid_defaults.items()):
             if k not in kwargs:
                 kwargs[k] = v
 
@@ -290,11 +293,12 @@ def make_grid_class(export=None, search=None, ui=None, **kwargs):
         def searchable_func(sfields, keywords):
             """Searchable function."""
             # The default web2m searchable doesn't handle spaces well.
-            fields_as_str = [str(x) for x in fields]
             queries = []
-            for sfield in sfields:
-                if fields is None or str(sfield) in fields_as_str:
-                    queries.append((sfield.like('%' + keywords + '%')))
+            if keywords:
+                fields_as_str = [str(x) for x in fields] if fields else []
+                for sfield in sfields:
+                    if fields is None or str(sfield) in fields_as_str:
+                        queries.append((sfield.like('%' + keywords + '%')))
             query = reduce(lambda x, y: x | y, queries) if queries else None
             return query
         return searchable_func
@@ -383,4 +387,5 @@ searchable_grid = make_grid_class(export='simple', search='simple', ui='no_icon'
 
 
 def search_fields_grid(fields):
+    """Grid with search fields."""
     return make_grid_class(export='simple', search=fields, ui='no_icon').grid

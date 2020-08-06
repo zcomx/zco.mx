@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -107,7 +107,7 @@ def imagemagick_version():
         stderr=subprocess.PIPE
     )
     p_stdout, unused_p_stderr = p.communicate()
-    return p_stdout.split("\n")[0].split()[2]
+    return p_stdout.decode().split("\n")[0].split()[2]
 
 
 def os_nice(value):
@@ -215,7 +215,8 @@ def tthsum(filename):
     p_stdout, p_stderr = p.communicate()
     tthsum_hash = ''
     if p_stdout:
-        tthsum_hash, filename = p_stdout.strip().split("\n")[0].split(None, 1)
+        tthsum_hash, filename = \
+            p_stdout.decode().strip().split("\n")[0].split(None, 1)
 
     if p_stderr:
         msg = 'tthsum error: {msg}'.format(msg=p_stderr)

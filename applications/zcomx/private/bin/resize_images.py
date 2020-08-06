@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ resize_images.py
 
 Script to create and maintain images and their sizes.
 """
-from __future__ import print_function
+
 import os
 import shutil
 import subprocess

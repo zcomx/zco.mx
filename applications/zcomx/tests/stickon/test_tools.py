@@ -1,22 +1,20 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/stickon/tools.py
-
 """
 import os
 import unittest
-from ConfigParser import NoSectionError
-from BeautifulSoup import BeautifulSoup
+from configparser import NoSectionError
+from bs4 import BeautifulSoup
 from gluon.shell import env
 from gluon.storage import Storage
-from applications.zcomx.modules.stickon.tools import \
-    ExposeImproved, \
-    MigratedModelDb, \
-    ModelDb, \
-    SettingsLoader
+from applications.zcomx.modules.stickon.tools import (
+    ExposeImproved,
+    MigratedModelDb,
+    ModelDb,
+    SettingsLoader,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # R0904: Too many public methods
@@ -54,8 +52,7 @@ class TestExposeImproved(LocalTestCase):
         basename = 'Test Xml'
         expose = ExposeImproved(base=base, basename=basename)
         xml = expose.xml()
-        soup = BeautifulSoup(str(xml))
-        # print soup.prettify()
+        soup = BeautifulSoup(str(xml), 'html.parser')
 
         h2 = soup.find('h2')
         self.assertEqual(h2.span.a.string, basename)
@@ -78,7 +75,7 @@ class TestExposeImproved(LocalTestCase):
         expose = ExposeImproved(
             base=base, basename=basename, display_breadcrumbs=False)
         xml = expose.xml()
-        soup = BeautifulSoup(str(xml))
+        soup = BeautifulSoup(str(xml), 'html.parser')
         # print soup.prettify()
 
         h2s = soup.findAll('h2')
@@ -112,7 +109,7 @@ class TestModelDb(LocalTestCase):
         self.assertEqual(model_db.migrate, False)
 
         # response.static_version is set
-        self.assertRegexpMatches(
+        self.assertRegex(
             model_db.environment['response'].static_version,
             r'\d+\.\d+\.\d+'
         )
@@ -400,10 +397,10 @@ class TestSettingsLoader(LocalTestCase):
         application = 'app'
         group = 'app'
         storage = Storage()
-        self.assertEqual(storage.keys(), [])  # Initialized storage is empty
+        self.assertEqual(list(storage.keys()), [])  # Initialized storage is empty
         settings_loader.import_settings(group, storage)
         # No config file, storage unchanged
-        self.assertEqual(storage.keys(), [])
+        self.assertEqual(list(storage.keys()), [])
 
         f_text = '/tmp/settings_loader_config.json'
 
@@ -429,7 +426,7 @@ class TestSettingsLoader(LocalTestCase):
         settings_loader.get_settings()
         settings_loader.import_settings('zzz', storage)
         # Group has no settings, storage unchanged
-        self.assertEqual(storage.keys(), [])
+        self.assertEqual(list(storage.keys()), [])
         settings_loader.import_settings(group, storage)
         self.assertEqual(
             sorted(storage.keys()),
@@ -448,7 +445,7 @@ class TestSettingsLoader(LocalTestCase):
             # (raw_value, expect)
             ('abc', 'abc'),
             (123, 123),
-            (u'abc', 'abc'),
+            ('abc', 'abc'),
             (['abc'], ['abc']),
         ]
         for t in tests:

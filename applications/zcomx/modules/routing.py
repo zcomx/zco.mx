@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 Routing classes and functions.
@@ -38,6 +38,7 @@ from applications.zcomx.modules.zco import \
     BOOK_STATUS_DISABLED, \
     BOOK_STATUS_DRAFT, \
     Zco
+from functools import reduce
 
 LOG = current.app.logger
 
@@ -84,7 +85,8 @@ class Router(object):
             if request.vars.book:
                 creator = self.get_creator()
                 if creator:
-                    match = request.vars.book.lower()
+                    encoded_name = request.vars.book.encode('latin-1').decode('utf-8')
+                    match = encoded_name.lower()
                     query = (db.book.creator_id == creator.id) & \
                         (db.book.name_for_url.lower() == match)
                     book_row = db(query).select(limitby=(0, 1)).first()
@@ -127,8 +129,9 @@ class Router(object):
 
                 # Test for request_vars_creator as creator.name_for_url
                 if not self.creator:
-                    name = request_vars_creator.replace('_', ' ')
-                    query = (db.creator.name_for_url.lower() == name.lower())
+                    encoded_name = request_vars_creator.encode('latin-1').decode('utf-8')
+                    name = encoded_name.replace('_', ' ').lower()
+                    query = (db.creator.name_for_url.lower() == name)
                     creator_row = db(query).select(limitby=(0, 1)).first()
                     if creator_row:
                         self.creator = Creator(creator_row.as_dict())
@@ -230,7 +233,7 @@ class Router(object):
             scheme=request.env.wsgi_url_scheme or 'https',
             host=request.env.http_host,
             uri=request.env.web2py_original_uri or request.env.request_uri
-        )
+        ).encode('latin-1').decode('utf-8')
 
         # Get an existing book page and use it for examples
         # Logic:

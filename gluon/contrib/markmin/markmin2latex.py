@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # created my Massimo Di Pierro
 # license MIT/BSD/GPL
 from __future__ import print_function

@@ -72,11 +72,20 @@ if [[ ! $app ]]; then
     app=${tmp_script%%/*}                 # Strip 'private/bin/script_to_run.py'
 fi
 
+unset model_opt
+if [[ $script_to_run != applications/* ]]; then
+    model_opt='-M'
+fi
+
 unset profile_opts
 if [[ $profile ]]; then
     profile_opts="-m cProfile -o $profile"
 fi
-python=python
-type python2 &>/dev/null && python=python2
 
-SERVER_PRODUCTION_MODE=$SERVER_PRODUCTION_MODE "$python" $profile_opts  web2py.py --no_banner --no_gui --add_options -L config.py -S "$app" -R "$script_to_run" -A "${args[@]}"
+python_bin=$(type -p python3)
+[[ ! $python_bin ]] && {
+    __me "Unable to run web2py script. python3 not found"
+    exit 1
+}
+
+SERVER_PRODUCTION_MODE=$SERVER_PRODUCTION_MODE $python_bin $profile_opts  web2py.py --no_banner --no_gui --add_options -L config.py -S "$app" $model_opt -R "$script_to_run" -A "${args[@]}"

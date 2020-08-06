@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,7 +8,7 @@ Test suite for zcomx/modules/links.py
 """
 import unittest
 from gluon import *
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.links import \
@@ -128,7 +128,7 @@ class TestBaseLinkSet(LocalTestCase):
         book = Book({'name': 'My Book'})
         link_set = DubLinkSet(book)
         got = link_set.represent()
-        soup = BeautifulSoup(str(got))
+        soup = BeautifulSoup(str(got), 'html.parser')
         # <ul class="custom_links breadcrumb pipe_delimiter">
         #  <li>
         #   <a href="url 1" target="_blank" rel="noopener noreferrer">
@@ -143,7 +143,7 @@ class TestBaseLinkSet(LocalTestCase):
         # </ul>
 
         ul = soup.find('ul')
-        self.assertEqual(ul['class'], 'custom_links breadcrumb pipe_delimiter')
+        self.assertEqual(ul['class'], ['custom_links', 'breadcrumb', 'pipe_delimiter'])
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 2)
         for count, li in enumerate(lis):
@@ -151,7 +151,7 @@ class TestBaseLinkSet(LocalTestCase):
             self.assertEqual(anchor.string, 'link {c}'.format(c=count + 1))
             self.assertEqual(anchor['href'], 'url {c}'.format(c=count + 1))
             self.assertEqual(anchor['target'], '_blank')
-            self.assertEqual(anchor['rel'], 'noopener noreferrer')
+            self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
         # Test pre_links and post_links
         pre_links = [
@@ -165,7 +165,7 @@ class TestBaseLinkSet(LocalTestCase):
 
         link_set = DubLinkSet(book, pre_links=pre_links, post_links=post_links)
         got = link_set.represent()
-        soup = BeautifulSoup(str(got))
+        soup = BeautifulSoup(str(got), 'html.parser')
         ul = soup.find('ul')
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 6)
@@ -238,18 +238,18 @@ class TestLinks(LocalTestCase):
         got = links.as_links()
         self.assertEqual(len(got), 3)
         for count, element in enumerate(got):
-            soup = BeautifulSoup(str(element))
+            soup = BeautifulSoup(str(element), 'html.parser')
             anchor = soup.find('a')
             self.assertEqual(anchor.string, self._links[count].name)
             self.assertEqual(anchor['href'], self._links[count].url)
             self.assertEqual(anchor['target'], '_blank')
-            self.assertEqual(anchor['rel'], 'noopener noreferrer')
+            self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__from_links_key(self):
         links = Links.from_links_key(self._links_key)
         self.assertEqual(len(links.links), len(self._links))
 
-        fields = self._links[0].keys()
+        fields = list(self._links[0].keys())
         ignore_fields = ['delete_record', 'update_record']
         for count, link in enumerate(links.links):
             for f in fields:
@@ -261,7 +261,7 @@ class TestLinks(LocalTestCase):
         links = Links(self._links)
 
         got = links.represent()
-        soup = BeautifulSoup(str(got))
+        soup = BeautifulSoup(str(got), 'html.parser')
         # <ul class="custom_links breadcrumb pipe_delimiter">
         #  <li>
         #   <a href="http://site1.com" target="_blank" rel="noopener noreferrer">
@@ -281,7 +281,7 @@ class TestLinks(LocalTestCase):
         # </ul>
 
         ul = soup.find('ul')
-        self.assertEqual(ul['class'], 'custom_links breadcrumb pipe_delimiter')
+        self.assertEqual(ul['class'], ['custom_links', 'breadcrumb', 'pipe_delimiter'])
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 3)
         for count, li in enumerate(lis):
@@ -289,7 +289,7 @@ class TestLinks(LocalTestCase):
             self.assertEqual(anchor.string, self._links[count]['name'])
             self.assertEqual(anchor['href'], self._links[count]['url'])
             self.assertEqual(anchor['target'], '_blank')
-            self.assertEqual(anchor['rel'], 'noopener noreferrer')
+            self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
         # Test pre_links and post_links
         pre_links = [
@@ -302,7 +302,7 @@ class TestLinks(LocalTestCase):
         ]
 
         got = links.represent(pre_links=pre_links, post_links=post_links)
-        soup = BeautifulSoup(str(got))
+        soup = BeautifulSoup(str(got), 'html.parser')
         ul = soup.find('ul')
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 7)
@@ -322,9 +322,9 @@ class TestLinks(LocalTestCase):
 
         # Test ul_class parameter
         got = links.represent(ul_class='class_1 class_2')
-        soup = BeautifulSoup(str(got))
+        soup = BeautifulSoup(str(got), 'html.parser')
         ul = soup.find('ul')
-        self.assertEqual(ul['class'], 'class_1 class_2')
+        self.assertEqual(ul['class'], ['class_1', 'class_2'])
 
 
 class TestLinksKey(LocalTestCase):

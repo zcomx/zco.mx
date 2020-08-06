@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 
@@ -8,8 +8,8 @@ Test suite for zcomx/modules/books.py
 import datetime
 import json
 import unittest
-import urlparse
-from BeautifulSoup import BeautifulSoup
+import urllib.parse
+from bs4 import BeautifulSoup
 from gluon import *
 from gluon.storage import Storage
 from pydal.objects import Row
@@ -301,9 +301,9 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__book_types(self):
         xml = book_types(db)
         expect = (
-            """{"value":"1", "text":"Ongoing (eg 001, 002, 003, etc)"},"""
-            """{"value":"2", "text":"Mini-series (eg 01 of 04)"},"""
-            """{"value":"3", "text":"One-shot/Graphic Novel"}"""
+            b"""{"value":"1", "text":"Ongoing (eg 001, 002, 003, etc)"},"""
+            b"""{"value":"2", "text":"Mini-series (eg 01 of 04)"},"""
+            b"""{"value":"3", "text":"One-shot/Graphic Novel"}"""
         )
         self.assertEqual(xml.xml(), expect)
 
@@ -354,13 +354,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ]
 
         for t in tests:
-            pages = book.pages()
+            page_count = book.page_count()
 
-            if t[0] and not pages:
+            if t[0] > 0 and not page_count:
                 self.add(BookPage, dict(
                     book_id=book.id
                 ))
-            if not t[0] and pages:
+            if t[0] == 0 and page_count:
                 for page in book.pages():
                     page.delete()
             if t[1]:
@@ -414,7 +414,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         link = cbz_link(book)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'mybook-02of98.cbz')
         self.assertEqual(
@@ -428,13 +428,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = cbz_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = cbz_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -447,13 +447,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = cbz_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'mybook-02of98.cbz')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__cbz_url(self):
         creator = self.add(Creator, dict(
@@ -547,7 +547,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(book.complete_in_progress, False)
 
         link = complete_link(book)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a href="/login/book_complete/2876">
         #   <div class="checkbox_wrapper">
         #     <input type="checkbox" value="off" />
@@ -559,7 +559,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             '/login/book_complete/123'
         )
         div = anchor.find('div')
-        self.assertEqual(div['class'], 'checkbox_wrapper')
+        self.assertEqual(div['class'], ['checkbox_wrapper'])
         checkbox_input = div.find('input')
         self.assertEqual(checkbox_input['type'], 'checkbox')
         self.assertEqual(checkbox_input['value'], 'off')
@@ -571,13 +571,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = complete_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = complete_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -590,14 +590,14 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = complete_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         div = anchor.find('div')
-        self.assertEqual(div['class'], 'checkbox_wrapper')
+        self.assertEqual(div['class'], ['checkbox_wrapper'])
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__contribute_link(self):
         empty = '<span></span>'
@@ -611,7 +611,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Eg    <a href="/contributions/modal?book_id=3713" target="_blank">
         #        Contribute
         #       </a>
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(
@@ -626,13 +626,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = contribute_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = contribute_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -645,13 +645,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = contribute_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Contribute')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__contributions_remaining_by_creator(self):
         # invalid-name (C0103): *Invalid %%s name "%%s"*
@@ -880,7 +880,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         link = download_link(book)
         # Eg  <a href="/downloads/modal/4547">Download</a>
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Download')
         self.assertEqual(
@@ -895,13 +895,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = download_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = download_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -914,25 +914,25 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = download_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Download')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large enabled')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large', 'enabled'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
         # Test disabled
         book.cbz = ''
         link = download_link(book)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         self.assertEqual(soup.find('a'), None)
         span = soup.find('span')
         # <span class="disabled"
         #   title="This book has not been released for file sharing."
         # >Download</span>
         self.assertEqual(span.string, 'Download')
-        self.assertEqual(span['class'], 'disabled')
+        self.assertEqual(span['class'], ['disabled'])
         self.assertEqual(
             span['title'],
             'This book has not been released for file sharing.'
@@ -950,7 +950,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(book.fileshare_in_progress, False)
 
         link = fileshare_link(book)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # <a href="/login/book_fileshare/2876">
         #   <div class="checkbox_wrapper">
         #     <input type="checkbox" value="off" />
@@ -962,7 +962,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             '/login/book_fileshare/123'
         )
         div = anchor.find('div')
-        self.assertEqual(div['class'], 'checkbox_wrapper')
+        self.assertEqual(div['class'], ['checkbox_wrapper'])
         checkbox_input = div.find('input')
         self.assertEqual(checkbox_input['type'], 'checkbox')
         self.assertEqual(checkbox_input['value'], 'off')
@@ -974,13 +974,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = fileshare_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = fileshare_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -993,14 +993,14 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = fileshare_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         div = anchor.find('div')
-        self.assertEqual(div['class'], 'checkbox_wrapper')
+        self.assertEqual(div['class'], ['checkbox_wrapper'])
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__follow_link(self):
         book = Row(dict(
@@ -1010,7 +1010,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         link = follow_link(book)
         # Eg  <a href="/rss/modal/4547">Follow</a>
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Follow')
         self.assertEqual(anchor['href'], '/rss/modal/123')
@@ -1018,13 +1018,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = follow_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = follow_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -1037,13 +1037,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = follow_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Follow')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__formatted_name(self):
         book = Book(dict(name='My Book'))
@@ -1297,10 +1297,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # pylint: disable=C0301
 
         def test_href(href):
-            parsed = urlparse.urlparse(href)
+            parsed = urllib.parse.urlparse(href)
             self.assertEqual(parsed.scheme, 'magnet')
             self.assertEqual(
-                urlparse.parse_qs(parsed.query),
+                urllib.parse.parse_qs(parsed.query),
                 {
                     'dn': ['test.cbz'],
                     'xl': ['31'],
@@ -1310,7 +1310,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             )
 
         link = magnet_link(book)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # Eg <a class="log_download_link"
         #   data-record_id="8999" data-record_table="book"
         #   href="magnet:?xt=urn:tree:tiger:BOM3RWAED7BCOFOG5EX64QRBECPR4TRYRD7RFTA&amp;xl=31&amp;dn=test.cbz">
@@ -1318,20 +1318,20 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'mybook-002.magnet')
         test_href(anchor['href'])
-        self.assertEqual(anchor['class'], 'log_download_link')
+        self.assertEqual(anchor['class'], ['log_download_link'])
         self.assertEqual(anchor['data-record_table'], 'book')
         self.assertEqual(anchor['data-record_id'], '123')
 
         # Test components param
         components = ['aaa', 'bbb']
         link = magnet_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = magnet_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -1344,13 +1344,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = magnet_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'mybook-002.magnet')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__magnet_uri(self):
         book = Book(dict(
@@ -1376,10 +1376,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         got = magnet_uri(book)
         # magnet:?xt=urn:tree:tiger:BOM3RWAED7BCOFOG5EX64QRBECPR4TRYRD7RFTA&xl=31&dn=test.cbz
-        parsed = urlparse.urlparse(got)
+        parsed = urllib.parse.urlparse(got)
         self.assertEqual(parsed.scheme, 'magnet')
         self.assertEqual(
-            urlparse.parse_qs(parsed.query),
+            urllib.parse.parse_qs(parsed.query),
             {
                 'dn': ['test.cbz'],
                 'xl': ['31'],
@@ -1646,7 +1646,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         link = read_link(book)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(
@@ -1661,7 +1661,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test reader variation
         book.reader = 'awesome_reader'
         link = read_link(book)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(
@@ -1672,13 +1672,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = read_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = read_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -1694,7 +1694,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ]
         for t in tests:
             link = read_link(book, page_no=t[0])
-            soup = BeautifulSoup(str(link))
+            soup = BeautifulSoup(str(link), 'html.parser')
             anchor = soup.find('a')
             self.assertEqual(anchor.string, 'Read')
             expect = '/FirstLast/TestReadLink/{p}'.format(p=t[1])
@@ -1702,7 +1702,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # Test embed param
         link = read_link(book, embed=True)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(
             anchor['href'],
@@ -1718,13 +1718,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = read_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Read')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__rss_url(self):
         self.assertEqual(rss_url(None), None)
@@ -1941,7 +1941,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # As Row, book
         link = torrent_link(book)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         # Eg <a class="log_download_link"
         #   data-record_id="8979" data-record_table="book"
         #   href="/First_Last/My_Book_002.torrent">my_book_002.torrent</a>
@@ -1955,13 +1955,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test components param
         components = ['aaa', 'bbb']
         link = torrent_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'aaabbb')
 
         components = [IMG(_src='http://www.img.com', _alt='')]
         link = torrent_link(book, components=components)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         img = anchor.img
         self.assertEqual(img['src'], 'http://www.img.com')
@@ -1974,13 +1974,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             _rel='noopener noreferrer',
         )
         link = torrent_link(book, **attributes)
-        soup = BeautifulSoup(str(link))
+        soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'mybook-02of98.torrent')
         self.assertEqual(anchor['href'], '/path/to/file')
-        self.assertEqual(anchor['class'], 'btn btn-large')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
         self.assertEqual(anchor['target'], '_blank')
-        self.assertEqual(anchor['rel'], 'noopener noreferrer')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__torrent_url(self):
         self.assertEqual(torrent_url(None), None)
@@ -2078,7 +2078,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             book = Book.from_updated(book, data)
 
         def zero(storage):
-            for k in storage.keys():
+            for k in list(storage.keys()):
                 storage[k] = 0
 
         def do_test(book, rating, expect):
@@ -2091,7 +2091,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 db.book.views,
                 db.book.rating,
             ).first()
-            for k, v in expect.items():
+            for k, v in list(expect.items()):
                 # There may be some rounding foo, so use AlmostEqual
                 self.assertAlmostEqual(r[k], v)
 

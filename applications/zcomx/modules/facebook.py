@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,9 +7,9 @@ Classes and functions related to facebook posts.
 """
 import base64
 import datetime
-import urlparse
+import urllib.parse
 import requests
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from gluon import *
 import applications.zcomx.modules.facepy as facepy
 
@@ -106,8 +106,8 @@ class FacebookAPIAuthenticator(object):
         for h in response.history:
             if 'location' not in h.headers:
                 continue
-            result = urlparse.urlparse(h.headers['location'])
-            query = urlparse.parse_qs(result.fragment)
+            result = urllib.parse.urlparse(h.headers['location'])
+            query = urllib.parse.parse_qs(result.fragment)
             if 'access_token' in query:
                 token = query['access_token'][0]
                 break
@@ -119,7 +119,7 @@ class FacebookAPIAuthenticator(object):
         url = 'https://www.facebook.com/login.php'
         cookies = dict(wd='1920x1200')
         response = self.session.get(url, cookies=cookies)
-        soup = BeautifulSoup(response.text)
+        soup = BeautifulSoup(response.text, 'html.parser')
         title = soup.html.head.title.string
         LOG.debug('Login title: "%s"', title)
         if not title or title not in self.page_titles['login']:
@@ -162,7 +162,7 @@ class FacebookAPIAuthenticator(object):
         # Post two times. The first post sets cookie info.
         response = self.session.post(url, data=post_data)
         response = self.session.post(url, data=post_data)
-        soup = BeautifulSoup(response.text)
+        soup = BeautifulSoup(response.text, 'html.parser')
         title = soup.html.head.title.string
         LOG.debug('Logged in title: "%s"', title)
         if not title or title not in self.page_titles['logged_in']:

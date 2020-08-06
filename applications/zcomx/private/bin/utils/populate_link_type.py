@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ populate_link_type.py
 
 Script to populate the link_type table.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

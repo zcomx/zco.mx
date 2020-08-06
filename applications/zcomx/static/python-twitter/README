@@ -1,0 +1,17 @@
+Source
+Arch: https://aur.archlinux.org/packages/python-twitter/
+Git: https://aur.archlinux.org/python-twitter.git
+
+# Install python-twitter
+
+$ mkdir ~/tmp/python-twitter
+$ cp PKGBUILD ~/tmp/python-twitter
+
+# The correct version of /usr/bin/python must set properly.
+$ v ~/tmp/python-twitter PKGBUILD
+# Change python to python3 or python3 as necessary
+
+$ cd ~/tmp/python-twitter
+$ makepkg --asroot
+# In the following command, the version in the tar file may be different.
+$ pacman -U python-twitter-1.18.0-2-any.pkg.tar.xz

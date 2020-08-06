@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ settings_json_check.py
 Script for comparing settings.json to settings.conf or
 /srv/http/local/test.conf
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback
@@ -40,10 +40,10 @@ def byteify(element):
     """
     if isinstance(element, dict):
         return {byteify(key): byteify(value)
-                for key, value in element.iteritems()}
+                for key, value in element.items()}
     elif isinstance(element, list):
         return [byteify(element) for element in element]
-    elif isinstance(element, unicode):
+    elif isinstance(element, str):
         return element.encode('utf-8')
     else:
         return element
@@ -54,7 +54,7 @@ def is_same(item1, item2):
     comparer = TestComparer()
     comparer.assertEqual(item1, item2)
 
-    assert cmp(sorted(item1), sorted(item2)) == 0
+    assert sorted(item1) == sorted(item2)
 
 
 def man_page():

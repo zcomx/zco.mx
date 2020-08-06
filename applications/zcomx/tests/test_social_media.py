@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,10 +6,10 @@
 Test suite for zcomx/modules/social_media.py
 
 """
-import cStringIO
+import io
 import time
 import unittest
-import urllib2
+import urllib.error
 from twitter import TwitterHTTPError
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
@@ -164,9 +164,8 @@ class TestSocialMediaPoster(BaseTestCase):
                 # pylint: disable=no-self-use
                 return 'fake_client'
 
-        class DubSocialMediaPoster(SocialMediaPoster):
+        class DubSocialMediaPoster(SocialMediaPoster, metaclass=DubMeta):
             # pylint: disable=abstract-method
-            __metaclass__ = DubMeta
             _dub_methods = [
                 'credentials',
                 'post_data',
@@ -209,9 +208,8 @@ class TestSocialMediaPoster(BaseTestCase):
                     'name': self.social_media_data['creator']['name'],
                 }
 
-        class DubSocialMediaPoster(SocialMediaPoster):
+        class DubSocialMediaPoster(SocialMediaPoster, metaclass=DubMeta):
             # pylint: disable=abstract-method
-            __metaclass__ = DubMeta
             _dub_methods = [
                 'additional_prepare_data',
             ]
@@ -253,7 +251,7 @@ class TestFacebookPoster(BaseTestCase):
             ('client_id', r'\w{16}'),
         ]
         for e in expect:
-            self.assertRegexpMatches(str(credentials[e[0]]), e[1])
+            self.assertRegex(str(credentials[e[0]]), e[1])
 
     def test__post_data(self):
         class DubPoster(object):
@@ -348,7 +346,7 @@ class TestTumblrPoster(BaseTestCase):
             ('oauth_token', r'\w{50}'),
         ]
         for e in expect:
-            self.assertRegexpMatches(str(credentials[e[0]]), e[1])
+            self.assertRegex(str(credentials[e[0]]), e[1])
 
     def test__post_data(self):
         class DubPoster(object):
@@ -430,7 +428,7 @@ class TestTumblrSocialMedia(BaseTestCase):
         media = TumblrSocialMedia(self._book, creator=self._creator)
         self.assertEqual(
             media.share_url(),
-            'https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia%2F001.png&clickthru=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E'.format(cid=self._creator.id)
+            'https://www.tumblr.com/share/photo?clickthru=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia&source=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia%2F001.png&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E'.format(cid=self._creator.id)
 
         )
 
@@ -439,7 +437,7 @@ class TestTumblrSocialMedia(BaseTestCase):
         media = TumblrSocialMedia(self._book, creator=self._creator)
         self.assertEqual(
             media.share_url(),
-            'https://www.tumblr.com/share/photo?source=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia%2F001.png&clickthru=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3Ezco%3C%2Fa%3E'.format(cid=self._creator.id)
+            'https://www.tumblr.com/share/photo?clickthru=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia&source=http%3A%2F%2F{cid}.zco.mx%2FTestSocialMedia%2F001.png&caption=Check+out+Test+Social+Media+by+%3Ca+class%3D%22tumblelog%22%3Ezco%3C%2Fa%3E'.format(cid=self._creator.id)
         )
 
 
@@ -456,7 +454,7 @@ class TestTwitterPoster(BaseTestCase):
             ('oauth_token', r'[\w-]{52}'),
         ]
         for e in expect:
-            self.assertRegexpMatches(str(credentials[e[0]]), e[1])
+            self.assertRegex(str(credentials[e[0]]), e[1])
 
     def test__post_data(self):
 
@@ -476,11 +474,11 @@ class TestTwitterPoster(BaseTestCase):
                         }
                     }
                 elif data['make_it'] == 'raise_exception':
-                    j = """{"errors": [{"code": "A", "message": "Foo A"}]}"""
-                    fp = cStringIO.StringIO()
+                    j = b'"{"errors": [{"code": "A", "message": "Foo A"}]}"'
+                    fp = io.BytesIO()
                     fp.write(j)
                     fp.seek(0)
-                    e = urllib2.HTTPError('url', 'code', 'msg', 'hdrs', fp)
+                    e = urllib.error.HTTPError('url', 'code', 'msg', 'hdrs', fp)
                     e.code = 999
                     e.headers = {'Content-Encoding': 'notgzip'}
                     raise TwitterHTTPError(e, 'uri', 'json', {})

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ publication_year_fix.py
 
 Script to set the book.publication_year field based on metadata.
 """
-from __future__ import print_function
+
 import os
 import sys
 import traceback

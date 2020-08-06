@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -639,7 +639,7 @@ class TestIntegrityChecks(LocalTestCase):
         ]
 
         subclasses = []
-        for element in globals().values():
+        for element in list(globals().values()):
             if not inspect.isclass(element):
                 continue
             if not element.__module__ == \

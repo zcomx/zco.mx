@@ -119,7 +119,8 @@ def route():
 
     # Test for request.vars.creator as creator.name_for_url
     if not creator:
-        name = request.vars.creator.replace('_', ' ')
+        encoded_name = request.vars.creator.encode('latin-1').decode('utf-8')
+        name = encoded_name.replace('_', ' ')
         try:
             creator = Creator.from_key({'name_for_url': name})
         except LookupError:
@@ -142,8 +143,9 @@ def route():
     extension = '.cbz'
     if cbz_name.endswith(extension):
         book_name = cbz_name[:(-1 * len(extension))]
+    encoded_name = book_name.encode('latin-1').decode('utf-8')
     query = (db.book.creator_id == creator.id) & \
-        (db.book.name_for_url == book_name)
+        (db.book.name_for_url == encoded_name)
     book = db(query).select(limitby=(0, 1)).first()
     if not book or not book.cbz:
         return page_not_found()

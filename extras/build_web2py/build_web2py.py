@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # up to 2019, we have used py2applet, py2exe and bbfreeze for building web2py binaries

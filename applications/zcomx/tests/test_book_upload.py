@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -56,7 +56,7 @@ class TestBookPageUploader(ImageTestCase):
         # pylint: disable=C0301
         self.assertEqual(
             uploader.as_json(),
-            """{"files": [{"size": 17105, "thumbnailUrl": "", "name": "sampler.cbr", "book_id": 0, "url": null, "deleteType": "", "book_page_id": 0, "deleteUrl": null}]}"""
+            """{"files": [{"book_page_id": 0, "name": "sampler.cbr", "size": 17105, "url": null, "thumbnailUrl": "", "deleteUrl": null, "deleteType": "", "book_id": 0}]}"""
         )
 
     def test__load_file(self):
@@ -68,7 +68,7 @@ class TestBookPageUploader(ImageTestCase):
         self.assertEqual(book.page_count(), 0)
 
         sample_file = os.path.join(self._test_data_dir, 'cbz.jpg')
-        with open(sample_file, 'r') as f:
+        with open(sample_file, 'rb') as f:
             up_file = Storage({
                 'file': f,
                 'filename': 'cbz.jpg',

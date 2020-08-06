@@ -60,10 +60,9 @@ class SignedRequest(object):
             id=self.raw.get('user_id'),
             locale=self.raw['user'].get('locale', None),
             country=self.raw['user'].get('country', None),
-            age=range(
+            age=list(range(
                 self.raw['user']['age']['min'],
-                self.raw['user']['age']['max'] + 1 if 'max' in self.raw['user']['age'] else 100
-            ) if 'age' in self.raw['user'] else None,
+                self.raw['user']['age']['max'] + 1 if 'max' in self.raw['user']['age'] else 100)) if 'age' in self.raw['user'] else None,
             oauth_token=self.User.OAuthToken(
                 token=self.raw['oauth_token'],
                 issued_at=datetime.fromtimestamp(self.raw['issued_at']),
@@ -72,7 +71,7 @@ class SignedRequest(object):
         )
 
     def fetch_user_data_and_token(self):
-        from urlparse import parse_qs
+        from urllib.parse import parse_qs
         from . import GraphAPI, get_application_access_token
 
         app_token = get_application_access_token(self.application_id, self.application_secret_key, api_version=self.api_version)

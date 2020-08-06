@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -11,7 +11,7 @@ file is:
 
 This script is meant to be a template. Copy and edit before using.
 """
-from __future__ import print_function
+
 import logging
 import sys
 import traceback
@@ -154,7 +154,7 @@ def get_ftype(table, field):
     elif field_type.startswith('list:reference'):
         ftype = types[field_type[:14]]
     elif field_type.startswith('decimal'):
-        precision, scale = map(int,field_type[8:-1].split(','))
+        precision, scale = list(map(int,field_type[8:-1].split(',')))
         ftype = types[field_type[:7]] % \
             dict(precision=precision,scale=scale)
     elif field_type.startswith('geo'):

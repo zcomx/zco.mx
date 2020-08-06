@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ book_page_added_on_init.py
 
 Script to initialize book.page_added_on field.
 """
-from __future__ import print_function
+
 import sys
 import traceback
 from optparse import OptionParser

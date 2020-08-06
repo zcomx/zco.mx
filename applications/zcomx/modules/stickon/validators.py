@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,8 @@ stickon/validators.py
 
 Classes extending functionality of gluon/validators.py.
 """
-import urlparse
+import urllib.parse
+from gluon.packages.dal.pydal._compat import to_native
 from gluon.sqlhtml import safe_float, safe_int
 from gluon.validators import (
     IS_MATCH,
@@ -95,50 +96,28 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
         )
 
     def validate(self, value, record_id=None):
-        """Validate"""
-        # W0622 (redefined-builtin): *Redefining built-in %%r*          # id
-        # pylint: disable=W0622
-        # W0212 : *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-
-        if isinstance(value, unicode):
-            value = value.encode('utf8')
-        else:
-            value = str(value)
+        value = to_native(str(value))
         if not value.strip():
             raise ValidationError(self.translator(self.error_message))
         if value in self.allowed_override:
             return value
-        (tablename, fieldname) = str(self.field).split('.')
+        (tablename, fieldname) = str(self.field).split(".")
         table = self.dbset.db[tablename]
         field = table[fieldname]
         # custom \\
-        # subset = self.dbset(field == value,
-        #                    ignore_common_filters=self.ignore_common_filters)
-        subset = self.dbset(field.lower().like(value),
-                            ignore_common_filters=self.ignore_common_filters)
-        # custom ///
+        # query = field == value
+        query = field.lower().like(value)
+        # custom //
 
-        id = self.record_id
+        # make sure exclude the record_id
+        id = record_id or self.record_id
         if isinstance(id, dict):
-            fields = [table[f] for f in id]
-            row = subset.select(
-                *fields,
-                **dict(limitby=(0, 1), orderby_on_limitby=False)
-            ).first()
-            if row and any(str(row[f]) != str(id[f]) for f in id):
-                # Do not translate so HTML can be included in error message
-                raise ValidationError(self.error_message)
-        else:
-            row = subset.select(
-                table._id,
-                field,
-                limitby=(0, 1),
-                orderby_on_limitby=False
-            ).first()
-            if row and str(row.id) != str(id):
-                # Do not translate so HTML can be included in error message
-                raise ValidationError(self.error_message)
+            id = table(**id)
+        if not id is None:
+            query &= table._id != id
+        subset = self.dbset(query, ignore_common_filters=self.ignore_common_filters)
+        if subset.select(limitby=(0, 1)):
+            raise ValidationError(self.translator(self.error_message))
         return value
 
 
@@ -231,7 +210,7 @@ class IS_URL_FOR_DOMAIN(IS_URL):
         except ValidationError:
             raise ValidationError(self.translator(self.error_message))
 
-        o = urlparse.urlparse(result)
+        o = urllib.parse.urlparse(result)
         if not o.hostname:
             raise ValidationError(self.translator(self.error_message))
         if not o.hostname == self.domain and \
@@ -254,7 +233,7 @@ def as_per_type(table, data):
     Returns:
         dict: dict of data representing a record from table
     """
-    for field, value in data.items():
+    for field, value in list(data.items()):
         if field not in table.fields:
             continue
         if value is None:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,7 +8,7 @@ Test suite for zcomx/controllers/contributions.py
 """
 import datetime
 import unittest
-import urllib
+import urllib.parse
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.events import \
@@ -171,7 +171,7 @@ class TestFunctions(WebTestCase):
         self.assertEqual(len(logs), 0)
 
         url_path = '/contributions/paypal_notify?{q}'.format(
-            q=urllib.urlencode(notify_vars),
+            q=urllib.parse.urlencode(notify_vars),
         )
         self.assertWebTest(url_path, match_page_key='/z/faq')
 
@@ -198,7 +198,7 @@ class TestFunctions(WebTestCase):
         before_zco_contributions = get_zco_contributions()
 
         url_path = '/contributions/paypal_notify?{q}'.format(
-            q=urllib.urlencode(notify_vars),
+            q=urllib.parse.urlencode(notify_vars),
         )
         self.assertWebTest(url_path, match_page_key='/z/faq')
 
@@ -231,7 +231,7 @@ class TestFunctions(WebTestCase):
             notify_vars['payment_status'] = status
             notify_vars['txn_id'] = txn_id
             url_path = '/contributions/paypal_notify?{q}'.format(
-                q=urllib.urlencode(notify_vars),
+                q=urllib.parse.urlencode(notify_vars),
             )
             self.assertWebTest(url_path, match_page_key='/z/faq')
 
@@ -259,7 +259,7 @@ class TestFunctions(WebTestCase):
         before_contributions = get_contributions()
 
         url_path = '/contributions/paypal_notify?{q}'.format(
-            q=urllib.urlencode(notify_vars),
+            q=urllib.parse.urlencode(notify_vars),
         )
         self.assertWebTest(url_path, match_page_key='/z/faq')
 

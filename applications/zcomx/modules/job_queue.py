@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -21,6 +21,7 @@ from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.utils import \
     ClassFactory, \
     default_record
+from functools import reduce
 
 LOG = current.app.logger
 
@@ -79,8 +80,7 @@ class CLIOption(object):
         if self.value is True:
             return self.option
 
-        if hasattr(self.value, '__iter__'):
-            # Assume list
+        if isinstance(self.value, (list, tuple)):
             options = []
             for v in self.value:
                 options.append('{opt} {val}'.format(
@@ -170,7 +170,7 @@ class Daemon(object):
             dict, dict of pid parameters,  {name1: value1, name2: value2}
         """
         with open(self.pid_filename, 'w') as f:
-            for k, v in params.items():
+            for k, v in list(params.items()):
                 f.write("{k}: {v}\n".format(k=k, v=v))
 
 

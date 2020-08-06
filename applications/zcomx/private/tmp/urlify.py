@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ urlify.py
 
 Script to test urlify commands.
 """
-from __future__ import print_function
+
 import sys
 import traceback
 from gluon import *

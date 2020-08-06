@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ queue_check.py
 
 Check job queue for old or invalid jobs.
 """
-from __future__ import print_function
+
 import datetime
 import os
 import sys

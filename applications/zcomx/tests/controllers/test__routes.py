@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -56,8 +56,11 @@ class TestFunctions(LocalTestCase):
             ('https://101.zco.mx', True, 'index'),
         ]
 
-        is_iterable = lambda obj: isinstance(obj, basestring) \
-            or getattr(obj, '__iter__', False)
+        def is_iterable(obj):
+            return True \
+                if isinstance(obj, (list, tuple)) \
+                or isinstance(obj, str) \
+                else False
 
         for t in tests:
             if t[2] == SSLError:

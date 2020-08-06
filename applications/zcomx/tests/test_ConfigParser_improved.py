@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -10,7 +10,7 @@ Test suite for modules/ConfigParser_improved.py
 # C0103: *Invalid name "%%s" (should match %%s)*
 # pylint: disable=C0103
 import unittest
-import cStringIO
+import io
 from applications.zcomx.modules.ConfigParser_improved import \
     ConfigParserImproved
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -39,7 +39,7 @@ str1 = my setting value
 str2 = 'This is my setting value'
 
 """
-        f = cStringIO.StringIO(text)
+        f = io.StringIO(text)
         config = ConfigParserImproved()
         config.readfp(f)
         self.assertEqual(

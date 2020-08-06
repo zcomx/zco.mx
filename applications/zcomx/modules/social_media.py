@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,8 +7,7 @@ Classes and functions related to social media.
 """
 import json
 import time
-import urllib
-import urlparse
+import urllib.parse
 from twitter import TwitterHTTPError
 from gluon import *
 from applications.zcomx.modules.books import \
@@ -121,7 +120,7 @@ class FacebookSocialMedia(SocialMedia):
             'v': int(time.mktime(current.request.now.timetuple())),
         }
         return '{site}/sharer.php?{path}'.format(
-            site=self.site, path=urllib.urlencode(query))
+            site=self.site, path=urllib.parse.urlencode(query))
 
 
 @SocialMedia.class_factory.register
@@ -155,7 +154,7 @@ class TumblrSocialMedia(SocialMedia):
 
         if self._username is None:
             # Extract the user name.
-            netloc = urlparse.urlparse(self.creator.tumblr).netloc
+            netloc = urllib.parse.urlparse(self.creator.tumblr).netloc
             if not netloc:
                 LOG.debug('Invalid tumblr: %s', self.creator.tumblr)
                 return
@@ -178,7 +177,7 @@ class TumblrSocialMedia(SocialMedia):
             ),
         }
         return '{site}/share/photo?{path}'.format(
-            site=self.site, path=urllib.urlencode(query))
+            site=self.site, path=urllib.parse.urlencode(query))
 
 
 @SocialMedia.class_factory.register
@@ -215,7 +214,7 @@ class TwitterSocialMedia(SocialMedia):
             'hashtage': '',
         }
         return '{site}/share?{path}'.format(
-            site=self.site, path=urllib.urlencode(query))
+            site=self.site, path=urllib.parse.urlencode(query))
 
 
 class SocialMediaPostError(Exception):
@@ -427,7 +426,8 @@ class TwitterPoster(SocialMediaPoster):
         if 'id' not in result:
             err_msg = 'Twitter post failed'
             if error:
-                response_data = json.loads(error.response_data)
+                json_data = error.response_data.strip('"')
+                response_data = json.loads(json_data)
                 if 'errors' in response_data and response_data['errors']:
                     err_msg = 'Code: {c}, msg: {m}'.format(
                         c=response_data['errors'][0]['code'],

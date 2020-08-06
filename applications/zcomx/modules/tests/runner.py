@@ -1,12 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 """
 tests/runner.py
 
 Classes for local python test_suite scripts.
 """
-import StringIO
-import datetime
 import inspect
 import os
 import socket
@@ -14,24 +12,27 @@ import subprocess
 import sys
 import time
 import unittest
-import urllib
-import urllib2
-import urlparse
-from BeautifulSoup import BeautifulSoup
+import urllib.error
+import urllib.parse
+from io import StringIO
+from bs4 import BeautifulSoup
 
-from gluon.contrib.webclient import \
-    WebClient, \
-    DEFAULT_HEADERS as webclient_default_headers
+from gluon.contrib.webclient import (
+    WebClient,
+    DEFAULT_HEADERS as webclient_default_headers,
+)
 from gluon.globals import current
 from gluon.http import HTTP
 import gluon.shell
-from gluon.storage import \
-    List, \
-    Storage
+from gluon.storage import (
+    List,
+    Storage,
+)
 
 FILTER_TABLES = []          # Cache for values in comment.filter_table fields
-# Cache db instances to prevent 'too many connections' errors.
-APP_ENV = {}                # Cache for app environments.
+# Cache for app environments. Reuse of db prevents
+# 'too many connections' errors.
+APP_ENV = {}
 
 
 class LocalTestCase(unittest.TestCase):
@@ -50,12 +51,42 @@ class LocalTestCase(unittest.TestCase):
         'force': False,
         'quick': False,
     })
-    _objects = []
+
+    _objects = []           # Deprecated: Use _objs.case
+
+    _objs = Storage({
+        'case': [],         # Test objects at case level (eg in setUp)
+        'runner': [],       # Test objects at runner level (eg in setUpClass)
+    })
+
+    _trackers = None
+    _runner_trackers = []
+
 
     def __init__(self, methodName='runTest'):
         """Constructor."""
         unittest.TestCase.__init__(self, methodName=methodName)
         self._start_time = None
+
+    @classmethod
+    def _add_case_obj(cls, obj):
+        """Add an object to the case objects list.
+
+        Args:
+            obj: DbObject
+        """
+        if obj not in cls._objs.case:
+            cls._objs.case.append(obj)
+
+    @classmethod
+    def _add_runner_obj(cls, obj):
+        """Add an object to the runner objects list.
+
+        Args:
+            obj: DbObject
+        """
+        if obj not in cls._objs.runner:
+            cls._objs.runner.append(obj)
 
     def _cleanup(self):
         """Cleanup executed after every test fixture."""
@@ -178,7 +209,7 @@ class LocalTestCase(unittest.TestCase):
             See _assertRaisesHTTPError
         """
         self._assertRaisesHTTPError(
-            urllib2.HTTPError, expected_code, callable_obj, *args, **kwargs)
+            urllib.error.HTTPError, expected_code, callable_obj, *args, **kwargs)
 
     def assertWebTest(
             self,
@@ -189,7 +220,8 @@ class LocalTestCase(unittest.TestCase):
             match_type='all',
             tolerate_whitespace=False,
             post_data=None,
-            login_required=True):
+            login_required=True,
+            charset='utf-8'):
         """Fail if the content of the page returned by url does not match page
         key and optional strings.
 
@@ -225,7 +257,8 @@ class LocalTestCase(unittest.TestCase):
                 matches,
                 match_type=match_type,
                 tolerate_whitespace=tolerate_whitespace,
-                post_data=post_data):
+                post_data=post_data,
+                charset=charset):
             first = current.app.web.errors
             second = []
 
@@ -339,9 +372,9 @@ class LocalTestCase(unittest.TestCase):
         env['request']._get_vars = None         # Force reload
         env['request'].vars = Storage()
         if post_vars is not None:
-            wsgi_input = urllib.urlencode(post_vars)
+            wsgi_input = urllib.parse.urlencode(post_vars)
             env['request'].env['CONTENT_LENGTH'] = str(len(wsgi_input))
-            env['request'].env['wsgi.input'] = StringIO.StringIO(wsgi_input)
+            env['request'].env['wsgi.input'] = StringIO(wsgi_input)
             env['request'].env['REQUEST_METHOD'] = 'POST'  # for cgi.py
             env['request'].env['request_method'] = 'POST'  # parse_post_vars
 
@@ -511,7 +544,7 @@ class LocalTextTestRunner(unittest.TextTestRunner):
             self.stream.writeln()
             result.printErrors()
             self.stream_err.write("FAILED (")
-            failed, errored = map(len, (result.failures, result.errors))
+            failed, errored = list(map(len, (result.failures, result.errors)))
             if failed:
                 self.stream_err.write("failures=%d" % failed)
             if errored:
@@ -604,7 +637,7 @@ class LocalWebClient(WebClient):
     def as_soup(self):
         """Return the response text as a Beautiful soup instance"""
         if not self._soup:
-            self._soup = BeautifulSoup(self.text)
+            self._soup = BeautifulSoup(self.text, 'html.parser')
         return self._soup
 
     @property
@@ -622,7 +655,7 @@ class LocalWebClient(WebClient):
             return
         return flash_div.string
 
-    def get(self, url, cookies=None, headers=None, auth=None):
+    def get(self, url, cookies=None, headers=None, auth=None, charset='utf-8'):
         """Override base class method.
 
         Args:
@@ -636,13 +669,16 @@ class LocalWebClient(WebClient):
             database handles. Changes on one may not be available on the other
             until a commit() is called.
         """
+        # return self.post(url, data=None, cookies=cookies, headers=headers, method='GET')
         self._soup = None
-        result = WebClient.get(
-            self,
+        result = self.post(
             url,
+            data=None,
             cookies=None,
             headers=None,
-            auth=None
+            auth=None,
+            method='GET',
+            charset=charset,
         )
         if self.db:
             self.db.commit()
@@ -697,7 +733,8 @@ class LocalWebClient(WebClient):
             cookies=None,
             headers=None,
             auth=None,
-            method='auto'):
+            method=None,
+            charset='utf-8'):
         """Override base class method.
 
         Args:
@@ -706,6 +743,8 @@ class LocalWebClient(WebClient):
         Differences from base class method.
         * Clears _soup property.
         """
+        if method is None:
+            method == 'auto'
         self._soup = None
         result = WebClient.post(
             self,
@@ -714,7 +753,8 @@ class LocalWebClient(WebClient):
             cookies=None,
             headers=None,
             auth=None,
-            method=method
+            method=method,
+            charset=charset,
         )
         if self.db:
             self.db.commit()
@@ -724,7 +764,7 @@ class LocalWebClient(WebClient):
         """Return the server ip address."""
         self.get('/')
         url = self.response.geturl()
-        return socket.gethostbyname(urlparse.urlparse(url).hostname)
+        return socket.gethostbyname(urllib.parse.urlparse(url).hostname)
 
     def test(
             self,
@@ -732,7 +772,8 @@ class LocalWebClient(WebClient):
             expect,
             match_type='all',
             tolerate_whitespace=False,
-            post_data=None):
+            post_data=None,
+            charset='utf-8'):
         """Test accessing a page.
 
         Args:
@@ -782,14 +823,14 @@ class LocalWebClient(WebClient):
                         del self.sessions[self.application]
 
         if post_data is None:
-            self.get(url)
+            self.get(url, charset=charset)
         else:
-            if self.forms and self.forms.keys():
+            if self.forms and list(self.forms.keys()):
                 if '_formname' not in post_data:
-                    post_data['_formname'] = self.forms.keys()[0]
+                    post_data['_formname'] = list(self.forms.keys())[0]
                 if '_formkey' not in post_data:
-                    post_data['_formkey'] = self.forms[self.forms.keys()[0]]
-            self.post(url, post_data)
+                    post_data['_formkey'] = self.forms[list(self.forms.keys())[0]]
+            self.post(url, post_data, charset=charset)
 
         match_text = ' '.join(self.text.split()) \
             if tolerate_whitespace else self.text

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,9 +8,10 @@ Test suite for zcomx/modules/python.py
 
 """
 import unittest
-from applications.zcomx.modules.python import \
-    List, \
-    from_dict_by_keys
+from applications.zcomx.modules.python import (
+    List,
+    from_dict_by_keys,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
 
 # pylint: disable=C0111,R0904
@@ -23,7 +24,7 @@ class TestList(LocalTestCase):
         self.assertEqual(len(integers), 3)
 
     def test__reshape(self):
-        integers = List(range(0, 10))
+        integers = List(list(range(0, 10)))
         self.assertEqual(len(integers), 10)
 
         tests = [

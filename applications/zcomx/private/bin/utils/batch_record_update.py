@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,7 +6,7 @@ batch_record_update.py
 
 Script to update records from data read from csv file.
 """
-from __future__ import print_function
+
 import collections
 import csv
 import sys
@@ -222,7 +222,7 @@ class BatchUpdater(object):
             True if CSV file exists and is readible, False other wise.
         """
         try:
-            self.generator().next()
+            next(self.generator())
         except IOError as err:
             msg = 'Invalid CSV file: {file}'.format(file=self.csv_filename)
             LOG.error(msg)
@@ -333,7 +333,7 @@ def main():
             LOG.error("Data is not valid. Aborting. No records updated.")
 
         total = 0
-        for k, v in updater.stats.items():
+        for k, v in list(updater.stats.items()):
             total += v
             LOG.info('{k}: {v}'.format(k=k, v=v))
         LOG.info('TOTAL: {v}'.format(v=total))

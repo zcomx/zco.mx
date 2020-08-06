@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,7 +8,7 @@ Script to log download clicks.
 """
 # W0404: *Reimport %r (imported line %s)*
 # pylint: disable=W0404
-from __future__ import print_function
+
 import sys
 import time
 import traceback
@@ -22,6 +22,7 @@ from applications.zcomx.modules.events import (
 from applications.zcomx.modules.job_queuers import \
     LogDownloadsQueuer
 from applications.zcomx.modules.logger import set_cli_logging
+from functools import reduce
 
 VERSION = 'Version 0.1'
 
@@ -235,7 +236,7 @@ def main():
     requeue = False
     if options.requeue:
         try:
-            unlogged_generator(limit=1).next()
+            next(unlogged_generator(limit=1))
         except StopIteration:
             requeue = False
         else:

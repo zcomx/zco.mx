@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -71,6 +71,7 @@ class TestFunctions(WebTestCase):
             ),
             match_page_key='/torrents/torrent',
             match_strings=[self._book.name],
+            charset='latin-1',
         )
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
@@ -83,6 +84,7 @@ class TestFunctions(WebTestCase):
             ),
             match_page_key='/torrents/torrent',
             match_strings=[creator_name(self._creator, use='file')],
+            charset='latin-1',
         )
         download_clicks = self._get_download_clicks(
             'creator', self._creator.id)
@@ -97,6 +99,7 @@ class TestFunctions(WebTestCase):
             '/torrents/download/all?no_queue=1',
             match_page_key='/torrents/torrent',
             match_strings=expect,
+            charset='latin-1',
         )
         download_clicks = self._get_download_clicks('all', 0)
         self.assertEqual(len(download_clicks), 1)
@@ -131,6 +134,7 @@ class TestFunctions(WebTestCase):
             ),
             match_page_key='/torrents/torrent',
             match_strings=expect,
+            charset='latin-1',
         )
         download_clicks = self._get_download_clicks(
             'creator', self._creator.id)
@@ -146,6 +150,7 @@ class TestFunctions(WebTestCase):
             ),
             match_page_key='/torrents/torrent',
             match_strings=[self._book.name],
+            charset='latin-1',
         )
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 1)
@@ -159,6 +164,7 @@ class TestFunctions(WebTestCase):
             ),
             match_page_key='/torrents/torrent',
             match_strings=[self._book.name],
+            charset='latin-1',
         )
         download_clicks = self._get_download_clicks('book', self._book.id)
         self.assertEqual(len(download_clicks), 2)
@@ -172,6 +178,7 @@ class TestFunctions(WebTestCase):
             '/torrents/route?no_queue=1&torrent=zco.mx.torrent',
             match_page_key='/torrents/torrent',
             match_strings=expect,
+            charset='latin-1',
         )
         download_clicks = self._get_download_clicks('all', 0)
         self.assertEqual(len(download_clicks), 1)
@@ -183,6 +190,7 @@ class TestFunctions(WebTestCase):
             self.assertWebTest,
             '/torrents/route?no_queue=1',
             match_page_key='/errors/page_not_found',
+            charset='latin-1',
         )
 
         # page not found: invalid creator integer
@@ -194,6 +202,7 @@ class TestFunctions(WebTestCase):
                 tor=os.path.basename(self._book.torrent),
             ),
             match_page_key='/errors/page_not_found',
+            charset='latin-1',
         )
 
         # page not found: invalid creator name
@@ -205,6 +214,7 @@ class TestFunctions(WebTestCase):
                 tor=os.path.basename(self._book.torrent),
             ),
             match_page_key='/errors/page_not_found',
+            charset='latin-1',
         )
 
         # page not found: invalid torrent
@@ -215,6 +225,7 @@ class TestFunctions(WebTestCase):
                 tor='_invalid_.torrent',
             ),
             match_page_key='/errors/page_not_found',
+            charset='latin-1',
         )
 
 
