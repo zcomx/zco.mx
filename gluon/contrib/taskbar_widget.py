@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # # Creates a taskbar icon for web2py
 # # Author: Mark Larsen, mostly stolen from Mark Hammond's

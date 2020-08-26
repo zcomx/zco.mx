@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/python3
+#!/usr/bin/env python
 
 """
 This file is part of the web2py Web Framework

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # coding: utf-8
 """html2text: Turn HTML into equivalent Markdown-structured text."""
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """ Unit tests for old doctests in utf8.py, html.py, markmin2html.py.

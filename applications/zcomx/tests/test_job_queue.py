@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -503,7 +503,7 @@ class TestQueue(LocalTestCase):
         text = 'Hello World!'
 
         script = """
-#!/usr/bin/python3
+#!/usr/bin/env python
 
 def main():
     import sys

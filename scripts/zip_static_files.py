@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 ## launch with python web2py.py -S myapp -R scripts/zip_static_files.py

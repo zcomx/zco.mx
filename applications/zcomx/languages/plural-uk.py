@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 {
 # "singular form (0)": ["first plural form (1)", "second plural form (2)", ...],
 'байт': ['байти','байтів'],

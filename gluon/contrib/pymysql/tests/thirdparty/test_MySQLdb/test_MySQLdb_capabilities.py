@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 from . import capabilities
 try:
     import unittest2 as unittest
