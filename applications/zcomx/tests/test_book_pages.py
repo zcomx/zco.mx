@@ -65,7 +65,7 @@ class WithPagesTestCase(LocalTestCase):
             book_page_5,
         ]
 
-        super(WithPagesTestCase, self).setUp()
+        super().setUp()
 
 
 class TestAbridgedBookPageNumbers(WithPagesTestCase):

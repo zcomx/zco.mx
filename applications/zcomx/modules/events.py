@@ -80,7 +80,7 @@ class BookEvent(BaseEvent):
             book: Book instance
             user_id: integer, id of user triggering event.
         """
-        super(BookEvent, self).__init__(user_id)
+        super().__init__(user_id)
         self.book = book
 
     def _log(self, value=None):

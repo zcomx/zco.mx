@@ -124,7 +124,7 @@ class WithOngoingPostTestCase(LocalTestCase):
         # pylint: disable=C0301
         self._expect_status = 'New pages added by @joesmoe, @myname on zco.mx | http://zcomx.tumblr.com/post/123456789012 | #zcomx #comics'
 
-        super(WithOngoingPostTestCase, self).setUp()
+        super().setUp()
 
 
 class TestAuthenticator(LocalTestCase):

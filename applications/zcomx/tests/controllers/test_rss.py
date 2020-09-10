@@ -72,7 +72,7 @@ class TestFunctions(WebTestCase, ImageTestCase):
             time_stamp=self._activity_log_time_stamp,
         ))
 
-        super(TestFunctions, self).setUp()
+        super().setUp()
 
     def test__modal(self):
         self.assertWebTest('/rss/modal')

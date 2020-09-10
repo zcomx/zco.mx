@@ -107,7 +107,7 @@ class WithObjectsTestCase(LocalTestCase):
             page_no=2,
         ))
 
-        super(WithObjectsTestCase, self).setUp()
+        super().setUp()
 
 
 class TestCBZCreateError(LocalTestCase):
@@ -296,13 +296,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def setUpClass(cls):
         if not os.path.exists(cls._base_path):
             os.makedirs(cls._base_path)
-        super(TestFunctions, cls).setUpClass()
+        super().setUpClass()
 
     @classmethod
     def tearDownClass(cls):
         if os.path.exists(cls._base_path):
             shutil.rmtree(cls._base_path)
-        super(TestFunctions, cls).tearDownClass()
+        super().tearDownClass()
 
     def test__archive(self):
         self._set_images()

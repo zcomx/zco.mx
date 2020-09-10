@@ -73,13 +73,13 @@ class WithObjectsTestCase(LocalTestCase):
             auth_user_id=self._auth_user.id,
             email=email,
         ))
-        super(WithObjectsTestCase, self).setUp()
+        super().setUp()
 
     def tearDown(self):
         if self._creator.image:
             up_image = UploadImage(db.creator.image, self._creator.image)
             up_image.delete_all()
-        super(WithObjectsTestCase, self).tearDown()
+        super().tearDown()
 
 
 class TestCachedImgTag(LocalTestCase):

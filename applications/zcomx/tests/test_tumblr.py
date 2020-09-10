@@ -94,7 +94,7 @@ class WithObjectsTestCase(LocalTestCase):
             ongoing_post_id=None,
         ))
 
-        super(WithObjectsTestCase, self).setUp()
+        super().setUp()
 
 
 class WithDateTestCase(LocalTestCase):
@@ -104,7 +104,7 @@ class WithDateTestCase(LocalTestCase):
     # pylint: disable=C0103
     def setUp(self):
         self._date = datetime.date.today()
-        super(WithDateTestCase, self).setUp()
+        super().setUp()
 
 
 class DubClient(object):

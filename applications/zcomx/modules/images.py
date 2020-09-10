@@ -183,7 +183,7 @@ class CachedImgTag(ImgTag):
 
     def url_vars(self):
         """Return the URL(..., vars=?) value."""
-        cached_vars = super(CachedImgTag, self).url_vars()
+        cached_vars = super().url_vars()
         cached_vars['cache'] = 1
         return cached_vars
 

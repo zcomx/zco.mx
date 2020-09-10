@@ -57,15 +57,19 @@ def main():
         sys.argv[:] = [x for x in sys.argv if x != '--max-diff']
 
     options = {}
-    if '--force' in sys.argv:
-        options['force'] = True
-        sys.argv[:] = [x for x in sys.argv if x != '--force']
-    if '--quick' in sys.argv:
-        options['quick'] = True
-        sys.argv[:] = [x for x in sys.argv if x != '--quick']
-    if '--dump' in sys.argv:
-        options['dump'] = True
-        sys.argv[:] = [x for x in sys.argv if x != '--dump']
+    opt_args = {
+        # cli option: option key
+        '--frce': 'force',
+        '--no-count': 'no_count',
+        '--quick': 'quick',
+        '--dump': 'dump',
+    }
+    for cli_opt, opt_key in opt_args.items():
+        if cli_opt in sys.argv:
+            options[opt_key] = True
+            # Remove the option from sys.argv so it is not passed to
+            # web2py.py.
+            sys.argv[:] = [x for x in sys.argv if x != cli_opt]
 
     # W0212: *Access to a protected member %%s of a client class*
     # pylint: disable=W0212

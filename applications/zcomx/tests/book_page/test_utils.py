@@ -27,7 +27,7 @@ class DubActivityLog(ActivityLog):
 
     def __init__(self, *args, **kwargs):
         """Initializer"""
-        ActivityLog.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.is_set_deleted = False
 
     def set_page_deleted(self, book_page):
@@ -38,7 +38,7 @@ class DubTentativeActivityLog(TentativeActivityLog):
 
     def __init__(self, *args, **kwargs):
         """Initializer"""
-        TentativeActivityLog.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.is_deleted = False
 
     def delete(self):
@@ -47,7 +47,7 @@ class DubTentativeActivityLog(TentativeActivityLog):
 
 class DubActivityLogDeleter(ActivityLogDeleter):
     def __init__(self, book_page):
-        super(DubActivityLogDeleter, self).__init__(book_page)
+        super().__init__(book_page)
         self.logged_activity_ids = []
         self.logged_tentative_activity_ids = []
 
@@ -94,7 +94,7 @@ class WithObjectsTestCase(LocalTestCase):
             book_page_id=self._book_page_2.id
         ))
 
-        super(WithObjectsTestCase, self).setUp()
+        super().setUp()
 
 
 class TestActivityLogDeleter(WithObjectsTestCase):

@@ -139,11 +139,11 @@ class BookAutocompleter(BaseAutocompleter):
 
     def __init__(self, keyword=''):
         db = current.app.db
-        super(BookAutocompleter, self).__init__(db.book, keyword=keyword)
+        super().__init__(db.book, keyword=keyword)
 
     def filters(self):
         db = current.app.db
-        queries = super(BookAutocompleter, self).filters()
+        queries = super().filters()
         queries.append((db.book.status == BOOK_STATUS_ACTIVE))
         return queries
 
@@ -160,12 +160,12 @@ class CreatorAutocompleter(BaseAutocompleter):
 
     def __init__(self, keyword=''):
         db = current.app.db
-        super(CreatorAutocompleter, self).__init__(db.creator, keyword=keyword)
+        super().__init__(db.creator, keyword=keyword)
 
     def filters(self):
         db = current.app.db
         queries = []
-        queries = super(CreatorAutocompleter, self).filters()
+        queries = super().filters()
         # Creators must have at least one book
         queries.append((db.book.id != None))
         return queries

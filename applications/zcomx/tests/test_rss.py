@@ -93,7 +93,7 @@ class WithObjectsTestCase(LocalTestCase):
             time_stamp=self._activity_log_time_stamp,
         ))
 
-        super(WithObjectsTestCase, self).setUp()
+        super().setUp()
 
     def set_book_page_image(self):
         """Set the book_page.image on self._book_page."""
@@ -109,7 +109,7 @@ class DubRSSChannel(BaseRSSChannel):
     max_entry_age_in_days = 10
 
     def __init__(self, record=None):
-        super(DubRSSChannel, self).__init__(record=record)
+        super().__init__(record=record)
         self._filter_query = None
 
     def description(self):

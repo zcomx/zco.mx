@@ -122,7 +122,7 @@ class WithObjectsTestCase(LocalTestCase):
             page_no=1,
         ))
 
-        super(WithObjectsTestCase, self).setUp()
+        super().setUp()
 
 
 class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):

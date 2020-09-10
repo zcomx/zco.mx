@@ -122,7 +122,7 @@ class WithObjectsTestCase(LocalTestCase):
             page_no=2,
         ))
 
-        super(WithObjectsTestCase, self).setUp()
+        super().setUp()
 
     def _set_pages(self, book, num_of_pages):
         set_pages(self, book, num_of_pages)

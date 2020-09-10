@@ -162,7 +162,7 @@ class WithTestDataDirTestCase(LocalTestCase):
     def setUp(self):
         self._test_data_dir = os.path.join(
             current.request.folder, 'private/test/data/')
-        super(WithTestDataDirTestCase, self).setUp()
+        super().setUp()
 
 
 class ImageTestCase(WithTestDataDirTestCase):
@@ -260,12 +260,12 @@ class ImageTestCase(WithTestDataDirTestCase):
     def setUp(self):
         if not os.path.exists(self._image_dir):
             os.makedirs(self._image_dir)
-        super(ImageTestCase, self).setUp()
+        super().setUp()
 
     def tearDown(self):
         if os.path.exists(self._image_dir):
             shutil.rmtree(self._image_dir)
-        super(ImageTestCase, self).tearDown()
+        super().tearDown()
 
     @classmethod
     def setUpClass(cls):

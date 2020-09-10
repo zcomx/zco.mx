@@ -51,7 +51,7 @@ class DumpTestCase(LocalTestCase):
 class DubAutocompleter(BaseAutocompleter):
     def __init__(self, keyword=''):
         db = current.app.db
-        super(DubAutocompleter, self).__init__(db.book, keyword=keyword)
+        super().__init__(db.book, keyword=keyword)
 
     def row_to_json(self, row):
         return {'id': str(row)}

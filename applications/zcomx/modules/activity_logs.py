@@ -186,7 +186,7 @@ class CompletedTentativeLogSet(BaseTentativeLogSet):
         super_filters = dict(filters) if filters else {}
         if 'action' not in super_filters:
             super_filters['action'] = 'completed'
-        return super(CompletedTentativeLogSet, cls).load(
+        return super().load(
             filters=super_filters, tentative_log_class=tentative_log_class)
 
 
@@ -238,7 +238,7 @@ class PageAddedTentativeLogSet(BaseTentativeLogSet):
         super_filters = dict(filters) if filters else {}
         if 'action' not in super_filters:
             super_filters['action'] = 'page added'
-        return super(PageAddedTentativeLogSet, cls).load(
+        return super().load(
             filters=super_filters, tentative_log_class=tentative_log_class)
 
 

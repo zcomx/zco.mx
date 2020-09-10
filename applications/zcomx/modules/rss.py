@@ -161,7 +161,7 @@ class BookRSSChannel(BaseRSSChannel):
         Args:
             record: Book instance
         """
-        super(BookRSSChannel, self).__init__(record=record)
+        super().__init__(record=record)
         self.book = record
         self.creator = Creator.from_id(self.book.creator_id)
 
@@ -174,7 +174,7 @@ class BookRSSChannel(BaseRSSChannel):
 
     def filter_query(self):
         db = current.app.db
-        return super(BookRSSChannel, self).filter_query() & \
+        return super().filter_query() & \
             (db.activity_log.book_id == self.book.id)
 
     def link(self):
@@ -203,7 +203,7 @@ class CartoonistRSSChannel(BaseRSSChannel):
         Args:
             record: Creator instance
         """
-        super(CartoonistRSSChannel, self).__init__(record=record)
+        super().__init__(record=record)
         self.creator = record
 
     def description(self):
@@ -214,7 +214,7 @@ class CartoonistRSSChannel(BaseRSSChannel):
 
     def filter_query(self):
         db = current.app.db
-        return super(CartoonistRSSChannel, self).filter_query() & \
+        return super().filter_query() & \
             (db.book.creator_id == self.creator.id)
 
     def link(self):

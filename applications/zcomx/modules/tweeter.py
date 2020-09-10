@@ -361,8 +361,7 @@ class ManyCreatorsOngoingUpdateTweet(TruncatedOngoingUpdateTweet):
     num_creators_to_post = 2
 
     def creators_in_text_form(self):
-        text = super(
-            ManyCreatorsOngoingUpdateTweet, self).creators_in_text_form()
+        text = super().creators_in_text_form()
         return text + ' and others'
 
     def creators_for_post(self):

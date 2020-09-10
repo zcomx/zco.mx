@@ -376,7 +376,7 @@ class NoCBZImageBarrier(BaseReleaseBarrier):
         Args:
             book: Row instance representing a book.
         """
-        super(NoCBZImageBarrier, self).__init__(book)
+        super().__init__(book)
         self._no_cbz_images = None
 
     def applies(self):

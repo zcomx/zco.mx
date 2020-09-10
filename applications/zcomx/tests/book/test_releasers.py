@@ -57,7 +57,7 @@ class WithObjectsTestCase(LocalTestCase):
             page_no=1,
         ))
 
-        super(WithObjectsTestCase, self).setUp()
+        super().setUp()
 
     def _get_activity_logs(self):
         query = (db.tentative_activity_log.book_id == self._book.id)
