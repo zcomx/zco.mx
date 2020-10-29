@@ -59,10 +59,6 @@ VERSION 5
 
     SB 2015-02-09 19:09  It does this with middle click
 [ ] Terms and Conditions - Pop-up Modal for Reader
-[ ] github
-    Change https://github.com/zcomx/zcomix.com to
-    https://github.com/zcomx/zcomx or
-    https://github.com/zcomx/website ?
 [ ] Should CartoonistName.torrent be in /C/CartoonistName/ ?
 [ ] 12347 - Reduce duplication between web2py modal and inplace_crud table_data
 [ ] 12354 - Test scripts

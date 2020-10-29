@@ -154,7 +154,7 @@ class TestFunctions(WebTestCase):
             'payment_type': 'instant',
             'protection_eligibility': 'Eligible',
             'quantity': '0',
-            'receiver_email': 'showme@zcomix.com',
+            'receiver_email': 'showme@zco.mx',
             'receiver_id': '67V3XCYF92RQL',
             'residence_country': 'CA',
             'tax': '0.00',

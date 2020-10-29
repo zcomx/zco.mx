@@ -22,7 +22,7 @@ You agree that you are solely responsible for your reuse of Content made availab
 
 zco.mx Owned Content: All Content on the Website is licensed under the Creative Commons Attribution 4.0 International license, unless otherwise marked.
 
-zco.mx Owned Code: All of zco.mx software code is free software; please check our code repository https://github.com/zcomx/zcomix.com and read LICENSE
+zco.mx Owned Code: All of zco.mx software code is free software; please check our code repository https://github.com/zcomx/zco.mx and read LICENSE
 for the specific licensing of software.
 
 #### 5. Content Supplied by You
