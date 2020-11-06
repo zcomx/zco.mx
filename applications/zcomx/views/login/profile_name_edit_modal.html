@@ -1,0 +1,47 @@
+<div id="profile_name_edit_modal_page">
+
+<div class="panel panel-danger">
+    <div class="panel-body">
+        <p>
+        You are about to change the name associated with your account.
+        You should be aware of the consequences of doing this.
+        </p>
+
+        <p>
+        Changing the name on the account changes the url used for the page
+        displaying the cartoonist's details for readers. Urls with the old
+        name, which may be cataloged by search engines or bookmarked by
+        readers, will no longer work.
+        </p>
+
+        <p>
+        If your account is new, you should be safe to proceed. If your account
+        has been used for some time, you may wish to reconsider. If you are
+        unsure how to proceed, email the site admin:
+        <a href="mailto:show.me@zco.mx">show.me@zco.mx</a>
+        </p>
+
+        <p>
+    </div>
+</div>
+
+{{=form.custom.begin}}
+
+<div class="panel" style="box-shadow: none; -webkit-box-shadow: none;">
+    <div class="panel-body">
+        <div id="row_container_name" class="row_container">
+            <div class="field_label">Name</div>
+            <div class="field_container field_container_name">
+                {{=form.custom.widget.name}}
+            </div>
+            <div id="name_edit_message_panel" class="panel panel-default">
+                <div class="panel-body"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{=form.custom.end}}
+
+</div>
+

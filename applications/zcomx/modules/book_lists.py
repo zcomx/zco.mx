@@ -55,6 +55,11 @@ class BaseBookList(object):
         raise NotImplementedError
 
     @property
+    def description(self):
+        """Return a description for the book list."""
+        return ''
+
+    @property
     def display_headers_if_none(self):
         """Return whether to display the headers if there are no books."""
         return True
@@ -136,11 +141,6 @@ class BaseBookList(object):
         return 'No books found'
 
     @property
-    def subtitle(self):
-        """Return the subtitle of the book list."""
-        return ''
-
-    @property
     def title(self):
         """Return the title of the book list."""
         return self.code.upper()
@@ -152,6 +152,14 @@ class CompletedBookList(BaseBookList):
     @property
     def code(self):
         return 'completed'
+
+    @property
+    def description(self):
+        return (
+            'Completed books are books in their final format. '
+            'All pages are included; no more pages will be added. '
+            'Completed books can be optionally released for file sharing. '
+        )
 
     @property
     def display_headers_if_none(self):
@@ -212,6 +220,13 @@ class DisabledBookList(BaseBookList):
     def code(self):
         return 'disabled'
 
+    @property
+    def description(self):
+        return (
+            'Books are disabled by the site admin '
+            'if they are under copyright review or deemed inappropriate.'
+        )
+
     def filters(self):
         db = self.db
         queries = []
@@ -221,13 +236,6 @@ class DisabledBookList(BaseBookList):
     @property
     def no_records_found_msg(self):
         return 'No disabled books'
-
-    @property
-    def subtitle(self):
-        return (
-            'Books are disabled by the site admin '
-            'if they are under copyright review or deemed inappropriate.'
-        )
 
 
 class DraftBookList(BaseBookList):
@@ -240,6 +248,14 @@ class DraftBookList(BaseBookList):
     @property
     def code(self):
         return 'draft'
+
+    @property
+    def description(self):
+        return (
+            'Books remain as a draft until pages are added. '
+            'Use the Upload button to add page images. '
+            'Drafts are not posted online, nor available in search results. '
+        )
 
     def filters(self):
         db = self.db
@@ -256,14 +272,6 @@ class DraftBookList(BaseBookList):
         return 'No draft books'
 
     @property
-    def subtitle(self):
-        return (
-            'Books remain as a draft until pages are added. '
-            'Use the Upload button to add page images. '
-            'Drafts are not posted online, nor available in search results. '
-        )
-
-    @property
     def title(self):
         return 'DRAFTS'
 
@@ -278,6 +286,16 @@ class OngoingBookList(BaseBookList):
     @property
     def code(self):
         return 'ongoing'
+
+    @property
+    def description(self):
+        return (
+            'Ongoing books are incomplete and in progress. '
+            'Creators can upload pages to their ongoing books '
+            'as they become available. '
+            'Every book starts at the Ongoing stage. '
+            'They have to be set to completed to move to the Completed stage. '
+        )
 
     @property
     def display_headers_if_none(self):

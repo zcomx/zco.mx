@@ -572,7 +572,7 @@
         message_panel: '#message_panel',
         onhidden: null,
         onshow: null,
-        title_template: '{action}: {book_title}',
+        title_template: '<span class="modal_title_action">{action}:</span> <span class="modal_title_book_title">{book_title}</span>',
         url: null,
     };
 
@@ -583,8 +583,8 @@
 
     function display_book_lists() {
         $.each(book_list_urls, function(key, url) {
-            var target =  key + '_book_list';
-            var target_elem =  $('#' + target);
+            var target = key + '_book_list';
+            var target_elem = $('#' + target);
             if (target_elem.length) {
                 web2py_component(url, target);
                 var container = target_elem.closest('.books_list_container');

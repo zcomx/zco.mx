@@ -406,6 +406,8 @@ class WebTestCase(LocalTestCase):
         ],
         '/login/order_no_handler': '<div id="creator_page">',
         '/login/profile': '<div id="creator_section">',
+        '/login/profile_name_edit_modal':
+            '<div id="profile_name_edit_modal_page">',
         '/rss/modal': '<div id="rss_modal">',
         '/rss/rss': [
             '<?xml version="1.0" encoding="utf-8"?>',

@@ -2,45 +2,60 @@
 {{extend 'login/layout.html'}}
 <div id="creator_section">
 
-<div id="editable_fields_container"></div>
-<div id="links_container"></div>
-<div id="bio_container"></div>
-<div id="mug_shot">
-    <div class="row_container">
-        <div class="arrow_container"></div>
-        <div class="field_label">{{=db.creator.image.label}}</div>
-        <div class="image_field_container">
-            <div class="fileupload_container">
-                <form id="fileupload" action="/zcomx/login/creator_img_handler" method="POST" enctype="multipart/form-data">
-                    <noscript><input type="hidden" name="redirect" value="/zcomx/login/creator"></noscript>
-                    <div class="row fileupload-buttonbar">
-                        <div class="col-xs-12">
-                            <div class="no_photo_section">
-                                <span class="fileupload-process"></span>
-                                <div class="img_preview_container">
-                                    <div class="preview placeholder_torso">
-                                    <i class="icon zc-torso"></i>
+<div class="preview_button">
+    <a href="{{=name_url}}" class="btn btn-default" target="_blank" rel="noopener noreferrer">Preview</a>
+</div>
+
+
+<div class="row mug_shot_editable_container">
+    <div class="col-md-5 col-lg-5">
+        <div id="mug_shot">
+            <div class="row_container">
+                <div class="image_field_container">
+                    <div class="fileupload_container">
+                        <form id="fileupload" action="/zcomx/login/creator_img_handler" method="POST" enctype="multipart/form-data">
+                            <noscript><input type="hidden" name="redirect" value="/zcomx/login/creator"></noscript>
+                            <div class="row fileupload-buttonbar">
+                                <div class="col-xs-12">
+                                    <div class="no_photo_section">
+                                        <span class="fileupload-process"></span>
+                                        <div class="img_preview_container">
+                                            <div class="preview placeholder_torso">
+                                                <div class="placeholder_torso_text">
+                                                Click to upload
+                                                </div>
+                                                <i class="icon zc-torso"></i>
+                                            </div>
+                                        </div>
+                                        <div class="button_container hidden">
+                                            <div class="btn btn-default fileinput-button">
+                                                <span>Upload</span>
+                                                <input id="up_files_input" type="file" name="up_files" multiple>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="button_container">
-                                    <div class="btn btn-default fileinput-button">
-                                        <span>Upload</span>
-                                        <input id="up_files_input" type="file" name="up_files" multiple>
+                                    <div class="has_photo_section">
+                                        <div class="files"> </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="has_photo_section">
-                                <div class="files"> </div>
-                            </div>
-                        </div>
+                        </form>
+                        <br>
                     </div>
-                </form>
-                <br>
+                </div>
             </div>
         </div>
+        <div id="photo_credit_container"></div>
+    </div>
+
+    <div class="col-md-0 col-lg-0 vertical_spacer"> </div>
+
+    <div class="col-md-7 col-lg-7">
+        <div id="editable_fields_container"></div>
     </div>
 </div>
-<div id="photo_credit_container"></div>
+
+<div id="links_container"></div>
 
 </div>
 <script id="template-upload" type="text/x-tmpl">
@@ -134,11 +149,45 @@
 <script>
 //<![CDATA[
     var creator_data = {
+        'name': {
+            'label': 'name',
+            'value': '{{=creator.name}}',
+            'callback': function(elem) {
+                var anchor = $(elem).find('.field_container').find('a')
+                anchor.removeClass('editable-empty');
+                anchor.addClass('profile_name_edit');
+                anchor.attr('href', '/login/profile_name_edit_modal');
+                setTimeout(function() {
+                    $('.profile_name_edit').profile_name_edit();
+                }.bind(this), 200);
+            },
+            'x_editable_settings': {
+                'type': null,
+            },
+        },
+        'name_url': {
+            'label': 'name url',
+            'value': '{{=name_url}}',
+            'x_editable_settings': {
+                'disabled': true,
+            },
+        },
         'short_url': {
             'label': 'shortened url',
             'value': '{{=short_url}}',
             'x_editable_settings': {
                 'disabled': true,
+            },
+        },
+        'bio': {
+            'label': '{{=db.creator.bio.label}}',
+            'value': '{{=json.dumps(creator.bio or "").strip('"')}}',
+            'x_editable_settings': {
+                'title': 'Enter a brief biography.',
+                'escape': true,
+                'inputclass': 'inplace_crud creator_bio_input',
+                'type': 'textarea',
+                'placeholder': 'Enter a brief biography',
             },
         },
         'email': {
@@ -220,18 +269,6 @@
         },
     }
 
-    var bio_data = {
-        'bio': {
-            'label': '{{=db.creator.bio.label}}',
-            'value': '{{=json.dumps(creator.bio or "").strip('"')}}',
-            'x_editable_settings': {
-                'title': 'Enter a brief biography.',
-                'escape': true,
-                'inputclass': 'inplace_crud creator_bio_input',
-                'type': 'textarea',
-            },
-        },
-    }
     var photo_credit_data = {
         'photo_credit': {
             'label': '{{=db.creator.photo_credit.label}}',
@@ -291,12 +328,6 @@
             );
         {{pass}}
 
-        $('#bio_container').inplace_crud(
-            '{{=URL(c='login', f='creator_crud.json')}}',
-            '{{=creator.id}}',
-            { source_data: bio_data }
-        );
-
         $('#photo_credit_container').inplace_crud(
             '{{=URL(c='login', f='creator_crud.json')}}',
             '{{=creator.id}}',
@@ -319,4 +350,5 @@
     {{pass}}
     <script src="{{=app_js}}/inplace_crud.js"> </script>
     <script src="{{=app_js}}/image_upload.js"> </script>
+    <script src="{{=app_js}}/profile.js"> </script>
 {{end}}

@@ -892,6 +892,12 @@
             this.set_page_no_input();
             this.set_slider_overlays(page_no);
             this.set_controls_overlay();
+            if(this.page_no.current == this.page_no.last) {
+                this.controls_overlay_show({
+                    'action': 'show',
+                    'element': this.$controls_overlay,
+                });
+            }
             this.on_page_change();
         },
     });
@@ -946,6 +952,12 @@
                     if (that.page_no.current != page_no) {
                         that.page_no.current = that.slide_page_no(slide);
                         that.on_page_change();
+                    }
+                    if(that.page_no.current == that.page_no.last) {
+                        that.controls_overlay_show({
+                            'action': 'show',
+                            'element': that.$controls_overlay,
+                        });
                     }
                 }, 300);
             });

@@ -192,6 +192,12 @@ def top():
     )
     left_links.append(LI(home))
 
+    help_anchor = A(
+        'help',
+        _href='http://kb.zco.mx'
+    )
+    right_links.append(LI(help_anchor))
+
     def li_link(label, url, **kwargs):
         """Return a LI(A(...)) structure."""
         if url is not None:

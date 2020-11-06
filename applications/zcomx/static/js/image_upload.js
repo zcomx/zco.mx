@@ -164,6 +164,7 @@
                 that.set_reorder_links(elem);
             });
             that.set_arrows();
+            that.set_sort_link();
             that.set_close_button();
             this.set_tooltip_text();
         },
@@ -171,6 +172,7 @@
         deleted_callback: function(e, data) {
             ImageUpload.prototype.deleted_callback.apply(this);
             this.set_arrows();
+            this.set_sort_link();
             this.set_close_button();
             this.set_tooltip_text();
         },
@@ -217,6 +219,26 @@
             });
         },
 
+        set_sort_link: function() {
+            var that = this;
+            var link_container = $('#sort_link_container');
+            var sort_link = $('#sort_by_filename_link');
+            if (this.img_count() > 0) {
+                link_container.show();
+                $('#sort_by_filename_link').on('click', function() {
+                    that.sort_by_filename();
+                });
+                var tooltip_text = $('#sort_link_tooltip').html();
+                var icon = $.fn.zco_utils.tooltip(
+                    'sort_by_filename_link',
+                    tooltip_text
+                );
+                sort_link.after(icon);
+            } else {
+                link_container.hide();
+            }
+        },
+
         set_tooltip_text: function(elem) {
             var icon_container = $('.fileupload-buttonbar').find('.info_icon_container').first();
             if (this.img_count() > 0) {
@@ -228,6 +250,19 @@
             }
         },
 
+        sort_by_filename: function() {
+            var filename_to_tr = {}
+            $('form#fileupload p.name').each(function(idx, e) {
+                var link = $(e).find('a');
+                filename_to_tr[link.text()] = this.closest('tr');
+            })
+
+            var sorted_filenames = Object.keys(filename_to_tr).sort();
+            $.each(sorted_filenames, function(idx, filename) {
+                var tr = filename_to_tr[filename];
+                $('form#fileupload p.name').eq(idx).closest('tr').before(tr);
+            })
+        },
     });
 
     var CreatorImageUpload = function (element, type, url, options) {
@@ -268,8 +303,10 @@
             $(document).on('click', '#remove_button', function(e) {
                 that.clear_error();
             });
-            $(document).on('click', '.fileinput-button', function(e) {
+            $(document).on('click', '.img_preview_container', function(e) {
                 that.clear_error();
+                $('input[type=file]').trigger('click');
+                e.preventDefault();
             });
             this.show_buttons();
         },

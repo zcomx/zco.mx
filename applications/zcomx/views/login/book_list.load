@@ -2,10 +2,7 @@
 
 {{if lister and (lister.books() or lister.display_if_none):}}
 <div class="books_list_title">
-    <h4>{{=lister.title}}</h4>
-</div>
-<div class="text-muted">
-    {{=lister.subtitle}}
+    <h4><span id="{{=lister.code}}_title">{{=lister.title}}</span></h4>
 </div>
 <div id="{{=lister.code}}_container">
     {{headers = lister.headers()}}
@@ -124,8 +121,18 @@
 
 <script>
 //<![CDATA[
+    var book_list_code = '{{=lister.code}}';
+    var book_list_desc = '{{=lister.description}}';
+
     $(document).ready(function(){
         $.fn.set_modal_events();
+        var target =  book_list_code + '_title';
+        var target_elem = $('#' + target);
+        var icon = $.fn.zco_utils.tooltip(
+            target,
+            book_list_desc,
+        );
+        target_elem.after(icon);
     });
 //]]>
 </script>

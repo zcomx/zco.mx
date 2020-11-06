@@ -24,7 +24,10 @@ h1, h2, h3, h4, h5 {
 }
 
 /* prevent iphone zoom */
-@media screen and (-webkit-min-device-pixel-ratio:0) {
+@media only screen
+  and (min-device-width: 375px)
+  and (max-device-width: 812px)
+  and (-webkit-min-device-pixel-ratio: 3) {
     select,
     textarea,
     input {
@@ -396,6 +399,13 @@ ul.bulletless {
     margin-bottom: 1.2em;
 }
 
+.web2py_paginator .current a {
+    background-color: #FF6600;
+    color: #FFFFFF;
+    border: 1px solid #FF6600;
+    border-radius: 5px;
+}
+
 .web2py_paginator .current a:hover{
     text-decoration: none;
 }
@@ -413,6 +423,10 @@ ul.bulletless {
     margin-bottom: 0;
     margin-top: 2em;
     line-height: 1;
+}
+
+#profile_page .books_list_title span.zco_tooltip {
+    margin-left: 0.5em;
 }
 
 #profile_page .book_list .table.with_header  {
@@ -465,12 +479,25 @@ ul.bulletless {
     font-color: #FF0000;
 }
 
+#profile_page .account_email_container {
+    margin-left: 2em;
+}
+
+#profile_page .account_email_container .login_name_label{
+    font-weight: normal;
+}
+
+#profile_page .account_email_container .login_name {
+    margin-left: 1em;
+    font-size: 12pt;
+}
+
 #profile_page #web2py_user_form {
     margin: 1em;
 }
 
 #profile_page .change_password_container {
-    border-left: 1px solid #DDDDDD;
+    max-width: 30em;
     margin-bottom: 0.8em;
 }
 
@@ -1017,7 +1044,22 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+.modal-add-btn {
+    color: #FFFFFF;
+    background-color: #FF6600;
+    border-color: #FF6600;
+    font-weight: bold;
+}
+
 .modal-dialog .emphasize {
+    font-weight: bold;
+}
+
+.modal-dialog .modal_title_action {
+    font-weight: normal;
+}
+
+.modal-dialog .modal_title_book_title {
     font-weight: bold;
 }
 
@@ -1852,6 +1894,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     float: right;
 }
 
+#profile_page .preview_button {
+    float: right;
+}
+
 #profile_book_pages_page #book_name {
     font-size: 16pt;
 }
@@ -2124,13 +2170,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
-#bio_container,
-#mug_shot{
-    margin-top: 1.2em;
-}
-
 #mug_shot {
-    padding: 1em;
+    padding: 1em 1em 0 1em;
     min-width: 23em;
     width: 100%;
 }
@@ -2144,12 +2185,20 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-top: 1em;
 }
 
+.mug_shot_editable_container .arrow_container {
+    display: none;
+}
+
 #profile_page #creator_section {
     margin: 1em;
 }
 
 #profile_page #creator_section .img_preview_container {
     padding-bottom: 0.2em;
+}
+
+#profile_page #creator_section #links_container  {
+    margin-top: 2em;
 }
 
 @media (max-width: 992px){
@@ -2422,6 +2471,19 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: 112%;
 }
 
+.placeholder_torso_text {
+    position: relative;
+    left: 4em;
+    top: 17em;
+    background-color: #FFFFFF;
+    color: #BBBBBB;
+    border: 1px solid #EEEEEE;
+    border-radius: 4px;
+    padding: 0.2em;
+    text-align: center;
+    max-width: 10em;
+}
+
 @media (min-width: 768px) {
     .add_link_container > div {
         display: inline-block;
@@ -2483,11 +2545,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
         width: 12em;
     }
 
-    #bio_container .row_container .field_container {
-        max-width: 35em;
-    }
-
-
     #mug_shot {
         max-width: 65em;
         padding: 1em 1em 1em 0;
@@ -2496,7 +2553,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     #mug_shot .template-download,
     #mug_shot .img_preview_container,
     #mug_shot .button_container {
-        display: inline-block;
         vertical-align: top;
     }
 
@@ -2744,7 +2800,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
     border-color: #999999;
     color: #333333;
     transition: none;
+}
+
+#book_edit_section .book_description_input {
     width: 28em;
+}
+
+#profile_page .creator_bio_input {
+    width: 24em;
 }
 
 #book_edit_section .field_info {

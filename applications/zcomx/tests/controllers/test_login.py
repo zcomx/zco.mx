@@ -984,6 +984,32 @@ class TestFunctions(WebTestCase):
     def test__profile(self):
         self.assertWebTest('/login/profile')
 
+    def test__profile_name_edit_crud(self):
+        def get_creator():
+            """Return a creator"""
+            return Creator.from_id(self._creator.id)
+
+        old_creator = get_creator()
+
+        new_name = 'Test Smith'
+        self.assertNotEqual(old_creator.name, new_name)
+
+        web.login()
+
+        url = '{url}/profile_name_edit_crud.json'.format(url=self.url)
+        data = {'name': new_name}
+        web.post(url, data=data)
+        result = json.loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+
+        new_creator = get_creator()
+        self.assertEqual(new_creator.name, new_name)
+
+        Creator.from_updated(self._creator, old_creator.as_dict())
+
+    def test__profile_name_edit_modal(self):
+        self.assertWebTest('/login/profile_name_edit_modal')
+
 
 def setUpModule():
     """Set up web2py environment."""

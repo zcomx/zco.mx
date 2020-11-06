@@ -1,10 +1,25 @@
 {{extend 'login/layout.html'}}
 <div class="row">
-    <div class="col-sm-6 account_profile_container">
-        {{=LOAD(c='default', f='user/profile', extension='load', ajax=True)}}
+    <div class="account_email_container">
+        <span class="login_name_label">Login name:</span> <span class="login_name">{{=creator.email}}</span>
     </div>
-    <div class="visible-xs vertical_spacer"></div>
-    <div class="col-sm-6 change_password_container">
+    <div class="change_password_container">
         {{=LOAD(c='default', f='user/change_password', extension='load', ajax=True)}}
     </div>
 </div>
+
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        var target = 'login_name';
+        var target_elem = $('.' + target);
+        var tooltip_text = 'If you wish to change your login name, '
+            + 'please send your request to showme@zco.mx.';
+        var icon = $.fn.zco_utils.tooltip(
+            target,
+            tooltip_text
+        );
+        target_elem.after(icon);
+    });
+//]]>
+</script>

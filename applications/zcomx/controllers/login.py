@@ -31,11 +31,15 @@ from applications.zcomx.modules.books import \
     publication_year_range, \
     set_status
 from applications.zcomx.modules.cc_licences import CCLicence
-from applications.zcomx.modules.creators import \
-    Creator, \
-    image_as_json, \
-    queue_update_indicia, \
-    short_url
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+    image_as_json,
+    on_change_name,
+    queue_update_indicia,
+    short_url,
+    url as creator_url,
+)
 from applications.zcomx.modules.image.validators import InvalidImageError
 from applications.zcomx.modules.images import \
     ResizeImgIndicia, \
@@ -1513,6 +1517,11 @@ def profile():
         )
     )
 
+    name_url = '{s}{p}'.format(
+        s=current.app.local_settings.web_site_url,
+        p=creator_url(creator)
+    )
+
     link_types = []
     for link_type_code in ['creator_article', 'creator_page']:
         link_types.append(LinkType.by_code(link_type_code))
@@ -1520,5 +1529,75 @@ def profile():
     return dict(
         creator=creator,
         link_types=link_types,
+        name_url=name_url,
         short_url=short_url(creator)
+    )
+
+
+@auth.requires_login()
+def profile_name_edit_crud():
+    """Handler for ajax profile name edit CRUD calls.
+
+    request.vars.name: string, name of creator
+    """
+    response.generic_patterns = ['json']
+
+    def do_error(msg=None):
+        """Error handler."""
+        return {'status': 'error', 'msg': msg or 'Server request failed'}
+
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
+        return do_error('Permission denied')
+
+    name = request.vars.name
+    if not name or len(name) < 3:
+        return do_error('Name must be minimum 3 characters.')
+
+    auth_user = AuthUser.from_id(auth.user_id)
+    if auth_user:
+        auth_user = AuthUser.from_updated(auth_user, dict(name=name.strip()))
+        db.commit()
+
+    if not auth_user:
+        LOG.error('auth_user not found, id: %s', auth.user_id)
+        return do_error('Unable to update record. Please try again.')
+
+    on_change_name(creator);
+
+    return {'status': 'ok'}
+
+
+@auth.requires_login()
+def profile_name_edit_modal():
+    """Controller for profile name edit modal."""
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
+        MODAL_ERROR('Permission denied')
+
+    fields = [
+        Field(
+            'name',
+            type='string',
+            default=creator.name,
+        ),
+    ]
+
+    form = SQLFORM.factory(
+        *fields,
+        formstyle='table2cols',
+        submit_button='Submit',
+        hidden=dict(auth_user_id=auth.user_id),
+    )
+
+    form.element(_name='name')['_class'] += ' name_edit_input'
+
+    return dict(
+        form=form,
     )

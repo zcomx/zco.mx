@@ -85,6 +85,10 @@ class TestBaseBookList(LocalTestCase):
         else:
             self.fail('NotImplementedError not raised.')
 
+    def test__description(self):
+        book_list = BaseBookList({})
+        self.assertEqual(book_list.description, '')
+
     def test__display_headers_if_none(self):
         book_list = BaseBookList({})
         self.assertTrue(book_list.display_headers_if_none)
@@ -175,10 +179,6 @@ class TestBaseBookList(LocalTestCase):
         book_list = BaseBookList({})
         self.assertEqual(book_list.no_records_found_msg, 'No books found')
 
-    def test__subtitle(self):
-        book_list = BaseBookList({})
-        self.assertEqual(book_list.subtitle, '')
-
     def test__title(self):
         book_list = DubBookList({})
         self.assertEqual(book_list.title, 'DUBBED')
@@ -189,6 +189,11 @@ class TestCompletedBookList(LocalTestCase):
     def test__code(self):
         book_list = CompletedBookList({})
         self.assertEqual(book_list.code, 'completed')
+
+    def test__description(self):
+        book_list = CompletedBookList({})
+        self.assertTrue(
+            'are books in their final format' in book_list.description)
 
     def test__display_headers_if_none(self):
         book_list = CompletedBookList({})
@@ -252,6 +257,10 @@ class TestDisabledBookList(LocalTestCase):
         book_list = DisabledBookList({})
         self.assertEqual(book_list.code, 'disabled')
 
+    def test__description(self):
+        book_list = DisabledBookList({})
+        self.assertTrue('Books are disabled by' in book_list.description)
+
     def test__filters(self):
         book_list = DisabledBookList({})
         filters = book_list.filters()
@@ -261,10 +270,6 @@ class TestDisabledBookList(LocalTestCase):
     def test__no_records_found_msg(self):
         book_list = DisabledBookList({})
         self.assertEqual(book_list.no_records_found_msg, 'No disabled books')
-
-    def test__subtitle(self):
-        book_list = DisabledBookList({})
-        self.assertTrue('Books are disabled by' in book_list.subtitle)
 
 
 class TestDraftBookList(LocalTestCase):
@@ -276,6 +281,10 @@ class TestDraftBookList(LocalTestCase):
     def test__code(self):
         book_list = DraftBookList({})
         self.assertEqual(book_list.code, 'draft')
+
+    def test__description(self):
+        book_list = DraftBookList({})
+        self.assertTrue('Books remain as a draft' in book_list.description)
 
     def test__filters(self):
         book_list = DraftBookList({})
@@ -291,10 +300,6 @@ class TestDraftBookList(LocalTestCase):
         book_list = DraftBookList({})
         self.assertEqual(book_list.no_records_found_msg, 'No draft books')
 
-    def test__subtitle(self):
-        book_list = DraftBookList({})
-        self.assertTrue('Books remain as a draft' in book_list.subtitle)
-
     def test__title(self):
         book_list = DraftBookList({})
         self.assertEqual(book_list.title, 'DRAFTS')
@@ -309,6 +314,11 @@ class TestOngoingBookList(LocalTestCase):
     def test__code(self):
         book_list = OngoingBookList({})
         self.assertEqual(book_list.code, 'ongoing')
+
+    def test__description(self):
+        book_list = OngoingBookList({})
+        self.assertTrue(
+            'books are incomplete and in progress' in book_list.description)
 
     def test__display_headers_if_none(self):
         book_list = OngoingBookList({})
