@@ -476,6 +476,7 @@ class TestCompletedGrid(LocalTestCase):
                 db.book.publication_year,
                 db.book.release_date,
                 db.book.downloads,
+                db.book.views,
                 # db.book.contributions_remaining,
                 db.auth_user.name,
             ]

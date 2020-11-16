@@ -383,7 +383,6 @@ class WebTestCase(LocalTestCase):
         '/errors/index': '<h3>Server error</h3>',
         '/errors/page_not_found': '<h3>Page not found</h3>',
         '/login/account': [
-            'account_profile_container',
             'change_password_container'
         ],
         '/login/agree_to_terms': '<div id="agree_to_terms_page">',

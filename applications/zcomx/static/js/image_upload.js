@@ -225,15 +225,17 @@
             var sort_link = $('#sort_by_filename_link');
             if (this.img_count() > 0) {
                 link_container.show();
-                $('#sort_by_filename_link').on('click', function() {
+                sort_link.on('click', function() {
                     that.sort_by_filename();
                 });
-                var tooltip_text = $('#sort_link_tooltip').html();
-                var icon = $.fn.zco_utils.tooltip(
-                    'sort_by_filename_link',
-                    tooltip_text
-                );
-                sort_link.after(icon);
+                if(sort_link.next('span.info_icon_container').length === 0) {
+                    var tooltip_text = $('#sort_link_tooltip').html();
+                    var icon = $.fn.zco_utils.tooltip(
+                        'sort_by_filename_link',
+                        tooltip_text
+                    );
+                    sort_link.after(icon);
+                }
             } else {
                 link_container.hide();
             }

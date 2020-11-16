@@ -111,7 +111,8 @@
         <td>
             <p class="name">
                 {% if (file.url) { %}
-                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
+                    <a href="{%=file.url%}" class="img_file_url" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
+                    <img src="/zcomx/static/images/pencil_edit_icon.png" class="url_edit_icon"/>
                 {% } else { %}
                     <span>{%=file.name%}</span>
                 {% } %}
@@ -167,6 +168,30 @@
             tooltip_text
         );
         $('#fileupload').find('.fileinput-button').first().after(icon);
+        $('#fileupload').on('fileuploadcompleted', function (e, data) {
+            $('.url_edit_icon').each( function(indx) {
+                if (! $(this).hasClass('editable') ) {
+                    var pk = $(this).first().closest('tr').data().book_page_id
+                    $(this).editable({
+                        url: '/login/book_page_edit_handler.json',
+                        type: 'text',
+                        name: 'image',
+                        pk: pk,
+                        title: 'Edit image filename',
+                        mode: 'popup',
+                        placement: 'bottom',
+                        success: function(response, newValue) {
+                            if(response.status == 'error') return response.msg;
+                        },
+                    }).on('shown', function(e, editable) {
+                        var anchor_text = $(this).prev('a').text();
+                        editable.input.$input.val(anchor_text);
+                    }).on('save', function(e, params) {
+                        $(this).prev('a').text(params.newValue);
+                    })
+                }
+            })
+        })
     });
 //]]>
 </script>

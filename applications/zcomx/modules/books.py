@@ -93,7 +93,7 @@ def book_name(book, use='file'):
 
 
 def book_page_for_json(book_page):
-    r"""Return the book_page formated as json suitable for jquery-file-upload.
+    """Return the book_page formated as json suitable for jquery-file-upload.
 
     Args:
         book_page: BookPage instance

@@ -495,6 +495,64 @@ def book_list():
 
 
 @auth.requires_login()
+def book_page_edit_handler():
+    """Callback function for the x-editable plugin for renaming the
+    image filename associated with the book page.
+
+    request.vars.pk: integer, id of book_page record
+    request.vars.value: str, new name of image file.
+    """
+    def do_error(msg):
+        """Error handler."""
+        return json.dumps({'status': 'error', 'msg': msg})
+
+    # Verify user is legit
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
+        return do_error('File rename service unavailable')
+
+    book_page_id = request.vars.pk
+    raw_filename = request.vars.value
+
+    book_page = None
+    try:
+        book_page = BookPage.from_id(book_page_id)
+    except LookupError:
+        pass
+    if not book_page:
+        return do_error('File rename service unavailable')
+
+    # Double check that book belongs to creator
+    book = None
+    try:
+        book = Book.from_id(book_page.book_id)
+    except LookupError:
+        return do_error('File rename service unavailable')
+    if not book or book.creator_id != creator.id:
+        return do_error('File rename service unavailable')
+
+    new_filename = None
+    if raw_filename:
+        new_filename = raw_filename.strip()
+
+    if not new_filename:
+        return do_error('Invalid image filename')
+
+    if book_page.image != new_filename:
+        try:
+            book_page = book_page.rename_image(new_filename)
+        except Exception as err:
+            # pylint: disable=broad-except
+            LOG.error('Book page image rename error: %s', str(err))
+            return do_error('Image file rename failed.')
+
+    return json.dumps({'status': 'ok', 'msg': ''})
+
+
+@auth.requires_login()
 def book_pages():
     """Book pages (image upload) controller for modal view.
 
@@ -1566,7 +1624,7 @@ def profile_name_edit_crud():
         LOG.error('auth_user not found, id: %s', auth.user_id)
         return do_error('Unable to update record. Please try again.')
 
-    on_change_name(creator);
+    on_change_name(creator)
 
     return {'status': 'ok'}
 

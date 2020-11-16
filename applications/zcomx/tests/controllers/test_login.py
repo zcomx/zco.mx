@@ -264,7 +264,8 @@ class TestFunctions(WebTestCase):
             book = get_book(book_id)
             if not book:
                 break
-            key = len(retry_seconds) - 1 if tries >= len(retry_seconds) else tries
+            key = len(retry_seconds) - 1 \
+                if tries >= len(retry_seconds) else tries
             time.sleep(retry_seconds[key])
             tries += 1
         self.assertFalse(book)
@@ -307,6 +308,106 @@ class TestFunctions(WebTestCase):
         self.assertWebTest('/login/book_list.load/completed')
         self.assertWebTest('/login/book_list.load/ongoing')
         self.assertWebTest('/login/book_list.load/disabled')
+
+    @skip_if_quick
+    def test__book_page_edit_handler(self):
+        old_image = self._book_page.upload_image().original_name()
+        new_image_filename = 'test__book_page_edit_handler.png'
+
+        # No book_page_id (pk), return fail message
+        self.assertWebTest(
+            '/login/book_page_edit_handler.json',
+            match_page_key='',
+            match_strings=[
+                '{"status": "error"',
+                'File rename service unavailable',
+            ],
+        )
+
+        #
+        # If foo happens, uncomment this to reset self._book_page.image
+        #
+        # request_url = web.app + \
+        #     '/login/book_page_edit_handler.json?pk={i}&value={f}'.format(
+        #         i=self._book_page.id,
+        #         f='cbz_plus.png',
+        #     )
+        # response = requests.get(request_url, cookies=web.cookies, verify=False)
+        # self.assertEqual(response.status_code, 200)
+        # self.assertEqual(
+        #     response.json(),
+        #     {'status': 'ok', 'msg': ''}
+        # )
+        # return
+
+        # No filename value, return fail message
+        self.assertWebTest(
+            '/login/book_page_edit_handler.json?pk={i}'.format(
+                i=self._book_page.id
+            ),
+            match_page_key='',
+            match_strings=[
+                '{"status": "error"',
+                'Invalid image filename',
+            ],
+        )
+
+        # Invalid book_page_id (pk), return fail message
+        self.assertWebTest(
+            '/login/book_page_edit_handler.json?pk={i}&value={f}'.format(
+                i=-1,
+                f=new_image_filename,
+            ),
+            match_page_key='',
+            match_strings=[
+                '{"status": "error"',
+                'File rename service unavailable',
+            ],
+        )
+
+        # Invalid filename value, return fail message
+        self.assertWebTest(
+            '/login/book_page_edit_handler.json?pk={i}&value={f}'.format(
+                i=self._book_page.id,
+                f=''
+            ),
+            match_page_key='',
+            match_strings=[
+                '{"status": "error"',
+                'Invalid image filename',
+            ],
+        )
+
+        request_url = web.app + \
+            '/login/book_page_edit_handler.json?pk={i}&value={f}'.format(
+                i=self._book_page.id,
+                f=new_image_filename,
+            )
+
+        response = requests.get(request_url, cookies=web.cookies, verify=False)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {'status': 'ok', 'msg': ''}
+        )
+
+        # reverse
+        request_url = web.app + \
+            '/login/book_page_edit_handler.json?pk={i}&value={f}'.format(
+                i=self._book_page.id,
+                f=old_image,
+            )
+        response = requests.get(request_url, cookies=web.cookies, verify=False)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {'status': 'ok', 'msg': ''}
+        )
+
+        self.assertEqual(
+            self._book_page.upload_image().original_name(),
+            old_image
+        )
 
     def test__book_pages(self):
         self.assertWebTest(
@@ -990,9 +1091,10 @@ class TestFunctions(WebTestCase):
             return Creator.from_id(self._creator.id)
 
         old_creator = get_creator()
+        old_name = old_creator.name
 
         new_name = 'Test Smith'
-        self.assertNotEqual(old_creator.name, new_name)
+        self.assertNotEqual(old_name, new_name)
 
         web.login()
 
@@ -1005,7 +1107,15 @@ class TestFunctions(WebTestCase):
         new_creator = get_creator()
         self.assertEqual(new_creator.name, new_name)
 
-        Creator.from_updated(self._creator, old_creator.as_dict())
+        # reverse
+        url = '{url}/profile_name_edit_crud.json'.format(url=self.url)
+        data = {'name': old_name}
+        web.post(url, data=data)
+        result = json.loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+
+        old_creator2 = get_creator()
+        self.assertEqual(old_creator2.name, old_name)
 
     def test__profile_name_edit_modal(self):
         self.assertWebTest('/login/profile_name_edit_modal')

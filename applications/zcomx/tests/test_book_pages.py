@@ -123,6 +123,18 @@ class TestBookPage(ImageTestCase):
             book_page = BookPage.from_id(book_page_row.id)
             self.assertEqual(book_page.orientation(), t)
 
+    def test__rename_image(self):
+        old_raw_filename = 'cbz_plus.png'
+        new_raw_filename = 'new_img.png'
+
+        old_filename = self._prep_image(old_raw_filename)
+        stored_filename = store(db.book_page.image, old_filename)
+
+        book_page = self.add(BookPage, dict(image=stored_filename))
+        new_book_page = book_page.rename_image(new_raw_filename)
+        upload_image = new_book_page.upload_image()
+        self.assertEqual(upload_image.original_name(), new_raw_filename)
+
     def test__upload_image(self):
         book_page = BookPage(dict(image='book_image.aaa.000.jpg'))
 

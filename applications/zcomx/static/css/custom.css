@@ -1961,6 +1961,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
     opacity: 0.1;
 }
 
+#profile_book_pages_page .url_edit_icon {
+    width: 1em;
+    height: 1em;
+    margin-left: 0.4em;
+    opacity: 0.7;
+}
+
 #paypal_form {
     margin: 0;
 }

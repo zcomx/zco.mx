@@ -78,10 +78,9 @@ class ImageDescriptor(object):
         width, height = self.dimensions()
         if width == height:
             return 'square'
-        elif width > height:
+        if width > height:
             return 'landscape'
-        else:
-            return 'portrait'
+        return 'portrait'
 
     def pil_image(self):
         """Return a PIL Image instance representing the image.
@@ -110,7 +109,6 @@ class ImageDescriptor(object):
 
 class ImageOptimizeError(Exception):
     """Exception class for an image optimize errors."""
-    pass
 
 
 class ImgTag(object):
@@ -207,7 +205,6 @@ class CreatorImgTag(CachedImgTag):
 
 class ResizeImgError(Exception):
     """Exception class for ResizeImg errors."""
-    pass
 
 
 class ResizeImg(TempDirectoryMixin):
@@ -534,6 +531,46 @@ def optimize(filename, nice=NICES['optimize'], quick=False):
                 err=p_stderr or p_stdout))
 
 
+def rename(old_fullname, field, new_filename):
+    """Rename a upload image. This will rename all sizes of the image file.
+
+    Args:
+        old_fullname: str, name of file to rename including path.
+            eg applications/zcomx/uploads/original/book_page.image/8f/8f...
+        field: gluon.dal.Field instance (field type 'upload')
+        new_filename: str, new name of file, eg 'myfile.jpg'
+            The new filename should not contain a path. The path is determined
+            by the web2py upload store() function.
+
+    Returns:
+        dict, {size: stored filename, ...}
+        Eg {
+            'cbz': applications/zcomx/uploads/cbz/book_page.image...,
+            'original': applications/zcomx/uploads/original/book_page.image...,
+            'web': applications/zcomx/uploads/web/book_page.image...,
+        }
+    """
+    stored_filenames = {}
+    stored_filename = None
+    with open(old_fullname, 'rb') as f:
+        stored_filename = field.store(f, new_filename)
+    _, new_fullname = field.retrieve(stored_filename, nameonly=True)
+    stored_filenames['original'] = new_fullname
+    for size in SIZES:
+        old_sized_filename = filename_for_size(old_fullname, size)
+        new_sized_filename = filename_for_size(new_fullname, size)
+        if size not in stored_filenames:
+            sized_path = os.path.dirname(new_sized_filename)
+            if not os.path.exists(sized_path):
+                os.makedirs(sized_path)
+            if os.path.exists(old_sized_filename):
+                shutil.move(old_sized_filename, new_sized_filename)
+                stored_filenames[size] = new_sized_filename
+        if os.path.exists(old_sized_filename):
+            os.unlink(old_sized_filename)
+    return stored_filenames
+
+
 def scrub_extension_for_store(filename):
     """Return the filename with extension scrubbed so filename is suitable for
     store().
@@ -549,7 +586,7 @@ def scrub_extension_for_store(filename):
         'jpeg': 'jpg',
     }
     m = re.search(REGEX_UPLOAD_EXTENSION, filename)
-    extension = m and m.group(1) or 'txt'
+    extension = m.group(1) if m else 'txt'
     if extension not in translates:
         return filename
     return filename[:(len(filename) - 1 - len(extension))] \

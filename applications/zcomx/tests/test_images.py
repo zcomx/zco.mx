@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/images.py
-
 """
 import grp
 import inspect
@@ -34,6 +31,7 @@ from applications.zcomx.modules.images import \
     filename_for_size, \
     is_image, \
     optimize, \
+    rename, \
     scrub_extension_for_store, \
     store
 from applications.zcomx.modules.tests.helpers import \
@@ -855,6 +853,36 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 optimize(working_image, quick=quick)
                 size_aft = os.stat(working_image).st_size
                 self.assertTrue(size_aft < size_bef)
+
+    @skip_if_quick
+    def test__rename(self):
+        working_image = self._prep_image('cbz_plus.jpg')
+        stored_fullname = store(db.book_page.image, working_image)
+        _, old_fullname = db.book_page.image.retrieve(
+            stored_fullname, nameonly=True)
+        old_up_image = UploadImage(db.book_page.image, stored_fullname)
+        for size in SIZES:
+            fullname = old_up_image.fullname(size=size)
+            self.assertTrue(os.path.exists(fullname))
+
+        new_filename = 'new_cbz_plus.jpg'
+        stored_filenames = rename(
+            old_fullname, db.book_page.image, new_filename)
+
+        new_up_image = UploadImage(
+            db.book_page.image,
+            os.path.basename(stored_filenames['original'])
+        )
+        original_name = new_up_image.original_name()
+        self.assertEqual(original_name, new_filename)
+        for size in SIZES:
+            fullname = new_up_image.fullname(size=size)
+            self.assertTrue(os.path.exists(fullname))
+            fullname = old_up_image.fullname(size=size)
+            self.assertFalse(os.path.exists(fullname))
+
+        old_up_image.delete_all()
+        new_up_image.delete_all()
 
     def test__scrub_extension_for_store(self):
         tests = [

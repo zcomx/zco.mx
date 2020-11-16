@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Book page classes and functions.
 """
+import os
 from gluon import *
-from applications.zcomx.modules.images import \
-    ImageDescriptor, \
-    UploadImage
+from applications.zcomx.modules.images import (
+    ImageDescriptor,
+    UploadImage,
+    rename,
+)
 from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.utils import abridged_list
 from applications.zcomx.modules.zco import SITE_NAME
@@ -36,6 +37,22 @@ class BookPage(Record):
             raise LookupError('Book page has no image, id {i}'.format(
                 i=self.id))
         return ImageDescriptor(self.upload_image().fullname()).orientation()
+
+    def rename_image(self, new_filename):
+        """Rename the original name of the book page image
+
+        Args:
+            new_filename: str, new original name for image file, eg myfile.jpg
+
+        Returns:
+            BookPage instance with new image name.
+        """
+        db = current.app.db
+        upload_image = self.upload_image()
+        old_fullname = upload_image.fullname()
+        stored_filenames = rename(old_fullname, db.book_page.image, new_filename)
+        new_image = os.path.basename(stored_filenames['original'])
+        return BookPage.from_updated(self, {'image': new_image})
 
     def upload_image(self):
         """Return an UploadImage instance representing the book page image
