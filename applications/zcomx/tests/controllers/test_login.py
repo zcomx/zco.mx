@@ -14,9 +14,11 @@ import requests
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.books import \
-    Book, \
-    get_page
+from applications.zcomx.modules.books import (
+    Book,
+    book_pages_to_tmp,
+    get_page,
+)
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.indicias import \
@@ -311,7 +313,13 @@ class TestFunctions(WebTestCase):
 
     @skip_if_quick
     def test__book_page_edit_handler(self):
-        old_image = self._book_page.upload_image().original_name()
+        book_pages_to_tmp(self._book)
+        pages = self._book.tmp_pages()
+        for page in pages:
+            self._objects.append(page)
+        self.assertTrue(len(pages) > 0)
+        book_page_tmp = pages[0]
+
         new_image_filename = 'test__book_page_edit_handler.png'
 
         # No book_page_id (pk), return fail message
@@ -324,26 +332,10 @@ class TestFunctions(WebTestCase):
             ],
         )
 
-        #
-        # If foo happens, uncomment this to reset self._book_page.image
-        #
-        # request_url = web.app + \
-        #     '/login/book_page_edit_handler.json?pk={i}&value={f}'.format(
-        #         i=self._book_page.id,
-        #         f='cbz_plus.png',
-        #     )
-        # response = requests.get(request_url, cookies=web.cookies, verify=False)
-        # self.assertEqual(response.status_code, 200)
-        # self.assertEqual(
-        #     response.json(),
-        #     {'status': 'ok', 'msg': ''}
-        # )
-        # return
-
         # No filename value, return fail message
         self.assertWebTest(
             '/login/book_page_edit_handler.json?pk={i}'.format(
-                i=self._book_page.id
+                i=book_page_tmp.id
             ),
             match_page_key='',
             match_strings=[
@@ -368,7 +360,7 @@ class TestFunctions(WebTestCase):
         # Invalid filename value, return fail message
         self.assertWebTest(
             '/login/book_page_edit_handler.json?pk={i}&value={f}'.format(
-                i=self._book_page.id,
+                i=book_page_tmp.id,
                 f=''
             ),
             match_page_key='',
@@ -380,7 +372,7 @@ class TestFunctions(WebTestCase):
 
         request_url = web.app + \
             '/login/book_page_edit_handler.json?pk={i}&value={f}'.format(
-                i=self._book_page.id,
+                i=book_page_tmp.id,
                 f=new_image_filename,
             )
 
@@ -389,24 +381,6 @@ class TestFunctions(WebTestCase):
         self.assertEqual(
             response.json(),
             {'status': 'ok', 'msg': ''}
-        )
-
-        # reverse
-        request_url = web.app + \
-            '/login/book_page_edit_handler.json?pk={i}&value={f}'.format(
-                i=self._book_page.id,
-                f=old_image,
-            )
-        response = requests.get(request_url, cookies=web.cookies, verify=False)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.json(),
-            {'status': 'ok', 'msg': ''}
-        )
-
-        self.assertEqual(
-            self._book_page.upload_image().original_name(),
-            old_image
         )
 
     def test__book_pages(self):
@@ -434,15 +408,9 @@ class TestFunctions(WebTestCase):
         )
 
         def get_book_page_ids(book):
-            return [x.id for x in book.pages()]
-
-        def get_activity_log_ids(book_id):
-            query = (db.tentative_activity_log.book_id == book_id)
-            return [
-                x.id for x in db(query).select(db.tentative_activity_log.id)]
+            return [x.id for x in book.tmp_pages()]
 
         before_ids = get_book_page_ids(self._book)
-        before_activity_ids = get_activity_log_ids(self._book.id)
 
         # Test add invalid file (add image too small for cbz)
         sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')
@@ -473,21 +441,10 @@ class TestFunctions(WebTestCase):
         self.assertEqual(len(before_ids) + 1, len(after_ids))
         new_id = list(set(after_ids).difference(set(before_ids)))[0]
 
-        # Check for tentative_activity_log record
-        after_activity_ids = get_activity_log_ids(self._book.id)
-        self.assertEqual(len(before_activity_ids) + 1, len(after_activity_ids))
-        new_activity_id = list(set(after_activity_ids).difference(
-            set(before_activity_ids)))[0]
-        tentative_log = TentativeActivityLog.from_id(new_activity_id)
-        self.assertEqual(tentative_log.book_id, self._book.id)
-        self.assertEqual(tentative_log.book_page_id, new_id)
-        self.assertEqual(tentative_log.action, 'page added')
-        self._objects.append(tentative_log)
-
         # Test delete file
-        query = (db.book_page.id == new_id)
-        book_page = db(query).select(limitby=(0, 1)).first()
-        self.assertTrue(book_page)
+        query = (db.book_page_tmp.id == new_id)
+        book_page_tmp = db(query).select(limitby=(0, 1)).first()
+        self.assertTrue(book_page_tmp)
         response = requests.delete(
             web.app + '/login/book_pages_handler/{i}'.format(i=new_id),
             files=files,
@@ -499,13 +456,13 @@ class TestFunctions(WebTestCase):
         # A job to delete the image should be created. It may take a bit
         # to complete so check that the job exists, or it is completed.
         query = (db.job.command.like(
-            '%process_img.py --delete {i}'.format(i=book_page.image)))
+            '%process_img.py --delete {i}'.format(i=book_page_tmp.image)))
         job_count = db(query).count()
-        query = (db.optimize_img_log.image == book_page.image)
+        query = (db.optimize_img_log.image == book_page_tmp.image)
         log_count = db(query).count()
         self.assertTrue(job_count == 1 or log_count == 0)
 
-        self._objects.append(book_page)
+        self._objects.append(book_page_tmp)
 
     def test__book_post_upload_session(self):
         # No book_id, return fail message
@@ -529,31 +486,24 @@ class TestFunctions(WebTestCase):
         )
 
         # Valid book_id, no book pages returns success
-
-        # Protect existing book_page records so they don't get deleted.
-        def set_book_page_book_ids(from_book_id, to_book_id):
-            from_book = Book.from_id(from_book_id)
-            for page in from_book.pages():
-                BookPage.from_updated(page, dict(book_id=to_book_id))
-
-        temp_book = self.add(Book, dict(name='Temp Book'))
-
-        set_book_page_book_ids(self._book.id, temp_book.id)
-
-        self._book.update_record(status=BOOK_STATUS_DRAFT)
-        db.commit()
+        empty_book = self.add(Book, dict(
+            name='Temp Book',
+            status=BOOK_STATUS_DRAFT,
+            creator_id=self._book.creator_id,
+        ))
         self.assertWebTest(
-            '/login/book_post_upload_session/{bid}'.format(bid=self._book.id),
+            '/login/book_post_upload_session/{bid}'.format(bid=empty_book.id),
             match_page_key='/login/book_post_upload_session',
         )
 
         # book has no pages, so it should status should be set accordingly
-        book = Book.from_id(self._book.id)
-        self.assertEqual(book.status, BOOK_STATUS_DRAFT)
+        empty_book_2 = Book.from_id(empty_book.id)
+        self.assertEqual(empty_book_2.status, BOOK_STATUS_DRAFT)
 
         # Valid
-        set_book_page_book_ids(temp_book.id, self._book.id)
-        book_page_ids = [x.id for x in self._book.pages()]
+        book_pages_to_tmp(self._book)
+
+        book_page_ids = [x.id for x in self._book.tmp_pages()]
         bp_ids = ['book_page_ids[]={pid}'.format(pid=x) for x in book_page_ids]
         self.assertWebTest(
             '/login/book_post_upload_session/{bid}?{bpid}'.format(
@@ -565,6 +515,7 @@ class TestFunctions(WebTestCase):
 
         # book has pages, so it should status should be set accordingly
         book = Book.from_id(self._book.id)
+        self.assertTrue(self._book.page_count() > 0)
         self.assertEqual(book.status, BOOK_STATUS_ACTIVE)
 
     def test__books(self):

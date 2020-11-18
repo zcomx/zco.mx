@@ -5,6 +5,7 @@
 Classes and functions related to activity logs
 """
 import datetime
+from functools import reduce
 from gluon import *
 from applications.zcomx.modules.book_pages import \
     BookPage, \
@@ -13,7 +14,6 @@ from applications.zcomx.modules.books import \
     Book, \
     get_page
 from applications.zcomx.modules.records import Record
-from functools import reduce
 
 LOG = current.app.logger
 
@@ -250,3 +250,76 @@ class TentativeLogSet(BaseTentativeLogSet):
     def as_activity_log(self, activity_log_class=ActivityLog):
         # This method doesn't apply.
         return
+
+
+class UploadActivityLogger(object):
+    """Class representing an activity logger for the book upload process.
+
+    Workflow
+        Activity logs are created for book pages added during the book
+        Upload process. The book_page records of the book are compared to
+        the book_page_tmp records to determine which new pages were added.
+        In order for this to work, the page_no values of the book_page records
+        have to be saved before the tmp records are copied to the book_page
+        table. Here is the workflow:
+
+        1. Create an instance that saves the page_no values.
+            activity_logger = UploadActivityLogger(book)
+        2. Copy book_page_tmp to book_page records.
+            book_pages_from_tmp(book)
+        3. Log activity
+            activity_logger.log_activity()
+    """
+    def __init__(self, book):
+        """Initializer
+
+        Args:
+            book: Book instance
+        """
+        self.book = book
+        self.page_nos = []
+        self.tmp_page_nos = []
+        self.get_page_nos()
+
+    def get_page_nos(self):
+        """Get the page nos from the book_page and book_page_tmp records
+        associated with the book.
+        """
+        self.page_nos = [
+            x.page_no for x in pages_sorted_by_page_no(self.book.pages())
+        ]
+        self.tmp_page_nos = [
+            x.page_no for x in pages_sorted_by_page_no(self.book.tmp_pages())
+        ]
+
+    def log(self):
+        """Create tentative_activity_log records reprenting any new pages
+        found in book_page_tmp records not in book_page records.
+
+        Returns:
+            list of TentativeActivityLog instances.
+        """
+        logs = []
+        if len(self.page_nos) >= len(self.tmp_page_nos):
+            # No new pages, nothing to log
+            return logs
+
+        diff_nos = list(set(self.tmp_page_nos).difference(set(self.page_nos)))
+
+        for page_no in diff_nos:
+            data = {'book_id': self.book.id, 'page_no': page_no}
+            try:
+                book_page = BookPage.from_key(data)
+            except LookupError as err:
+                LOG.error(err)
+                continue
+
+            data = {
+                'book_id': self.book.id,
+                'book_page_id': book_page.id,
+                'action': 'page added',
+                'time_stamp': datetime.datetime.now(),
+            }
+            logs.append(TentativeActivityLog.from_add(data))
+
+        return logs

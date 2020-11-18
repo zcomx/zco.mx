@@ -281,7 +281,7 @@ db.define_table('book',
     format='%(name)s',
 )
 
-db.define_table('book_page',
+book_page_common_fields = db.Table(db, 'book_page_common_fields',
     Field(
         'book_id',
         'integer',
@@ -298,6 +298,11 @@ db.define_table('book_page',
     ),
     format='%(page_no)s',
 )
+
+# book_page_tmp is a replica of book_page. It is used to create temporary
+# copies of book_page records for editing.
+db.define_table('book_page', book_page_common_fields)
+db.define_table('book_page_tmp', book_page_common_fields)
 
 db.define_table('book_type',
     Field('name'),

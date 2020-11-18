@@ -425,10 +425,27 @@
     }
     $.fn.zco_utils.inherit(UploadModalize, Modalize);
     $.extend(UploadModalize.prototype, {
+        abort: function(dialog) {
+            dialog.getModalBody().find('.template-upload').each(function() {
+                var data = $(this).data('data') || {};
+                if (data.jqXHR) {
+                    data.jqXHR.abort();
+                }
+            });
+        },
+
         buttons: function() {
             var that = this;
             var btns = [];
             btns.push(that.reload_button('Refresh', 'reload_button hidden'));
+            btns.push({
+                label: 'Cancel',
+                cssClass: 'btn_upload_cancel',
+                action : function(dialog){
+                    that.abort(dialog);
+                    dialog.close();
+                }
+            });
             btns.push({
                 label: 'Close',
                 cssClass: 'btn_upload_close',
@@ -445,6 +462,11 @@
                 page_ids.push($(elem).data('book_page_id'));
             });
             return page_ids;
+        },
+
+        onhide: function(dialog) {
+            this.abort(dialog);
+            UploadModalize.superclass.onhide.call(this, dialog);
         },
 
         onshow: function(dialog) {
@@ -481,12 +503,7 @@
                     $('.btn_upload_close').removeClass('disabled');
                     return false;
                 }
-                dialog.getModalBody().find('.template-upload').each(function() {
-                    var data = $(this).data('data') || {};
-                    if (data.jqXHR) {
-                        data.jqXHR.abort();
-                    }
-                });
+                that.abort(dialog);
             }
 
             var url = '/zcomx/login/book_post_upload_session'
@@ -654,7 +671,12 @@
             })
         );
         $('.modal-upload-btn').modalize('upload',
-            $.extend({}, options, {'onhidden': display_book_lists})
+            $.extend({}, options, {
+                'onhidden': display_book_lists,
+                'bootstrap_dialog_options': {
+                    'closable': true,
+                },
+            })
         );
     }
 

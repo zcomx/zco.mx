@@ -7,13 +7,17 @@ Test suite for zcomx/modules/books.py
 """
 import datetime
 import json
+import os
 import unittest
 import urllib.parse
 from bs4 import BeautifulSoup
 from gluon import *
 from gluon.storage import Storage
 from pydal.objects import Row
-from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.book_pages import (
+    BookPage,
+    BookPageTmp,
+)
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import \
     Book, \
@@ -21,6 +25,8 @@ from applications.zcomx.modules.books import \
     book_name, \
     book_page_for_json, \
     book_pages_as_json, \
+    book_pages_from_tmp, \
+    book_pages_to_tmp, \
     book_pages_years, \
     book_tables, \
     book_types, \
@@ -75,9 +81,16 @@ from applications.zcomx.modules.creators import \
     AuthUser, \
     Creator
 from applications.zcomx.modules.events import Contribution
-from applications.zcomx.modules.tests.helpers import \
-    ImageTestCase, \
-    ResizerQuick
+from applications.zcomx.modules.images import (
+    SIZES,
+    store,
+)
+from applications.zcomx.modules.tests.helpers import (
+    DubMeta,
+    ImageTestCase,
+    ResizerQuick,
+    skip_if_quick,
+)
 from applications.zcomx.modules.tests.mock import DateMock
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import \
@@ -97,6 +110,8 @@ class WithObjectsTestCase(LocalTestCase):
     _book = None
     _book_page = None
     _book_page_2 = None
+    _book_page_tmp = None
+    _book_page_tmp_2 = None
     _creator = None
 
     # C0103: *Invalid name "%s" (should match %s)*
@@ -118,6 +133,16 @@ class WithObjectsTestCase(LocalTestCase):
         ))
 
         self._book_page_2 = self.add(BookPage, dict(
+            book_id=self._book.id,
+            page_no=2,
+        ))
+
+        self._book_page_tmp = self.add(BookPageTmp, dict(
+            book_id=self._book.id,
+            page_no=1,
+        ))
+
+        self._book_page_tmp_2 = self.add(BookPageTmp, dict(
             book_id=self._book.id,
             page_no=2,
         ))
@@ -159,6 +184,28 @@ class TestBook(WithObjectsTestCase):
 
         # Test limitby
         pages = self._book.pages(limitby=(0, 1))
+        self.assertEqual(len(pages), 1)
+        self.assertEqual(pages[0].page_no, 1)
+
+    def test__tmp_pages(self):
+        book = self.add(Book, dict(name='test__tmp_pages'))
+        self.assertEqual(len(book.tmp_pages()), 0)
+
+        pages = self._book.tmp_pages()
+        for p in pages:
+            self.assertTrue(isinstance(p, BookPageTmp))
+        self.assertEqual(len(pages), 2)
+        self.assertEqual(pages[0].page_no, 1)
+        self.assertEqual(pages[1].page_no, 2)
+
+        # Test orderby
+        orderby = [~db.book_page_tmp.page_no]
+        pages = self._book.tmp_pages(orderby=orderby)
+        self.assertEqual(pages[0].page_no, 2)
+        self.assertEqual(pages[1].page_no, 1)
+
+        # Test limitby
+        pages = self._book.tmp_pages(limitby=(0, 1))
         self.assertEqual(len(pages), 1)
         self.assertEqual(pages[0].page_no, 1)
 
@@ -258,6 +305,138 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertTrue('files' in data)
         self.assertEqual(len(data['files']), 1)
         self.assertEqual(data['files'][0]['name'], 'portrait.png')
+
+    @skip_if_quick
+    def test__book_pages_from_tmp(self):
+        book = self.add(Book, dict(name='test__book_pages_from_tmp'))
+
+        book_page_tmps = []
+
+        img_filenames = ['file_1.jpg', 'file_2.jpg']
+        stored_filenames = []
+
+        for img_filename in img_filenames:
+            filename = self._prep_image('cbz_plus.jpg', to_name=img_filename)
+            stored_filename = store(db.book_page_tmp.image, filename)
+            stored_filenames.append(stored_filename)
+
+        book_page_tmps.append(
+            self.add(BookPageTmp, dict(
+                book_id=book.id,
+                page_no=1,
+                image=stored_filenames[0],
+                created_on='2020-11-18 18:20:35',
+                updated_on='2020-11-18 18:20:40',
+            ))
+        )
+
+        book_page_tmps.append(
+            self.add(BookPageTmp, dict(
+                book_id=book.id,
+                page_no=2,
+                image=stored_filenames[1],
+                created_on='2020-11-18 18:20:35',
+                updated_on='2020-11-18 18:20:40',
+            ))
+        )
+
+        fullnames = []
+        fullnames.append(book_page_tmps[0].upload_image().fullname())
+        fullnames.append(book_page_tmps[1].upload_image().fullname())
+
+        pages = book.pages()
+        self.assertEqual(len(pages), 0)
+
+        book_pages_from_tmp(book)
+
+        pages = book.pages()
+        self.assertEqual(len(pages), len(book_page_tmps))
+
+        for count, page in enumerate(pages):
+            self._objects.append(page)
+            for field in db.book_page.fields:
+                if field == 'image':
+                    expect = book_page_tmps[count][field].replace(
+                        'book_page_tmp.image',
+                        'book_page.image'
+                    )
+                    self.assertEqual(page[field], expect)
+                else:
+                    self.assertEqual(page[field], book_page_tmps[count][field])
+        for fullname in fullnames:
+            new_fullname = fullname.replace(
+                'book_page_tmp.image',
+                'book_page.image'
+            )
+            for size in SIZES:
+                sized_fullname = new_fullname.replace('original', size)
+                self.assertTrue(os.path.exists(sized_fullname))
+
+    @skip_if_quick
+    def test__book_pages_to_tmp(self):
+        book = self.add(Book, dict(name='test__book_pages_to_tmp'))
+
+        book_pages = []
+
+        img_filenames = ['file_1.jpg', 'file_2.jpg']
+        stored_filenames = []
+
+        for img_filename in img_filenames:
+            filename = self._prep_image('cbz_plus.jpg', to_name=img_filename)
+            stored_filename = store(db.book_page.image, filename)
+            stored_filenames.append(stored_filename)
+
+        book_pages.append(
+            self.add(BookPage, dict(
+                book_id=book.id,
+                page_no=1,
+                image=stored_filenames[0],
+                created_on='2020-11-18 18:19:35',
+                updated_on='2020-11-18 18:19:40',
+            ))
+        )
+
+        book_pages.append(
+            self.add(BookPage, dict(
+                book_id=book.id,
+                page_no=2,
+                image=stored_filenames[1],
+                created_on='2020-11-18 18:20:35',
+                updated_on='2020-11-18 18:20:40',
+            ))
+        )
+
+        fullnames = []
+        fullnames.append(book_pages[0].upload_image().fullname())
+        fullnames.append(book_pages[1].upload_image().fullname())
+
+        tmp_pages = book.tmp_pages()
+        self.assertEqual(len(tmp_pages), 0)
+
+        book_pages_to_tmp(book)
+
+        tmp_pages = book.tmp_pages()
+        self.assertEqual(len(tmp_pages), len(book_pages))
+
+        for count, page in enumerate(tmp_pages):
+            self._objects.append(page)
+            for field in db.book_page.fields:
+                if field == 'image':
+                    expect = book_pages[count][field].replace(
+                        'book_page.image',
+                        'book_page_tmp.image'
+                    )
+                    self.assertEqual(page[field], expect)
+                else:
+                    self.assertEqual(page[field], book_pages[count][field])
+        for fullname in fullnames:
+            new_fullname = fullname.replace(
+                'book_page.image',
+                'book_page_tmp.image'
+            )
+            for size in SIZES:
+                sized_fullname = new_fullname.replace('original', size)
+                self.assertTrue(os.path.exists(sized_fullname))
 
     def test__book_pages_years(self):
         book = self.add(Book, dict(name='test__book_pages_years'))
@@ -1106,46 +1285,61 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__get_page(self):
         book = self.add(Book, dict(name='test__get_page'))
 
-        def do_test(page_no, expect):
-            kwargs = {}
-            if page_no is not None:
-                kwargs = {'page_no': page_no}
-            if expect is not None:
-                book_page = get_page(book, **kwargs)
-                self.assertEqual(book_page.id, expect.id)
-            else:
-                self.assertRaises(LookupError, get_page, book, **kwargs)
+        book_page_tables = [
+            {
+                'table': db.book_page,
+                'class': BookPage,
+            },
+            {
+                'table': db.book_page_tmp,
+                'class': BookPageTmp,
+            },
+        ]
 
-        for page_no in ['first', 'last', 'indicia', 1, 2, None]:
-            do_test(page_no, None)
+        for tbl_data in book_page_tables:
+            book_page_tbl = tbl_data['table']
+            book_page_class = tbl_data['class']
 
-        book_page_1 = self.add(BookPage, dict(
-            book_id=book.id,
-            page_no=1,
-        ))
+            def do_test(page_no, expect):
+                kwargs = {'book_page_tbl': book_page_tbl}
+                if page_no is not None:
+                    kwargs['page_no'] = page_no
+                if expect is not None:
+                    book_page = get_page(book, **kwargs)
+                    self.assertEqual(book_page.id, expect.id)
+                else:
+                    self.assertRaises(LookupError, get_page, book, **kwargs)
 
-        for page_no in ['first', 'last', 1, None]:
-            do_test(page_no, book_page_1)
+            for page_no in ['first', 'last', 'indicia', 1, 2, None]:
+                do_test(page_no, None)
 
-        do_test(2, None)
+            book_page_1 = self.add(book_page_class, dict(
+                book_id=book.id,
+                page_no=1,
+            ))
 
-        book_page_2 = self.add(BookPage, dict(
-            book_id=book.id,
-            page_no=2,
-        ))
+            for page_no in ['first', 'last', 1, None]:
+                do_test(page_no, book_page_1)
 
-        for page_no in ['first', 1, None]:
-            do_test(page_no, book_page_1)
-        for page_no in ['last', 2]:
-            do_test(page_no, book_page_2)
-        do_test(3, None)
+            do_test(2, None)
 
-        last = get_page(book, page_no='last')
-        indicia = get_page(book, page_no='indicia')
-        self.assertEqual(indicia.id, None)
-        self.assertEqual(indicia.book_id, book.id)
-        self.assertEqual(indicia.page_no, last.page_no + 1)
-        self.assertEqual(indicia.image, None)
+            book_page_2 = self.add(book_page_class, dict(
+                book_id=book.id,
+                page_no=2,
+            ))
+
+            for page_no in ['first', 1, None]:
+                do_test(page_no, book_page_1)
+            for page_no in ['last', 2]:
+                do_test(page_no, book_page_2)
+            do_test(3, None)
+
+            last = get_page(book, page_no='last', book_page_tbl=book_page_tbl)
+            indicia = get_page(book, page_no='indicia')
+            self.assertEqual(indicia.id, None)
+            self.assertEqual(indicia.book_id, book.id)
+            self.assertEqual(indicia.page_no, last.page_no + 1)
+            self.assertEqual(indicia.image, None)
 
     def test__html_metadata(self):
 

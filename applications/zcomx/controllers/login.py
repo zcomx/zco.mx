@@ -6,6 +6,7 @@ import os
 import shutil
 from PIL import Image
 from applications.zcomx.modules.access import requires_agreed_to_terms
+from applications.zcomx.modules.activity_logs import UploadActivityLogger
 from applications.zcomx.modules.book_lists import \
     class_from_code as book_list_class_from_code
 from applications.zcomx.modules.book.release_barriers import \
@@ -13,23 +14,27 @@ from applications.zcomx.modules.book.release_barriers import \
     filesharing_barriers, \
     has_complete_barriers, \
     has_filesharing_barriers
-from applications.zcomx.modules.book_pages import \
-    BookPage, \
-    delete_pages_not_in_ids, \
-    reset_book_page_nos
+from applications.zcomx.modules.book_pages import (
+    BookPageTmp,
+    delete_pages_not_in_ids,
+    reset_book_page_nos,
+)
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.book_upload import BookPageUploader
-from applications.zcomx.modules.books import \
-    Book, \
-    name_fields, \
-    book_pages_as_json, \
-    calc_status, \
-    defaults as book_defaults, \
-    images, \
-    names, \
-    publication_months, \
-    publication_year_range, \
-    set_status
+from applications.zcomx.modules.books import (
+    Book,
+    name_fields,
+    book_pages_as_json,
+    book_pages_from_tmp,
+    book_pages_to_tmp,
+    calc_status,
+    defaults as book_defaults,
+    images,
+    names,
+    publication_months,
+    publication_year_range,
+    set_status,
+)
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import (
     AuthUser,
@@ -71,7 +76,6 @@ from applications.zcomx.modules.utils import \
     default_record, \
     move_record, \
     reorder
-from applications.zcomx.modules.zco import BOOK_STATUS_DRAFT
 
 
 MODAL_ERROR = lambda msg: redirect(
@@ -497,9 +501,9 @@ def book_list():
 @auth.requires_login()
 def book_page_edit_handler():
     """Callback function for the x-editable plugin for renaming the
-    image filename associated with the book page.
+    image filename associated with the book page (book_page_tmp records).
 
-    request.vars.pk: integer, id of book_page record
+    request.vars.pk: integer, id of book_page_tmp record
     request.vars.value: str, new name of image file.
     """
     def do_error(msg):
@@ -514,21 +518,21 @@ def book_page_edit_handler():
     if not creator:
         return do_error('File rename service unavailable')
 
-    book_page_id = request.vars.pk
+    book_page_tmp_id = request.vars.pk
     raw_filename = request.vars.value
 
-    book_page = None
+    book_page_tmp = None
     try:
-        book_page = BookPage.from_id(book_page_id)
+        book_page_tmp = BookPageTmp.from_id(book_page_tmp_id)
     except LookupError:
         pass
-    if not book_page:
+    if not book_page_tmp:
         return do_error('File rename service unavailable')
 
     # Double check that book belongs to creator
     book = None
     try:
-        book = Book.from_id(book_page.book_id)
+        book = Book.from_id(book_page_tmp.book_id)
     except LookupError:
         return do_error('File rename service unavailable')
     if not book or book.creator_id != creator.id:
@@ -541,9 +545,9 @@ def book_page_edit_handler():
     if not new_filename:
         return do_error('Invalid image filename')
 
-    if book_page.image != new_filename:
+    if book_page_tmp.image != new_filename:
         try:
-            book_page = book_page.rename_image(new_filename)
+            book_page_tmp = book_page_tmp.rename_image(new_filename)
         except Exception as err:
             # pylint: disable=broad-except
             LOG.error('Book page image rename error: %s', str(err))
@@ -571,9 +575,7 @@ def book_pages():
     if not book or book.creator_id != creator.id:
         MODAL_ERROR('Invalid data provided')
 
-    # Temporarily set the book status to draft, so it does not appear
-    # in search results while it is being edited.
-    book = set_status(book, BOOK_STATUS_DRAFT)
+    book_pages_to_tmp(book)
 
     return dict(
         book=book,
@@ -621,7 +623,7 @@ def book_pages_handler():
         return do_error('Upload service unavailable')
 
     if request.env.request_method == 'POST':
-        # Create a book_page record for each upload.
+        # Create a book_page_tmp record for each upload.
         files = request.vars['up_files[]']
         if not isinstance(files, list):
             files = [files]
@@ -642,34 +644,24 @@ def book_pages_handler():
             )
 
         result = json.loads(result_json)
-        if 'files' in result:
-            for result_file in result['files']:
-                if 'book_page_id' in result_file:
-                    db.tentative_activity_log.insert(
-                        book_id=book.id,
-                        book_page_id=result_file['book_page_id'],
-                        action='page added',
-                        time_stamp=request.now,
-                    )
-                    db.commit()
         return result_json
-    elif request.env.request_method == 'DELETE':
+
+    if request.env.request_method == 'DELETE':
         try:
-            book_page = BookPage.from_id(request.vars.book_page_id)
+            book_page_tmp = BookPageTmp.from_id(request.vars.book_page_id)
         except LookupError:
             return do_error('Unable to delete page')
 
         # retrieve real file name
-        filename, _ = db.book_page.image.retrieve(
-            book_page.image,
+        filename, _ = db.book_page_tmp.image.retrieve(
+            book_page_tmp.image,
             nameonly=True,
         )
-        on_delete_image(book_page.image)
-        book_page.delete()
+        book_page_tmp.delete()
         return json.dumps({"files": [{filename: True}]})
-    else:
-        # GET
-        return book_pages_as_json(book)
+
+    # GET
+    return book_pages_as_json(book)
 
 
 @auth.requires_login()
@@ -749,13 +741,18 @@ def book_post_upload_session():
                 'Retry if necessary. Refresh the page to start over.'
             ))
 
-    delete_pages_not_in_ids(book.id, page_ids)
-    reset_book_page_nos(page_ids)
+    delete_pages_not_in_ids(book.id, page_ids, book_page_tbl=db.book_page_tmp)
+    reset_book_page_nos(page_ids, book_page_tbl=db.book_page_tmp)
 
-    # Step 4:  Set book status
+    # Step 4:  Move book from tmp to live
+    activity_logger = UploadActivityLogger(book)
+    book_pages_from_tmp(book)
+    activity_logger.log()
+
+    # Step 5:  Set book status
     book = set_status(book, calc_status(book))
 
-    # Step 5:  Trigger search prefetch
+    # Step 6:  Trigger search prefetch
     # A book with no pages is not in search results. Adding pages makes it
     # searchable. A book is disabled while pages are are added. Disabled books
     # are taken out of search results. Ending the Upload session may make the
@@ -763,10 +760,10 @@ def book_post_upload_session():
     # searchable if applicable.
     queue_search_prefetch()
 
-    # Step 6:  Trigger optimization of book images
+    # Step 7:  Trigger optimization of book images
     AllSizesImages.from_names(images(book)).optimize()
 
-    # Step 7: Trigger create sitemap
+    # Step 8: Trigger create sitemap
     queue_create_sitemap()
 
     return json.dumps({'status': 'ok'})
@@ -908,7 +905,6 @@ def creator_img_handler():
     }
 
     if request.env.request_method == 'POST':
-        # Create a book_page record for each upload.
         files = request.vars.up_files
         if not isinstance(files, list):
             files = [files]
@@ -916,13 +912,13 @@ def creator_img_handler():
 
         with TemporaryDirectory() as tmp_dir:
             local_filename = os.path.join(tmp_dir, up_file.filename)
-            with open(local_filename, 'w+b') as lf:
+            with open(local_filename, 'w+b') as f:
                 # This will convert cgi.FieldStorage to a regular file.
-                shutil.copyfileobj(up_file.file, lf)
+                shutil.copyfileobj(up_file.file, f)
 
-            with open(local_filename, 'rb') as lf:
+            with open(local_filename, 'rb') as f:
                 try:
-                    im = Image.open(lf)
+                    im = Image.open(f)
                 except IOError as err:
                     return do_error(str(err))
 
@@ -981,7 +977,7 @@ def creator_img_handler():
             AllSizesImages.from_names([creator[img_field]]).optimize()
         return image_as_json(creator, field=img_field)
 
-    elif request.env.request_method == 'DELETE':
+    if request.env.request_method == 'DELETE':
         # retrieve real file name
         if not creator[img_field]:
             return do_error('')
@@ -1372,7 +1368,8 @@ def metadata_crud():
             'type': 'select',
             'source': [
                 {'value': x, 'text': x}
-                for x in sorted(list(range(*publication_year_range())), reverse=True)
+                for x in sorted(
+                    list(range(*publication_year_range())), reverse=True)
             ]
         }
 

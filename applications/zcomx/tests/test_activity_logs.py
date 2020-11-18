@@ -1,23 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/activity_logs.py
-
 """
 import datetime
 import unittest
 from gluon import *
-from applications.zcomx.modules.activity_logs import \
-    ActivityLog, \
-    ActivityLogMixin, \
-    BaseTentativeLogSet, \
-    CompletedTentativeLogSet, \
-    PageAddedTentativeLogSet, \
-    TentativeActivityLog, \
-    TentativeLogSet
-from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.activity_logs import (
+    ActivityLog,
+    ActivityLogMixin,
+    BaseTentativeLogSet,
+    CompletedTentativeLogSet,
+    PageAddedTentativeLogSet,
+    TentativeActivityLog,
+    TentativeLogSet,
+    UploadActivityLogger,
+)
+
+from applications.zcomx.modules.book_pages import (
+    BookPage,
+    BookPageTmp,
+)
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.tests.runner import LocalTestCase
@@ -414,6 +417,104 @@ class TestTentativeLogSet(LocalTestCase):
     def test__as_activity_log(self):
         log_set = TentativeLogSet([])
         self.assertEqual(log_set.as_activity_log(), None)
+
+
+class TestUploadActivityLogger(LocalTestCase):
+
+    def test____init__(self):
+        book = Book(id=-1)
+        activity_logger = UploadActivityLogger(book)
+        self.assertTrue(activity_logger)
+
+    def test__get_page_nos(self):
+        book = self.add(Book, dict(name='test__get_page_nos'))
+
+        activity_logger = UploadActivityLogger(book)
+        self.assertEqual(activity_logger.page_nos, [])
+        self.assertEqual(activity_logger.tmp_page_nos, [])
+
+        for p in range(1, 3):
+            self.add(BookPage, dict(
+                book_id=book.id,
+                page_no=p,
+            ))
+
+        for p in range(1, 4):
+            self.add(BookPageTmp, dict(
+                book_id=book.id,
+                page_no=p,
+            ))
+
+        activity_logger.get_page_nos()
+        self.assertEqual(activity_logger.page_nos, [1, 2])
+        self.assertEqual(activity_logger.tmp_page_nos, [1, 2, 3])
+
+    def test__log(self):
+        book = self.add(Book, dict(name='test__log'))
+
+        def create_book_page(db_table, page_no):
+            book_page_class = BookPageTmp \
+                if db_table == BookPageTmp.db_table else BookPage
+            return self.add(book_page_class, dict(
+                book_id=book.id,
+                page_no=page_no,
+            ))
+
+        # No book_page, no book_page_tmp
+        activity_logger = UploadActivityLogger(book)
+        self.assertEqual(activity_logger.page_nos, [])
+        self.assertEqual(activity_logger.tmp_page_nos, [])
+
+        logs = activity_logger.log()
+
+        self.assertEqual(logs, [])
+
+        book_pages = []
+        book_page_tmps = []
+        for p in range(1, 3):
+            book_pages.append(create_book_page('book_page', p))
+            book_page_tmps.append(create_book_page('book_page_tmp', p))
+
+        # Two book_page_tmp records added
+        activity_logger.page_nos = []
+        activity_logger.tmp_page_nos = [1, 2]
+
+        logs = activity_logger.log()
+
+        now = datetime.datetime.now()
+
+        self.assertEqual(len(logs), 2)
+        for count, log in enumerate(logs):
+            self._objects.append(log)
+            self.assertTrue(isinstance(log, TentativeActivityLog))
+            self.assertEqual(log.book_id, book.id)
+            self.assertEqual(log.book_page_id, book_pages[count].id)
+            self.assertEqual(log.action, 'page added')
+            self.assertAlmostEqual(
+                log.time_stamp,
+                now,
+                delta=datetime.timedelta(minutes=1)
+            )
+
+        # Two book_page records, equal book_page_tmp records
+        activity_logger.page_nos = [1, 2]
+        activity_logger.tmp_page_nos = [1, 2]
+
+        logs = activity_logger.log()
+
+        now = datetime.datetime.now()
+
+        self.assertEqual(len(logs), 0)
+
+        # Two book_page records, fewer book_page_tmp records
+        activity_logger.page_nos = [1, 2]
+        activity_logger.tmp_page_nos = [1]
+
+        logs = activity_logger.log()
+
+        now = datetime.datetime.now()
+
+        self.assertEqual(len(logs), 0)
 
 
 def setUpModule():

@@ -161,7 +161,7 @@ class TestFunctions(LocalTestCase):
     # pylint: disable=C0103
     @classmethod
     def setUpClass(cls):
-        # Duplicate changes here in private/data/test.sql
+        # Duplicate changes here in private/test/data/test.sql
         db.define_table(
             'test__reorder',
             Field('name'),

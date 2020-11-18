@@ -75,7 +75,7 @@ class TestBookPageUploader(ImageTestCase):
             })
             uploader = BookPageUploader(book.id, [up_file])
             uploader.upload()
-        pages = book.pages()
+        pages = book.tmp_pages()
         self.assertEqual(len(pages), 1)
         self._objects.append(pages[0])
 
@@ -220,7 +220,7 @@ class TestUploadedFile(ImageTestCase):
         uploaded.image_filenames.append(filename)
         uploaded.create_book_pages(book.id)
 
-        pages = book.pages()
+        pages = book.tmp_pages()
         self.assertEqual(len(pages), 1)
         self._objects.append(pages[0])
 
@@ -237,7 +237,7 @@ class TestUploadedFile(ImageTestCase):
         uploaded = UploadedImage(filename)
         uploaded.load(book.id)
 
-        pages = book.pages()
+        pages = book.tmp_pages()
         self.assertEqual(len(pages), 1)
         self._objects.append(pages[0])
 
@@ -318,7 +318,7 @@ class TestUploadedImage(ImageTestCase):
         self.assertEqual(json['name'], 'file.jpg')
         self.assertEqual(json['size'], 23127)
 
-        pages = book.pages()
+        pages = book.tmp_pages()
         self.assertEqual(len(pages), 1)
         self._objects.append(pages[0])
 
@@ -393,14 +393,14 @@ class TestFunctions(ImageTestCase):
     @skip_if_quick
     def test__create_book_page(self):
         book = self.add(Book, dict(name='test__add'))
-        self.assertEqual(book.page_count(), 0)
+        self.assertEqual(len(book.tmp_pages()), 0)
 
         for filename in ['file.jpg', 'file.png']:
             sample_file = self._prep_image(filename)
             book_page_id = create_book_page(db, book.id, sample_file)
             self.assertTrue(book_page_id)
 
-        pages = book.pages()
+        pages = book.tmp_pages()
         self.assertEqual(len(pages), 2)
         for page in pages:
             self._objects.append(page)
@@ -409,7 +409,7 @@ class TestFunctions(ImageTestCase):
             self.assertEqual(pages[i].book_id, book.id)
             self.assertEqual(pages[i].page_no, i + 1)
 
-            original_filename, unused_fullname = db.book_page.image.retrieve(
+            original_filename, _ = db.book_page_tmp.image.retrieve(
                 pages[i].image,
                 nameonly=True,
             )

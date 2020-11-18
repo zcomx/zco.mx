@@ -183,11 +183,7 @@ def temp_directory():
     tmp_path = os.path.join(db.book_page.image.uploadfolder, '..', 'tmp')
     if not os.path.exists(tmp_path):
         os.makedirs(tmp_path)
-        os.chown(
-            tmp_path,
-            pwd.getpwnam('http').pw_uid,
-            pwd.getpwnam('http').pw_gid,
-        )
+        set_owner(tmp_path)
     return tempfile.mkdtemp(dir=tmp_path)
 
 

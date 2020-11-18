@@ -9,19 +9,25 @@ import datetime
 import json
 import os
 import re
+import shutil
 import urllib.parse
 from gluon import *
 from pydal.helpers.regex import REGEX_UPLOAD_EXTENSION
-from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.book_pages import (
+    BookPage,
+    BookPageTmp,
+)
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
     Creator, \
     creator_name, \
     short_url as creator_short_url
-from applications.zcomx.modules.images import \
-    CachedImgTag, \
-    ImageDescriptor
+from applications.zcomx.modules.images import (
+    CachedImgTag,
+    ImageDescriptor,
+    SIZES,
+)
 from applications.zcomx.modules.names import \
     BookName, \
     BookNumber, \
@@ -70,7 +76,32 @@ class Book(Record):
             db = current.app.db
             orderby = [db.book_page.page_no, db.book_page.id]
         return Records.from_key(
-            BookPage, dict(book_id=self.id), orderby=orderby, limitby=limitby)
+            BookPage,
+            dict(book_id=self.id),
+            orderby=orderby,
+            limitby=limitby
+        )
+
+    def tmp_pages(self, orderby=None, limitby=None):
+        """Return a list of pages book_page_tmp records associated with a book.
+
+        Args:
+            orderby: orderby expression, see select()
+                Default, [page_no, id]
+            limitby: limitby expression, see seelct()
+
+        Returns:
+            list of BookPageTmp instances
+        """
+        if orderby is None:
+            db = current.app.db
+            orderby = [db.book_page_tmp.page_no, db.book_page_tmp.id]
+        return Records.from_key(
+            BookPageTmp,
+            dict(book_id=self.id),
+            orderby=orderby,
+            limitby=limitby
+        )
 
 
 def book_name(book, use='file'):
@@ -171,6 +202,56 @@ def book_pages_as_json(book, book_page_ids=None):
     return json.dumps(dict(files=json_pages))
 
 
+def book_pages_from_tmp(book):
+    """Copy book_page_tmp records associated with book to book_page records.
+
+    Args:
+        book: Book instance
+    """
+    db = current.app.db
+
+    for page in book.pages():
+        page.delete()
+
+    for page in book.tmp_pages():
+        data = page.as_dict()
+        data['image'] = page.image.replace(
+            'book_page_tmp.image',
+            'book_page.image'
+        )
+        book_page = BookPage.from_add(
+            data,
+            validate=False,
+        )
+
+        page.copy_images(db.book_page)
+
+
+def book_pages_to_tmp(book):
+    """Copy book_page records associated with book to book_page_tmp records.
+
+    Args:
+        book: Book instance
+    """
+    db = current.app.db
+
+    for page in book.tmp_pages():
+        page.delete()
+
+    for page in book.pages():
+        data = page.as_dict()
+        data['image'] = page.image.replace(
+            'book_page.image',
+            'book_page_tmp.image'
+        )
+        book_page_tmp = BookPageTmp.from_add(
+            data,
+            validate=False,
+        )
+
+        page.copy_images(db.book_page_tmp)
+
+
 def book_pages_years(book):
     """Return a list of years for the pages of a book.
 
@@ -195,6 +276,7 @@ def book_tables():
         'activity_log',
         'tentative_activity_log',
         'book_page',
+        'book_page_tmp',
         'book_view',
         'contribution',
         'derivative',
@@ -701,7 +783,7 @@ def formatted_number(book):
     return book_type.formatted_number(book.number, book.of_number)
 
 
-def get_page(book, page_no=1):
+def get_page(book, page_no=1, book_page_tbl=None):
     """Return a page of a book.
 
     Args:
@@ -716,6 +798,8 @@ def get_page(book, page_no=1):
                     book_id: id of book
                     page_no: last page page_no + 1
                     image: None
+        book_page_tbl: Table instance, db.book_page or db.book_page_tmp
+            default db.book_page
 
     Returns:
         BookPage instance
@@ -726,12 +810,23 @@ def get_page(book, page_no=1):
     """
     db = current.app.db
 
+    if book_page_tbl is None:
+        book_page_tbl = db.book_page
+
+    if book_page_tbl == db.book_page:
+        book_page_class = BookPage
+    elif book_page_tbl == db.book_page_tmp:
+        book_page_class = BookPageTmp
+    else:
+        raise LookupError(
+            'Invalid book_page_tbl: {t}'.format(t=str(book_page_tbl)))
+
     want_page_no = None
     if page_no == 'first':
         want_page_no = 1
     elif page_no in ['last', 'indicia']:
-        page_max = db.book_page.page_no.max()
-        query = (db.book_page.book_id == book.id)
+        page_max = book_page_tbl.page_no.max()
+        query = (book_page_tbl.book_id == book.id)
         want_page_no = db(query).select(page_max)[0][page_max]
     else:
         try:
@@ -746,7 +841,7 @@ def get_page(book, page_no=1):
         'book_id': book.id,
         'page_no': want_page_no,
     }
-    book_page = BookPage.from_key(key)
+    book_page = book_page_class.from_key(key)
 
     if page_no == 'indicia':
         book_page.id = None

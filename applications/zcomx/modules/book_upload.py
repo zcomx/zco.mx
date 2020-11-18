@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-
 Classes and functions related to uploading books.
+
+Pages of uploaded books are stored in book_page_tmp records.
 
 Files for book pages are uploaded multiple files at a time and can be any
 combination of image (.jpg, .png, etc), RAR (.cbr) or Zip (.cbz) files.
@@ -23,11 +24,11 @@ class Unpacker: A class representing an unpacker, eg unrar or unzip
     class UnpackerRAR: unrar unpacker
     class UnpackerZip: unzip unpacker
 
-If an image is uploaded there is one UploadedImage instance and one book_page
-record.
+If an image is uploaded there is one UploadedImage instance and one
+book_page_tmp record.
 
 If an archive file is uploaded, there is one UploadedArchive instance and many
-book_page records, one for each image file extracted from the archive.
+book_page_tmp records, one for each image file extracted from the archive.
 """
 import json
 import os
@@ -35,7 +36,7 @@ import shutil
 import subprocess
 import zipfile
 from gluon import *
-from applications.zcomx.modules.book_pages import BookPage
+from applications.zcomx.modules.book_pages import BookPageTmp
 from applications.zcomx.modules.books import \
     Book, \
     book_page_for_json, \
@@ -303,7 +304,7 @@ class UploadedArchive(UploadedFile):
         except (KeyError, OSError):
             size = 0
 
-        cover_page = BookPage.from_id(book_page_id) if book_page_id else None
+        cover_page = BookPageTmp.from_id(book_page_id) if book_page_id else None
         thumb = ''
         if cover_page:
             thumb = URL(
@@ -348,7 +349,7 @@ class UploadedImage(UploadedFile):
 
     def for_json(self):
         """Return uploaded files as json appropriate for jquery-file-upload."""
-        book_page = BookPage.from_id(self.book_page_ids[0])
+        book_page = BookPageTmp.from_id(self.book_page_ids[0])
         return book_page_for_json(book_page)
 
     def unpack(self):
@@ -436,21 +437,25 @@ def classify_uploaded_file(filename):
 
 
 def create_book_page(db, book_id, image_filename):
-    """Add the file to the book pages.
+    """Add the image file to the book pages. Creates a book_page_tmp record.
 
     Args:
         book_id: integer, id of book record the files belong to
         image_filename: /path/to/name of image file
     """
     try:
-        stored_filename = store(db.book_page.image, image_filename)
+        stored_filename = store(db.book_page_tmp.image, image_filename)
     except IOError as err:
         LOG.error('IOError: %s', str(err))
         return
 
     book = Book.from_id(book_id)
     try:
-        last_page = get_page(book, page_no='last')
+        last_page = get_page(
+            book,
+            page_no='last',
+            book_page_tbl=db.book_page_tmp
+        )
     except LookupError:
         last_page = None
     page_no = last_page.page_no + 1 if last_page else 1
@@ -460,5 +465,5 @@ def create_book_page(db, book_id, image_filename):
         page_no=page_no,
         image=stored_filename,
     )
-    book_page = BookPage.from_add(data)
-    return book_page.id
+    book_page_tmp = BookPageTmp.from_add(data)
+    return book_page_tmp.id
