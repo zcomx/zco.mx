@@ -11,8 +11,8 @@ import unittest
 import urllib.parse
 from bs4 import BeautifulSoup
 from gluon import *
-from pydal.objects import Row
 from gluon.storage import Storage
+from pydal.objects import Row
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import \
     Book, \
@@ -24,25 +24,27 @@ from applications.zcomx.modules.creators import \
     AuthUser, \
     Creator, \
     creator_name
-from applications.zcomx.modules.search import \
-    BookTile, \
-    CartoonistTile, \
-    CartoonistsGrid, \
-    CompletedGrid, \
-    CreatorMoniesGrid, \
-    Grid, \
-    MoniesBookTile, \
-    OngoingGrid, \
-    SearchGrid, \
-    Tile, \
-    book_contribute_button, \
-    creator_contribute_button, \
-    download_link, \
-    follow_link, \
-    link_book_id, \
-    link_for_creator_follow, \
-    link_for_creator_torrent, \
-    read_link
+from applications.zcomx.modules.search import (
+    AlphaPaginator,
+    BookTile,
+    CartoonistTile,
+    CartoonistsGrid,
+    CompletedGrid,
+    CreatorMoniesGrid,
+    Grid,
+    MoniesBookTile,
+    OngoingGrid,
+    SearchGrid,
+    Tile,
+    book_contribute_button,
+    creator_contribute_button,
+    download_link,
+    follow_link,
+    link_book_id,
+    link_for_creator_follow,
+    link_for_creator_torrent,
+    read_link,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 
@@ -122,6 +124,74 @@ class TileTestCase(LocalTestCase):
         cls._value = '_value_'
 
 
+class TestAlphaPaginator(LocalTestCase):
+
+    def test____init__(self):
+        request = Storage()
+        paginator = AlphaPaginator(request)
+        self.assertTrue(paginator)
+
+    def test__get_url(self):
+        env = globals()
+        request = Storage(
+            env=env,
+            application='myapp',
+            controller='mycont',
+            function='myfunc',
+            args=['a', 'b'],
+            vars={'page': 1},
+        )
+
+        paginator = AlphaPaginator(request)
+
+        got_lower = paginator.get_url('A')
+        self.assertEqual(
+            str(got_lower),
+            '/myapp/mycont/myfunc/a/b?alpha=a&page=1'
+        )
+        got_upper = paginator.get_url('a')
+        self.assertEqual(got_lower, got_upper)
+
+        self.assertEqual(
+            str(paginator.get_url('Z')),
+            '/myapp/mycont/myfunc/a/b?alpha=z&page=1'
+        )
+
+    def test__render(self):
+        env = globals()
+        request = Storage(
+            env=env,
+            application='myapp',
+            controller='mycont',
+            function='myfunc',
+            args=['a', 'b'],
+            vars=Storage({'page': 1, 'alpha': 'm'}),
+        )
+        paginator = AlphaPaginator(request)
+        got = paginator.render()
+        soup = BeautifulSoup(str(got), 'html.parser')
+        expect = {
+            # class, count
+            'alpha_paginator_container': 1,
+            'alpha_paginator_link': 26,
+            'alpha_paginator_link current': 1,
+            'alpha_paginator_spacer half': 1,
+            'alpha_paginator_spacer third': 2,
+            'alpha_paginator_spacer quarter': 4,
+        }
+        for div_class, count in expect.items():
+            divs = soup.find_all('div', {'class': div_class})
+            self.assertEqual(len(divs), count)
+
+        got = paginator.render(container_additional_classes=['aaa', 'bbb'])
+        soup = BeautifulSoup(str(got), 'html.parser')
+        wrapper_div = soup.find_all('div')[0]
+        self.assertEqual(
+            wrapper_div['class'],
+            ['web2py_paginator', 'alpha_paginator_container', 'aaa', 'bbb']
+        )
+
+
 class TestGrid(LocalTestCase):
 
     def test____init__(self):
@@ -156,6 +226,11 @@ class TestGrid(LocalTestCase):
         for t in tests:
             got = Grid.class_factory(t[0])
             self.assertTrue(isinstance(got, t[1]))
+
+    def test__alpha_paginator(self):
+        grid = SubGrid()
+        paginator = grid.alpha_paginator()
+        self.assertTrue(isinstance(paginator, AlphaPaginator))
 
     def test__filters(self):
         grid = SubGrid()
@@ -395,13 +470,19 @@ class TestGrid(LocalTestCase):
         div = soup.div
         self.assertEqual(div['class'], ['btn-group'])
         anchor_1 = div.a
-        self.assertEqual(anchor_1['class'], ['btn', 'btn-default', 'btn-lg', 'active'])
+        self.assertEqual(
+            anchor_1['class'],
+            ['btn', 'btn-default', 'btn-lg', 'active']
+        )
         self.assertEqual(anchor_1['href'], '/?view=list')
         span_1 = anchor_1.span
         self.assertEqual(span_1['class'], ['glyphicon', 'glyphicon-th-list'])
 
         anchor_2 = anchor_1.nextSibling
-        self.assertEqual(anchor_2['class'], ['btn', 'btn-default', 'btn-lg', 'disabled'])
+        self.assertEqual(
+            anchor_2['class'],
+            ['btn', 'btn-default', 'btn-lg', 'disabled']
+        )
         self.assertEqual(anchor_2['href'], '/?view=tile')
         span_2 = anchor_2.span
         self.assertEqual(span_2['class'], ['glyphicon', 'glyphicon-th-large'])
@@ -432,6 +513,20 @@ class TestCartoonistsGrid(LocalTestCase):
         self.assertEqual(
             grid._buttons,
             ['creator_contribute', 'creator_follow', 'creator_torrent']
+        )
+
+    def test__filters(self):
+        grid = CartoonistsGrid()
+        self.assertEqual(grid.filters(), [])
+
+        env = globals()
+        request = env['request']
+        request.vars.alpha = 'a'
+        got = grid.filters()
+        self.assertEqual(len(got), 1)
+        self.assertEqual(
+            str(got[0]),
+            '("creator"."name_for_search" LIKE \'a%\' ESCAPE \'\\\')'
         )
 
     def test__groupby(self):
@@ -540,7 +635,10 @@ class TestMoniesBookTile(TileTestCase):
         self.assertEqual(div['class'], ['col-sm-12', 'name'])
 
         anchor = div.a
-        self.assertEqual(anchor['class'], ['contribute_button', 'no_rclick_menu'])
+        self.assertEqual(
+            anchor['class'],
+            ['contribute_button', 'no_rclick_menu']
+        )
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={id}'.format(
@@ -582,7 +680,10 @@ class TestMoniesBookTile(TileTestCase):
         div = soup.div
         self.assertEqual(div['class'], ['col-sm-12', 'image_container'])
         anchor = div.a
-        self.assertEqual(anchor['class'], ['contribute_button', 'no_rclick_menu'])
+        self.assertEqual(
+            anchor['class'],
+            ['contribute_button', 'no_rclick_menu']
+        )
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={id}'.format(
@@ -626,7 +727,10 @@ class TestMoniesBookTile(TileTestCase):
         soup = BeautifulSoup(str(div), 'html.parser')
 
         div = soup.div
-        self.assertEqual(div['class'], ['item_container', 'monies_book_tile_item'])
+        self.assertEqual(
+            div['class'],
+            ['item_container', 'monies_book_tile_item']
+        )
 
         div_1 = div.div
         self.assertEqual(div_1['class'], ['row'])
@@ -814,7 +918,10 @@ class TestBookTile(TileTestCase):
         # <a class="contribute_button"
         #    href="/contributions/modal?book_id=98">contribute</a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], ['contribute_button', 'no_rclick_menu'])
+        self.assertEqual(
+            anchor['class'],
+            ['contribute_button', 'no_rclick_menu']
+        )
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?book_id={i}'.format(i=self._row.book.id)
@@ -968,7 +1075,10 @@ class TestBookTile(TileTestCase):
         div = soup.div
         self.assertEqual(div['class'], ['col-sm-12', 'image_container'])
         anchor = div.a
-        self.assertEqual(anchor['class'], ['book_page_image', 'zco_book_reader'])
+        self.assertEqual(
+            anchor['class'],
+            ['book_page_image', 'zco_book_reader']
+        )
         first = get_page(self._row.book, page_no='first')
         self.assertEqual(anchor['href'], page_url(first))
         self.assertEqual(anchor['title'], '')
@@ -1069,7 +1179,10 @@ class TestCartoonistTile(TileTestCase):
         # <a class="contribute_button"
         #    href="/contributions/modal?creator_id=98">contribute</a>
         anchor = soup.a
-        self.assertEqual(anchor['class'], ['contribute_button', 'no_rclick_menu'])
+        self.assertEqual(
+            anchor['class'],
+            ['contribute_button', 'no_rclick_menu']
+        )
         self.assertEqual(
             anchor['href'],
             '/contributions/modal?creator_id={i}'.format(
@@ -1208,7 +1321,7 @@ class TestCartoonistTile(TileTestCase):
             ul = div.ul
             lis = ul.findAll('li')
             self.assertEqual(len(lis), len(t[2]))
-            if len(t[2]):
+            if t[2]:
                 link_texts = [x.a.string for x in lis]
                 self.assertEqual(link_texts, t[2])
             else:
@@ -1304,7 +1417,10 @@ class TestCartoonistTile(TileTestCase):
         # </div>
 
         div = soup.div
-        self.assertEqual(div['class'], ['item_container', 'cartoonist_tile_item'])
+        self.assertEqual(
+            div['class'],
+            ['item_container', 'cartoonist_tile_item']
+        )
 
         div_1 = div.div
         self.assertEqual(div_1['class'], ['row'])
@@ -1460,7 +1576,13 @@ class TestFunctions(LocalTestCase):
             i=row.book.id))
         self.assertEqual(
             data['class'],
-            ['btn', 'btn-default', 'download_button', 'no_rclick_menu', 'enabled']
+            [
+                'btn',
+                'btn-default',
+                'download_button',
+                'no_rclick_menu',
+                'enabled'
+            ]
         )
 
     def test__follow_link(self):

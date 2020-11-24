@@ -16,6 +16,16 @@
 
 {{=grid_div}}
 
+{{if grid._include_alpha_paginator:}}
+    {{alpha_paginator_classes = []}}
+    {{if grid.has_numeric_paginator:}}
+        {{alpha_paginator_classes = ['raised']}}
+    {{else:}}
+        {{alpha_paginator_classes = ['with_border']}}
+    {{pass}}
+    {{=grid.alpha_paginator().render(container_additional_classes=alpha_paginator_classes)}}
+{{pass}}
+
 </div>
 
 <a href="/contributions/modal" id="contribute_thingy" class="contribute_button no_rclick_menu hidden"></a>

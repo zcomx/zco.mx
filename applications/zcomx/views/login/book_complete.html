@@ -26,11 +26,11 @@
     </div>
 {{else:}}
     {{if metadata:}}
-        <p>
+        <p class="unmargined">
         The publication metadata is set to:
-        <br />
-        <span class="text-muted">{{=metadata}}</span>
-        <br />
+        <p class="unjustified text-muted indented">
+        {{=metadata}}
+        </p>
         To make changes to the metadata, go to the book's
         <a href="{{=URL(c='login', f='book_edit', args=book.id, extension=False)}}" class="modal-edit-ongoing-btn close_current_dialog no_rclick_menu" data-book_id="{{=book.id}}">edit page</a>.
         </p>

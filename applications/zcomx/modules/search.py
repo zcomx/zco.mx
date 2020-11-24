@@ -5,6 +5,7 @@
 
 Search classes and functions.
 """
+import string
 from bs4 import BeautifulSoup
 from gluon import *
 from gluon.tools import prettydate
@@ -39,6 +40,92 @@ from functools import reduce
 LOG = current.app.logger
 
 
+class AlphaPaginator(object):
+    """Class representing a AlphaPaginator"""
+
+    def __init__(self, request):
+        """Initializer
+
+        Args:
+            request: Request instance represent the page the paginator is
+                displayed on.
+        """
+        self.request = request
+
+    def get_url(self, letter):
+        """Get the url for the paginator element for the given letter.
+
+        Args:
+            letter: str, a letter of the alphabet.
+
+        Returns:
+            URL() instance
+        """
+        work_vars = self.request.vars
+        work_vars['alpha'] = letter.lower()
+        return URL(
+            r=self.request,
+            args=self.request.args,
+            vars=work_vars
+        )
+
+    def render(self, container_additional_classes=None):
+        """Render the alpha paginator.
+
+        Args:
+            container_additional_classes: list, additional classes to add to
+                container div.
+        """
+        url_divs = []
+
+        def spacer_div(fraction):
+            # <div class="alpha_paginator_spacer quarter"></div>
+            return DIV(
+                _class='alpha_paginator_spacer {f}'.format(f=fraction)
+            )
+
+        spacers = {
+            # letter: [ list of spacers that follow it ]
+            'F': ['quarter'],
+            'I': ['third'],
+            'L': ['quarter'],
+            'M': ['half'],
+            'R': ['third', 'quarter'],
+            'X': ['quarter'],
+        }
+
+        current_letter = None
+        if self.request.vars and self.request.vars.alpha:
+            current_letter = self.request.vars.alpha.upper()
+
+        for letter in string.ascii_uppercase:
+            url = self.get_url(letter)
+            a_classes = ['alpha_paginator_link']
+            if current_letter and current_letter == letter:
+                a_classes.append('current')
+
+            div = DIV(
+                A(
+                    letter.upper(),
+                    _href=url,
+                ),
+                _class=' '.join(a_classes),
+            )
+            url_divs.append(div)
+            if letter in spacers:
+                for fraction in spacers[letter]:
+                    url_divs.append(spacer_div(fraction))
+
+        container_classes = ['web2py_paginator', 'alpha_paginator_container']
+        if container_additional_classes:
+            container_classes.extend(container_additional_classes)
+
+        return DIV(
+            url_divs,
+            _class=' '.join(container_classes)
+        )
+
+
 class Grid(object):
     """Class representing a grid for search results."""
 
@@ -58,7 +145,7 @@ class Grid(object):
     }
 
     _buttons = []
-
+    _include_alpha_paginator = False    # If True include alpha paginator
     _not_found_msg = None
 
     class_factory = ClassFactory('class_factory_id')
@@ -95,6 +182,8 @@ class Grid(object):
             if default_viewby in self.viewbys else 'tile'
         self.db = current.app.db
         self.request = current.request
+
+        self.has_numeric_paginator = False
 
         # Search engines are making requests with invalid 'order' values.
         # Eg order=123
@@ -264,6 +353,9 @@ class Grid(object):
             if str(div) == '<div class="web2py_counter">None</div>':
                 del self.form_grid[0][count]
 
+    def alpha_paginator(self):
+        return AlphaPaginator(self.request)
+
     def filters(self):
         """Define query filters.
 
@@ -333,14 +425,16 @@ class Grid(object):
     def render(self):
         """Render the grid."""
         db = self.db
-        paginator = None
-        if self.viewby == 'tile':
-            # extract the paginator from the grid
-            soup = BeautifulSoup(str(self.form_grid), 'html.parser')
-            paginator = soup.find(
-                'div',
-                {'class': 'web2py_paginator grid_header '}
-            )
+
+        # extract the paginator from the grid
+        soup = BeautifulSoup(str(self.form_grid), 'html.parser')
+        paginator = soup.find(
+            'div',
+            {'class': 'web2py_paginator grid_header '}
+        )
+
+        if paginator:
+            self.has_numeric_paginator = True
 
         if self.viewby == 'list':
             grid_div = DIV(
@@ -368,6 +462,7 @@ class Grid(object):
                     tiles,
                     _class='row tile_view'
                 ))
+
                 if paginator:
                     divs.append(DIV(
                         XML(paginator)
@@ -413,17 +508,19 @@ class Grid(object):
             if self.request.vars.o in orderbys else orderbys[0]
         for o in orderbys:
             active = 'active' if o == orderby else ''
-            orderby_vars = dict(self.request.vars)
-            orderby_vars.pop('o', None)    # The url takes care of this
-            orderby_vars.pop('contribute', None)    # Del contribute modal trig
-            if 'page' in orderby_vars:
+            request_vars = dict(self.request.vars)
+            request_vars.pop('o', None)    # The url takes care of this
+            request_vars.pop('contribute', None)    # Del contribute modal trig
+            if 'page' in request_vars:
                 # Each tab should reset to page 1.
-                del orderby_vars['page']
+                del request_vars['page']
+            if self._include_alpha_paginator:
+                request_vars['alpha'] = 'a'
             label = self.class_factory(o).label('tab_label')
             lis.append(LI(
                 A(
                     label,
-                    _href=URL(c='z', f=label, vars=orderby_vars),
+                    _href=URL(c='z', f=label, vars=request_vars),
                 ),
                 _class='nav-tab {a}'.format(a=active),
             ))
@@ -470,7 +567,7 @@ class Grid(object):
         return DIV(buttons, _class='btn-group')
 
     def visible_fields(self):
-        """Return list of visisble fields.
+        """Return list of visible fields.
 
         Returns:
             list of gluon.dal.Field instances
@@ -500,6 +597,7 @@ class CartoonistsGrid(Grid):
         'creator_torrent',
     ]
 
+    _include_alpha_paginator = True
     _not_found_msg = 'No cartoonists found'
 
     def __init__(
@@ -514,6 +612,21 @@ class CartoonistsGrid(Grid):
             queries=queries,
             default_viewby=default_viewby
         )
+
+    def filters(self):
+        """Define query filters.
+
+        Returns:
+            list of gluon.dal.Expression instances
+        """
+        db = self.db
+        request = self.request
+        queries = []
+        if request.vars.alpha:
+            queries.append(
+                (db.creator.name_for_search.startswith(request.vars.alpha))
+            )
+        return queries
 
     def groupby(self):
         """Return groupby defining how report is grouped.
@@ -533,7 +646,7 @@ class CartoonistsGrid(Grid):
         return [db.auth_user.name]
 
     def visible_fields(self):
-        """Return list of visisble fields.
+        """Return list of visible fields.
 
         Returns:
             list of gluon.dal.Field instances
@@ -593,7 +706,7 @@ class CompletedGrid(Grid):
         return queries
 
     def visible_fields(self):
-        """Return list of visisble fields.
+        """Return list of visible fields.
 
         Returns:
             list of gluon.dal.Field instances
@@ -702,7 +815,7 @@ class OngoingGrid(Grid):
         return queries
 
     def visible_fields(self):
-        """Return list of visisble fields.
+        """Return list of visible fields.
 
         Returns:
             list of gluon.dal.Field instances
@@ -771,7 +884,7 @@ class SearchGrid(Grid):
         return queries
 
     def visible_fields(self):
-        """Return list of visisble fields.
+        """Return list of visible fields.
 
         Returns:
             list of gluon.dal.Field instances

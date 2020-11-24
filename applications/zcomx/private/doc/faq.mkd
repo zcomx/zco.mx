@@ -3,7 +3,8 @@
 ##### [[Can anyone upload content? #upload]]
 ##### [[What do the sections on the front page mean? #frontpage]]
 ##### [[How do the contributions work? #contribution]]
-##### [[What is a cbr/cbz file? #cbz]]
+##### [[What is a CBR/CBZ file? #cbz]]
+##### [[Why use CBZ files and not PDF or EPUB files? #whycbz]]
 ##### [[Who is behind zco.mx? #behind]]
 ##### [[How does zco.mx pay its expenses? #expenses]]
 ##### [[What is up with the design of the site? #design]]
@@ -36,11 +37,11 @@ To start, due to scalability, the site will be curated.
 [[frontpage]]
 #### What do the sections on the front page mean?
 **completed** - This is a list of titles that are complete works.  They are
-able to be downloaded as cbz files. The newest releases are listed first.
+able to be downloaded as CBZ files. The newest releases are listed first.
 
 **ongoing** - This is a list of titles that are either currently in
 progress (that is, that the cartoonist is currently working on) or that
-have not been released as cbz files, which would contain hi-res images
+have not been released as CBZ files, which would contain hi-res images
 suitable for tablets. This section is organized by title, with the most
 recently uploaded image listed first.
 
@@ -57,12 +58,21 @@ zco.mx is not-for-profit and all contributions go directly to cartoonists.
 
 
 [[cbz]]
-#### What is a cbr/cbz file?
-cbr files are archive files that use the RAR file format, while cbz
-files use zip. A cbr/cbz file contains nothing more than image files,
+#### What is a CBR/CBZ file?
+CBR files are archive files that use the RAR file format, while CBZ
+files use zip. A CBR/CBZ file contains nothing more than image files,
 such as JPEGs. From a technical standpoint, there is no difference
 between foo.cbz and foo.zip, except for the filename. RAR, however, is
 an antiquated proprietary file format that is no longer recommended.
+
+
+[[whycbz]]
+#### Why use CBZ files and not PDF or EPUB files?
+There are two main reasons, both related.  First, CBZ files are technically the
+best way to package a set of image files. Relatively speaking, CBZ files have
+the smallest file sizes because they include no extra overhead. As a result
+they are, or at least should be, the fastest to load and use. Second, CBZ files
+are what the file sharing groups distribute.
 
 
 [[behind]]

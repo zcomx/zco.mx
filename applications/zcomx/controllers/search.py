@@ -8,7 +8,10 @@ from applications.zcomx.modules.books import \
 from applications.zcomx.modules.creators import \
     Creator, \
     url as creator_url
-from applications.zcomx.modules.search import Grid
+from applications.zcomx.modules.search import (
+    AlphaPaginator,
+    Grid,
+)
 from applications.zcomx.modules.zco import Zco
 
 

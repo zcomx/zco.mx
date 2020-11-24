@@ -192,11 +192,12 @@ def top():
     )
     left_links.append(LI(home))
 
-    help_anchor = A(
+    help_link = A(
         'help',
-        _href='http://kb.zco.mx'
+        _href='http://kb.zco.mx',
+        _target='_blank',
+        _rel='noopener noreferrer'
     )
-    right_links.append(LI(help_anchor))
 
     def li_link(label, url, **kwargs):
         """Return a LI(A(...)) structure."""
@@ -282,6 +283,7 @@ def top():
             left_links.append(login_link('indicia'))
             left_links.append(login_link('profile'))
             left_links.append(login_link('account'))
+            left_links.append(help_link)
     else:
         if request.vars.o == 'search':
             delimiter_class = 'gt_delimiter'
