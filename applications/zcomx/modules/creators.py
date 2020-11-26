@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Creator classes and functions.
 """
+import functools
 import json
 import os
 from gluon import *
@@ -14,14 +13,19 @@ from applications.zcomx.modules.job_queuers import (
     queue_create_sitemap,
     queue_search_prefetch,
 )
-from applications.zcomx.modules.names import \
-    CreatorName, \
-    names
-from applications.zcomx.modules.records import Record
-from applications.zcomx.modules.strings import \
-    camelcase, \
-    replace_punctuation, \
-    squeeze_whitespace
+from applications.zcomx.modules.names import (
+    CreatorName,
+    names,
+)
+from applications.zcomx.modules.records import (
+    Record,
+    Records,
+)
+from applications.zcomx.modules.strings import (
+    camelcase,
+    replace_punctuation,
+    squeeze_whitespace,
+)
 from applications.zcomx.modules.zco import SITE_NAME
 
 LOG = current.app.logger
@@ -192,6 +196,65 @@ def creator_name(creator, use='file'):
     elif use == 'url':
         return creator.name_for_url
     return
+
+
+def download_link(creator, components=None, **attributes):
+    """Return html code suitable for a 'Download' link.
+
+    Args:
+        creator: Book instance
+        components: list, passed to A(*components),  default ['Download']
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+    if not creator:
+        return empty
+
+    if not components:
+        components = ['Download']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if creator.torrent:
+        if '_href' not in attributes:
+            kwargs['_href'] = URL(
+                c='downloads',
+                f='modal',
+                args=['creator', creator.id],
+                extension=False,
+            )
+        class_attr = attributes['_class'] if '_class' in attributes else ''
+        kwargs['_class'] = (class_attr + ' enabled').strip()
+        tag = A
+    else:
+        kwargs['_href'] = None
+        if '_title' not in attributes:
+            kwargs['_title'] = \
+                'This creator has not released any books for file sharing.'
+        class_attr = attributes['_class'] if '_class' in attributes else ''
+        kwargs['_class'] = (class_attr + ' disabled').strip()
+        tag = SPAN
+
+    return tag(*components, **kwargs)
+
+
+def downloadable(orderby=None, limitby=None):
+    """Return list of downloadable books.
+
+    Args:
+        orderby: orderby expression, see select()
+        limitby: limitby expression, see seelct()
+
+    Returns:
+        Records instance representing list of Creator instances.
+    """
+    db = current.app.db
+    queries = []
+    queries.append((db.creator.torrent != ''))
+    query = functools.reduce(lambda x, y: x & y, queries) if queries else None
+
+    return Records.from_query(Creator, query, orderby=orderby, limitby=limitby)
 
 
 def follow_link(creator, components=None, **attributes):

@@ -376,10 +376,7 @@ class WebTestCase(LocalTestCase):
             '<div id="login_page">',
             '<h2>Cartoonist Login</h2>',
         ],
-        '/downloads/modal': [
-            '<div id="download_modal_page">',
-            'magnet:?xt=urn:tree:tiger',
-        ],
+        '/downloads/modal': ['<div id="download_modal_page">'],
         '/errors/index': '<h3>Server error</h3>',
         '/errors/page_not_found': '<h3>Page not found</h3>',
         '/login/account': [

@@ -70,6 +70,9 @@ from applications.zcomx.modules.links import \
     Links, \
     LinksKey, \
     LinkType
+from applications.zcomx.modules.search import \
+    CompletedGrid, \
+    OngoingGrid
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
 from applications.zcomx.modules.utils import \
@@ -643,7 +646,6 @@ def book_pages_handler():
                 files=[x.filename for x in files]
             )
 
-        result = json.loads(result_json)
         return result_json
 
     if request.env.request_method == 'DELETE':
@@ -813,7 +815,16 @@ def books():
         [(r.book.status, r[status_count]) for r in rows]
     )
 
-    return dict(status_counts=status_counts)
+    queries = [(db.creator.id == creator.id)]
+    completed_grid = CompletedGrid(queries=queries, default_viewby='list')
+    ongoing_grid = OngoingGrid(queries=queries, default_viewby='list')
+
+    return dict(
+        status_counts=status_counts,
+        grid=completed_grid,
+        ongoing_grid=ongoing_grid.render(),
+        completed_grid=completed_grid.render()
+    )
 
 
 @auth.requires_login()

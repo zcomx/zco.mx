@@ -1,5 +1,5 @@
 {{from applications.zcomx.modules.books import read_link}}
-{{from applications.zcomx.modules.creators import follow_link, torrent_link, short_url, url as creator_url}}
+{{from applications.zcomx.modules.creators import follow_link, download_link, short_url, url as creator_url}}
 {{from applications.zcomx.modules.images import CreatorImgTag}}
 {{from applications.zcomx.modules.utils import ItemDescription}}
 {{extend 'layout_main.html'}}
@@ -67,7 +67,7 @@
                     {{pass}}
                     {{if creator.torrent:}}
                         <dt>torrent </dt>
-                        <dd>{{=torrent_link(creator)}}</dd>
+                        <dd>{{=download_link(creator, components=['download'], **dict(_class='download_button no_rclick_menu'))}}</dd>
                     {{pass}}
                     </dl>
                 </div>

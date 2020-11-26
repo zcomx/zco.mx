@@ -343,7 +343,7 @@ class TestGrid(LocalTestCase):
         self.assertEqual(len(rows), grid._paginate)
         self.assertEqual(
             sorted(rows[0].keys()),
-            ['auth_user', 'book', 'creator']
+            ['auth_user', 'book', 'creator', 'creator_grid_v']
         )
 
     def test__set_field(self):
@@ -409,7 +409,7 @@ class TestGrid(LocalTestCase):
         li_3 = li_2.nextSibling
         self.assertEqual(li_3['class'], ['nav-tab', ''])
         anchor_3 = li_3.a
-        self.assertEqual(anchor_3['href'], '/z/cartoonists')
+        self.assertEqual(anchor_3['href'], '/z/cartoonists?alpha=a')
         self.assertEqual(anchor_3.string, 'cartoonists')
 
         # Test removal of request.vars.contribute
@@ -423,7 +423,7 @@ class TestGrid(LocalTestCase):
         # anchor_2 = soup.ul.li.nextSibling.a
         # self.assertEqual(anchor_2['href'], '/z/contributions')
         anchor_3 = soup.ul.li.nextSibling.nextSibling.a
-        self.assertEqual(anchor_3['href'], '/z/cartoonists')
+        self.assertEqual(anchor_3['href'], '/z/cartoonists?alpha=a')
 
     def test__tile_value(self):
         creator = self.add(Creator, dict(
@@ -543,8 +543,13 @@ class TestCartoonistsGrid(LocalTestCase):
         grid = CartoonistsGrid()
         self.assertEqual(
             grid.visible_fields(),
-            # [db.auth_user.name, db.creator.contributions_remaining]
-            [db.auth_user.name]
+            [
+                db.auth_user.name,
+                db.creator_grid_v.completed,
+                db.creator_grid_v.ongoing,
+                db.creator_grid_v.views,
+                db.creator_grid_v.downloads,
+            ]
         )
 
 
@@ -947,7 +952,7 @@ class TestBookTile(TileTestCase):
             anchor['class'],
             ['download_button', 'no_rclick_menu', 'enabled']
         )
-        self.assertEqual(anchor['href'], '/downloads/modal/{i}'.format(
+        self.assertEqual(anchor['href'], '/downloads/modal/book/{i}'.format(
             i=self._row.book.id))
         self.assertEqual(anchor.string, 'download')
 
@@ -1005,7 +1010,7 @@ class TestBookTile(TileTestCase):
         # <div class="col-sm-12">
         #   <ul class="breadcrumb pipe_delimiter">
         #     <li><a class="download_button no_rclick_menu"
-        #       href="/downloads/modal/2208">download</a>
+        #       href="/downloads/modal/book/2208">download</a>
         #     </li>
         #   </ul>
         #   <div class="orderby_field_value">2015-03-04</div>
@@ -1037,7 +1042,7 @@ class TestBookTile(TileTestCase):
             anchor['class'],
             ['download_button', 'no_rclick_menu', 'enabled']
         )
-        self.assertEqual(anchor['href'], '/downloads/modal/{i}'.format(
+        self.assertEqual(anchor['href'], '/downloads/modal/book/{i}'.format(
             i=self._row.book.id))
         self.assertEqual(anchor.string, 'download')
 
@@ -1572,7 +1577,7 @@ class TestFunctions(LocalTestCase):
         row = self._row()
         data = self._parse_link(download_link(row))
         self.assertEqual(data['string'], 'Download')
-        self.assertEqual(data['href'], '/downloads/modal/{i}'.format(
+        self.assertEqual(data['href'], '/downloads/modal/book/{i}'.format(
             i=row.book.id))
         self.assertEqual(
             data['class'],
@@ -1633,12 +1638,15 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(self._row().creator.torrent, 'FirstLast.torrent')
 
         data = self._parse_link(link_for_creator_torrent(self._row()))
-        self.assertEqual(data['string'], 'FirstLast.torrent')
+        self.assertEqual(data['string'], 'Download')
         self.assertEqual(
             data['href'],
-            '/FirstLast_({i}.zco.mx).torrent'.format(i=self._creator.id)
+            '/downloads/modal/creator/{i}'.format(i=self._creator.id)
         )
-        self.assertEqual(data['class'], None)
+        self.assertEqual(
+            data['class'],
+            ['btn', 'btn-default', 'download_button', 'no_rclick_menu', 'enabled']
+        )
         self.assertEqual(data['type'], None)
 
     def test__read_link(self):

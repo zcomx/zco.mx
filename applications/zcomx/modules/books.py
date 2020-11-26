@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Book classes and functions.
 """
 import datetime
+import functools
 import json
 import os
 import re
@@ -670,7 +669,7 @@ def download_link(book, components=None, **attributes):
             kwargs['_href'] = URL(
                 c='downloads',
                 f='modal',
-                args=[book.id],
+                args=['book', book.id],
                 extension=False,
             )
         class_attr = attributes['_class'] if '_class' in attributes else ''
@@ -686,6 +685,28 @@ def download_link(book, components=None, **attributes):
         tag = SPAN
 
     return tag(*components, **kwargs)
+
+
+def downloadable(creator_id=0, orderby=None, limitby=None):
+    """Return list of downloadable books.
+
+    Args:
+        creator_id: int, id of creator, if non-zero, only books of this
+            creator are returned.
+        orderby: orderby expression, see select()
+        limitby: limitby expression, see seelct()
+
+    Returns:
+        Records instance representing list of Book instances.
+    """
+    db = current.app.db
+    queries = []
+    if creator_id:
+        queries.append((db.book.creator_id == creator_id))
+    queries.append((db.book.torrent != ''))
+    query = functools.reduce(lambda x, y: x & y, queries) if queries else None
+
+    return Records.from_query(Book, query, orderby=orderby, limitby=limitby)
 
 
 def fileshare_link(book, components=None, **attributes):

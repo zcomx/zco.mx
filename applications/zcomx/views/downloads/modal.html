@@ -1,32 +1,50 @@
-{{from applications.zcomx.modules.books import cbz_link, formatted_name, magnet_link, torrent_link}}
+{{from applications.zcomx.modules.zco import Zco}}
 
 <div id="download_modal_page">
 
-<div class="download_modal_book">{{=formatted_name(book, include_publication_year=(book.release_date != None))}}</div>
+<div class="loading_gif_overlay">
+    <div class="loading_gif loading_gif_centered loading_32x32 processing"></div>
+</div>
 
-<dl>
-    <dt>cbz</dt>
-    <dd>
-        <ul class="breadcrumb pipe_delimiter">
-            <li>
-                {{=torrent_link(book, ['torrent'])}}
-            </li>
-            <li>
-                {{=magnet_link(book, ['dc'])}}
-            </li>
-            <li>
-                {{=cbz_link(book, ['direct'])}}
-            </li>
-        </ul>
-    </dd>
-</dl>
+<table id="downloads_modal_table">
+    <tr>
+        <td class="downloads_modal_label">
+            <select id="books_ddm"></select>
+        </td>
+        <td class="downloads_modal_label">cbz</td>
+        <td id="book_torrent_link"></td>
+        <td class="pipe_delimiter">&#124;</td>
+        <td id="book_magnet_link"></td>
+        <td class="pipe_delimiter">&#124;</td>
+        <td id="book_cbz_link"></td>
+    </tr>
+    <tr>
+        <td class="downloads_modal_label">
+            <select id="creators_ddm"></select>
+        </td>
+        <td class="downloads_modal_label">cbz</td>
+        <td id="creator_torrent_link"></td>
+    </tr>
+    <tr>
+        <td class="downloads_modal_label">All zco.mx</td>
+        <td class="downloads_modal_label">cbz</td>
+        <td>
+            <a href="{{=URL(**Zco().all_torrent_url)}}">torrent</a>
+        </td>
+    </tr>
+</table>
 
 </div>
+<script src="{{=app_js}}/downloads_modal.js"> </script>
 
 <script>
 //<![CDATA[
     $(document).ready(function(){
-        $('.log_download_link').log_download_link();
+        $('.loading_gif_overlay').hide();
+        $('#downloads_modal_table').downloads_handler({
+            'default_creator_id': {{=creator_id}},
+            'default_book_id': {{=book_id}},
+        })
     });
 //]]>
 </script>

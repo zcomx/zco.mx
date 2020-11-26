@@ -66,6 +66,8 @@ routes_in = (
 
     #  reroute favicon and robots
     ('/favicon.ico', '/zcomx/static/images/favicon.ico'),
+    ('/apple-touch-icon.png', '/zcomx/static/images/favicon.ico'),
+    ('/apple-touch-icon-precomposed.png', '/zcomx/static/images/favicon.ico'),
     ('/robots.txt', '/zcomx/static/robots.txt'),
     ('/sitemap.xml', '/zcomx/static/sitemap.xml'),
     ('/google23f195580c35fe70.html', '/zcomx/static/google23f195580c35fe70.html'),

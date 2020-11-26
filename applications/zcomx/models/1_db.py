@@ -504,6 +504,7 @@ db.define_table('creator',
     ),
 )
 
+
 db.define_table('derivative',
     Field(
         'book_id',
@@ -1019,3 +1020,17 @@ db.rating.book_id.requires = IS_IN_DB(
     '%(name)s',
     zero=None
 )
+
+#
+# Views
+# Define views after tables so migrate updates tables first.
+#
+db.define_table('creator_grid_v',
+    Field('creator_id', 'id'),
+    Field('completed', 'integer'),
+    Field('ongoing', 'integer'),
+    Field('downloads', 'integer'),
+    Field('views', 'integer'),
+    migrate=False,
+)
+

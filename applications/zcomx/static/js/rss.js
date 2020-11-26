@@ -14,7 +14,7 @@
                 $(elem).click(function (e) {
                     var url = $(elem).attr('href');
                     var dialog = new BootstrapDialog({
-                        title: 'Reader Notifications',
+                        title: '',
                         message: $('<div></div>').load(url),
                         buttons: [],
                         cssClass: settings.cssClass,

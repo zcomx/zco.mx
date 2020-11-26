@@ -758,7 +758,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 
-#creator_page .list_tile_options {
+#creator_page .list_tile_options,
+#profile_page .list_tile_options {
     bottom: 0;
     right: 0;
     position: absolute;
@@ -791,11 +792,13 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .list_tile_options .btn:active,
 .list_tile_options .btn.active {
     box-shadow: none;
-    color: #666666;
+    color: #FF6600;
 }
 
 .list_tile_options .btn.disabled {
     opacity: 0.2;
+    cursor: not-allowed;
+    pointer-events: auto;
 }
 
 .grid_header {
@@ -810,6 +813,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .grid_section_header h4 {
     font-size: 22px;
     margin: 0px;
+}
+
+.grid_section .grid_view_list td,
+.grid_section .grid_view_list th {
+    white-space: nowrap;
 }
 
 .grid_section .grid_view_list .btn.disabled {
@@ -1063,6 +1071,9 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .grid_section .web2py_grid.grid_key_cartoonists td:nth-child(2),
+.grid_section .web2py_grid.grid_key_cartoonists td:nth-child(3),
+.grid_section .web2py_grid.grid_key_cartoonists td:nth-child(4),
+.grid_section .web2py_grid.grid_key_cartoonists td:nth-child(5),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(2),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(3),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(4),
@@ -1292,11 +1303,18 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: inline;
 }
 
-#creator_page #report_section {
+#creator_page #report_section,
+#profile_page #report_section {
     padding-top: 1em;
 }
 
-#creator_page #report_section .not_found_msg {
+#profile_page #report_section {
+    border-top: 1px solid #EEEEEE;
+    margin-top: 4em;
+}
+
+#creator_page #report_section .not_found_msg,
+#profile_page #report_section .not_found_msg {
     color: #999999;
     padding-top: 0.6em;
 }
@@ -1930,6 +1948,22 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #download_modal_page .download_modal_book {
     font-size: 20px;
+    font-weight: bold;
+}
+
+#download_modal_page #downloads_modal_table td {
+    padding: 0.4em;
+}
+
+#download_modal_page #downloads_modal_table td:nth-child(1) {
+    padding-right: 2em;
+}
+
+#download_modal_page .pipe_delimiter {
+    color: #CCC;
+}
+
+#download_modal_page .downloads_modal_label {
     font-weight: bold;
 }
 

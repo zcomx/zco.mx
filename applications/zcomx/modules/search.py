@@ -10,25 +10,27 @@ from bs4 import BeautifulSoup
 from gluon import *
 from gluon.tools import prettydate
 from pydal.validators import urlify
-from applications.zcomx.modules.books import \
-    Book, \
-    contribute_link as book_contribute_link, \
-    cover_image, \
-    download_link as book_download_link, \
-    follow_link as book_follow_link, \
-    formatted_name, \
-    is_followable, \
-    read_link as book_read_link, \
-    show_download_link, \
-    url as book_url
-from applications.zcomx.modules.creators import \
-    Creator, \
-    can_receive_contributions, \
-    contribute_link as creator_contribute_link, \
-    follow_link as creator_follow_link, \
-    torrent_link as creator_torrent_link, \
-    torrent_url as creator_torrent_url, \
-    url as creator_url
+from applications.zcomx.modules.books import (
+    Book,
+    contribute_link as book_contribute_link,
+    cover_image,
+    download_link as book_download_link,
+    follow_link as book_follow_link,
+    formatted_name,
+    is_followable,
+    read_link as book_read_link,
+    show_download_link,
+    url as book_url,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    can_receive_contributions,
+    contribute_link as creator_contribute_link,
+    download_link as creator_download_link,
+    follow_link as creator_follow_link,
+    torrent_url as creator_torrent_url,
+    url as creator_url,
+)
 from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import make_grid_class
 from applications.zcomx.modules.utils import \
@@ -246,6 +248,10 @@ class Grid(object):
             db.creator.contributions_remaining,
             db.creator.torrent,
             db.creator.name_for_url,
+            db.creator_grid_v.completed,
+            db.creator_grid_v.ongoing,
+            db.creator_grid_v.views,
+            db.creator_grid_v.downloads,
         ]
 
         visible = [str(x) for x in self.visible_fields()]
@@ -324,6 +330,8 @@ class Grid(object):
                 db.auth_user.on(
                     db.creator.auth_user_id == db.auth_user.id
                 ),
+                db.creator_grid_v.on(
+                    db.book.creator_id == db.creator_grid_v.creator_id),
             ],
             paginate=self.viewbys[self.viewby]['items_per_page'],
             details=False,
@@ -514,7 +522,7 @@ class Grid(object):
             if 'page' in request_vars:
                 # Each tab should reset to page 1.
                 del request_vars['page']
-            if self._include_alpha_paginator:
+            if o == 'creators' and 'alpha' not in request_vars:
                 request_vars['alpha'] = 'a'
             label = self.class_factory(o).label('tab_label')
             lis.append(LI(
@@ -563,6 +571,7 @@ class Grid(object):
                 ),
                 _href=URL(r=self.request, args=args, vars=viewby_vars),
                 _class='btn btn-default btn-lg {d}'.format(d=disabled),
+                _title=v.title(),
             ))
         return DIV(buttons, _class='btn-group')
 
@@ -654,6 +663,10 @@ class CartoonistsGrid(Grid):
         db = self.db
         return [
             db.auth_user.name,
+            db.creator_grid_v.completed,
+            db.creator_grid_v.ongoing,
+            db.creator_grid_v.views,
+            db.creator_grid_v.downloads,
             # db.creator.contributions_remaining,
         ]
 
@@ -1381,7 +1394,10 @@ def link_for_creator_torrent(row):
     if 'creator' not in row or not row.creator.id or not row.creator.torrent:
         return ''
     creator = Creator.from_id(row.creator.id)
-    return creator_torrent_link(creator)
+    return creator_download_link(
+        creator,
+        **dict(_class='btn btn-default download_button no_rclick_menu')
+    )
 
 
 def read_link(row):

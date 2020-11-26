@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-
 Test suite for zcomx/modules/books.py
-
 """
 import datetime
 import json
@@ -19,63 +17,65 @@ from applications.zcomx.modules.book_pages import (
     BookPageTmp,
 )
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.books import \
-    Book, \
-    DEFAULT_BOOK_TYPE, \
-    book_name, \
-    book_page_for_json, \
-    book_pages_as_json, \
-    book_pages_from_tmp, \
-    book_pages_to_tmp, \
-    book_pages_years, \
-    book_tables, \
-    book_types, \
-    calc_contributions_remaining, \
-    calc_status, \
-    cbz_comment, \
-    cbz_link, \
-    cbz_url, \
-    cc_licence_data, \
-    complete_link, \
-    contribute_link, \
-    contributions_remaining_by_creator, \
-    contributions_target, \
-    cover_image, \
-    default_contribute_amount, \
-    defaults, \
-    download_link, \
-    fileshare_link, \
-    follow_link, \
-    formatted_name, \
-    formatted_number, \
-    get_page, \
-    html_metadata, \
-    images, \
-    is_completed, \
-    is_downloadable, \
-    is_followable, \
-    magnet_link, \
-    magnet_uri, \
-    name_fields, \
-    names, \
-    next_book_in_series, \
-    page_url, \
-    publication_months, \
-    publication_year_range, \
-    read_link, \
-    rss_url, \
-    set_status, \
-    short_page_img_url, \
-    short_page_url, \
-    short_url, \
-    show_download_link, \
-    social_media_data, \
-    torrent_file_name, \
-    torrent_link, \
-    torrent_url, \
-    update_contributions_remaining, \
-    update_rating, \
-    url
+from applications.zcomx.modules.books import (
+    Book,
+    DEFAULT_BOOK_TYPE,
+    book_name,
+    book_page_for_json,
+    book_pages_as_json,
+    book_pages_from_tmp,
+    book_pages_to_tmp,
+    book_pages_years,
+    book_tables,
+    book_types,
+    calc_contributions_remaining,
+    calc_status,
+    cbz_comment,
+    cbz_link,
+    cbz_url,
+    cc_licence_data,
+    complete_link,
+    contribute_link,
+    contributions_remaining_by_creator,
+    contributions_target,
+    cover_image,
+    default_contribute_amount,
+    defaults,
+    download_link,
+    downloadable,
+    fileshare_link,
+    follow_link,
+    formatted_name,
+    formatted_number,
+    get_page,
+    html_metadata,
+    images,
+    is_completed,
+    is_downloadable,
+    is_followable,
+    magnet_link,
+    magnet_uri,
+    name_fields,
+    names,
+    next_book_in_series,
+    page_url,
+    publication_months,
+    publication_year_range,
+    read_link,
+    rss_url,
+    set_status,
+    short_page_img_url,
+    short_page_url,
+    short_url,
+    show_download_link,
+    social_media_data,
+    torrent_file_name,
+    torrent_link,
+    torrent_url,
+    update_contributions_remaining,
+    update_rating,
+    url,
+)
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import \
     AuthUser, \
@@ -1058,13 +1058,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         link = download_link(book)
-        # Eg  <a href="/downloads/modal/4547">Download</a>
+        # Eg  <a href="/downloads/modal/book/4547">Download</a>
         soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Download')
         self.assertEqual(
             anchor['href'],
-            '/downloads/modal/123'
+            '/downloads/modal/book/123'
         )
 
         # Invalid id
@@ -1116,6 +1116,24 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             span['title'],
             'This book has not been released for file sharing.'
         )
+
+    def test__downloadable(self):
+        got = downloadable()
+        expect = db(db.book.torrent != '').count()
+        self.assertTrue(len(got), expect)
+        self.assertTrue(isinstance(got[0], Book))
+
+        # Test creator_id
+        creator = Creator.from_key({'email': 'jimkarsten@gmail.com'})
+        got = downloadable(creator_id=creator.id)
+        self.assertEqual(len(got), 1)
+        self.assertEqual(got[0].name, 'Test Do Not Delete')
+
+        # Test orderby, limitby
+        got = downloadable(orderby=db.book.name, limitby=(0, 10))
+        self.assertEqual(len(got), 10)
+        names = [x.name for x in got]
+        self.assertEqual(names, sorted(names))
 
     def test__fileshare_link(self):
         empty = '<span></span>'

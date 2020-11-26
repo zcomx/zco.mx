@@ -8,8 +8,19 @@ Test suite for zcomx/controllers/downloads.py
 """
 import json
 import unittest
-from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.books import (
+    Book,
+    cbz_url,
+    downloadable as downable_books,
+    formatted_name,
+    magnet_uri,
+    torrent_url as book_torrent_url,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    downloadable as downable_creators,
+    torrent_url as creator_torrent_url,
+)
 from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.tests.helpers import WebTestCase
 
@@ -103,23 +114,128 @@ class TestFunctions(WebTestCase):
         )
         test_invalid(url)
 
+    def test__downloadable_books(self):
+        # Prevent 'Changed session ID' warnings.
+        web.sessions = {}
+
+        downable = list(
+            downable_books(creator_id=self._creator.id, orderby=db.book.name))
+
+        url_fmt = '/zcomx/downloads/downloadable_books.json/{i}'
+        url = url_fmt.format(i=self._creator.id)
+        web.post(url)
+        result = json.loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+        books = result['books']
+        self.assertEqual(len(books), len(downable))
+        keys = ['id', 'title', 'torrent_url', 'magnet_uri', 'cbz_url']
+        self.assertEqual(list(books[0].keys()), keys)
+
+        self.assertEqual(books[0]['id'], downable[0].id)
+
+        self.assertEqual(
+            books[0]['title'],
+            formatted_name(
+                self._book,
+                include_publication_year=(self._book.release_date != None)
+            )
+        )
+
+        self.assertEqual(
+            books[0]['torrent_url'],
+            book_torrent_url(self._book, extension=False)
+        )
+        self.assertEqual(
+            books[0]['magnet_uri'],
+            magnet_uri(self._book)
+        )
+        self.assertEqual(
+            books[0]['cbz_url'],
+            cbz_url(self._book, extension=False)
+        )
+
+        # Test no creator
+        web.sessions = {}
+        url = '/zcomx/downloads/downloadable_books.json'
+        web.post(url)
+        result = json.loads(web.text)
+        self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['msg'], 'Unable to get list of books.')
+
+        # Test invalid creator
+        url = url_fmt.format(i=-1)
+        web.post(url)
+        result = json.loads(web.text)
+        self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['msg'], 'Unable to get list of books.')
+
+    def test__downloadable_creators(self):
+        # Prevent 'Changed session ID' warnings.
+        web.sessions = {}
+
+        downable = list(downable_creators(orderby=db.creator.name_for_search))
+
+        url = '/zcomx/downloads/downloadable_creators.json'
+        web.post(url)
+        result = json.loads(web.text)
+        self.assertEqual(result['status'], 'ok')
+        creators = result['creators']
+        self.assertEqual(len(creators), len(downable))
+        keys = ['id', 'name', 'torrent_url']
+        self.assertEqual(list(creators[0].keys()), keys)
+
+        self.assertEqual(creators[0]['id'], downable[0].id)
+        self.assertEqual(creators[0]['name'], downable[0].name)
+        self.assertEqual(
+            creators[0]['torrent_url'],
+            creator_torrent_url(downable[0], extension=False)
+        )
+
     def test__index(self):
         self.assertWebTest('/downloads/index', match_page_key='/default/index')
 
     def test__modal(self):
-        # No book id
+        # No book id, no creator id
+        creators = downable_creators(
+            orderby=db.creator.name_for_search,
+            limitby=(0, 1)
+        )
+        expect_creator = creators[0]
+
+        books = downable_books(
+            creator_id=expect_creator.id,
+            orderby=db.book.name,
+            limitby=(0, 1)
+        )
+        expect_book = books[0]
+
         self.assertWebTest(
             '/downloads/modal',
-            match_page_key='',
-            match_strings=['Invalid data provided']
+            match_page_key='/downloads/modal',
+            match_strings=[
+                "'default_creator_id': {i}".format(i=expect_creator.id),
+                "'default_book_id': {i}".format(i=expect_book.id),
+            ]
         )
 
         # Test with book_id
-        self.assertTrue(self._book.cbz)
         self.assertWebTest(
-            '/downloads/modal/{bid}'.format(bid=self._book.id),
+            '/downloads/modal/book/{i}'.format(i=self._book.id),
             match_page_key='/downloads/modal',
-            match_strings=[self._book.name]
+            match_strings=[
+                "'default_creator_id': {i}".format(i=self._creator.id),
+                "'default_book_id': {i}".format(i=self._book.id),
+            ]
+        )
+
+        # Test with creator
+        self.assertWebTest(
+            '/downloads/modal/creator/{i}'.format(i=self._creator.id),
+            match_page_key='/downloads/modal',
+            match_strings=[
+                "'default_creator_id': {i}".format(i=self._creator.id),
+                "'default_book_id': {i}".format(i=self._book.id),
+            ]
         )
 
 

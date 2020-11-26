@@ -5,6 +5,7 @@
 ##### [[Am I able to remove any of the work I posted on zco.mx? #remove]]
 ##### [[Should I post my older work or only new comics? Are you looking for short comics or longer works? #content2]]
 ##### [[My friend and I have a collaborative work we'd like to post. Is that okay? #colab]]
+##### [[Can I publish some works under a pen name? #penname]]
 ##### [[Are non-English comics allowed? #non-eng]]
 ##### [[As a cartoonist, why would I want to use zco.mx? #use]]
 ##### [[Why not just use my own website? #own]]
@@ -105,6 +106,13 @@ technical considerations. If a reader sends $2, would it be split 50-50? What
 if creators fought over the percentage? Readers may have to send donations to
 each  cartoonist separately, or the site might need an intermediary Paypal
 account to collect the total and then split it,  which would  incur more fees.
+
+
+[[penname]]
+#### Can I publish some works under a pen name?
+If you use a pen name for specific comics, for example, comics for children
+versus regular work, is it possible to publish both types of work under
+different names? Yes, in this situation a second account would be created.
 
 
 [[non-eng]]

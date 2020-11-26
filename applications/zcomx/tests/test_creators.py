@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/creators.py
-
 """
 import json
 import os
@@ -13,30 +10,33 @@ from bs4 import BeautifulSoup
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator, \
-    add_creator, \
-    book_for_contributions, \
-    can_receive_contributions, \
-    contribute_link, \
-    creator_name, \
-    follow_link, \
-    for_auth_user, \
-    for_path, \
-    html_metadata, \
-    image_as_json, \
-    images, \
-    on_change_name, \
-    profile_onaccept, \
-    queue_update_indicia, \
-    rss_url, \
-    short_url, \
-    social_media_data, \
-    torrent_file_name, \
-    torrent_link, \
-    torrent_url, \
-    url
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+    add_creator,
+    book_for_contributions,
+    can_receive_contributions,
+    contribute_link,
+    creator_name,
+    download_link,
+    downloadable,
+    follow_link,
+    for_auth_user,
+    for_path,
+    html_metadata,
+    image_as_json,
+    images,
+    on_change_name,
+    profile_onaccept,
+    queue_update_indicia,
+    rss_url,
+    short_url,
+    social_media_data,
+    torrent_file_name,
+    torrent_link,
+    torrent_url,
+    url,
+)
 from applications.zcomx.modules.images import store
 from applications.zcomx.modules.job_queue import Job
 from applications.zcomx.modules.tests.helpers import \
@@ -277,6 +277,87 @@ class TestFunctions(ImageTestCase):
 
         for t in tests:
             self.assertEqual(creator_name(creator, use=t[0]), t[1])
+
+    def test__download_link(self):
+        empty = '<span></span>'
+
+        creator = Creator(dict(
+            id=123,
+            name_for_url='test__download_link',
+            torrent='_test_torrent_',
+        ))
+
+        link = download_link(creator)
+        # Eg  <a href="/downloads/modal/creator/4547">Download</a>
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Download')
+        self.assertEqual(
+            anchor['href'],
+            '/downloads/modal/creator/123'
+        )
+
+        # Invalid id
+        link = download_link(None)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = download_link(creator, components=components)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        components = [IMG(_src='http://www.img.com', _alt='')]
+        link = download_link(creator, components=components)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        img = anchor.img
+        self.assertEqual(img['src'], 'http://www.img.com')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+            _rel='noopener noreferrer',
+        )
+        link = download_link(creator, **attributes)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Download')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large', 'enabled'])
+        self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
+
+        # Test disabled
+        creator.torrent = ''
+        link = download_link(creator)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        self.assertEqual(soup.find('a'), None)
+        span = soup.find('span')
+        # <span class="disabled"
+        #   title="This creator has not released any books for file sharing."
+        # >Download</span>
+        self.assertEqual(span.string, 'Download')
+        self.assertEqual(span['class'], ['disabled'])
+        self.assertEqual(
+            span['title'],
+            'This creator has not released any books for file sharing.'
+        )
+
+    def test__downloadable(self):
+        got = downloadable()
+        expect = db(db.creator.torrent != '').count()
+        self.assertTrue(len(got), expect)
+        self.assertTrue(isinstance(got[0], Creator))
+
+        # Test orderby, limitby
+        got = downloadable(orderby=db.creator.name_for_url, limitby=(0, 10))
+        self.assertEqual(len(got), 10)
+        names = [x.name_for_url for x in got]
+        self.assertEqual(names, sorted(names))
 
     def test__follow_link(self):
         creator = Creator(dict(
