@@ -314,8 +314,8 @@ class Grid(object):
             queries.append(db.book)
         query = reduce(lambda x, y: x & y, queries) if queries else None
 
-        grid_class = 'web2py_grid grid_view_{v} grid_key_{o}'.format(
-            v=request.vars.view or 'tile',
+        grid_css_class = 'web2py_grid grid_view_{v} grid_key_{o}'.format(
+            v=request.vars.view or self.default_viewby or 'tile',
             o=self.__class__.__name__.replace('Grid', '').lower()
         )
 
@@ -347,7 +347,7 @@ class Grid(object):
             links=links,
             sorter_icons=sorter_icons,
             editargs={'deletable': False},
-            _class=grid_class,
+            _class=grid_css_class,
         )
         if self.form_grid_args:
             kwargs.update(self.form_grid_args)
