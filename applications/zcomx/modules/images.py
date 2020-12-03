@@ -188,19 +188,33 @@ class CachedImgTag(ImgTag):
 
 class CreatorImgTag(CachedImgTag):
     """Class representing a creator image TAG"""
+    placeholder_tag = IMG
 
     def set_placeholder(self):
         """Set the attributes for the placeholder."""
-        # Use a torso for the creator.
-        self.components.append(TAG['i'](**{'_class': 'icon zc-torso'}))
-        class_name = 'preview placeholder_torso'
+        try:
+            creator_id = self.attributes['_data-creator_id']
+        except KeyError:
+            creator_id = 0
+
+        num_of_imgs = 4     # static/images/placeholders/creator/0*.png
+        img_no = int(creator_id % num_of_imgs) + 1
+        filename = '{n:02d}.png'.format(n=img_no)
+        if '_src' not in self.attributes:
+            self.attributes.update(dict(
+                _src=URL(
+                    c='static',
+                    f='images',
+                    args=['placeholders', 'creator', filename]
+                ),
+            ))
+
+        additional_classes = ['preview', 'img-responsive']
+        attr_classes = []
         if '_class' in self.attributes:
-            self.attributes['_class'] = '{c1} {c2}'.format(
-                c1=self.attributes['_class'],
-                c2=class_name
-            ).replace('img-responsive', '').strip()
-        else:
-            self.attributes['_class'] = class_name
+            attr_classes.extend(self.attributes['_class'].split())
+        attr_classes.extend(additional_classes)
+        self.attributes['_class'] = ' '.join(attr_classes)
 
 
 class ResizeImgError(Exception):

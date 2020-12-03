@@ -1359,6 +1359,7 @@ class TestCartoonistTile(TileTestCase):
         self.assertEqual(img['alt'], 'FirstLast')
         self.assertTrue('/images/download/creator.image' in img['src'])
 
+        # pylint: disable=line-too-long
         # Test without image
         # UPDATE: the tested function is dependent on the creator record
         # represented by self._row.creator.id. Setting the image won't work
@@ -1371,31 +1372,40 @@ class TestCartoonistTile(TileTestCase):
         # soup = BeautifulSoup(str(image_div), 'html.parser')
 
         # # <div class="col-sm-12 image_container">
-        # #   <a href="/Jim_Karsten" title="">
-        # #   <div alt="Jim Karsten" class="preview placeholder_torso">
-        # #     <i class="icon zc-torso"></i>
+        # #   <div class="image_container_wrapper">
+        # #    <a href="/AaronPoliwoda" title="">
+        # #    <img alt="Aaron Poliwoda" class="preview img-responsive" data-creator_id="141" src="/zcomx/static/images/placeholders/creator/02.png">
+        # #    </a>
         # #   </div>
-        # #   </a>
         # # </div>
+
         # div = soup.div
         # self.assertEqual(div['class'], ['col-sm-12', 'image_container'])
-        # anchor = div.a
+        # div_2 = div.div
+        # self.assertEqual(div_2['class'], ['image_container_wrapper'])
+        # anchor = div_2.a
         # self.assertEqual(
         #     anchor['href'],
         #     '/{name}'.format(
         #         name=creator_name(self._row.creator, use='url'))
         # )
         # self.assertEqual(anchor['title'], '')
-        # div_2 = div.div
-        # self.assertEqual(div_2['class'], ['preview', 'placeholder_torso'])
-        # icon = div_2.i
-        # self.assertEqual(icon['class'], ['icon', 'zc-torso'])
+        # img = anchor.img
+        # self.assertEqual(
+        #     img['alt'], creator_name(self._row.creator, use='url'))
+        # self.assertEqual(img['class'], ['preview', 'img-responsive'])
+        # self.assertEqual(img['data-creator_id'], self._row.creator.id)
+        # self.assertEqual(
+        #   img['src'],
+        #   '/zcomx/static/images/placeholders/creator/02.png'
+        # )
 
     def test_render(self):
         tile = CartoonistTile(db, self._value, self._row)
         div = tile.render()
         soup = BeautifulSoup(str(div), 'html.parser')
 
+        # pylint: disable=line-too-long
         # <div class="item_container">
         #   <div class="row">
         #     <div class="col-sm-12 name">
@@ -1404,11 +1414,11 @@ class TestCartoonistTile(TileTestCase):
         #   </div>
         #   <div class="row">
         #     <div class="col-sm-12 image_container">
-        #       <a href="/Jim_Karsten" title="">
-        #       <div alt="Jim Karsten" class="preview placeholder_torso">
-        #         <i class="icon zc-torso"></i>
+        #       <div class="image_container_wrapper">
+        #        <a href="/JimKarsten" title="">
+        #        <img alt="Jim Karsten" class="preview img-responsive" data-creator_id="141" src="/zcomx/static/images/placeholders/creator/02.png">
+        #        </a>
         #       </div>
-        #       </a>
         #     </div>
         #   </div>
         #   <div class="row">
@@ -1645,7 +1655,13 @@ class TestFunctions(LocalTestCase):
         )
         self.assertEqual(
             data['class'],
-            ['btn', 'btn-default', 'download_button', 'no_rclick_menu', 'enabled']
+            [
+                'btn',
+                'btn-default',
+                'download_button',
+                'no_rclick_menu',
+                'enabled'
+            ]
         )
         self.assertEqual(data['type'], None)
 

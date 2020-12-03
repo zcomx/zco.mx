@@ -20,11 +20,8 @@
                                     <div class="no_photo_section">
                                         <span class="fileupload-process"></span>
                                         <div class="img_preview_container">
-                                            <div class="preview placeholder_torso">
-                                                <div class="placeholder_torso_text">
-                                                Click to upload
-                                                </div>
-                                                <i class="icon zc-torso"></i>
+                                            <div class="preview">
+                                                <img class="img-responsive" src="/zcomx/static/images/placeholders/creator/upload.png"/>
                                             </div>
                                         </div>
                                         <div class="button_container hidden">
@@ -93,7 +90,8 @@
         <div class="img_preview_container">
             <span class="preview">
                 {% if (file.thumbnailUrl) { %}
-                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img src="{%=file.thumbnailUrl%}" alt=""></a>
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery>
+                    <img class="img-responsive" src="{%=file.thumbnailUrl%}" alt=""></a>
                 {% } %}
             </span>
         </div>

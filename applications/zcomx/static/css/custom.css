@@ -1444,7 +1444,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     width: inherit;
 }
 
-#creator_id_section .creator_img_container .img-responsive {
+#creator_id_section .creator_img_container .img-responsive,
+#profile_page .img_preview_container .img-responsive {
     max-height: 24em;
     max-width: 24em;
 }
@@ -1993,6 +1994,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #profile_page .preview_button {
     float: right;
+    position: relative;
+    z-index: 999;
 }
 
 #profile_book_pages_page #book_name {
@@ -2553,41 +2556,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     min-width: 6em;
 }
 
-#mug_shot .template-download span.preview img {
-    max-height: 170px;
-    max-width: 170px;
-}
-
-.placeholder_torso {
-    border: 8px solid #EEEEEE;
-    height: 333px;
-    margin-bottom: -0.4em;
-    max-width: 264px;
-    overflow: hidden;
-    padding: 0em;
-}
-
-.placeholder_torso i {
-    color: #EEEEEE;
-    float: right;
-    font-size: 22em;
-    line-height: 1.1em;
-    width: 112%;
-}
-
-.placeholder_torso_text {
-    position: relative;
-    left: 4em;
-    top: 17em;
-    background-color: #FFFFFF;
-    color: #BBBBBB;
-    border: 1px solid #EEEEEE;
-    border-radius: 4px;
-    padding: 0.2em;
-    text-align: center;
-    max-width: 10em;
-}
-
 @media (min-width: 768px) {
     .add_link_container > div {
         display: inline-block;
@@ -2689,10 +2657,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     #mug_shot .template-upload .progress_buttons_container .progress-striped {
         min-width: 20em;
-    }
-
-    .placeholder_torso {
-        display: inline-block;
     }
 
 }

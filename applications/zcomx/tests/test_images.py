@@ -101,37 +101,49 @@ class TestCreatorImgTag(WithObjectsTestCase):
     def test_parent__init__(self):
         img_tag = CreatorImgTag('')
         self.assertTrue(img_tag)
-        self.assertEqual(img_tag.placeholder_tag, DIV)
+        self.assertEqual(img_tag.placeholder_tag, IMG)
 
     def test__set_placeholder(self):
+        img_dir = '/zcomx/static/images/placeholders/creator'
         img_tag = CreatorImgTag(None)
         self.assertEqual(img_tag.attributes, {})
         img_tag.set_placeholder()
-        self.assertEqual(len(img_tag.components), 1)
-        self.assertEqual(
-            str(img_tag.components[0]),
-            '<i class="icon zc-torso"></i>'
-        )
+        self.assertEqual(len(img_tag.components), 0)
         self.assertEqual(
             img_tag.attributes,
-            {'_class': 'preview placeholder_torso'}
-        )
-
-        img_tag = CreatorImgTag(None, size='web')
-        self.assertEqual(img_tag.attributes, {})
-        img_tag.set_placeholder()
-        self.assertEqual(
-            img_tag.attributes,
-            {'_class': 'preview placeholder_torso'}
+            {
+                '_src': '/'.join([img_dir, '01.png']),
+                '_class': 'preview img-responsive'
+            }
         )
 
-        attrs = {'_id': 'img_id', '_class': 'img_class'}
-        img_tag = CreatorImgTag(None, attributes=attrs)
-        self.assertEqual(img_tag.attributes, attrs)
-        img_tag.set_placeholder()
-        self.assertEqual(
-            img_tag.attributes,
-            {'_class': 'img_class preview placeholder_torso', '_id': 'img_id'})
+        tests = [
+            # creator_id, expect img
+            (100, '01.png'),
+            (101, '02.png'),
+            (102, '03.png'),
+            (103, '04.png'),
+            (104, '01.png'),
+        ]
+        for t in tests:
+            attrs = {
+                '_class': 'img_class',
+                '_data-creator_id': t[0],
+                '_id': 'img_id',
+            }
+            img_tag = CreatorImgTag(None, attributes=attrs)
+            self.assertEqual(img_tag.attributes, attrs)
+            img_tag.set_placeholder()
+
+            self.assertEqual(
+                img_tag.attributes,
+                {
+                    '_class': 'img_class preview img-responsive',
+                    '_data-creator_id': t[0],
+                    '_id': 'img_id',
+                    '_src': '/'.join([img_dir, t[1]]),
+                }
+            )
 
 
 class TestImageDescriptor(WithObjectsTestCase, ImageTestCase):

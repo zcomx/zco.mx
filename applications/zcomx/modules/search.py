@@ -1190,7 +1190,10 @@ class CartoonistTile(Tile):
             CreatorImgTag(
                 self.creator.image,
                 size='web',
-                attributes={'_alt': row.auth_user.name}
+                attributes={
+                    '_alt': row.auth_user.name,
+                    '_data-creator_id': self.creator.id,
+                }
             )(),
             _href=self.creator_href,
             _title=''
