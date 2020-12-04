@@ -6,8 +6,15 @@ Creator classes and functions.
 import functools
 import json
 import os
+import shutil
+from pydal.helpers.methods import delete_uploaded_files
 from gluon import *
 from applications.zcomx.modules.files import for_file
+from applications.zcomx.modules.images import (
+    SIZES,
+    filename_for_size,
+    square_image,
+)
 from applications.zcomx.modules.job_queuers import (
     UpdateIndiciaQueuer,
     queue_create_sitemap,
@@ -21,6 +28,7 @@ from applications.zcomx.modules.records import (
     Record,
     Records,
 )
+from applications.zcomx.modules.shell_utils import set_owner
 from applications.zcomx.modules.strings import (
     camelcase,
     replace_punctuation,
@@ -53,6 +61,69 @@ class Creator(Record):
         auth_user = AuthUser.from_key(dict(email=email))
         return Creator.from_key(dict(auth_user_id=auth_user.id))
 
+    def clear_image_tmp(self):
+        """Clear the image_tmp field.
+
+        Returns:
+            Creator instance with image field updated
+        """
+        db = current.app.db
+
+        if not self.image_tmp:
+            return self
+
+        return Creator.from_updated(
+            self,
+            {'image_tmp': None},
+            validate=False,
+        )
+
+    def copy_image_from_tmp(self):
+        """Copy the creator image from image_tmp to the image field.
+
+        Returns:
+            Creator instance with image field updated
+        """
+        db = current.app.db
+
+        if self.image:
+            dbset = db(db.creator.id == self.id)
+            upload_fields = {'image': self.image}
+            delete_uploaded_files(dbset, upload_fields=upload_fields)
+
+        data = {}
+        data['image'] = self.image_tmp.replace(
+            'creator.image_tmp',
+            'creator.image'
+        )
+
+        creator = Creator.from_updated(
+            self,
+            data,
+            validate=False,
+        )
+
+        unused_original, full_name = db.creator.image_tmp.retrieve(
+            creator.image_tmp,
+            nameonly=True,
+        )
+
+        for size in SIZES:
+            sized_fullname = filename_for_size(full_name, size)
+            new_fullname = sized_fullname.replace(
+                'creator.image_tmp',
+                'creator.image'
+            )
+            dirname = os.path.dirname(new_fullname)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+                set_owner(dirname)
+            if os.path.exists(sized_fullname):
+                shutil.copy(sized_fullname, new_fullname)
+                set_owner(new_fullname)
+
+        return creator
+
     @property
     def name(self):
         """Return the name of the creator.
@@ -62,6 +133,26 @@ class Creator(Record):
         """
         auth_user = self.as_one(AuthUser)
         return auth_user.name
+
+    def square_image_tmp(self, offset=None):
+        """Square the image stored in creator.image_tmp.
+
+        Args:
+            offset: str, see images.py def square_image
+        """
+        db = current.app.db
+        if not self.image_tmp:
+            return      # nothing to do
+
+        unused_original, full_name = db.creator.image_tmp.retrieve(
+            self.image_tmp,
+            nameonly=True,
+        )
+
+        for size in SIZES:
+            sized_fullname = filename_for_size(full_name, size)
+            if os.path.exists(sized_fullname):
+                square_image(sized_fullname, offset=offset)
 
 
 def add_creator(form):
@@ -191,11 +282,12 @@ def creator_name(creator, use='file'):
     """
     if use == 'file':
         return CreatorName(creator.name).for_file()
-    elif use == 'search':
+
+    if use == 'search':
         return creator.name_for_search
-    elif use == 'url':
+
+    if use == 'url':
         return creator.name_for_url
-    return
 
 
 def download_link(creator, components=None, **attributes):

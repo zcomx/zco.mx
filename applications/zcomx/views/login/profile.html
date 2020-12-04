@@ -1,4 +1,5 @@
 {{import json}}
+{{from applications.zcomx.modules.images import CreatorImgTag}}
 {{extend 'login/layout.html'}}
 <div id="creator_section">
 
@@ -6,41 +7,11 @@
     <a href="{{=name_url}}" class="btn btn-default" target="_blank" rel="noopener noreferrer">Preview</a>
 </div>
 
-
 <div class="row mug_shot_editable_container">
-    <div class="col-md-5 col-lg-5">
-        <div id="mug_shot">
-            <div class="row_container">
-                <div class="image_field_container">
-                    <div class="fileupload_container">
-                        <form id="fileupload" action="/zcomx/login/creator_img_handler" method="POST" enctype="multipart/form-data">
-                            <noscript><input type="hidden" name="redirect" value="/zcomx/login/creator"></noscript>
-                            <div class="row fileupload-buttonbar">
-                                <div class="col-xs-12">
-                                    <div class="no_photo_section">
-                                        <span class="fileupload-process"></span>
-                                        <div class="img_preview_container">
-                                            <div class="preview">
-                                                <img class="img-responsive" src="/zcomx/static/images/placeholders/creator/upload.png"/>
-                                            </div>
-                                        </div>
-                                        <div class="button_container hidden">
-                                            <div class="btn btn-default fileinput-button">
-                                                <span>Upload</span>
-                                                <input id="up_files_input" type="file" name="up_files" multiple>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="has_photo_section">
-                                        <div class="files"> </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                        <br>
-                    </div>
-                </div>
-            </div>
+    <div class="creator_img_container col-md-5 col-lg-5">
+        <div id="creator_img"></div>
+        <div id="creator_img_remove_container">
+            <a href="{{=URL(vars={'remove_image': 1})}}" class="btn btn-default">Remove</a>
         </div>
         <div id="photo_credit_container"></div>
     </div>
@@ -55,82 +26,6 @@
 <div id="links_container"></div>
 
 </div>
-<script id="template-upload" type="text/x-tmpl">
-{% for (var i=0, file; file=o.files[i]; i++) { %}
-    <div class="template-upload fade">
-        <div>
-            <span class="preview"></span>
-            <p class="name">{%=file.name%}</p>
-            <strong class="error text-danger"></strong>
-        </div>
-        <div class="progress_buttons_container">
-            <p class="size">Processing...</p>
-            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
-            <div>
-            {% if (!i && !o.options.autoUpload) { %}
-                <button class="btn btn-primary start" disabled>
-                    <i class="glyphicon glyphicon-upload"></i>
-                    <span>Start</span>
-                </button>
-            {% } %}
-            {% if (!i) { %}
-                <button class="btn btn-warning cancel">
-                    <i class="glyphicon glyphicon-ban-circle"></i>
-                    <span>Cancel</span>
-                </button>
-            {% } %}
-            </div>
-        </div>
-    </div>
-{% } %}
-</script>
-<script id="template-download" type="text/x-tmpl">
-{% for (var i=0, file; file=o.files[i]; i++) { %}
-    <div class="template-download fade">
-        <div class="img_preview_container">
-            <span class="preview">
-                {% if (file.thumbnailUrl) { %}
-                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery>
-                    <img class="img-responsive" src="{%=file.thumbnailUrl%}" alt=""></a>
-                {% } %}
-            </span>
-        </div>
-        <div class="button_container">
-            {% if (file.deleteUrl) { %}
-                <div>
-                <button id="remove_button" class="btn btn-default delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
-                    <span>Remove</span>
-                </button>
-                </div>
-                <div>
-                <button id="change_button" class="btn btn-default">
-                    <span>Change</span>
-                </button>
-                </div>
-            {% } else { %}
-                <div class="cancel_container">
-                <button class="btn btn-warning cancel">
-                    <i class="glyphicon glyphicon-ban-circle"></i>
-                    <span>Cancel</span>
-                </button>
-                </div>
-            {% } %}
-        </div>
-        {% if (file.error) { %}
-        <div class="file_error_container">
-            <p class="name">
-                {% if (file.url) { %}
-                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
-                {% } else { %}
-                    <span>{%=file.name%}</span>
-                {% } %}
-            </p>
-            <div><span class="label label-danger">Error</span> {%=o.options._error_scrub(file.error)%}</div>
-        </div>
-        {% } %}
-    </div>
-{% } %}
-</script>
 <script src="{{=URL('static', 'blueimp/jQuery-File-Upload/js/vendor/jquery.ui.widget.js')}}"></script>
 <script src="{{=URL('static', 'blueimp/JavaScript-Templates/js/tmpl.min.js')}}"></script>
 <script src="{{=URL('static', 'blueimp/JavaScript-Load-Image/js/load-image.min.js')}}"></script>
@@ -151,13 +46,13 @@
             'label': 'name',
             'value': '{{=creator.name}}',
             'callback': function(elem) {
-                var anchor = $(elem).find('.field_container').find('a')
-                anchor.removeClass('editable-empty');
-                anchor.addClass('profile_name_edit');
-                anchor.attr('href', '/login/profile_name_edit_modal');
-                setTimeout(function() {
+                var anchor = $(elem).find('.field_container').find('a');
+                anchor.on('nameEditSet', function() {
                     $('.profile_name_edit').profile_name_edit();
-                }.bind(this), 200);
+                });
+                anchor.addClass('profile_name_edit').trigger('nameEditSet');
+                anchor.attr('href', '/login/profile_name_edit_modal');
+                anchor.removeClass('editable-empty');
             },
             'x_editable_settings': {
                 'type': null,
@@ -326,18 +221,16 @@
             );
         {{pass}}
 
+        $('#creator_img_remove_container').hide();
+
+        $('#creator_img').profile_creator_image();
+
         $('#photo_credit_container').inplace_crud(
             '{{=URL(c='login', f='creator_crud.json')}}',
             '{{=creator.id}}',
             { source_data: photo_credit_data }
         );
-
-        $('#fileupload').image_upload(
-            'creator',
-            '/zcomx/login/creator_img_handler/image'
-        );
-        $('#fileupload').removeClass('fileupload-processing');
-    });
+   });
 //]]>
 </script>
 {{block post_bootstrap_js}}
@@ -347,6 +240,6 @@
         <script src="{{=URL(c='static', f='x-editable/bootstrap3-editable/js/bootstrap-editable.min.js')}}"></script>
     {{pass}}
     <script src="{{=app_js}}/inplace_crud.js"> </script>
-    <script src="{{=app_js}}/image_upload.js"> </script>
     <script src="{{=app_js}}/profile.js"> </script>
+    <script src="{{=app_js}}/image_squarer.js"> </script>
 {{end}}

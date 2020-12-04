@@ -70,6 +70,7 @@ h1, h2, h3, h4, h5 {
 .bootstrap-dialog-title {
     font-weight: bold;
     min-height: 1.6em;
+    color: white;
 }
 
 input::-webkit-input-placeholder {
@@ -1445,9 +1446,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #creator_id_section .creator_img_container .img-responsive,
-#profile_page .img_preview_container .img-responsive {
+#profile_page #creator_img .img-responsive {
     max-height: 24em;
     max-width: 24em;
+}
+
+#profile_page #creator_img {
+    padding-bottom: 1em;
+    min-height: 24em;
+    min-width: 24em;
 }
 
 @media (max-width: 767px) {
@@ -2144,6 +2151,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
+#mug_shot {
+    min-height: 24em;
+}
+
 #mug_shot .row_container .arrow_container {
     display: none;
 }
@@ -2277,23 +2288,30 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
-#mug_shot {
-    padding: 1em 1em 0 1em;
-    min-width: 23em;
-    width: 100%;
-}
-@media (max-width: 767px){
-    #mug_shot {
-        padding: inherit;
-    }
-}
-
 #mug_shot input[type=submit] {
     margin-top: 1em;
 }
 
-.mug_shot_editable_container .arrow_container {
-    display: none;
+#profile_creator_image_modal_page .img_squarer_container {
+    border: 1px solid black;
+    height: 24em;
+    width: 24em;
+    overflow: hidden;
+    position: relative;
+    padding: 0;
+}
+
+#profile_creator_image_modal_page .img_squarer_image {
+    position: absolute;
+    cursor: move;
+}
+
+#profile_creator_image_modal_page .img_preview_container img {
+    max-width: none;
+}
+
+#profile_creator_image_modal_page #remove_button {
+    margin-top: 1em;
 }
 
 #profile_page #creator_section {
@@ -2615,21 +2633,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
     .edit_links_container .field_label {
         width: 12em;
-    }
-
-    #mug_shot {
-        max-width: 65em;
-        padding: 1em 1em 1em 0;
-    }
-
-    #mug_shot .template-download,
-    #mug_shot .img_preview_container,
-    #mug_shot .button_container {
-        vertical-align: top;
-    }
-
-    #mug_shot .img_preview_container {
-        padding-right: 1em;
     }
 
     #mug_shot .row_container .arrow_container {

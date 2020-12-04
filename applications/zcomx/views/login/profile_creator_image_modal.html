@@ -1,0 +1,163 @@
+<div id="profile_creator_image_modal_page">
+
+<div class="panel panel-default">
+    <div class="panel-heading">Notes:</div>
+    <div class="panel-body">
+    <ul>
+        <li>The profile image should be square: width = length</li>
+        <li>Images must have a minimum width of 336px.</li>
+        <li>Valid file types: gif, jpg and png</li>
+    </ul>
+    </div>
+</div>
+
+<div id="mug_shot">
+    <div class="row_container">
+        <div class="fileupload_container">
+            <form id="fileupload" action="/zcomx/login/creator_img_handler" method="POST" enctype="multipart/form-data">
+                <noscript><input type="hidden" name="redirect" value="/zcomx/login/creator"></noscript>
+                <div class="row fileupload-buttonbar">
+                    <div class="col-xs-12">
+                        <div class="no_photo_section">
+                            <span class="fileupload-process"></span>
+                            <div class="button_container">
+                                <div class="btn btn-default fileinput-button">
+                                    <span>Upload</span>
+                                    <input id="up_files_input" type="file" name="up_files" multiple>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="has_photo_section">
+                            <div class="files"> </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <br>
+        </div>
+    </div>
+</div>
+
+<div class="panel" style="box-shadow: none; -webkit-box-shadow: none;">
+    <div class="panel-body">
+        <div id="row_container_name" class="row_container">
+            <div id="creator_image_message_panel" class="panel panel-default">
+                <div class="panel-body"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script id="template-upload" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <div class="template-upload fade">
+        <div>
+            <span class="preview"></span>
+            <p class="name">{%=file.name%}</p>
+            <strong class="error text-danger"></strong>
+        </div>
+        <div class="progress_buttons_container">
+            <p class="size">Processing...</p>
+            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
+            <div>
+            {% if (!i && !o.options.autoUpload) { %}
+                <button class="btn btn-primary start" disabled>
+                    <i class="glyphicon glyphicon-upload"></i>
+                    <span>Start</span>
+                </button>
+            {% } %}
+            {% if (!i) { %}
+                <button class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>Cancel</span>
+                </button>
+            {% } %}
+            </div>
+        </div>
+    </div>
+{% } %}
+</script>
+<script id="template-download" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <div class="template-download fade">
+        <div class="img_preview_container">
+            <span class="preview">
+                {% if (file.thumbnailUrl) { %}
+                    <div id="image_squarer_container" class="img_squarer_container">
+                        <div id="image_squarer_image" class="img_squarer_image">
+                            <img class="img-responsive movable_img" src="{%=file.thumbnailUrl%}" alt=""></a>
+                        </div>
+                    </div>
+                {% } %}
+            </span>
+        </div>
+        <div class="button_container">
+            {% if (file.deleteUrl) { %}
+                <div>
+                <button id="remove_button" class="btn btn-default delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
+                    <span>Change Image</span>
+                </button>
+                </div>
+            {% } else { %}
+                <div class="cancel_container">
+                <button class="btn btn-warning cancel hidden">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>Cancel</span>
+                </button>
+                </div>
+            {% } %}
+        </div>
+        {% if (file.error) { %}
+        <div class="file_error_container">
+            <p class="name">
+                {% if (file.url) { %}
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
+                {% } else { %}
+                    <span>{%=file.name%}</span>
+                {% } %}
+            </p>
+            <div><span class="label label-danger">Error</span> {%=o.options._error_scrub(file.error)%}</div>
+        </div>
+        {% } %}
+    </div>
+{% } %}
+</script>
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $('#fileupload').image_upload(
+            'creator',
+            "{{=URL(c='login', f='creator_img_handler', args='image_tmp')}}",
+            {
+                fileupload_options: {
+                    maxNumberOfFiles: 1,
+                    messages: {
+                        maxNumberOfFiles: 'Please only upload a single image.',
+                    }
+                },
+                post_callbacks: {
+                    completed: function(e, data) {
+                        if (data.result.files.length > 0) {
+                            $('#image_squarer_container').image_squarer({
+                                clear_message_func: $('#creator_img').data().profile_creator_image.clear_message,
+                                display_message_func: $('#creator_img').data().profile_creator_image.display_message,
+                            });
+                            $('#creator_img').data().profile_creator_image.set_image_squarer($('#image_squarer_container').data().image_squarer)
+                        }
+                    }
+                }
+            }
+        );
+        $('#fileupload').removeClass('fileupload-processing');
+
+        $('.fileinput-button').on('click', function(e) {
+            $('button.cancel').each(function(indx) {
+                $(this).click();
+            });
+        });
+    });
+//]]>
+</script>
+<script src="{{=app_js}}/image_upload.js"> </script>

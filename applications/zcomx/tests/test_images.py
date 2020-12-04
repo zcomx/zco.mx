@@ -14,33 +14,36 @@ from PIL import Image
 from gluon import *
 from gluon.html import DIV, IMG
 from gluon.http import HTTP
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
-from applications.zcomx.modules.images import \
-    CachedImgTag, \
-    CreatorImgTag, \
-    ImageDescriptor, \
-    ImageOptimizeError, \
-    ImgTag, \
-    ResizeImgError, \
-    ResizeImg, \
-    ResizeImgIndicia, \
-    SIZES, \
-    UploadImage, \
-    filename_for_size, \
-    is_image, \
-    optimize, \
-    rename, \
-    scrub_extension_for_store, \
-    store
-from applications.zcomx.modules.tests.helpers import \
-    FileTestCase, \
-    ImageTestCase, \
-    ResizerQuick, \
-    skip_if_quick
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
+from applications.zcomx.modules.images import (
+    CachedImgTag,
+    CreatorImgTag,
+    ImageDescriptor,
+    ImageOptimizeError,
+    ImgTag,
+    ResizeImgError,
+    ResizeImg,
+    ResizeImgIndicia,
+    SIZES,
+    UploadImage,
+    filename_for_size,
+    is_image,
+    optimize,
+    rename,
+    scrub_extension_for_store,
+    square_image,
+    store,
+)
+from applications.zcomx.modules.tests.helpers import (
+    FileTestCase,
+    ImageTestCase,
+    ResizerQuick,
+    skip_if_quick,
+)
+from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.shell_utils import imagemagick_version
 
 # C0111: Missing docstring
@@ -908,6 +911,25 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ]
         for t in tests:
             self.assertEqual(scrub_extension_for_store(t[0]), t[1])
+
+    def test__square_image(self):
+
+        # It's not possible to determine if the offsets actually adjust the
+        # image squaring properly, but we can test that the method handles
+        # them.
+        offsets = [None, '10', '10%']
+
+        for offset in offsets:
+            working_image = self._prep_image('web_plus.jpg')
+            descriptor = ImageDescriptor(working_image)
+            dims = descriptor.dimensions()
+            self.assertNotEqual(dims[0], dims[1])
+
+            square_image(working_image, offset=offset)
+
+            descriptor = ImageDescriptor(working_image)
+            dims = descriptor.dimensions()
+            self.assertEqual(dims[0], dims[1])
 
     @skip_if_quick
     def test__store(self):

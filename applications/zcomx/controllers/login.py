@@ -46,10 +46,12 @@ from applications.zcomx.modules.creators import (
     url as creator_url,
 )
 from applications.zcomx.modules.image.validators import InvalidImageError
-from applications.zcomx.modules.images import \
-    ResizeImgIndicia, \
-    on_delete_image, \
-    store
+from applications.zcomx.modules.images import (
+    CreatorImgTag,
+    ResizeImgIndicia,
+    on_delete_image,
+    store,
+)
 from applications.zcomx.modules.images_optimize import AllSizesImages
 from applications.zcomx.modules.indicias import \
     BookPublicationMetadata, \
@@ -879,7 +881,7 @@ def creator_img_handler():
     """Callback function for the jQuery-File-Upload plugin.
 
     # POST
-    request.args(0): string, name if creator field to update.
+    request.args(0): string, name of creator field to update.
             Optional, if not set, update creator.image
             Eg 'indicia_image': update creator.indicia_image
     request.vars.up_files: list of files representing creator image.
@@ -911,7 +913,8 @@ def creator_img_handler():
 
     minimum_widths = {
         # 'field': width in px
-        'image': 263,
+        'image': 336,
+        'image_tmp': 336,
         'indicia_image': 1600,
     }
 
@@ -1565,7 +1568,10 @@ def metadata_text():
 
 @auth.requires_login()
 def profile():
-    """Creator profile controller."""
+    """Creator profile controller.
+
+    request.vars.remove_image: if provided, remove the image on file.
+    """
     try:
         creator = Creator.from_key(dict(auth_user_id=auth.user_id))
     except LookupError:
@@ -1583,6 +1589,14 @@ def profile():
         )
     )
 
+    if request.vars.remove_image:
+        creator = Creator.from_updated(
+            creator,
+            {'image': None},
+            validate=False,
+        )
+        redirect(URL('profile'))
+
     name_url = '{s}{p}'.format(
         s=current.app.local_settings.web_site_url,
         p=creator_url(creator)
@@ -1597,6 +1611,86 @@ def profile():
         link_types=link_types,
         name_url=name_url,
         short_url=short_url(creator)
+    )
+
+
+@auth.requires_login()
+def profile_creator_image_crud():
+    """Handler for ajax profile creator image CRUD calls.
+
+    request.args(0): str, action one of 'ok', 'cancel' or 'get'
+    request.vars.percent: int, square_image offset eg 10
+    """
+    response.generic_patterns = ['json']
+
+    def do_error(msg=None):
+        """Error handler."""
+        return {'status': 'error', 'msg': msg or 'Server request failed'}
+
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
+        return do_error('Permission denied')
+
+    action = request.args[0]
+
+    html = None
+    if action == 'ok':
+        if creator.image_tmp:
+            offset = None
+            if request.vars.percent:
+                offset = '{p}%'.format(p=request.vars.percent)
+            creator.square_image_tmp(offset=offset)
+            creator.copy_image_from_tmp()
+    elif action == 'cancel':
+        if creator.image_tmp:
+            creator.clear_image_tmp()
+    elif action == 'get':
+        if creator.image:
+            html = CreatorImgTag(
+                creator.image,
+                size='web',
+                attributes={
+                    '_alt': '',
+                    '_class': 'img-responsive',
+                    '_data-creator_id': creator.id
+                }
+            )()
+        else:
+            html = A(
+                IMG(
+                    _src=URL(
+                        c='static',
+                        f='images',
+                        args=['placeholders', 'creator', 'upload.png']
+                    ),
+                    _class='img-responsive',
+                ),
+                _href='/login/profile_creator_image_modal',
+                _class='profile_creator_image',
+            )
+    else:
+        return do_error()
+
+    return {'status': 'ok', 'html': html}
+
+
+@auth.requires_login()
+def profile_creator_image_modal():
+    """Controller for profile creator image modal."""
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+    if not creator:
+        MODAL_ERROR('Permission denied')
+
+    creator.clear_image_tmp()
+
+    return dict(
+        creator=creator,
     )
 
 

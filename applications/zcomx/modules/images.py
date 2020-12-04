@@ -607,6 +607,48 @@ def scrub_extension_for_store(filename):
         + '.' + translates[extension]
 
 
+def square_image(filename, offset=None, nice=NICES['resize']):
+    """Square the image with name filename.
+
+    Notes: image is squared in-place. Original image is modified.
+
+    Args:
+        filename: name of file to square.
+        offset: str, used for -f option to square_image.sh
+            Examples:
+                offset='10'     offset is 10px
+                offset='10%'    offset is 10 percent
+        nice: If True, run resize script with nice. See os_nice for
+            acceptable values.
+    """
+    if not os.path.exists(filename):
+        raise LookupError('File not found: {f}'.format(f=filename))
+
+    square_script = os.path.abspath(
+        os.path.join(
+            current.request.folder, 'private', 'bin', 'square_image.sh')
+    )
+
+    args = []
+    args.append(square_script)
+    args.append(filename)
+    if offset:
+        args.append('-f')
+        args.append(offset)
+
+    p = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        preexec_fn=os_nice(nice),
+    )
+    p_stdout, p_stderr = p.communicate()
+    if p_stdout:
+        LOG.error('square_image stdout: %s', p_stdout.decode())
+    if p_stderr:
+        LOG.error('square_image stderr: %s', p_stderr.decode())
+
+
 def store(field, filename, resize=True, resizer=None):
     """Store an image file in an uploads directory.
     This will create all sizes of the image file.

@@ -12,6 +12,7 @@
             this.$type = type;
             this.$url = url;
             this.options = $.extend(
+                true,
                 {},
                 $.fn.image_upload.defaults,
                 options
@@ -81,21 +82,39 @@
                     url: that.$url,
                     change: function(e, data) {
                         that.change_callback(e, data);
+                        if ($.isFunction(that.options.post_callbacks.change)) {
+                            that.options.post_callbacks.change(e, data);
+                        }
                     },
                     completed: function(e, data) {
                         that.completed_callback(e, data);
+                        if ($.isFunction(that.options.post_callbacks.completed)) {
+                            that.options.post_callbacks.completed(e, data);
+                        }
                     },
                     destroyed: function(e, data) {
                         that.deleted_callback(e, data);
+                        if ($.isFunction(that.options.post_callbacks.destroyed)) {
+                            that.options.post_callbacks.destroyed(e, data);
+                        }
                     },
                     failed: function(e, data) {
                         that.failed_callback(e, data);
+                        if ($.isFunction(that.options.post_callbacks.failed)) {
+                            that.options.post_callbacks.failed(e, data);
+                        }
                     },
                     processdone: function(e, data) {
                         that.processdone_callback(e, data);
+                        if ($.isFunction(that.options.post_callbacks.processdone)) {
+                            that.options.post_callbacks.processdone(e, data);
+                        }
                     },
                     stopped: function(e, data) {
                         that.stopped_callback(e, data);
+                        if ($.isFunction(that.options.post_callbacks.stopped)) {
+                            that.options.post_callbacks.stopped(e, data);
+                        }
                     },
                     _error_scrub: function(raw_msg) {
                         return that.error_scrub(raw_msg);
@@ -276,11 +295,7 @@
         clear_error: function() {
             $('.cancel_container').remove();
             $('.file_error_container').remove();
-        },
-
-        change_callback: function(e, data) {
-            /* remove any existing */
-            $('button.delete').trigger('click');
+            $('#creator_img').data().profile_creator_image.clear_message();
         },
 
         completed_callback: function(e, data) {
@@ -297,24 +312,14 @@
 
         loaded_callback: function(e) {
             var that = this;
-            $(document).on('click', '#change_button', function(e) {
-                that.clear_error();
-                $('input[type=file]').trigger('click');
-                e.preventDefault();
-            });
             $(document).on('click', '#remove_button', function(e) {
                 that.clear_error();
-            });
-            $(document).on('click', '.img_preview_container', function(e) {
-                that.clear_error();
-                $('input[type=file]').trigger('click');
-                e.preventDefault();
             });
             this.show_buttons();
         },
 
         show_buttons: function() {
-            if ($('#change_button').length > 0) {
+            if ($('#remove_button').length > 0) {
                 $('.no_photo_section').hide();
             }
             else {
@@ -395,7 +400,15 @@
             limitConcurrentUploads: 3,
             previewMaxWidth:  170,
             previewMaxHeight: 170,
-        }
+        },
+        post_callbacks: {
+            change: null,
+            completed: null,
+            destroyed: null,
+            failed: null,
+            processdone: null,
+            stopped: null,
+        },
     };
 
 }(window.jQuery));

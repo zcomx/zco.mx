@@ -37,11 +37,16 @@ from applications.zcomx.modules.creators import (
     torrent_url,
     url,
 )
-from applications.zcomx.modules.images import store
+from applications.zcomx.modules.images import (
+    ImageDescriptor,
+    store,
+)
 from applications.zcomx.modules.job_queue import Job
-from applications.zcomx.modules.tests.helpers import \
-    ImageTestCase, \
-    ResizerQuick
+from applications.zcomx.modules.tests.helpers import (
+    ImageTestCase,
+    ResizerQuick,
+    skip_if_quick,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.tests.trackers import TableTracker
 
@@ -57,7 +62,7 @@ class TestAuthUser(LocalTestCase):
         self.assertEqual(auth_user.email, web.username)
 
 
-class TestCreator(LocalTestCase):
+class TestCreator(ImageTestCase):
     def test_parent__init__(self):
         creator = self.add(Creator, dict(name_for_url='test_parent__init__'))
         got = Creator.from_id(creator.id)
@@ -75,10 +80,109 @@ class TestCreator(LocalTestCase):
         got = Creator.by_email('test@byemail.com')
         self.assertEqual(got, creator)
 
+    def test__clear_image_tmp(self):
+        auth_user = self.add(AuthUser, dict(name='test__copy_image_from_tmp'))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
+
+        # creator.image_tmp is blank
+        self.assertEqual(creator.image_tmp, None)
+        creator = creator.clear_image_tmp()
+        self.assertEqual(creator.image_tmp, None)
+
+        # creator.image_tmp is not blank
+        stored_filename = store(
+            db.creator.image_tmp,
+            self._prep_image('file.jpg'),
+        )
+        data = {'image_tmp': os.path.basename(stored_filename)}
+        creator = Creator.from_updated(creator, data)
+
+        filename, fullname = db.creator.image_tmp.retrieve(
+            creator.image_tmp,
+            nameonly=True,
+        )
+
+        self.assertTrue(os.path.exists(fullname))
+
+        creator = creator.clear_image_tmp()
+        self.assertEqual(creator.image_tmp, None)
+        self.assertFalse(os.path.exists(fullname))
+
+    def test__copy_image_from_tmp(self):
+        auth_user = self.add(AuthUser, dict(name='test__copy_image_from_tmp'))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
+
+        # creator.image is blank
+        self.assertEqual(creator.image, None)
+
+        stored_filename = store(
+            db.creator.image_tmp,
+            self._prep_image('file.jpg'),
+        )
+        data = {'image_tmp': os.path.basename(stored_filename)}
+        creator = Creator.from_updated(creator, data)
+
+        self.assertEqual(creator.image_tmp, stored_filename)
+
+        creator = creator.copy_image_from_tmp()
+
+        expect = stored_filename.replace(
+            'creator.image_tmp',
+            'creator.image'
+        )
+        self.assertEqual(creator.image, expect)
+
+        # creator.image is not blank
+        self.assertNotEqual(creator.image, None)
+
+        stored_filename = store(
+            db.creator.image_tmp,
+            self._prep_image('cbz_plus.jpg'),
+        )
+        data = {'image_tmp': os.path.basename(stored_filename)}
+        creator = Creator.from_updated(creator, data)
+
+        creator = creator.copy_image_from_tmp()
+
+        expect = stored_filename.replace(
+            'creator.image_tmp',
+            'creator.image'
+        )
+        self.assertEqual(creator.image, expect)
+
     def test__name(self):
         auth_user = self.add(AuthUser, dict(name='test__name'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
         self.assertEqual(creator.name, 'test__name')
+
+    @skip_if_quick
+    def test__square_image_tmp(self):
+        auth_user = self.add(AuthUser, dict(name='test__name'))
+        creator = self.add(Creator, dict(auth_user_id=auth_user.id))
+
+        # creator.image_tmp not set, should run but do nothing.
+        creator.square_image_tmp()
+
+        offsets = [None, '10', '10%']
+
+        for offset in offsets:
+            stored_filename = store(
+                db.creator.image_tmp,
+                self._prep_image('web_plus.jpg'),
+            )
+            data = {'image_tmp': os.path.basename(stored_filename)}
+            creator = Creator.from_updated(creator, data)
+
+            creator.square_image_tmp(offset=offset)
+
+            _, filename = db.creator.image_tmp.retrieve(
+                creator.image_tmp,
+                nameonly=True,
+            )
+
+            descriptor = ImageDescriptor(filename)
+            dims = descriptor.dimensions()
+            self.assertEqual(dims[0], dims[1])
 
 
 class TestFunctions(ImageTestCase):

@@ -11,6 +11,7 @@ import os
 import time
 import unittest
 import requests
+from bs4 import BeautifulSoup
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
@@ -21,6 +22,10 @@ from applications.zcomx.modules.books import (
 )
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import Creator
+from applications.zcomx.modules.images import (
+    ImageDescriptor,
+    UploadImage,
+)
 from applications.zcomx.modules.indicias import \
     BookPublicationMetadata, \
     PublicationMetadata
@@ -1035,6 +1040,98 @@ class TestFunctions(WebTestCase):
 
     def test__profile(self):
         self.assertWebTest('/login/profile')
+
+    def test__profile_creator_image_crud(self):
+        url_fmt = '{url}/profile_creator_image_crud.json/{a}'
+
+        web.login()
+
+        creator = Creator.from_id(self._creator.id)
+
+        if creator.image or creator.image_tmp:
+            data = dict(
+                image=None,
+                image_tmp=None,
+            )
+            creator = Creator.from_updated(creator, data)
+
+        self.assertTrue(creator.image is None)
+
+        # get
+        url = url_fmt.format(url=self.url, a='get')
+        web.get(url)
+        get_result = json.loads(web.text)
+        self.assertEqual(get_result['status'], 'ok')
+
+        soup = BeautifulSoup(get_result['html'], 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor['class'], ['profile_creator_image'])
+        self.assertEqual(anchor['href'], '/login/profile_creator_image_modal')
+        img = anchor.find('img')
+        self.assertEqual(img['class'], ['img-responsive'])
+        self.assertEqual(
+            img['src'],
+            '/zcomx/static/images/placeholders/creator/upload.png'
+        )
+
+        # cancel
+        url = url_fmt.format(url=self.url, a='get')
+        web.get(url)
+        cancel_result = json.loads(web.text)
+        self.assertEqual(cancel_result['status'], 'ok')
+        self.assertEqual(cancel_result, get_result)
+
+        # ok
+
+        # simulate uploading an image.
+        sample_file = os.path.join(self._test_data_dir, 'profile_unsquare.jpg')
+        files = {'up_files': open(sample_file, 'rb')}
+        response = requests.post(
+            web.app + '/login/creator_img_handler/image_tmp',
+            files=files,
+            cookies=web.cookies,
+            verify=False,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        creator = Creator.from_id(self._creator.id)
+        self.assertTrue(creator.image_tmp)
+
+        # ok, no offset
+        url = url_fmt.format(url=self.url, a='ok')
+        web.get(url)
+        ok_result = json.loads(web.text)
+        self.assertEqual(ok_result['status'], 'ok')
+        self.assertEqual(ok_result['html'], None)
+
+        creator = Creator.from_id(self._creator.id)
+        self.assertTrue(creator.image)
+
+        upload_image = UploadImage(db.creator.image, creator.image)
+        descriptor = ImageDescriptor(upload_image.fullname())
+        dims = descriptor.dimensions()
+        self.assertEqual(dims[0], dims[1])      # image is square
+
+        # get
+        url = url_fmt.format(url=self.url, a='get')
+        web.get(url)
+        get_result = json.loads(web.text)
+        self.assertEqual(get_result['status'], 'ok')
+
+        soup = BeautifulSoup(get_result['html'], 'html.parser')
+        # '<img alt="" class="img-responsive" data-creator_id="98" src="/images/download.json/creator.image.817d500fcb89dc72.70726f66696c655f756e7371756172652e6a7067.jpg?cache=1&amp;size=web" />
+        img = soup.find('img')
+        self.assertEqual(img['class'], ['img-responsive'])
+        self.assertEqual(img['data-creator_id'], str(creator.id))
+        self.assertEqual(
+            img['src'],
+            '/images/download.json/{i}?cache=1&size=web'.format(
+                i=creator.image
+            )
+        )
+
+    def test__profile_creator_image_modal(self):
+        self.assertWebTest('/login/profile_name_edit_modal')
 
     def test__profile_name_edit_crud(self):
         def get_creator():
