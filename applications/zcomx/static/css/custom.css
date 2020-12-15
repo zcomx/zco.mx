@@ -1,11 +1,10 @@
+@charset "UTF-8";
 /*
     @screen-xs       480px
     @screen-sm       768px
     @screen-md       992px
     @screen-lg       1200px
 */
-
-@charset "UTF-8";
 
 body {
     font-family: 'robotoregular', sans-serif;
@@ -25,8 +24,8 @@ h1, h2, h3, h4, h5 {
 
 /* prevent iphone zoom */
 @media only screen
-  and (min-device-width: 375px)
-  and (max-device-width: 812px)
+  and (min-width: 375px)
+  and (max-width: 812px)
   and (-webkit-min-device-pixel-ratio: 3) {
     select,
     textarea,
@@ -411,7 +410,7 @@ ul.bulletless {
 .web2py_paginator .current a {
     background-color: #FF6600;
     color: #FFFFFF;
-    border: 1px solid #FF6600;
+    border: 1px solid;
     border-radius: 5px;
 }
 
@@ -485,7 +484,7 @@ ul.bulletless {
 }
 
 .well:active .well.active {
-    font-color: #FF0000;
+    color: #FF0000;
 }
 
 #profile_page .account_email_container {
@@ -799,7 +798,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .list_tile_options .btn.disabled {
     opacity: 0.2;
     cursor: not-allowed;
-    pointer-events: auto;
 }
 
 .grid_header {
@@ -823,7 +821,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 .grid_section .grid_view_list .btn.disabled {
     opacity: 0.4;
-    pointer-events: auto;
+    cursor: not-allowed;
 }
 
 .grid_section .tile_view {
@@ -1118,7 +1116,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .modal-add-btn {
     color: #FFFFFF;
     background-color: #FF6600;
-    border-color: #FF6600;
+    border-color: inherit;
     font-weight: bold;
 }
 
@@ -1929,11 +1927,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #slider_overlay_left {
-    left: -10;
+    left: -10px;
 }
 
 #slider_overlay_right {
-    right: -10;
+    right: -10px;
 }
 
 #reader_section #reader_container{
@@ -2060,7 +2058,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 #profile_book_pages_page .template-download .arrow-muted {
-    pointer-events: none;
     cursor: default;
 }
 
@@ -2257,7 +2254,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 }
 
 .row_container .arrow-muted {
-    pointer-events: none;
     cursor: default;
     opacity: 0.1;
 }
@@ -2542,29 +2538,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .size-60 { font-size: 60px; }
 .size-72 { font-size: 72px; }
 /* icon sizes end */
-
-.image_widget_container {
-    margin: 0;
-}
-
-.image_widget_buttons {
-    display: inline-block;
-    margin-left: 1em;
-}
-
-.image_widget_img {
-    display: inline-block;
-    margin-padding: 0
-}
-.image_widget_buttons label {
-    margin-left: 0.6em;
-}
-
-.image_submit {
-    float: right;
-    margin-top: -3em;
-    margin-right: 8em;
-}
 
 #mug_shot .files .btn span {
     display: block;
@@ -2912,7 +2885,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
         vertical-align: middle;
         width: 12em;
     }
-    #book_edit_section .row_container .field_container:not(.field_label) input:not(.sp-input):not(input[type=radio]) {
+    #book_edit_section .row_container .field_container:not(.field_label) input:not(.sp-input):not([type=radio]) {
         min-width: 20em;
     }
 }
