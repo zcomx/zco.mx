@@ -109,7 +109,7 @@ def main():
             )
         )
         if error:
-            for line in err.output.split("\n"):
+            for line in error.output.split("\n"):
                 LOG.error(line)
 
         # Move job to history

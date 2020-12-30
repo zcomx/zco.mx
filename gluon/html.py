@@ -190,7 +190,8 @@ def URL(a=None,
         port=None,
         encode_embedded_slash=False,
         url_encode=True,
-        language=None
+        language=None,
+        hash_extension=True
         ):
     """
     generates a url '/a/c/f' corresponding to application a, controller c
@@ -339,7 +340,8 @@ def URL(a=None,
         if '.' in function:
             function, extension = function.rsplit('.', 1)
 
-    function2 = '%s.%s' % (function, extension or 'html')
+    # only include the extension as part of the variables for the hash if requested
+    function2 = '%s.%s' % (function, extension or 'html') if hash_extension else function
 
     if not (application and controller and function):
         raise SyntaxError('not enough information to build the url (%s %s %s)' % (application, controller, function))
@@ -416,7 +418,7 @@ def URL(a=None,
     return url
 
 
-def verifyURL(request, hmac_key=None, hash_vars=True, salt=None, user_signature=None):
+def verifyURL(request, hmac_key=None, hash_vars=True, salt=None, user_signature=None, hash_extension=True):
     """
     Verifies that a request's args & vars have not been tampered with by the user
 
@@ -477,10 +479,19 @@ def verifyURL(request, hmac_key=None, hash_vars=True, salt=None, user_signature=
 
     # always include all of the args
     other = args and urllib_quote('/' + '/'.join([str(x) for x in args])) or ''
-    h_args = '/%s/%s/%s.%s%s' % (request.application,
+    
+    # decide whether the extension should be part of the hash verification
+    h_extension = request.extension if hash_extension else ''
+
+    # only add a period to the extension when it exists otherwise empty
+    # extensions will fail to validate
+    if h_extension:
+        h_extension = '.%s' % (h_extension)
+        
+    h_args = '/%s/%s/%s%s%s' % (request.application,
                                  request.controller,
                                  request.function,
-                                 request.extension,
+                                 h_extension,
                                  other)
 
     # but only include those vars specified (allows more flexibility for use with
@@ -1450,8 +1461,10 @@ class SCRIPT(DIV):
         (fa, co) = self._xml()
         fa = to_bytes(fa)
         # no escaping of subcomponents
-        co = b'\n'.join([to_bytes(component) for component in
-                       self.components])
+        co = b'\n'.join(map(to_bytes,
+            # allow xml components (i.e. ASSIGNJS)
+            map(lambda c: c.xml() if hasattr(c, 'xml') and callable(c.xml) else c,
+            self.components)))
         if co:
             # <script [attributes]><!--//--><![CDATA[//><!--
             # script body

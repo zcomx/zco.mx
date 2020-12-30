@@ -254,7 +254,7 @@ class Mail(object):
             self.my_payload = payload
             MIMEBase.__init__(self, *content_type.split('/', 1))
             self.set_payload(payload)
-            self['Content-Disposition'] = 'attachment; filename="%s"' % to_native(filename, encoding)
+            self['Content-Disposition'] = Header('attachment; filename="%s"' % to_native(filename, encoding), 'utf-8')
             if content_id is not None:
                 self['Content-Id'] = '<%s>' % to_native(content_id, encoding)
             Encoders.encode_base64(self)
@@ -816,7 +816,15 @@ class Mail(object):
                         server.login(*self.settings.login.split(':', 1))
                     result = server.sendmail(sender, to, payload.as_string())
                 finally:
-                    server.quit()
+                    # do not want to hide errors raising some exception here
+                    try:
+                        server.quit()
+                    except smtplib.SMTPException:
+                        # ensure to close any socket with SMTP server
+                        try:
+                            server.close()
+                        except Exception:
+                            pass
         except Exception as e:
             logger.warning('Mail.send failure:%s' % e)
             self.result = result
@@ -3922,7 +3930,7 @@ class Auth(AuthAPI):
             return self.has_permission(name, table_name, record_id)
         return self.requires(has_permission, otherwise=otherwise)
 
-    def requires_signature(self, otherwise=None, hash_vars=True):
+    def requires_signature(self, otherwise=None, hash_vars=True, hash_extension=True):
         """
         Decorator that prevents access to action if not logged in or
         if user logged in is not a member of group_id.
@@ -3930,7 +3938,7 @@ class Auth(AuthAPI):
         group_id is calculated.
         """
         def verify():
-            return URL.verify(current.request, user_signature=True, hash_vars=hash_vars)
+            return URL.verify(current.request, user_signature=True, hash_vars=hash_vars, hash_extension=True)
         return self.requires(verify, otherwise)
 
     def accessible_query(self, name, table, user_id=None):

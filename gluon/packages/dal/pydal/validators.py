@@ -3780,6 +3780,10 @@ class IS_DATETIME(Validator):
         if isinstance(value, datetime.datetime):
             return value
         try:
+            if self.format == self.isodatetime:
+                value = value.replace('T', ' ')
+                if len(value) == 16:
+                    value += ':00'
             (y, m, d, hh, mm, ss, t0, t1, t2) = time.strptime(value, str(self.format))
             value = datetime.datetime(y, m, d, hh, mm, ss)
             if self.timezone is not None:
@@ -4416,6 +4420,8 @@ class CRYPT(Validator):
         True
         """
 
+    STARS = '******'
+
     def __init__(
         self,
         key=None,
@@ -4440,6 +4446,8 @@ class CRYPT(Validator):
         self.salt = salt
 
     def validate(self, value, record_id=None):
+        if value == self.STARS:
+            return None
         v = value and str(value)[: self.max_length]
         if not v or len(v) < self.min_length:
             raise ValidationError(self.translator(self.error_message))
@@ -4447,6 +4455,8 @@ class CRYPT(Validator):
             return value
         return LazyCrypt(self, value)
 
+    def formatter(self, value):
+        return self.STARS
 
 #  entropy calculator for IS_STRONG
 #
@@ -4627,6 +4637,7 @@ class IS_STRONG(Validator):
                 numbers = "number"
                 if self.number > 1:
                     numbers = "numbers"
+                numbers = self.translator(numbers)
                 if not len(all_number) >= self.number:
                     failures.append(
                         self.translator("Must include at least %s %s")

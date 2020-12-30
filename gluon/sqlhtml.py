@@ -99,7 +99,7 @@ class CacheRepresenter(object):
                     nvalue = field.represent(value, row[field.tablename])
                 except KeyError:
                     nvalue = None
-            if isinstance(field, _repr_ref):
+            if isinstance(field.represent, _repr_ref):  # BKR ISSUE/2312 20200422
                 cache[field][value] = nvalue
         return nvalue
 
@@ -1501,7 +1501,7 @@ class SQLFORM(FORM):
             if readonly and not ignore_rw and not field.readable:
                 continue
 
-            if record:
+            if record and fieldname not in [x.name for x in extra_fields]:
                 default = record[fieldname]
             else:
                 default = field.default
@@ -2667,7 +2667,7 @@ class SQLFORM(FORM):
         if export_type:
             order = request.vars.order or ''
             if sortable:
-                if order and not order == 'None':
+                if order:
                     otablename, ofieldname = order.split('~')[-1].split('.', 1)
                     sort_field = db[otablename][ofieldname]
                     orderby = sort_field if order[:1] != '~' else ~sort_field
@@ -2800,7 +2800,7 @@ class SQLFORM(FORM):
         order = request.vars.order or ''
         asc_icon, desc_icon = sorter_icons
         if sortable:
-            if order and not order == 'None':
+            if order:
                 otablename, ofieldname = order.split('~')[-1].split('.', 1)
                 sort_field = db[otablename][ofieldname]
                 orderby = sort_field if order[:1] != '~' else ~sort_field
@@ -2820,14 +2820,14 @@ class SQLFORM(FORM):
                 if key == order.lstrip('~'):
                     if inverted:
                         if key == order:
-                            key, marker = 'None', asc_icon
+                            marker = asc_icon
                         else:
                             key, marker = order[1:], desc_icon
                     else:
                         if key == order:
                             key, marker = '~' + order, asc_icon
                         else:
-                            key, marker = 'None', desc_icon
+                            marker = desc_icon
                 elif inverted and key ==  str(field):
                     key = '~' + key
                 header = A(header, marker, _href=url(vars=dict(
@@ -3393,6 +3393,7 @@ class SQLTABLE(TABLE):
         linkto: URL (or lambda to generate a URL) to edit individual records
         upload: URL to download uploaded files
         orderby: Add an orderby link to column headers.
+        query: Query string to support orderby headers.
         headers: dictionary of headers to headers redefinions
             headers can also be a string to generate the headers from data
             for now only headers="fieldname:capitalize",
@@ -3428,6 +3429,7 @@ class SQLTABLE(TABLE):
                  linkto=None,
                  upload=None,
                  orderby=None,
+                 query='',
                  headers={},
                  truncate=16,
                  columns=None,
@@ -3499,8 +3501,10 @@ class SQLTABLE(TABLE):
                         attrcol.update(_class=coldict['class'])
                     row.append(TH(coldict['label'], **attrcol))
                 elif orderby:
-                    row.append(TH(A(headers.get(c, c),
-                                    _href=th_link + '?orderby=' + c, cid=cid)))
+                    link = th_link + '?orderby=' + c
+                    if query:
+                        link += '&query=' + query
+                    row.append(TH(A(headers.get(c, c), _href=link, cid=cid)))
                 else:
                     row.append(TH(headers.get(c, re.sub(self.REGEX_ALIAS_MATCH, r'\2', c))))
 

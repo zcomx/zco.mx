@@ -426,8 +426,11 @@ class TwitterPoster(SocialMediaPoster):
         if 'id' not in result:
             err_msg = 'Twitter post failed'
             if error:
-                json_data = error.response_data.strip('"')
-                response_data = json.loads(json_data)
+                if isinstance(error.response_data, str):
+                    json_data = error.response_data.strip('"')
+                    response_data = json.loads(json_data)
+                else:
+                    response_data = error.response_data
                 if 'errors' in response_data and response_data['errors']:
                     err_msg = 'Code: {c}, msg: {m}'.format(
                         c=response_data['errors'][0]['code'],
