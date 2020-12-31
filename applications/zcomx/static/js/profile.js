@@ -111,6 +111,11 @@
                     }
                     else {
                         that.$element.text(name);
+                        if (data.name_url) {
+                            $('a#name_url').each(function(indx) {
+                                $(this).text(data.name_url);
+                            });
+                        }
                         dialog.close();
                     }
                 },

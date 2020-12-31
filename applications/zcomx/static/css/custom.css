@@ -819,6 +819,10 @@ a.modal-link-btn, a.modal-link-btn:hover {
     white-space: nowrap;
 }
 
+.grid_section .grid_view_list th {
+    text-align: center;
+}
+
 .grid_section .grid_view_list .btn.disabled {
     opacity: 0.4;
     cursor: not-allowed;

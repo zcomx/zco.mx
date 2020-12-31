@@ -1151,6 +1151,10 @@ class TestFunctions(WebTestCase):
         web.post(url, data=data)
         result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
+        self.assertEqual(
+            result['name_url'],
+            'https://dev.zco.mx/creators/index.json/TestSmith'
+        )
 
         new_creator = get_creator()
         self.assertEqual(new_creator.name, new_name)

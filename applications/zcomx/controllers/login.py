@@ -4,6 +4,7 @@ import collections
 import json
 import os
 import shutil
+import urllib.parse
 from PIL import Image
 from applications.zcomx.modules.access import requires_agreed_to_terms
 from applications.zcomx.modules.activity_logs import UploadActivityLogger
@@ -1597,10 +1598,11 @@ def profile():
         )
         redirect(URL('profile'))
 
-    name_url = '{s}{p}'.format(
+    raw_name_url = '{s}{p}'.format(
         s=current.app.local_settings.web_site_url,
         p=creator_url(creator)
     )
+    name_url = urllib.parse.unquote_plus(raw_name_url)
 
     link_types = []
     for link_type_code in ['creator_article', 'creator_page']:
@@ -1728,7 +1730,21 @@ def profile_name_edit_crud():
 
     on_change_name(creator)
 
-    return {'status': 'ok'}
+    # Reload creator
+    try:
+        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
+    except LookupError:
+        creator = None
+
+    name_url = None
+    if creator:
+        raw_name_url = '{s}{p}'.format(
+            s=current.app.local_settings.web_site_url,
+            p=creator_url(creator)
+        )
+        name_url = urllib.parse.unquote_plus(raw_name_url)
+
+    return {'status': 'ok', 'name_url': name_url}
 
 
 @auth.requires_login()
