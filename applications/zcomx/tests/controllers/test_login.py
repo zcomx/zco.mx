@@ -1153,7 +1153,7 @@ class TestFunctions(WebTestCase):
         self.assertEqual(result['status'], 'ok')
         self.assertEqual(
             result['name_url'],
-            'https://dev.zco.mx/creators/index.json/TestSmith'
+            'https://dev.zco.mx/TestSmith'
         )
 
         new_creator = get_creator()

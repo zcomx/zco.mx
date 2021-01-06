@@ -1600,7 +1600,7 @@ def profile():
 
     raw_name_url = '{s}{p}'.format(
         s=current.app.local_settings.web_site_url,
-        p=creator_url(creator)
+        p=creator_url(creator, extension=False)
     )
     name_url = urllib.parse.unquote_plus(raw_name_url)
 
@@ -1740,7 +1740,7 @@ def profile_name_edit_crud():
     if creator:
         raw_name_url = '{s}{p}'.format(
             s=current.app.local_settings.web_site_url,
-            p=creator_url(creator)
+            p=creator_url(creator, extension=False)
         )
         name_url = urllib.parse.unquote_plus(raw_name_url)
 
