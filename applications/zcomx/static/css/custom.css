@@ -134,6 +134,12 @@ ul.bulletless {
     border-radius: 3px;
 }
 
+.btn:hover {
+    color: #333;
+    border-color: #ccc;
+    background-color: #fff;
+}
+
 .bubble:before {
     border-color: #DDDDDD rgba(221, 221, 221, 0);
     border-style: solid;
@@ -814,20 +820,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin: 0px;
 }
 
-.grid_section .grid_view_list td,
-.grid_section .grid_view_list th {
-    white-space: nowrap;
-}
-
-.grid_section .grid_view_list th {
-    text-align: center;
-}
-
-.grid_section .grid_view_list .btn.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
 .grid_section .tile_view {
     width: 104%;
 }
@@ -1068,6 +1060,16 @@ a.modal-link-btn, a.modal-link-btn:hover {
     background-color: #EEEEEE;
 }
 
+.grid_section .web2py_grid td,
+.grid_section .web2py_grid th {
+    white-space: nowrap;
+}
+
+.grid_section .web2py_grid .btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .grid_section .web2py_grid.grid_key_creators th:nth-child(2) {
     text-align: center;
     width: 4em;
@@ -1077,18 +1079,34 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .grid_section .web2py_grid.grid_key_cartoonists td:nth-child(3),
 .grid_section .web2py_grid.grid_key_cartoonists td:nth-child(4),
 .grid_section .web2py_grid.grid_key_cartoonists td:nth-child(5),
+.grid_section .web2py_grid.grid_key_cartoonists th:nth-child(2),
+.grid_section .web2py_grid.grid_key_cartoonists th:nth-child(3),
+.grid_section .web2py_grid.grid_key_cartoonists th:nth-child(4),
+.grid_section .web2py_grid.grid_key_cartoonists th:nth-child(5),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(2),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(3),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(4),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(5),
+.grid_section .web2py_grid.grid_key_completed th:nth-child(2),
+.grid_section .web2py_grid.grid_key_completed th:nth-child(3),
+.grid_section .web2py_grid.grid_key_completed th:nth-child(4),
+.grid_section .web2py_grid.grid_key_completed th:nth-child(5),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(2),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(3),
+.grid_section .web2py_grid.grid_key_contributions th:nth-child(2),
+.grid_section .web2py_grid.grid_key_contributions th:nth-child(3),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(2),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(3),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(4),
+.grid_section .web2py_grid.grid_key_ongoing th:nth-child(2),
+.grid_section .web2py_grid.grid_key_ongoing th:nth-child(3),
+.grid_section .web2py_grid.grid_key_ongoing th:nth-child(4),
 .grid_section .web2py_grid.grid_key_search td:nth-child(2),
 .grid_section .web2py_grid.grid_key_search td:nth-child(3),
-.grid_section .web2py_grid.grid_key_search td:nth-child(4) {
+.grid_section .web2py_grid.grid_key_search td:nth-child(4),
+.grid_section .web2py_grid.grid_key_search th:nth-child(2),
+.grid_section .web2py_grid.grid_key_search th:nth-child(3),
+.grid_section .web2py_grid.grid_key_search th:nth-child(4) {
     padding: 2px 10px;
     text-align: right;
 }
@@ -2152,10 +2170,6 @@ a.modal-link-btn, a.modal-link-btn:hover {
     }
 }
 
-#mug_shot {
-    min-height: 24em;
-}
-
 #mug_shot .row_container .arrow_container {
     display: none;
 }
@@ -2310,6 +2324,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     max-width: none;
 }
 
+#profile_creator_image_modal_page .loading {
+    text-align: center;
+    width: 100%;
+}
+
 #profile_creator_image_modal_page #remove_button {
     margin-top: 1em;
 }
@@ -2414,6 +2433,11 @@ a.modal-link-btn, a.modal-link-btn:hover {
     #indicia_image .template-upload .progress_buttons_container .progress-striped {
         min-width: 20em;
     }
+}
+
+#indicia_section .loading {
+    text-align: center;
+    width: 100%;
 }
 
 #indicia_section .previews_section {

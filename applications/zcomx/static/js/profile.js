@@ -180,6 +180,11 @@
                         onshown: function(dialog) {
                             that.clear_message();
                         },
+                        onhide: function(dialog) {
+                            if (!dialog.getData('btnClicked')){
+                                that.update('cancel');
+                            }
+                        },
                     });
                     dialog.open();
                     e.preventDefault();
@@ -194,6 +199,7 @@
                 label: 'OK',
                 cssClass: 'btn_submit',
                 action : function(dialog){
+                    dialog.setData('btnClicked', true);
                     var params = {};
                     if (that.image_squarer) {
                         params = that.image_squarer.get_adjustment();
@@ -208,6 +214,7 @@
                 label: 'Cancel',
                 cssClass: 'btn_close',
                 action : function(dialog){
+                    dialog.setData('btnClicked', true);
                     that.update('cancel');
                     dialog.close();
                 }
@@ -290,8 +297,14 @@
                         if ($.isFunction(success_callback)) {
                             success_callback(data);
                         }
+                        if (action === 'cancel'){
+                            jqXHR.abort();
+                            $('#fileupload').each(function(indx) {
+                                var image_uploader = $(this).data('image_upload');
+                                image_uploader.abort_send();
+                            });
+                        }
                     }
-
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     var msg = 'ERROR: Unable to ' + action + ' record. Server request failed.';

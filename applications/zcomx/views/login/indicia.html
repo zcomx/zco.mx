@@ -61,11 +61,10 @@
                             <div class="has_photo_section">
                                 <div class="files"> </div>
                             </div>
-                            <div class="loading loading_gif loading_32x32 processing"></div>
                         </div>
                     </div>
                 </form>
-                <br>
+                <div class="loading loading_gif loading_32x32 processing"></div>
             </div>
         </div>
     </div>
@@ -163,7 +162,11 @@
     $(document).ready(function(){
         $('#fileupload').image_upload(
             'indicia',
-            "{{=URL(c='login', f='creator_img_handler', args='indicia_image')}}"
+            "{{=URL(c='login', f='creator_img_handler', args='indicia_image')}}",
+            {
+                debug_fileupload_listeners: false,
+                loading_gif_elem: $('.loading_gif').first(),
+            }
         );
         $('#fileupload').removeClass('fileupload-processing');
         $('.previews_section').indicia_preview(

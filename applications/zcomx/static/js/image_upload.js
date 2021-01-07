@@ -20,6 +20,12 @@
             this.load(element);
         },
 
+        abort_send: function() {
+            $('button.btn.cancel').each(function(indx) {
+                $(this).click();
+            });
+        },
+
         change_callback: function(e, data) {
             return;
         },
@@ -54,6 +60,10 @@
             return;
         },
 
+        finished_callback: function(e, data) {
+            return;
+        },
+
         img_count: function() {
             return this.$element.find('.template-download').length;
         },
@@ -81,36 +91,68 @@
                 {
                     url: that.$url,
                     change: function(e, data) {
+                        that.options.debug_fileupload_listeners && console.log('change triggered, data: %o', data);
                         that.change_callback(e, data);
                         if ($.isFunction(that.options.post_callbacks.change)) {
                             that.options.post_callbacks.change(e, data);
                         }
                     },
                     completed: function(e, data) {
+                        that.options.debug_fileupload_listeners && console.log('completed triggered, data: %o', data);
                         that.completed_callback(e, data);
                         if ($.isFunction(that.options.post_callbacks.completed)) {
                             that.options.post_callbacks.completed(e, data);
                         }
                     },
                     destroyed: function(e, data) {
+                        that.options.debug_fileupload_listeners && console.log('destroyed triggered, data: %o', data);
                         that.deleted_callback(e, data);
                         if ($.isFunction(that.options.post_callbacks.destroyed)) {
                             that.options.post_callbacks.destroyed(e, data);
                         }
                     },
                     failed: function(e, data) {
+                        that.options.debug_fileupload_listeners && console.log('failed triggered, data: %o', data);
                         that.failed_callback(e, data);
                         if ($.isFunction(that.options.post_callbacks.failed)) {
                             that.options.post_callbacks.failed(e, data);
                         }
                     },
+                    finished: function(e, data) {
+                        that.options.debug_fileupload_listeners && console.log('finished triggered, data: %o', data);
+                        if (that.options.message_elem) {
+                            that.options.message_elem.hide();
+                        }
+                        if (that.options.loading_gif_elem) {
+                            that.options.loading_gif_elem.hide();
+                        }
+                        that.finished_callback(e, data);
+                        if ($.isFunction(that.options.post_callbacks.finished)) {
+                            that.options.post_callbacks.finished(e, data);
+                        }
+                    },
+                    processstart: function(e, data) {
+                        that.options.debug_fileupload_listeners && console.log('processstart triggered, data: %o', data);
+                        if (that.options.message_elem) {
+                            that.options.message_elem.show();
+                        }
+                        if (that.options.loading_gif_elem) {
+                            that.options.loading_gif_elem.show();
+                        }
+                        that.processstart_callback(e, data);
+                        if ($.isFunction(that.options.post_callbacks.processstart)) {
+                            that.options.post_callbacks.processstart(e, data);
+                        }
+                    },
                     processdone: function(e, data) {
+                        that.options.debug_fileupload_listeners && console.log('processdone triggered, data: %o', data);
                         that.processdone_callback(e, data);
                         if ($.isFunction(that.options.post_callbacks.processdone)) {
                             that.options.post_callbacks.processdone(e, data);
                         }
                     },
                     stopped: function(e, data) {
+                        that.options.debug_fileupload_listeners && console.log('stopped triggered, data: %o', data);
                         that.stopped_callback(e, data);
                         if ($.isFunction(that.options.post_callbacks.stopped)) {
                             that.options.post_callbacks.stopped(e, data);
@@ -122,7 +164,92 @@
                 },
                 that.options.fileupload_options
             );
+
             $(elem).fileupload(fileupload_opts);
+
+            if (that.options.debug_fileupload_listeners) {
+                $(elem).on('fileuploaddestroy', function (e, data) {
+                    console.log('destroy triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadsubmit', function(e, data) {
+                    console.log('submit triggered, data: %o', data);
+                });
+                $(elem).on('fileuploaddone', function(e, data) {
+                    console.log('done triggered');
+                });
+                $(elem).on('fileuploadfail', function(e, data) {
+                    console.log('fail triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadalways', function(e, data) {
+                    console.log('always triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadprogress', function(e, data) {
+                    console.log('progress triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadprogressall', function(e, data) {
+                    console.log('progressall triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadstart', function(e, data) {
+                    console.log('start triggered');
+                });
+                $(elem).on('fileuploadstop', function(e, data) {
+                    console.log('stop triggered');
+                });
+                $(elem).on('fileuploadpaste', function(e, data) {
+                    console.log('paste triggered, data: %o', data);
+                });
+                $(elem).on('fileuploaddrop', function(e, data) {
+                    console.log('drop triggered, data: %o', data);
+                });
+                $(elem).on('fileuploaddragover', function(e) {
+                    console.log('dragover triggered');
+                });
+                $(elem).on('fileuploadchunkbeforesend', function(e, data) {
+                    console.log('chunkbeforesend triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadchunksend', function(e, data) {
+                    console.log('chunksend triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadchunkdone', function(e, data) {
+                    console.log('chunkdone triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadchunkfail', function(e, data) {
+                    console.log('chunkfail triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadchunkalways', function(e, data) {
+                    console.log('chunkalways triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadprocessstart', function(e, data) {
+                    console.log('processstart triggered');
+                });
+                $(elem).on('fileuploadprocess', function(e, data) {
+                    console.log('process triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadprocessfail', function(e, data) {
+                    console.log('processfail triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadprocessalways', function(e, data) {
+                    console.log('processalways triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadprocessstop', function(e, data) {
+                    console.log('processstop triggered');
+                });
+                $(elem).on('fileuploaddestroyfailed', function(e, data) {
+                    console.log('destroyfailed triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadadded', function(e, data) {
+                    console.log('added triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadsend', function(e, data) {
+                    console.log('send triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadsent', function(e, data) {
+                    console.log('sent triggered, data: %o', data);
+                });
+                $(elem).on('fileuploadstarted', function(e) {
+                    console.log('started triggered');
+                });
+            }
 
             /* that.display_download(); */
             $(elem).addClass('fileupload-processing');
@@ -146,6 +273,10 @@
         },
 
         processdone_callback: function(e, data) {
+            return;
+        },
+
+        processstart_callback: function(e, data) {
             return;
         },
 
@@ -304,10 +435,13 @@
 
         deleted_callback: function(e, data) {
             this.show_buttons();
+            /* Simulate Upload click to auto open file selector. */
+            $('#up_files_input').click();
         },
 
         failed_callback: function(e, data) {
             $('.fileupload-process').hide();
+            this.show_buttons();
         },
 
         loaded_callback: function(e) {
@@ -316,6 +450,11 @@
                 that.clear_error();
             });
             this.show_buttons();
+        },
+
+        processstart_callback: function(e, data) {
+            $('.btn_submit').prop('disabled', true);
+            $('.fileinput-button').hide();
         },
 
         show_buttons: function() {
@@ -327,8 +466,9 @@
                     {display: 'inline-block'}
                 );
             }
+            $('.btn_submit').prop('disabled', false);
+            $('.fileinput-button').show();
         },
-
     });
 
     var IndiciaImageUpload = function (element, type, url, options) {
@@ -395,18 +535,23 @@
     };
 
     $.fn.image_upload.defaults = {
+        debug_fileupload_listeners: false,
         fileupload_options: {
             autoUpload: true,
             limitConcurrentUploads: 3,
             previewMaxWidth:  170,
             previewMaxHeight: 170,
         },
+        loading_gif_elem: null,
+        message_elem: null,
         post_callbacks: {
             change: null,
             completed: null,
             destroyed: null,
             failed: null,
+            finished: null,
             processdone: null,
+            processstart: null,
             stopped: null,
         },
     };

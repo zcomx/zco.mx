@@ -1,52 +1,56 @@
 <div id="profile_creator_image_modal_page">
 
-<div class="panel panel-default">
-    <div class="panel-heading">Notes:</div>
-    <div class="panel-body">
-    <ul>
-        <li>The profile image should be square: width = length</li>
-        <li>Images must have a minimum width of 336px.</li>
-        <li>Valid file types: gif, jpg and png</li>
-    </ul>
-    </div>
-</div>
-
-<div id="mug_shot">
-    <div class="row_container">
-        <div class="fileupload_container">
-            <form id="fileupload" action="/zcomx/login/creator_img_handler" method="POST" enctype="multipart/form-data">
-                <noscript><input type="hidden" name="redirect" value="/zcomx/login/creator"></noscript>
-                <div class="row fileupload-buttonbar">
-                    <div class="col-xs-12">
-                        <div class="no_photo_section">
-                            <span class="fileupload-process"></span>
-                            <div class="button_container">
-                                <div class="btn btn-default fileinput-button">
-                                    <span>Upload</span>
-                                    <input id="up_files_input" type="file" name="up_files" multiple>
+<div class="row">
+    <div class="col-xs-12 col-sm-6">
+        <div id="mug_shot">
+            <div class="row_container">
+                <div class="fileupload_container">
+                    <form id="fileupload" action="/zcomx/login/creator_img_handler" method="POST" enctype="multipart/form-data">
+                        <noscript><input type="hidden" name="redirect" value="/zcomx/login/creator"></noscript>
+                        <div class="row fileupload-buttonbar">
+                            <div class="col-xs-12">
+                                <div class="no_photo_section">
+                                    <span class="fileupload-process"></span>
+                                    <div class="button_container">
+                                        <div class="btn btn-default fileinput-button">
+                                            <span>Upload</span>
+                                            <input id="up_files_input" type="file" name="up_files" multiple>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="has_photo_section">
+                                    <div class="files"> </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="has_photo_section">
-                            <div class="files"> </div>
-                        </div>
-                    </div>
+                    </form>
+                    <div class="loading loading_gif loading_32x32 processing"></div>
                 </div>
-            </form>
-            <br>
+            </div>
         </div>
     </div>
-</div>
-
-<div class="panel" style="box-shadow: none; -webkit-box-shadow: none;">
-    <div class="panel-body">
-        <div id="row_container_name" class="row_container">
-            <div id="creator_image_message_panel" class="panel panel-default">
-                <div class="panel-body"></div>
+    <div class="col-xs-12 col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">Notes:</div>
+            <div class="panel-body">
+            <ul>
+                <li>The profile image should be square: width = length</li>
+                <li>Images must have a minimum width of 336px.</li>
+                <li>Valid file types: gif, jpg and png</li>
+            </ul>
+            </div>
+        </div>
+        <div id="creator_image_message_panel" class="panel panel-default">
+            <div class="panel-body"></div>
+        </div>
+        <div id="image_upload_message_panel" class="panel panel-success">
+            <div class="panel-body">
+                Processing will take a few minutes.
             </div>
         </div>
     </div>
 </div>
+
 
 </div>
 
@@ -131,6 +135,9 @@
             'creator',
             "{{=URL(c='login', f='creator_img_handler', args='image_tmp')}}",
             {
+                debug_fileupload_listeners: false,
+                loading_gif_elem: $('.loading_gif').first(),
+                message_elem: $('#image_upload_message_panel'),
                 fileupload_options: {
                     maxNumberOfFiles: 1,
                     messages: {
@@ -140,24 +147,19 @@
                 post_callbacks: {
                     completed: function(e, data) {
                         if (data.result.files.length > 0) {
-                            $('#image_squarer_container').image_squarer({
-                                clear_message_func: $('#creator_img').data().profile_creator_image.clear_message,
-                                display_message_func: $('#creator_img').data().profile_creator_image.display_message,
-                            });
-                            $('#creator_img').data().profile_creator_image.set_image_squarer($('#image_squarer_container').data().image_squarer)
+                            setTimeout( function() {
+                                $('#image_squarer_container').image_squarer({
+                                    clear_message_func: $('#creator_img').data().profile_creator_image.clear_message,
+                                    display_message_func: $('#creator_img').data().profile_creator_image.display_message,
+                                });
+                                $('#creator_img').data().profile_creator_image.set_image_squarer($('#image_squarer_container').data().image_squarer)
+                            }, 200);
                         }
                     }
-                }
+                },
             }
         );
         $('#fileupload').removeClass('fileupload-processing');
-
-        $('.fileinput-button').on('click', function(e) {
-            $('button.cancel').each(function(indx) {
-                $(this).click();
-            });
-        });
     });
 //]]>
 </script>
-<script src="{{=app_js}}/image_upload.js"> </script>

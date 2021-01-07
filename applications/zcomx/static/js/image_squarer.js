@@ -29,27 +29,35 @@
         load: function () {
             this.is_square = this.$movable.outerWidth() == this.$movable.outerHeight();
             this.is_landscape = this.$movable.outerWidth() > this.$movable.outerHeight();
+            var new_left = 0;
+            var new_top = 0;
             if (this.is_landscape) {
                 this.$movable.css('height', this.$container.outerHeight());
                 this.$movable.css('width', '');
                 this.$movable_img.css('height', '100%');
                 this.$movable_img.css('width', '');
                 // center image
-                this.$movable.offset({
-                    'left': this.$container.offset().left - ((this.$movable.outerWidth() - this.$container.outerWidth()) / 2),
-                    'top': this.$container.offset().top
-                });
+                var container_left = this.$container.offset().left;
+                new_left = container_left - ((this.$movable.outerWidth() - this.$container.outerWidth()) / 2);
+                new_top = this.$container.offset().top;
+                if (new_left > container_left) { new_left = container_left; }
             } else {
                 this.$movable.css('height', '');
                 this.$movable.css('width', this.$container.outerWidth());
                 this.$movable_img.css('height', '');
                 this.$movable_img.css('width', '100%');
                 // center image
-                this.$movable.offset({
-                    'left': this.$container.offset().left,
-                    'top': this.$container.offset().top - ((this.$movable.outerHeight() - this.$container.outerHeight()) / 2)
-                });
+                var container_top = this.$container.offset().top;
+                new_left = this.$container.offset().left;
+                new_top = container_top - ((this.$movable.outerHeight() - this.$container.outerHeight()) / 2);
+                if (new_top > container_top) { new_top = container_top; }
             }
+
+            this.$movable.offset({
+                'left': new_left,
+                'top': new_top
+            });
+
             if (! this.is_square) {
                 this.show_instructions();
             }
@@ -178,7 +186,8 @@
               + drag_directions
               + '.</li>'
               + '<li>Once you are happy with it, click <i>OK</i>.</li>'
-              + '</ul>'
+              + '</ul>',
+              'panel-danger'
             );
         },
     };
