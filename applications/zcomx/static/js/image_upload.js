@@ -435,8 +435,6 @@
 
         deleted_callback: function(e, data) {
             this.show_buttons();
-            /* Simulate Upload click to auto open file selector. */
-            $('#up_files_input').click();
         },
 
         failed_callback: function(e, data) {
@@ -454,14 +452,15 @@
 
         processstart_callback: function(e, data) {
             $('.btn_submit').prop('disabled', true);
-            $('.fileinput-button').hide();
         },
 
         show_buttons: function() {
             if ($('#remove_button').length > 0) {
-                $('.no_photo_section').hide();
+                $('#remove_button').hide();
+                $('#upload_button').text('Change Image');
             }
             else {
+                $('#upload_button').text('Upload');
                 $('.no_photo_section').show().css(
                     {display: 'inline-block'}
                 );

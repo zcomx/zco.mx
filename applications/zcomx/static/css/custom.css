@@ -140,6 +140,10 @@ ul.bulletless {
     background-color: #fff;
 }
 
+.btn:focus, .btn:active:focus, .btn:active:focus {
+    outline: none;
+}
+
 .bubble:before {
     border-color: #DDDDDD rgba(221, 221, 221, 0);
     border-style: solid;
@@ -2571,9 +2575,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: block;
 }
 
+#mug_shot .has_photo_section {
+    margin-bottom: 1em;
+}
+
 #mug_shot .template-download .button_container .btn {
     min-width: 6em;
 }
+
 
 @media (min-width: 768px) {
     .add_link_container > div {
@@ -2644,6 +2653,7 @@ a.modal-link-btn, a.modal-link-btn:hover {
         display: none;
         vertical-align: top;
     }
+
     #mug_shot .has_photo_section {
         display: inline-block;
         vertical-align: top;

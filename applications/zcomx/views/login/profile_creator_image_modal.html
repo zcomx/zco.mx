@@ -9,17 +9,17 @@
                         <noscript><input type="hidden" name="redirect" value="/zcomx/login/creator"></noscript>
                         <div class="row fileupload-buttonbar">
                             <div class="col-xs-12">
+                                <div class="has_photo_section">
+                                    <div class="files"> </div>
+                                </div>
                                 <div class="no_photo_section">
                                     <span class="fileupload-process"></span>
                                     <div class="button_container">
-                                        <div class="btn btn-default fileinput-button">
-                                            <span>Upload</span>
-                                            <input id="up_files_input" type="file" name="up_files" multiple>
+                                        <div class="fileinput-button">
+                                            <button id="upload_button" class="btn">Upload</button>
+                                            <input id="up_files_input" title=" " type="file" name="up_files" multiple style="z-index: -1;">
                                         </div>
                                     </div>
-                                </div>
-                                <div class="has_photo_section">
-                                    <div class="files"> </div>
                                 </div>
                             </div>
                         </div>
@@ -111,9 +111,7 @@
         <div class="button_container">
             {% if (file.deleteUrl) { %}
                 <div>
-                <button id="remove_button" class="btn delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
-                    Change Image
-                </button>
+                <button id="remove_button" class="btn delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}></button>
                 </div>
             {% } else { %}
                 <div class="cancel_container">
@@ -171,6 +169,13 @@
             }
         );
         $('#fileupload').removeClass('fileupload-processing');
+        $('.fileinput-button button').on('click', function(e) {
+            e.preventDefault();
+            if ($('#remove_button').length > 0) {
+                $('#remove_button').trigger('click');
+            }
+            $('#up_files_input').trigger('click');
+        });
     });
 //]]>
 </script>
