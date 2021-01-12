@@ -34,9 +34,20 @@
             <div class="panel-heading">Notes:</div>
             <div class="panel-body">
             <ul>
-                <li>The profile image should be square: width = length</li>
                 <li>Images must have a minimum width of 336px.</li>
-                <li>Valid file types: gif, jpg and png</li>
+                <li>Valid file types are gif, jpg and png</li>
+                <li>
+                    The displayed profile image will be square, ie the width of
+                    the image is the same as its length.
+                </li>
+                <li>
+                    If the uploaded profile image is not square, then it can be
+                    manually aligned by moving the image with the mouse.
+                </li>
+                <li>
+                    Once happy, click the <i>OK</i> button and the profile image
+                    will be cropped.
+                </li>
             </ul>
             </div>
         </div>
@@ -100,8 +111,8 @@
         <div class="button_container">
             {% if (file.deleteUrl) { %}
                 <div>
-                <button id="remove_button" class="btn btn-default delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
-                    <span>Change Image</span>
+                <button id="remove_button" class="btn delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
+                    Change Image
                 </button>
                 </div>
             {% } else { %}
