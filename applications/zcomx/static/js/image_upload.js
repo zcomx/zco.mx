@@ -495,7 +495,7 @@
         },
 
         deleted_callback: function(e, data) {
-            CreatorImageUpload.prototype.deleted_callback.apply(this)
+            this.show_buttons();
             this.reload_previews()
         },
 
