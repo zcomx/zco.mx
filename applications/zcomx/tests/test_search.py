@@ -27,23 +27,34 @@ from applications.zcomx.modules.creators import \
 from applications.zcomx.modules.search import (
     AlphaPaginator,
     BookTile,
+    BaseBookGrid,
     CartoonistTile,
     CartoonistsGrid,
     CompletedGrid,
     CreatorMoniesGrid,
     Grid,
+    LoginCompletedGrid,
+    LoginDisabledGrid,
+    LoginDraftsGrid,
+    LoginOngoingGrid,
     MoniesBookTile,
     OngoingGrid,
     SearchGrid,
     Tile,
     book_contribute_button,
+    complete_link,
     creator_contribute_button,
+    delete_link,
     download_link,
+    edit_link,
+    edit_link_allow_upload,
+    fileshare_link,
     follow_link,
     link_book_id,
     link_for_creator_follow,
     link_for_creator_torrent,
     read_link,
+    upload_link,
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
@@ -501,6 +512,38 @@ class TestGrid(LocalTestCase):
         self.assertEqual(grid.visible_fields(), [db.book.name])
 
 
+class TestBaseBookGrid(LocalTestCase):
+
+    def test____init__(self):
+        # pylint: disable=protected-access
+        grid = BaseBookGrid()
+        self.assertTrue(grid)
+
+        self.assertEqual(grid._attributes['table'], 'book')
+        self.assertEqual(grid._attributes['field'], 'release_date')
+        self.assertEqual(grid._attributes['label'], 'release date')
+        self.assertEqual(grid._attributes['tab_label'], 'completed')
+        self.assertEqual(grid._attributes['header_label'], 'completed')
+        self.assertEqual(grid._attributes['class'], 'orderby_completed')
+        self.assertEqual(grid._attributes['order_dir'], 'DESC')
+
+        self.assertEqual(grid._buttons, ['read'])
+
+    def test__filters(self):
+        grid = BaseBookGrid()
+        self.assertEqual(len(grid.filters()), 1)
+
+    def test__visible_fields(self):
+        grid = BaseBookGrid()
+        self.assertEqual(
+            grid.visible_fields(),
+            [
+                db.book.name,
+                db.book.created_on,
+            ]
+        )
+
+
 class TestCartoonistsGrid(LocalTestCase):
 
     def test____init__(self):
@@ -555,14 +598,6 @@ class TestCartoonistsGrid(LocalTestCase):
 
 class TestCompletedGrid(LocalTestCase):
 
-    def test____init__(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-        grid = CompletedGrid()
-        self.assertTrue(grid)
-        self.assertEqual(grid._attributes['table'], 'book')
-        self.assertEqual(grid._attributes['field'], 'release_date')
-
     def test__filters(self):
         grid = CompletedGrid()
         self.assertEqual(len(grid.filters()), 1)
@@ -577,7 +612,6 @@ class TestCompletedGrid(LocalTestCase):
                 db.book.release_date,
                 db.book.downloads,
                 db.book.views,
-                # db.book.contributions_remaining,
                 db.auth_user.name,
             ]
         )
@@ -602,6 +636,91 @@ class TestCreatorMoniesGrid(LocalTestCase):
         creator = self.add(Creator, dict(email='test__filters@email.com'))
         grid = CreatorMoniesGrid(creator=creator)
         self.assertEqual(len(grid.filters()), 1)
+
+
+class TestLoginCompletedGrid(LocalTestCase):
+
+    def test_init__(self):
+        # pylint: disable=protected-access
+        grid = LoginCompletedGrid()
+        self.assertTrue(grid)
+        self.assertEqual(grid._attributes['table'], 'book')
+        self.assertEqual(grid._attributes['field'], 'release_date')
+
+    def test__visible_fields(self):
+        grid = LoginCompletedGrid()
+        self.assertEqual(
+            grid.visible_fields(),
+            [
+                db.book.name,
+                db.book.publication_year,
+                db.book.release_date,
+                db.book.views,
+                db.book.downloads,
+            ]
+        )
+
+
+class TestLoginDisabledGrid(LocalTestCase):
+
+    def test_init__(self):
+        # pylint: disable=protected-access
+        grid = LoginDisabledGrid()
+        self.assertTrue(grid)
+        self.assertEqual(grid._attributes['table'], 'book')
+        self.assertEqual(grid._attributes['field'], 'release_date')
+
+    def test__filters(self):
+        grid = LoginDisabledGrid()
+        self.assertEqual(len(grid.filters()), 1)
+
+    def test__visible_fields(self):
+        grid = LoginDisabledGrid()
+        self.assertEqual(
+            grid.visible_fields(),
+            [
+                db.book.name,
+                db.book.created_on,
+            ]
+        )
+
+
+class TestLoginDraftsGrid(LocalTestCase):
+
+    def test_init__(self):
+        # pylint: disable=protected-access
+        grid = LoginDraftsGrid()
+        self.assertTrue(grid)
+        self.assertEqual(grid._attributes['table'], 'book')
+        self.assertEqual(grid._attributes['field'], 'release_date')
+
+    def test__filters(self):
+        grid = LoginDraftsGrid()
+        self.assertEqual(len(grid.filters()), 1)
+
+    def test__visible_fields(self):
+        grid = LoginDraftsGrid()
+        self.assertEqual(
+            grid.visible_fields(),
+            [
+                db.book.name,
+                db.book.created_on,
+            ]
+        )
+
+
+class TestLoginOngoingGrid(LocalTestCase):
+
+    def test__visible_fields(self):
+        grid = LoginOngoingGrid()
+        self.assertEqual(
+            grid.visible_fields(),
+            [
+                db.book.name,
+                db.book.views,
+                db.book.page_added_on,
+            ]
+        )
 
 
 class TestMoniesBookTile(TileTestCase):
@@ -758,14 +877,6 @@ class TestMoniesBookTile(TileTestCase):
 
 class TestOngoingGrid(LocalTestCase):
 
-    def test____init__(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-        grid = OngoingGrid()
-        self.assertTrue(grid)
-        self.assertEqual(grid._attributes['table'], 'book')
-        self.assertEqual(grid._attributes['field'], 'page_added_on')
-
     def test__filters(self):
         grid = OngoingGrid()
         self.assertEqual(len(grid.filters()), 1)
@@ -778,7 +889,6 @@ class TestOngoingGrid(LocalTestCase):
                 db.book.name,
                 db.book.page_added_on,
                 db.book.views,
-                # db.book.contributions_remaining,
                 db.auth_user.name,
             ]
         )
@@ -1544,6 +1654,19 @@ class TestFunctions(LocalTestCase):
                     data[attr] = anchor[attr]
                 except KeyError:
                     data[attr] = None
+
+            icon = anchor.find('i')
+            if icon:
+                data['icon_class'] = icon['class']
+
+        div = soup.find('div')
+        if div:
+            data['div_class'] = div['class']
+            input_elem = div.find('input')
+            if input_elem:
+                data['input_type'] = input_elem['type']
+                data['input_value'] = input_elem['value']
+
         return data
 
     def test__book_contribute_button(self):
@@ -1567,6 +1690,14 @@ class TestFunctions(LocalTestCase):
         self.assertTrue('/contributions/modal?book_id=' in data['href'])
         self.assertTrue('contribute_button' in data['class'])
 
+    def test__complete_link(self):
+        self.assertEqual(complete_link({}), '')
+        row = self._row()
+        data = self._parse_link(complete_link(row))
+        self.assertEqual(data['div_class'], ['checkbox_wrapper'])
+        self.assertEqual(data['input_type'], 'checkbox')
+        self.assertEqual(data['input_value'], 'off')
+
     def test__creator_contribute_button(self):
         self.assertEqual(creator_contribute_button({}), '')
 
@@ -1581,6 +1712,24 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(data['string'], 'Contribute')
         self.assertTrue('/contributions/modal?creator_id=' in data['href'])
         self.assertTrue('contribute_button' in data['class'])
+
+    def test__delete_link(self):
+        self.assertEqual(download_link({}), '')
+        row = self._row()
+        data = self._parse_link(delete_link(row))
+        self.assertEqual(data['icon_class'], ['icon', 'zc-trash', 'size-18'])
+        self.assertEqual(data['href'], '/login/book_delete/{i}'.format(
+            i=row.book.id))
+        self.assertEqual(
+            data['class'],
+            [
+                'btn',
+                'btn-default',
+                'btn-xs',
+                'modal-delete-btn',
+                'no_rclick_menu',
+            ]
+        )
 
     def test__download_link(self):
         self.assertEqual(download_link({}), '')
@@ -1599,6 +1748,48 @@ class TestFunctions(LocalTestCase):
                 'enabled'
             ]
         )
+
+    def test__edit_link(self):
+        self.assertEqual(edit_link({}), '')
+        row = self._row()
+        data = self._parse_link(edit_link(row))
+        self.assertEqual(data['string'], 'Edit')
+        self.assertEqual(data['href'], '/login/book_edit/{i}'.format(
+            i=row.book.id))
+        self.assertEqual(
+            data['class'],
+            [
+                'btn',
+                'btn-default',
+                'modal-edit-btn',
+                'no_rclick_menu',
+            ]
+        )
+
+    def test__edit_link_allow_upload(self):
+        self.assertEqual(edit_link_allow_upload({}), '')
+        row = self._row()
+        data = self._parse_link(edit_link_allow_upload(row))
+        self.assertEqual(data['string'], 'Edit')
+        self.assertEqual(data['href'], '/login/book_edit/{i}'.format(
+            i=row.book.id))
+        self.assertEqual(
+            data['class'],
+            [
+                'btn',
+                'btn-default',
+                'modal-edit-ongoing-btn',
+                'no_rclick_menu',
+            ]
+        )
+
+    def test__fileshare_link(self):
+        self.assertEqual(fileshare_link({}), '')
+        row = self._row()
+        data = self._parse_link(fileshare_link(row))
+        self.assertEqual(data['div_class'], ['checkbox_wrapper'])
+        self.assertEqual(data['input_type'], 'checkbox')
+        self.assertEqual(data['input_value'], 'off')
 
     def test__follow_link(self):
         self.assertEqual(follow_link({}), '')
@@ -1673,6 +1864,23 @@ class TestFunctions(LocalTestCase):
         self.assertTrue(
             '/FirstLast/MyFunctionsBook/001' in data['href'])
         self.assertTrue('btn' in data['class'])
+
+    def test__upload_link(self):
+        self.assertEqual(upload_link({}), '')
+        row = self._row()
+        data = self._parse_link(upload_link(row))
+        self.assertEqual(data['string'], 'Upload')
+        self.assertEqual(data['href'], '/login/book_pages/{i}'.format(
+            i=row.book.id))
+        self.assertEqual(
+            data['class'],
+            [
+                'btn',
+                'btn-default',
+                'modal-upload-btn',
+                'no_rclick_menu',
+            ]
+        )
 
 
 def setUpModule():

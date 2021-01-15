@@ -310,12 +310,6 @@ class TestFunctions(WebTestCase):
             match_page_key='/login/book_fileshare',
         )
 
-    def test__book_list(self):
-        self.assertWebTest('/login/book_list')
-        self.assertWebTest('/login/book_list.load/completed')
-        self.assertWebTest('/login/book_list.load/ongoing')
-        self.assertWebTest('/login/book_list.load/disabled')
-
     @skip_if_quick
     def test__book_page_edit_handler(self):
         book_pages_to_tmp(self._book)
@@ -493,6 +487,7 @@ class TestFunctions(WebTestCase):
         # Valid book_id, no book pages returns success
         empty_book = self.add(Book, dict(
             name='Temp Book',
+            book_type_id=BookType.by_name('ongoing').id,
             status=BOOK_STATUS_DRAFT,
             creator_id=self._book.creator_id,
         ))
@@ -999,6 +994,7 @@ class TestFunctions(WebTestCase):
         book = self.add(Book, dict(
             name='test__metadata_text',
             creator_id=self._creator.id,
+            book_type_id=BookType.by_name('ongoing').id,
         ))
 
         self.add(PublicationMetadata, dict(

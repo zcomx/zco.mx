@@ -24,12 +24,16 @@ Follow {{=form.custom.widget.creator_id}}
 <ul>
     {{for book in books:}}
     <li>
-        <span class="table_cell">
+        <ul class="rss_widget_book_list">
+            <li class="rss_widget_book_title">
             {{=book_formatted_name(book, include_publication_year=False)}}
-        </span>
-        <a href="{{=book_rss_url(book, extension=False)}}" target="_blank" rel="noopener noreferrer">
-            {{=book_rss_url(book, host=True, extension=False)}}
-        </a>
+            </li>
+            <li class="rss_widget_book_rss_url">
+                <a href="{{=book_rss_url(book, extension=False)}}" target="_blank" rel="noopener noreferrer">
+                    {{=book_rss_url(book, host=True, extension=False)}}
+                </a>
+            </li>
+        </ul>
     </li>
     {{pass}}
 </ul>

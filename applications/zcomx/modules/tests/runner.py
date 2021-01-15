@@ -315,7 +315,6 @@ class LocalTestCase(unittest.TestCase):
             current.session = APP_ENV[app]['session']
             current.app = Storage()
             current.app.auth = APP_ENV[app]['auth']
-            current.app.crud = APP_ENV[app]['crud']
             current.app.db = APP_ENV[app]['db']
             if 'local_settings' in APP_ENV[app]:
                 current.app.local_settings = APP_ENV[app]['local_settings']
@@ -327,7 +326,6 @@ class LocalTestCase(unittest.TestCase):
         env['response'] = APP_ENV[app]['current'].response
         env['session'] = APP_ENV[app]['current'].session
         env['auth'] = APP_ENV[app]['current'].app.auth
-        env['crud'] = APP_ENV[app]['current'].app.crud
         env['db'] = APP_ENV[app]['current'].app.db
         login_user = None
         login_password = None
@@ -746,6 +744,7 @@ class LocalWebClient(WebClient):
         if method is None:
             method == 'auto'
         self._soup = None
+
         result = WebClient.post(
             self,
             url,

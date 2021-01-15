@@ -105,7 +105,6 @@ class ModelDb(object):
         self.cache = None
         self.mail = None
         self.auth = None
-        self.crud = None
         self.service = None
         self.local_settings = None
         self.settings_loader = None
@@ -205,15 +204,6 @@ class ModelDb(object):
             cache.ram = cache.disk = cache.memcache
 
         return cache
-
-    def _crud(self):
-        """Create a Crud instance
-        """
-
-        # for CRUD helpers using auth
-
-        crud = Crud(self.environment, self.db)
-        return crud
 
     def _db(self):
         """Create a database handle
@@ -360,7 +350,6 @@ class ModelDb(object):
             self.cache = self._cache()
             self.mail = self._mail()
             self.auth = self._auth()
-            self.crud = self._crud()
             self.service = self._service()
 
         if self.settings_loader and 'response' in self.environment:

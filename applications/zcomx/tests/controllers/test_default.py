@@ -23,13 +23,6 @@ class TestFunctions(WebTestCase):
         self.assertRaisesHTTPError(
             404, self.assertWebTest, '/default/call', match_page_key='')
 
-    def test__data(self):
-        # Permission is denied here, should redirect to index
-
-        self.assertWebTest('/default/data', match_page_key='/default/index')
-        self.assertWebTest(
-            '/default/data/book', match_page_key='/default/index')
-
     def test__download(self):
         self.assertRaisesHTTPError(
             404, self.assertWebTest, '/default/download', match_page_key='')

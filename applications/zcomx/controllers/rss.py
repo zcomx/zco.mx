@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """RSS controller functions"""
+import functools
 import traceback
 from gluon.storage import Storage
-from applications.zcomx.modules.book_lists import OngoingBookList
 from applications.zcomx.modules.books import \
     Book, \
     rss_url as book_rss_url
@@ -11,7 +11,10 @@ from applications.zcomx.modules.creators import \
     rss_url as creator_rss_url, \
     url as creator_url
 from applications.zcomx.modules.rss import channel_from_type
-from applications.zcomx.modules.zco import Zco
+from applications.zcomx.modules.zco import (
+    BOOK_STATUS_ACTIVE,
+    Zco,
+)
 
 
 def modal():
@@ -205,8 +208,14 @@ def widget():
 
     books = None
     if creator:
-        book_list = OngoingBookList(creator)
-        books = book_list.books()
+        queries = []
+        queries.append((db.book.creator_id == creator.id))
+        queries.append((db.book.status == BOOK_STATUS_ACTIVE))
+        queries.append((db.book.release_date == None))
+        queries.append((db.book.complete_in_progress != True))
+        query = functools.reduce(lambda x, y: x & y, queries)
+        books = db(query).select(
+            db.book.ALL, orderby=[db.book.name, db.book.number])
 
     query = (db.book.id != None)     # Creators must have at least one book.
     creators = db(query).select(

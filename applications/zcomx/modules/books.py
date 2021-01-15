@@ -646,6 +646,39 @@ def defaults(name, creator):
     return data
 
 
+def delete_link(book, components=None, **attributes):
+    """Return html code suitable for a 'Delete' link.
+
+    Args:
+        book: Book instance
+        components: list, passed to A(*components),  default delete icon.
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+    if not book:
+        return empty
+
+    if not components:
+        components = [I('', _class='icon zc-trash size-18')]
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='login',
+            f='book_delete',
+            args=[book.id],
+            extension=False,
+        )
+    class_attr = attributes['_class'] if '_class' in attributes \
+        else 'btn btn-default btn-xs modal-delete-btn no_rclick_menu'
+    kwargs['_class'] = class_attr.strip()
+    kwargs['_data-book_id'] = book.id
+
+    return A(*components, **kwargs)
+
+
 def download_link(book, components=None, **attributes):
     """Return html code suitable for a 'Download' link.
 
@@ -707,6 +740,41 @@ def downloadable(creator_id=0, orderby=None, limitby=None):
     query = functools.reduce(lambda x, y: x & y, queries) if queries else None
 
     return Records.from_query(Book, query, orderby=orderby, limitby=limitby)
+
+
+def edit_link(book, allow_upload_on_edit=False, components=None, **attributes):
+    """Return html code suitable for a 'Edit' link.
+
+    Args:
+        book: Book instance
+        components: list, passed to A(*components),  default ['Edit']
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+    if not book:
+        return empty
+
+    if not components:
+        components = ['Edit']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='login',
+            f='book_edit',
+            args=[book.id],
+            extension=False,
+        )
+    modal_class = 'modal-edit-ongoing-btn' if allow_upload_on_edit \
+        else 'modal-edit-btn'
+    class_attr = attributes['_class'] if '_class' in attributes \
+        else 'btn btn-default {mc} no_rclick_menu'.format(mc=modal_class)
+    kwargs['_class'] = class_attr.strip()
+    kwargs['_data-book_id'] = book.id
+
+    return A(*components, **kwargs)
 
 
 def fileshare_link(book, components=None, **attributes):
@@ -1576,6 +1644,39 @@ def update_rating(book, rating=None):
 
     if rating is None or rating == 'contribution':
         update_contributions_remaining(book)
+
+
+def upload_link(book, components=None, **attributes):
+    """Return html code suitable for a 'Upload' book link.
+
+    Args:
+        book: Book instance
+        components: list, passed to A(*components),  default ['Upload']
+        attributes: dict of attributes for A()
+    """
+    empty = SPAN('')
+    if not book:
+        return empty
+
+    if not components:
+        components = ['Upload']
+
+    kwargs = {}
+    kwargs.update(attributes)
+
+    if '_href' not in attributes:
+        kwargs['_href'] = URL(
+            c='login',
+            f='book_pages',
+            args=[book.id],
+            extension=False,
+        )
+    class_attr = attributes['_class'] if '_class' in attributes \
+        else 'btn btn-default modal-upload-btn no_rclick_menu'
+    kwargs['_class'] = class_attr.strip()
+    kwargs['_data-book_id'] = book.id
+
+    return A(*components, **kwargs)
 
 
 def url(book, **url_kwargs):

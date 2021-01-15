@@ -598,33 +598,23 @@
 (function () {
     "use strict";
 
-    function display_book_lists() {
-        $.each(book_list_urls, function(key, url) {
-            var target = key + '_book_list';
-            var target_elem = $('#' + target);
-            if (target_elem.length) {
-                web2py_component(url, target);
-                var container = target_elem.closest('.books_list_container');
-                if (container.length) {
-                    container.removeClass('hidden');
-                }
-            }
-        });
+    function reload_page() {
+        location.reload();
     }
 
     $.fn.set_modal_events = function(options) {
         $('.modal-add-btn').modalize('add',
             $.extend({}, options, {
-                'onhidden': display_book_lists,
+                'onhidden': reload_page,
                 'title_template': 'Add Book'
             })
         );
         $('.modal-delete-btn').modalize('delete',
-            $.extend({}, options, {'onhidden': display_book_lists})
+            $.extend({}, options, {'onhidden': reload_page})
         );
         $('.modal-edit-btn').modalize('edit',
             $.extend({}, options, {
-                'onhidden': display_book_lists,
+                'onhidden': reload_page,
                 'bootstrap_dialog_options':  {
                     'closable': true,
                     'closeByBackdrop': false,
@@ -634,7 +624,7 @@
         );
         $('.modal-edit-ongoing-btn').modalize('edit_ongoing',
             $.extend({}, options, {
-                'onhidden': display_book_lists,
+                'onhidden': reload_page,
                 'bootstrap_dialog_options':  {
                     'closable': true,
                     'closeByBackdrop': false,
@@ -644,7 +634,7 @@
         );
         $('.modal-complete-btn').modalize('complete',
             $.extend({}, options, {
-                'onhidden': display_book_lists,
+                'onhidden': reload_page,
                 'bootstrap_dialog_options':  {
                     'onshown': function(dialog) {
                         $('.btn_complete').prop('disabled', !complete_enabled).toggleClass('disabled', !complete_enabled);
@@ -658,7 +648,7 @@
         );
         $('.modal-fileshare-btn').modalize('fileshare',
             $.extend({}, options, {
-                'onhidden': display_book_lists,
+                'onhidden': reload_page,
                 'bootstrap_dialog_options':  {
                     'onshown': function(dialog) {
                         $('.btn_fileshare').prop('disabled', !fileshare_enabled).toggleClass('disabled', !fileshare_enabled);
@@ -672,15 +662,11 @@
         );
         $('.modal-upload-btn').modalize('upload',
             $.extend({}, options, {
-                'onhidden': display_book_lists,
+                'onhidden': reload_page,
                 'bootstrap_dialog_options': {
                     'closable': true,
                 },
             })
         );
     }
-
-    $(document).ready(function(){
-        display_book_lists();
-    });
 }());

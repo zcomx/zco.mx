@@ -48,7 +48,6 @@ model_db.load()
 
 db = model_db.db
 auth = model_db.auth
-crud = model_db.crud
 service = model_db.service
 mail = model_db.mail
 local_settings = model_db.local_settings
@@ -56,7 +55,6 @@ plugins = PluginManager()
 
 current.app = Storage()
 current.app.auth = auth
-current.app.crud = crud
 current.app.db = db
 current.app.service = service
 current.app.mail = mail
@@ -103,13 +101,10 @@ auth.messages.logged_out = ''               # Suppress flash message
 auth.messages.profile_updated = ''          # Suppress flash message
 auth.messages.password_changed = ''         # Suppress flash message
 
-
 # # if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
 # # register with janrain.com, write your domain:api_key in private/janrain.key
 # from gluon.contrib.login_methods.rpx_account import use_janrain
 # use_janrain(auth, filename='private/janrain.key')
-
-crud.settings.auth = None                      # =auth to enforce authorization on crud
 
 db._common_fields = [auth.signature]
 

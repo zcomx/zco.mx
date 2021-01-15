@@ -1,53 +1,50 @@
 {{extend 'login/layout.html'}}
-<div>
-    <div id="completed_book_list" class="book_list"></div>
-    <div id="ongoing_book_list" class="book_list"></div>
-    <div id="draft_book_list" class="book_list"></div>
-    <div id="disabled_book_list" class="book_list"></div>
-    <div>
-        {{=A(
-            'Add Book',
-            _id='add_book_button',
-            _class='btn btn-default modal-add-btn no_rclick_menu',
-            _href=URL(c='login', f='book_edit'),
-        )}}
-    </div>
-</div>
-
 <div id="report_section">
     <div class="row" id="options_section">
         <div class="col-sm-12" id="options_container">
             <div class="list_tile_options">
                 {{=grid.viewby_buttons()}}
             </div>
-            <div class="grid_section_header"><h4>Completed</h4></div>
+            <div class="grid_section_header">
+                <h4><span id="completed_title" class="book_grid_title" data-tooltip="{{=completed_grid._description}}">Completed</span></h4>
+            </div>
         </div>
     </div>
-
-    {{if completed_grid:}}
-        <div class="grid_section">
-        {{=completed_grid}}
-        </div>
-
-        <div class="row grid_section_header"><h4>Ongoing</h4></div>
-    {{pass}}
-
     <div class="grid_section">
-    {{=ongoing_grid}}
+    {{=completed_grid.render()}}
+    </div>
+
+    <div class="row grid_section_header">
+        <h4><span id="ongoing_title" class="book_grid_title" data-tooltip="{{=ongoing_grid._description}}">Ongoing</span></h4>
+    </div>
+    <div class="grid_section">
+    {{=ongoing_grid.render()}}
+    </div>
+
+    <div class="row grid_section_header">
+        <h4><span id="drafts_title" class="book_grid_title" data-tooltip="{{=drafts_grid._description}}">Drafts</span></h4>
+    </div>
+    <div class="grid_section">
+    {{=drafts_grid.render()}}
+    </div>
+
+    <div class="row grid_section_header">
+        <h4><span id="disabled_title" class="book_grid_title" data-tooltip="{{=disabled_grid._description}}">Disabled</span></h4>
+    </div>
+    <div class="grid_section">
+    {{=disabled_grid.render()}}
     </div>
 </div>
 
-<script>
-//<![CDATA[
-    var book_list_urls = {
-        'completed': '{{=URL(c='login', f='book_list', args='completed', vars=request.vars, extension='load')}}',
-        'ongoing':  '{{=URL(c='login', f='book_list', args='ongoing', vars=request.vars, extension='load')}}',
-        'draft': '{{=URL(c='login', f='book_list', args='draft', vars=request.vars, extension='load')}}',
-        'disabled': '{{=URL(c='login', f='book_list', args='disabled', vars=request.vars, extension='load')}}',
-    }
-//]]>
+<div id="add_book_button_container">
+    {{=A(
+        'Add Book',
+        _id='add_book_button',
+        _class='btn btn-default modal-add-btn no_rclick_menu',
+        _href=URL(c='login', f='book_edit'),
+    )}}
+</div>
 
-</script>
 
 {{block post_bootstrap_js}}
     {{if DEBUG:}}
@@ -62,3 +59,23 @@
     <script src="{{=app_js}}/inplace_crud.js"> </script>
     <script src="{{=app_js}}/metadata_crud.js"> </script>
 {{end}}
+
+<script>
+//<![CDATA[
+    $(document).ready(function(){
+        $.fn.set_modal_events();
+        $('.book_grid_title').each(function(indx) {
+            var target =  $(this);
+            var target_id = target.attr('id');
+            var tooltip_text = target.data().tooltip;
+            if (tooltip_text) {
+                var icon = $.fn.zco_utils.tooltip(
+                    target_id,
+                    tooltip_text
+                );
+                target.after(icon);
+            }
+        });
+    });
+//]]>
+</script>

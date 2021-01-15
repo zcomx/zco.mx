@@ -8,13 +8,12 @@ import urllib.parse
 from PIL import Image
 from applications.zcomx.modules.access import requires_agreed_to_terms
 from applications.zcomx.modules.activity_logs import UploadActivityLogger
-from applications.zcomx.modules.book_lists import \
-    class_from_code as book_list_class_from_code
-from applications.zcomx.modules.book.release_barriers import \
-    complete_barriers, \
-    filesharing_barriers, \
-    has_complete_barriers, \
-    has_filesharing_barriers
+from applications.zcomx.modules.book.release_barriers import (
+    complete_barriers,
+    filesharing_barriers,
+    has_complete_barriers,
+    has_filesharing_barriers,
+)
 from applications.zcomx.modules.book_pages import (
     BookPageTmp,
     delete_pages_not_in_ids,
@@ -54,11 +53,12 @@ from applications.zcomx.modules.images import (
     store,
 )
 from applications.zcomx.modules.images_optimize import AllSizesImages
-from applications.zcomx.modules.indicias import \
-    BookPublicationMetadata, \
-    Derivative, \
-    PublicationMetadata, \
-    create_creator_indicia
+from applications.zcomx.modules.indicias import (
+    BookPublicationMetadata,
+    Derivative,
+    PublicationMetadata,
+    create_creator_indicia,
+)
 from applications.zcomx.modules.job_queuers import (
     DeleteBookQueuer,
     FileshareBookQueuer,
@@ -68,20 +68,25 @@ from applications.zcomx.modules.job_queuers import (
     queue_create_sitemap,
     queue_search_prefetch,
 )
-from applications.zcomx.modules.links import \
-    Link, \
-    Links, \
-    LinksKey, \
-    LinkType
-from applications.zcomx.modules.search import \
-    CompletedGrid, \
-    OngoingGrid
+from applications.zcomx.modules.links import (
+    Link,
+    Links,
+    LinksKey,
+    LinkType,
+)
+from applications.zcomx.modules.search import (
+    LoginCompletedGrid,
+    LoginDisabledGrid,
+    LoginDraftsGrid,
+    LoginOngoingGrid,
+)
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.stickon.validators import as_per_type
-from applications.zcomx.modules.utils import \
-    default_record, \
-    move_record, \
-    reorder
+from applications.zcomx.modules.utils import (
+    default_record,
+    move_record,
+    reorder,
+)
 
 
 MODAL_ERROR = lambda msg: redirect(
@@ -481,30 +486,6 @@ def book_fileshare():
 
 
 @auth.requires_login()
-def book_list():
-    """Book list component controller.
-
-    request.args(0): string, optional,
-        one of 'completed', 'ongoing', 'disabled'
-    """
-    # Verify user is legit
-    try:
-        creator = Creator.from_key(dict(auth_user_id=auth.user_id))
-    except LookupError:
-        creator = None
-    if not creator:
-        return dict()
-
-    try:
-        lister = book_list_class_from_code(request.args(0))(creator)
-    except ValueError as err:
-        LOG.error(err)
-        return dict()
-
-    return dict(lister=lister)
-
-
-@auth.requires_login()
 def book_page_edit_handler():
     """Callback function for the x-editable plugin for renaming the
     image filename associated with the book page (book_page_tmp records).
@@ -819,14 +800,18 @@ def books():
     )
 
     queries = [(db.creator.id == creator.id)]
-    completed_grid = CompletedGrid(queries=queries, default_viewby='list')
-    ongoing_grid = OngoingGrid(queries=queries, default_viewby='list')
+    completed_grid = LoginCompletedGrid(queries=queries, default_viewby='list')
+    disabled_grid = LoginDisabledGrid(queries=queries, default_viewby='list')
+    drafts_grid = LoginDraftsGrid(queries=queries, default_viewby='list')
+    ongoing_grid = LoginOngoingGrid(queries=queries, default_viewby='list')
 
     return dict(
-        status_counts=status_counts,
+        completed_grid=completed_grid,
+        disabled_grid=disabled_grid,
+        drafts_grid=drafts_grid,
         grid=completed_grid,
-        ongoing_grid=ongoing_grid.render(),
-        completed_grid=completed_grid.render()
+        ongoing_grid=ongoing_grid,
+        status_counts=status_counts,
     )
 
 

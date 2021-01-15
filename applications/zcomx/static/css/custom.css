@@ -53,6 +53,11 @@ h1, h2, h3, h4, h5 {
     color: #BBBBBB;
 }
 
+img.grid_icon {
+    opacity: 0.6;
+    width: 16px;
+}
+
 .info_icon_container {
     color: #666666;
     font-size: 13px;
@@ -239,6 +244,10 @@ ul.bulletless {
     display: inline-block;
 }
 
+.nowrap {
+    white-space: nowrap;
+}
+
 .placeholder_170x170 {
     border: 0.8em double #EEEEEE;
     height: 170px;
@@ -251,6 +260,12 @@ ul.bulletless {
 
 .progress-striped .progress-bar, .progress-bar-striped {
     background-image: none;     /* Disable stripe */
+}
+
+.text_overflow_ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #header {
@@ -437,45 +452,27 @@ ul.bulletless {
     width: 100%;
 }
 
-#profile_page .books_list_title h4 {
+#profile_page #add_book_button_container {
+    margin-top: 2em;
+}
+
+#profile_page .grid_section_header h4 {
     margin-bottom: 0;
     margin-top: 2em;
     line-height: 1;
 }
 
-#profile_page .books_list_title span.zco_tooltip {
+#profile_page .grid_section_header span.zco_tooltip {
     margin-left: 0.5em;
+    vertical-align: middle;
 }
 
-#profile_page .book_list .table.with_header  {
-    margin-top: -2em;
-}
-
-#profile_page .book_list .table > thead > tr > th {
-    border: none;
-    white-space: inherit;
-    text-align: center;
-    font-weight: normal;
-}
-
-#profile_page .book_list .checkbox_header {
-    font-size: 9pt;
-    max-width: 7em;
-    padding-left: 1em;
-}
-
-#profile_page .book_list .checkbox_wrapper {
-    width: 4em;
-    text-align: center;
-    margin-left: 1em;
-}
-
-#profile_page .book_list span.disabled {
-    opacity: 0.4;
-}
-
-#profile_page .book_list .table-condensed td:nth-last-child(-n+1) {
-    text-align: right;
+#profile_page .book_grid_title {
+    font-size: 18px;
+    margin-bottom: 0;
+    margin-top: 2em;
+    line-height: 1;
+    text-transform: uppercase;
 }
 
 #profile_page .table > thead > tr > th,
@@ -810,6 +807,15 @@ a.modal-link-btn, a.modal-link-btn:hover {
     cursor: not-allowed;
 }
 
+.grid_book_name {
+    max-width: 35em;
+}
+@media (max-width: 1200px) {
+    .grid_book_name {
+        max-width: 22em;
+    }
+}
+
 .grid_header {
     border-bottom: 1px solid #FFF;
 }
@@ -1087,32 +1093,79 @@ a.modal-link-btn, a.modal-link-btn:hover {
 .grid_section .web2py_grid.grid_key_cartoonists th:nth-child(3),
 .grid_section .web2py_grid.grid_key_cartoonists th:nth-child(4),
 .grid_section .web2py_grid.grid_key_cartoonists th:nth-child(5),
-.grid_section .web2py_grid.grid_key_completed td:nth-child(2),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(3),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(4),
 .grid_section .web2py_grid.grid_key_completed td:nth-child(5),
-.grid_section .web2py_grid.grid_key_completed th:nth-child(2),
+.grid_section .web2py_grid.grid_key_completed td:nth-child(6),
 .grid_section .web2py_grid.grid_key_completed th:nth-child(3),
 .grid_section .web2py_grid.grid_key_completed th:nth-child(4),
 .grid_section .web2py_grid.grid_key_completed th:nth-child(5),
+.grid_section .web2py_grid.grid_key_completed th:nth-child(6),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(2),
 .grid_section .web2py_grid.grid_key_contributions td:nth-child(3),
 .grid_section .web2py_grid.grid_key_contributions th:nth-child(2),
 .grid_section .web2py_grid.grid_key_contributions th:nth-child(3),
-.grid_section .web2py_grid.grid_key_ongoing td:nth-child(2),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(3),
 .grid_section .web2py_grid.grid_key_ongoing td:nth-child(4),
-.grid_section .web2py_grid.grid_key_ongoing th:nth-child(2),
+.grid_section .web2py_grid.grid_key_ongoing td:nth-child(5),
 .grid_section .web2py_grid.grid_key_ongoing th:nth-child(3),
 .grid_section .web2py_grid.grid_key_ongoing th:nth-child(4),
-.grid_section .web2py_grid.grid_key_search td:nth-child(2),
+.grid_section .web2py_grid.grid_key_ongoing th:nth-child(5),
+.grid_section .web2py_grid.grid_key_logincompleted td:nth-child(2),
+.grid_section .web2py_grid.grid_key_logincompleted td:nth-child(3),
+.grid_section .web2py_grid.grid_key_logincompleted td:nth-child(4),
+.grid_section .web2py_grid.grid_key_logincompleted td:nth-child(5),
+.grid_section .web2py_grid.grid_key_logincompleted th:nth-child(2),
+.grid_section .web2py_grid.grid_key_logincompleted th:nth-child(3),
+.grid_section .web2py_grid.grid_key_logincompleted th:nth-child(4),
+.grid_section .web2py_grid.grid_key_logincompleted th:nth-child(5),
+.grid_section .web2py_grid.grid_key_loginongoing td:nth-child(2),
+.grid_section .web2py_grid.grid_key_loginongoing td:nth-child(3),
+.grid_section .web2py_grid.grid_key_loginongoing th:nth-child(2),
+.grid_section .web2py_grid.grid_key_loginongoing th:nth-child(3),
 .grid_section .web2py_grid.grid_key_search td:nth-child(3),
 .grid_section .web2py_grid.grid_key_search td:nth-child(4),
-.grid_section .web2py_grid.grid_key_search th:nth-child(2),
 .grid_section .web2py_grid.grid_key_search th:nth-child(3),
 .grid_section .web2py_grid.grid_key_search th:nth-child(4) {
     padding: 2px 10px;
     text-align: right;
+}
+
+.grid_section .web2py_grid.grid_key_logincompleted td:nth-child(6),
+.grid_section .web2py_grid.grid_key_logincompleted td:nth-child(7),
+.grid_section .web2py_grid.grid_key_logincompleted td:nth-child(8),
+.grid_section .web2py_grid.grid_key_logincompleted td:nth-child(9),
+.grid_section .web2py_grid.grid_key_logincompleted th:nth-child(6),
+.grid_section .web2py_grid.grid_key_logincompleted th:nth-child(7),
+.grid_section .web2py_grid.grid_key_logincompleted th:nth-child(8),
+.grid_section .web2py_grid.grid_key_logincompleted th:nth-child(9),
+.grid_section .web2py_grid.grid_key_loginongoing td:nth-child(4),
+.grid_section .web2py_grid.grid_key_loginongoing td:nth-child(5),
+.grid_section .web2py_grid.grid_key_loginongoing td:nth-child(6),
+.grid_section .web2py_grid.grid_key_loginongoing td:nth-child(7),
+.grid_section .web2py_grid.grid_key_loginongoing td:nth-child(8),
+.grid_section .web2py_grid.grid_key_loginongoing th:nth-child(4),
+.grid_section .web2py_grid.grid_key_loginongoing th:nth-child(5),
+.grid_section .web2py_grid.grid_key_loginongoing th:nth-child(6),
+.grid_section .web2py_grid.grid_key_loginongoing th:nth-child(7),
+.grid_section .web2py_grid.grid_key_loginongoing th:nth-child(8),
+.grid_section .web2py_grid.grid_key_logindrafts td:nth-child(3),
+.grid_section .web2py_grid.grid_key_logindrafts td:nth-child(4),
+.grid_section .web2py_grid.grid_key_logindrafts td:nth-child(5),
+.grid_section .web2py_grid.grid_key_logindrafts th:nth-child(3),
+.grid_section .web2py_grid.grid_key_logindrafts th:nth-child(4),
+.grid_section .web2py_grid.grid_key_logindrafts th:nth-child(5),
+.grid_section .web2py_grid.grid_key_logindisabled td:nth-child(3),
+.grid_section .web2py_grid.grid_key_logindisabled td:nth-child(4),
+.grid_section .web2py_grid.grid_key_logindisabled th:nth-child(3),
+.grid_section .web2py_grid.grid_key_logindisabled th:nth-child(4) {
+    padding: 2px 10px;
+    text-align: center;
+}
+
+.grid_section .web2py_grid.grid_key_logincompleted th:nth-child(9),
+.grid_section .web2py_grid.grid_key_loginongoing th:nth-child(8) {
+    white-space: break-spaces;
 }
 
 /*
@@ -1278,9 +1331,14 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: table-row;
 }
 
+.rss_widget_body ul.rss_widget_book_list {
+    margin-bottom: 10px;
+}
+
 .rss_widget_body span.table_cell {
     display: table-cell;
     padding-right: 0.8em;
+    white-space: nowrap;
 }
 
 .rss_widget_body select.form-control {
@@ -1328,14 +1386,8 @@ a.modal-link-btn, a.modal-link-btn:hover {
     display: inline;
 }
 
-#creator_page #report_section,
-#profile_page #report_section {
+#creator_page #report_section {
     padding-top: 1em;
-}
-
-#profile_page #report_section {
-    border-top: 1px solid #EEEEEE;
-    margin-top: 4em;
 }
 
 #creator_page #report_section .not_found_msg,
@@ -2015,18 +2067,19 @@ a.modal-link-btn, a.modal-link-btn:hover {
     margin-right: -1em;
 }
 
-#profile_page .books_list_title h4 {
-    display: inline-block;
-}
-
-#profile_page .books_list_title a {
-    float: right;
-}
-
 #profile_page .preview_button {
     float: right;
     position: relative;
     z-index: 999;
+}
+
+#profile_page #photo_credit_container {
+    margin-top: 10px;
+}
+
+#profile_page #photo_credit_container .arrow_container {
+    min-width: 0;
+    width: 0;
 }
 
 #profile_book_pages_page #book_name {
@@ -2339,6 +2392,12 @@ a.modal-link-btn, a.modal-link-btn:hover {
 
 #profile_page #creator_section {
     margin: 1em;
+}
+
+#profile_page #creator_section a#name {
+    font-family: 'roboto_slabregular', serif;
+    font-size: 36px;
+    font-weight: 500;
 }
 
 #profile_page #creator_section .img_preview_container {

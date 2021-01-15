@@ -387,15 +387,11 @@ class WebTestCase(LocalTestCase):
         '/login/book_delete': '<div id="book_delete_section">',
         '/login/book_edit': '<div id="book_edit_section">',
         '/login/book_fileshare': '<div id="book_fileshare_section">',
-        '/login/book_list': '<h2>Book List</h2>',
-        '/login/book_list.load/completed': '<div id="completed_container">',
-        '/login/book_list.load/disabled': '<div id="disabled_container">',
-        '/login/book_list.load/ongoing': '<div id="ongoing_container">',
         '/login/book_pages': '<div id="profile_book_pages_page">',
         '/login/book_post_upload_session': [
             '"status": "ok"',
         ],
-        '/login/books': '<div id="ongoing_book_list" class="book_list">',
+        '/login/books': '>Completed</span></h4>',
         '/login/indicia': [
             '<div id="profile_page">',
             '<div id="indicia_section">',

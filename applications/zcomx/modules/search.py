@@ -6,20 +6,26 @@
 Search classes and functions.
 """
 import string
+from functools import reduce
 from bs4 import BeautifulSoup
 from gluon import *
 from gluon.tools import prettydate
 from pydal.validators import urlify
 from applications.zcomx.modules.books import (
     Book,
+    complete_link as book_complete_link,
     contribute_link as book_contribute_link,
     cover_image,
+    delete_link as book_delete_link,
     download_link as book_download_link,
+    edit_link as book_edit_link,
+    fileshare_link as book_fileshare_link,
     follow_link as book_follow_link,
     formatted_name,
     is_followable,
     read_link as book_read_link,
     show_download_link,
+    upload_link as book_upload_link,
     url as book_url,
 )
 from applications.zcomx.modules.creators import (
@@ -33,11 +39,15 @@ from applications.zcomx.modules.creators import (
 )
 from applications.zcomx.modules.images import CreatorImgTag
 from applications.zcomx.modules.stickon.sqlhtml import make_grid_class
-from applications.zcomx.modules.utils import \
-    ClassFactory, \
-    replace_in_elements
-from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
-from functools import reduce
+from applications.zcomx.modules.utils import (
+    ClassFactory,
+    replace_in_elements,
+)
+from applications.zcomx.modules.zco import (
+    BOOK_STATUS_ACTIVE,
+    BOOK_STATUS_DISABLED,
+    BOOK_STATUS_DRAFT
+)
 
 LOG = current.app.logger
 
@@ -147,6 +157,7 @@ class Grid(object):
     }
 
     _buttons = []
+    _description = None                 # If str, use for title tooltip
     _include_alpha_paginator = False    # If True include alpha paginator
     _not_found_msg = None
 
@@ -206,12 +217,19 @@ class Grid(object):
         db = self.db
         request = self.request
         queries = list(self.queries) if self.queries else []
-        queries.append((db.book.status == BOOK_STATUS_ACTIVE))
+        has_book_status_filter = False
+        for query_filter in self.filters():
+            if str(query_filter.first) == 'book.status':
+                has_book_status_filter = True
+                break
+        if not has_book_status_filter:
+            queries.append((db.book.status == BOOK_STATUS_ACTIVE))
         queries.extend(self.filters())
 
         db.auth_user.name.represent = lambda v, row: A(
             v,
-            _href=creator_url(row.creator, extension=False)
+            _href=creator_url(row.creator, extension=False),
+            _class="nowrap",
         )
 
         def book_name_rep(value, row):
@@ -219,9 +237,13 @@ class Grid(object):
             # unused-argument (W0613): *Unused argument %%r*
             # pylint: disable=W0613
             book = Book.from_id(row.book.id)
-            return A(
-                formatted_name(book, include_publication_year=False),
-                _href=book_url(book, extension=False)
+            return DIV(
+                A(
+                    formatted_name(book, include_publication_year=False),
+                    _href=book_url(book, extension=False),
+                    _class="nowrap",
+                ),
+                _class="text_overflow_ellipsis grid_book_name",
             )
         db.book.name.represent = book_name_rep
 
@@ -231,6 +253,7 @@ class Grid(object):
         fields = [
             db.book.id,
             db.book.name,
+            db.auth_user.name,
             db.book.book_type_id,
             db.book.number,
             db.book.of_number,
@@ -243,7 +266,6 @@ class Grid(object):
             db.book.page_added_on,
             db.book.created_on,
             db.creator.id,
-            db.auth_user.name,
             db.creator.paypal_email,
             db.creator.contributions_remaining,
             db.creator.torrent,
@@ -272,32 +294,33 @@ class Grid(object):
             'creator.contributions_remaining': 'Remaining',
         }
 
+        button_functions = [
+            # Note: order is important, they appear in grid in order.
+            # (button name, header, function used to format)
+            ('read', '', read_link),
+            ('creator_torrent', '', link_for_creator_torrent),
+            ('creator_contribute', '', creator_contribute_button),
+            ('download', '', download_link),
+            ('creator_follow', '', link_for_creator_follow),
+            ('book_follow', '', follow_link),
+            ('book_contribute', '', book_contribute_button),
+            ('upload', 'Upload', upload_link),
+            ('edit', 'Edit', edit_link),
+            ('edit_allow_upload', 'Edit', edit_link_allow_upload),
+            ('delete', 'Del', delete_link),
+            ('fileshare', 'Release for filesharing', fileshare_link),
+            ('complete', 'Set as completed', complete_link),
+        ]
+
         links = []
 
         def add_link(body, header=''):
             """Add link to links list."""
             links.append({'header': header, 'body': body})
 
-        if 'read' in self._buttons:
-            add_link(read_link)
-
-        if 'creator_torrent' in self._buttons:
-            add_link(link_for_creator_torrent)
-
-        if 'creator_contribute' in self._buttons:
-            add_link(creator_contribute_button)
-
-        if 'download' in self._buttons:
-            add_link(download_link)
-
-        if 'creator_follow' in self._buttons:
-            add_link(link_for_creator_follow)
-
-        if 'book_follow' in self._buttons:
-            add_link(follow_link)
-
-        if 'book_contribute' in self._buttons:
-            add_link(book_contribute_button)
+        for name, header, func in button_functions:
+            if name in self._buttons:
+                add_link(func, header=header)
 
         sorter_icons = (
             SPAN(
@@ -354,6 +377,7 @@ class Grid(object):
 
         grid_class = make_grid_class(
             export='none', search='none', ui='glyphicon')
+
         self.form_grid = grid_class.grid(query, **kwargs)
         self._paginate = kwargs['paginate']
         # Remove 'None' record count if applicable.
@@ -362,6 +386,7 @@ class Grid(object):
                 del self.form_grid[0][count]
 
     def alpha_paginator(self):
+        """Return alpha paginator instance."""
         return AlphaPaginator(self.request)
 
     def filters(self):
@@ -586,6 +611,62 @@ class Grid(object):
         return []
 
 
+class BaseBookGrid(Grid):
+    """Base class representing a books search result grid"""
+
+    _attributes = {
+        'table': 'book',
+        'field': 'release_date',
+        'label': 'release date',
+        'tab_label': 'completed',
+        'header_label': 'completed',
+        'class': 'orderby_completed',
+        'order_dir': 'DESC',
+    }
+
+    _buttons = [
+        'read',
+    ]
+
+    _not_found_msg = 'No books found'
+
+    def __init__(
+            self,
+            form_grid_args=None,
+            queries=None,
+            default_viewby='tile'):
+        """Constructor"""
+        Grid.__init__(
+            self,
+            form_grid_args=form_grid_args,
+            queries=queries,
+            default_viewby=default_viewby
+        )
+
+    def filters(self):
+        """Define query filters.
+
+        Returns:
+            list of gluon.dal.Expression instances
+        """
+        db = self.db
+        queries = []
+        queries.append((db.book.id > 0))
+        return queries
+
+    def visible_fields(self):
+        """Return list of visible fields.
+
+        Returns:
+            list of gluon.dal.Field instances
+        """
+        db = self.db
+        return [
+            db.book.name,
+            db.book.created_on,
+        ]
+
+
 @Grid.class_factory.register
 class CartoonistsGrid(Grid):
     """Class representing a grid for search results: cartoonist"""
@@ -667,24 +748,13 @@ class CartoonistsGrid(Grid):
             db.creator_grid_v.ongoing,
             db.creator_grid_v.views,
             db.creator_grid_v.downloads,
-            # db.creator.contributions_remaining,
         ]
 
 
 @Grid.class_factory.register
-class CompletedGrid(Grid):
+class CompletedGrid(BaseBookGrid):
     """Class representing a grid for search results: completed"""
     class_factory_id = 'completed'
-
-    _attributes = {
-        'table': 'book',
-        'field': 'release_date',
-        'label': 'release date',
-        'tab_label': 'completed',
-        'header_label': 'completed',
-        'class': 'orderby_completed',
-        'order_dir': 'DESC',
-    }
 
     _buttons = [
         'book_contribute',
@@ -693,19 +763,6 @@ class CompletedGrid(Grid):
     ]
 
     _not_found_msg = 'No completed books'
-
-    def __init__(
-            self,
-            form_grid_args=None,
-            queries=None,
-            default_viewby='tile'):
-        """Constructor"""
-        Grid.__init__(
-            self,
-            form_grid_args=form_grid_args,
-            queries=queries,
-            default_viewby=default_viewby
-        )
 
     def filters(self):
         """Define query filters.
@@ -727,12 +784,11 @@ class CompletedGrid(Grid):
         db = self.db
         return [
             db.book.name,
+            db.auth_user.name,
             db.book.publication_year,
             db.book.release_date,
             db.book.downloads,
             db.book.views,
-            # db.book.contributions_remaining,
-            db.auth_user.name,
         ]
 
 
@@ -781,7 +837,125 @@ class CreatorMoniesGrid(Grid):
 
 
 @Grid.class_factory.register
-class OngoingGrid(Grid):
+class LoginCompletedGrid(CompletedGrid):
+    """Class representing a login area grid for search results: completed"""
+    class_factory_id = 'login_completed'
+
+    _buttons = [
+        'read',
+        'edit',
+        'delete',
+        'fileshare',
+    ]
+
+    _description = (
+        'Completed books are books in their final format. '
+        'All pages are included; no more pages will be added. '
+        'Completed books can be optionally released for file sharing. '
+    )
+
+    def visible_fields(self):
+        """Return list of visible fields.
+
+        Returns:
+            list of gluon.dal.Field instances
+        """
+        db = self.db
+        return [
+            db.book.name,
+            db.book.publication_year,
+            db.book.release_date,
+            db.book.views,
+            db.book.downloads,
+        ]
+
+
+@Grid.class_factory.register
+class LoginDisabledGrid(BaseBookGrid):
+    """Class representing a grid for search results: disabled books"""
+    class_factory_id = 'disabled'
+
+    _buttons = [
+        'edit',
+        'delete',
+    ]
+
+    _description = (
+        'Books are disabled by the site admin '
+        'if they are under copyright review or deemed inappropriate.'
+    )
+
+    _not_found_msg = 'No disabled books'
+
+    def filters(self):
+        """Define query filters.
+
+        Returns:
+            list of gluon.dal.Expression instances
+        """
+        db = self.db
+        queries = []
+        queries.append((db.book.status == BOOK_STATUS_DISABLED))
+        return queries
+
+    def visible_fields(self):
+        """Return list of visible fields.
+
+        Returns:
+            list of gluon.dal.Field instances
+        """
+        db = self.db
+        return [
+            db.book.name,
+            db.book.created_on,
+        ]
+
+
+@Grid.class_factory.register
+class LoginDraftsGrid(BaseBookGrid):
+    """Class representing a grid for search results: draft books"""
+    class_factory_id = 'drafts'
+
+    _buttons = [
+        'upload',
+        'edit',
+        'delete',
+    ]
+
+    _description = (
+        'Books remain as a draft until pages are added. '
+        'Use the Upload button to add page images. '
+        'Drafts are not posted online, nor available in search results. '
+    )
+
+    _not_found_msg = 'No draft books'
+
+    def filters(self):
+        """Define query filters.
+
+        Returns:
+            list of gluon.dal.Expression instances
+        """
+        db = self.db
+        queries = []
+        queries.append((db.book.status == BOOK_STATUS_DRAFT))
+        return queries
+
+    def visible_fields(self):
+        """Return list of visible fields.
+
+        Returns:
+            list of gluon.dal.Field instances
+        """
+        db = self.db
+        return [
+            db.book.name,
+            db.book.created_on,
+        ]
+
+
+@Grid.class_factory.register
+class OngoingGrid(BaseBookGrid):
     """Class representing a grid for search results: ongoing"""
     class_factory_id = 'ongoing'
 
@@ -803,19 +977,6 @@ class OngoingGrid(Grid):
 
     _not_found_msg = 'No ongoing series'
 
-    def __init__(
-            self,
-            form_grid_args=None,
-            queries=None,
-            default_viewby='tile'):
-        """Constructor"""
-        Grid.__init__(
-            self,
-            form_grid_args=form_grid_args,
-            queries=queries,
-            default_viewby=default_viewby
-        )
-
     def filters(self):
         """Define query filters.
 
@@ -836,10 +997,44 @@ class OngoingGrid(Grid):
         db = self.db
         return [
             db.book.name,
+            db.auth_user.name,
             db.book.page_added_on,
             db.book.views,
-            # db.book.contributions_remaining,
-            db.auth_user.name,
+        ]
+
+
+@Grid.class_factory.register
+class LoginOngoingGrid(OngoingGrid):
+    """Class representing a login area grid for search results: ongoing"""
+    class_factory_id = 'login_ongoing'
+
+    _buttons = [
+        'read',
+        'upload',
+        'edit',
+        'delete',
+        'complete'
+    ]
+
+    _description = (
+        'Ongoing books are incomplete and in progress. '
+        'Creators can upload pages to their ongoing books '
+        'as they become available. '
+        'Every book starts at the Ongoing stage. '
+        'They have to be set to completed to move to the Completed stage. '
+    )
+
+    def visible_fields(self):
+        """Return list of visible fields.
+
+        Returns:
+            list of gluon.dal.Field instances
+        """
+        db = self.db
+        return [
+            db.book.name,
+            db.book.views,
+            db.book.page_added_on,
         ]
 
 
@@ -905,10 +1100,9 @@ class SearchGrid(Grid):
         db = self.db
         return [
             db.book.name,
+            db.auth_user.name,
             db.book.page_added_on,
             db.book.views,
-            db.book.contributions_remaining,
-            db.auth_user.name,
         ]
 
 
@@ -1308,11 +1502,33 @@ def book_contribute_button(row):
     if 'creator' not in row or not row.creator.paypal_email:
         return ''
 
+    components = [
+        IMG(
+            _src=URL('static', 'images/icons/contribute.svg'),
+            _alt='',
+            _title='Contribute',
+            _class='grid_icon',
+        )
+    ]
+
     book = Book.from_id(book_id)
     return book_contribute_link(
         book,
+        components=components,
         **dict(_class='btn btn-default contribute_button no_rclick_menu')
     )
+
+
+def complete_link(row):
+    """Return a 'set as completed' link suitable for grid row."""
+    if not row:
+        return ''
+    book_id = link_book_id(row)
+    if not book_id:
+        return ''
+
+    book = Book.from_id(book_id)
+    return book_complete_link(book)
 
 
 def creator_contribute_button(row):
@@ -1325,10 +1541,33 @@ def creator_contribute_button(row):
     creator = Creator.from_id(row.creator.id)
     if not can_receive_contributions(creator):
         return ''
+
+    components = [
+        IMG(
+            _src=URL('static', 'images/icons/contribute.svg'),
+            _alt='',
+            _title='Contribute',
+            _class='grid_icon',
+        )
+    ]
+
     return creator_contribute_link(
         creator,
+        components=components,
         **dict(_class='btn btn-default contribute_button no_rclick_menu')
     )
+
+
+def delete_link(row):
+    """Return a 'Delete' link suitable for grid row."""
+    if not row:
+        return ''
+    book_id = link_book_id(row)
+    if not book_id:
+        return ''
+
+    book = Book.from_id(book_id)
+    return book_delete_link(book)
 
 
 def download_link(row):
@@ -1343,10 +1582,56 @@ def download_link(row):
     if not show_download_link(book):
         return ''
 
+    components = [
+        IMG(
+            _src=URL('static', 'images/icons/download.svg'),
+            _alt='',
+            _title='Download',
+            _class='grid_icon',
+        )
+    ]
+
     return book_download_link(
         book,
+        components=components,
         **dict(_class='btn btn-default download_button no_rclick_menu')
     )
+
+
+def edit_link(row):
+    """Return a 'Edit' link suitable for grid row."""
+    if not row:
+        return ''
+    book_id = link_book_id(row)
+    if not book_id:
+        return ''
+
+    book = Book.from_id(book_id)
+    return book_edit_link(book)
+
+
+def edit_link_allow_upload(row):
+    """Return a 'Edit' link with upload allowed suitable for grid row."""
+    if not row:
+        return ''
+    book_id = link_book_id(row)
+    if not book_id:
+        return ''
+
+    book = Book.from_id(book_id)
+    return book_edit_link(book, allow_upload_on_edit=True)
+
+
+def fileshare_link(row):
+    """Return a 'release for filesharing' link suitable for grid row."""
+    if not row:
+        return ''
+    book_id = link_book_id(row)
+    if not book_id:
+        return ''
+
+    book = Book.from_id(book_id)
+    return book_fileshare_link(book)
 
 
 def follow_link(row):
@@ -1362,8 +1647,18 @@ def follow_link(row):
     if not is_followable(book):
         return ''
 
+    components = [
+        IMG(
+            _src=URL('static', 'images/icons/follow.svg'),
+            _alt='',
+            _title='Follow',
+            _class='grid_icon',
+        )
+    ]
+
     return book_follow_link(
         book,
+        components=components,
         **dict(_class='btn btn-default rss_button no_rclick_menu')
     )
 
@@ -1383,9 +1678,21 @@ def link_for_creator_follow(row):
         return ''
     if 'creator' not in row or not row.creator.id:
         return ''
+
     creator = Creator.from_id(row.creator.id)
+
+    components = [
+        IMG(
+            _src=URL('static', 'images/icons/follow.svg'),
+            _alt='',
+            _title='Follow',
+            _class='grid_icon',
+        )
+    ]
+
     return creator_follow_link(
         creator,
+        components=components,
         **dict(_class='btn btn-default rss_button no_rclick_menu')
     )
 
@@ -1396,9 +1703,21 @@ def link_for_creator_torrent(row):
         return ''
     if 'creator' not in row or not row.creator.id or not row.creator.torrent:
         return ''
+
     creator = Creator.from_id(row.creator.id)
+
+    components = [
+        IMG(
+            _src=URL('static', 'images/icons/download.svg'),
+            _alt='',
+            _title='Download',
+            _class='grid_icon',
+        )
+    ]
+
     return creator_download_link(
         creator,
+        components=components,
         **dict(_class='btn btn-default download_button no_rclick_menu')
     )
 
@@ -1411,7 +1730,30 @@ def read_link(row):
     if not book_id:
         return ''
     book = Book.from_id(book_id)
+
+    components = [
+        IMG(
+            _src=URL('static', 'images/icons/read.svg'),
+            _alt='',
+            _title='Read',
+            _class='grid_icon',
+        )
+    ]
+
     return book_read_link(
         book,
+        components=components,
         **dict(_class='btn btn-default zco_book_reader')
     )
+
+
+def upload_link(row):
+    """Return a 'Upload' link suitable for grid row."""
+    if not row:
+        return ''
+    book_id = link_book_id(row)
+    if not book_id:
+        return ''
+
+    book = Book.from_id(book_id)
+    return book_upload_link(book)

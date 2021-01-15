@@ -41,8 +41,10 @@ from applications.zcomx.modules.books import (
     cover_image,
     default_contribute_amount,
     defaults,
+    delete_link,
     download_link,
     downloadable,
+    edit_link,
     fileshare_link,
     follow_link,
     formatted_name,
@@ -74,6 +76,7 @@ from applications.zcomx.modules.books import (
     torrent_url,
     update_contributions_remaining,
     update_rating,
+    upload_link,
     url,
 )
 from applications.zcomx.modules.cc_licences import CCLicence
@@ -1046,6 +1049,64 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         got = defaults(self._book.name, None)
         self.assertEqual(got, {})
 
+    def test__delete_link(self):
+        empty = '<span></span>'
+
+        book = Book(dict(
+            id=123,
+            name='test__delete_link',
+        ))
+
+        link = delete_link(book)
+        # Eg <a class="btn btn-default btn-xs modal-delete-btn no_rclick_menu" data-book_id="123" href="/login/book_delete/123">
+        #    <i class="icon zc-trash size-18"></i>
+        # </a>
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+
+        icon = anchor.find('i')
+        self.assertEqual(icon.string, None)
+        self.assertEqual(icon['class'], ['icon', 'zc-trash', 'size-18'])
+
+        self.assertEqual(
+            anchor['class'],
+            [
+                'btn',
+                'btn-default',
+                'btn-xs',
+                'modal-delete-btn',
+                'no_rclick_menu',
+            ]
+        )
+        self.assertEqual(anchor['data-book_id'], '123')
+        self.assertEqual(anchor['href'], '/login/book_delete/123')
+
+        # Invalid id
+        link = delete_link(None)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = delete_link(book, components=components)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+            _rel='noopener noreferrer',
+        )
+        link = delete_link(book, **attributes)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
+        self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
+
     def test__download_link(self):
         empty = '<span></span>'
 
@@ -1134,6 +1195,77 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(len(got), 10)
         names = [x.name for x in got]
         self.assertEqual(names, sorted(names))
+
+    def test__edit_link(self):
+        empty = '<span></span>'
+
+        book = Book(dict(
+            id=123,
+            name='test__edit_link',
+        ))
+
+        link = edit_link(book)
+        # Eg <a class="btn btn-default modal-edit-btn no_rclick_menu" data-book_id="123" href="/login/book_edit/123">Edit</a>
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Edit')
+        self.assertEqual(
+            anchor['class'],
+            [
+                'btn',
+                'btn-default',
+                'modal-edit-btn',
+                'no_rclick_menu',
+            ]
+        )
+        self.assertEqual(anchor['data-book_id'], '123')
+        self.assertEqual(anchor['href'], '/login/book_edit/123')
+
+        # Invalid id
+        link = edit_link(None)
+        self.assertEqual(str(link), empty)
+
+        # Test allow_upload_on_edit
+        tests = [
+            # (allow_upload_on_edit, expect class)
+            (False, 'modal-edit-btn'),
+            (True, 'modal-edit-ongoing-btn'),
+        ]
+        for t in tests:
+            link = edit_link(book, allow_upload_on_edit=t[0])
+            soup = BeautifulSoup(str(link), 'html.parser')
+            anchor = soup.find('a')
+            self.assertEqual(
+                anchor['class'],
+                [
+                    'btn',
+                    'btn-default',
+                    t[1],
+                    'no_rclick_menu',
+                ]
+            )
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = edit_link(book, components=components)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+            _rel='noopener noreferrer',
+        )
+        link = edit_link(book, **attributes)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
+        self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__fileshare_link(self):
         empty = '<span></span>'
@@ -2389,6 +2521,57 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             book,
             rating='_invalid_'
         )
+
+    def test__upload_link(self):
+        empty = '<span></span>'
+
+        book = Book(dict(
+            id=123,
+            name='test__upload_link',
+        ))
+
+        link = upload_link(book)
+        # Eg <a class="btn btn-default modal-upload-btn no_rclick_menu" data-book_id="123" href="/login/book_pages/123">Edit</a>
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'Upload')
+        self.assertEqual(
+            anchor['class'],
+            [
+                'btn',
+                'btn-default',
+                'modal-upload-btn',
+                'no_rclick_menu',
+            ]
+        )
+        self.assertEqual(anchor['data-book_id'], '123')
+        self.assertEqual(anchor['href'], '/login/book_pages/123')
+
+        # Invalid id
+        link = upload_link(None)
+        self.assertEqual(str(link), empty)
+
+        # Test components param
+        components = ['aaa', 'bbb']
+        link = upload_link(book, components=components)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor.string, 'aaabbb')
+
+        # Test attributes
+        attributes = dict(
+            _href='/path/to/file',
+            _class='btn btn-large',
+            _target='_blank',
+            _rel='noopener noreferrer',
+        )
+        link = upload_link(book, **attributes)
+        soup = BeautifulSoup(str(link), 'html.parser')
+        anchor = soup.find('a')
+        self.assertEqual(anchor['href'], '/path/to/file')
+        self.assertEqual(anchor['class'], ['btn', 'btn-large'])
+        self.assertEqual(anchor['target'], '_blank')
+        self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__url(self):
         self.assertEqual(url(None), None)
