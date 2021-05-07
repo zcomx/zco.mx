@@ -918,10 +918,9 @@ class TestSearchGrid(LocalTestCase):
             grid.visible_fields(),
             [
                 db.book.name,
+                db.auth_user.name,
                 db.book.page_added_on,
                 db.book.views,
-                db.book.contributions_remaining,
-                db.auth_user.name,
             ]
         )
 
@@ -1649,6 +1648,16 @@ class TestFunctions(LocalTestCase):
         anchor = soup.find('a')
         if anchor:
             data['string'] = anchor.string
+            data['img'] = None
+            if anchor.img:
+                data['img'] = anchor.img
+                for attr in ['src', 'class', 'title']:
+                    img_attr = 'img_{a}'.format(a=attr)
+                    try:
+                        data[img_attr] = anchor.img[attr]
+                    except KeyError:
+                        data[img_attr] = None
+
             for attr in ['href', 'class', 'type']:
                 try:
                     data[attr] = anchor[attr]
@@ -1686,7 +1695,13 @@ class TestFunctions(LocalTestCase):
             self._creator, dict(paypal_email='paypal@email.com'))
 
         data = self._parse_link(book_contribute_button(self._row()))
-        self.assertEqual(data['string'], 'Contribute')
+        self.assertEqual(data['string'], None)
+        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_title'], 'Contribute')
+        self.assertEqual(
+            data['img_src'],
+            '/zcomx/static/images/icons/contribute.svg'
+        )
         self.assertTrue('/contributions/modal?book_id=' in data['href'])
         self.assertTrue('contribute_button' in data['class'])
 
@@ -1709,7 +1724,13 @@ class TestFunctions(LocalTestCase):
             self._creator, dict(paypal_email='paypal@email.com'))
 
         data = self._parse_link(creator_contribute_button(self._row()))
-        self.assertEqual(data['string'], 'Contribute')
+        self.assertEqual(data['string'], None)
+        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_title'], 'Contribute')
+        self.assertEqual(
+            data['img_src'],
+            '/zcomx/static/images/icons/contribute.svg'
+        )
         self.assertTrue('/contributions/modal?creator_id=' in data['href'])
         self.assertTrue('contribute_button' in data['class'])
 
@@ -1735,7 +1756,13 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(download_link({}), '')
         row = self._row()
         data = self._parse_link(download_link(row))
-        self.assertEqual(data['string'], 'Download')
+        self.assertEqual(data['string'], None)
+        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_title'], 'Download')
+        self.assertEqual(
+            data['img_src'],
+            '/zcomx/static/images/icons/download.svg'
+        )
         self.assertEqual(data['href'], '/downloads/modal/book/{i}'.format(
             i=row.book.id))
         self.assertEqual(
@@ -1799,7 +1826,13 @@ class TestFunctions(LocalTestCase):
 
         row = self._row(book_id=self._ongoing_book.id)
         data = self._parse_link(follow_link(row))
-        self.assertEqual(data['string'], 'Follow')
+        self.assertEqual(data['string'], None)
+        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_title'], 'Follow')
+        self.assertEqual(
+            data['img_src'],
+            '/zcomx/static/images/icons/follow.svg'
+        )
         self.assertEqual(data['href'], '/rss/modal/{i}'.format(
             i=self._ongoing_book.creator_id))
         self.assertEqual(
@@ -1818,7 +1851,13 @@ class TestFunctions(LocalTestCase):
     def test__link_for_creator_follow(self):
         self.assertEqual(link_for_creator_follow({}), '')
         data = self._parse_link(link_for_creator_follow(self._row()))
-        self.assertEqual(data['string'], 'Follow')
+        self.assertEqual(data['string'], None)
+        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_title'], 'Follow')
+        self.assertEqual(
+            data['img_src'],
+            '/zcomx/static/images/icons/follow.svg'
+        )
         self.assertEqual(data['href'], '/rss/modal/{i}'.format(
             i=self._book.creator_id))
         self.assertEqual(
@@ -1839,7 +1878,13 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(self._row().creator.torrent, 'FirstLast.torrent')
 
         data = self._parse_link(link_for_creator_torrent(self._row()))
-        self.assertEqual(data['string'], 'Download')
+        self.assertEqual(data['string'], None)
+        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_title'], 'Download')
+        self.assertEqual(
+            data['img_src'],
+            '/zcomx/static/images/icons/download.svg'
+        )
         self.assertEqual(
             data['href'],
             '/downloads/modal/creator/{i}'.format(i=self._creator.id)
@@ -1860,7 +1905,13 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(read_link({}), '')
 
         data = self._parse_link(read_link(self._row()))
-        self.assertEqual(data['string'], 'Read')
+        self.assertEqual(data['string'], None)
+        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_title'], 'Read')
+        self.assertEqual(
+            data['img_src'],
+            '/zcomx/static/images/icons/read.svg'
+        )
         self.assertTrue(
             '/FirstLast/MyFunctionsBook/001' in data['href'])
         self.assertTrue('btn' in data['class'])
