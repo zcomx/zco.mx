@@ -54,6 +54,7 @@ applications/*/sessions/*
 applications/*/uploads/*
 !applications/*/uploads/.gitignore
 applications/*/*.py[oc]
+!applications/zcomx/static/bgrins-spectrum-1.8.1
 applications/*/static/epydoc
 applications/*/static/sphinx
 applications/*/static/data/*
