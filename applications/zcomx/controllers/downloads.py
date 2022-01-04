@@ -146,6 +146,7 @@ def modal():
 
     if request.args(0) and request.args(1):
         if request.args(0) == 'book':
+            book = None
             try:
                 book = Book.from_id(request.args(1))
             except LookupError:
@@ -154,6 +155,7 @@ def modal():
                 book_id = book.id
                 creator_id = book.creator_id
         elif request.args(0) == 'creator':
+            creator = None
             try:
                 creator = Creator.from_id(request.args(1))
             except LookupError:
