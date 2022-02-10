@@ -487,6 +487,11 @@ def complete_link(book, components=None, **attributes):
         kwargs['_href'] = URL(
             c='login', f='book_complete', args=book.id, extension=False)
 
+    class_attr = attributes['_class'] if '_class' in attributes \
+        else 'modal-complete-btn no_rclick_menu'
+    kwargs['_class'] = class_attr.strip()
+    kwargs['_data-book_id'] = book.id
+
     return A(*components, **kwargs)
 
 
@@ -804,6 +809,12 @@ def fileshare_link(book, components=None, **attributes):
     if '_href' not in attributes:
         kwargs['_href'] = URL(
             c='login', f='book_fileshare', args=book.id, extension=False)
+
+    class_attr = attributes['_class'] if '_class' in attributes \
+        else 'modal-fileshare-btn no_rclick_menu'
+
+    kwargs['_class'] = class_attr.strip()
+    kwargs['_data-book_id'] = book.id
 
     return A(*components, **kwargs)
 

@@ -9,6 +9,7 @@ import os
 import pwd
 import re
 import unittest
+import urllib.parse
 from bs4 import BeautifulSoup
 from PIL import Image
 from gluon import *
@@ -274,7 +275,12 @@ class TestImgTag(WithObjectsTestCase, ImageTestCase):
 
         img_tag = ImgTag(self._creator.image)
         tag = img_tag()
-        has_attr(get_tag(tag, 'img'), 'src', self._creator.image, oper='in')
+        has_attr(
+            get_tag(tag, 'img'),
+            'src',
+            urllib.parse.quote(self._creator.image),
+            oper='in'
+        )
         has_attr(get_tag(tag, 'img'), 'src', 'size=original', oper='in')
 
         img_tag = ImgTag(self._creator.image, size='web')
@@ -946,8 +952,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         working_image = self._prep_image('cbz_plus.jpg')
         got = store(db.book_page.image, working_image)
         re_store = re.compile(
-            r'book_page\.image\.[a-f0-9]{16}\.[a-f0-9]+\.jpg')
-        # Eg book_page.image.ad8557025bd26287.66696c652e6a7067.jpg
+            r'book_page\.image\.[a-f0-9]{16}\.[a-zA-Z0-9]+\.jpg')
+        # Eg book_page.image.8ee3a1b8e0ee83e7.Y2J6X3BsdXMuanBn.jpg
         #    book_page.image.810bab749df4eaeb.63627a5f706c75732e6a7067.jpg
         self.assertTrue(re_store.match(got))
 

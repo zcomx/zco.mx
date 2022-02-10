@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/controllers/login.py
-
 """
 import json
 import os
 import time
 import unittest
+import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
@@ -1122,7 +1120,7 @@ class TestFunctions(WebTestCase):
         self.assertEqual(
             img['src'],
             '/images/download.json/{i}?cache=1&size=web'.format(
-                i=creator.image
+                i=urllib.parse.quote(creator.image)
             )
         )
 

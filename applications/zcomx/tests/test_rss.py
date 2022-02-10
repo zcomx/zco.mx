@@ -10,6 +10,7 @@ import io
 import datetime
 import re
 import unittest
+import urllib.parse
 import gluon.contrib.rss2 as rss2
 from xml.sax import saxutils
 from xml.etree import ElementTree as element_tree
@@ -206,7 +207,9 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
         fmt = 'http://zco.mx/images/download/{i}?size=web'
         self.assertEqual(
             enclosure.url,
-            fmt.format(i=self._book_page.image)
+            fmt.format(
+                i=urllib.parse.quote(self._book_page.image)
+            )
         )
         self.assertEqual(enclosure.length, 14727)
         self.assertEqual(enclosure.type, 'image/jpeg')
@@ -378,7 +381,9 @@ class TestBaseRSSEntry(WithObjectsTestCase, ImageTestCase):
         fmt = 'http://zco.mx/images/download/{i}?size=web'
         self.assertEqual(
             enclosure.url,
-            fmt.format(i=self._book_page.image)
+            fmt.format(
+                i=urllib.parse.quote(self._book_page.image)
+            )
         )
         self.assertEqual(enclosure.length, 14727)
         self.assertEqual(enclosure.type, 'image/jpeg')

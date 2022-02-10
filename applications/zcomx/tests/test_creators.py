@@ -6,6 +6,7 @@ Test suite for zcomx/modules/creators.py
 import json
 import os
 import unittest
+import urllib.parse
 from bs4 import BeautifulSoup
 from gluon import *
 from gluon.storage import Storage
@@ -685,10 +686,10 @@ class TestFunctions(ImageTestCase):
 
         expect.filename = filename
         expect.size = os.stat(fullname).st_size
-        expect.down_url = '/images/download/{img}'.format(
-            img=creator.image)
-        expect.thumb = '/images/download/{img}?size=web'.format(
-            img=creator.image)
+        expect.down_url = urllib.parse.quote(
+            '/images/download/{img}'.format(img=creator.image)
+        )
+        expect.thumb = expect.down_url + '?size=web'
         expect.delete_url = '/login/creator_img_handler/image'
 
         do_test(json.loads(image_json), expect)
@@ -702,10 +703,10 @@ class TestFunctions(ImageTestCase):
         )
         expect.filename = filename
         expect.size = os.stat(fullname).st_size
-        expect.down_url = '/images/download/{img}'.format(
-            img=creator.indicia_image)
-        expect.thumb = '/images/download/{img}?size=web'.format(
-            img=creator.indicia_image)
+        expect.down_url = urllib.parse.quote(
+            '/images/download/{img}'.format(img=creator.indicia_image)
+        )
+        expect.thumb = expect.down_url + '?size=web'
         expect.delete_url = '/login/creator_img_handler/indicia_image'
 
         do_test(json.loads(image_json), expect)

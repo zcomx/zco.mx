@@ -89,7 +89,6 @@ from applications.zcomx.modules.images import (
     store,
 )
 from applications.zcomx.modules.tests.helpers import (
-    DubMeta,
     ImageTestCase,
     ResizerQuick,
     skip_if_quick,
@@ -244,9 +243,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             resizer=ResizerQuick
         )
 
-        down_url = '/images/download/{img}'.format(img=self._book_page.image)
-        thumb = '/images/download/{img}?size=web'.format(
-            img=self._book_page.image)
+        down_url = urllib.parse.quote(
+            '/images/download/{img}'.format(img=self._book_page.image)
+        )
+        thumb = down_url + '?size=web'
         fmt = '/login/book_pages_handler/{bid}?book_page_id={pid}'
         delete_url = fmt.format(
             bid=self._book_page.book_id,
@@ -730,7 +730,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         link = complete_link(book)
         soup = BeautifulSoup(str(link), 'html.parser')
-        # <a href="/login/book_complete/2876">
+        # <a class="modal-complete-btn no_rclick_menu" data-book_id="123" href="/login/book_complete/123">
         #   <div class="checkbox_wrapper">
         #     <input type="checkbox" value="off" />
         #   </div>
@@ -740,6 +740,9 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             anchor['href'],
             '/login/book_complete/123'
         )
+        self.assertEqual(
+            anchor['class'], ['modal-complete-btn', 'no_rclick_menu'])
+        self.assertEqual(anchor['data-book_id'], '123')
         div = anchor.find('div')
         self.assertEqual(div['class'], ['checkbox_wrapper'])
         checkbox_input = div.find('input')
@@ -1193,8 +1196,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         # Test orderby, limitby
         got = downloadable(orderby=db.book.name, limitby=(0, 10))
         self.assertEqual(len(got), 10)
-        names = [x.name for x in got]
-        self.assertEqual(names, sorted(names))
+        unsorted_names = [x.name for x in got]
+        self.assertEqual(unsorted_names, sorted(unsorted_names))
 
     def test__edit_link(self):
         empty = '<span></span>'
@@ -1280,7 +1283,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         link = fileshare_link(book)
         soup = BeautifulSoup(str(link), 'html.parser')
-        # <a href="/login/book_fileshare/2876">
+        # <a class="modal-fileshare-btn no_rclick_menu" data-book_id="123" href="/login/book_fileshare/123">
         #   <div class="checkbox_wrapper">
         #     <input type="checkbox" value="off" />
         #   </div>
@@ -1290,6 +1293,9 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             anchor['href'],
             '/login/book_fileshare/123'
         )
+        self.assertEqual(
+            anchor['class'], ['modal-fileshare-btn', 'no_rclick_menu'])
+        self.assertEqual(anchor['data-book_id'], '123')
         div = anchor.find('div')
         self.assertEqual(div['class'], ['checkbox_wrapper'])
         checkbox_input = div.find('input')
