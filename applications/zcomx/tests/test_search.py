@@ -859,7 +859,7 @@ class TestMoniesBookTile(TileTestCase):
         div_1 = div.div
         self.assertEqual(div_1['class'], ['row'])
         # web2py IMG adds a space '<img src="..." />'
-        expect = str(tile.image()).replace('" />', '"/>')
+        expect = str(tile.image()).replace('" />', '"/>').replace('&', '&amp;')
         self.assertEqual(str(div_1.div), expect)
 
         div_2 = div_1.nextSibling
@@ -1223,7 +1223,7 @@ class TestBookTile(TileTestCase):
         div_3 = div_2.nextSibling
         self.assertEqual(div_3['class'], ['row'])
         # web2py IMG adds a space '<img src="..." />'
-        expect = str(tile.image()).replace('" />', '"/>')
+        expect = str(tile.image()).replace('" />', '"/>').replace('&', '&amp;')
         self.assertEqual(str(div_3.div), expect)
 
         div_4 = div_3.nextSibling
@@ -1553,7 +1553,7 @@ class TestCartoonistTile(TileTestCase):
         div_2 = div_1.nextSibling
         self.assertEqual(div_2['class'], ['row'])
         # web2py IMG adds a space '<img src="..." />'
-        expect = str(tile.image()).replace('" />', '"/>')
+        expect = str(tile.image()).replace('" />', '"/>').replace('&', '&amp;')
         self.assertEqual(str(div_2.div), expect)
 
         div_3 = div_2.nextSibling

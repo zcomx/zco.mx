@@ -955,7 +955,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(
             str(cover_image(book)),
-            '<img alt="" src="/images/download/book_page.image.page_trees.png?cache=1&amp;size=original" />'
+            '<img alt="" src="/images/download/book_page.image.page_trees.png?cache=1&size=original" />'
         )
 
     def test__default_contribute_amount(self):
