@@ -21,6 +21,8 @@
                 this.options
             );
             this.bloodhound = new Bloodhound(opts);
+            this.bloodhound.clearPrefetchCache()
+            this.bloodhound.clearRemoteCache()
         },
 
         prefetch_options: function () {
