@@ -592,7 +592,7 @@ class IndiciaSh(TempDirectoryMixin):
         p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
         if p_stdout:
-            LOG.warn('IndiciaSh run stdout: %s', p_stdout)
+            LOG.warning('IndiciaSh run stdout: %s', p_stdout)
         if p_stderr:
             LOG.error('IndiciaSh run stderr: %s', p_stderr)
 

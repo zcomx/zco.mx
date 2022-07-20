@@ -287,7 +287,7 @@ class GraphAPI(object):
                 try:
                     return load(method, url, data)
                 except FacepyError as e:
-                    logging.warn("Exception on %s: %s, retries remaining: %s" % (
+                    logging.warning("Exception on %s: %s, retries remaining: %s" % (
                         url,
                         e,
                         remaining_retries,

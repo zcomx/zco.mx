@@ -318,7 +318,7 @@ def chown():
     p_stdout, p_stderr = p.communicate()
     # Generally there should be no output. Log to help troubleshoot.
     if p_stdout:
-        LOG.warn('ResizeImg run stdout: {out}'.format(out=p_stdout))
+        LOG.warning('ResizeImg run stdout: {out}'.format(out=p_stdout))
     if p_stderr:
         LOG.error('ResizeImg run stderr: {err}'.format(err=p_stderr))
 

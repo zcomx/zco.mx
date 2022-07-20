@@ -264,7 +264,7 @@ class ResizeImg(TempDirectoryMixin):
         p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
         if p_stdout:
-            LOG.warn('ResizeImg run stdout: %s', p_stdout)
+            LOG.warning('ResizeImg run stdout: %s', p_stdout)
         if p_stderr:
             LOG.error('ResizeImg run stderr: %s', p_stderr)
 
@@ -342,7 +342,7 @@ class ResizeImgIndicia(ResizeImg):
         p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
         if p_stdout:
-            LOG.warn('ResizeImgIndicia run stdout: %s', p_stdout)
+            LOG.warning('ResizeImgIndicia run stdout: %s', p_stdout)
         if p_stderr:
             LOG.error('ResizeImgIndicia run stderr: %s', p_stderr)
 
@@ -534,7 +534,7 @@ def optimize(filename, nice=NICES['optimize'], quick=False):
         p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
         if p_stdout:
-            LOG.warn('optimize_img.sh run stdout: %s', p_stdout)
+            LOG.warning('optimize_img.sh run stdout: %s', p_stdout)
         if p_stderr:
             LOG.error('optimize_img.sh run stderr: %s', p_stderr)
 

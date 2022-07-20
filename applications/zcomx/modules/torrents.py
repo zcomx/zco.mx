@@ -70,6 +70,7 @@ class BaseTorrentCreator(TempDirectoryMixin):
         if not target:
             raise TorrentCreateError('Unable to get torrent target.')
 
+        LOG.error('FIXME target: %s', target)
         if not os.path.exists(target):
             raise LookupError('Torrent target not found: {t}'.format(
                 t=target))

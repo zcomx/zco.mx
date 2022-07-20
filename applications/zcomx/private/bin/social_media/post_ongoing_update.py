@@ -372,11 +372,11 @@ def main():
         if ongoing_post.tumblr_post_id \
                 and ongoing_post.tumblr_post_id != IN_PROGRESS \
                 and not options.force:
-            LOG.warn(
+            LOG.warning(
                 'Ongoing_post has tumblr_post_id: %s',
                 ongoing_post.tumblr_post_id
             )
-            LOG.warn('Refusing to post to tumblr without --force')
+            LOG.warning('Refusing to post to tumblr without --force')
         else:
             tumblr_post_id = post_on_tumblr(ongoing_post)
             if tumblr_post_id:
@@ -387,11 +387,11 @@ def main():
         if ongoing_post.twitter_post_id \
                 and ongoing_post.twitter_post_id != IN_PROGRESS \
                 and not options.force:
-            LOG.warn(
+            LOG.warning(
                 'Ongoing_post has twitter_post_id: %s',
                 ongoing_post.twitter_post_id
             )
-            LOG.warn('Refusing to post to twitter without --force')
+            LOG.warning('Refusing to post to twitter without --force')
         else:
             twitter_post_id = post_on_twitter(ongoing_post)
             if twitter_post_id:
@@ -405,11 +405,11 @@ def main():
         elif ongoing_post.facebook_post_id \
                 and ongoing_post.facebook_post_id != IN_PROGRESS \
                 and not options.force:
-            LOG.warn(
+            LOG.warning(
                 'Ongoing_post has facebook_post_id: %s',
                 ongoing_post.facebook_post_id
             )
-            LOG.warn('Refusing to post to facebook without --force')
+            LOG.warning('Refusing to post to facebook without --force')
         else:
             facebook_post_id = post_on_facebook(ongoing_post)
             if facebook_post_id:
