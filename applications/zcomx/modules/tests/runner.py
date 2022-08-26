@@ -7,6 +7,7 @@ Classes for local python test_suite scripts.
 """
 import inspect
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -16,7 +17,7 @@ import urllib.error
 import urllib.parse
 from io import StringIO
 from bs4 import BeautifulSoup
-
+from gluon import *
 from gluon.contrib.webclient import (
     WebClient,
     DEFAULT_HEADERS as webclient_default_headers,
@@ -65,7 +66,7 @@ class LocalTestCase(unittest.TestCase):
 
     def __init__(self, methodName='runTest'):
         """Constructor."""
-        unittest.TestCase.__init__(self, methodName=methodName)
+        super().__init__(methodName=methodName)
         self._start_time = None
 
     @classmethod
@@ -89,47 +90,48 @@ class LocalTestCase(unittest.TestCase):
             cls._objs.runner.append(obj)
 
     def _cleanup(self):
-        """Cleanup executed after every test fixture."""
-        for obj in self._objects:
-            if hasattr(obj, 'remove'):
-                self._remove_comments_for(obj)
-                obj.remove()
-            elif hasattr(obj, 'delete') and hasattr(obj, 'id'):
-                obj.delete()
-            elif hasattr(obj, 'delete_record'):
-                db = current.app.db
-                obj.delete_record()
-                db.commit()
-        LocalTestCase._objects = []
+        """Cleanup executed after every test fixture.
 
-    def _remove_comments_for(self, obj):
-        """Remove all comments associated with an object.
+        Note: this is run once for each test__*, like setUp. Will be run
+        multiple times for each test class.
+        """
+        remove_objects(LocalTestCase._objects)
+        LocalTestCase._objects = []
+        remove_objects(LocalTestCase._objs.case)
+        LocalTestCase._objs.case = []
+        if self._trackers:
+            for obj in self._trackers.job.diff():
+                obj.remove()
+            for obj in self._trackers.job_history.diff():
+                obj.remove()
+        self._trackers = None
+
+    def _create_job_trackers(self, runner_cleanup=False):
+        """Create job trackers."""
+        db = current.app.db
+        max_history_id = db.job_history.id.max()
+        rows = db(db.job_history.id != 0).select(max_history_id)
+        max_id = rows[0][max_history_id] if rows else 0
+        query = (db.job_history.id > max_id)
+        job_tracker = TableTracker(Job)
+        job_history_tracker = TableTracker(JobHistory, query=query)
+        self._trackers = Storage({
+            'job': job_tracker,
+            'job_history': job_history_tracker,
+        })
+        if runner_cleanup:
+            self._runner_trackers.append(job_tracker)
+            self._runner_trackers.append(job_history_tracker)
+        return self._trackers
+
+    @classmethod
+    def _reload(cls, obj):
+        """Reload an object.
 
         Args:
-            obj: DbObject instance
+            obj: DbObject
         """
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-        # W0603: *Using the global statement*
-        # pylint: disable=W0603
-        # R0201: *Method could be a function*
-        # pylint: disable=R0201
-
-        # Remove comments.
-        global FILTER_TABLES
-        db = current.app.db
-        if 'comment' in db.tables:
-            if not FILTER_TABLES:
-                FILTER_TABLES = [
-                    x.filter_table for x in db(db.comment.id > 0).select(
-                        db.comment.filter_table, distinct=True
-                    )
-                ]
-            if obj.tbl._tablename in FILTER_TABLES:
-                query = (db.comment.filter_table == obj.tbl._tablename) & \
-                        (db.comment.filter_id == obj.id)
-                db(query).delete()
-                db.commit()
+        return obj.__class__.from_id(obj.id)
 
     @classmethod
     def add(cls, obj, data):
@@ -294,6 +296,10 @@ class LocalTestCase(unittest.TestCase):
         """Run test fixture."""
         self.addCleanup(self._cleanup)
         self._start_time = time.time()
+        # Clear memcache
+        if current.app.local_settings \
+                and current.app.local_settings.memcached_socket:
+            current.cache.memcache.flush_all()
         unittest.TestCase.run(self, result)
 
     @classmethod
@@ -313,6 +319,7 @@ class LocalTestCase(unittest.TestCase):
             current.request = APP_ENV[app]['request']
             current.response = APP_ENV[app]['response']
             current.session = APP_ENV[app]['session']
+            current.cache = APP_ENV[app]['cache']
             current.app = Storage()
             current.app.auth = APP_ENV[app]['auth']
             current.app.db = APP_ENV[app]['db']
@@ -327,6 +334,7 @@ class LocalTestCase(unittest.TestCase):
         env['session'] = APP_ENV[app]['current'].session
         env['auth'] = APP_ENV[app]['current'].app.auth
         env['db'] = APP_ENV[app]['current'].app.db
+        env['cache'] = APP_ENV[app]['current'].cache
         login_user = None
         login_password = None
         login_employee_id = 0
@@ -387,28 +395,41 @@ class LocalTextTestResult(unittest._TextTestResult):
     """
 
     # Many varibles are copied as is from unittest code.
-    # pylint: disable=C0103
-    # pylint: disable=W0212
-    # pylint: disable=W0231
-    # pylint: disable=W0233
+    # pylint: disable=protected-access
+    # pylint: disable=super-init-not-called
+    # pylint: disable=redefined-outer-name
+    # pylint: disable=invalid-name
+    # pylint: disable=line-too-long
 
     separator1 = '=' * 70
     separator2 = '-' * 70
 
     def __init__(self, stream, stream_err, descriptions, verbosity):
         """Constructor."""
-        unittest.TestResult.__init__(self)
+        # pylint: disable=non-parent-init-called
+        super().__init__(stream, descriptions, verbosity)
         self.stream = stream
         self.stream_err = stream_err
         self.showAll = verbosity > 1
         self.showErr = verbosity == 1
         self.descriptions = descriptions
+        self._runner_objects = []
+        self._runner_trackers = []
 
     def startTest(self, test):
         """Adapted from unittest._TextTestResult. Method called just prior to
         test run
         """
         self.testsRun = self.testsRun + 1
+
+    def stopTest(self, test):
+        """Called when the given test has been run"""
+        if hasattr(test, '_objs') and test._objs.runner:
+            self._runner_objects.extend(test._objs.runner)
+        if hasattr(test, '_runner_trackers') and test._runner_trackers:
+            for x in test._runner_trackers:
+                if x not in self._runner_trackers:
+                    self._runner_trackers.append(x)
 
     def addSuccess(self, test):
         """Adapted from unittest._TextTestResult"""
@@ -436,6 +457,7 @@ class LocalTextTestResult(unittest._TextTestResult):
 
     def printErrorList(self, flavour, errors):
         """Adapted from unittest._TextTestResult"""
+        re_fname = re.compile(r'.*/test_(.*).py$')
         for test, err in errors:
             # self.stream_err.writeln(self.separator1)
             # self.stream_err.writeln("%s: %s" % (flavour,
@@ -443,18 +465,29 @@ class LocalTextTestResult(unittest._TextTestResult):
             # self.stream_err.writeln(self.separator2)
             # Print a command that will demonstrate the error.
             if hasattr(test, '_testMethodName'):
+                fname = test.__module__.replace('.', '/') + '.py'
+                if '/controllers/' in fname:
+                    fname = fname.replace('/tests/', '/')
+                else:
+                    fname = fname.replace('/tests/', '/modules/')
+                m = re_fname.match(fname)
+                if m:
+                    basename = m[1]
+                    fname = fname.replace('test_' + basename, basename)
+
                 self.stream_err.writeln(
-                       '$ unit {fname} {case} {method}'.format(
-                            fname=test.__module__.replace('.', '/') + '.py',
-                            case=test.__class__.__name__,
-                            method=test._testMethodName,
-                            ))
+                    '$ un {fname} {case} {method}'.format(
+                        fname=fname,
+                        case=test.__class__.__name__,
+                        method=test._testMethodName,
+                    )
+                )
             elif hasattr(test, 'description'):
                 parts = test.description.split()
                 if str(parts[1]).startswith('(') and str(parts[1]).endswith(')'):
                     fname = str(parts[1])[1:-1].replace('.', '/') + '.py'
                     self.stream_err.writeln(
-                        '$ unit {fname}'.format(fname=fname)
+                        '$ un {fname}'.format(fname=fname)
                     )
                 else:
                     self.stream_err.writeln('ERROR: ' + str(test))
@@ -497,37 +530,54 @@ class LocalTextTestRunner(unittest.TextTestRunner):
     occur, and a summary of the results at the end of the test run.
     """
     # Many varibles are copied as is from unittest code.
-    # pylint: disable=C0103
-    # pylint: disable=C0321
-    # pylint: disable=R0903
-    # pylint: disable=W0141
-    # pylint: disable=W0212
-    # pylint: disable=W0231
+    # pylint: disable=protected-access
+    # pylint: disable=super-init-not-called
+    # pylint: disable=redefined-outer-name
+    # pylint: disable=invalid-name
 
     def __init__(
-            self, stream=sys.stdout, stream_err=sys.stderr, descriptions=1,
-            verbosity=1
-    ):
+            self,
+            stream=sys.stdout,
+            stream_err=sys.stderr,
+            descriptions=True,
+            verbosity=1,
+            failfast=False,
+            buffer=False,
+            resultclass=None,
+            warnings=None,
+            *,
+            tb_locals=False):
         """Constructor."""
         self.stream = unittest.runner._WritelnDecorator(stream)
         self.stream_err = unittest.runner._WritelnDecorator(stream_err)
         self.descriptions = descriptions
         self.verbosity = verbosity
+        self.failfast = failfast
+        self.buffer = buffer
+        self.resultclass = resultclass
+        self.warnings = warnings
+        self.tb_locals = tb_locals
 
     def _makeResult(self):
         """Format test results"""
         return LocalTextTestResult(
-            self.stream,
-            self.stream_err,
-            self.descriptions,
-            self.verbosity
-        )
+            self.stream, self.stream_err, self.descriptions, self.verbosity)
 
     def run(self, test):
         """Run the given test case or test suite."""
         result = self._makeResult()
+        result.failfast = self.failfast
+        result.buffer = self.buffer
         startTime = time.time()
         test(result)
+        if hasattr(result, '_runner_objects'):
+            remove_objects(result._runner_objects)
+            result._runner_objects = []
+        if hasattr(result, '_runner_trackers'):
+            for tracker in result._runner_trackers:
+                for obj in tracker.diff():
+                    obj.remove()
+            result._runner_trackers = []
         stopTime = time.time()
         timeTaken = stopTime - startTime
         run = result.testsRun
@@ -605,12 +655,8 @@ class LocalWebClient(WebClient):
             '(X11; U; Linux i686; en-US; rv:1.9.2.10)',
             'Gecko/20100928', 'Firefox/3.5.7'
         ))
-        WebClient.__init__(
-            self,
-            self.url,
-            postbacks=self.postbacks,
-            default_headers=headers
-        )
+        super().__init__(
+            self.url, postbacks=self.postbacks, default_headers=headers)
         self._soup = None       # page as soup
         self._flash = None      # flash message
 
@@ -682,14 +728,21 @@ class LocalWebClient(WebClient):
             self.db.commit()
         return result
 
-    def login(self, url='', employee_url=''):
+    def is_logged_in(self):
+        """Determine if session is logged in.
+
+        Returns:
+            True if logged in.
+        """
+        return True if self.session_id() else False
+
+    def login(self, url='', email=None):
         """Login to web2py application
 
         Args:
             url: string, login url defaults to
-                    '<self.application>/default/user/login'
-            employee_url: string, select employee url, defaults to
-                    '<self.application>/employees/employee_select'
+                '<self.application>/default/user/login'
+            email: email to login with. If None, defaults to self.username.
 
         Returns:
             True if ..., False otherwise
@@ -697,32 +750,39 @@ class LocalWebClient(WebClient):
         if not url:
             url = '/{app}/default/user/login'.format(app=self.application)
 
-        if self.login_employee_id and not employee_url:
-            employee_url = '/{app}/employees/employee_select'.format(
-                app=self.application)
-
         # Step 1: Get the login page. This creates a session record in
         #         web2py_session_<app> table. (The employee_select page
         #         doesn't do this properly.)
         self.get(url)
 
-        # Step 2: Set the session employee.
-        if self.login_employee_id:
-            data = dict(employee_id=self.login_employee_id)
-            self.post(employee_url, data=data)
-
-        # Step 3: Login. This permits access to admin-only pages.
+        # Step 2: Login.
+        if email is None:
+            email = self.username
         data = dict(
-            email=self.username,
+            email=email,
             password=self.password,
             _formname='login',
         )
         self.post(url, data=data)
 
-    def logout(self):
-        """Logout."""
-        url = '/{app}/default/user/logout'.format(app=self.application)
+        self._logged_in_username = email
+
+    def login_if_not(self):
+        """Login if not already."""
+        if not self.is_logged_in() or not self._logged_in_username:
+            self.login()
+
+    def logout(self, url=''):
+        """Logout of web2py application
+
+        Args:
+            url: string, login url defaults to
+                '<self.application>/default/user/logout'
+        """
+        if not url:
+            url = '/{app}/default/user/logout'.format(app=self.application)
         self.get(url)
+        self._logged_in_username = None
 
     def post(
             self,
@@ -731,7 +791,7 @@ class LocalWebClient(WebClient):
             cookies=None,
             headers=None,
             auth=None,
-            method=None,
+            method='auto',
             charset='utf-8'):
         """Override base class method.
 
@@ -741,10 +801,7 @@ class LocalWebClient(WebClient):
         Differences from base class method.
         * Clears _soup property.
         """
-        if method is None:
-            method == 'auto'
         self._soup = None
-
         result = WebClient.post(
             self,
             url,
@@ -758,6 +815,18 @@ class LocalWebClient(WebClient):
         if self.db:
             self.db.commit()
         return result
+
+    def session_id(self):
+        """Get the current session_id.
+
+        Returns:
+            str, session_id
+        """
+        if not self.sessions:
+            return
+        if self.application not in self.sessions:
+            return
+        return self.sessions[self.application]
 
     def server_ip(self):
         """Return the server ip address."""
@@ -796,30 +865,7 @@ class LocalWebClient(WebClient):
         """
         if post_data is None:
             if self.login_required:
-                login_required = False
-                if self.sessions:
-                    if self.application in self.sessions:
-                        session_id = None
-                        if ':' in self.sessions[self.application]:
-                            session_id, unused_unique_key = \
-                                self.sessions[self.application].split(':', 2)
-                        if session_id == 'None':
-                            login_required = True
-                else:
-                    login_required = True
-                if login_required:
-                    self.login()
-            else:
-                # Without login, sessions take a value like this
-                # {application: '"None:2284b815-f31d-408b-a6b2-82b1b1c17fd8"'}
-                # The index 'None' remains constant, but the hash changes for
-                # each page. WebClient thinks the session is broken and raises
-                # an exception: RuntimeError: Broken sessions. Delete the
-                # session to prevent this.
-                self.sessions = {}
-                if self.sessions and self.application in self.sessions:
-                    if '"None:' in self.sessions[self.application]:
-                        del self.sessions[self.application]
+                self.login_if_not()
 
         if post_data is None:
             self.get(url, charset=charset)
@@ -851,8 +897,13 @@ class LocalWebClient(WebClient):
                     url.lstrip('/').split('?')[0].split('/')[2:])
             except (AttributeError, KeyError):
                 filename = 'dump'
-            with open(os.path.join(dump_dir, filename + '.htm'), 'w') as f:
-                f.write(match_text + "\n")
+            with open(
+                os.path.join(dump_dir, filename + '.htm'), 'w'
+            ) as f_dump:
+                f_dump.write(
+                    match_text.encode('ascii', 'replace').decode(charset)
+                    + "\n"
+                )
 
         expects = expect
         if not isinstance(expect, list):
@@ -879,9 +930,35 @@ def count_diff(func):
         Args:
             arg: args passed to decorated function.
         """
+        do_run_command = '--no-count' not in sys.argv
+        def run_command(args):
+            """Run system command."""
+            retries = [1, 10, 60]
+
+            while True:
+                try:
+                    p = subprocess.Popen(
+                        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    p_stdout, p_stderr = p.communicate()
+                except OSError:
+                    if not retries:
+                        break
+
+                    sleep_sec = retries.pop(0)
+                    time.sleep(sleep_sec)
+                    continue
+
+                if p_stdout:
+                    fmt = 'sql_record_count.sh p_stdout: {o}'
+                    print(fmt.format(o=p_stdout))
+                if p_stderr:
+                    fmt = 'sql_record_count.sh p_stderr: {p}'
+                    print(fmt.format(p=p_stderr))
+                break
+
         count_script = '/root/bin/sql_record_count.sh'
-        args = [count_script, '-a', 'before']
-        subprocess.call(args)
+        if do_run_command:
+            run_command([count_script, '-a', 'before'])
 
         try:
             func(*arg)
@@ -889,8 +966,53 @@ def count_diff(func):
             # This prevents a unittest.py exit from killing the wrapper
             pass
 
-        args = [count_script, '-a', 'after']
-        subprocess.call(args)
-        args = [count_script, '-a', 'diff']
-        subprocess.call(args)
+        if do_run_command:
+            run_command([count_script, '-a', 'after'])
+            run_command([count_script, '-a', 'diff'])
     return wrapper
+
+
+def remove_comments_for(obj):
+    """Remove all comments associated with an object.
+
+    Args:
+        obj: DbObject instance
+    """
+    # W0212: *Access to a protected member %%s of a client class*
+    # pylint: disable=W0212
+    # W0603: *Using the global statement*
+    # pylint: disable=W0603
+    # R0201: *Method could be a function*
+    # pylint: disable=R0201
+
+    # Remove comments.
+    global FILTER_TABLES
+    db = current.app.db
+    if 'comment' in db.tables:
+        if not FILTER_TABLES:
+            FILTER_TABLES = [
+                x.filter_table for x in
+                db(db.comment.id > 0).select(
+                    db.comment.filter_table, distinct=True)
+            ]
+        if obj.tbl._tablename in FILTER_TABLES:
+            query = (db.comment.filter_table == obj.tbl._tablename) & \
+                    (db.comment.filter_id == obj.id)
+            db(query).delete()
+            db.commit()
+
+
+def remove_objects(source):
+    """Remove objects created during test.
+
+    Args:
+        source: list, list of objects.
+    """
+    for obj in source:
+        if hasattr(obj, 'remove'):
+            remove_comments_for(obj)
+            obj.remove()
+        elif hasattr(obj, 'delete'):
+            db = current.app.db
+            obj.delete()
+            db.commit()

@@ -30,9 +30,10 @@ class TestFunctions(WebTestCase):
     _server_ip = None
 
     def tearDown(self):
-        for download_click in Records.from_key(
-                DownloadClick, dict(ip_address=web.server_ip())):
-            download_click.delete()
+        if self._server_ip:
+            for download_click in Records.from_key(
+                    DownloadClick, dict(ip_address=self._server_ip)):
+                download_click.delete()
 
     @classmethod
     def setUpClass(cls):
