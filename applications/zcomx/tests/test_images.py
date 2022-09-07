@@ -873,7 +873,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 size_bef = os.stat(working_image).st_size
                 optimize(working_image, quick=quick)
                 size_aft = os.stat(working_image).st_size
-                self.assertTrue(size_aft < size_bef)
+                self.assertTrue(size_aft <= size_bef)
 
     @skip_if_quick
     def test__rename(self):

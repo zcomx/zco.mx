@@ -198,8 +198,12 @@ class TestFunctions(ImageTestCase):
             return db(query).select(db.auth_user.ALL).first()
 
         def creator_by_email(email):
-            query = (db.creator.email == email)
-            return db(query).select(db.creator.ALL).first()
+            creator = None
+            try:
+                creator = Creator.from_key(dict(email=email))
+            except LookupError:
+                creator = None
+            return creator
 
         self.assertEqual(creator_by_email(email), None)
         self.assertEqual(user_by_email(email), None)
