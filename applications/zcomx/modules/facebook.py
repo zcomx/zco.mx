@@ -28,7 +28,9 @@ class FacebookAPIAuthenticator(object):
         # page key: list of possible titles of page <title></title>
         'login': [
             'Welcome to Facebook',
+            'Log into Facebook',
             'Log into Facebook | Facebook',
+            'Log in to Facebook',
             'Log in to Facebook | Facebook',
         ],
         'logged_in': ['Facebook'],
