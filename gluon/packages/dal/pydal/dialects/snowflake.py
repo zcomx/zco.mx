@@ -1,15 +1,16 @@
+from .._compat import basestring, integer_types
 from ..adapters.snowflake import Snowflake
-from .._compat import integer_types, basestring
 from ..helpers.methods import varquote_aux
 from ..objects import Expression
+from . import dialects, register_expression, sqltype_for
 from .base import SQLDialect
-from . import dialects, sqltype_for, register_expression
 
 
 @dialects.register_for(Snowflake)
 class SnowflakeDialect(SQLDialect):
     true_exp = "TRUE"
     false_exp = "FALSE"
+    quote_template = " %s "
 
     @sqltype_for("blob")
     def type_blob(self):
@@ -27,11 +28,9 @@ class SnowflakeDialect(SQLDialect):
     def type_id(self):
         return "NUMBER PRIMARY KEY AUTOINCREMENT"
 
-
     @sqltype_for("big-id")
     def type_big_id(self):
         return "NUMBER PRIMARY KEY AUTOINCREMENT"
-
 
     @sqltype_for("big-reference")
     def type_big_reference(self):
@@ -60,8 +59,7 @@ class SnowflakeDialect(SQLDialect):
         return varquote_aux(val, '"%s"')
 
     def sequence_name(self, tablename):
-        return self.quote("%s_id_seq" % tablename)
-
+        return "%s_id_seq" % tablename
 
     def insert(self, table, fields, values):
         return "INSERT INTO %s(%s) VALUES (%s);" % (table, fields, values)
@@ -86,6 +84,7 @@ class SnowflakeDialect(SQLDialect):
             dst = " DISTINCT ON (%s)" % distinct
         if where:
             whr = " %s" % self.where(where)
+
         if groupby:
             grp = " GROUP BY %s" % groupby
             if having:
@@ -98,7 +97,6 @@ class SnowflakeDialect(SQLDialect):
                 whr2 = whr + " AND w_row > %i" % lmin
             else:
                 whr2 = self.where("w_row > %i" % lmin)
-
 
 
         return "SELECT%s%s%s %s FROM %s%s%s%s;" % (
@@ -160,7 +158,7 @@ class SnowflakeDialect(SQLDialect):
             second = self.expand(second, "string", query_env=query_env)
             if escape is None:
                 escape = r"\\ "
-                #second = second.replace(escape, escape * 2)
+                # second = second.replace(escape, escape * 2)
             check = r"\ "
             check = check.strip()
             if escape == check:
@@ -188,10 +186,10 @@ class SnowflakeDialect(SQLDialect):
             if escape is None:
                 escape = r"\\ "
                 escape = escape.strip()
-                #second = second.replace(escape, escape * 2)
-            check= r"\ "
-            check=check.strip()
-            if escape == check :
+                # second = second.replace(escape, escape * 2)
+            check = r"\ "
+            check = check.strip()
+            if escape == check:
                 escape = r"\\ "
                 escape = escape.strip()
         if first.type not in ("string", "text", "json", "jsonb", "list:string"):
@@ -221,7 +219,7 @@ class SnowflakeDialect(SQLDialect):
         with self.adapter.index_expander():
             rv = "CREATE%s INDEX %s ON %s (%s)%s;" % (
                 uniq,
-                self.quote(name),
+                name,
                 table._rname,
                 ",".join(self.expand(field) for field in expressions),
                 whr,
@@ -234,6 +232,11 @@ class SnowflakeDialect(SQLDialect):
             second["precision"],
             second["options"],
         )
+    
+    def unquote(self, val):
+        if (val[0] == '"' and val[-1] == '"'):
+            val=val.replace('"','')
+        return val
 
     def st_astext(self, first, query_env={}):
         return "ST_AsText(%s)" % self.expand(first, query_env=query_env)

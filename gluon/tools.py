@@ -17,7 +17,7 @@ from gluon._compat import configparser, MIMEBase, MIMEMultipart, MIMEText, Heade
 from gluon._compat import Encoders, Charset, long, urllib_quote, iteritems
 from gluon._compat import to_bytes, to_native, add_charset, string_types
 from gluon._compat import charset_QP, basestring, unicodeT, to_unicode
-from gluon._compat import urllib2, urlopen
+from gluon._compat import urllib2, urlopen, urlparse
 import datetime
 import logging
 import sys
@@ -105,7 +105,6 @@ def replace_id(url, form):
             return url
     return URL(url)
 
-REGEX_OPEN_REDIRECT = re.compile(r"^(\w+)?[:]?(/$|//.*|/\\.*|[~]/.*)")
 
 def prevent_open_redirect(url):
     # Prevent an attacker from adding an arbitrary url after the
@@ -113,9 +112,9 @@ def prevent_open_redirect(url):
     host = current.request.env.http_host
     if not url:
         return None
-    if REGEX_OPEN_REDIRECT.match(url):
-        parts = url.split('/')
-        if len(parts) > 2 and parts[2] == host:
+    parsed = urlparse.urlparse(url)
+    if parsed.scheme:
+        if parsed.netloc == host:
             return url
         return None
     return url
@@ -282,6 +281,8 @@ class Mail(object):
         settings.timeout = 5  # seconds
         settings.hostname = None
         settings.ssl = False
+        settings.dkim = None
+        settings.list_unsubscribe = None
         settings.cipher_type = None
         settings.gpg_home = None
         settings.sign = True
@@ -310,6 +311,8 @@ class Mail(object):
              raw=False,
              headers={},
              from_address=None,
+             dkim=None,
+             list_unsubscribe=None,
              cipher_type=None,
              sign=None,
              sign_passphrase=None,
@@ -765,6 +768,15 @@ class Mail(object):
         payload['Date'] = email.utils.formatdate()
         for k, v in iteritems(headers):
             payload[k] = encoded_or_raw(to_unicode(v, encoding))
+
+        dkim = dkim or self.settings.dkim
+        list_unsubscribe = list_unsubscribe or self.settings.list_unsubscribe
+
+        if list_unsubscribe:
+            payload['List-Unsubscribe'] = "<mailto:%s>" % list_unsubscribe
+        if dkim:
+            payload['DKIM-Signature'] = dkim_sign(payload, dkim.key, dkim.selector)
+
         result = {}
         try:
             if self.settings.server == 'logging':
@@ -849,6 +861,38 @@ class Mail(object):
         self.result = result
         self.error = None
         return True
+
+
+def dkim_sign(payload, dkim_key, dkim_selector):
+
+    import dkim
+
+    # sign all existing mail headers except those specified in
+    # http://dkim.org/specs/rfc4871-dkimbase.html#rfc.section.5.5
+    headers = list(filter(
+        lambda h: h not in [
+            "Return-Path",
+            "Received",
+            "Comments",
+            "Keywords",
+            "Resent-Bcc",
+            "Bcc",
+            "DKIM-Signature",
+        ],
+        payload))
+
+    domain = re.sub(r".*@", "", payload["From"])
+    domain = re.sub(r">.*", "", domain)
+
+    sig = dkim.sign(
+            message=payload.as_bytes(),
+            selector=dkim_selector.encode(),
+            domain=domain.encode(),
+            privkey=dkim_key.encode(),
+            include_headers=[h.encode() for h in headers])
+
+    return sig[len("DKIM-Signature: "):].decode()
+
 
 
 class Recaptcha2(DIV):
@@ -2677,7 +2721,12 @@ class Auth(AuthAPI):
         # If auth.settings.auth_two_factor_enabled it will enable two factor
         # for all the app. Another way to anble two factor is that the user
         # must be part of a group that is called auth.settings.two_factor_authentication_group
-        if user and self.settings.auth_two_factor_enabled is True:
+        if user and (
+            self.settings.auth_two_factor_enabled(user)
+            if callable(self.settings.auth_two_factor_enabled)
+            else self.settings.auth_two_factor_enabled is True
+        ):
+
             session.auth_two_factor_enabled = True
         elif user and self.settings.two_factor_authentication_group:
             role = self.settings.two_factor_authentication_group
