@@ -8,6 +8,7 @@ Test suite for zcomx/controllers/torrents.py
 """
 import os
 import unittest
+import urllib.parse
 from applications.zcomx.modules.books import \
     Book, \
     book_name
@@ -131,7 +132,9 @@ class TestFunctions(WebTestCase):
         expect.append(self._book.name)
         self.assertWebTest(
             '/torrents/route?no_queue=1&torrent={tor}'.format(
-                tor=os.path.basename(self._creator.torrent),
+                tor=urllib.parse.quote_plus(
+                    os.path.basename(self._creator.torrent)
+                ),
             ),
             match_page_key='/torrents/torrent',
             match_strings=expect,
@@ -200,7 +203,9 @@ class TestFunctions(WebTestCase):
             self.assertWebTest,
             '/torrents/route/{cid:03d}/{tor}?no_queue=1'.format(
                 cid=-1,
-                tor=os.path.basename(self._book.torrent),
+                tor=urllib.parse.quote_plus(
+                    os.path.basename(self._book.torrent)
+                ),
             ),
             match_page_key='/errors/page_not_found',
             charset='latin-1',
@@ -212,7 +217,9 @@ class TestFunctions(WebTestCase):
             self.assertWebTest,
             '/torrents/route/{name}/{tor}?no_queue=1'.format(
                 name='_invalid_name_',
-                tor=os.path.basename(self._book.torrent),
+                tor=urllib.parse.quote_plus(
+                    os.path.basename(self._book.torrent)
+                ),
             ),
             match_page_key='/errors/page_not_found',
             charset='latin-1',

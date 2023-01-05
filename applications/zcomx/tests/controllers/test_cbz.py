@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/controllers/cbz.py
-
 """
 import os
 import unittest
+import urllib.parse
 from applications.zcomx.modules.books import \
     Book, \
     book_name, \
@@ -133,7 +131,9 @@ class TestFunctions(WebTestCase):
             self.assertWebTest,
             '/cbz/route/{cid:03d}/{cbz}?no_queue=1'.format(
                 cid=-1,
-                cbz=os.path.basename(self._book.cbz),
+                cbz=urllib.parse.quote_plus(
+                    os.path.basename(self._book.cbz)
+                ),
             ),
             match_page_key='/errors/page_not_found',
         )
@@ -144,7 +144,9 @@ class TestFunctions(WebTestCase):
             self.assertWebTest,
             '/cbz/route/{name}/{cbz}?no_queue=1'.format(
                 name='_invalid_name_',
-                cbz=os.path.basename(self._book.cbz),
+                cbz=urllib.parse.quote_plus(
+                    os.path.basename(self._book.cbz)
+                ),
             ),
             match_page_key='/errors/page_not_found',
         )

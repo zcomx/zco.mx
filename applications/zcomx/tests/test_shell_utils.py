@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/shell_utils.py
-
 """
 import inspect
 import os
@@ -124,9 +121,9 @@ class TestFunctions(LocalTestCase):
 
     def test__imagemagick_version(self):
         by_host = {
-            'dtjimk': '6.7.0-8',
-            'jimk': '6.9.10-16',
-            'zc': '6.9.10-16',
+            'dtjimk': '7.0.10-31',
+            'jimk': '7.1.0-53',
+            'zc': '7.1.0-53',
         }
         self.assertEqual(
             imagemagick_version(),

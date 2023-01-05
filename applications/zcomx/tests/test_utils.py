@@ -341,7 +341,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(anchor_1.string, 'general')
 
         li_2 = li_1.nextSibling
-        self.assertEqual(li_2['class'], ['nav-tab', ''])
+        self.assertEqual(li_2['class'], ['nav-tab'])
 
         anchor_2 = li_2.a
         self.assertEqual(anchor_2['href'], '/z/faqc')

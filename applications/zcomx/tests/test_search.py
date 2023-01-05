@@ -418,7 +418,7 @@ class TestGrid(LocalTestCase):
         # self.assertEqual(anchor_2.string, 'contributions')
 
         li_3 = li_2.nextSibling
-        self.assertEqual(li_3['class'], ['nav-tab', ''])
+        self.assertEqual(li_3['class'], ['nav-tab'])
         anchor_3 = li_3.a
         self.assertEqual(anchor_3['href'], '/z/cartoonists?alpha=a')
         self.assertEqual(anchor_3.string, 'cartoonists')

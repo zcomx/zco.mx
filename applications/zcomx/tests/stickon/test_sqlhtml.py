@@ -91,8 +91,8 @@ class TestLocalSQLFORM(LocalTestCase):
         grid = LocalSQLFORM(db.book_page).grid(
             db.book_page, field_id=db.book_page.id)
         soup = as_soup(str(grid))
-        # <div class="web2py_grid grid_widget">...</div>
-        div = soup.find('div', {'class': 'web2py_grid '})
+        # <div class="web2py_grid">...</div>
+        div = soup.find('div', {'class': 'web2py_grid'})
         self.assertTrue(div)
 
 
