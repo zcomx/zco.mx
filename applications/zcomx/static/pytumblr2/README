@@ -1,0 +1,15 @@
+Source: https://github.com/nostalgebraist/pytumblr2
+
+Note: Existing AUR packages
+    python2-pytumblr-git        # this is python2, not compatible.
+    python-pytumblr-git         # This is pytumblr not pytumblr2.
+
+# Install pytumblr2
+$ mkdir ~/tmp/tumblr2
+$ cp PKGBUILD ~/tmp/tumblr2
+$ v ~/tmp/tumblr2/PKGBUILD
+# double check that /usr/bin/python is correct. Hard code to make it correct
+$ cd ~/tmp/tumblr2
+$ makepkg --asroot
+# In the following command, the version in the tar file may be different.
+$ pacman -U pytumblr2-0.0.6-1-any.pkg.tar.xz

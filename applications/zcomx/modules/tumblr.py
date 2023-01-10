@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to tumblr posts.
 """
-import pytumblr
+import pytumblr2
 from gluon import *
 from applications.zcomx.modules.book_pages import \
     AbridgedBookPageNumbers, \
@@ -40,9 +38,9 @@ class Authenticator(object):
         """Authenticate on tumblr.
 
         Returns:
-            client,  pytumblr TumblrRestClient instance
+            client,  pytumblr2 TumblrRestClient instance
         """
-        return pytumblr.TumblrRestClient(
+        return pytumblr2.TumblrRestClient(
             self.credentials['consumer_key'],
             self.credentials['consumer_secret'],
             self.credentials['oauth_token'],
@@ -133,7 +131,7 @@ class Poster(object):
         """Constructor
 
         Args:
-            client,  pytumblr TumblrRestClient instance
+            client,  pytumblr2 TumblrRestClient instance
         """
         self.client = client
 
@@ -152,7 +150,7 @@ class Poster(object):
             username: str, tumblr account username
             photo_data: dict of data required for tumblr photo post.
         """
-        return self.client.create_photo(username, **photo_data)
+        return self.client.legacy_create_photo(username, **photo_data)
 
     def post_text(self, username, text_data):
         """Post text.
@@ -161,7 +159,7 @@ class Poster(object):
             username: str, tumblr account username
             text_data: dict of data required for tumblr text post.
         """
-        return self.client.create_text(username, **text_data)
+        return self.client.legacy_create_text(username, **text_data)
 
 
 class TextDataPreparer(object):

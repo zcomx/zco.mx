@@ -1,0 +1,27 @@
+# Maintainer: Sara Jakša <sarajaksa@gmail.com>
+
+_pkgname=python-pytumblr2
+pkgname=$_pkgname-git
+pkgver=0.2.2.r238.0d9d2fc
+pkgrel=1
+pkgdesc="A fork of pytumblr, updated for the New Post Format era."
+arch=('any')
+url="https://github.com/nostalgebraist/pytumblr2"
+license=('Apache')
+depends=('python')
+makedepends=('python-setuptools' 'python-future' 'python-requests' 'python-requests-oauthlib')
+provides=($_pkgname)
+conflicts=($_pkgname)
+source=("pytumblr2::git+https://github.com/nostalgebraist/pytumblr2")
+sha256sums=('SKIP')
+
+
+pkgver() {
+    cd "${srcdir}/pytumblr2"
+    printf "%s.r%s.%s" "$(python setup.py --version)" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+package() {
+    cd "${srcdir}/pytumblr2"
+    python setup.py install --root="${pkgdir}/"
+}

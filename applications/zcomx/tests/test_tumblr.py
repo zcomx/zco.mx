@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/tumblr.py
-
 """
 import datetime
 import unittest
@@ -108,16 +105,16 @@ class WithDateTestCase(LocalTestCase):
 
 
 class DubClient(object):
-    """Stub pytumblr client."""
+    """Stub pytumblr2 client."""
     def __init__(self):
         self.posts = {}
 
-    def create_photo(self, unused_username, **kwargs):
+    def legacy_create_photo(self, unused_username, **kwargs):
         post_id = uuid.uuid4()
         self.posts[post_id] = kwargs
         return post_id
 
-    def create_text(self, unused_username, **kwargs):
+    def legacy_create_text(self, unused_username, **kwargs):
         post_id = uuid.uuid4()
         self.posts[post_id] = kwargs
         return post_id

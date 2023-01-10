@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-tumblr_api.py
+tumblr2_api.py
 
-Script to test using pytumblr api.
-https://pypi.python.org/pypi/PyTumblr
+Script to test using pytumblr2 api.
+https://pypi.python.org/pypi/PyTumblr2
 """
-
 import sys
 import traceback
 from optparse import OptionParser
-import pytumblr
+import pytumblr2
 from gluon import *
 from applications.zcomx.modules.logger import set_cli_logging
 
@@ -25,7 +23,7 @@ def clear(client):
     """Delete existing posts.
 
     Args:
-        client: pytumblr TumblrRestClient instance
+        client: pytumblr2 TumblrRestClient instance
     """
     posts_response = client.posts('zcomx')
     for post in posts_response['posts']:
@@ -33,8 +31,19 @@ def clear(client):
         client.delete_post('zcomx', post['id'])
 
 
-def create_photo(client):
-    """tumblr API create_photo."""
+def delete_post(client, post_id):
+    """tumblr API delete_post."""
+    result = client.delete_post('zcomx', post_id)
+    print('client.delete_post: {r}'.format(r=result))
+
+
+def info(client):
+    """Get client info results."""
+    print('client.info: {i}'.format(i=client.info()))
+
+
+def legacy_create_photo(client):
+    """tumblr API legacy_create_photo."""
     photo_data = dict(
         state="draft",
         tags=['tag1', 'tag2', 'zco.mx'],
@@ -51,12 +60,12 @@ def create_photo(client):
 <h3><a href="https://zco.mx/JordanCrane/Uptight-001">Uptight 001 (2006)</a></h3><p>Test 001</p><p>by <a class="orange" id="test" href="https://zco.mx/JordanCrane">https://zco.mx/JordanCrane</a> |<a href="http://whatthingsdo.com">website</a> | <a href="https://twitter.com/Jordan_Crane">twitter</a> | <a href="https://whatthingsdo.tumblr.com">tumblr</a></p>
 """
     # """       # fixes vim syntax highlighting.
-    result = client.create_photo('zcomx', **photo_data)
-    print('create_photo: {id}'.format(id=result))
+    result = client.legacy_create_photo('zcomx', **photo_data)
+    print('legacy_create_photo: {id}'.format(id=result))
 
 
-def create_quote(client):
-    """tumblr API create_quote."""
+def legacy_create_quote(client):
+    """tumblr API legacy_create_quote."""
     quote_data = dict(
         state="private",
         tags=['Uptight', 'JordanCrane', 'zco.mx'],
@@ -65,12 +74,12 @@ def create_quote(client):
         quote='This is the quote of the day',
         source='Joe Doe',
     )
-    result = client.create_quote('zcomx', **quote_data)
-    print('create_quote: {q}'.format(q=result))
+    result = client.legacy_create_quote('zcomx', **quote_data)
+    print('legacy_create_quote: {q}'.format(q=result))
 
 
-def create_text(client):
-    """tumblr API create_text."""
+def legacy_create_text(client):
+    """tumblr API legacy_create_text."""
     text_data = dict(
         state="private",
         tags=['Uptight', 'JordanCrane', 'zco.mx'],
@@ -85,19 +94,8 @@ def create_text(client):
         </ul>
         """,
     )
-    result = client.create_text('zcomx', **text_data)
-    print('create_text: {r}'.format(r=result))
-
-
-def delete_post(client, post_id):
-    """tumblr API delete_post."""
-    result = client.delete_post('zcomx', post_id)
-    print('client.delete_post: {r}'.format(r=result))
-
-
-def info(client):
-    """Get client info results."""
-    print('client.info: {i}'.format(i=client.info()))
+    result = client.legacy_create_text('zcomx', **text_data)
+    print('legacy_create_text: {r}'.format(r=result))
 
 
 def posts(client, hostname='zcomx'):
@@ -186,7 +184,7 @@ def main():
     # Authenticate via OAuth
     settings = current.app.local_settings
 
-    client = pytumblr.TumblrRestClient(
+    client = pytumblr2.TumblrRestClient(
         settings.tumblr_consumer_key,
         settings.tumblr_consumer_secret,
         settings.tumblr_oauth_token,
@@ -202,9 +200,9 @@ def main():
     # posts(client, hostname='charlesforsman')
     # posts_summary(client)
     # delete_post(client, post_id)
-    create_photo(client)
-    # create_quote(client)
-    # create_text(client)
+    # legacy_create_photo(client)
+    # legacy_create_quote(client)
+    # legacy_create_text(client)
     LOG.info('Done.')
 
 
