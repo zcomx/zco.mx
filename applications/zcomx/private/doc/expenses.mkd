@@ -1,22 +1,72 @@
 ``
 INCOME
     Apr 2015                            $  5
-  TOTAL Income                                  $   5
+    Nov 2019                            $ 51
+    Aug 2020                            $ 50
+    Oct 2020                            $100
+    Nov 2020                            $ 80
+    Dec 2020                            $145
+    Jan 2021                            $ 72
+    Feb 2021                            $ 45
+    Mar 2021                            $ 45
+    Apr 2021                            $ 70
+    May 2021                            $ 45
+    May 2021                            $ 48
+    Jun 2021                            $ 45
+    Jun 2021                            $ 22
+    Jul 2021                            $ 45
+    Aug 2021                            $ 90
+    Sep 2021                            $ 45
+    Sep 2021                            $ 60
+    Dec 2021                            $ 70
+    Feb 2022                            $ 48
+    Mar 2022                            $ 29
+    Apr 2022                            $ 48
+    Apr 2022                            $ 48
+    May 2022                            $ 48
+    Jun 2022                            $ 71
+    Jun 2022                            $ 38
+    Jul 2022                            $ 47
+    Jul 2022                            $ 33
+    Aug 2022                            $ 24
+    Aug 2022                            $ 10
+    Oct 2022                            $ 38
+    Nov 2022                            $ 96
+  TOTAL Income                                  $1701
 
 EXPENSES
-    Jun 2014    Server Hosting (1yr)    $480
     Jun 2014    Domain Registration     $ 45
+    Jun 2014    Server Hosting (1yr)    $480
     Jun 2014    Contract Work - css     $225
     Dec 2014    Contract Work - copy    $280
     Dec 2014    Contract Work - kb      $222
     Apr 2015    Contract Work - copy    $165
     May 2015    Advertising - Cards     $300
-    Jun 2015    Server Hosting (1yr)    $480
     Jun 2015    Domain Registration     $ 45
-    Jun 2016    Server Hosting          $ 40
+    Jun 2015    Server Hosting (1yr)    $480
     Jun 2016    Domain Registration     $ 45
-  TOTAL Expense                                 $2327
+    Jun 2016    Server Hosting (1yr)    $480
+    Jun 2017    Domain Registration     $ 45
+    Jun 2017    Server Hosting (1yr)    $480
+    Jun 2018    Domain Registration     $ 45
+    Jun 2018    Server Hosting (1yr)    $480
+    Jun 2019    Domain Registration     $ 45
+    Jun 2019    Server Hosting (1yr)    $480
+    Jun 2020    Domain Registration     $ 45
+    Jun 2020    Server Hosting (1yr)    $480
+    Jun 2021    Domain Registration     $ 45
+    Jun 2021    Server Hosting (1yr)    $480
+    Jun 2022    Domain Registration     $ 45
+    Jun 2022    Server Hosting          $ 40
+    Jul 2022    Server Hosting          $ 40
+    Aug 2022    Server Hosting          $ 40
+    Sep 2022    Server Hosting          $ 40
+    Oct 2022    Server Hosting          $ 40
+    Nov 2022    Server Hosting          $ 40
+    Dec 2022    Server Hosting          $ 40
+    Jan 2023    Server Hosting          $ 40
+  TOTAL Expense                                 $5757
 
 
-NET TOTAL                                      -$2322
+NET TOTAL                                      -$4056
 ``
