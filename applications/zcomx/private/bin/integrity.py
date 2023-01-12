@@ -1,23 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 integrity.py
 
 Script to run integrity checks.
 """
-
 import datetime
+import os
 import sys
 import traceback
 from optparse import OptionParser
+from applications.zcomx.modules.archives import (
+    TorrentArchive,
+)
+from applications.zcomx.modules.books import (
+    Book,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+)
+from applications.zcomx.modules.torrents import (
+    AllTorrentCreator,
+)
 from applications.zcomx.modules.zco import IN_PROGRESS
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 
 
-class BaseChecker(object):
+class BaseChecker():
     """Base class representing a checker."""
 
     def __init__(self, social_media):
@@ -87,6 +98,91 @@ class IncompleteOngoingPostChecker(BaseChecker):
         return db.ongoing_post[self.post_field] == None
 
 
+def book_generator(query, orderby=None):
+    """Generate book records.
+
+    Args:
+        query: gluon.dal.Expr query.
+        orderby: pydal.objects.Field instance or list of Field instance.
+
+    Yields:
+        Book instance
+    """
+    if orderby is None:
+        orderby = [db.book.creator_id, db.book.id]
+
+    ids = [x.id for x in db(query).select(db.book.id, orderby=orderby)]
+    for book_id in ids:
+        book = Book.from_id(book_id)
+        yield book
+
+
+def creator_generator(query):
+    """Generate creator records.
+
+    Args:
+        query: gluon.dal.Expr query.
+
+    Yields:
+        Creator instance
+    """
+    ids = [x.id for x in db(query).select(db.creator.id)]
+    for creator_id in ids:
+        creator = Creator.from_id(creator_id)
+        yield creator
+
+
+def check_cbz_files():
+    """Run checks on cbz files."""
+    # Books
+    query = (db.book.cbz != '')
+    for book in book_generator(query):
+        LOG.debug('Checking: %s', book.name)
+        if not os.path.exists(book.cbz):
+            LOG.error(
+                'Book cbz file does not exist: %s - %s',
+                book.id,
+                book.cbz,
+            )
+
+
+def check_torrent_files():
+    """Run checks on torrent files."""
+    # zco.mx
+    torrent_creator = AllTorrentCreator()
+    archive = TorrentArchive(base_path=torrent_creator.default_base_path)
+    torrent_filename = os.path.join(
+        archive.base_path,
+        archive.category,
+        archive.name,
+        torrent_creator.get_destination(),
+    )
+    if not os.path.exists(torrent_filename):
+        LOG.error('zco.mx torrent file does not exist: %s', torrent_filename)
+
+    # Creators
+    query = (db.creator.torrent != '')
+    for creator in creator_generator(query):
+        LOG.debug('Checking: %s', creator.name_for_url)
+        if not os.path.exists(creator.torrent):
+            LOG.error(
+                'Creator torrent file does not exist: %s - %s',
+                creator.id,
+                creator.torrent,
+            )
+
+    # Books
+    query = (db.book.torrent != '')
+    for book in book_generator(query):
+        LOG.debug('Checking: %s', book.name)
+        if not os.path.exists(book.torrent):
+            LOG.error(
+                'Book torrent file does not exist: %s - %s',
+                book.id,
+                book.torrent,
+            )
+
+
 def man_page():
     """Print manual page-like help"""
     print("""
@@ -137,17 +233,22 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     LOG.debug('Starting')
+
     one_hour_ago = datetime.datetime.now() \
         - datetime.timedelta(seconds=(60 * 60))
     StalledPostInProgressChecker('tumblr').check(age_buffer=one_hour_ago)
     StalledPostInProgressChecker('twitter').check(age_buffer=one_hour_ago)
     IncompleteOngoingPostChecker('tumblr').check(age_buffer=one_hour_ago)
     IncompleteOngoingPostChecker('twitter').check(age_buffer=one_hour_ago)
+
+    check_cbz_files()
+    check_torrent_files()
+
     LOG.debug('Done')
 
 
@@ -159,4 +260,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)
