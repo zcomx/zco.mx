@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 purge_torrents.py
 
 This script purges empty creator and 'all' torrent files as necessary.
 """
-
 import errno
 import os
 import sys
@@ -82,6 +80,29 @@ def num_books_with_cbz():
     query = (db.book.cbz != None)
     return db(query).count()
 
+def purge_loaded_files(dry_run=False):
+    """Purge any unneeded *.torrent.loaded files"""
+    archive = TorrentArchive()
+    torrent_dir = os.path.join(
+        archive.base_path,
+        archive.category,
+        archive.name,
+    )
+
+    fmt = 'Deleting: {f}'
+    if dry_run:
+        fmt = 'Dry Run. Would delete: {f}'
+
+    for root, dirs, files in os.walk(torrent_dir):
+        for file in files:
+            if file.endswith('.torrent.loaded'):
+                torrent_file = file.rstrip('.loaded')
+                if torrent_file not in files:
+                    full_filename = os.path.join(root, file)
+                    LOG.debug(fmt.format(f=full_filename))
+                    if not dry_run:
+                        os.unlink(full_filename)
+
 
 def man_page():
     """Print manual page-like help"""
@@ -97,6 +118,9 @@ USAGE
     purge_torrents.py [OPTIONS]
 
 OPTIONS
+    -d, --dry-run
+        Report what would be done but do not make any permanent changes.
+
     -h, --help
         Print a brief help.
 
@@ -117,6 +141,11 @@ def main():
     usage = '%prog [options]'
     parser = OptionParser(usage=usage, version=VERSION)
 
+    parser.add_option(
+        '-d', '--dry-run',
+        action='store_true', dest='dry_run', default=False,
+        help='Dry run. Make no permanent changes.',
+    )
     parser.add_option(
         '--man',
         action='store_true', dest='man', default=False,
@@ -148,20 +177,35 @@ def main():
     LOG.debug('Starting')
 
     for creator in creators_needing_purge():
-        LOG.debug('Purging torrent for creator: %s', creator.name)
-        delete_torrent(creator)
-        data = dict(
-            torrent=None,
-            rebuild_torrent=False,
-        )
-        creator = Creator.from_updated(creator, data)
+        if options.dry_run:
+            msg = 'DRY RUN. Would purge torrent for creator: {n}'.format(
+                n=creator.name,
+            )
+        else:
+            msg = 'Purging torrent for creator: {n}'.format(n=creator.name)
+        LOG.debug(msg)
+        if not options.dry_run:
+            delete_torrent(creator)
+            data = dict(
+                torrent=None,
+                rebuild_torrent=False,
+            )
+            creator = Creator.from_updated(creator, data)
 
     count = num_books_with_cbz()
     LOG.debug('Number of books with cbz file: %s', count)
     if count == 0:
-        delete_all_torrent()
+        if options.dry_run:
+            msg = 'DRY RUN. Would delete "all" torrent.'
+        else:
+            msg = 'Deleting "all" torrent.'
+        LOG.debug(msg)
+        if not options.dry_run:
+            delete_all_torrent()
     else:
         LOG.debug('"All" torrent required, not deleting.')
+
+    purge_loaded_files(dry_run=options.dry_run)
 
     LOG.debug('Done')
 
