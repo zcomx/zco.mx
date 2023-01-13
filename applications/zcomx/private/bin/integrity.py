@@ -15,9 +15,11 @@ from applications.zcomx.modules.archives import (
 )
 from applications.zcomx.modules.books import (
     Book,
+    generator,
 )
 from applications.zcomx.modules.creators import (
     Creator,
+    generator as creator_generator,
 )
 from applications.zcomx.modules.torrents import (
     AllTorrentCreator,
@@ -98,45 +100,11 @@ class IncompleteOngoingPostChecker(BaseChecker):
         return db.ongoing_post[self.post_field] == None
 
 
-def book_generator(query, orderby=None):
-    """Generate book records.
-
-    Args:
-        query: gluon.dal.Expr query.
-        orderby: pydal.objects.Field instance or list of Field instance.
-
-    Yields:
-        Book instance
-    """
-    if orderby is None:
-        orderby = [db.book.creator_id, db.book.id]
-
-    ids = [x.id for x in db(query).select(db.book.id, orderby=orderby)]
-    for book_id in ids:
-        book = Book.from_id(book_id)
-        yield book
-
-
-def creator_generator(query):
-    """Generate creator records.
-
-    Args:
-        query: gluon.dal.Expr query.
-
-    Yields:
-        Creator instance
-    """
-    ids = [x.id for x in db(query).select(db.creator.id)]
-    for creator_id in ids:
-        creator = Creator.from_id(creator_id)
-        yield creator
-
-
 def check_cbz_files():
     """Run checks on cbz files."""
     # Books
     query = (db.book.cbz != '')
-    for book in book_generator(query):
+    for book in generator(query):
         LOG.debug('Checking: %s', book.name)
         if not os.path.exists(book.cbz):
             LOG.error(
@@ -173,7 +141,7 @@ def check_torrent_files():
 
     # Books
     query = (db.book.torrent != '')
-    for book in book_generator(query):
+    for book in generator(query):
         LOG.debug('Checking: %s', book.name)
         if not os.path.exists(book.torrent):
             LOG.error(

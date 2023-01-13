@@ -14,6 +14,7 @@ from optparse import OptionParser
 from gluon import *
 from applications.zcomx.modules.books import (
     Book,
+    generator,
     get_page,
     page_url,
     url as book_url,
@@ -56,14 +57,8 @@ def book_generator(as_url=True):
         str or Book instance
     """
     query = (db.book.status == BOOK_STATUS_ACTIVE)
-    for book_id in db(query).select(db.book.id):
-        book = Book.from_id(book_id)
-        if not book:
-            continue
-        if as_url:
-            yield book_url(book)
-        else:
-            yield book
+    for value in generator(query, as_url=as_url):
+        yield value
 
 
 def cover_page_generator():

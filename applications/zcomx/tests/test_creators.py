@@ -3,6 +3,7 @@
 """
 Test suite for zcomx/modules/creators.py
 """
+import functools
 import json
 import os
 import unittest
@@ -24,6 +25,7 @@ from applications.zcomx.modules.creators import (
     follow_link,
     for_auth_user,
     for_path,
+    generator,
     html_metadata,
     image_as_json,
     images,
@@ -603,6 +605,32 @@ class TestFunctions(ImageTestCase):
 
         for t in tests:
             self.assertEqual(for_path(t[0]), t[1])
+
+    def test__generator(self):
+        expect_name_for_urls = [
+            'JimKarsten',
+            'JimRugg',
+        ]
+
+        queries = []
+        queries.append((db.creator.name_for_url.like('Jim%')))
+        query = functools.reduce(lambda x, y: x & y, queries)
+        creators = []
+        for creator in generator(query):
+            creators.append(creator)
+        self.assertEqual(
+            [x.name_for_url for x in creators],
+            expect_name_for_urls
+        )
+
+        # test orderby
+        creators = []
+        for creator in generator(query, orderby=~db.creator.name_for_url):
+            creators.append(creator)
+        self.assertEqual(
+            [x.name_for_url for x in creators],
+            sorted(expect_name_for_urls, reverse=True)
+        )
 
     def test__html_metadata(self):
 

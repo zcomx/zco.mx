@@ -883,6 +883,29 @@ def formatted_number(book):
     return book_type.formatted_number(book.number, book.of_number)
 
 
+def generator(query, orderby=None, as_url=False):
+    """Generate book records.
+
+    Args:
+        query: gluon.dal.Expr query.
+        orderby: pydal.objects.Field instance or list of Field instance.
+
+    Yields:
+        Book instance
+    """
+    db = current.app.db
+    if orderby is None:
+        orderby = [db.book.creator_id, db.book.id]
+
+    ids = [x.id for x in db(query).select(db.book.id, orderby=orderby)]
+    for book_id in ids:
+        book = Book.from_id(book_id)
+        if as_url:
+            yield url(book)
+        else:
+            yield book
+
+
 def get_page(book, page_no=1, book_page_tbl=None):
     """Return a page of a book.
 

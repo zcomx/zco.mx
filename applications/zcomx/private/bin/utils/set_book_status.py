@@ -12,29 +12,16 @@ Script to set the status of a book.
 import sys
 import traceback
 from optparse import OptionParser
-from applications.zcomx.modules.books import \
-    Book, \
-    calc_status, \
-    set_status
+from applications.zcomx.modules.books import (
+    Book,
+    calc_status,
+    generator,
+    set_status,
+)
 from applications.zcomx.modules.zco import BOOK_STATUS_DISABLED
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
-
-
-def book_generator(query):
-    """Generate book records.
-
-    Args:
-        query: gluon.dal.Expr query.
-
-    Yields:
-        Book instance
-    """
-    ids = [x.id for x in db(query).select(db.book.id)]
-    for book_id in ids:
-        book = Book.from_id(book_id)
-        yield book
 
 
 def man_page():
@@ -120,7 +107,7 @@ def main():
     else:
         generator_query = (db.book.id.belongs(args))
 
-    for book in book_generator(generator_query):
+    for book in generator(generator_query):
         LOG.debug('Updating: %s', book.name)
         if options.disable:
             book = set_status(book, BOOK_STATUS_DISABLED)

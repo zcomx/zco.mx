@@ -406,6 +406,26 @@ def for_path(name):
     return for_file(name)
 
 
+def generator(query, orderby=None):
+    """Generate creator records.
+
+    Args:
+        query: gluon.dal.Expr query.
+        orderby: pydal.objects.Field instance or list of Field instance.
+
+    Yields:
+        Creator instance
+    """
+    db = current.app.db
+    if orderby is None:
+        orderby = [db.creator.id]
+
+    ids = [x.id for x in db(query).select(db.creator.id, orderby=orderby)]
+    for creator_id in ids:
+        creator = Creator.from_id(creator_id)
+        yield creator
+
+
 def html_metadata(creator):
     """Return creator attributes for HTML metadata.
 

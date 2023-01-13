@@ -4,6 +4,7 @@
 Test suite for zcomx/modules/books.py
 """
 import datetime
+import functools
 import json
 import os
 import unittest
@@ -49,6 +50,7 @@ from applications.zcomx.modules.books import (
     follow_link,
     formatted_name,
     formatted_number,
+    generator,
     get_page,
     html_metadata,
     images,
@@ -1437,6 +1439,46 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             )
             book.update(data)
             self.assertEqual(formatted_number(book), t[3])
+
+    def test__generator(self):
+        expect_name_for_urls = [
+            'TestDoNotDelete-001',
+            'TestDisabledDoNotDelete',
+            'TestDraftDoNotDelete',
+        ]
+
+        expect_urls = [
+            '/JimKarsten/TestDoNotDelete-001',
+            '/JimKarsten/TestDisabledDoNotDelete',
+            '/JimKarsten/TestDraftDoNotDelete',
+        ]
+
+        queries = []
+        queries.append((db.book.creator_id == 98))
+        queries.append((db.book.name.like('Test %')))
+        query = functools.reduce(lambda x, y: x & y, queries)
+        books = []
+        for book in generator(query):
+            books.append(book)
+        self.assertEqual(
+            [x.name_for_url for x in books],
+            expect_name_for_urls
+        )
+
+        # test orderby
+        books = []
+        for book in generator(query, orderby=db.book.name_for_url):
+            books.append(book)
+        self.assertEqual(
+            [x.name_for_url for x in books],
+            sorted(expect_name_for_urls)
+        )
+
+        # test as_url
+        urls = []
+        for url in generator(query, as_url=True):
+            urls.append(str(url))
+        self.assertEqual(urls, expect_urls)
 
     def test__get_page(self):
         book = self.add(Book, dict(name='test__get_page'))
