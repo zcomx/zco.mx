@@ -586,22 +586,23 @@ job_common_fields         # Jobs are added to a queue and processed in order.
 # Note: this isn't a database table. If defines fields shared by the
 # job and job_history tables.
 
-job_queuer_id  integer    # References job_queuer.id
-start          datetime   # Scheduled start time.
-                          # Job will not be run prior to this time.
-priority       integer    # Priority of job, higher value = higher priority
-command        varchar    # Command to execute.
-ignorable      char(1)    # Job can be ignored.
-queued_time    datetime   # Time job was added to queue.
-start_time     datetime   # Time job was started.
-end_time       datetime   # Time job was completed.
-wait_seconds   integer    # Seconds job had to wait in queue.
-run_seconds    integer    # Seconds job took to complete.
-ignored        char(1)    # Was job ignored.
-status         char       # 'a' = active (queued),
-                          # 'c' = complete
-                          # 'd' = deactive (done)
-                          # 'p' = running (in progress)
+job_queuer_id  integer      # References job_queuer.id
+start          datetime     # Scheduled start time.
+                            # Job will not be run prior to this time.
+priority       integer      # Priority of job, higher value = higher priority
+command        varchar      # Command to execute.
+ignorable      char(1)      # Job can be ignored.
+queued_time    datetime     # Time job was added to queue.
+start_time     datetime     # Time job was started.
+end_time       datetime     # Time job was completed.
+wait_seconds   integer      # Seconds job had to wait in queue.
+run_seconds    integer      # Seconds job took to complete.
+retry_minutes  list:integer # Comma delimited list of minutes to retry
+ignored        char(1)      # Was job ignored.
+status         char         # 'a' = active (queued),
+                            # 'c' = complete
+                            # 'd' = deactive (done)
+                            # 'p' = running (in progress)
 """
 job_common_fields = db.Table(db, 'job_common_fields',
     Field('job_queuer_id',
@@ -641,6 +642,9 @@ job_common_fields = db.Table(db, 'job_common_fields',
     Field('run_seconds',
         'integer',
     ),
+    Field('retry_minutes',
+        'list:integer',
+    ),
     Field('ignored',
         'boolean',
         default=False,
@@ -664,6 +668,7 @@ db.define_table('job_history', job_common_fields)
 db.define_table('job_queuer',
     Field('code', 'string', requires=IS_NOT_EMPTY()),
     Field('estimate_run_seconds', 'integer'),
+    Field('retry_minutes', 'list:integer'),
 )
 
 db.define_table('link',

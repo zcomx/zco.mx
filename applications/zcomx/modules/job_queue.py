@@ -569,7 +569,11 @@ class Queuer(object):
             query = (db.job_queuer.code == self.class_factory_id)
             job_queuer = db(query).select().first()
 
-        attributes['job_queuer_id'] = job_queuer.id if job_queuer else 0
+        attributes['job_queuer_id'] = 0
+        attributes['retry_minutes'] = 0
+        if job_queuer:
+            attributes['job_queuer_id'] = job_queuer.id
+            attributes['retry_minutes'] = job_queuer.retry_minutes
 
         if 'command' not in attributes:
             attributes['command'] = self.command()

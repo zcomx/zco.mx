@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 queue_handler.py
 
 Check queue and run any jobs found.
 """
-
 import datetime
 import subprocess
 import sys
@@ -51,6 +49,7 @@ def main():
         'checked': 0,
         'error': 0,
         'ignored': 0,
+        'retried': 0,
         'success': 0,
     }
 
@@ -89,6 +88,16 @@ def main():
         )
         if job.start_time:
             data['run_seconds'] = (end_now - job.start_time).seconds
+
+        if error and job.retry_minutes:
+            retry_minutes = job.retry_minutes[0]
+            data['retry_minutes'] = job.retry_minutes[1:]
+            data['start'] = datetime.datetime.now() \
+                + datetime.timedelta(minutes=retry_minutes)
+            data['status'] = 'a'
+            job = IgnorableJob.from_updated(job, data)
+            stats['retried'] += 1
+            continue
 
         job = IgnorableJob.from_updated(job, data)
 
