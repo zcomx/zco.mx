@@ -13,23 +13,26 @@ import subprocess
 import time
 import unittest
 from gluon import *
-from applications.zcomx.modules.job_queue import \
-    CLIOption, \
-    Daemon, \
-    DaemonSignalError, \
-    IgnorableJob, \
-    InvalidCLIOptionError, \
-    InvalidJobOptionError, \
-    InvalidStatusError, \
-    Job, \
-    JobHistory, \
-    JobQueuer, \
-    Queue, \
-    QueueEmptyError, \
-    QueueLockedError, \
-    QueueLockedExtendedError, \
-    Queuer, \
-    Requeuer
+from applications.zcomx.modules.job_queue import (
+    CLIOption,
+    Daemon,
+    DaemonSignalError,
+    IgnorableJob,
+    InvalidCLIOptionError,
+    InvalidJobOptionError,
+    InvalidStatusError,
+    Job,
+    JobHistory,
+    JobQueuer,
+    JobRunFailedError,
+    Queue,
+    QueueEmptyError,
+    QueueLockedError,
+    QueueLockedExtendedError,
+    Queuer,
+    Requeuer,
+    parse_cli_options,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.tests.trackers import TableTracker
 
@@ -490,7 +493,7 @@ class TestQueue(LocalTestCase):
         def do_run(job):
             try:
                 queue.run_job(job)
-            except subprocess.CalledProcessError:
+            except JobRunFailedError:
                 return 1
             else:
                 return 0
@@ -779,6 +782,29 @@ class TestRequeuer(LocalTestCase):
                 '--max-requeues': 99,
             }
         )
+
+
+class TestFunctions(LocalTestCase):
+
+    def test__parse_cli_options(self):
+        tests = [
+            # (cli_options, expect)
+            ('-a', {'-a': True}),
+            ('-b 123', {'-b': '123'}),
+            ('-c abc', {'-c': 'abc'}),
+            ('--vv', {'--vv': True}),
+            (
+                '-a -b 123 -c abc --vv',
+                {
+                    '-a': True,
+                    '-b': '123',
+                    '-c': 'abc',
+                    '--vv': True,
+                }
+            ),
+        ]
+        for t in tests:
+            self.assertEqual(parse_cli_options(t[0]), t[1])
 
 
 def setUpModule():

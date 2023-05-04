@@ -10,10 +10,12 @@ import subprocess
 import sys
 import traceback
 from optparse import OptionParser
-from applications.zcomx.modules.job_queue import \
-    IgnorableJob, \
-    JobHistory, \
-    Queue
+from applications.zcomx.modules.job_queue import (
+    IgnorableJob,
+    JobHistory,
+    JobRunFailedError,
+    Queue,
+)
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -77,7 +79,7 @@ def main():
         if not is_ignored:
             try:
                 queue.run_job(job)
-            except subprocess.CalledProcessError as err:
+            except JobRunFailedError as err:
                 error = err
 
         end_now = datetime.datetime.now()

@@ -46,6 +46,10 @@ class InvalidStatusError(Exception):
     pass
 
 
+class JobRunFailedError(Exception):
+    """Exception indicating a job failed when it was run."""
+
+
 class QueueEmptyError(Exception):
     """Exception indicating the Queue is empty."""
     pass
@@ -418,7 +422,10 @@ class Queue(object):
             # For security purposes, general commands are not permitted.
             args = [sys.executable]
         args.extend(shlex.split(job.command))
-        subprocess.check_output(args, stderr=subprocess.STDOUT)
+        try:
+            subprocess.check_output(args, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as err:
+            raise JobRunFailedError(err)
 
     def set_job_status(self, job, status):
         """Set the status of a job in the queue.
@@ -635,3 +642,32 @@ class Requeuer(object):
             '--requeues': self.requeues + 1,
             '--max-requeues': self.max_requeues,
         }
+
+
+def parse_cli_options(cli_options):
+    """Convert cli options in str format to dict.
+
+    Eg '-a -b 1 --vv' => {'-a': True, '-b': 1, '--v': True}
+
+    Args:
+        cli_options: str
+
+    Returns:
+        dict
+    """
+    opts = {}
+    if not cli_options:
+        return opts
+
+    parts = [x.strip() for x in cli_options.split()]
+    prev_part = None
+    for part in parts:
+        if part.startswith('-'):
+            opts[part] = True
+        else:
+            if not prev_part:
+                raise LookupError('Invalid cli option: {o}'.format(o=part))
+            opts[prev_part] = part
+        prev_part = part
+    return opts
+
