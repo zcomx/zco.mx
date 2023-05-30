@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes for handling mysql.
-
 """
-
 import os
 
 
@@ -87,23 +83,25 @@ class LocalMySQL(object):
                 charset=self.charset)
 
 
-def soundex(db, value):
+def soundex(value):
     """Return the soundex string of a value.
 
     Args:
-        db: gluon.dal.DAL instance
         value: string, soundex string
 
     Returns:
         string, the soundex of value.
     """
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
     if not value:
         return ''
+
+    db = current.app.db
     soundex_sql = """SELECT SOUNDEX(%(value)s) as sndex;"""
-    results = db.executesql(soundex_sql, placeholders=dict(value=value),
-            as_dict=True)
+    results = db.executesql(
+        soundex_sql,
+        placeholders=dict(value=value),
+        as_dict=True
+    )
     if not results or not results[0]:
         return
     return results[0]['sndex']

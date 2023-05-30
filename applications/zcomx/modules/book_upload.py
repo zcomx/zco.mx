@@ -253,7 +253,7 @@ class UploadedFile(object):
         """
         db = current.app.db
         for image_filename in self.image_filenames:
-            book_page_id = create_book_page(db, book_id, image_filename)
+            book_page_id = create_book_page(book_id, image_filename)
             self.book_page_ids.append(book_page_id)
 
     def for_json(self):
@@ -436,13 +436,14 @@ def classify_uploaded_file(filename):
     return uploaded_file
 
 
-def create_book_page(db, book_id, image_filename):
+def create_book_page(book_id, image_filename):
     """Add the image file to the book pages. Creates a book_page_tmp record.
 
     Args:
         book_id: integer, id of book record the files belong to
         image_filename: /path/to/name of image file
     """
+    db = current.app.db
     try:
         stored_filename = store(db.book_page_tmp.image, image_filename)
     except IOError as err:

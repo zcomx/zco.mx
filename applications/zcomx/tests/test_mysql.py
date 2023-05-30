@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/mysql.py
-
 """
-
 import os
 import unittest
 from gluon.storage import Storage
@@ -108,7 +104,7 @@ class TestFunctions(LocalTestCase):
                 ("""a!@#$%^&*()_+{}|[]\:"<>?;',./a""", 'A000'),
                 ]
         for t in tests:
-            self.assertEqual(soundex(db, t[0]), t[1])
+            self.assertEqual(soundex(t[0]), t[1])
 
 
 def setUpModule():

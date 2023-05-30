@@ -397,7 +397,7 @@ class TestFunctions(ImageTestCase):
 
         for filename in ['file.jpg', 'file.png']:
             sample_file = self._prep_image(filename)
-            book_page_id = create_book_page(db, book.id, sample_file)
+            book_page_id = create_book_page(book.id, sample_file)
             self.assertTrue(book_page_id)
 
         pages = book.tmp_pages()

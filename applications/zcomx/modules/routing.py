@@ -52,7 +52,7 @@ class Router(object):
     """Class representing a Router"""
     not_found_msg = 'The requested page was not found on this server.'
 
-    def __init__(self, db, request, auth):
+    def __init__(self, request, auth):
         """Constructor
 
         Args:
@@ -60,7 +60,6 @@ class Router(object):
             request: gluon.globals.Request instance.
             auth: gluon.tools.Auth instance.
         """
-        self.db = db
         self.request = request
         self.auth = auth
         self.view = None
@@ -79,7 +78,7 @@ class Router(object):
         Returns:
             gluon.dal.Row representing book record
         """
-        db = self.db
+        db = current.app.db
         request = self.request
         if not self.book:
             if request.vars.book:
@@ -100,7 +99,7 @@ class Router(object):
         Returns:
             gluon.dal.Row representing creator record
         """
-        db = self.db
+        db = current.app.db
         request = self.request
         if not self.creator:
             request_vars_creator = None
@@ -225,7 +224,7 @@ class Router(object):
 
     def page_not_found(self):
         """Set for redirect to the page not found."""
-        db = self.db
+        db = current.app.db
         request = self.request
 
         urls = Storage({})
@@ -482,7 +481,7 @@ class Router(object):
 
     def set_creator_view(self):
         """Set the view for the creator page."""
-        db = self.db
+        db = current.app.db
         request = self.request
         creator = self.get_creator()
 

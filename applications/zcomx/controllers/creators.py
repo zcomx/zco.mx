@@ -21,7 +21,7 @@ def index():
 
     This controller is used to route creator related requests.
     """
-    router = Router(db, request, auth)
+    router = Router(request, auth)
 
     try:
         router.route()

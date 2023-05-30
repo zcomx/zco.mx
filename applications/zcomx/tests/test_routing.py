@@ -252,11 +252,11 @@ class TestRouter(LocalTestCase):
         return Records.from_key(BookView, dict(book_id=book_id))
 
     def test____init__(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         self.assertTrue(router)
 
     def test__get_book(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         self.assertTrue(router.book is None)
 
         # request.vars.book not set
@@ -292,7 +292,7 @@ class TestRouter(LocalTestCase):
         self.assertTrue(router.book is not None)
 
     def test__get_creator(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         self.assertTrue(router.creator is None)
 
         # request.vars.creator not set
@@ -360,7 +360,7 @@ class TestRouter(LocalTestCase):
         self.assertRaises(SpareCreatorError, router.get_creator)
 
     def test__get_book_page(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         self.assertTrue(router.book_page_record is None)
 
         # request.vars.page not set
@@ -427,7 +427,7 @@ class TestRouter(LocalTestCase):
         self.assertTrue(router.book_page_record is None)
 
     def test__get_reader(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
 
         # No request.vars.reader, no book
         self.assertEqual(router.get_reader(), None)
@@ -463,7 +463,7 @@ class TestRouter(LocalTestCase):
         def do_test(request_vars, expect):
             """Run test."""
             self._request.vars = request_vars
-            router = Router(db, self._request, auth)
+            router = Router(self._request, auth)
             self.assertRaisesHTTP(
                 404,
                 router.page_not_found
@@ -477,7 +477,7 @@ class TestRouter(LocalTestCase):
         def do_test_random(request_vars):
             """Run test."""
             self._request.vars = request_vars
-            router = Router(db, self._request, auth)
+            router = Router(self._request, auth)
             self.assertRaisesHTTP(
                 404,
                 router.page_not_found
@@ -644,7 +644,7 @@ class TestRouter(LocalTestCase):
         request_vars.creator = self._creator_name
         request_vars.book = self._book_name
         request_vars.page = self._page_name
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         self.assertRaisesHTTP(
             404,
             router.page_not_found
@@ -664,7 +664,7 @@ class TestRouter(LocalTestCase):
         )
 
     def test__preset_links(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
 
         data = dict(
             shop=None,
@@ -721,14 +721,14 @@ class TestRouter(LocalTestCase):
         test_presets(router.preset_links(), ['shop', 'tumblr'])
 
     def test__route(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         random = '_random_placeholder_'
         self.assertEqual(len(self._book_views(self._book.id)), 0)
 
         def do_test(request_vars, expect):
             """Run test."""
             self._request.vars = request_vars
-            router = Router(db, self._request, auth)
+            router = Router(self._request, auth)
             if 'page_not_found' in expect:
                 self.assertRaisesHTTP(
                     404,
@@ -893,7 +893,7 @@ class TestRouter(LocalTestCase):
         do_test(request_vars, page_not_found_expect)
 
     def test__set_book_view(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         router.creator = self._creator
         router.book = self._book
         router.set_book_view()
@@ -908,7 +908,7 @@ class TestRouter(LocalTestCase):
         self.assertEqual(router.redirect, None)
 
     def test__set_creator_monies_view(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         router.creator = self._creator
         router.set_creator_monies_view()
         self.assertEqual(
@@ -922,7 +922,7 @@ class TestRouter(LocalTestCase):
         self.assertEqual(router.redirect, None)
 
     def test__set_creator_view(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         router.creator = self._creator
         router.set_creator_view()
         self.assertEqual(
@@ -936,7 +936,7 @@ class TestRouter(LocalTestCase):
         self.assertEqual(router.redirect, None)
 
     def test__set_page_image_view(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         router.creator = self._creator
         router.book = self._book
         router.book_page_record = self._book_page
@@ -952,7 +952,7 @@ class TestRouter(LocalTestCase):
         self.assertEqual(router.redirect, None)
 
     def test__set_reader_view(self):
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         router.creator = self._creator
         router.book = self._book
         router.book_page_record = self._book_page
@@ -994,7 +994,7 @@ class TestRouter(LocalTestCase):
     def test__set_response_meta(self):
         # line-too-long (C0301): *Line too long (%%s/%%s)*
         # pylint: disable=C0301
-        router = Router(db, self._request, auth)
+        router = Router(self._request, auth)
         codes = ['opengraph']
 
         # Has book and creator
