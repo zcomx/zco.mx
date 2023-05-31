@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Unit test helper classes and functions.
 """
 import datetime
@@ -73,8 +71,7 @@ class DubMeta(type):
                     if 'return' in settings:
                         if callable(settings['return']):
                             return settings['return'](self, *args, **kwargs)
-                        else:
-                            return settings['return']
+                        return settings['return']
                 return func(self, *args, **kwargs)
             return wrapper
 
@@ -142,9 +139,11 @@ class FileTestCase(LocalTestCase):
                 'date:create',
                 outfile
             ]
-            p = subprocess.Popen(
-                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p_stdout, p_stderr = p.communicate()
+            with subprocess.Popen(
+                    args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE) as p:
+                p_stdout, p_stderr = p.communicate()
             if p_stdout:
                 print('FIXME p_stdout: {var}'.format(var=p_stdout))
             if p_stderr:
@@ -240,8 +239,6 @@ class ImageTestCase(WithTestDataDirTestCase):
         Returns:
             Name of the stored image file.
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         # Delete images if record field is set.
         db = current.app.db
         if record[field.name]:

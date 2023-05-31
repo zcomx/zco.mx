@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to twitter posts.
 """
 import re
@@ -71,9 +69,8 @@ class PhotoDataPreparer(object):
             self.twitter_data['book']['cover_image_name']
         )
         img = upload_image.fullname(size='web')
-        file_h = open(img, "rb")
-        contents = file_h.read()
-        file_h.close()
+        with open(img, 'rb') as f:
+            contents = f.read()
 
         return contents
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 Classes and functions related to uploading books.
 
@@ -54,7 +53,7 @@ from applications.zcomx.modules.shell_utils import \
 LOG = current.app.logger
 
 
-class BookPageUploader(object):
+class BookPageUploader():
     """Class representing a book page uploader, a handler used to manage
         uploads.
     """
@@ -84,9 +83,9 @@ class BookPageUploader(object):
     def load_file(self, up_file):
         """Load files into database."""
         local_filename = os.path.join(self.temp_directory, up_file.filename)
-        with open(local_filename, 'w+b') as lf:
+        with open(local_filename, 'w+b') as f:
             # This will convert cgi.FieldStorage to a regular file.
-            shutil.copyfileobj(up_file.file, lf)
+            shutil.copyfileobj(up_file.file, f)
 
         uploaded_file = classify_uploaded_file(local_filename)
         self.uploaded_files.append(uploaded_file)
@@ -103,7 +102,6 @@ class BookPageUploader(object):
 
 class FileTypeError(Exception):
     """Exception class for file type errors."""
-    pass
 
 
 class FileTyper(UnixFile):
@@ -139,8 +137,8 @@ class FileTyper(UnixFile):
         output, error = self.file()
         if error:
             raise FileTypeError(error)
-        for k, types in list(self.types.items()):
-            for t in types:
+        for k, type_list in list(self.types.items()):
+            for t in type_list:
                 if t in output.decode():
                     return k
         raise FileTypeError('Unsupported file type.')
@@ -148,7 +146,6 @@ class FileTyper(UnixFile):
 
 class UnpackError(Exception):
     """Exception class for unpack errors."""
-    pass
 
 
 class Unpacker(TempDirectoryMixin):
@@ -191,12 +188,11 @@ class UnpackerRAR(Unpacker):
         """Extract files."""
         tmp_dir = self.temp_directory()
 
-        p = subprocess.Popen(
-            ['unrar', 'e', self.filename, tmp_dir],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        unused_output, errors = p.communicate()
+        with subprocess.Popen(
+                ['unrar', 'e', self.filename, tmp_dir],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE) as p:
+            unused_output, errors = p.communicate()
         if errors:
             # E1103: *%%s %%r has no %%r member (some types not be inferred)
             # pylint: disable=E1103
@@ -221,15 +217,15 @@ class UnpackerZip(Unpacker):
         """Extract files."""
         tmp_dir = self.temp_directory()
         try:
-            with zipfile.ZipFile(self.filename, allowZip64=True) as z:
-                for zip_info in z.infolist():
-                    z.extract(zip_info, tmp_dir)
+            with zipfile.ZipFile(self.filename, allowZip64=True) as f:
+                for zip_info in f.infolist():
+                    f.extract(zip_info, tmp_dir)
         except (IOError, RuntimeError, zipfile.BadZipfile) as err:
             raise UnpackError(str(err))
         return self.image_files()
 
 
-class UploadedFile(object):
+class UploadedFile():
     """Base class representing a single uploaded file."""
 
     def __init__(self, filename):
@@ -304,7 +300,8 @@ class UploadedArchive(UploadedFile):
         except (KeyError, OSError):
             size = 0
 
-        cover_page = BookPageTmp.from_id(book_page_id) if book_page_id else None
+        cover_page = BookPageTmp.from_id(book_page_id) \
+            if book_page_id else None
         thumb = ''
         if cover_page:
             thumb = URL(

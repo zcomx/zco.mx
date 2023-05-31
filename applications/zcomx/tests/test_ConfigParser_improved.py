@@ -1,21 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+# pylint: disable=invalid-name
 """
 test_ConfigParser_improved.py
 
 Test suite for modules/ConfigParser_improved.py
-
 """
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
 import unittest
 import io
 from applications.zcomx.modules.ConfigParser_improved import \
     ConfigParserImproved
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
 
 
 class TestConfigParserImproved(LocalTestCase):
@@ -41,7 +38,7 @@ str2 = 'This is my setting value'
 """
         f = io.StringIO(text)
         config = ConfigParserImproved()
-        config.readfp(f)
+        config.read_file(f)
         self.assertEqual(
             config.items('strings'),
             config.items_scrubbed('strings')
@@ -64,14 +61,9 @@ str2 = 'This is my setting value'
 
 
 def _config_file_from_text(filename, text):
-
-    # R0201: *Method could be a function*
-    # pylint: disable=R0201
-
-    f = open(filename, 'w')
-    f.write(text)
-    f.close()
-    return
+    """Create a config file with the provided text."""
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(text)
 
 
 if __name__ == '__main__':

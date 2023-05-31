@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 image_samples.py
 
 Script to create image samples.
 """
-
 import os
 import subprocess
 import sys
@@ -29,7 +27,7 @@ FIELDS = [
 ]
 
 
-class ImageCreator(object):
+class ImageCreator():
     """Class representing a handler for creating image."""
 
     def __init__(
@@ -101,7 +99,8 @@ class ImageCreator(object):
             return
 
         h = self.size
-        increments = list(range(self.size, self.min_size - 1, -1 * self.increment))
+        increments = list(range(
+            self.size, self.min_size - 1, -1 * self.increment))
         for w in increments:
             yield (w, h)
         w = self.size
@@ -112,15 +111,14 @@ class ImageCreator(object):
 def list_ttf():
     """List ttf files on system."""
     args = ['find', '/', '-name', "'*.ttf'"]
-    p = subprocess.Popen(
-        args,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    p_stdout, p_stderr = p.communicate()
+    with subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE) as p:
+        p_stdout, p_stderr = p.communicate()
     if p_stderr:
         print('ERROR: {err}'.format(err=p_stderr), file=sys.stderr)
-        exit(1)
+        sys.exit(1)
     print(p_stdout)
 
 
@@ -242,17 +240,17 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if options.list_ttf:
         list_ttf()
-        quit(0)
+        sys.exit(0)
 
     if len(args) > 1:
         parser.print_help()
-        quit(1)
+        sys.exit(1)
 
     path = os.getcwd()
     if args:
@@ -260,12 +258,12 @@ def main():
 
     if not os.path.exists(path):
         LOG.error('Directory not found: {path}'.format(path=path))
-        exit(1)
+        sys.exit(1)
 
     if options.font_ttf and not os.path.exists(options.font_ttf):
         LOG.error('TrueType font file not found: {path}'.format(
             path=options.font_ttf))
-        exit(1)
+        sys.exit(1)
 
     LOG.debug('path: {var}'.format(var=path))
 
@@ -293,4 +291,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

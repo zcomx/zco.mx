@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 create_table_definition_file.py
 
@@ -11,15 +10,14 @@ file is:
 
 This script is meant to be a template. Copy and edit before using.
 """
-
 import logging
 import sys
 import traceback
 from optparse import OptionParser
-from gluon.dal import Field, Table, SQLCustomType
 from pydal.base import BaseAdapter
 from pydal._compat import hashlib_md5, pjoin, pickle
 from pydal._load import portalocker
+from gluon.dal import Field, Table, SQLCustomType
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -37,29 +35,28 @@ class DubBaseAdapter(BaseAdapter):
 
     @classmethod
     def file_open(cls, filename, mode='rb', lock=True):
-        # pylint: disable=bad-whitespace
-        #to be used ONLY for files that on GAE may not be on filesystem
+        # to be used ONLY for files that on GAE may not be on filesystem
         if lock:
-            fileobj = portalocker.LockedFile(filename,mode)
+            fileobj = portalocker.LockedFile(filename, mode)
         else:
-            fileobj = open(filename,mode)
+            # pylint: disable=unspecified-encoding
+            # pylint: disable=consider-using-with
+            fileobj = open(filename, mode)
         return fileobj
 
     @classmethod
     def file_close(cls, fileobj):
-        #to be used ONLY for files that on GAE may not be on filesystem
+        # to be used ONLY for files that on GAE may not be on filesystem
         if fileobj:
             fileobj.close()
 
 
 def get_ftype(table, field):
     """Get the ftype of a field."""
-    # pylint: disable=bad-builtin
     # pylint: disable=protected-access
     # pylint: disable=unused-variable
     # pylint: disable=invalid-name
     # pylint: disable=line-too-long
-    # pylint: disable=bad-whitespace
     field_name = field.name
     field_type = field.type
     self = DubBaseAdapter
@@ -68,7 +65,7 @@ def get_ftype(table, field):
     postcreation_fields = []
     TFK = {}
 
-    if isinstance(field_type,SQLCustomType):
+    if isinstance(field_type, SQLCustomType):
         ftype = field_type.native or field_type.type
     elif field_type.startswith(('reference', 'big-reference')):
         if field_type.startswith('reference'):
@@ -85,7 +82,7 @@ def get_ftype(table, field):
         #         and referenced != tablename \
         #         and hasattr(table,'_primarykey'):
         #     ftype = types['integer']
-        #else:
+        # else:
         try:
             rtable = db[referenced]
             rfield = rtable._id
@@ -94,11 +91,11 @@ def get_ftype(table, field):
         except (KeyError, ValueError, AttributeError) as e:
             self.db.logger.debug('Error: %s' % e)
             try:
-                rtablename,rfieldname = referenced.split('.')
+                rtablename, rfieldname = referenced.split('.')
                 rtable = db[rtablename]
                 rfield = rtable[rfieldname]
-            except Exception as e:
-                self.db.logger.debug('Error: %s' %e)
+            except Exception as err:
+                self.db.logger.debug('Error: %s', str(err))
                 raise KeyError('Cannot resolve reference %s in %s definition' % (referenced, table._tablename))
 
         # must be PK reference or unique
@@ -107,7 +104,7 @@ def get_ftype(table, field):
             ftype = types[rfield.type[:9]] % \
                 dict(length=rfield.length)
             # multicolumn primary key reference?
-            if not rfield.unique and len(rtable._primarykey)>1:
+            if not rfield.unique and len(rtable._primarykey) > 1:
                 # then it has to be a table level FK
                 if rtablename not in TFK:
                     TFK[rtablename] = {}
@@ -115,10 +112,10 @@ def get_ftype(table, field):
             else:
                 ftype = ftype + \
                     types['reference FK'] % dict(
-                        constraint_name = constraint_name, # should be quoted
-                        foreign_key = rtable.sqlsafe + ' (' + rfield.sqlsafe_name + ')',
-                        table_name = table.sqlsafe,
-                        field_name = field.sqlsafe_name,
+                        constraint_name=constraint_name,   # should be quoted
+                        foreign_key=rtable.sqlsafe + ' (' + rfield.sqlsafe_name + ')',
+                        table_name=table.sqlsafe,
+                        field_name=field.sqlsafe_name,
                         on_delete_action=field.ondelete)
         else:
             # make a guess here for circular references
@@ -126,14 +123,14 @@ def get_ftype(table, field):
                 id_fieldname = db[referenced]._id.sqlsafe_name
             elif referenced == tablename:
                 id_fieldname = table._id.sqlsafe_name
-            else: #make a guess
+            else:   # make a guess
                 id_fieldname = self.QUOTE_TEMPLATE % 'id'
-            #gotcha: the referenced table must be defined before
-            #the referencing one to be able to create the table
-            #Also if it's not recommended, we can still support
-            #references to tablenames without rname to make
-            #migrations and model relationship work also if tables
-            #are not defined in order
+            # gotcha: the referenced table must be defined before
+            # the referencing one to be able to create the table
+            # Also if it's not recommended, we can still support
+            # references to tablenames without rname to make
+            # migrations and model relationship work also if tables
+            # are not defined in order
             if referenced == tablename:
                 real_referenced = db[referenced].sqlsafe
             else:
@@ -142,36 +139,36 @@ def get_ftype(table, field):
                                    or referenced)
             rfield = db[referenced]._id
             ftype_info = dict(
-                index_name = self.QUOTE_TEMPLATE % (field_name+'__idx'),
-                field_name = field.sqlsafe_name,
-                constraint_name = self.QUOTE_TEMPLATE % constraint_name,
-                foreign_key = '%s (%s)' % (real_referenced, rfield.sqlsafe_name),
+                index_name=self.QUOTE_TEMPLATE % (field_name + '__idx'),
+                field_name=field.sqlsafe_name,
+                constraint_name=self.QUOTE_TEMPLATE % constraint_name,
+                foreign_key='%s (%s)' % (real_referenced, rfield.sqlsafe_name),
                 on_delete_action=field.ondelete,
-                )
+            )
             ftype_info['null'] = ' NOT NULL' if field.notnull else ''
             ftype_info['unique'] = ' UNIQUE' if field.unique else ''
             ftype = types[type_name] % ftype_info
     elif field_type.startswith('list:reference'):
         ftype = types[field_type[:14]]
     elif field_type.startswith('decimal'):
-        precision, scale = list(map(int,field_type[8:-1].split(',')))
+        precision, scale = list(map(int, field_type[8:-1].split(',')))
         ftype = types[field_type[:7]] % \
-            dict(precision=precision,scale=scale)
+            dict(precision=precision, scale=scale)
     elif field_type.startswith('geo'):
-        if not hasattr(self,'srid'):
+        if not hasattr(self, 'srid'):
             raise RuntimeError('Adapter does not support geometry')
         srid = self.srid
         geotype, parms = field_type[:-1].split('(')
-        if not geotype in types:
+        if geotype not in types:
             raise SyntaxError(
-                'Field: unknown field type: %s for %s' \
+                'Field: unknown field type: %s for %s'
                 % (field_type, field_name))
         ftype = types[geotype]
         if self.dbengine == 'postgres' and geotype == 'geometry':
             if self.ignore_field_case is True:
                 field_name = field_name.lower()
             # parameters: schema, srid, dimension
-            dimension = 2 # GIS.dimension ???
+            dimension = 2     # GIS.dimension ???
             parms = parms.split(',')
             if len(parms) == 3:
                 schema, srid, dimension = parms
@@ -186,12 +183,14 @@ def get_ftype(table, field):
                                  dimension=dimension)
             postcreation_fields.append(ftype)
     elif field_type not in types:
-        raise SyntaxError('Field: unknown field type: %s for %s' % \
-            (field_type, field_name))
+        raise SyntaxError(
+            'Field: unknown field type: %s for %s' %
+            (field_type, field_name)
+        )
     else:
         ftype = types[field_type] % {'length':field.length}
 
-    if not field_type.startswith(('id','reference', 'big-reference')):
+    if not field_type.startswith(('id', 'reference', 'big-reference')):
         if field.notnull:
             ftype += ' NOT NULL'
         else:
@@ -276,7 +275,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -336,4 +335,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

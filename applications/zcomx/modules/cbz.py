@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 CBZ classes and functions.
 """
 import math
@@ -31,7 +29,6 @@ LOG = current.app.logger
 
 class CBZCreateError(Exception):
     """Exception class for a cbz file create error."""
-    pass
 
 
 class CBZCreator(TempDirectoryMixin):
@@ -161,9 +158,9 @@ class CBZCreator(TempDirectoryMixin):
         )
         os.link(src_filename, dst_filename)
         cbz_filename = self.zip()
-        zipper = zipfile.ZipFile(cbz_filename, 'a')
-        zipper.comment = cbz_comment(self.book).encode('utf-8')
-        zipper.close()
+
+        with zipfile.ZipFile(cbz_filename, 'a') as f:
+            f.comment = cbz_comment(self.book).encode('utf-8')
         return cbz_filename
 
     def working_directory(self):
@@ -185,13 +182,12 @@ class CBZCreator(TempDirectoryMixin):
         cbz_filename = os.path.join(cbz_dir, self.cbz_filename())
         args.append(cbz_filename)
         args.append(self.working_directory())
-        p = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            preexec_fn=os_nice(nice),
-        )
-        unused_stdout, p_stderr = p.communicate()
+        with subprocess.Popen(
+                args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                preexec_fn=os_nice(nice)) as p:
+            unused_stdout, p_stderr = p.communicate()
         # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
         # pylint: disable=E1101
         if p.returncode:

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-
 """
-
 Indicias classes and functions.
 """
 import datetime
@@ -43,7 +41,7 @@ LOG = current.app.logger
 DEFAULT_BOOK_TYPE = 'one-shot'
 
 
-class IndiciaPage(object):
+class IndiciaPage():
     """Class representing an indicia page.
 
     The indicia page is the web version of the indicia (as opposed to the
@@ -83,8 +81,6 @@ class IndiciaPage(object):
             list of 'follow' social media icons.
                 [A(), ...]
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return []
 
     def licence_text(self, template_field='template_web'):
@@ -95,8 +91,6 @@ class IndiciaPage(object):
             template_field: string, name of cc_licence template field. One of
                 'template_img', 'template_web'
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return render_cc_licence(
             {},
             CCLicence.default(),
@@ -115,7 +109,8 @@ class IndiciaPagePng(TempDirectoryMixin):
             self.temp_directory(), 'meta.txt')
         with open(self.metadata_filename, 'wb') as f:
             f.write(
-                self.licence_text(template_field='template_img').encode('utf-8')
+                self.licence_text(
+                    template_field='template_img').encode('utf-8')
             )
 
     def get_indicia_filename(self):
@@ -510,7 +505,6 @@ class CreatorIndiciaPagePng(IndiciaPage, IndiciaPagePng):
 
 class IndiciaShError(Exception):
     """Exception class for IndiciaSh errors."""
-    pass
 
 
 class IndiciaSh(TempDirectoryMixin):
@@ -582,14 +576,13 @@ class IndiciaSh(TempDirectoryMixin):
         # The image created by indicia.sh is placed in the current
         # directory. Use cwd= to change to the temp directory so it is
         # created there.
-        p = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=self.temp_directory(),
-            preexec_fn=os_nice(nice),
-        )
-        p_stdout, p_stderr = p.communicate()
+        with subprocess.Popen(
+                args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=self.temp_directory(),
+                preexec_fn=os_nice(nice)) as p:
+            p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
         if p_stdout:
             LOG.warning('IndiciaSh run stdout: %s', p_stdout)
@@ -613,7 +606,7 @@ class IndiciaSh(TempDirectoryMixin):
             self.png_filename = matches[0]
 
 
-class BookPublicationMetadata(object):
+class BookPublicationMetadata():
     """Class representing publication metadata for a book."""
 
     to_month_err_msg = \
@@ -765,9 +758,9 @@ class BookPublicationMetadata(object):
                 request_vars['publication_metadata_republished'] = None
 
         if 'publication_metadata_is_anthology' in request_vars:
-            request_vars['publication_metadata_is_anthology'] = True \
-                if request_vars['publication_metadata_is_anthology'] == 'yes' \
-                else False
+            request_vars['publication_metadata_is_anthology'] = \
+                bool(
+                    request_vars['publication_metadata_is_anthology'] == 'yes')
 
         metadatas = vars_to_records(
             request_vars, 'publication_metadata', multiple=False)
@@ -871,8 +864,8 @@ class BookPublicationMetadata(object):
                 if serial.to_year > max_to_year:
                     max_to_year = serial.to_year
             return max_to_year
-        else:
-            return self.metadata.to_year
+
+        return self.metadata.to_year
 
     def serial_text(self, serial, is_anthology=False):
         """Return the sentence form of a publication_serial record.
@@ -883,12 +876,7 @@ class BookPublicationMetadata(object):
 
         Returns: string
         """
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
-
+        # pylint: disable=line-too-long
         if not serial:
             return ''
 
@@ -1194,7 +1182,7 @@ class BookPublicationMetadata(object):
                         if serial.published_format == 'paper' and \
                                 serial.publisher_type == 'self':
                             db_serial.publisher.requires = None
-                    if (field == 'to_month' or field == 'to_year') \
+                    if (field in ['to_month', 'to_year']) \
                             and db_serial.to_month.requires is None:
                         db_serial.to_month.requires = self.to_month_requires(
                             serial.from_month,

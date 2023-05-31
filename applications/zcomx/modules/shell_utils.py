@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to shell utilities
 """
 import functools
@@ -15,7 +13,7 @@ import tempfile
 from gluon import *
 
 
-class TempDirectoryMixin(object):
+class TempDirectoryMixin():
     """Base class representing an object using temporary directory"""
 
     _temp_directory = None
@@ -37,7 +35,7 @@ class TempDirectoryMixin(object):
         return self._temp_directory
 
 
-class TemporaryDirectory(object):
+class TemporaryDirectory():
     """tempfile.mkdtemp() usable with "with" statement."""
 
     def __init__(self):
@@ -51,7 +49,7 @@ class TemporaryDirectory(object):
         shutil.rmtree(self.name)
 
 
-class UnixFile(object):
+class UnixFile():
     """Class representing a Unix file."""
 
     def __init__(self, name):
@@ -68,12 +66,12 @@ class UnixFile(object):
         Returns:
             tuple: (output, errors)
         """
-        p = subprocess.Popen(
-            ['file', self.name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        return p.communicate()
+        with subprocess.Popen(
+                ['file', self.name],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE) as p:
+            result = p.communicate()
+        return result
 
 
 def get_owner(filename):
@@ -101,13 +99,12 @@ def imagemagick_version():
         string, version of ImageMagick. Eg '6.9.0-0'
     """
     args = ['convert', '-version']
-    p = subprocess.Popen(
-        args,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    p_stdout, unused_p_stderr = p.communicate()
-    return p_stdout.decode().split("\n")[0].split()[2]
+    with subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE) as p:
+        p_stdout, unused_p_stderr = p.communicate()
+    return p_stdout.decode().split("\n", maxsplit=1)[0].split()[2]
 
 
 def os_nice(value):
@@ -189,7 +186,6 @@ def temp_directory():
 
 class TthSumError(Exception):
     """Exception class for tthsum errors."""
-    pass
 
 
 def tthsum(filename):
@@ -206,13 +202,15 @@ def tthsum(filename):
 
     args = ['tthsum']
     args.append(filename)
-    p = subprocess.Popen(
-        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    p_stdout, p_stderr = p.communicate()
+    with subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE) as p:
+        p_stdout, p_stderr = p.communicate()
     tthsum_hash = ''
     if p_stdout:
         tthsum_hash, filename = \
-            p_stdout.decode().strip().split("\n")[0].split(None, 1)
+            p_stdout.decode().strip().split("\n", maxsplit=1)[0].split(None, 1)
 
     if p_stderr:
         msg = 'tthsum error: {msg}'.format(msg=p_stderr)

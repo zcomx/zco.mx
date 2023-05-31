@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to images.
 """
 import glob
@@ -12,8 +10,8 @@ import re
 import shutil
 import subprocess
 from PIL import Image
-from gluon import *
 from pydal.helpers.regex import REGEX_UPLOAD_EXTENSION
+from gluon import *
 from applications.zcomx.modules.job_queuers import DeleteImgQueuer
 from applications.zcomx.modules.shell_utils import \
     TempDirectoryMixin, \
@@ -31,7 +29,7 @@ SIZES = [
 ]
 
 
-class ImageDescriptor(object):
+class ImageDescriptor():
     """Class representing an image descriptor. The class can be used
     to access attributes of an image file.
 
@@ -111,7 +109,7 @@ class ImageOptimizeError(Exception):
     """Exception class for an image optimize errors."""
 
 
-class ImgTag(object):
+class ImgTag():
     """Class representing an image TAG"""
 
     placeholder_tag = DIV
@@ -254,14 +252,13 @@ class ResizeImg(TempDirectoryMixin):
         # The images created by resize_img.sh are placed in the current
         # directory. Use cwd= to change to the temp directory so they are
         # created there.
-        p = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=self.temp_directory(),
-            preexec_fn=os_nice(nice),
-        )
-        p_stdout, p_stderr = p.communicate()
+        with subprocess.Popen(
+                args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=self.temp_directory(),
+                preexec_fn=os_nice(nice)) as p:
+            p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
         if p_stdout:
             LOG.warning('ResizeImg run stdout: %s', p_stdout)
@@ -333,13 +330,12 @@ class ResizeImgIndicia(ResizeImg):
         ))
         args.append(outfile)
 
-        p = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            preexec_fn=os_nice(nice),
-        )
-        p_stdout, p_stderr = p.communicate()
+        with subprocess.Popen(
+                args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                preexec_fn=os_nice(nice)) as p:
+            p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
         if p_stdout:
             LOG.warning('ResizeImgIndicia run stdout: %s', p_stdout)
@@ -362,7 +358,7 @@ class ResizeImgIndicia(ResizeImg):
                 self.filenames[prefix] = matches[0]
 
 
-class UploadImage(object):
+class UploadImage():
     """Class representing an uploaded image.
 
     Uploaded images are stored in an uploads/original subdirectory.
@@ -523,15 +519,13 @@ def optimize(filename, nice=NICES['optimize'], quick=False):
     # Use a temporary directory and cwd so processes are completed in
     # a safe place.
     with TemporaryDirectory() as tmp_dir:
-        p = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=tmp_dir,
-            preexec_fn=os_nice(nice),
-        )
-
-        p_stdout, p_stderr = p.communicate()
+        with subprocess.Popen(
+                args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=tmp_dir,
+                preexec_fn=os_nice(nice)) as p:
+            p_stdout, p_stderr = p.communicate()
         # Generally there should be no output. Log to help troubleshoot.
         if p_stdout:
             LOG.warning('optimize_img.sh run stdout: %s', p_stdout)
@@ -636,13 +630,12 @@ def square_image(filename, offset=None, nice=NICES['resize']):
         args.append('-f')
         args.append(offset)
 
-    p = subprocess.Popen(
-        args,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        preexec_fn=os_nice(nice),
-    )
-    p_stdout, p_stderr = p.communicate()
+    with subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os_nice(nice)) as p:
+        p_stdout, p_stderr = p.communicate()
     if p_stdout:
         LOG.error('square_image stdout: %s', p_stdout.decode())
     if p_stderr:

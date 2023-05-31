@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 resize_images.py
 
 Script to create and maintain images and their sizes.
 """
-
 import os
 import shutil
 import subprocess
@@ -14,9 +12,9 @@ import sys
 import time
 import traceback
 from optparse import OptionParser
+from pydal.helpers.regex import REGEX_UPLOAD_PATTERN
 from gluon import *
 from gluon.shell import env
-from pydal.helpers.regex import REGEX_UPLOAD_PATTERN
 from applications.zcomx.modules.images import \
     SIZES, \
     UploadImage, \
@@ -37,7 +35,7 @@ FIELDS = [
 ]
 
 
-class ImageHandler(object):
+class ImageHandler():
     """Class representing a handler for image resizing."""
 
     def __init__(
@@ -262,7 +260,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -281,7 +279,7 @@ def main():
         quick_exit = True
 
     if quick_exit:
-        exit(0)
+        sys.exit(0)
 
     LOG.info('Started.')
     filenames = args or []
@@ -313,9 +311,11 @@ def chown():
     args.append('-R')
     args.append('http:http')
     args.append(uploads_dir)
-    p = subprocess.Popen(
-        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    p_stdout, p_stderr = p.communicate()
+    with subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE) as p:
+        p_stdout, p_stderr = p.communicate()
     # Generally there should be no output. Log to help troubleshoot.
     if p_stdout:
         LOG.warning('ResizeImg run stdout: {out}'.format(out=p_stdout))
@@ -337,4 +337,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

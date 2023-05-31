@@ -5,7 +5,6 @@ Test suite for zcomx/modules/stickon/tools.py
 """
 import os
 import unittest
-from configparser import NoSectionError
 from bs4 import BeautifulSoup
 from gluon.shell import env
 from gluon.storage import Storage
@@ -189,7 +188,7 @@ class TestSettingsLoader(LocalTestCase):
     def test____repr__(self):
         settings_loader = SettingsLoader(config_file=None, application='app')
         self.assertEqual(
-            settings_loader.__repr__(),
+            repr(settings_loader),
             """SettingsLoader(config_file=None, application='app'"""
         )
 
@@ -397,7 +396,8 @@ class TestSettingsLoader(LocalTestCase):
         application = 'app'
         group = 'app'
         storage = Storage()
-        self.assertEqual(list(storage.keys()), [])  # Initialized storage is empty
+        # Initialized storage is empty
+        self.assertEqual(list(storage.keys()), [])
         settings_loader.import_settings(group, storage)
         # No config file, storage unchanged
         self.assertEqual(list(storage.keys()), [])
@@ -453,14 +453,9 @@ class TestSettingsLoader(LocalTestCase):
 
 
 def _config_file_from_text(filename, text):
-
-    # R0201: *Method could be a function*
-    # pylint: disable=R0201
-
-    f = open(filename, 'w')
-    f.write(text)
-    f.close()
-    return
+    """Create a config file with the provided text."""
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(text)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 tests/runner.py
 
@@ -29,6 +28,12 @@ from gluon.storage import (
     List,
     Storage,
 )
+from applications.zcomx.modules.job_queue import (
+    Job,
+    JobHistory,
+)
+from applications.zcomx.modules.tests.trackers import TableTracker
+
 
 FILTER_TABLES = []          # Cache for values in comment.filter_table fields
 # Cache for app environments. Reuse of db prevents
@@ -62,7 +67,6 @@ class LocalTestCase(unittest.TestCase):
 
     _trackers = None
     _runner_trackers = []
-
 
     def __init__(self, methodName='runTest'):
         """Constructor."""
@@ -211,7 +215,12 @@ class LocalTestCase(unittest.TestCase):
             See _assertRaisesHTTPError
         """
         self._assertRaisesHTTPError(
-            urllib.error.HTTPError, expected_code, callable_obj, *args, **kwargs)
+            urllib.error.HTTPError,
+            expected_code,
+            callable_obj,
+            *args,
+            **kwargs
+        )
 
     def assertWebTest(
             self,
@@ -713,9 +722,8 @@ class LocalWebClient(WebClient):
             database handles. Changes on one may not be available on the other
             until a commit() is called.
         """
-        # return self.post(url, data=None, cookies=cookies, headers=headers, method='GET')
         self._soup = None
-        result = self.post(
+        self.post(
             url,
             data=None,
             cookies=None,
@@ -726,7 +734,6 @@ class LocalWebClient(WebClient):
         )
         if self.db:
             self.db.commit()
-        return result
 
     def is_logged_in(self):
         """Determine if session is logged in.
@@ -734,7 +741,7 @@ class LocalWebClient(WebClient):
         Returns:
             True if logged in.
         """
-        return True if self.session_id() else False
+        return bool(self.session_id())
 
     def login(self, url='', email=None):
         """Login to web2py application
@@ -802,7 +809,7 @@ class LocalWebClient(WebClient):
         * Clears _soup property.
         """
         self._soup = None
-        result = WebClient.post(
+        WebClient.post(
             self,
             url,
             data=data,
@@ -814,7 +821,6 @@ class LocalWebClient(WebClient):
         )
         if self.db:
             self.db.commit()
-        return result
 
     def session_id(self):
         """Get the current session_id.
@@ -874,7 +880,8 @@ class LocalWebClient(WebClient):
                 if '_formname' not in post_data:
                     post_data['_formname'] = list(self.forms.keys())[0]
                 if '_formkey' not in post_data:
-                    post_data['_formkey'] = self.forms[list(self.forms.keys())[0]]
+                    post_data['_formkey'] = self.forms[
+                        list(self.forms.keys())[0]]
             self.post(url, post_data, charset=charset)
 
         match_text = ' '.join(self.text.split()) \
@@ -898,8 +905,9 @@ class LocalWebClient(WebClient):
             except (AttributeError, KeyError):
                 filename = 'dump'
             with open(
-                os.path.join(dump_dir, filename + '.htm'), 'w'
-            ) as f_dump:
+                    os.path.join(dump_dir, filename + '.htm'),
+                    'w',
+                    encoding='utf-8') as f_dump:
                 f_dump.write(
                     match_text.encode('ascii', 'replace').decode(charset)
                     + "\n"
@@ -931,15 +939,18 @@ def count_diff(func):
             arg: args passed to decorated function.
         """
         do_run_command = '--no-count' not in sys.argv
+
         def run_command(args):
             """Run system command."""
             retries = [1, 10, 60]
 
             while True:
                 try:
-                    p = subprocess.Popen(
-                        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    p_stdout, p_stderr = p.communicate()
+                    with subprocess.Popen(
+                            args,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE) as p:
+                        p_stdout, p_stderr = p.communicate()
                 except OSError:
                     if not retries:
                         break
@@ -978,13 +989,8 @@ def remove_comments_for(obj):
     Args:
         obj: DbObject instance
     """
-    # W0212: *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
-    # W0603: *Using the global statement*
-    # pylint: disable=W0603
-    # R0201: *Method could be a function*
-    # pylint: disable=R0201
-
+    # pylint: disable=protected-access
+    # pylint: disable=global-statement
     # Remove comments.
     global FILTER_TABLES
     db = current.app.db
