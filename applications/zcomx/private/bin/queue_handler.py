@@ -6,7 +6,6 @@ queue_handler.py
 Check queue and run any jobs found.
 """
 import datetime
-import subprocess
 import sys
 import traceback
 from optparse import OptionParser
@@ -147,4 +146,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

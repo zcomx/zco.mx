@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 batch_record_update.py
 
 Script to update records from data read from csv file.
 """
-
 import collections
 import csv
 import sys
@@ -38,7 +36,7 @@ class TableRecord(Record):
     db_table = None
 
 
-class BatchUpdaterRecord(object):
+class BatchUpdaterRecord():
     """Class representing a batch updater record"""
 
     def __init__(self, record, dry_run=False):
@@ -104,6 +102,7 @@ class BatchUpdaterRecord(object):
         Returns:
             True if valid, False otherwise
         """
+        # pylint: disable=too-many-return-statements
         if len(self.record) != len(CSV_FIELDS):
             msg = 'Incorrect number of fields: {rec}'.format(rec=self.record)
             LOG.error(msg)
@@ -135,9 +134,7 @@ class BatchUpdaterRecord(object):
         TableRecord.db_table = values['table']
         key = {values['key_field']: values['key_value']}
         try:
-            # unused-variable (W0612): *Unused variable %%r*
-            # pylint: disable=W0612
-            record = TableRecord.from_key(key)
+            TableRecord.from_key(key)
         except LookupError as err:
             LOG.error(err)
             return False
@@ -154,7 +151,7 @@ class BatchUpdaterRecord(object):
         return True
 
 
-class BatchUpdater(object):
+class BatchUpdater():
     """Class representing a batch updater"""
 
     def __init__(self, csv_filename, dry_run=False):
@@ -310,13 +307,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) != 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     csv_filename = args[0]
 
@@ -339,6 +336,7 @@ def main():
         LOG.info('TOTAL: {v}'.format(v=total))
     LOG.info('Done.')
 
+
 if __name__ == '__main__':
     # pylint: disable=broad-except
     try:
@@ -347,4 +345,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

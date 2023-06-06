@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to social media.
 """
 import json
@@ -10,29 +8,34 @@ import time
 import urllib.parse
 from twitter import TwitterHTTPError
 from gluon import *
-from applications.zcomx.modules.books import \
-    get_page, \
-    short_page_img_url, \
-    short_page_url, \
-    short_url, \
-    social_media_data as book_social_media_data
-from applications.zcomx.modules.creators import \
-    Creator, \
-    social_media_data as creator_social_media_data
-from applications.zcomx.modules.facebook import \
-    Authenticator as FbAuthenticator, \
-    FacebookAPIError, \
-    PhotoDataPreparer as FbPhotoDataPreparer, \
-    Poster as FbPoster
+from applications.zcomx.modules.books import (
+    get_page,
+    short_page_img_url,
+    short_page_url,
+    short_url,
+    social_media_data as book_social_media_data,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    social_media_data as creator_social_media_data,
+)
+from applications.zcomx.modules.facebook import (
+    Authenticator as FbAuthenticator,
+    FacebookAPIError,
+    PhotoDataPreparer as FbPhotoDataPreparer,
+    Poster as FbPoster,
+)
 from applications.zcomx.modules.records import Record
-from applications.zcomx.modules.tumblr import \
-    Authenticator, \
-    PhotoDataPreparer, \
-    Poster
-from applications.zcomx.modules.tweeter import \
-    Authenticator as TwAuthenticator, \
-    PhotoDataPreparer as TwPhotoDataPreparer, \
-    Poster as TwPoster
+from applications.zcomx.modules.tumblr import (
+    Authenticator,
+    PhotoDataPreparer,
+    Poster,
+)
+from applications.zcomx.modules.tweeter import (
+    Authenticator as TwAuthenticator,
+    PhotoDataPreparer as TwPhotoDataPreparer,
+    Poster as TwPoster,
+)
 from applications.zcomx.modules.utils import ClassFactory
 from applications.zcomx.modules.zco import SITE_NAME
 
@@ -44,7 +47,7 @@ class OngoingPost(Record):
     db_table = 'ongoing_post'
 
 
-class SocialMedia(object):
+class SocialMedia():
     """Base class representing social media"""
 
     class_factory = ClassFactory('class_factory_id')
@@ -219,10 +222,9 @@ class TwitterSocialMedia(SocialMedia):
 
 class SocialMediaPostError(Exception):
     """Exception class for errors occurring while posting on social media."""
-    pass
 
 
-class SocialMediaPoster(object):
+class SocialMediaPoster():
     """Base class representing a social media poster."""
 
     authenticate_class = None
@@ -232,7 +234,6 @@ class SocialMediaPoster(object):
 
     def __init__(self):
         """Initializer"""
-        pass
 
     def additional_prepare_data(self, data):
         """Do additional preparation of data.
@@ -246,8 +247,6 @@ class SocialMediaPoster(object):
         Returns:
             dict
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return data
 
     def credentials(self):
@@ -268,8 +267,7 @@ class SocialMediaPoster(object):
         Returns:
             dict
         """
-        # not-callable (E1102): *%%s is not callable*
-        # pylint: disable=E1102
+        # pylint: disable=not-callable
         client = self.authenticate_class(self.credentials()).authenticate()
         poster = self.poster_class(client)
         return self.post_data(poster, self.prepare_data(book, creator))
@@ -298,8 +296,7 @@ class SocialMediaPoster(object):
             'creator': creator_social_media_data(creator),
             'site': {'name': SITE_NAME},
         }
-        # not-callable (E1102): *%%s is not callable*
-        # pylint: disable=E1102
+        # pylint: disable=not-callable
         photo_data = self.photo_data_preparer_class(social_media_data).data()
         return self.additional_prepare_data(photo_data)
 
@@ -325,8 +322,6 @@ class FacebookPoster(SocialMediaPoster):
 
     def post_data(self, poster, photo_data):
         """Post the data using the api."""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         error = None
         try:
             result = poster.post_photo(photo_data)
@@ -369,8 +364,6 @@ class TumblrPoster(SocialMediaPoster):
 
     def post_data(self, poster, photo_data):
         """Post the data using the api."""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         settings = current.app.local_settings
         result = poster.post_photo(settings.tumblr_username, photo_data)
         if 'id' not in result:
@@ -414,8 +407,6 @@ class TwitterPoster(SocialMediaPoster):
 
     def post_data(self, poster, photo_data):
         """Post the data using the api."""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         error = None
         try:
             result = poster.post_photo(photo_data)

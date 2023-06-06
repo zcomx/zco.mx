@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 update_creator_indicia.py
 
 Script to update a creator's indicia.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
-
 import sys
 import traceback
 from optparse import OptionParser
@@ -118,13 +114,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     ids = []
     for arg in args:
@@ -132,7 +128,7 @@ def main():
             record_id = int(arg)
         except (TypeError, ValueError):
             print('Invalid creator id: {i}'.format(i=arg))
-            quit(1)
+            sys.exit(1)
         ids.append(record_id)
 
     for creator_id in ids:
@@ -140,7 +136,7 @@ def main():
             creator = Creator.from_id(creator_id)
         except LookupError:
             print('No creator found, id: {i}'.format(i=record_id))
-            quit(1)
+            sys.exit(1)
 
         LOG.debug('Updating creator: %s', creator.name_for_url)
 
@@ -162,4 +158,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

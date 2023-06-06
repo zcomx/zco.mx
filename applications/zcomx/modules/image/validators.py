@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to validating images.
 """
 from gluon import *
@@ -13,10 +11,9 @@ LOG = current.app.logger
 
 class InvalidImageError(Exception):
     """Exception class for invalid image errors."""
-    pass
 
 
-class ImageValidator(object):
+class ImageValidator():
     """Class representing an image validator"""
 
     def __init__(self, filename):
@@ -34,8 +31,6 @@ class ImageValidator(object):
         Returns:
             dict
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return {
             'landscape': 0,
             'portrait': 0,

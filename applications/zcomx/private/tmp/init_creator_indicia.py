@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 init_creator_indicia.py
 
@@ -11,10 +10,9 @@ indicia image. Some old records didn't get updated. This script will fix
 it.
 
 This script is safe to rerun.
-All is does is queue jobs to run update_creator_indicia.py for the creators
+All it does is queue jobs to run update_creator_indicia.py for the creators
 that weren't initialized properly.
 """
-
 import os
 import sys
 import traceback
@@ -28,8 +26,7 @@ from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
+# pylint: disable=invalid-name
 db = APP_ENV['db']
 
 
@@ -82,7 +79,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -104,4 +101,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

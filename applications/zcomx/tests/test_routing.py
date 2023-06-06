@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/routing.py
-
 """
 import urllib.parse
 import unittest
@@ -12,36 +9,39 @@ from bs4 import BeautifulSoup
 from gluon import *
 from gluon.http import HTTP
 from gluon.rewrite import filter_url
-from gluon.storage import \
-    List, \
-    Storage
+from gluon.storage import (
+    List,
+    Storage,
+)
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.books import \
-    Book, \
-    book_name
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator, \
-    creator_name
+from applications.zcomx.modules.books import (
+    Book,
+    book_name,
+)
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+    creator_name,
+)
 from applications.zcomx.modules.events import BookView
 from applications.zcomx.modules.records import Records
-from applications.zcomx.modules.routing import \
-    Router, \
-    SpareCreatorError
+from applications.zcomx.modules.routing import (
+    Router,
+    SpareCreatorError,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.user_agents import USER_AGENTS
-from applications.zcomx.modules.zco import \
-    BOOK_STATUS_ACTIVE, \
-    BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_DRAFT
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+from applications.zcomx.modules.zco import (
+    BOOK_STATUS_ACTIVE,
+    BOOK_STATUS_DISABLED,
+    BOOK_STATUS_DRAFT,
+)
+# pylint: disable=missing-docstring
 
 
 class TestRouter(LocalTestCase):
+    # pylint: disable=too-many-instance-attributes
     _auth_user = None
     _book = None
     _book_2 = None
@@ -64,8 +64,7 @@ class TestRouter(LocalTestCase):
     _page_name = None
     _request = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         # Prevent requests from being seen as bots.
         # pylint: disable=protected-access
@@ -247,8 +246,6 @@ class TestRouter(LocalTestCase):
         Returns:
             list of BookView instances
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return Records.from_key(BookView, dict(book_id=book_id))
 
     def test____init__(self):
@@ -771,7 +768,7 @@ class TestRouter(LocalTestCase):
                 self.assertEqual(router.view, expect.view)
 
         # No creator, should route to page_not_found with random creator.
-        request_vars = Storage(dict())
+        request_vars = Storage({})
 
         page_not_found_expect = Storage({
             'page_not_found': {
@@ -992,8 +989,7 @@ class TestRouter(LocalTestCase):
         router.book = Book.from_updated(router.book, dict(reader='slider'))
 
     def test__set_response_meta(self):
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         router = Router(self._request, auth)
         codes = ['opengraph']
 
@@ -1088,8 +1084,7 @@ class TestRouter(LocalTestCase):
 class TestFunctions(LocalTestCase):
     _request = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         self._request = Storage()
         self._request.env = Storage()
@@ -1103,8 +1098,7 @@ class TestFunctions(LocalTestCase):
     def test_routes(self):
         # This tests the ~/routes.py settings.
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         app_root = '/srv/http/dev.zco.mx/web2py/applications'
         in_tests = [
             # (url, URL)
@@ -1268,8 +1262,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

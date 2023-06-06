@@ -1,42 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/autocomplete.py
-
 """
 import os
 import shutil
 import unittest
-from gluon import *
 from pydal.objects import Row
-from applications.zcomx.modules.autocomplete import \
-    BaseAutocompleter, \
-    BookAutocompleter, \
-    CreatorAutocompleter, \
-    autocompleter_class
+from gluon import *
+from applications.zcomx.modules.autocomplete import (
+    BaseAutocompleter,
+    BookAutocompleter,
+    CreatorAutocompleter,
+    autocompleter_class,
+)
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.zco import \
-    BOOK_STATUS_ACTIVE, \
-    BOOK_STATUSES
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+from applications.zcomx.modules.zco import (
+    BOOK_STATUS_ACTIVE,
+    BOOK_STATUSES,
+)
+# pylint: disable=missing-docstring
 
 
 class DumpTestCase(LocalTestCase):
 
     _tmp_dir = '/tmp/test_autocomplete'
-
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         if not os.path.exists(cls._tmp_dir):
@@ -70,7 +65,7 @@ class TestBaseAutocompleter(DumpTestCase):
         autocompleter = DubAutocompleter()
         output = os.path.join(self._tmp_dir, 'output.json')
         autocompleter.dump(output)
-        with open(output) as f:
+        with open(output, encoding='utf-8') as f:
             content = f.read()
         self.assertEqual(
             content,
@@ -389,8 +384,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

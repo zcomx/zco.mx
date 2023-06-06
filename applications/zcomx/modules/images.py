@@ -13,11 +13,12 @@ from PIL import Image
 from pydal.helpers.regex import REGEX_UPLOAD_EXTENSION
 from gluon import *
 from applications.zcomx.modules.job_queuers import DeleteImgQueuer
-from applications.zcomx.modules.shell_utils import \
-    TempDirectoryMixin, \
-    TemporaryDirectory, \
-    os_nice, \
-    set_owner
+from applications.zcomx.modules.shell_utils import (
+    TempDirectoryMixin,
+    TemporaryDirectory,
+    os_nice,
+    set_owner,
+)
 from applications.zcomx.modules.zco import NICES
 
 LOG = current.app.logger
@@ -252,6 +253,7 @@ class ResizeImg(TempDirectoryMixin):
         # The images created by resize_img.sh are placed in the current
         # directory. Use cwd= to change to the temp directory so they are
         # created there.
+        # pylint: disable=subprocess-popen-preexec-fn
         with subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
@@ -265,8 +267,6 @@ class ResizeImg(TempDirectoryMixin):
         if p_stderr:
             LOG.error('ResizeImg run stderr: %s', p_stderr)
 
-        # E1101 (no-member): *%%s %%r has no %%r member*
-        # pylint: disable=E1101
         if p.returncode:
             raise ResizeImgError('Resize failed: {err}'.format(
                 err=p_stderr or p_stdout))
@@ -330,6 +330,7 @@ class ResizeImgIndicia(ResizeImg):
         ))
         args.append(outfile)
 
+        # pylint: disable=subprocess-popen-preexec-fn
         with subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
@@ -342,8 +343,6 @@ class ResizeImgIndicia(ResizeImg):
         if p_stderr:
             LOG.error('ResizeImgIndicia run stderr: %s', p_stderr)
 
-        # E1101 (no-member): *%%s %%r has no %%r member*
-        # pylint: disable=E1101
         if p.returncode:
             raise ResizeImgError('Resize failed: {err}'.format(
                 err=p_stderr or p_stdout))
@@ -519,6 +518,7 @@ def optimize(filename, nice=NICES['optimize'], quick=False):
     # Use a temporary directory and cwd so processes are completed in
     # a safe place.
     with TemporaryDirectory() as tmp_dir:
+        # pylint: disable=subprocess-popen-preexec-fn
         with subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
@@ -532,8 +532,6 @@ def optimize(filename, nice=NICES['optimize'], quick=False):
         if p_stderr:
             LOG.error('optimize_img.sh run stderr: %s', p_stderr)
 
-        # E1101 (no-member): *%%s %%r has no %%r member*
-        # pylint: disable=E1101
         if p.returncode:
             raise ImageOptimizeError('Optimize failed: {err}'.format(
                 err=p_stderr or p_stdout))
@@ -630,6 +628,7 @@ def square_image(filename, offset=None, nice=NICES['resize']):
         args.append('-f')
         args.append(offset)
 
+    # pylint: disable=subprocess-popen-preexec-fn
     with subprocess.Popen(
             args,
             stdout=subprocess.PIPE,

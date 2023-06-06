@@ -89,8 +89,13 @@ from applications.zcomx.modules.utils import (
 )
 
 
-MODAL_ERROR = lambda msg: redirect(
-    URL(c='z', f='modal_error', vars={'message': msg}))
+def modal_error(msg):
+    """Redirect on modal error.
+
+    Args:
+        msg: str, error message
+    """
+    redirect(URL(c='z', f='modal_error', vars={'message': msg}))
 
 
 @auth.requires_login()
@@ -158,16 +163,16 @@ def book_complete():
     except LookupError:
         creator = None
     if not creator:
-        MODAL_ERROR('Permission denied')
+        modal_error('Permission denied')
 
     book = None
     if request.args(0):
         try:
             book = Book.from_id(request.args(0))
         except LookupError:
-            MODAL_ERROR('Invalid data provided')
+            modal_error('Invalid data provided')
     if not book or book.creator_id != creator.id:
-        MODAL_ERROR('Invalid data provided')
+        modal_error('Invalid data provided')
 
     meta = BookPublicationMetadata.from_book(book)
     barriers = complete_barriers(book)
@@ -200,9 +205,7 @@ def book_crud():
     request.vars.name: string, book table field name
     request.vars.value: string, value of book table field.
     """
-    # too-many-return-statements (R0911): *Too many return statements*
-    # pylint: disable=R0911
-
+    # pylint: disable=too-many-return-statements
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
@@ -216,9 +219,8 @@ def book_crud():
     if not creator:
         return do_error('Permission denied')
 
-    # W0212 (protected-access): *Access to a protected member
-    # pylint: disable=W0212
     actions = ['complete', 'create', 'delete', 'fileshare', 'update']
+    # pylint: disable=protected-access
     if not request.vars._action or request.vars._action not in actions:
         return do_error('Invalid data provided')
     action = request.vars._action
@@ -382,17 +384,17 @@ def book_delete():
     except LookupError:
         creator = None
     if not creator:
-        MODAL_ERROR('Permission denied')
+        modal_error('Permission denied')
 
     book = None
     if request.args(0):
         try:
             book = Book.from_id(request.args(0))
         except LookupError:
-            MODAL_ERROR('Invalid data provided')
+            modal_error('Invalid data provided')
 
     if not book or book.creator_id != creator.id:
-        MODAL_ERROR('Invalid data provided')
+        modal_error('Invalid data provided')
 
     return dict(book=book)
 
@@ -408,7 +410,7 @@ def book_edit():
     except LookupError:
         creator = None
     if not creator:
-        MODAL_ERROR('Permission denied')
+        modal_error('Permission denied')
 
     book = None
     book_type = None
@@ -418,7 +420,7 @@ def book_edit():
         except LookupError:
             book = None
         if not book:
-            MODAL_ERROR('Invalid data provided')
+            modal_error('Invalid data provided')
         book_type = BookType.classified_from_id(book.book_type_id)
 
     if not book_type:
@@ -466,16 +468,16 @@ def book_fileshare():
     except LookupError:
         creator = None
     if not creator:
-        MODAL_ERROR('Permission denied')
+        modal_error('Permission denied')
 
     book = None
     if request.args(0):
         try:
             book = Book.from_id(request.args(0))
         except LookupError:
-            MODAL_ERROR('Invalid data provided')
+            modal_error('Invalid data provided')
     if not book or book.creator_id != creator.id:
-        MODAL_ERROR('Invalid data provided')
+        modal_error('Invalid data provided')
 
     barriers = filesharing_barriers(book)
 
@@ -493,6 +495,7 @@ def book_page_edit_handler():
     request.vars.pk: integer, id of book_page_tmp record
     request.vars.value: str, new name of image file.
     """
+    # pylint: disable=too-many-return-statements
     def do_error(msg):
         """Error handler."""
         return json.dumps({'status': 'error', 'msg': msg})
@@ -533,10 +536,10 @@ def book_page_edit_handler():
         return do_error('Invalid image filename')
 
     if book_page_tmp.image != new_filename:
+        # pylint: disable=broad-except
         try:
             book_page_tmp = book_page_tmp.rename_image(new_filename)
         except Exception as err:
-            # pylint: disable=broad-except
             LOG.error('Book page image rename error: %s', str(err))
             return do_error('Image file rename failed.')
 
@@ -554,13 +557,13 @@ def book_pages():
     except LookupError:
         creator = None
     if not creator:
-        MODAL_ERROR('Permission denied')
+        modal_error('Permission denied')
 
     book = None
     if request.args(0):
         book = Book.from_id(request.args(0))
     if not book or book.creator_id != creator.id:
-        MODAL_ERROR('Invalid data provided')
+        modal_error('Invalid data provided')
 
     book_pages_to_tmp(book)
 
@@ -580,11 +583,8 @@ def book_pages_handler():
 
     # Delete
     request.vars.book_page_id: integer, id of book_page to delete
-
     """
-    # too-many-return-statements (R0911): *Too many return statements*
-    # pylint: disable=R0911
-
+    # pylint: disable=too-many-return-statements
     def do_error(msg, files=None):
         """Error handler."""
         if files == None:
@@ -614,8 +614,7 @@ def book_pages_handler():
         files = request.vars['up_files[]']
         if not isinstance(files, list):
             files = [files]
-        # Catching too general exception (W0703)
-        # pylint: disable=W0703
+        # pylint: disable=broad-except
         try:
             result_json = BookPageUploader(book.id, files).upload()
         except InvalidImageError as err:
@@ -872,9 +871,7 @@ def creator_img_handler():
             Eg 'indicia_image': update creator.indicia_image
     request.vars.up_files: list of files representing creator image.
     """
-    # too-many-return-statements (R0911): *Too many return statements*
-    # pylint: disable=R0911
-
+    # pylint: disable=too-many-return-statements
     def do_error(msg, files=None):
         """Error handler."""
         if files == None:
@@ -928,10 +925,9 @@ def creator_img_handler():
                         fmt.format(min=minimum_widths[img_field]),
                         files=[up_file.filename]
                     )
-            # Catching too general exception (W0703)
-            # pylint: disable=W0703
             resizer = ResizeImgIndicia if img_field == 'indicia_image' \
                 else None
+            # pylint: disable=broad-except
             try:
                 stored_filename = store(
                     db.creator[img_field], local_filename, resizer=resizer)
@@ -1106,8 +1102,7 @@ def link_crud():
     # action = 'move'
     request.vars.dir: string, 'up' or 'down'
     """
-    # too-many-return-statements (R0911): *Too many return statements*
-    # pylint: disable=R0911
+    # pylint: disable=too-many-return-statements
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
@@ -1187,7 +1182,7 @@ def link_crud():
             links = Links([Link.from_id(link_id)])
         else:
             links = Links.from_links_key(links_key)
-        rows = [x for x in links.links]
+        rows = list(links.links)
     elif action == 'update':
         if link_id:
             data = {}
@@ -1278,8 +1273,7 @@ def metadata_crud():
         update: expect POST json data and create/update metadata records as
             necessary.
     """
-    # too-many-return-statements (R0911): *Too many return statements*
-    # pylint: disable=R0911
+    # pylint: disable=too-many-return-statements
     response.generic_patterns = ['json']
 
     def do_error(msg=None):
@@ -1293,9 +1287,8 @@ def metadata_crud():
     if not creator:
         return do_error('Permission denied')
 
-    # W0212 (protected-access): *Access to a protected member
-    # pylint: disable=W0212
     actions = ['get', 'update']
+    # pylint: disable=protected-access
     if not request.vars._action or request.vars._action not in actions:
         return do_error('Invalid data provided')
     action = request.vars._action
@@ -1672,7 +1665,7 @@ def profile_creator_image_modal():
     except LookupError:
         creator = None
     if not creator:
-        MODAL_ERROR('Permission denied')
+        modal_error('Permission denied')
 
     creator.clear_image_tmp()
 
@@ -1740,7 +1733,7 @@ def profile_name_edit_modal():
     except LookupError:
         creator = None
     if not creator:
-        MODAL_ERROR('Permission denied')
+        modal_error('Permission denied')
 
     fields = [
         Field(

@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 User Agent classes and functions.
 """
 from gluon import *
 from gluon.storage import Storage
 
 LOG = current.app.logger
-
+# pylint: disable=line-too-long
 USER_AGENTS = Storage({
     'bot': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www. google.com/bot.html)',
     'non_bot': 'Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0',
 })
+
 
 def is_bot(indeterminate_is_bot=True):
     """Determine if the http request is a bot or not.

@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to CC (Creative Commons) licences.
 """
-
 from applications.zcomx.modules.records import Record
 
 

@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/stickon/validators.py
-
 """
 import string
 import unittest
@@ -14,24 +11,20 @@ from gluon.validators import (
     ValidationError,
 )
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.stickon.validators import \
-    IS_ALLOWED_CHARS, \
-    IS_NOT_IN_DB_ANYCASE, \
-    IS_NOT_IN_DB_SCRUBBED, \
-    IS_TWITTER_HANDLE, \
-    IS_URL_FOR_DOMAIN, \
-    as_per_type
-
+from applications.zcomx.modules.stickon.validators import (
+    IS_ALLOWED_CHARS,
+    IS_NOT_IN_DB_ANYCASE,
+    IS_NOT_IN_DB_SCRUBBED,
+    IS_TWITTER_HANDLE,
+    IS_URL_FOR_DOMAIN,
+    as_per_type,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestIS_ALLOWED_CHARS(LocalTestCase):
-    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
 
     def test____init__(self):
         validator = IS_ALLOWED_CHARS()
@@ -52,7 +45,6 @@ class TestIS_ALLOWED_CHARS(LocalTestCase):
                     validator.validate(value)
                 except ValidationError as err:
                     err_msg = str(err)
-                    pass
                 else:
                     self.fail('ValidationError not raised')
 
@@ -101,8 +93,7 @@ class TestIS_ALLOWED_CHARS(LocalTestCase):
 
 
 class TestIS_NOT_IN_DB_ANYCASE(LocalTestCase):
-    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
 
     def test____init__(self):
         validator = IS_NOT_IN_DB_ANYCASE(db, db.creator.email)
@@ -122,7 +113,7 @@ class TestIS_NOT_IN_DB_ANYCASE(LocalTestCase):
         self._objects.append(creator)
 
         tests = [
-            #(email, error)
+            # (email, error)
             (email, error_msg),           # In db, so not ok
             (email_2, None),              # Not in db, so ok
             (email.upper(), error_msg),   # lowercase is in db, not ok
@@ -151,8 +142,7 @@ class TestIS_NOT_IN_DB_ANYCASE(LocalTestCase):
 
 
 class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
-    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
 
     def test____init__(self):
         validator = IS_NOT_IN_DB_SCRUBBED(db, db.creator.email)
@@ -180,8 +170,9 @@ class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
         self.assertEqual(creator.email, email)
         self._objects.append(creator)
 
+        # pylint: disable=line-too-long
         tests = [
-            #(email, scrub_callback, expect)
+            # (email, scrub_callback, expect)
             (email, None, error_msg),               # In db, so not ok
             (email_2, None, None),                  # Not in db, so ok
             (email.upper(), None, error_msg),       # lowercase in db, not ok
@@ -221,8 +212,7 @@ class TestIS_NOT_IN_DB_SCRUBBED(LocalTestCase):
 
 
 class TestIS_TWITTER_HANDLE(LocalTestCase):
-    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
 
     def test____init__(self):
         domain = 'my_domain.com'
@@ -233,7 +223,7 @@ class TestIS_TWITTER_HANDLE(LocalTestCase):
     def test_call__(self):
         err_msg = 'Enter a valid twitter handle, eg @username'
         tests = [
-            #(value, error)
+            # (value, error)
             ('@username', None),
             ('@user_name123', None),
             ('@123_user_name', None),
@@ -257,8 +247,7 @@ class TestIS_TWITTER_HANDLE(LocalTestCase):
 
 
 class TestIS_URL_FOR_DOMAIN(LocalTestCase):
-    # C0103 (invalid-name): *Invalid name "%%s" for type %%s (should match %%s)
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
 
     def test____init__(self):
         domain = 'my_domain.com'
@@ -268,7 +257,7 @@ class TestIS_URL_FOR_DOMAIN(LocalTestCase):
 
     def test__validate(self):
         tests = [
-            #(domain, value, result, error)
+            # (domain, value, result, error)
             ('aaa.com', 'http://www.aaa.com/path', 'http://www.aaa.com/path',
                 None),
             ('aaa.com', 'www.aaa.com', 'http://www.aaa.com', None),
@@ -356,8 +345,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

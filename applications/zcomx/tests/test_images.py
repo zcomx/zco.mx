@@ -46,12 +46,7 @@ from applications.zcomx.modules.tests.helpers import (
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.shell_utils import imagemagick_version
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
-# W0212 (protected-access): *Access to a protected member
-# pylint: disable=W0212
+# pylint: disable=missing-docstring
 
 
 class WithObjectsTestCase(LocalTestCase):
@@ -61,8 +56,7 @@ class WithObjectsTestCase(LocalTestCase):
     _creator = None
     _uuid_key = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         # Create a creator and set the image
         email = 'up_image@example.com'
@@ -170,6 +164,7 @@ class TestImageDescriptor(WithObjectsTestCase, ImageTestCase):
 
         # Test cache
         descriptor = ImageDescriptor('/path/to/file')
+        # pylint: disable=protected-access
         descriptor._dimensions = (1, 1)
         self.assertEqual(descriptor.dimensions(), (1, 1))
 
@@ -187,6 +182,7 @@ class TestImageDescriptor(WithObjectsTestCase, ImageTestCase):
 
         # Test cache
         descriptor = ImageDescriptor('/path/to/file')
+        # pylint: disable=protected-access
         descriptor._number_of_colours = -1
         self.assertEqual(descriptor.number_of_colours(), -1)
 
@@ -219,6 +215,7 @@ class TestImageDescriptor(WithObjectsTestCase, ImageTestCase):
 
         # Test cache
         descriptor = ImageDescriptor('/path/to/file')
+        # pylint: disable=protected-access
         descriptor._size_bytes = 1
         self.assertEqual(descriptor.size_bytes(), 1)
 
@@ -364,6 +361,7 @@ class TestResizeImg(ImageTestCase, WithObjectsTestCase, FileTestCase):
         filename = os.path.join(self._test_data_dir, 'file.jpg')
         resize_img = ResizeImg(filename)
         self.assertTrue(resize_img)
+        # pylint: disable=protected-access
         self.assertEqual(resize_img._temp_directory, None)
         self.assertEqual(
             resize_img.filenames,
@@ -383,7 +381,10 @@ class TestResizeImg(ImageTestCase, WithObjectsTestCase, FileTestCase):
         # resize_img.sh relies on RobidouxSharp filter added in imagemagick
         # ver 6.7.6-8. Abort if that version is not available.
         minimum_ver = '6.7.6-8'
-        version_as_num = lambda v: float(v.replace('.', '').replace('-', '.'))
+
+        def version_as_num(value):
+            return float(value.replace('.', '').replace('-', '.'))
+
         imagemagick_ver = imagemagick_version()
         if version_as_num(imagemagick_ver) < version_as_num(minimum_ver):
             msg = 'Upgrade ImageMagick. Minimum version: {ver}'.format(
@@ -416,8 +417,7 @@ class TestResizeImg(ImageTestCase, WithObjectsTestCase, FileTestCase):
                             len(im.getcolors(maxcolors=99999)) in colors
                         )
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
 
         # Test: test the md5 sum of files.
         #
@@ -607,6 +607,7 @@ class TestResizeImgIndicia(WithObjectsTestCase, ImageTestCase, FileTestCase):
         filename = os.path.join(self._test_data_dir, 'file.jpg')
         resize_img = ResizeImgIndicia(filename)
         self.assertTrue(resize_img)
+        # pylint: disable=protected-access
         self.assertEqual(resize_img._temp_directory, None)
         self.assertEqual(
             resize_img.filenames,
@@ -630,7 +631,8 @@ class TestResizeImgIndicia(WithObjectsTestCase, ImageTestCase, FileTestCase):
         # rm ~/tmp/img/*.jpg
         # rm ~/tmp/img/*.png
         # rm ~/tmp/img/*.gif
-        # convert before/256colour-jpg.jpg -quiet -filter catrom -resize '1600x1600>' -colorspace sRGB +repage ori-256colour-jpg.jpg
+        # convert before/256colour-jpg.jpg -quiet -filter catrom \
+        #    -resize '1600x1600>' -colorspace sRGB +repage file.jpg
         # md5sum * | awk -v q="'" '{print q$2q": " q$1q","}'
         md5s = {
             '6.9.10-16': {
@@ -682,6 +684,7 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
             nameonly=True,
         )
         self.assertEqual(self._image_name, file_name)
+        # pylint: disable=protected-access
         self.assertEqual(up_image._full_name, None)
         self.assertEqual(up_image._original_name, None)
 
@@ -777,6 +780,7 @@ class TestUploadImage(WithObjectsTestCase, ImageTestCase):
             )
         )
 
+        # pylint: disable=protected-access
         # Test cache
         up_image._original_name = '_original_'
         up_image._full_name = '_full_'
@@ -990,8 +994,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

@@ -1,31 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 facebook_api.py
 
 Script to test using facebook API (facepy)
 https://pypi.python.org/pypi/facepy/1.0.6
 """
-
-import base64
 import datetime
 import sys
 import traceback
-import urllib.parse
 from optparse import OptionParser
-import requests
 import applications.zcomx.modules.facepy as facepy
 from applications.zcomx.modules.facebook import FacebookAPIAuthenticator
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 
-# line-too-long (C0301): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
 
-
-class APIClient(object):
+class APIClient():
     """Class representing a client for the facebook API"""
 
     def __init__(self, graph, user_id='me'):
@@ -64,6 +56,7 @@ class APIClient(object):
 
     def post_photo_link(self):
         """Post a link to a photo to facebook."""
+        # pylint: disable=line-too-long
         post_data = dict(
             link='https://zco.mx/DanielMcCloskey/TopOfTheLine-04of08',
             picture='https://zco.mx/images/download/book_page.image.8766f7e5f669ee91.73636f636f766572206973737565342e706e67.png?size=web',
@@ -76,6 +69,7 @@ class APIClient(object):
 
     def post_tumblr_link(self):
         """Post a tumblr link to a photo to facebook."""
+        # pylint: disable=line-too-long
         post_data = dict(
             # message='Test @[23497828950:National Geographic] page',
             link='http://zcomx.tumblr.com/post/123701349131/ongoing-books-update-2015-07-09',
@@ -88,6 +82,7 @@ class APIClient(object):
 
     def post_photo(self):
         """Post a photo to facebook."""
+        # pylint: disable=line-too-long
         post_data = dict(
             url='https://zco.mx/images/download/book_page.image.8766f7e5f669ee91.73636f636f766572206973737565342e706e67.png?size=web',
         )
@@ -97,6 +92,7 @@ class APIClient(object):
     def post_text(self):
         """Post a text message to facebook."""
         now = str(datetime.datetime.now())
+        # pylint: disable=line-too-long
         post_data = dict(
             message='* This is a test 013.\r\n\r\n* This is the second line.\r\n\r\n* {d}'.format(d=now),
         )
@@ -178,7 +174,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -216,6 +212,7 @@ def main():
 
     LOG.info('Done.')
 
+
 if __name__ == '__main__':
     # pylint: disable=broad-except
     try:
@@ -224,4 +221,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

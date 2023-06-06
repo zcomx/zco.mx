@@ -4,16 +4,16 @@
 Classes and functions related to twitter posts.
 """
 import re
-from gluon import *
 from twitter import Twitter
 from twitter.oauth import OAuth
+from gluon import *
 from applications.zcomx.modules.images import UploadImage
 from applications.zcomx.modules.zco import TUMBLR_USERNAME
 
 LOG = current.app.logger
 
 
-class Authenticator(object):
+class Authenticator():
     """Class representing a twitter authenticator"""
 
     def __init__(self, credentials):
@@ -38,7 +38,7 @@ class Authenticator(object):
         ))
 
 
-class PhotoDataPreparer(object):
+class PhotoDataPreparer():
     """Class representing a preparer of data for twitter photo posting."""
 
     def __init__(self, twitter_data):
@@ -83,7 +83,7 @@ class PhotoDataPreparer(object):
         return tweet.status()
 
 
-class TextDataPreparer(object):
+class TextDataPreparer():
     """Class representing a preparer of data for twitter text posting."""
 
     def __init__(self, twitter_data):
@@ -113,7 +113,7 @@ class TextDataPreparer(object):
         return tweet.status()
 
 
-class Poster(object):
+class Poster():
     """Class representing a twitter poster"""
 
     def __init__(self, client):
@@ -149,7 +149,7 @@ class Poster(object):
         return self.client.statuses.update(**text_data)
 
 
-class BaseTweet(object):
+class BaseTweet():
     """Base class representing a tweet."""
     TWEET_MAX_CHARS = 140
     # Twitter t.co links: https://dev.twitter.com/overview/t.co
@@ -400,5 +400,7 @@ def formatted_tags(tags):
         string, eg '#val1 #val2 #val3'
     """
     # Twitter allows letters, numbers, and underscores.
-    scrub = lambda x: re.sub(r'[^\w]+', '', x)
-    return ' '.join(['#' + scrub(x) for x in tags])
+    def _scrub(value):
+        return re.sub(r'[^\w]+', '', value)
+
+    return ' '.join(['#' + _scrub(x) for x in tags])

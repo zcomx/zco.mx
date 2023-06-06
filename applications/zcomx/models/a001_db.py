@@ -1,26 +1,5 @@
 # -*- coding: utf-8 -*-
-
-#########################################################################
-# # This scaffolding model makes your app work on Google App Engine too
-# # File is released under public domain and you can use without limitations
-#########################################################################
-
-# # if SSL/HTTPS is properly configured and you want all HTTP requests to
-# # be redirected to HTTPS, uncomment the line below:
-# request.requires_https()
-
-# E0601: *Using variable %%r before assignment*
-# pylint: disable=E0601
-
-# # by default give a view/generic.extension to all actions from localhost
-# # none otherwise. a pattern can be 'controller/function.extension'
-response.generic_patterns = ['*'] if request.is_local else []
-# # (optional) optimize handling of static files
-# response.optimize_css = 'concat,minify,inline'
-# response.optimize_js = 'concat,minify,inline'
-# # (optional) static assets folder versioning
-# response.static_version = '0.0.0'
-
+"""Main models."""
 import datetime
 import logging
 import os
@@ -36,6 +15,12 @@ from applications.zcomx.modules.zco import \
     BOOK_STATUS_DRAFT, \
     ZcoMigratedModelDb, \
     ZcoModelDb
+# pylint: disable=pointless-string-statement
+# pylint: disable=invalid-name
+
+# by default give a view/generic.extension to all actions from localhost
+# none otherwise. a pattern can be 'controller/function.extension'
+response.generic_patterns = ['*'] if request.is_local else []
 
 try:
     # MIGRATE is optionally defined in models/0_migrate.py
@@ -71,9 +56,12 @@ if not logger_name:
 LOG = logging.getLogger(logger_name)
 current.app.logger = LOG
 
-_static_version = '_{ver}'.format(ver=response.static_version) if response.static_version else ''
+_static_version = '_{ver}'.format(ver=response.static_version) \
+    if response.static_version else ''
 app_js = URL(c='static', f=(_static_version + '/js'))
 
+# pylint: disable=wrong-import-position
+# pylint: disable=relative-beyond-top-level
 from applications.zcomx.modules.book_page.utils import \
     before_delete as book_page_before_delete
 from applications.zcomx.modules.books import publication_year_range
@@ -95,20 +83,23 @@ auth.settings.renew_session_onlogin = False
 auth.settings.renew_session_onlogout = False
 auth.settings.formstyle = formstyle_bootstrap3_custom
 auth.default_messages['profile_save_button'] = 'Submit'
-auth.messages.verify_email = 'Click on the link http://' + request.env.http_host + URL('default', 'user', args=['verify_email']) + '/%(key)s to verify your email'
-auth.messages.reset_password = 'Click on the link http://' + request.env.http_host + URL('default', 'user', args=['reset_password']) + '?key=%(key)s to reset your password'
+auth.messages.verify_email = 'Click on the link http://' \
+    + request.env.http_host \
+    + URL('default', 'user', args=['verify_email']) \
+    + '/%(key)s to verify your email'
+auth.messages.reset_password = 'Click on the link http://' \
+    + request.env.http_host \
+    + URL('default', 'user', args=['reset_password']) \
+    + '?key=%(key)s to reset your password'
 auth.messages.logged_out = ''               # Suppress flash message
 auth.messages.profile_updated = ''          # Suppress flash message
 auth.messages.password_changed = ''         # Suppress flash message
 
-# # if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
-# # register with janrain.com, write your domain:api_key in private/janrain.key
-# from gluon.contrib.login_methods.rpx_account import use_janrain
-# use_janrain(auth, filename='private/janrain.key')
-
+# pylint: disable=protected-access
 db._common_fields = [auth.signature]
 
-db.define_table('activity_log',
+db.define_table(
+    'activity_log',
     Field(
         'book_id',
         'integer',
@@ -131,7 +122,8 @@ db.define_table('activity_log',
     ),
 )
 
-db.define_table('book',
+db.define_table(
+    'book',
     Field(
         'name',
         requires=[
@@ -168,8 +160,10 @@ db.define_table('book',
         default=datetime.date.today().year,
         label='Published',
         represent=lambda v, row: str(v) if v else 'N/A',
-        requires=IS_INT_IN_RANGE(*publication_year_range(),
-            error_message='Enter a valid year')
+        requires=IS_INT_IN_RANGE(
+            *publication_year_range(),
+            error_message='Enter a valid year'
+        )
     ),
     Field(
         'description',
@@ -190,49 +184,54 @@ db.define_table('book',
         label='Released for filesharing',
         comment='Leave blank if not yet released for filesharing.',
     ),
-    Field('contributions', 'double',
+    Field(
+        'contributions',
+        'double',
         default=0,
         writable=False,
         readable=False,
     ),
-    Field('contributions_remaining', 'double',
+    Field(
+        'contributions_remaining',
+        'double',
         default=0,
         represent=lambda v, r: '${v:0,.0f}'.format(v=v),
         writable=False,
         readable=False,
     ),
-    Field('views', 'integer',
+    Field(
+        'views',
+        'integer',
         default=0,
         writable=False,
         readable=False,
     ),
-    Field('rating', 'double',
+    Field(
+        'rating',
+        'double',
         default=0,
         writable=False,
         readable=False,
     ),
-    Field('downloads', 'integer',
-        default=0,
-    ),
-    Field('background_colour',
+    Field('downloads', 'integer', default=0),
+    Field(
+        'background_colour',
         default='white',
         label='Reader Background',
     ),
-    Field('border_colour',
+    Field(
+        'border_colour',
         default='white',
         label='Reader Border',
     ),
-    Field('reader',
+    Field(
+        'reader',
         default='slider',
         requires=IS_IN_SET(['scroller', 'slider']),
         comment='Default reader format.'
     ),
-    Field(
-        'name_for_search'
-    ),
-    Field(
-        'name_for_url'
-    ),
+    Field('name_for_search'),
+    Field('name_for_url'),
     Field(
         'cc_licence_id',
         'integer',
@@ -276,7 +275,9 @@ db.define_table('book',
     format='%(name)s',
 )
 
-book_page_common_fields = db.Table(db, 'book_page_common_fields',
+book_page_common_fields = db.Table(
+    db,
+    'book_page_common_fields',
     Field(
         'book_id',
         'integer',
@@ -299,13 +300,15 @@ book_page_common_fields = db.Table(db, 'book_page_common_fields',
 db.define_table('book_page', book_page_common_fields)
 db.define_table('book_page_tmp', book_page_common_fields)
 
-db.define_table('book_type',
+db.define_table(
+    'book_type',
     Field('name'),
     Field('description'),
     Field('sequence', 'integer'),
 )
 
-db.define_table('book_view',
+db.define_table(
+    'book_view',
     Field(
         'auth_user_id',
         'integer',
@@ -323,7 +326,8 @@ db.define_table('book_view',
     ),
 )
 
-db.define_table('cc_licence',
+db.define_table(
+    'cc_licence',
     Field('number', 'integer'),
     Field('code'),
     Field('url'),
@@ -331,7 +335,8 @@ db.define_table('cc_licence',
     Field('template_web'),
 )
 
-db.define_table('contribution',
+db.define_table(
+    'contribution',
     Field(
         'auth_user_id',
         'integer',
@@ -344,14 +349,16 @@ db.define_table('contribution',
     Field('amount', 'double'),
 )
 
-db.define_table('creator',
+db.define_table(
+    'creator',
     Field(
         'auth_user_id',
         'integer',
         readable=False,
         writable=False,
     ),
-    Field('email',
+    Field(
+        'email',
         label='email address',
         comment='Leave blank if you do not wish your email published.',
         represent=lambda email, row: A(
@@ -364,14 +371,16 @@ db.define_table('creator',
             IS_EMAIL(error_message='Enter a valid email address')
         ),
     ),
-    Field('paypal_email',
+    Field(
+        'paypal_email',
         label='paypal address',
         comment='Required to received donations.',
         requires=IS_EMPTY_OR(
             IS_EMAIL(error_message='Enter a valid email address')
         ),
     ),
-    Field('website',
+    Field(
+        'website',
         comment='Eg. http://myhomepage.com',
         label='website',
         represent=lambda url, row: A(
@@ -382,65 +391,89 @@ db.define_table('creator',
         ) if url else '',
         requires=IS_EMPTY_OR(IS_URL(error_message='Enter a valid URL')),
     ),
-    Field('twitter',
+    Field(
+        'twitter',
         comment='Eg. @username',
         label='twitter',
-        represent=lambda twit, row: A(twit,
+        represent=lambda twit, row: A(
+            twit,
             _href='https://twitter.com/{t}'.format(t=twit.replace('@', '')),
             _target='_blank',
             _rel='noopener noreferrer',
-            ) if twit else '',
+        ) if twit else '',
         requires=IS_EMPTY_OR(IS_TWITTER_HANDLE()),
     ),
-    Field('shop',
+    Field(
+        'shop',
         label='shop',
-        represent=lambda url, row: A(url,
+        represent=lambda url, row: A(
+            url,
             _href=url,
             _target='_blank',
             _rel='noopener noreferrer',
-            ) if url else '',
+        ) if url else '',
         requires=IS_EMPTY_OR(IS_URL()),
     ),
-    Field('tumblr',
+    Field(
+        'tumblr',
         comment='Eg. http://username.tumblr.com',
         label='tumblr',
-        represent=lambda url, row: A(url,
+        represent=lambda url, row: A(
+            url,
             _href=url,
             _target='_blank',
             _rel='noopener noreferrer',
-            ) if url else '',
+        ) if url else '',
         requires=IS_EMPTY_OR(
             IS_MATCH(
                 r'^http://[A-Za-z0-9]+[A-Za-z0-9\-]*.tumblr.com$',
-                error_message='Enter a valid tumblr url, eg.\nhttp://username.tumblr.com'
+                error_message=(
+                    'Enter a valid tumblr url, '
+                    'eg.\nhttp://username.tumblr.com'
+                ),
             )
         ),
     ),
-    Field('facebook',
+    Field(
+        'facebook',
         comment='Eg. http://www.facebook.com/username',
         label='facebook',
-        represent=lambda url, row: A(url,
+        represent=lambda url, row: A(
+            url,
             _href=url,
             _target='_blank',
             _rel='noopener noreferrer',
         ) if url else '',
         requires=IS_EMPTY_OR(IS_URL_FOR_DOMAIN(
             'facebook.com',
-            error_message='Enter a valid facebook url, eg.\nhttp://www.facebook.com/username'
+            error_message=(
+                'Enter a valid facebook url, '
+                'eg.\nhttp://www.facebook.com/username'
+            ),
         )
         ),
     ),
-    Field('bio', 'text',
+    Field(
+        'bio',
+        'text',
         label='bio',
-        comment='Provide a biography, for example, a few sentences similar to the first paragraph of a wikipedia article.'
+        comment=(
+            'Provide a biography, for example, '
+            'a few sentences similar to the '
+            'first paragraph of a wikipedia article.'
+        ),
     ),
-    Field('image', 'upload',
+    Field(
+        'image',
+        'upload',
         autodelete=True,
         label='photo',
         uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
         uploadseparate=True,
     ),
-    Field('image_tmp', 'upload',
+    Field(
+        'image_tmp',
+        'upload',
         autodelete=True,
         label='photo',
         uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
@@ -462,37 +495,37 @@ db.define_table('creator',
         ) if url else '',
         requires=IS_EMPTY_OR(IS_URL(error_message='Enter a valid URL')),
     ),
-    Field(
-        'name_for_search'
-    ),
-    Field(
-        'name_for_url'
-    ),
+    Field('name_for_search'),
+    Field('name_for_url'),
     Field(
         'contributions_remaining',
         'double',
         default=0,
         represent=lambda v, r: '${v:0,.0f}'.format(v=v),
     ),
-    Field('indicia_image', 'upload',
+    Field(
+        'indicia_image',
+        'upload',
         autodelete=True,
         label='indicia image',
         uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
         uploadseparate=True,
     ),
-    Field('indicia_portrait', 'upload',
-        autodelete=True,
-        uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
-        uploadseparate=True,
-    ),
-    Field('indicia_landscape', 'upload',
+    Field(
+        'indicia_portrait',
+        'upload',
         autodelete=True,
         uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
         uploadseparate=True,
     ),
     Field(
-        'torrent'
+        'indicia_landscape',
+        'upload',
+        autodelete=True,
+        uploadfolder=os.path.join(request.folder, 'uploads', 'original'),
+        uploadseparate=True,
     ),
+    Field('torrent'),
     Field(
         'rebuild_torrent',
         'boolean',
@@ -505,8 +538,8 @@ db.define_table('creator',
     ),
 )
 
-
-db.define_table('derivative',
+db.define_table(
+    'derivative',
     Field(
         'book_id',
         'integer',
@@ -541,7 +574,8 @@ db.define_table('derivative',
     ),
 )
 
-db.define_table('download',
+db.define_table(
+    'download',
     Field(
         'download_click_id',
         'integer',
@@ -557,7 +591,8 @@ db.define_table('download',
     Field('time_stamp', 'datetime'),
 )
 
-db.define_table('download_click',
+db.define_table(
+    'download_click',
     Field('ip_address'),
     Field('time_stamp', 'datetime'),
     Field('auth_user_id', 'integer'),
@@ -604,84 +639,95 @@ status         char         # 'a' = active (queued),
                             # 'd' = deactive (done)
                             # 'p' = running (in progress)
 """
-job_common_fields = db.Table(db, 'job_common_fields',
-    Field('job_queuer_id',
-        'integer',
-    ),
-    Field('start',
-        'datetime',
-        requires=IS_DATETIME(),
-    ),
-    Field('priority',
-        'integer',
-    ),
-    Field('command',
-        'string',
-        requires=IS_NOT_EMPTY(),
-    ),
-    Field('ignorable',
+job_common_fields = db.Table(
+    db,
+    'job_common_fields',
+    Field('job_queuer_id', 'integer'),
+    Field('start', 'datetime', requires=IS_DATETIME()),
+    Field('priority', 'integer'),
+    Field('command', 'string', requires=IS_NOT_EMPTY()),
+    Field(
+        'ignorable',
         'boolean',
         default=False,
         represent=lambda v, r=None: 'Yes' if v is True else 'No',
     ),
-    Field('queued_time',
+    Field(
+        'queued_time',
         'datetime',
         requires=IS_EMPTY_OR(IS_DATETIME()),
     ),
-    Field('start_time',
+    Field(
+        'start_time',
         'datetime',
         requires=IS_EMPTY_OR(IS_DATETIME()),
     ),
-    Field('end_time',
+    Field(
+        'end_time',
         'datetime',
         requires=IS_EMPTY_OR(IS_DATETIME()),
     ),
-    Field('wait_seconds',
+    Field(
+        'wait_seconds',
         'integer',
     ),
-    Field('run_seconds',
+    Field(
+        'run_seconds',
         'integer',
     ),
-    Field('retry_minutes',
+    Field(
+        'retry_minutes',
         'list:integer',
     ),
-    Field('ignored',
+    Field(
+        'ignored',
         'boolean',
         default=False,
         represent=lambda v, r=None: 'Yes' if v is True else 'No',
     ),
-    Field('status',
+    Field(
+        'status',
         'string',
         default='a',
-        requires=IS_IN_SET([
-            ('a', 'Enabled'),
-            ('c', 'Complete'),
-            ('d', 'Disabled'),
-            ('p', 'In Progress')
-        ], zero=None),
+        requires=IS_IN_SET(
+            [
+                ('a', 'Enabled'),
+                ('c', 'Complete'),
+                ('d', 'Disabled'),
+                ('p', 'In Progress')
+            ],
+            zero=None
+        ),
     ),
 )
 
 db.define_table('job', job_common_fields)
 db.define_table('job_history', job_common_fields)
 
-db.define_table('job_queuer',
+db.define_table(
+    'job_queuer',
     Field('code', 'string', requires=IS_NOT_EMPTY()),
     Field('estimate_run_seconds', 'integer'),
     Field('retry_minutes', 'list:integer'),
 )
 
-db.define_table('link',
+db.define_table(
+    'link',
     Field('link_type_id', 'integer'),
     Field('record_table'),
     Field('record_id', 'integer'),
     Field('order_no', 'integer'),
-    Field('url',
+    Field(
+        'url',
         requires=IS_URL(error_message='Enter a valid URL'),
-        widget=lambda field, value: SQLFORM.widgets.string.widget(field,
-            value, _placeholder='http://www.example.com'),
+        widget=lambda field, value: SQLFORM.widgets.string.widget(
+            field,
+            value,
+            _placeholder='http://www.example.com'
+        ),
     ),
-    Field('name',
+    Field(
+        'name',
         label='Text',
         requires=IS_LENGTH(
             40,
@@ -692,7 +738,8 @@ db.define_table('link',
     format='%(name)s',
 )
 
-db.define_table('link_type',
+db.define_table(
+    'link_type',
     Field('code'),
     Field('label'),
     Field('name_placeholder'),
@@ -700,7 +747,8 @@ db.define_table('link_type',
     format='%(code)s',
 )
 
-db.define_table('ongoing_post',
+db.define_table(
+    'ongoing_post',
     Field(
         'post_date',
         'date',
@@ -711,7 +759,8 @@ db.define_table('ongoing_post',
     Field('twitter_post_id'),
 )
 
-db.define_table('optimize_img_log',
+db.define_table(
+    'optimize_img_log',
     Field(
         'image',
     ),
@@ -720,7 +769,8 @@ db.define_table('optimize_img_log',
     ),
 )
 
-db.define_table('page_comment',
+db.define_table(
+    'page_comment',
     Field(
         'book_page_id',
         'integer',
@@ -729,7 +779,8 @@ db.define_table('page_comment',
     format='%(comment_text)s',
 )
 
-db.define_table('paypal_log',
+db.define_table(
+    'paypal_log',
     Field('text'),
     Field('txn_id'),
     Field('ipn_track_id'),
@@ -773,7 +824,8 @@ db.define_table('paypal_log',
     format='%(txn_id)s',
 )
 
-db.define_table('publication_metadata',
+db.define_table(
+    'publication_metadata',
     Field(
         'book_id',
         'integer',
@@ -845,7 +897,8 @@ db.define_table('publication_metadata',
     ),
 )
 
-db.define_table('publication_serial',
+db.define_table(
+    'publication_serial',
     Field(
         'book_id',
         'integer',
@@ -910,7 +963,8 @@ db.define_table('publication_serial',
     ),
 )
 
-db.define_table('rating',
+db.define_table(
+    'rating',
     Field(
         'auth_user_id',
         'integer',
@@ -923,7 +977,8 @@ db.define_table('rating',
     Field('amount', 'double'),
 )
 
-db.define_table('tentative_activity_log',
+db.define_table(
+    'tentative_activity_log',
     Field(
         'book_id',
         'integer',
@@ -1031,7 +1086,8 @@ db.rating.book_id.requires = IS_IN_DB(
 # Views
 # Define views after tables so migrate updates tables first.
 #
-db.define_table('creator_grid_v',
+db.define_table(
+    'creator_grid_v',
     Field('creator_id', 'id'),
     Field('completed', 'integer'),
     Field('ongoing', 'integer'),
@@ -1039,4 +1095,3 @@ db.define_table('creator_grid_v',
     Field('views', 'integer'),
     migrate=False,
 )
-

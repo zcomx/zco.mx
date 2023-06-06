@@ -80,6 +80,7 @@ def num_books_with_cbz():
     query = (db.book.cbz != None)
     return db(query).count()
 
+
 def purge_loaded_files(dry_run=False):
     """Purge any unneeded *.torrent.loaded files"""
     archive = TorrentArchive()
@@ -93,7 +94,7 @@ def purge_loaded_files(dry_run=False):
     if dry_run:
         fmt = 'Dry Run. Would delete: {f}'
 
-    for root, dirs, files in os.walk(torrent_dir):
+    for root, unused_dirs, files in os.walk(torrent_dir):
         for file in files:
             if file.endswith('.torrent.loaded'):
                 torrent_file = file.rstrip('.loaded')
@@ -166,13 +167,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) > 0:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     LOG.debug('Starting')
 
@@ -218,4 +219,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

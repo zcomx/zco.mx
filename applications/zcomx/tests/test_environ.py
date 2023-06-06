@@ -14,15 +14,14 @@ from applications.zcomx.modules.environ import (
     server_production_mode,
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFunctions(LocalTestCase):
 
     _env = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         cls._env = os.environ.copy()

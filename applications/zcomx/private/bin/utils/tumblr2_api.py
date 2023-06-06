@@ -15,9 +15,6 @@ from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 
-# C0301 (line-too-long): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
-
 
 def clear(client):
     """Delete existing posts.
@@ -44,6 +41,7 @@ def info(client):
 
 def legacy_create_photo(client):
     """tumblr API legacy_create_photo."""
+    # pylint: disable=line-too-long
     photo_data = dict(
         state="draft",
         tags=['tag1', 'tag2', 'zco.mx'],
@@ -80,6 +78,7 @@ def legacy_create_quote(client):
 
 def legacy_create_text(client):
     """tumblr API legacy_create_text."""
+    # pylint: disable=line-too-long
     text_data = dict(
         state="private",
         tags=['Uptight', 'JordanCrane', 'zco.mx'],
@@ -170,7 +169,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -214,4 +213,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

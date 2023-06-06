@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 stickon/tools.py
 
 Classes extending functionality of gluon/tools.py.
-
 """
 import os
 from gluon import *
@@ -19,8 +17,6 @@ from gluon.tools import (
     Mail,
     Service,
 )
-from applications.zcomx.modules.ConfigParser_improved import  \
-    ConfigParserImproved
 from applications.zcomx.modules.environ import server_production_mode
 from applications.zcomx.modules.memcache import MemcacheClient
 from applications.zcomx.modules.mysql import LocalMySQL
@@ -29,7 +25,6 @@ from applications.zcomx.modules.python import from_dict_by_keys
 
 class ConfigFileError(Exception):
     """Exception class for configuration file errors."""
-    pass
 
 
 class ExposeImproved(Expose):
@@ -53,8 +48,6 @@ class ExposeImproved(Expose):
             display_breadcrumbs=True):
         """Constructor.
         """
-        # E0602 (undefined-variable): *Undefined variable %%r*  # current
-        # pylint: disable=E0602
         if 'raw_args' not in current.request:
             current.request.raw_args = '/'.join(current.request.args)
         Expose.__init__(
@@ -83,7 +76,7 @@ class ExposeImproved(Expose):
         ).xml()
 
 
-class ModelDb(object):
+class ModelDb():
     """Class representing the db.py model"""
     migrate = False
     db_driver_args = {'timeout': 500}          # milliseconds
@@ -100,6 +93,7 @@ class ModelDb(object):
         """
         self.environment = environment
         self.config_file = config_file
+        # pylint: disable=invalid-name
         self.DAL = None
         self.db = None
         self.cache = None
@@ -153,8 +147,6 @@ class ModelDb(object):
                 + '/' + request.application \
                 + '/default/user/reset_password/%(key)s to reset your password'
 
-        # W0108: *Lambda may not be necessary*
-        # pylint: disable=W0108
         auth.signature = self.db.Table(
             self.db,
             'auth_signature',
@@ -185,7 +177,6 @@ class ModelDb(object):
         Args:
             auth: Auth instance
         """
-        pass
 
     def _cache(self):
         """Implement cache.
@@ -246,8 +237,8 @@ class ModelDb(object):
         # load using custom mysql class
         local_mysql = LocalMySQL(
             request=request,
-                database=self.local_settings.database,
-                user=self.local_settings.mysql_user,
+            database=self.local_settings.database,
+            user=self.local_settings.mysql_user,
             password=self.local_settings.mysql_password
         )
         check_reserved = None
@@ -311,7 +302,7 @@ class ModelDb(object):
         etc_conf_file = self._settings_config_file()
         if not os.path.exists(etc_conf_file):
             raise ConfigFileError(
-                    'Local configuration file not found: {file}'.format(
+                'Local configuration file not found: {file}'.format(
                     file=etc_conf_file
                 )
             )
@@ -383,7 +374,7 @@ class MigratedModelDb(ModelDb):
     migrate = True
 
 
-class SettingsLoader(object):
+class SettingsLoader():
 
     """Class representing a settings loader.
 

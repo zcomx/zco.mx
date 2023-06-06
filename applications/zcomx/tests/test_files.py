@@ -1,22 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/files.py
-
 """
 import unittest
-from applications.zcomx.modules.files import \
-    FileName, \
-    TitleFileName, \
-    for_file, \
-    for_title_file
+from applications.zcomx.modules.files import (
+    FileName,
+    TitleFileName,
+    for_file,
+    for_title_file,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFileName(LocalTestCase):
@@ -161,8 +156,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

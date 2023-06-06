@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/tweeter.py
-
 """
 import copy
 import datetime
@@ -18,27 +15,25 @@ from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import ImageDescriptor, UploadImage
 from applications.zcomx.modules.social_media import OngoingPost
-from applications.zcomx.modules.tweeter import \
-    Authenticator, \
-    BaseTweet, \
-    CompletedBookTweet, \
-    ManyCreatorsOngoingUpdateTweet, \
-    OngoingUpdateTweet, \
-    PhotoDataPreparer, \
-    Poster, \
-    TextDataPreparer, \
-    TruncatedCompletedBookTweet, \
-    TruncatedOngoingUpdateTweet, \
-    creators_in_ongoing_post, \
-    formatted_tags
+from applications.zcomx.modules.tweeter import (
+    Authenticator,
+    BaseTweet,
+    CompletedBookTweet,
+    ManyCreatorsOngoingUpdateTweet,
+    OngoingUpdateTweet,
+    PhotoDataPreparer,
+    Poster,
+    TextDataPreparer,
+    TruncatedCompletedBookTweet,
+    TruncatedOngoingUpdateTweet,
+    creators_in_ongoing_post,
+    formatted_tags,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
-class DubStatuses(object):
+class DubStatuses():
     """Stub Twitter statuses."""
     def __init__(self):
         self.posts = {}
@@ -64,7 +59,7 @@ class DubStatuses(object):
         return post_id
 
 
-class DubClient(object):
+class DubClient():
     """Stub Twitter client."""
     def __init__(self):
         self.statuses = DubStatuses()
@@ -75,8 +70,7 @@ class WithMediaTestCase(LocalTestCase):
     _test_image = None
     _test_image_bytes = 0
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         # Use an existing image to test with.
@@ -120,8 +114,7 @@ class WithOngoingPostTestCase(LocalTestCase):
             },
         }
 
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self._expect_status = 'New pages added by @joesmoe, @myname on zco.mx | http://zcomx.tumblr.com/post/123456789012 | #zcomx #comics'
 
         super().setUp()
@@ -184,8 +177,7 @@ class TestCompletedBookTweet(LocalTestCase):
         self.assertEqual(tweet.creator(), 'First Last')
 
     def test__for_length_calculation(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         data = {
             'book': {
                 'formatted_name_no_year': 'My Book 001',
@@ -279,8 +271,7 @@ class TestCompletedBookTweet(LocalTestCase):
             },
         }
         tweet = CompletedBookTweet(data)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             tweet.status(),
             'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx #comics #FirstLast'
@@ -321,8 +312,7 @@ class TestManyCreatorsOngoingUpdateTweet(WithOngoingPostTestCase):
         data = copy.deepcopy(self._twitter_data)
         data['ongoing_post']['creators'] = self._creators
         tweet = ManyCreatorsOngoingUpdateTweet(data)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             tweet.status(),
             'New pages added by @one, @two and others on zco.mx | http://zcomx.tumblr.com/post/123456789012 | #zcomx'
@@ -367,8 +357,7 @@ class TestOngoingUpdateTweet(WithOngoingPostTestCase):
 
     def test__for_length_calculation(self):
         data = copy.deepcopy(self._twitter_data)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         tweet = OngoingUpdateTweet(data)
         self.assertEqual(
             tweet.for_length_calculation(),
@@ -428,8 +417,7 @@ class TestOngoingUpdateTweet(WithOngoingPostTestCase):
     def test__status(self):
         data = copy.deepcopy(self._twitter_data)
         tweet = OngoingUpdateTweet(data)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             tweet.status(),
             self._expect_status
@@ -471,8 +459,7 @@ class TestPhotoDataPreparer(WithMediaTestCase):
         got = preparer.data()
         self.assertEqual(sorted(got.keys()), ['media[]', 'status'])
         self.assertEqual(len(got['media[]']), self._test_image_bytes)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             got['status'],
             'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx #comics #FirstLast'
@@ -505,8 +492,7 @@ class TestPhotoDataPreparer(WithMediaTestCase):
             },
         }
         preparer = PhotoDataPreparer(data)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             preparer.status(),
             'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx #comics #FirstLast'
@@ -616,8 +602,7 @@ class TestTruncatedCompletedBookTweet(LocalTestCase):
             },
         }
         tweet = TruncatedCompletedBookTweet(data)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             tweet.status(),
             'My Book 001 by @First_Last | http://101.zco.mx/MyBook-001 | #zcomx'
@@ -638,8 +623,7 @@ class TestTruncatedOngoingUpdateTweet(WithOngoingPostTestCase):
     def test_parent_status(self):
         data = copy.deepcopy(self._twitter_data)
         tweet = TruncatedOngoingUpdateTweet(data)
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             tweet.status(),
             'New pages added by @joesmoe, @myname on zco.mx | http://zcomx.tumblr.com/post/123456789012 | #zcomx'
@@ -720,8 +704,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

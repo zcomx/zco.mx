@@ -1,22 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zco.mx routing.
 This tests nginx settings on the live server.
-
 """
-import requests
 import unittest
+import requests
 from requests.exceptions import SSLError
 from applications.zcomx.modules.tests.helpers import skip_if_quick
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFunctions(LocalTestCase):
@@ -29,8 +22,7 @@ class TestFunctions(LocalTestCase):
         'index': '<div id="front_page">',
     }
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         # Prevent 'Changed session ID' warnings.
         web.sessions = {}
@@ -57,16 +49,13 @@ class TestFunctions(LocalTestCase):
         ]
 
         def is_iterable(obj):
-            return True \
-                if isinstance(obj, (list, tuple)) \
-                or isinstance(obj, str) \
-                else False
+            return isinstance(obj, (list, tuple, str))
 
         for t in tests:
             if t[2] == SSLError:
                 self.assertRaises(t[2], requests.get, t[0])
             else:
-                r = requests.get(t[0], verify=t[1])
+                r = requests.get(t[0], verify=t[1], timeout=60)
                 texts = self.titles[t[2]] if is_iterable(self.titles[t[2]]) \
                     else [self.titles[t[2]]]
                 for text in texts:
@@ -75,8 +64,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

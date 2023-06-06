@@ -1,18 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 environ.py
 
 Classes related to the environment.
 """
-
 import os
 
 
 class ServerEnvironmentError(Exception):
     """Exception class for when environment is not set properly."""
-    pass
 
 
 def has_terminal():

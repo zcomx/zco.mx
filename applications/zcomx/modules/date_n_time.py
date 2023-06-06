@@ -155,8 +155,7 @@ def english_seconds(seconds, zeros=True, max_attributes=0):
         """Make a work plural if applicable."""
         if count == 1:
             return word
-        else:
-            return ''.join([word, 's'])
+        return ''.join([word, 's'])
 
     days, remainder = divmod(seconds, SECONDS_PER_DAY)
     hours, remainder = divmod(remainder, SECONDS_PER_HOUR)
@@ -166,7 +165,7 @@ def english_seconds(seconds, zeros=True, max_attributes=0):
     units = [_pluralize(attributes[c], w) for c, w in enumerate(raw_units)]
 
     results = [
-        ' '.join([str(attributes[c]), units[c]])
+        ' '.join([str(w), units[c]])
         for c, w in enumerate(attributes)
     ]
     if not zeros:

@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Class and functions relatedo database records.
 """
+import functools
 import traceback
-from gluon import *
 from pydal.objects import Row
-from functools import reduce
+from gluon import *
 
 LOG = current.app.logger
 
@@ -96,8 +94,11 @@ class Record(Row):
         try:
             record_id = int(record_id)
         except (TypeError, ValueError) as err:
-            raise LookupError('Record not found, table {t}, id {i}'.format(
-                t=cls.db_table, i=record_id))
+            raise LookupError(
+                'Record not found, table {t}, id {i}'.format(
+                    t=cls.db_table, i=record_id
+                )
+            ) from err
         db = current.app.db
         query = (db[cls.db_table].id == record_id)
         record = db(query).select(limitby=(0, 1)).first()
@@ -120,7 +121,8 @@ class Record(Row):
         queries = []
         for k, v in key.items():
             queries.append((db[cls.db_table][k] == v))
-        query = reduce(lambda x, y: x & y, queries) if queries else None
+        query = functools.reduce(lambda x, y: x & y, queries) \
+            if queries else None
         return cls.from_query(query)
 
     @classmethod
@@ -189,7 +191,7 @@ class Record(Row):
         db.commit()
 
 
-class Records(object):
+class Records():
     """Class representing a list of Record instances"""
 
     def __init__(self, records):
@@ -244,8 +246,14 @@ class Records(object):
         queries = []
         for k, v in key.items():
             queries.append((db[record_class.db_table][k] == v))
-        query = reduce(lambda x, y: x & y, queries) if queries else None
-        return cls.from_query(record_class, query, orderby=orderby, limitby=limitby)
+        query = functools.reduce(lambda x, y: x & y, queries) \
+            if queries else None
+        return cls.from_query(
+            record_class,
+            query,
+            orderby=orderby,
+            limitby=limitby
+        )
 
     @classmethod
     def from_query(cls, record_class, query, orderby=None, limitby=None):

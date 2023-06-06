@@ -15,9 +15,7 @@ from applications.zcomx.modules.stickon.tools import (
     SettingsLoader,
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 APPLICATION = __file__.split(os.sep)[-4]
 APP_ENV = env(APPLICATION, import_models=False)
@@ -96,9 +94,6 @@ class TestModelDb(LocalTestCase):
         self.assertTrue(model_db)
 
     def test__load(self):
-        # W0212: *Access to a protected member %s of a client class*
-        # pylint: disable=W0212
-
         #
         # Test with default config file.
         #
@@ -158,10 +153,9 @@ class TestModelDb(LocalTestCase):
         os.unlink(f_text)
 
     def test__get_server_mode(self):
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         model_db = ModelDb(APP_ENV)
         model_db.load(init_all=False)
+        # pylint: disable=protected-access
         # get_server_mode doesn't get called  if init_all=False
         self.assertEqual(model_db._server_mode, None)
 

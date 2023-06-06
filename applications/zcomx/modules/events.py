@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to events.
 """
 import datetime
@@ -45,7 +43,7 @@ class Rating(Record):
     db_table = 'rating'
 
 
-class BaseEvent(object):
+class BaseEvent():
     """Base class representing a loggable event"""
 
     def __init__(self, user_id):
@@ -233,8 +231,7 @@ def is_loggable(download_click_id, interval_seconds=1800):
 
     click_as_epoch = download_click.time_stamp.strftime('%s')
 
-    # line-too-long (C0301): *Line too long (%%s/%%s)*
-    # pylint: disable=C0301
+    # pylint: disable=line-too-long
     query = \
         (db.download_click.id != download_click.id) & \
         (db.download_click.ip_address == download_click.ip_address) & \

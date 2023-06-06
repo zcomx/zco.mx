@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/book/release_barriers.py
-
 """
 import inspect
 import os
@@ -14,41 +11,40 @@ import unittest
 from bs4 import BeautifulSoup
 from gluon import *
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.book.release_barriers import \
-    AllRightsReservedBarrier, \
-    COMPLETE_BARRIER_CLASSES, \
-    FILESHARING_BARRIER_CLASSES, \
-    BaseReleaseBarrier, \
-    CompleteInProgressBarrier, \
-    DupeNameBarrier, \
-    DupeNumberBarrier, \
-    InvalidPageNoBarrier, \
-    ModalLink, \
-    NoBookNameBarrier, \
-    NoCBZImageBarrier, \
-    NoLicenceBarrier, \
-    NoPagesBarrier, \
-    NoPublicationMetadataBarrier, \
-    NotCompletedBarrier, \
-    barriers_for_book, \
-    complete_barriers, \
-    filesharing_barriers, \
-    has_complete_barriers, \
-    has_filesharing_barriers
+from applications.zcomx.modules.book.release_barriers import (
+    AllRightsReservedBarrier,
+    COMPLETE_BARRIER_CLASSES,
+    FILESHARING_BARRIER_CLASSES,
+    BaseReleaseBarrier,
+    CompleteInProgressBarrier,
+    DupeNameBarrier,
+    DupeNumberBarrier,
+    InvalidPageNoBarrier,
+    ModalLink,
+    NoBookNameBarrier,
+    NoCBZImageBarrier,
+    NoLicenceBarrier,
+    NoPagesBarrier,
+    NoPublicationMetadataBarrier,
+    NotCompletedBarrier,
+    barriers_for_book,
+    complete_barriers,
+    filesharing_barriers,
+    has_complete_barriers,
+    has_filesharing_barriers,
+)
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.indicias import PublicationMetadata
-from applications.zcomx.modules.tests.helpers import \
-    DubMeta, \
-    ImageTestCase, \
-    ResizerQuick
+from applications.zcomx.modules.tests.helpers import (
+    DubMeta,
+    ImageTestCase,
+    ResizerQuick,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 def _create_cbz(book_page):
@@ -103,8 +99,7 @@ class TestBaseReleaseBarrier(LocalTestCase):
 
     _dub_modal_link = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         class DubModalLink(ModalLink, metaclass=DubMeta):
             _dub_methods = [
@@ -528,17 +523,14 @@ class TestNoBookNameBarrier(LocalTestCase):
 
 
 class TestNoCBZImageBarrier(ImageTestCase):
+    # pylint: disable=protected-access
 
     def test____init__(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
         barrier = NoCBZImageBarrier({})
         self.assertTrue(barrier)
         self.assertEqual(barrier._no_cbz_images, None)
 
     def test__applies(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
         barrier = NoCBZImageBarrier({})
 
         barrier._no_cbz_images = []
@@ -557,8 +549,6 @@ class TestNoCBZImageBarrier(ImageTestCase):
         self.assertTrue('>replaced</a>' in barrier.description)
 
     def test__fixes(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
         barrier = NoCBZImageBarrier({})
 
         barrier._no_cbz_images = []
@@ -607,8 +597,6 @@ class TestNoCBZImageBarrier(ImageTestCase):
         )
 
         barrier = NoCBZImageBarrier(book)
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
         self.assertEqual(barrier._no_cbz_images, None)
 
         # No images have cbz sizes, all should be in violation
@@ -824,8 +812,7 @@ class TestFunctions(ImageTestCase):
     _complete_book = None
     _sharable_book = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         creator = self.add(Creator, dict(
             email='test__complete_barriers@gmail.com',
@@ -896,8 +883,7 @@ class TestFunctions(ImageTestCase):
         _create_cbz(sharable_book_page)
 
     def test__barriers_for_book(self):
-        # W0223: *Method ??? is abstract in class
-        # pylint: disable=W0223
+        # pylint: disable=abstract-method
 
         class DubAppliesBarrier(BaseReleaseBarrier):
             """Class representing a dub barrier that applies."""
@@ -956,8 +942,7 @@ class TestFunctions(ImageTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

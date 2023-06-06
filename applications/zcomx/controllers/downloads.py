@@ -2,7 +2,6 @@
 """
 Controllers related to downloads.
 """
-import functools
 import json
 from applications.zcomx.modules.books import (
     Book,
@@ -17,7 +16,6 @@ from applications.zcomx.modules.creators import (
     downloadable as downable_creators,
     torrent_url as creator_torrent_url,
 )
-from applications.zcomx.modules.records import Records
 from applications.zcomx.modules.events import log_download_click
 
 
@@ -43,7 +41,7 @@ def download_click_handler():
         except (TypeError, ValueError):
             return do_error('Invalid data provided')
 
-    queue_log_downloads = True if not request.vars.no_queue else False
+    queue_log_downloads = not bool(request.vars.no_queue)
 
     click_id = log_download_click(
         request.vars.record_table,
@@ -79,6 +77,7 @@ def downloadable_books():
 
     book_data = []
     for book in downable_books(creator_id=creator.id, orderby=db.book.name):
+        # pylint: disable=broad-except
         try:
             book_data.append(
                 {

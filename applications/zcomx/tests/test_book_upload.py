@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/book_upload.py
-
 """
 import os
 import shutil
@@ -31,10 +28,7 @@ from applications.zcomx.modules.tests.helpers import \
     WithTestDataDirTestCase, \
     skip_if_quick
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestBookPageUploader(ImageTestCase):
@@ -52,8 +46,7 @@ class TestBookPageUploader(ImageTestCase):
         filename = os.path.join(self._test_data_dir, 'sampler.cbr')
         uploaded = UploadedArchive(filename)
         uploader.uploaded_files = [uploaded]
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             uploader.as_json(),
             """{"files": [{"book_page_id": 0, "name": "sampler.cbr", "size": 17105, "url": null, "thumbnailUrl": "", "deleteUrl": null, "deleteType": "", "book_id": 0}]}"""
@@ -134,8 +127,7 @@ class TestUnpacker(WithTestDataDirTestCase):
         filename = os.path.join(self._test_data_dir, 'sampler.cbz')
         unpacker = Unpacker(filename)
         self.assertEqual(unpacker.filename, filename)
-        # W0212 (protected-access): *Access to a protected member %%s
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         self.assertEqual(unpacker._temp_directory, None)
 
     def test__image_files(self):
@@ -418,8 +410,7 @@ class TestFunctions(ImageTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

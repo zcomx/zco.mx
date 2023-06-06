@@ -7,14 +7,9 @@ Purge unused images.
 """
 import os
 import sys
-import time
 import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.book_pages import BookPage
-from applications.zcomx.modules.events import (
-    BookView,
-    DownloadClick,
-)
 from applications.zcomx.modules.images import UploadImage
 from applications.zcomx.modules.logger import set_cli_logging
 
@@ -77,7 +72,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -88,7 +83,7 @@ def main():
         'book_page.image'
     )
 
-    for root, dirs, files in os.walk(folder):
+    for unused_root, unused_dirs, files in os.walk(folder):
         for filename in files:
             query = (db.book_page.image == filename)
             try:
@@ -121,4 +116,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

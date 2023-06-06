@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-
 """
 reset_password.py
 
 Script reset the password of a auth_user record.
 """
-
 import getpass
 import os
 import sys
@@ -19,13 +17,8 @@ from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
+# pylint: disable=invalid-name
 db = APP_ENV['db']
-
-
-# line-too-long (C0301): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
 
 
 def man_page():
@@ -98,7 +91,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -107,14 +100,14 @@ def main():
     if options.all:
         if len(args) > 1:
             parser.print_help()
-            exit(1)
+            sys.exit(1)
         emails = [x.email for x in db(db.auth_user).select(db.auth_user.email)]
         if len(args) == 1:
             passwd = args[0]
     else:
         if not args or len(args) > 2:
             parser.print_help()
-            exit(1)
+            sys.exit(1)
         emails = [args[0]]
         if len(args) == 2:
             passwd = args[1]
@@ -146,4 +139,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

@@ -1,20 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 modules/stickon/restricted.py
 
 Classes extending functionality of gluon/restricted.py particular to the zcomx
 application.
-
 """
 import os
 from gluon import *
 from gluon.restricted import TicketStorage
-
-# E1101: *%s %r has no %r member*
-# pylint: disable=E1101
 
 LOG = current.app.logger
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 set_creator_indicia.py
 
@@ -9,20 +8,17 @@ This is used for testing.
 * Stores the image in the uploads directory
 * Sets the creator.indicia_image field.
 The update_creator_indicia is not queued.
-
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
-
 import os
 import shutil
 import sys
 import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.images import \
-    ResizeImgIndicia, \
-    store
+from applications.zcomx.modules.images import (
+    ResizeImgIndicia,
+    store,
+)
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -79,13 +75,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) != 2:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     record_id = None
     name = None
@@ -102,19 +98,19 @@ def main():
         )
         if not rows:
             print('No creator found, name: {n}'.format(n=name))
-            quit(1)
+            sys.exit(1)
         if len(rows) > 1:
             print('Multiple creator matches, use creator id:')
             for r in rows:
                 print('id: {i}'.format(i=r.id))
-            quit(1)
+            sys.exit(1)
         record_id = rows[0].creator.id
 
     creator = Creator.from_id(record_id)
 
     if not os.path.exists(args[1]):
         print('File not found: {n}'.format(n=args[1]))
-        quit(1)
+        sys.exit(1)
 
     image_fullname = args[1]
 
@@ -149,7 +145,7 @@ def main():
             'Stored filename not returned. Aborting.',
             file=sys.stderr
         )
-        quit(1)
+        sys.exit(1)
 
     LOG.debug('stored_filename: %s', stored_filename)
     LOG.debug('Updating creator.indicia_image')
@@ -165,4 +161,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

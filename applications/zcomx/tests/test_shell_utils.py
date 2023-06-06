@@ -10,22 +10,20 @@ import re
 import shutil
 import socket
 import unittest
-from applications.zcomx.modules.shell_utils import \
-    TempDirectoryMixin, \
-    TemporaryDirectory, \
-    TthSumError, \
-    UnixFile, \
-    get_owner, \
-    imagemagick_version, \
-    os_nice, \
-    set_owner, \
-    temp_directory, \
-    tthsum
+from applications.zcomx.modules.shell_utils import (
+    TempDirectoryMixin,
+    TemporaryDirectory,
+    TthSumError,
+    UnixFile,
+    get_owner,
+    imagemagick_version,
+    os_nice,
+    set_owner,
+    temp_directory,
+    tthsum,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestTempDirectoryMixin(LocalTestCase):
@@ -39,8 +37,7 @@ class TestTempDirectoryMixin(LocalTestCase):
 
     def test__cleanup(self):
         mixin = TempDirectoryMixin()
-        # W0212 (protected-access): *Access to a protected member %%s
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         self.assertTrue(mixin._temp_directory is None)
         tmp_dir = mixin.temp_directory()
         self.assertTrue(os.path.exists(tmp_dir))
@@ -97,16 +94,15 @@ class TestFunctions(LocalTestCase):
     _tmp_backup = None
     _tmp_dir = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
         if cls._tmp_backup is None:
+            # pylint: disable=protected-access
             cls._tmp_backup = os.path.join(
                 db._adapter.folder, '..', 'uploads', 'tmp_bak')
         if cls._tmp_dir is None:
+            # pylint: disable=protected-access
             cls._tmp_dir = os.path.join(
                 db._adapter.folder, '..', 'uploads', 'tmp')
 
@@ -153,7 +149,7 @@ class TestFunctions(LocalTestCase):
         if not os.path.exists(self._tmp_dir):
             os.makedirs(self._tmp_dir)
         filename = os.path.join(self._tmp_dir, 'test__set_owner.txt')
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding='utf-8') as f:
             f.write('test__set_owner testing!')
         self.assertTrue(os.path.exists(filename))
 
@@ -192,8 +188,7 @@ class TestFunctions(LocalTestCase):
 
         valid_tmp_dir(temp_directory())
         # Check permissions on tmp subdirectory
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         tmp_path = os.path.join(db._adapter.folder, '..', 'uploads', 'tmp')
         self.assertTrue(os.path.exists(tmp_path))
         stats = os.stat(tmp_path)
@@ -211,7 +206,7 @@ class TestFunctions(LocalTestCase):
         ]
         for t in tests:
             filename = os.path.join(tmp_dir, '{n}.txt'.format(n=t[0]))
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding='utf-8') as f:
                 f.write(t[0])
             got = tthsum(filename)
             self.assertEqual(got, t[1])
@@ -228,8 +223,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

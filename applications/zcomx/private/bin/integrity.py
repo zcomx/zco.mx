@@ -14,11 +14,9 @@ from applications.zcomx.modules.archives import (
     TorrentArchive,
 )
 from applications.zcomx.modules.books import (
-    Book,
     generator,
 )
 from applications.zcomx.modules.creators import (
-    Creator,
     generator as creator_generator,
 )
 from applications.zcomx.modules.torrents import (

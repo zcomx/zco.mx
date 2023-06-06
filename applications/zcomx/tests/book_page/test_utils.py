@@ -1,26 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/book_page/utiles.py
-
 """
 import unittest
 from gluon import *
-from applications.zcomx.modules.book_page.utils import \
-    ActivityLogDeleter, \
-    before_delete
+from applications.zcomx.modules.book_page.utils import (
+    ActivityLogDeleter,
+    before_delete,
+)
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.activity_logs import \
-    ActivityLog, \
-    TentativeActivityLog
+from applications.zcomx.modules.activity_logs import (
+    ActivityLog,
+    TentativeActivityLog,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class DubActivityLog(ActivityLog):
@@ -75,10 +71,10 @@ class WithObjectsTestCase(LocalTestCase):
     _tentative_activity_log_2 = None
 
     def setUp(self):
-        self._no_logs_book_page = self.add(BookPage, dict())
-        self._book_page_1 = self.add(BookPage, dict())
-        self._book_page_2 = self.add(BookPage, dict())
-        self._book_page_3 = self.add(BookPage, dict())
+        self._no_logs_book_page = self.add(BookPage, {})
+        self._book_page_1 = self.add(BookPage, {})
+        self._book_page_2 = self.add(BookPage, {})
+        self._book_page_3 = self.add(BookPage, {})
         self._activity_log_1 = self.add(ActivityLog, dict(
             book_page_ids=[self._book_page_1.id, self._book_page_2.id],
             deleted_book_page_ids=[],
@@ -98,12 +94,11 @@ class WithObjectsTestCase(LocalTestCase):
 
 
 class TestActivityLogDeleter(WithObjectsTestCase):
+    # pylint: disable=protected-access
 
     def test____init__(self):
         log_deleter = DubActivityLogDeleter(self._book_page_1)
         self.assertTrue(log_deleter)
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
         self.assertEqual(log_deleter._activity_logs, None)
         self.assertEqual(log_deleter._tentative_activity_logs, None)
 
@@ -140,8 +135,6 @@ class TestActivityLogDeleter(WithObjectsTestCase):
         logs = [activity_log_1, activity_log_2]
 
         log_deleter = ActivityLogDeleter(BookPage())
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
         log_deleter._activity_logs = logs
         for log in logs:
             self.assertEqual(log.is_set_deleted, False)
@@ -152,8 +145,7 @@ class TestActivityLogDeleter(WithObjectsTestCase):
             self.assertEqual(log.is_set_deleted, True)
 
     def test__delete_tentative_activity_logs(self):
-        # invalid-name (C0103): *Invalid %%s name "%%s"%%s*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
         tentative_activity_log_1 = DubTentativeActivityLog(
             self._tentative_activity_log_1.as_dict())
         tentative_activity_log_2 = DubTentativeActivityLog(
@@ -161,8 +153,6 @@ class TestActivityLogDeleter(WithObjectsTestCase):
         logs = [tentative_activity_log_1, tentative_activity_log_2]
 
         log_deleter = ActivityLogDeleter(BookPage())
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
         log_deleter._tentative_activity_logs = logs
         for log in logs:
             self.assertEqual(log.is_deleted, False)
@@ -192,8 +182,6 @@ class TestActivityLogDeleter(WithObjectsTestCase):
 
         # Test cache.
         log_deleter = ActivityLogDeleter(self._book_page_2)
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
         log_deleter._activity_logs = ['_dummy_']
         self.assertEqual(
             log_deleter.get_activity_logs(from_cache=True),
@@ -206,8 +194,7 @@ class TestActivityLogDeleter(WithObjectsTestCase):
         )
 
     def test__get_tentative_activity_logs(self):
-        # invalid-name (C0103): *Invalid %%s name "%%s"%%s*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
         log_deleter = ActivityLogDeleter(self._no_logs_book_page)
         self.assertEqual(log_deleter.get_tentative_activity_logs().records, [])
 
@@ -227,8 +214,6 @@ class TestActivityLogDeleter(WithObjectsTestCase):
 
         # Test cache.
         log_deleter = ActivityLogDeleter(self._book_page_2)
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
         log_deleter._tentative_activity_logs = ['_tent_dummy_']
         self.assertEqual(
             log_deleter.get_tentative_activity_logs(from_cache=True),
@@ -268,8 +253,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

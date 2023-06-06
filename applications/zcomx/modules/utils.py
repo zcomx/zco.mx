@@ -1,20 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Utilty classes and functions.
 """
 import os
 import re
 from gluon import *
-from pydal.objects import Row
 from gluon.html import XmlComponent
 from gluon.languages import lazyT
 from applications.zcomx.modules.zco import Zco
 
 
-class ClassFactory(object):
+class ClassFactory():
     """Class representing a class factory
     Inspired by Roger Pate on stackoverflow
     http://stackoverflow.com/questions/2191505/how-to-get-a-reference-to-the-current-class-from-class-body
@@ -67,7 +64,7 @@ class ClassFactory(object):
         return wrapper
 
 
-class ItemDescription(object):
+class ItemDescription():
     """Class representing an item description field.
 
     A description of an item is usually a blob of text. This class provides
@@ -249,15 +246,17 @@ def markmin(controller, extra=None):
         URL('static', 'bootstrap3-dialog/css/bootstrap-dialog.min.css')
     )
 
-    contribute_link_func = lambda t: A(
-        t,
-        _href='/contributions/modal',
-        _class='contribute_button no_rclick_menu'
-    )
+    def _contribute_link_func(text):
+        """Convert text to a contribute link."""
+        return A(
+            text,
+            _href='/contributions/modal',
+            _class='contribute_button no_rclick_menu'
+        )
 
     data = dict(
         text=markmin_content('{ctrllr}.mkd'.format(ctrllr=controller)),
-        markmin_extra=dict(contribute_link=contribute_link_func),
+        markmin_extra=dict(contribute_link=_contribute_link_func),
     )
 
     if extra:
@@ -289,10 +288,7 @@ def move_record(sequential_field, record_id, direction='up', query=None,
         start: integer, the sequential field value of the first record is set
             to this. Subsequent records have values incremented by 1.
     """
-    # W0212: *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
-
-    db = sequential_field._db
+    db = current.app.db
     table = sequential_field.table
 
     record = db(table.id == record_id).select(table.ALL).first()
@@ -311,8 +307,7 @@ def move_record(sequential_field, record_id, direction='up', query=None,
     old_order_value = record[sequential_field.name]
     new_order_value = old_order_value + 1 if direction == 'down' \
         else old_order_value - 1
-    if new_order_value < start:
-        new_order_value = start
+    new_order_value = max(new_order_value, start)
     record_ids.insert(new_order_value - 1, record.id)
     reorder(sequential_field, record_ids=record_ids, query=query, start=start)
 
@@ -333,9 +328,7 @@ def reorder(sequential_field, record_ids=None, query=None, start=1):
         start: integer, the sequential field value of the first record is set
             to this. Subsequent records have values incremented by 1.
     """
-    # W0212: *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
-    db = sequential_field._db
+    db = current.app.db
     table = sequential_field.table
     if not record_ids:
         if query is None:

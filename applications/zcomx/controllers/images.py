@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Image controller functions"""
-
 import os
 import shutil
 from applications.zcomx.modules.downloaders import ImageDownloader

@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 test_date_n_time.py
 
 Test suite for zcomx/modules/date_n_time.py
-
 """
-
 import datetime
 import unittest
 from applications.zcomx.modules.date_n_time import (
@@ -23,8 +20,7 @@ from applications.zcomx.modules.date_n_time import (
     utc_to_localtime,
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFunctions(LocalTestCase):

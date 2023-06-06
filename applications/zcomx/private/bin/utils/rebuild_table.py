@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 rebuild_table.py
 
 A script to rebuild db tables.
 """
-
 import os
 import sys
 import tarfile
@@ -20,7 +18,6 @@ VERSION = 'Version 0.1'
 
 class RebuildError(Exception):
     """Exception class for rebuild errors."""
-    pass
 
 
 def backup():
@@ -100,8 +97,7 @@ def rebuild_table(tablename):
     db.executesql(sql)
 
     # Rebuild the .table file.
-    # pylint: disable=W0212
-    # W0212: *Access to a protected member %%s of a client class*
+    # pylint: disable=protected-access
     db._adapter.create_table(db[tablename], migrate=True, fake_migrate=True)
     db.commit()
 
@@ -181,13 +177,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     backup()
 
@@ -196,7 +192,8 @@ def main():
             rebuild_table(tablename)
         except RebuildError as err:
             LOG.error(err)
-            exit(1)
+            sys.exit(1)
+
 
 if __name__ == '__main__':
     # pylint: disable=broad-except
@@ -206,4 +203,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

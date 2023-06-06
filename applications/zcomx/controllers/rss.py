@@ -3,13 +3,15 @@
 import functools
 import traceback
 from gluon.storage import Storage
-from applications.zcomx.modules.books import \
-    Book, \
-    rss_url as book_rss_url
-from applications.zcomx.modules.creators import \
-    Creator, \
-    rss_url as creator_rss_url, \
-    url as creator_url
+from applications.zcomx.modules.books import (
+    Book,
+    rss_url as book_rss_url,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    rss_url as creator_rss_url,
+    url as creator_url,
+)
 from applications.zcomx.modules.rss import channel_from_type
 from applications.zcomx.modules.zco import (
     BOOK_STATUS_ACTIVE,
@@ -22,7 +24,7 @@ def modal():
 
     request.args(0): integer, optional, id of creator.
     """
-    return dict()
+    return {}
 
 
 def route():
@@ -46,6 +48,7 @@ def route():
         If request.vars.creator is an integer (creator id) the page is
             redirected to the string (creator name) page.
     """
+    # pylint: disable=too-many-return-statements
     def page_not_found():
         """Handle page not found.
 
@@ -58,10 +61,10 @@ def route():
         except HTTP:
             # These don't need to be logged as they provide no useful info.
             raise
-        except Exception:
+        except Exception as exc:
             for line in traceback.format_exc().split("\n"):
                 LOG.error(line)
-            raise HTTP(404, "Page not found")
+            raise HTTP(404, "Page not found") from exc
 
     def formatted_page_not_found():
         """Page not found formatter."""
@@ -135,7 +138,8 @@ def route():
 
         # Test for request.vars.creator as creator.name_for_url
         if not creator:
-            encoded_name = request.vars.creator.encode('latin-1').decode('utf-8')
+            encoded_name = \
+                request.vars.creator.encode('latin-1').decode('utf-8')
             name = encoded_name.replace('_', ' ')
             try:
                 creator = Creator.from_key({'name_for_url': name})

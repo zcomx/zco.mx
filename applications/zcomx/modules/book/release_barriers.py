@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to book release barriers.
 """
 import os
@@ -13,7 +11,7 @@ from applications.zcomx.modules.indicias import PublicationMetadata
 LOG = current.app.logger
 
 
-class ModalLink(object):
+class ModalLink():
     """Class representing a link that opens a modal."""
     def __init__(self, book, text, modal_btn_class, controller_func):
         """Initializer
@@ -45,7 +43,7 @@ class ModalLink(object):
         )
 
 
-class BaseReleaseBarrier(object):
+class BaseReleaseBarrier():
     """Class representing a complete barrier"""
 
     def __init__(self, book):
@@ -98,8 +96,6 @@ class BaseReleaseBarrier(object):
     @property
     def description(self):
         """A description of the barrier."""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return ''   # This is optional
 
     def edit_link(self, text, modal_class=ModalLink):
@@ -326,8 +322,7 @@ class InvalidPageNoBarrier(BaseReleaseBarrier):
 
     @property
     def fixes(self):
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         return [
             '{l} that images are in the correct order and fix as necessary.'.format(
                 l=self.upload_link('Check')),

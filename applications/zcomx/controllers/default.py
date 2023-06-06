@@ -2,16 +2,19 @@
 """
 Default controller.
 """
-from applications.zcomx.modules.creators import \
-    add_creator, \
-    for_auth_user, \
-    profile_onaccept
+from applications.zcomx.modules.creators import (
+    add_creator,
+    for_auth_user,
+    profile_onaccept,
+)
 from applications.zcomx.modules.files import FileName
-from applications.zcomx.modules.stickon.sqlhtml import \
-    formstyle_bootstrap3_login
-from applications.zcomx.modules.stickon.validators import \
-    IS_ALLOWED_CHARS, \
-    IS_NOT_IN_DB_SCRUBBED
+from applications.zcomx.modules.stickon.sqlhtml import (
+    formstyle_bootstrap3_login,
+)
+from applications.zcomx.modules.stickon.validators import (
+    IS_ALLOWED_CHARS,
+    IS_NOT_IN_DB_SCRUBBED,
+)
 
 
 def index():

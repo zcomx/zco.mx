@@ -1,23 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 create_sitemap.py
 
 Script to tally the yearly and monthly contributions, ratings, and views for
 each book.
 """
-
 import sys
 import traceback
 from optparse import OptionParser
 from gluon import *
 from applications.zcomx.modules.books import (
-    Book,
     generator,
     get_page,
     page_url,
-    url as book_url,
 )
 from applications.zcomx.modules.creators import (
     Creator,
@@ -30,7 +26,7 @@ from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
 VERSION = 'Version 0.1'
 
 MAPPERS = [
-    # (page, changefreq, priority, generator)
+    # (page, changefreq, priority, has_generator)
     ('book', 'monthly', 1.0, True),
     ('cover_page', 'monthly', 1.0, True),
     ('creator', 'monthly', 1.0, True),
@@ -144,7 +140,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -152,8 +148,8 @@ def main():
     sitemap = TAG.urlset(_xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
 
     for mapper in MAPPERS:
-        page, changefreq, priority, generator = mapper
-        if generator:
+        page, changefreq, priority, has_generator = mapper
+        if has_generator:
             generator_func = '{p}_generator'.format(p=page)
             for relative_url in globals()[generator_func]():
                 url = '{w}{u}'.format(
@@ -192,4 +188,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

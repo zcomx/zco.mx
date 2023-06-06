@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 post_ongoing_update.py
 
 Script to post an ongoing books update on tumblr.
 """
-
 import datetime
 import json
 import random
@@ -17,25 +15,29 @@ from twitter import TwitterHTTPError
 from gluon import *
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.stickon.dal import RecordGenerator
-from applications.zcomx.modules.facebook import \
-    Authenticator as FbAuthenticator, \
-    FacebookAPIError, \
-    Poster as FbPoster, \
-    TextDataPreparer as FbTextDataPreparer
+from applications.zcomx.modules.facebook import (
+    Authenticator as FbAuthenticator,
+    FacebookAPIError,
+    Poster as FbPoster,
+    TextDataPreparer as FbTextDataPreparer,
+)
 from applications.zcomx.modules.social_media import OngoingPost
-from applications.zcomx.modules.tumblr import \
-    Authenticator, \
-    Poster, \
-    TextDataPreparer, \
-    postable_activity_log_ids
-from applications.zcomx.modules.tweeter import \
-    Authenticator as TwAuthenticator, \
-    Poster as TwPoster, \
-    TextDataPreparer as TwTextDataPreparer, \
-    creators_in_ongoing_post
-from applications.zcomx.modules.zco import \
-    IN_PROGRESS, \
-    SITE_NAME
+from applications.zcomx.modules.tumblr import (
+    Authenticator,
+    Poster,
+    TextDataPreparer,
+    postable_activity_log_ids,
+)
+from applications.zcomx.modules.tweeter import (
+    Authenticator as TwAuthenticator,
+    Poster as TwPoster,
+    TextDataPreparer as TwTextDataPreparer,
+    creators_in_ongoing_post,
+)
+from applications.zcomx.modules.zco import (
+    IN_PROGRESS,
+    SITE_NAME,
+)
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -325,27 +327,27 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) != 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     LOG.debug('Starting')
     try:
         date = datetime.datetime.strptime(args[0], '%Y-%m-%d').date()
     except ValueError as err:
         LOG.error('Invalid date: %s, %s', args[0], err)
-        exit(1)
+        sys.exit(1)
 
     if options.process_activity_logs:
         activity_log_ids = postable_activity_log_ids()
         if not activity_log_ids:
             LOG.info('There are no postable activity_log records')
             LOG.info('Nothing to do. Aborting')
-            exit(0)
+            sys.exit(0)
 
         ongoing_post = get_ongoing_post(date)
         for activity_log_id in activity_log_ids:
@@ -356,7 +358,7 @@ def main():
 
     if not ongoing_post:
         LOG.error('Ongoing post not found, date: %s', str(date))
-        exit(1)
+        sys.exit(1)
 
     services = []
     if options.facebook:
@@ -427,4 +429,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

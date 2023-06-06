@@ -17,8 +17,7 @@ from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
+# pylint: disable=invalid-name
 db = APP_ENV['db']
 
 FIELDS = [

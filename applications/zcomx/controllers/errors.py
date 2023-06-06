@@ -21,7 +21,7 @@ def handler():
     without repeated page reloads.
     """
     log_ticket(request.vars.ticket)
-    error_page = response.render('errors/index.html', dict())
+    error_page = response.render('errors/index.html', {})
     # In routes.py, 406 should redirect to def index
     raise HTTP(406, error_page)
 
@@ -74,7 +74,8 @@ def page_not_found():
                         'url': URL(c='z', f=func_name, host=True)
                     })
         if request.vars.request_url:
-            urls.invalid = request.vars.request_url.encode('latin-1').decode('utf-8')
+            urls.invalid = \
+                request.vars.request_url.encode('latin-1').decode('utf-8')
         else:
             urls.invalid = None
 

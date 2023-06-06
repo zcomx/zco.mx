@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to archives.
 """
 import os
@@ -11,7 +9,7 @@ from gluon import *
 from applications.zcomx.modules.shell_utils import set_owner
 
 
-class BaseArchive(object):
+class BaseArchive():
     """Class representing a handler for an archive."""
 
     def __init__(self, base_path, category=None, name=None):
@@ -101,8 +99,7 @@ class BaseArchive(object):
         letter = str(subdir)[0].upper()
         if include_subdir:
             return os.path.join(letter, str(subdir))
-        else:
-            return letter
+        return letter
 
     def remove_file(self, filename):
         """Remove file from the archive.

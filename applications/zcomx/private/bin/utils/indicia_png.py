@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 indicia_png.py
 
 Script to create indicia png files for a creator or a book.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
-
 import os
 import shutil
 import sys
@@ -16,11 +12,12 @@ import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.indicias import \
-    BookIndiciaPagePng, \
-    CreatorIndiciaPagePng, \
-    IndiciaPage, \
-    IndiciaSh
+from applications.zcomx.modules.indicias import (
+    BookIndiciaPagePng,
+    CreatorIndiciaPagePng,
+    IndiciaPage,
+    IndiciaSh,
+)
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -38,7 +35,7 @@ def create_generic_png(options):
     indicia = IndiciaPage(None)
     meta_text = indicia.licence_text(template_field='template_img')
     metadata_filename = os.path.join('/tmp', 'meta.txt')
-    with open(metadata_filename, 'w') as f:
+    with open(metadata_filename, 'w', encoding='utf-8') as f:
         f.write(meta_text)
 
     indicia_filename = os.path.join(
@@ -160,13 +157,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     record = None
     record_id = None
@@ -186,7 +183,7 @@ def main():
             except LookupError:
                 print(
                     'No {t} found, id: {i}'.format(t=str(table), i=record_id))
-                quit(1)
+                sys.exit(1)
     else:
         if options.creator:
             query = (db.auth_user.name == name)
@@ -200,12 +197,12 @@ def main():
 
         if not rows:
             print('No {t} found, name: {n}'.format(t=str(table), n=name))
-            quit(1)
+            sys.exit(1)
         if len(rows) > 1:
             print('Multiple {t} matches, use {t} id:'.format(t=str(table)))
             for r in rows:
                 print('id: {i}'.format(i=r.id))
-            quit(1)
+            sys.exit(1)
         record = record_class.from_id(rows[0].id)
 
     if options.creator and record_id == 0:
@@ -222,4 +219,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

@@ -2,14 +2,15 @@
 """ Search controller."""
 from applications.zcomx.modules.access import requires_login_if_configured
 from applications.zcomx.modules.autocomplete import autocompleter_class
-from applications.zcomx.modules.books import \
-    Book, \
-    url as book_url
-from applications.zcomx.modules.creators import \
-    Creator, \
-    url as creator_url
+from applications.zcomx.modules.books import (
+    Book,
+    url as book_url,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    url as creator_url,
+)
 from applications.zcomx.modules.search import (
-    AlphaPaginator,
     Grid,
 )
 from applications.zcomx.modules.zco import Zco
@@ -21,7 +22,6 @@ def autocomplete():
     request.args(0): string, table, one of 'book' or 'creator'
     request.vars.q: string, the query keywords.
         Returns all records if q is Falsy.
-
     """
     response.generic_patterns = ['json']
     completer_class = autocompleter_class(request.args(0))
@@ -75,7 +75,7 @@ def autocomplete_selected():
 
 def box():
     """Controller for search box component"""
-    return dict()
+    return {}
 
 
 @requires_login_if_configured(local_settings)
@@ -92,12 +92,12 @@ def index():
 
     try:
         grid = Grid.class_factory(request.vars.o or 'completed')
-    except KeyError:
+    except KeyError as exc:
         # 'releases' is deprecated, logging errors for it creates too much
         # noise.
         log_func = LOG.info if request.vars.o == 'releases' else LOG.error
         log_func('Invalid front view requested: o=%s', request.vars.o)
-        raise HTTP(404, "Page not found")
+        raise HTTP(404, "Page not found") from exc
 
     return dict(
         grid=grid,

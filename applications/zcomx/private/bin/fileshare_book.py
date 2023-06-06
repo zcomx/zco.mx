@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 fileshare_book.py
 
 Script to release a book for filesharing.
 """
-
 import sys
 import traceback
 from optparse import OptionParser
-from applications.zcomx.modules.book.releasers import \
-    FileshareBook, \
-    UnfileshareBook
+from applications.zcomx.modules.book.releasers import (
+    FileshareBook,
+    UnfileshareBook,
+)
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.job_queue import Requeuer
@@ -98,13 +97,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) != 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     LOG.debug('Starting')
     book_id = args[0]
@@ -139,4 +138,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

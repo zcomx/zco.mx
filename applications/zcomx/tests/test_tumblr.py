@@ -12,25 +12,24 @@ from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
-from applications.zcomx.modules.tumblr import \
-    Authenticator, \
-    BookListingCreator, \
-    BookListingCreatorWithTumblr, \
-    OngoingBookListing, \
-    PhotoDataPreparer, \
-    Poster, \
-    TextDataPreparer, \
-    book_listing_creator, \
-    postable_activity_log_ids
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
+from applications.zcomx.modules.tumblr import (
+    Authenticator,
+    BookListingCreator,
+    BookListingCreatorWithTumblr,
+    OngoingBookListing,
+    PhotoDataPreparer,
+    Poster,
+    TextDataPreparer,
+    book_listing_creator,
+    postable_activity_log_ids,
+)
 from applications.zcomx.modules.stickon.dal import RecordGenerator
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class WithObjectsTestCase(LocalTestCase):
@@ -42,8 +41,7 @@ class WithObjectsTestCase(LocalTestCase):
     _book_page_2 = None
     _creator = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
 
         self._auth_user = self.add(AuthUser, dict(
@@ -97,24 +95,25 @@ class WithObjectsTestCase(LocalTestCase):
 class WithDateTestCase(LocalTestCase):
     _date = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         self._date = datetime.date.today()
         super().setUp()
 
 
-class DubClient(object):
+class DubClient():
     """Stub pytumblr2 client."""
     def __init__(self):
         self.posts = {}
 
-    def legacy_create_photo(self, unused_username, **kwargs):
+    def legacy_create_photo(self, username, **kwargs):
+        # pylint: disable=unused-argument       # username
         post_id = uuid.uuid4()
         self.posts[post_id] = kwargs
         return post_id
 
-    def legacy_create_text(self, unused_username, **kwargs):
+    def legacy_create_text(self, username, **kwargs):
+        # pylint: disable=unused-argument       # username
         post_id = uuid.uuid4()
         self.posts[post_id] = kwargs
         return post_id
@@ -397,8 +396,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
             RecordGenerator(query)
         )
 
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             preparer.data(),
             {
@@ -429,8 +427,7 @@ class TestTextDataPreparer(WithObjectsTestCase, WithDateTestCase):
         )
 
     def test__title(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         date = datetime.date(1999, 12, 31)
         generator = RecordGenerator(db.activity_log)
         preparer = TextDataPreparer(date, generator)
@@ -447,8 +444,7 @@ class TestPhotoDataPreparer(LocalTestCase):
         self.assertTrue(preparer)
 
     def test__caption(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         data = {
             'book': {
                 'formatted_name': 'My Book 001 (1999)',
@@ -478,8 +474,7 @@ class TestPhotoDataPreparer(LocalTestCase):
         self.assertEqual(preparer.caption(), expect)
 
     def test__data(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         data = {
             'book': {
                 'description': None,
@@ -661,8 +656,7 @@ class TestFunctions(WithObjectsTestCase, WithDateTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

@@ -6,19 +6,23 @@ Classes and functions related to torrents.
 import os
 import subprocess
 from gluon import *
-from applications.zcomx.modules.archives import \
-    CBZArchive, \
-    TorrentArchive
-from applications.zcomx.modules.books import \
-    Book, \
-    torrent_file_name as book_torrent_file_name
-from applications.zcomx.modules.creators import \
-    Creator, \
-    creator_name, \
-    torrent_file_name as creator_torrent_file_name
-from applications.zcomx.modules.shell_utils import \
-    TempDirectoryMixin, \
-    os_nice
+from applications.zcomx.modules.archives import (
+    CBZArchive,
+    TorrentArchive,
+)
+from applications.zcomx.modules.books import (
+    Book,
+    torrent_file_name as book_torrent_file_name,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    creator_name,
+    torrent_file_name as creator_torrent_file_name,
+)
+from applications.zcomx.modules.shell_utils import (
+    TempDirectoryMixin,
+    os_nice,
+)
 from applications.zcomx.modules.zco import NICES
 
 LOG = current.app.logger
@@ -78,14 +82,13 @@ class BaseTorrentCreator(TempDirectoryMixin):
         args.append('-o')
         args.append(output_file)
         args.append(target)
+        # pylint: disable=subprocess-popen-preexec-fn
         with subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 preexec_fn=os_nice(nice)) as p:
             unused_stdout, p_stderr = p.communicate()
-        # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
-        # pylint: disable=E1101
         if p.returncode:
             LOG.error('mktorrent call failed: %s', p_stderr)
             raise TorrentCreateError('Creation of torrent file failed.')
@@ -290,14 +293,13 @@ class P2PNotifier():
             args.append('-d')
         args.append(real_filename)
         LOG.debug('zc-p2p.sh args: %s', args)
+        # pylint: disable=subprocess-popen-preexec-fn
         with subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 preexec_fn=os_nice(nice)) as p:
             unused_stdout, p_stderr = p.communicate()
-        # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
-        # pylint: disable=E1101
         if p.returncode:
             LOG.error('Run of zc-p2p call failed: %s', p_stderr)
             raise P2PNotifyError('Run of zc-p2p call failed.')

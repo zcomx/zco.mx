@@ -10,8 +10,6 @@ import unittest
 import urllib.parse
 import requests
 from bs4 import BeautifulSoup
-from applications.zcomx.modules.activity_logs import TentativeActivityLog
-from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import (
     Book,
@@ -24,25 +22,25 @@ from applications.zcomx.modules.images import (
     ImageDescriptor,
     UploadImage,
 )
-from applications.zcomx.modules.indicias import \
-    BookPublicationMetadata, \
-    PublicationMetadata
-from applications.zcomx.modules.links import \
-    Link, \
-    LinkType, \
-    LinksKey
-from applications.zcomx.modules.tests.helpers import \
-    WebTestCase, \
-    skip_if_quick
-from applications.zcomx.modules.zco import \
-    BOOK_STATUS_ACTIVE, \
-    BOOK_STATUS_DRAFT
+from applications.zcomx.modules.indicias import (
+    BookPublicationMetadata,
+    PublicationMetadata,
+)
+from applications.zcomx.modules.links import (
+    Link,
+    LinkType,
+    LinksKey,
+)
+from applications.zcomx.modules.tests.helpers import (
+    WebTestCase,
+    skip_if_quick,
+)
+from applications.zcomx.modules.zco import (
+    BOOK_STATUS_ACTIVE,
+    BOOK_STATUS_DRAFT,
+)
+# pylint: disable=missing-docstring
 
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# E0602: *Undefined variable %%r*
-# pylint: disable=C0111,R0904,E0602
 
 class TestFunctions(WebTestCase):
 
@@ -58,8 +56,7 @@ class TestFunctions(WebTestCase):
 
     @classmethod
     def setUpClass(cls):
-        # C0103: *Invalid name "%%s" (should match %%s)*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
         # Get the data the tests will use.
         email = web.username
         query = (db.auth_user.email == email)
@@ -373,7 +370,12 @@ class TestFunctions(WebTestCase):
                 f=new_image_filename,
             )
 
-        response = requests.get(request_url, cookies=web.cookies, verify=False)
+        response = requests.get(
+            request_url,
+            cookies=web.cookies,
+            verify=False,
+            timeout=60,
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
@@ -411,12 +413,14 @@ class TestFunctions(WebTestCase):
 
         # Test add invalid file (add image too small for cbz)
         sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')
+        # pylint: disable=consider-using-with
         files = {'up_files[]': open(sample_file, 'rb')}
         response = requests.post(
             web.app + '/login/book_pages_handler/{i}'.format(i=self._book.id),
             files=files,
             cookies=web.cookies,
             verify=False,
+            timeout=60,
         )
         self.assertEqual(response.status_code, 200)
 
@@ -431,6 +435,7 @@ class TestFunctions(WebTestCase):
             files=files,
             cookies=web.cookies,
             verify=False,
+            timeout=60,
         )
         self.assertEqual(response.status_code, 200)
 
@@ -447,6 +452,7 @@ class TestFunctions(WebTestCase):
             files=files,
             cookies=web.cookies,
             verify=False,
+            timeout=60,
         )
         self.assertEqual(response.status_code, 200)
 
@@ -577,12 +583,14 @@ class TestFunctions(WebTestCase):
 
         # Use requests to simplify uploading a file.
         sample_file = os.path.join(self._test_data_dir, 'web_plus.jpg')
+        # pylint: disable=consider-using-with
         files = {'up_files': open(sample_file, 'rb')}
         response = requests.post(
             web.app + '/login/creator_img_handler',
             files=files,
             cookies=web.cookies,
             verify=False,
+            timeout=60,
         )
         self.assertEqual(response.status_code, 200)
 
@@ -593,6 +601,7 @@ class TestFunctions(WebTestCase):
             web.app + '/login/creator_img_handler',
             cookies=web.cookies,
             verify=False,
+            timeout=60,
         )
         self.assertEqual(response_2.status_code, 200)
         creator = get_creator()
@@ -606,6 +615,7 @@ class TestFunctions(WebTestCase):
             files=files,
             cookies=web.cookies,
             verify=False,
+            timeout=60,
         )
         self.assertEqual(response.status_code, 200)
 
@@ -658,8 +668,7 @@ class TestFunctions(WebTestCase):
         web.post(url, data={})
         result = json.loads(web.text)
         self.assertEqual(result['status'], 'ok')
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             result['urls']['landscape'],
             '/images/download.json/creator.indicia_landscape.lll.000.png?size=web'
@@ -1007,9 +1016,7 @@ class TestFunctions(WebTestCase):
             to_year=2000,
         ))
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
+        # pylint: disable=line-too-long
         text = 'This work was originally published in print in 1999-2000 as "My Book" by Acme.'
 
         meta = BookPublicationMetadata.from_book(book)
@@ -1032,10 +1039,14 @@ class TestFunctions(WebTestCase):
         self.assertEqual(result['status'], 'error')
         self.assertEqual(result['msg'], 'Invalid data provided')
 
+    def test__modal_error(self):
+        self.assertWebTest('/z/modal_error')
+
     def test__profile(self):
         self.assertWebTest('/login/profile')
 
     def test__profile_creator_image_crud(self):
+        # pylint: disable=invalid-name
         url_fmt = '{url}/profile_creator_image_crud.json/{a}'
 
         web.login()
@@ -1079,12 +1090,14 @@ class TestFunctions(WebTestCase):
 
         # simulate uploading an image.
         sample_file = os.path.join(self._test_data_dir, 'profile_unsquare.jpg')
+        # pylint: disable=consider-using-with
         files = {'up_files': open(sample_file, 'rb')}
         response = requests.post(
             web.app + '/login/creator_img_handler/image_tmp',
             files=files,
             cookies=web.cookies,
             verify=False,
+            timeout=60,
         )
         self.assertEqual(response.status_code, 200)
 
@@ -1113,7 +1126,8 @@ class TestFunctions(WebTestCase):
         self.assertEqual(get_result['status'], 'ok')
 
         soup = BeautifulSoup(get_result['html'], 'html.parser')
-        # '<img alt="" class="img-responsive" data-creator_id="98" src="/images/download.json/creator.image.817d500fcb89dc72.70726f66696c655f756e7371756172652e6a7067.jpg?cache=1&amp;size=web" />
+        # '<img alt="" class="img-responsive" data-creator_id="98"
+        #    src="/images/download.json/...?cache=1&amp;size=web" />
         img = soup.find('img')
         self.assertEqual(img['class'], ['img-responsive'])
         self.assertEqual(img['data-creator_id'], str(creator.id))
@@ -1125,6 +1139,7 @@ class TestFunctions(WebTestCase):
         )
 
     def test__profile_creator_image_modal(self):
+        # pylint: disable=invalid-name
         self.assertWebTest('/login/profile_name_edit_modal')
 
     def test__profile_name_edit_crud(self):
@@ -1169,8 +1184,7 @@ class TestFunctions(WebTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     WebTestCase.set_env(globals())
 
 

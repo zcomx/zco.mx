@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 test_python.py
 
 Test suite for zcomx/modules/python.py
-
 """
 import unittest
 from applications.zcomx.modules.python import (
@@ -13,8 +11,7 @@ from applications.zcomx.modules.python import (
     from_dict_by_keys,
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestList(LocalTestCase):

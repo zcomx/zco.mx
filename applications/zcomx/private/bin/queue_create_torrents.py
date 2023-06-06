@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 queue_create_torrents.py
 
@@ -8,7 +7,6 @@ Script to queue create_torrent jobs. The script should be cronned. It will
 queue jobs to create torrents for any creators as necessary, and to create
 the 'all' torrent if necessary.
 """
-
 import sys
 import traceback
 from optparse import OptionParser
@@ -71,13 +69,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) > 0:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     query = (db.creator.rebuild_torrent == True)
     ids = [x.id for x in db(query).select(db.creator.id)]
@@ -104,4 +102,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

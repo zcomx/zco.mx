@@ -41,7 +41,7 @@ class DubBaseAdapter(BaseAdapter):
         else:
             # pylint: disable=unspecified-encoding
             # pylint: disable=consider-using-with
-            fileobj = open(filename, mode)
+            fileobj = open(filename, mode, encoding='utf-8')
         return fileobj
 
     @classmethod
@@ -96,7 +96,10 @@ def get_ftype(table, field):
                 rfield = rtable[rfieldname]
             except Exception as err:
                 self.db.logger.debug('Error: %s', str(err))
-                raise KeyError('Cannot resolve reference %s in %s definition' % (referenced, table._tablename))
+                raise KeyError(
+                    'Cannot resolve reference %s in %s definition' %
+                    (referenced, table._tablename)
+                ) from err
 
         # must be PK reference or unique
         if getattr(rtable, '_primarykey', None) and rfieldname in rtable._primarykey or \

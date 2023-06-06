@@ -1,20 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 process_img.py
 
 Script to process an image.
 """
-
 import os
 import sys
 import traceback
 from optparse import OptionParser
-from applications.zcomx.modules.images import \
-    SIZES, \
-    UploadImage, \
-    optimize
+from applications.zcomx.modules.images import (
+    SIZES,
+    UploadImage,
+    optimize,
+)
 from applications.zcomx.modules.images_optimize import AllSizesImages
 from applications.zcomx.modules.logger import set_cli_logging
 
@@ -31,8 +30,8 @@ def run_delete(image, options):
     """
     try:
         table, field, _ = image.split('.', 2)
-    except ValueError:
-        raise LookupError('Invalid image {i}'.format(i=image))
+    except ValueError as exc:
+        raise LookupError('Invalid image {i}'.format(i=image)) from exc
     if table not in db.tables or field not in db[table]:
         raise LookupError('Invalid image {i}'.format(i=image))
 
@@ -61,8 +60,8 @@ def run_optimize(image, options):
     """
     try:
         table, field, _ = image.split('.', 2)
-    except ValueError:
-        raise LookupError('Invalid image {i}'.format(i=image))
+    except ValueError as exc:
+        raise LookupError('Invalid image {i}'.format(i=image)) from exc
     if table not in db.tables or field not in db[table]:
         raise LookupError('Invalid image {i}'.format(i=image))
 
@@ -191,7 +190,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -212,4 +211,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

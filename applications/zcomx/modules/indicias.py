@@ -8,33 +8,39 @@ import os
 import shutil
 import subprocess
 from gluon import *
-from applications.zcomx.modules.books import \
-    cc_licence_data, \
-    get_page, \
-    next_book_in_series, \
-    publication_year_range, \
-    read_link
+from applications.zcomx.modules.books import (
+    cc_licence_data,
+    get_page,
+    next_book_in_series,
+    publication_year_range,
+    read_link,
+)
 from applications.zcomx.modules.cc_licences import CCLicence
-from applications.zcomx.modules.creators import \
-    Creator, \
-    can_receive_contributions, \
-    short_url as creator_short_url
-from applications.zcomx.modules.images import \
-    on_delete_image, \
-    store
+from applications.zcomx.modules.creators import (
+    Creator,
+    can_receive_contributions,
+    short_url as creator_short_url,
+)
+from applications.zcomx.modules.images import (
+    on_delete_image,
+    store,
+)
 from applications.zcomx.modules.images_optimize import AllSizesImages
-from applications.zcomx.modules.links import \
-    Links, \
-    LinksKey, \
-    LinkType
+from applications.zcomx.modules.links import (
+    Links,
+    LinksKey,
+    LinkType,
+)
 from applications.zcomx.modules.records import Record
-from applications.zcomx.modules.shell_utils import \
-    TempDirectoryMixin, \
-    os_nice
+from applications.zcomx.modules.shell_utils import (
+    TempDirectoryMixin,
+    os_nice,
+)
 from applications.zcomx.modules.social_media import SocialMedia
-from applications.zcomx.modules.utils import \
-    default_record, \
-    vars_to_records
+from applications.zcomx.modules.utils import (
+    default_record,
+    vars_to_records,
+)
 from applications.zcomx.modules.zco import NICES
 
 LOG = current.app.logger
@@ -326,8 +332,7 @@ class BookIndiciaPage(IndiciaPage):
         if contribute_and_links_divs:
             col_sm_offset = int(
                 (12 - (len(contribute_and_links_divs) * col_sm)) / 2)
-            if col_sm_offset < 0:
-                col_sm_offset = 0
+            col_sm_offset = max(col_sm_offset, 0)
             empty_class = 'non_empty'
         if len(contribute_and_links_divs) <= 1:
             border_class = 'borderless'
@@ -576,6 +581,7 @@ class IndiciaSh(TempDirectoryMixin):
         # The image created by indicia.sh is placed in the current
         # directory. Use cwd= to change to the temp directory so it is
         # created there.
+        # pylint: disable=subprocess-popen-preexec-fn
         with subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
@@ -589,8 +595,6 @@ class IndiciaSh(TempDirectoryMixin):
         if p_stderr:
             LOG.error('IndiciaSh run stderr: %s', p_stderr)
 
-        # E1101 (no-member): *%%s %%r has no %%r member*
-        # pylint: disable=E1101
         if p.returncode:
             raise IndiciaShError('Indicia png creation failed: {err}'.format(
                 err=p_stderr or p_stdout))
@@ -815,7 +819,6 @@ class BookPublicationMetadata():
             if self.metadata.published_format == 'paper' \
             and self.metadata.publisher_type == 'self' \
             else 'published'
-        by = 'by' if self.metadata.publisher_type == 'press' else 'at'
         pubd_type = 'digitally' \
             if self.metadata.published_format == 'digital' \
             else 'in print'
@@ -830,9 +833,10 @@ class BookPublicationMetadata():
 
         publr = ''
         if self.metadata.publisher:
-            by = 'by' if self.metadata.publisher_type == 'press' else 'at'
+            preposition = 'by' if self.metadata.publisher_type == 'press' \
+                else 'at'
             publr = ' {by} {name}'.format(
-                by=by,
+                by=preposition,
                 name=self.metadata.publisher,
             )
 
@@ -897,7 +901,8 @@ class BookPublicationMetadata():
             }
         }
 
-        formatted_title = lambda name, num: '{name} #{num}'.format(name=name, num=num) if num else name
+        def formatted_title(name, num):
+            return '{name} #{num}'.format(name=name, num=num) if num else name
 
         fmt = fmts[is_anthology][serial.published_format]
         if serial.published_format == 'paper':
@@ -1516,16 +1521,19 @@ def cc_licences(book):
 
     data = cc_licence_data(book)
 
-    scrub = lambda x: x.replace('"', '\\"')
-    info = lambda x: scrub(
-        render_cc_licence(data, cc_licence=CCLicence(x.as_dict())))
+    def _scrub(value):
+        return value.replace('"', '\\"')
 
-    # line-too-long (C0301): *Line too long (%%s/%%s)*
-    # pylint: disable=C0301
+    def _info(value):
+        return _scrub(
+            render_cc_licence(data, cc_licence=CCLicence(value.as_dict()))
+        )
+
+    # pylint: disable=line-too-long
     return XML(
         ','.join(
             ['{{"value":"{x.id}", "text":"{x.code}", "info": "<div>{i}</div>"}}'.format(
-                x=x, i=info(x)) for x in licences])
+                x=x, i=_info(x)) for x in licences])
     )
 
 
@@ -1593,11 +1601,12 @@ def render_cc_licence(
     if 'url' not in data:
         data['url'] = cc_licence.url
 
-    scrub = lambda x: x.upper().replace("'", '`') if x else 'n/a'
+    def _scrub(value):
+        return value.upper().replace("'", '`') if value else 'n/a'
 
     for field in ['owner', 'place', 'title']:
         if field in data:
-            data[field] = scrub(data[field])
+            data[field] = _scrub(data[field])
 
     text = cc_licence[template_field].format(**data)
     return '{t}'.format(t=text)

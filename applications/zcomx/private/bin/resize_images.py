@@ -25,8 +25,7 @@ from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
+# pylint: disable=invalid-name
 db = APP_ENV['db']
 
 FIELDS = [
@@ -303,8 +302,7 @@ def main():
 
 def chown():
     """Chown of all files."""
-    # W0212 (protected-access): *Access to a protected member
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     uploads_dir = os.path.join(db._adapter.folder, os.pardir, 'uploads')
     args = []
     args.append('chown')
@@ -322,8 +320,6 @@ def chown():
     if p_stderr:
         LOG.error('ResizeImg run stderr: {err}'.format(err=p_stderr))
 
-    # E1101 (no-member): *%%s %%r has no %%r member*
-    # pylint: disable=E1101
     if p.returncode:
         raise SyntaxError('chown failed: {err}'.format(
             err=p_stderr or p_stdout))

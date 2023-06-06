@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/social_media.py
-
 """
 import io
 import time
@@ -14,27 +11,26 @@ from twitter import TwitterHTTPError
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
 from applications.zcomx.modules.facebook import FacebookAPIError
-from applications.zcomx.modules.social_media import \
-    FacebookPoster, \
-    FacebookSocialMedia, \
-    OngoingPost, \
-    SocialMedia, \
-    SocialMediaPoster, \
-    SocialMediaPostError, \
-    TumblrPoster, \
-    TumblrSocialMedia, \
-    TwitterPoster, \
-    TwitterSocialMedia
+from applications.zcomx.modules.social_media import (
+    FacebookPoster,
+    FacebookSocialMedia,
+    OngoingPost,
+    SocialMedia,
+    SocialMediaPoster,
+    SocialMediaPostError,
+    TumblrPoster,
+    TumblrSocialMedia,
+    TwitterPoster,
+    TwitterSocialMedia,
+)
 from applications.zcomx.modules.tests.helpers import DubMeta
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class BaseTestCase(LocalTestCase):
@@ -44,8 +40,7 @@ class BaseTestCase(LocalTestCase):
     _book = None
     _creator = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
 
         self._auth_user = self.add(AuthUser, dict(
@@ -152,16 +147,15 @@ class TestSocialMediaPoster(BaseTestCase):
         self.assertRaises(NotImplementedError, social_media.credentials)
 
     def test__post(self):
-        class DubPoster(object):
+        class DubPoster():
             def __init__(self, client):
                 self.client = client
 
-        class DubAuthenticator(object):
+        class DubAuthenticator():
             def __init__(self, credentials):
                 self.credentials = credentials
 
             def authenticate(self):
-                # pylint: disable=no-self-use
                 return 'fake_client'
 
         class DubSocialMediaPoster(SocialMediaPoster, metaclass=DubMeta):
@@ -197,7 +191,7 @@ class TestSocialMediaPoster(BaseTestCase):
             NotImplementedError, social_media.post_data, None, {})
 
     def test__prepare_data(self):
-        class DubPhotoDataPreparer(object):
+        class DubPhotoDataPreparer():
             def __init__(self, social_media_data):
                 self.social_media_data = social_media_data
 
@@ -242,7 +236,7 @@ class TestFacebookPoster(BaseTestCase):
     def test__credentials(self):
         poster = FacebookPoster()
         credentials = poster.credentials()
-        expect = [
+        tests = [
             # (key, regexp),
             ('redirect_uri', 'https://zco.mx/z/about'),
             ('page_name', 'zco.mx test page'),
@@ -250,21 +244,20 @@ class TestFacebookPoster(BaseTestCase):
             ('password', r'\w{15}'),
             ('client_id', r'\w{16}'),
         ]
-        for e in expect:
-            self.assertRegex(str(credentials[e[0]]), e[1])
+        for t in tests:
+            self.assertRegex(str(credentials[t[0]]), t[1])
 
     def test__post_data(self):
-        class DubPoster(object):
+        class DubPoster():
             def __init__(self, client):
                 self.client = client
 
             def post_photo(self, data):
-                # pylint: disable=no-self-use
                 if data['make_it'] == 'succeed':
                     return {'id': '12345'}
-                elif data['make_it'] == 'have_no_id':
+                if data['make_it'] == 'have_no_id':
                     return {'key': 'value'}
-                elif data['make_it'] == 'raise_exception':
+                if data['make_it'] == 'raise_exception':
                     raise FacebookAPIError('fake message')
 
         dub_poster = DubPoster('abcdef')
@@ -314,8 +307,7 @@ class TestFacebookSocialMedia(BaseTestCase):
             media.icon_url(), '/zcomx/static/images/facebook_logo.svg')
 
     def test__share_url(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         media = FacebookSocialMedia(self._book, creator=self._creator)
         v = int(time.mktime(request.now.timetuple()))
         self.assertEqual(
@@ -338,33 +330,33 @@ class TestTumblrPoster(BaseTestCase):
     def test__credentials(self):
         poster = TumblrPoster()
         credentials = poster.credentials()
-        expect = [
+        tests = [
             # (key, regexp),
             ('consumer_key', r'\w{50}'),
             ('consumer_secret', r'\w{50}'),
             ('oauth_secret', r'\w{50}'),
             ('oauth_token', r'\w{50}'),
         ]
-        for e in expect:
-            self.assertRegex(str(credentials[e[0]]), e[1])
+        for t in tests:
+            self.assertRegex(str(credentials[t[0]]), t[1])
 
     def test__post_data(self):
-        class DubPoster(object):
+        class DubPoster():
             def __init__(self, client):
                 self.client = client
 
-            def post_photo(self, unused_username, data):
-                # pylint: disable=no-self-use
+            def post_photo(self, username, data):
+                # pylint: disable=unused-argument   # username
                 if data['make_it'] == 'succeed':
                     return {'id': '12345'}
-                elif data['make_it'] == 'meta_error':
+                if data['make_it'] == 'meta_error':
                     return {
                         'meta': {
                             'msg': 'Meta error',
                             'status': 'FAIL',
                         }
                     }
-                elif data['make_it'] == 'response_errors':
+                if data['make_it'] == 'response_errors':
                     return {'response': {'errors': ['Error 1', 'Error 2']}}
 
         dub_poster = DubPoster('abcdef')
@@ -421,8 +413,7 @@ class TestTumblrSocialMedia(BaseTestCase):
             media.icon_url(), '/zcomx/static/images/tumblr_logo.svg')
 
     def test__share_url(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         data = dict(tumblr=None)
         self._creator = Creator.from_updated(self._creator, data)
         media = TumblrSocialMedia(self._book, creator=self._creator)
@@ -446,42 +437,42 @@ class TestTwitterPoster(BaseTestCase):
     def test__credentials(self):
         poster = TwitterPoster()
         credentials = poster.credentials()
-        expect = [
+        tests = [
             # (key, regexp),
             ('consumer_key', r'\w{25}'),
             ('consumer_secret', r'\w{50}'),
             ('oauth_secret', r'\w{45}'),
             ('oauth_token', r'[\w-]{52}'),
         ]
-        for e in expect:
-            self.assertRegex(str(credentials[e[0]]), e[1])
+        for t in tests:
+            self.assertRegex(str(credentials[t[0]]), t[1])
 
     def test__post_data(self):
 
-        class DubPoster(object):
+        class DubPoster():
             def __init__(self, client):
                 self.client = client
 
             def post_photo(self, data):
-                # pylint: disable=no-self-use
                 if data['make_it'] == 'succeed':
                     return {'id': '12345'}
-                elif data['make_it'] == 'have_no_id':
+                if data['make_it'] == 'have_no_id':
                     return {
                         'meta': {
                             'msg': 'Meta error',
                             'status': 'FAIL',
                         }
                     }
-                elif data['make_it'] == 'raise_exception':
+                if data['make_it'] == 'raise_exception':
                     j = b'"{"errors": [{"code": "A", "message": "Foo A"}]}"'
-                    fp = io.BytesIO()
-                    fp.write(j)
-                    fp.seek(0)
-                    e = urllib.error.HTTPError('url', 'code', 'msg', 'hdrs', fp)
-                    e.code = 999
-                    e.headers = {'Content-Encoding': 'notgzip'}
-                    raise TwitterHTTPError(e, 'uri', 'json', {})
+                    bytes_fp = io.BytesIO()
+                    bytes_fp.write(j)
+                    bytes_fp.seek(0)
+                    err = urllib.error.HTTPError(
+                        'url', 'code', 'msg', 'hdrs', bytes_fp)
+                    err.code = 999
+                    err.headers = {'Content-Encoding': 'notgzip'}
+                    raise TwitterHTTPError(err, 'uri', 'json', {})
 
         dub_poster = DubPoster('abcdef')
         poster = TwitterPoster()
@@ -530,8 +521,7 @@ class TestTwitterSocialMedia(BaseTestCase):
             media.icon_url(), '/zcomx/static/images/twitter_logo.svg')
 
     def test__share_url(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         data = dict(twitter=None)
         self._creator = Creator.from_updated(self._creator, data)
         media = TwitterSocialMedia(self._book, creator=self._creator)
@@ -550,8 +540,7 @@ class TestTwitterSocialMedia(BaseTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 fix_landscape_img_12812.py
 
@@ -10,9 +9,7 @@ width: 750px
 
 * resize images
 * optimize images
-
 """
-
 import os
 import shutil
 import sys
@@ -20,21 +17,23 @@ import traceback
 from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
-from applications.zcomx.modules.books import \
-    Book, \
-    images
+from applications.zcomx.modules.books import (
+    Book,
+    images,
+)
 from applications.zcomx.modules.book_pages import BookPage
-from applications.zcomx.modules.images import \
-    ImageDescriptor, \
-    store
-from applications.zcomx.modules.images_optimize import \
+from applications.zcomx.modules.images import (
+    ImageDescriptor,
+    store,
+)
+from applications.zcomx.modules.images_optimize import (
     AllSizesImages
+)
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
+# pylint: disable=invalid-name
 db = APP_ENV['db']
 
 
@@ -103,7 +102,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -123,7 +122,7 @@ def main():
         try:
             if descriptor.orientation() != 'landscape':
                 continue
-        except IOError as err:
+        except IOError:
             # LOG.error('Page image error, page id: %s, %s', page_id, str(err))
             continue
         width, unused_height = descriptor.dimensions()
@@ -184,4 +183,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

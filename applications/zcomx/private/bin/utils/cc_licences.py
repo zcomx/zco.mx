@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 cc_licences.py
 
@@ -8,7 +7,6 @@ Script to create cc_licence records. Script can be re-run without creating
 duplicate records, but will update/replace existing records.
 The --clear is not recommended if books already have cc_licences.
 """
-
 import os
 import sys
 import traceback
@@ -20,12 +18,8 @@ from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
 APP_ENV = env(__file__.split(os.sep)[-3], import_models=True)
-# C0103: *Invalid name "%%s" (should match %%s)*
-# pylint: disable=C0103
+# pylint: disable=invalid-name
 db = APP_ENV['db']
-
-# line-too-long (C0301): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
 
 # The order of TEMPLATES is significant. The db cc_licence.number value is
 # set to the index of the codes. The licences are displayed in the ddm
@@ -41,6 +35,7 @@ TEMPLATES = [
     'All Rights Reserved',
 ]
 
+# pylint: disable=line-too-long
 TEMPLATE_DATA = {
     'CC0': {
         'url': 'http://creativecommons.org/publicdomain/zero/1.0',
@@ -181,7 +176,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -197,7 +192,7 @@ def main():
     errors = run_checks()
     if errors:
         LOG.error('Aborting due to errors.')
-        exit(1)
+        sys.exit(1)
 
     for number, code in enumerate(TEMPLATES):
         template_dict = TEMPLATE_DATA[code]
@@ -241,4 +236,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

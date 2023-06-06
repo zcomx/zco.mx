@@ -1,38 +1,39 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to book releasers.
 """
 import datetime
 import os
 from gluon import *
-from applications.zcomx.modules.books import \
-    Book, \
-    get_page, \
-    images as book_images
+from applications.zcomx.modules.books import (
+    Book,
+    get_page,
+    images as book_images,
+)
 from applications.zcomx.modules.creators import images as creator_images
-from applications.zcomx.modules.images_optimize import \
-    CBZImagesForRelease
-from applications.zcomx.modules.job_queuers import \
-    CreateAllTorrentQueuer, \
-    CreateBookTorrentQueuer, \
-    CreateCBZQueuer, \
-    CreateCreatorTorrentQueuer, \
-    FileshareBookQueuer, \
-    NotifyP2PQueuer, \
-    PostOnSocialMediaQueuer, \
-    ReverseFileshareBookQueuer, \
-    ReverseSetBookCompletedQueuer, \
-    SetBookCompletedQueuer, \
-    UpdateIndiciaForReleaseQueuer
+from applications.zcomx.modules.images_optimize import (
+    CBZImagesForRelease,
+)
+from applications.zcomx.modules.job_queuers import (
+    CreateAllTorrentQueuer,
+    CreateBookTorrentQueuer,
+    CreateCBZQueuer,
+    CreateCreatorTorrentQueuer,
+    FileshareBookQueuer,
+    NotifyP2PQueuer,
+    PostOnSocialMediaQueuer,
+    ReverseFileshareBookQueuer,
+    ReverseSetBookCompletedQueuer,
+    SetBookCompletedQueuer,
+    UpdateIndiciaForReleaseQueuer,
+)
 from applications.zcomx.modules.zco import IN_PROGRESS
 
 LOG = current.app.logger
 
 
-class BaseReleaser(object):
+class BaseReleaser():
     """Class representing a releaser base class"""
 
     queuer_class = None

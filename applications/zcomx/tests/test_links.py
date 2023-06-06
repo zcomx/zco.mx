@@ -1,27 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/links.py
-
 """
 import unittest
-from gluon import *
 from bs4 import BeautifulSoup
+from gluon import *
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.links import \
-    BaseLinkSet, \
-    Link, \
-    Links, \
-    LinksKey, \
-    LinkType
+from applications.zcomx.modules.links import (
+    BaseLinkSet,
+    Link,
+    Links,
+    LinksKey,
+    LinkType,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class DubLinkSet(BaseLinkSet):
@@ -84,8 +79,7 @@ class TestBaseLinkSet(LocalTestCase):
 
         # Test cache
         fake_link_type = LinkType({'code': 'fake'})
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         link_set._link_type = fake_link_type
         self.assertEqual(link_set.link_type(), fake_link_type)
 
@@ -117,8 +111,7 @@ class TestBaseLinkSet(LocalTestCase):
 
         # Test cache
         fake_links = Links([link_2])
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         link_set._links = fake_links
         got = link_set.links()
         self.assertTrue(isinstance(got, Links))
@@ -143,11 +136,12 @@ class TestBaseLinkSet(LocalTestCase):
         # </ul>
 
         ul = soup.find('ul')
-        self.assertEqual(ul['class'], ['custom_links', 'breadcrumb', 'pipe_delimiter'])
+        self.assertEqual(
+            ul['class'], ['custom_links', 'breadcrumb', 'pipe_delimiter'])
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 2)
-        for count, li in enumerate(lis):
-            anchor = li.find('a')
+        for count, a_li in enumerate(lis):
+            anchor = a_li.find('a')
             self.assertEqual(anchor.string, 'link {c}'.format(c=count + 1))
             self.assertEqual(anchor['href'], 'url {c}'.format(c=count + 1))
             self.assertEqual(anchor['target'], '_blank')
@@ -198,8 +192,7 @@ class TestLinks(LocalTestCase):
         {'name': 'Third Site', 'url': 'http://site3.com'},
     ]
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         self._creator = self.add(Creator, dict(
             email='testcustomlinks@example.com'
@@ -262,6 +255,7 @@ class TestLinks(LocalTestCase):
 
         got = links.represent()
         soup = BeautifulSoup(str(got), 'html.parser')
+        # pylint: disable=line-too-long
         # <ul class="custom_links breadcrumb pipe_delimiter">
         #  <li>
         #   <a href="http://site1.com" target="_blank" rel="noopener noreferrer">
@@ -336,8 +330,7 @@ class TestLinksKey(LocalTestCase):
     def test__filter_query(self):
         key = LinksKey(111, 'fake_table', 222)
         query = key.filter_query(db.link)
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             str(query),
             """((("link"."link_type_id" = 111) AND ("link"."record_table" = 'fake_table')) AND ("link"."record_id" = 222))"""
@@ -370,8 +363,7 @@ class TestLinkType(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

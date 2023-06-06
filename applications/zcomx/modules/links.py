@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to links.
 """
 from gluon import *
@@ -14,7 +12,7 @@ class Link(Record):
     db_table = 'link'
 
 
-class Links(object):
+class Links():
     """Class representing a set of links"""
 
     def __init__(self, links):
@@ -78,7 +76,7 @@ class Links(object):
         )
 
 
-class LinksKey(object):
+class LinksKey():
     """Class representing a LinksKey"""
 
     def __init__(self, link_type_id, record_table, record_id):
@@ -138,7 +136,7 @@ class LinkType(Record):
         return cls.from_key({'code': code})
 
 
-class BaseLinkSet(object):
+class BaseLinkSet():
     """Base class representing a link set."""
 
     link_type_code = ''

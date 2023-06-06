@@ -1,32 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/archives.py
-
 """
 import os
 import shutil
 import unittest
 from gluon import *
-from applications.zcomx.modules.archives import \
-    BaseArchive, \
-    CBZArchive, \
-    TorrentArchive, \
-    ZcoMxArchive
+from applications.zcomx.modules.archives import (
+    BaseArchive,
+    CBZArchive,
+    TorrentArchive,
+    ZcoMxArchive,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestBaseArchive(LocalTestCase):
     _base_path = '/tmp/base_archive'
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         if not os.path.exists(cls._base_path):
@@ -65,7 +59,7 @@ class TestBaseArchive(LocalTestCase):
         ]
 
         for t in tests:
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding='utf-8') as f:
                 f.write('Testing')
             got = archive.add_file(filename, t[0])
             self.assertEqual(got, t[1])
@@ -80,7 +74,7 @@ class TestBaseArchive(LocalTestCase):
 
         # Test: base_path does not exist
         archive = BaseArchive('/tmp/_invalid_')
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding='utf-8') as f:
             f.write('Testing')
         self.assertRaises(
             LookupError, archive.add_file, filename, 'F/First Last')
@@ -140,8 +134,7 @@ class TestZcoMxArchive(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

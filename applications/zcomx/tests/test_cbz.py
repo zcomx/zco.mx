@@ -24,8 +24,7 @@ from applications.zcomx.modules.tests.helpers import \
     ImageTestCase, \
     ResizerQuick
 from applications.zcomx.modules.tests.runner import LocalTestCase
-# pylint: disable=missing-class-docstring
-# pylint: disable=missing-function-docstring
+# pylint: disable=missing-docstring
 
 
 class WithObjectsTestCase(LocalTestCase):
@@ -66,8 +65,7 @@ class WithObjectsTestCase(LocalTestCase):
             resizer=ResizerQuick
         )
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         email = web.username
         self._user = db(
@@ -139,8 +137,6 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__get_img_filename_fmt(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         creator = CBZCreator(self._book)
 
         tests = [
@@ -159,6 +155,7 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
             (100000, '{p:06d}{e}'),
         ]
 
+        # pylint: disable=protected-access
         for t in tests:
             creator._max_page_no = t[0]
             creator._img_filename_fmt = None            # clear cache
@@ -176,8 +173,6 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(creator.get_img_filename_fmt(), '{p:03d}{e}')
 
     def test__get_max_page_no(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         creator = CBZCreator(self._book)
 
         def set_page_no(page, page_no):
@@ -186,6 +181,7 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
             db(query).update(page_no=page_no)
             db.commit()
 
+        # pylint: disable=protected-access
         tests = [1, 10, 100, 1000]
         for t in tests:
             set_page_no(self._book_page, t)
@@ -207,8 +203,6 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
         self.assertRaises(LookupError, creator.get_max_page_no)
 
     def test__image_filename(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         creator = CBZCreator(self._book)
 
         tests = [
@@ -277,8 +271,6 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE) as p:
             p_stdout, p_stderr = p.communicate()
-        # E1101 (no-member): *%%s %%r has no %%r member*
-        # pylint: disable=E1101
         self.assertFalse(p.returncode)
         self.assertTrue('Everything is Ok' in p_stdout.decode('utf-8'))
         self.assertEqual(p_stderr, b'')
@@ -287,8 +279,7 @@ class TestCBZCreator(WithObjectsTestCase, ImageTestCase):
 class TestFunctions(WithObjectsTestCase, ImageTestCase):
     _base_path = '/tmp/cbz_archive'
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         if not os.path.exists(cls._base_path):
@@ -306,8 +297,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         cbz_filename = archive(self._book, base_path=self._base_path)
 
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         this_year = datetime.date.today().year
         self.assertEqual(
             cbz_filename,
@@ -326,8 +316,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE) as p:
             p_stdout, p_stderr = p.communicate()
-        # E1101 (no-member): *%%s %%r has no %%r member*
-        # pylint: disable=E1101
         self.assertFalse(p.returncode)
         self.assertTrue('Everything is Ok' in p_stdout.decode('utf-8'))
         self.assertEqual(p_stderr, b'')
@@ -335,8 +323,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

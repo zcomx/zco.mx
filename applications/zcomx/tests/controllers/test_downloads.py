@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/controllers/downloads.py
-
 """
 import json
 import unittest
@@ -23,11 +20,7 @@ from applications.zcomx.modules.creators import (
 )
 from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.tests.helpers import WebTestCase
-
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFunctions(WebTestCase):
@@ -35,11 +28,8 @@ class TestFunctions(WebTestCase):
     _creator = None
     _invalid_book_id = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         # Get a book from a creator with a paypal_email.
         self._creator = Creator.by_email(web.username)
         self._book = Book.from_key(dict(creator_id=self._creator.id))
@@ -241,8 +231,7 @@ class TestFunctions(WebTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     WebTestCase.set_env(globals())
 
 

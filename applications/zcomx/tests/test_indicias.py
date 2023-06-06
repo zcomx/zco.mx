@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/indicias.py
-
 """
 import datetime
 import json
@@ -18,50 +15,50 @@ from gluon.storage import Storage
 from gluon.validators import IS_INT_IN_RANGE
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.books import \
-    Book, \
-    short_url as book_short_url
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator, \
-    short_url as creator_short_url
-from applications.zcomx.modules.images import \
-    on_delete_image, \
-    store
-from applications.zcomx.modules.indicias import \
-    BookIndiciaPage, \
-    BookIndiciaPagePng, \
-    CCLicence, \
-    CreatorIndiciaPagePng, \
-    Derivative, \
-    IndiciaPage, \
-    IndiciaSh, \
-    IndiciaShError, \
-    BookPublicationMetadata, \
-    PublicationMetadata, \
-    PublicationSerial, \
-    cc_licence_places, \
-    cc_licences, \
-    create_creator_indicia, \
-    render_cc_licence
-from applications.zcomx.modules.links import \
-    Link, \
-    LinkType
+from applications.zcomx.modules.books import (
+    Book,
+    short_url as book_short_url,
+)
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+    short_url as creator_short_url,
+)
+from applications.zcomx.modules.images import (
+    on_delete_image,
+    store,
+)
+from applications.zcomx.modules.indicias import (
+    BookIndiciaPage,
+    BookIndiciaPagePng,
+    CCLicence,
+    CreatorIndiciaPagePng,
+    Derivative,
+    IndiciaPage,
+    IndiciaSh,
+    IndiciaShError,
+    BookPublicationMetadata,
+    PublicationMetadata,
+    PublicationSerial,
+    cc_licence_places,
+    cc_licences,
+    create_creator_indicia,
+    render_cc_licence,
+)
+from applications.zcomx.modules.links import (
+    Link,
+    LinkType,
+)
 from applications.zcomx.modules.shell_utils import UnixFile
-from applications.zcomx.modules.tests.helpers import \
-    ImageTestCase, \
-    ResizerQuick, \
-    skip_if_quick
+from applications.zcomx.modules.tests.helpers import (
+    ImageTestCase,
+    ResizerQuick,
+    skip_if_quick,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.tests.mock import DateMock
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
-# (C0301): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
-# C0302: *Too many lines in module (%%s)*
-# pylint: disable=C0302
+# pylint: disable=missing-docstring
+# pylint: disable=too-many-lines
 
 
 class WithObjectsTestCase(LocalTestCase):
@@ -72,8 +69,7 @@ class WithObjectsTestCase(LocalTestCase):
     _book_page = None
     _creator = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
 
         self._auth_user = self.add(AuthUser, dict(
@@ -142,6 +138,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         indicia = BookIndiciaPage(self._book)
         xml = indicia.call_to_action_text()
         v = int(time.mktime(request.now.timetuple()))
+        # pylint: disable=line-too-long
         expect = 'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON <a href="https://twitter.com/share?url=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;text=Check+out+%27Image+Test+Case%27+by+First+Last&amp;hashtage=" rel="noopener noreferrer" target="_blank">TWITTER</a>, <a href="https://www.tumblr.com/share/photo?clickthru=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001&amp;source=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001.jpg&amp;caption=Check+out+Image+Test+Case+by+%3Ca+class%3D%22tumblelog%22%3EFirst+Last%3C%2Fa%3E" rel="noopener noreferrer" target="_blank">TUMBLR</a> AND <a href="http://www.facebook.com/sharer.php?p%5Burl%5D=http%3A%2F%2F{cid}.zco.mx%2FImageTestCase-001%2F001&amp;v={v}" rel="noopener noreferrer" target="_blank">FACEBOOK</a>.'.format(cid=self._creator.id, v=v)
         self.assertEqual(
             xml.xml(),
@@ -163,7 +160,10 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(len(icons), len(icon_keys))
 
         # facebook
-        soup = BeautifulSoup(str(icons[icon_keys.index('facebook')]), 'html.parser')
+        soup = BeautifulSoup(
+            str(icons[icon_keys.index('facebook')]),
+            'html.parser'
+        )
         # <a href="http://www.facebook.com/facepalm" target="_blank">
         #     <img src="/zcomx/static/images/facebook_logo.svg"/>
         # </a>
@@ -179,13 +179,19 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         #     <img src="/zcomx/static/images/follow_logo.svg" />
         # </a>
         anchor = soup.a
-        self.assertEqual(anchor['href'], '/rss/modal/{i}'.format(i=self._creator.id))
+        self.assertEqual(
+            anchor['href'],
+            '/rss/modal/{i}'.format(i=self._creator.id)
+        )
         self.assertEqual(anchor['target'], '_blank')
         img = anchor.img
         self.assertEqual(img['src'], '/zcomx/static/images/follow_logo.svg')
 
         # tumblr
-        soup = BeautifulSoup(str(icons[icon_keys.index('tumblr')]), 'html.parser')
+        soup = BeautifulSoup(
+            str(icons[icon_keys.index('tumblr')]),
+            'html.parser'
+        )
         # <a href="https://www.tumblr.com/follow/tmblr" target="_blank">
         #     <img src="/zcomx/static/images/tumblr_logo.svg"/>
         # </a>
@@ -196,8 +202,12 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(img['src'], '/zcomx/static/images/tumblr_logo.svg')
 
         # twitter
-        soup = BeautifulSoup(str(icons[icon_keys.index('twitter')]), 'html.parser')
-        # <a href="http://twitter.com/intent/follow?screen_name=@tweeter" target="_blank">
+        soup = BeautifulSoup(
+            str(icons[icon_keys.index('twitter')]),
+            'html.parser'
+        )
+        # <a href="http://twitter.com/intent/follow?screen_name=@tweeter"
+        #       target="_blank">
         #     <img src="/zcomx/static/images/twitter_logo.svg"/>
         # </a>
         anchor = soup.a
@@ -210,9 +220,8 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(img['src'], '/zcomx/static/images/twitter_logo.svg')
 
     def test__get_orientation(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         indicia = BookIndiciaPage(self._book)
+        # pylint: disable=protected-access
         self.assertEqual(indicia._orientation, None)
 
         for t in ['portrait', 'landscape', 'square']:
@@ -236,6 +245,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
     def test__licence_text(self):
         indicia = BookIndiciaPage(self._book)
         this_year = datetime.date.today().year
+        # pylint: disable=line-too-long
         self.assertEqual(
             indicia.licence_text(),
             '<a href="{b_url}">IMAGE TEST CASE</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{c_url}">FIRST LAST</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(
@@ -280,6 +290,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         got = indicia.render()
         soup = BeautifulSoup(str(got), 'html.parser')
         div = soup.div
+        # pylint: disable=line-too-long
         # <div class="indicia_preview_section portrait">
         #   <div class="indicia_image_container"><img src="/zcomx/static/images/indicia_image.png" /></div>
         #   <div class="indicia_text_container">
@@ -362,8 +373,7 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
         self._book_page.update_record(image=landscape_filename)
         db.commit()
 
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         indicia._orientation = None     # clear cache
         got = indicia.render()
         soup = BeautifulSoup(str(got), 'html.parser')
@@ -381,7 +391,11 @@ class TestBookIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
         indicia = BookIndiciaPagePng(self._book)
         self.assertEqual(
             indicia.call_to_action_text(),
-            'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
+            (
+                'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT '
+                'BY GIVING SOME MONIES!!  '
+                'OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
+            )
         )
 
     @skip_if_quick
@@ -438,6 +452,7 @@ class TestCreatorIndiciaPagePng(WithObjectsTestCase):
         this_year = datetime.date.today().year
 
         indicia = CreatorIndiciaPagePng(self._creator)
+        # pylint: disable=line-too-long
         self.assertEqual(
             indicia.licence_text(),
             '<a href="/">NAME OF BOOK</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="{url}">FIRST LAST</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(url=creator_short_url(self._creator), y=this_year)
@@ -451,6 +466,7 @@ class TestIndiciaPage(LocalTestCase):
 
     def test__call_to_action_text(self):
         indicia = IndiciaPage(None)
+        # pylint: disable=line-too-long
         self.assertEqual(
             indicia.call_to_action_text(),
             'IF YOU ENJOYED THIS WORK YOU CAN HELP OUT BY GIVING SOME MONIES!!  OR BY TELLING OTHERS ON TWITTER, TUMBLR AND FACEBOOK.'
@@ -463,6 +479,7 @@ class TestIndiciaPage(LocalTestCase):
     def test__licence_text(self):
         indicia = IndiciaPage(None)
         this_year = datetime.date.today().year
+        # pylint: disable=line-too-long
         self.assertEqual(
             indicia.licence_text(),
             '<a href="/">NAME OF BOOK</a>&nbsp; IS COPYRIGHT (C) {y} BY <a href="/">CREATOR NAME</a>.&nbsp; ALL RIGHTS RESERVED.&nbsp; PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.'.format(y=this_year)
@@ -485,20 +502,20 @@ class TestIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
         self.assertTrue('ASCII text' in output.decode('utf-8'))
         self.assertEqual(error, b'')
         lines = []
-        with open(png_page.metadata_filename, 'r') as f:
+        with open(png_page.metadata_filename, 'r', encoding='utf-8') as f:
             lines.append(f.read())
 
         self.assertEqual(len(lines), 1)
         this_year = datetime.date.today().year
+        # pylint: disable=line-too-long
         self.assertEqual(
             lines[0],
             """ "IMAGE TEST CASE" IS COPYRIGHT (C) {y} BY FIRST LAST.  ALL RIGHTS RESERVED.  PERMISSION TO REPRODUCE CONTENT MUST BE OBTAINED FROM THE AUTHOR.""".format(y=this_year)
         )
 
     def test__get_indicia_filename(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         png_page = BookIndiciaPagePng(self._book)
+        # pylint: disable=protected-access
         self.assertEqual(png_page._indicia_filename, None)
 
         # No creator indicia image, should use default.
@@ -533,6 +550,7 @@ class TestIndiciaSh(WithObjectsTestCase, ImageTestCase):
     def test____init__(self):
         indicia_sh = IndiciaSh(101, '', '')
         self.assertTrue(indicia_sh)
+        # pylint: disable=line-too-long
         self.assertEqual(
             indicia_sh.font,
             os.path.abspath(
@@ -553,7 +571,7 @@ class TestIndiciaSh(WithObjectsTestCase, ImageTestCase):
         creator_id = 919
 
         metadata_filename = os.path.join(self._image_dir, 'meta.txt')
-        with open(metadata_filename, 'w') as f:
+        with open(metadata_filename, 'w', encoding='utf-8') as f:
             f.write(
                 'This is a test metadata text. Copyright 2014.'
             )
@@ -600,6 +618,7 @@ class TestIndiciaSh(WithObjectsTestCase, ImageTestCase):
             f=indicia_filename))
 
         # Invalid: indicia_filename is not image
+        # pylint: disable=line-too-long
         indicia_sh = IndiciaSh(creator_id, metadata_filename, metadata_filename)
         do_invalid(indicia_sh, 'File {f} is not an image file'.format(
             f=metadata_filename))
@@ -677,6 +696,7 @@ class TestBookPublicationMetadata(LocalTestCase):
             to_year=2015,
         ))
 
+        # pylint: disable=line-too-long
         self.assertEqual(
             str(meta),
             (
@@ -688,6 +708,7 @@ class TestBookPublicationMetadata(LocalTestCase):
         )
 
     def test__derivative_text(self):
+        # pylint: disable=line-too-long
 
         # METADATA see mod 12687
 
@@ -811,6 +832,7 @@ class TestBookPublicationMetadata(LocalTestCase):
             BookPublicationMetadata.from_book(book).metadata,
             expect.metadata
         )
+        # pylint: disable=line-too-long
         self.assertEqual(
             str(BookPublicationMetadata.from_book(book)),
             (
@@ -930,6 +952,7 @@ class TestBookPublicationMetadata(LocalTestCase):
         )
 
     def test__metadata_text(self):
+        # pylint: disable=line-too-long
         # METADATA see mod 12687
         # If 'first publication'; then
         #     echo [1]
@@ -1007,7 +1030,10 @@ class TestBookPublicationMetadata(LocalTestCase):
             meta.metadata.publisher = 'tumblr.com'
             self.assertEqual(
                 meta.metadata_text(),
-                'This work was originally published digitally in 2014-2015 at tumblr.com.'
+                (
+                    'This work was originally published digitally '
+                    'in 2014-2015 at tumblr.com.'
+                )
             )
 
             # [3]
@@ -1020,7 +1046,10 @@ class TestBookPublicationMetadata(LocalTestCase):
             meta.metadata.publisher = 'Acme Pub Inc.'
             self.assertEqual(
                 meta.metadata_text(),
-                'This work was originally published in print in 2014-2015 by Acme Pub Inc.'
+                (
+                    'This work was originally published in print '
+                    'in 2014-2015 by Acme Pub Inc.'
+                )
             )
 
             # [4]
@@ -1033,7 +1062,10 @@ class TestBookPublicationMetadata(LocalTestCase):
             meta.metadata.publisher = ''
             self.assertEqual(
                 meta.metadata_text(),
-                'This work was originally self-published in print in 2014-2015.'
+                (
+                    'This work was originally self-published in print '
+                    'in 2014-2015.'
+                )
             )
 
             # [5]
@@ -1046,7 +1078,10 @@ class TestBookPublicationMetadata(LocalTestCase):
             meta.metadata.publisher = 'tumblr.com'
             self.assertEqual(
                 meta.metadata_text(),
-                'This work was originally published digitally in 2014-2015 as "My Old Book" at tumblr.com.'
+                (
+                    'This work was originally published digitally '
+                    'in 2014-2015 as "My Old Book" at tumblr.com.'
+                )
             )
 
             # [6]
@@ -1059,7 +1094,10 @@ class TestBookPublicationMetadata(LocalTestCase):
             meta.metadata.publisher = 'Acme Pub Inc.'
             self.assertEqual(
                 meta.metadata_text(),
-                'This work was originally published in print in 2014-2015 as "My Old Book" by Acme Pub Inc.'
+                (
+                    'This work was originally published in print '
+                    'in 2014-2015 as "My Old Book" by Acme Pub Inc.'
+                )
             )
 
             # [7]
@@ -1072,7 +1110,10 @@ class TestBookPublicationMetadata(LocalTestCase):
             meta.metadata.publisher = ''
             self.assertEqual(
                 meta.metadata_text(),
-                'This work was originally self-published in print in 2014-2015 as "My Old Book".'
+                (
+                    'This work was originally self-published in print '
+                    'in 2014-2015 as "My Old Book".'
+                )
             )
 
     def test__publication_year(self):
@@ -1115,6 +1156,7 @@ class TestBookPublicationMetadata(LocalTestCase):
         self.assertEqual(meta.publication_year(), 2014)
 
     def test__serial_text(self):
+        # pylint: disable=line-too-long
 
         # METADATA see mod 12687
 
@@ -1314,15 +1356,26 @@ class TestBookPublicationMetadata(LocalTestCase):
         meta.serials = [serial_1]
         self.assertEqual(
             meta.serials_text(),
-            ['This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.']
+            [
+                (
+                    'This work was originally published in print in 2014-2015 '
+                    'as "Aaa Series #2" by Acme Pub Inc.'
+                )
+            ]
         )
 
         meta.serials = [serial_1, serial_2]
         self.assertEqual(
             meta.serials_text(),
             [
-                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.',
-                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.',
+                (
+                    'This work was originally published in print in 2014-2015 '
+                    'as "Aaa Series #2" by Acme Pub Inc.'
+                ),
+                (
+                    'This work was originally published in print in 2014-2015 '
+                    'as "Aaa Series #2" by Acme Pub Inc.'
+                ),
             ]
         )
 
@@ -1330,15 +1383,26 @@ class TestBookPublicationMetadata(LocalTestCase):
         meta.serials = [serial_1]
         self.assertEqual(
             meta.serials_text(),
-            ['"My Story #1" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.']
+            [
+                (
+                    '"My Story #1" was originally published in print in '
+                    '"Aaa Series #2" in 2014-2015 by Acme Pub Inc.'
+                )
+            ]
         )
 
         meta.serials = [serial_1, serial_2]
         self.assertEqual(
             meta.serials_text(),
             [
-                '"My Story #1" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.',
-                '"My Story #2" was originally published in print in "Aaa Series #2" in 2014-2015 by Acme Pub Inc.',
+                (
+                    '"My Story #1" was originally published in print in '
+                    '"Aaa Series #2" in 2014-2015 by Acme Pub Inc.'
+                ),
+                (
+                    '"My Story #2" was originally published in print in '
+                    '"Aaa Series #2" in 2014-2015 by Acme Pub Inc.'
+                ),
             ]
         )
 
@@ -1400,10 +1464,22 @@ class TestBookPublicationMetadata(LocalTestCase):
         self.assertEqual(
             meta.texts(),
             [
-                'This work was originally published in print in 2014-2015 as "My Old Book" by Acme Pub Inc.',
-                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.',
-                'This work was originally published in print in 2014-2015 as "Aaa Series #2" by Acme Pub Inc.',
-                '"My Book" is a derivative of "My Derivative" from 2014-2015 by John Doe used under CC BY-NC-SA.',
+                (
+                    'This work was originally published in print in 2014-2015 '
+                    'as "My Old Book" by Acme Pub Inc.'
+                ),
+                (
+                    'This work was originally published in print in 2014-2015 '
+                    'as "Aaa Series #2" by Acme Pub Inc.'
+                ),
+                (
+                    'This work was originally published in print in 2014-2015 '
+                    'as "Aaa Series #2" by Acme Pub Inc.'
+                ),
+                (
+                    '"My Book" is a derivative of "My Derivative" from '
+                    '2014-2015 by John Doe used under CC BY-NC-SA.'
+                )
             ]
         )
 
@@ -1461,8 +1537,7 @@ class TestBookPublicationMetadata(LocalTestCase):
         )
 
     def test__update(self):
-        # invalid-name (C0103): *Invalid %%s name "%%s"*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
         book = self.add(Book, dict(name='test__update'))
 
         meta = BookPublicationMetadata(book)
@@ -1676,7 +1751,7 @@ class TestBookPublicationMetadata(LocalTestCase):
 
         # Valid: whole, paper, self, no publisher
         meta.metadata.published_type = 'whole'
-        meta.metadata.published_name = 'Some Name',
+        meta.metadata.published_name = 'Some Name'
         meta.metadata.published_format = 'paper'
         meta.metadata.publisher_type = 'self'
         meta.metadata.publisher = ''
@@ -1851,8 +1926,7 @@ class TestBookPublicationMetadata(LocalTestCase):
 
             meta = BookPublicationMetadata(book)
 
-            # protected-access (W0212): *Access to a protected member %%s
-            # pylint: disable=W0212
+            # pylint: disable=protected-access
             self.assertEqual(
                 meta._publication_year_range,
                 (None, None)
@@ -1959,13 +2033,17 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self._creator = Creator.from_updated(self._creator, data)
 
     def test__render_cc_licence(self):
+        img_fmt = \
+            'The {title} is owned by {owner} for {year} in {place} at {url}.'
+        web_fmt = \
+            'THE {title} IS OWNED BY {owner} FOR {year} IN {place} AT {url}.'
 
         cc_licence_row = self.add(CCLicence, dict(
             number=999,
             code='test__render_cc_licence',
             url='http://cc_licence.com',
-            template_img='The {title} is owned by {owner} for {year} in {place} at {url}.',
-            template_web='THE {title} IS OWNED BY {owner} FOR {year} IN {place} AT {url}.'
+            template_img=img_fmt,
+            template_web=web_fmt,
         ))
         cc_licence = CCLicence.from_id(cc_licence_row.id)
 
@@ -1976,12 +2054,18 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             (
                 {},
                 'template_img',
-                'The NAME OF BOOK is owned by CREATOR NAME for {y} in &LT;YOUR COUNTRY&GT; at http://cc_licence.com.'.format(y=this_year)
+                (
+                    'The NAME OF BOOK is owned by CREATOR NAME for {y} in '
+                    '&LT;YOUR COUNTRY&GT; at http://cc_licence.com.'
+                ).format(y=this_year)
             ),
             (
                 {},
                 'template_web',
-                'THE NAME OF BOOK IS OWNED BY CREATOR NAME FOR {y} IN &LT;YOUR COUNTRY&GT; AT http://cc_licence.com.'.format(y=this_year)
+                (
+                    'THE NAME OF BOOK IS OWNED BY CREATOR NAME FOR {y} IN '
+                    '&LT;YOUR COUNTRY&GT; AT http://cc_licence.com.'
+                ).format(y=this_year)
             ),
             (
                 {
@@ -1991,7 +2075,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                     'place': 'Canada'
                 },
                 'template_img',
-                'The MY BOOK`S is owned by JOE DOE for 1999 in CANADA at http://cc_licence.com.'
+                (
+                    'The MY BOOK`S is owned by JOE DOE for 1999 in CANADA at '
+                    'http://cc_licence.com.'
+                )
             ),
             (
                 {
@@ -2001,7 +2088,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                     'place': 'Canada'
                 },
                 'template_web',
-                'THE MY BOOK`S IS OWNED BY JOE DOE FOR 1999 IN CANADA AT http://cc_licence.com.'
+                (
+                    'THE MY BOOK`S IS OWNED BY JOE DOE FOR 1999 IN CANADA AT '
+                    'http://cc_licence.com.'
+                )
             ),
         ]
         for t in tests:
@@ -2013,8 +2103,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

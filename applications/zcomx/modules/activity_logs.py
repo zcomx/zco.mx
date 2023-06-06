@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 Classes and functions related to activity logs
 """
 import datetime
 from functools import reduce
 from gluon import *
-from applications.zcomx.modules.book_pages import \
-    BookPage, \
-    pages_sorted_by_page_no
-from applications.zcomx.modules.books import \
-    Book, \
-    get_page
+from applications.zcomx.modules.book_pages import (
+    BookPage,
+    pages_sorted_by_page_no,
+)
+from applications.zcomx.modules.books import (
+    Book,
+    get_page,
+)
 from applications.zcomx.modules.records import Record
 
 LOG = current.app.logger
@@ -20,7 +21,7 @@ LOG = current.app.logger
 MINIMUM_AGE_TO_LOG_IN_SECONDS = 4 * 60 * 60       # 4 hours
 
 
-class ActivityLogMixin(object):
+class ActivityLogMixin():
     """Mixin class for activity log classes."""
 
     def age(self, as_of=None):
@@ -86,7 +87,7 @@ class TentativeActivityLog(Record, ActivityLogMixin):
     db_table = 'tentative_activity_log'
 
 
-class BaseTentativeLogSet(object):
+class BaseTentativeLogSet():
     """Base class representing a set of TentativeActivityLog instances"""
 
     def __init__(self, tentative_records):
@@ -252,7 +253,7 @@ class TentativeLogSet(BaseTentativeLogSet):
         return
 
 
-class UploadActivityLogger(object):
+class UploadActivityLogger():
     """Class representing an activity logger for the book upload process.
 
     Workflow

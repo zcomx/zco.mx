@@ -3,52 +3,57 @@
 """
 Routing classes and functions.
 """
+import functools
 import os
 import re
 from gluon import *
 from gluon.html import A, SPAN
 from gluon.storage import Storage
 from applications.zcomx.modules.book_pages import BookPage
-from applications.zcomx.modules.books import \
-    Book, \
-    cover_image, \
-    get_page, \
-    page_url, \
-    read_link, \
-    url as book_url
-from applications.zcomx.modules.creators import \
-    Creator, \
-    url as creator_url
+from applications.zcomx.modules.books import (
+    Book,
+    cover_image,
+    get_page,
+    page_url,
+    read_link,
+    url as book_url,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    url as creator_url,
+)
 from applications.zcomx.modules.events import ViewEvent
-from applications.zcomx.modules.html.meta import \
-    MetadataFactory, \
-    html_metadata_from_records
+from applications.zcomx.modules.html.meta import (
+    MetadataFactory,
+    html_metadata_from_records,
+)
 from applications.zcomx.modules.indicias import BookIndiciaPage
-from applications.zcomx.modules.links import \
-    BookReviewLinkSet, \
-    BuyBookLinkSet, \
-    CreatorArticleLinkSet, \
-    CreatorPageLinkSet
-from applications.zcomx.modules.search import \
-    CompletedGrid, \
-    CreatorMoniesGrid, \
-    OngoingGrid
+from applications.zcomx.modules.links import (
+    BookReviewLinkSet,
+    BuyBookLinkSet,
+    CreatorArticleLinkSet,
+    CreatorPageLinkSet,
+)
+from applications.zcomx.modules.search import (
+    CompletedGrid,
+    CreatorMoniesGrid,
+    OngoingGrid,
+)
 from applications.zcomx.modules.user_agents import is_bot
-from applications.zcomx.modules.zco import \
-    BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_DRAFT, \
-    Zco
-from functools import reduce
+from applications.zcomx.modules.zco import (
+    BOOK_STATUS_DISABLED,
+    BOOK_STATUS_DRAFT,
+    Zco,
+)
 
 LOG = current.app.logger
 
 
 class SpareCreatorError(Exception):
     """Exception class for creator errors."""
-    pass
 
 
-class Router(object):
+class Router():
     """Class representing a Router"""
     not_found_msg = 'The requested page was not found on this server.'
 
@@ -60,6 +65,7 @@ class Router(object):
             request: gluon.globals.Request instance.
             auth: gluon.tools.Auth instance.
         """
+        # pylint: disable=redefined-outer-name
         self.request = request
         self.auth = auth
         self.view = None
@@ -84,7 +90,8 @@ class Router(object):
             if request.vars.book:
                 creator = self.get_creator()
                 if creator:
-                    encoded_name = request.vars.book.encode('latin-1').decode('utf-8')
+                    encoded_name = \
+                        request.vars.book.encode('latin-1').decode('utf-8')
                     match = encoded_name.lower()
                     query = (db.book.creator_id == creator.id) & \
                         (db.book.name_for_url.lower() == match)
@@ -128,7 +135,8 @@ class Router(object):
 
                 # Test for request_vars_creator as creator.name_for_url
                 if not self.creator:
-                    encoded_name = request_vars_creator.encode('latin-1').decode('utf-8')
+                    encoded_name = \
+                        request_vars_creator.encode('latin-1').decode('utf-8')
                     name = encoded_name.replace('_', ' ').lower()
                     query = (db.creator.name_for_url.lower() == name)
                     creator_row = db(query).select(limitby=(0, 1)).first()
@@ -271,7 +279,7 @@ class Router(object):
             if query_want is not None:
                 queries.append(query_want)
             queries.append((db.book_page.id != None))
-            query = reduce(lambda x, y: x & y, queries) if queries else None
+            query = functools.reduce(lambda x, y: x & y, queries)
             rows = db(query).select(
                 db.book_page.id,
                 db.book.id,
@@ -364,7 +372,7 @@ class Router(object):
                 self.page_not_found()
                 return
 
-        self.embed = True if request.vars.embed else False
+        self.embed = bool(request.vars.embed)
         self.zbr_origin = request.vars.zbr_origin
 
         # Handle redirects
@@ -589,10 +597,8 @@ class Router(object):
 
         book_marks = Zco().book_marks
         resume_page_no = book_marks[book.id] if book.id in book_marks else 1
-        if resume_page_no < 1:
-            resume_page_no = 1
-        if resume_page_no > len(page_images):
-            resume_page_no = len(page_images)
+        resume_page_no = max(resume_page_no, 1)
+        resume_page_no = min(resume_page_no, len(page_images))
 
         self.view_dict = dict(
             book=book,

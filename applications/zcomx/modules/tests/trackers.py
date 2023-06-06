@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 Unit test tracker classes and functions.
 """
 from gluon import *
 
 
-class TableTracker(object):
+class TableTracker():
     """Class representing a TableTracker used to track records in a table
     during tests when records can be created in the background and not
     easily controlled.
@@ -25,8 +24,6 @@ class TableTracker(object):
             table: gluon.dal.base.Table instance
             query: Query instance
         """
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
         self.table = table
         self.query = query if query is not None else self.table
         db = self.table._db
@@ -54,7 +51,7 @@ class TableTracker(object):
         Args:
             row: gluon.dal.objects.Row instance.
         """
-        return True if row.id in self._ids else False
+        return row.id in self._ids
 
     def has(self, row):
         """Return whether the record represented by row exists.
@@ -62,8 +59,7 @@ class TableTracker(object):
         Args:
             row: gluon.dal.objects.Row instance.
         """
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         db = self.table._db
         ids = [x.id for x in db(self.query).select()]
-        return True if row.id in ids else False
+        return row.id in ids

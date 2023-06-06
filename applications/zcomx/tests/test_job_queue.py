@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 test_job_queue.py
 
 Test suite for zcomx/modules/job_queue.py
-
 """
 import datetime
 import os
-import subprocess
 import time
 import unittest
 from gluon import *
@@ -35,10 +32,8 @@ from applications.zcomx.modules.job_queue import (
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.tests.trackers import TableTracker
+# pylint: disable=missing-docstring
 
-# C0111: *Missing docstring*
-# R0904: *Too many public methods (%s/%s)*
-# pylint: disable=C0111,R0904
 
 TMP_DIR = '/tmp/test_suite/job_queue'
 
@@ -126,10 +121,11 @@ class TestDaemon(LocalTestCase):
     def test__read_pid(self):
         daemon = Daemon(self.name, self.pid_filename)
 
-        open(self.pid_filename, 'w').close()        # Empty file
+        # pylint: disable=consider-using-with
+        open(self.pid_filename, 'w', encoding='utf-8').close()     # Empty file
         self.assertEqual(daemon.read_pid(), {})
 
-        with open(self.pid_filename, 'w') as f:
+        with open(self.pid_filename, 'w', encoding='utf-8') as f:
             f.write("a: 1\n")
             f.write("first name: John\n")
             f.write("start time: 2000-01-01 12:59:59\n")
@@ -153,7 +149,8 @@ class TestDaemon(LocalTestCase):
 
     def test__update_pid(self):
         daemon = Daemon(self.name, self.pid_filename)
-        open(self.pid_filename, 'w').close()            # Empty file
+        # pylint: disable=consider-using-with
+        open(self.pid_filename, 'w', encoding='utf-8').close()     # Empty file
         daemon.update_pid()
         params = daemon.read_pid()
         self.assertEqual(list(params.keys()), ['last'])
@@ -523,7 +520,7 @@ if __name__ == '__main__':
     """.format(file=tmp_file, text=text)
 
         script_name = os.path.join(TMP_DIR, 'test__run.py')
-        with open(script_name, 'w') as f:
+        with open(script_name, 'w', encoding='utf-8') as f:
             f.write(script.strip())
         os.chmod(script_name, 0o700)
 
@@ -534,7 +531,7 @@ if __name__ == '__main__':
         expect = """Hello World!
 """
         got = ''
-        with open(tmp_file, 'r') as f:
+        with open(tmp_file, 'r', encoding='utf-8') as f:
             got = f.read()
         self.assertEqual(got, expect)
 
@@ -548,7 +545,7 @@ if __name__ == '__main__':
 4: 123
 """
         got = ''
-        with open(tmp_file, 'r') as f:
+        with open(tmp_file, 'r', encoding='utf-8') as f:
             got = f.read()
         self.assertEqual(got, expect)
 
@@ -809,8 +806,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

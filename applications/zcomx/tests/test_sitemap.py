@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/sitemap.py
-
 """
 import datetime
 import re
 import unittest
 from applications.zcomx.modules.sitemap import SiteMapUrl
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
 # pylint: disable=missing-docstring
 
 
@@ -67,8 +63,7 @@ class TestSiteMapUrl(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

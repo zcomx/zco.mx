@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/downloaders.py
-
 """
 import os
 import unittest
@@ -14,27 +11,25 @@ from gluon.http import HTTP
 from gluon.storage import List
 from applications.zcomx.modules.archives import TorrentArchive
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
-from applications.zcomx.modules.downloaders import \
-    CBZDownloader, \
-    ImageDownloader, \
-    TorrentDownloader
-from applications.zcomx.modules.images import \
-    UploadImage, \
-    filename_for_size
-from applications.zcomx.modules.tests.helpers import \
-    ImageTestCase, \
-    skip_if_quick
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
-# W0212 (protected-access): *Access to a protected member
-# pylint: disable=W0212
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
+from applications.zcomx.modules.downloaders import (
+    CBZDownloader,
+    ImageDownloader,
+    TorrentDownloader,
+)
+from applications.zcomx.modules.images import (
+    UploadImage,
+    filename_for_size,
+)
+from applications.zcomx.modules.tests.helpers import (
+    ImageTestCase,
+    skip_if_quick,
+)
+from applications.zcomx.modules.tests.runner import LocalTestCase
+# pylint: disable=missing-docstring
 
 
 class WithObjectsTestCase(LocalTestCase):
@@ -43,8 +38,7 @@ class WithObjectsTestCase(LocalTestCase):
     _auth_user = None
     _creator = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         email = 'up_image@example.com'
         self._auth_user = self.add(AuthUser, dict(
@@ -180,8 +174,7 @@ class TestImageDownloader(WithObjectsTestCase, ImageTestCase):
         test_http('original')
 
         # Test invalid url          web.jpg?size=web => web.jpg_size=web
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         correct_query = 'book_page.image.ab7ec55b2ce97d6f.626c75655f30302e706e67.png?size=web'
         incorrect_query = correct_query.replace('?', '_')
         request.args = List([incorrect_query])
@@ -274,8 +267,7 @@ class TestTorrentDownloader(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

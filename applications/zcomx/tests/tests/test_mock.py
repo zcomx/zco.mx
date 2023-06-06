@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 test_mock.py
 
 Test suite for zcomx/modules/tests/mock.py
-
 """
 import datetime
 import unittest
-from applications.zcomx.modules.date_n_time import \
-    str_to_date, \
-    str_to_datetime
-from applications.zcomx.modules.tests.mock import \
-    DateMock, \
-    DateTimeMock
+from applications.zcomx.modules.date_n_time import (
+    str_to_date,
+    str_to_datetime,
+)
+from applications.zcomx.modules.tests.mock import (
+    DateMock,
+    DateTimeMock,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
 # pylint: disable=missing-docstring
 
 

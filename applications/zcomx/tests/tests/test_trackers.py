@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 Test suite for shared/modules/tests/trackers.py
 """
@@ -10,7 +9,6 @@ from applications.zcomx.modules.job_queue import Job
 from applications.zcomx.modules.tests.trackers import TableTracker
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.utils import default_record
-
 # pylint: disable=missing-docstring
 
 
@@ -135,8 +133,7 @@ class TestTableTracker(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

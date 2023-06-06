@@ -4,18 +4,21 @@ Default controller.
 """
 import os
 from applications.zcomx.modules.book_pages import BookPage
-from applications.zcomx.modules.books import \
-    Book, \
-    page_url, \
-    url as book_url
-from applications.zcomx.modules.creators import \
-    Creator, \
-    url as creator_url
+from applications.zcomx.modules.books import (
+    Book,
+    page_url,
+    url as book_url,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    url as creator_url,
+)
 from applications.zcomx.modules.search import Grid
 from applications.zcomx.modules.stickon.tools import ExposeImproved
-from applications.zcomx.modules.utils import \
-    faq_tabs, \
-    markmin
+from applications.zcomx.modules.utils import (
+    faq_tabs,
+    markmin,
+)
 from applications.zcomx.modules.zco import Zco
 
 
@@ -140,7 +143,7 @@ def overview():
 
 def rss():
     """RSS page (reader notifications)"""
-    return dict()
+    return {}
 
 
 def search():

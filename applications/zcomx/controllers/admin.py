@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """ Admin controller."""
-
 from gluon.http import HTTP
 from applications.zcomx.modules.access import requires_admin_ip
-from applications.zcomx.modules.stickon.sqlhtml import \
-    formstyle_bootstrap3_login, \
-    search_fields_grid
+from applications.zcomx.modules.stickon.sqlhtml import (
+    formstyle_bootstrap3_login,
+    search_fields_grid,
+)
 
 
 @auth.requires_membership('admin')
@@ -41,7 +41,7 @@ def index():
     elif form.errors:
         response.flash = 'Form could not be submitted.' + \
             ' Please make corrections.'
-    impersonating = True if session.auth.impersonator else False
+    impersonating = bool(session.auth.impersonator)
     return dict(form=form, impersonating=impersonating)
 
 

@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 settings_json_check.py
 
 Script for comparing settings.json to settings.conf or
 /srv/http/local/test.conf
 """
-
 import os
 import sys
 import traceback
@@ -39,14 +37,12 @@ def byteify(element):
     # http://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-ones-from-json-in-python
     """
     if isinstance(element, dict):
-        return {byteify(key): byteify(value)
-                for key, value in element.items()}
-    elif isinstance(element, list):
+        return {byteify(key): byteify(value) for key, value in element.items()}
+    if isinstance(element, list):
         return [byteify(element) for element in element]
-    elif isinstance(element, str):
+    if isinstance(element, str):
         return element.encode('utf-8')
-    else:
-        return element
+    return element
 
 
 def is_same(item1, item2):
@@ -89,10 +85,6 @@ def main():
     Returns:
         None.
     """
-
-    # E1101 *%s %r has no %r member*
-    # pylint: disable=E1101
-
     usage = '%prog [options]'
     parser = OptionParser(usage=usage, version=VERSION)
 
@@ -129,7 +121,7 @@ def main():
         parser.print_help()
         print('')
         man_page()
-        quit(0)
+        sys.exit(0)
 
     LOG.debug('Starting.')
 
@@ -137,7 +129,7 @@ def main():
 
     if options.dump:
         print(json.dumps(settings, indent=4, sort_keys=True))
-        exit(0)
+        sys.exit(0)
 
     configfile = os.path.join(
         current.request.folder, 'private', SETTINGS_FILENAME)
@@ -160,4 +152,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

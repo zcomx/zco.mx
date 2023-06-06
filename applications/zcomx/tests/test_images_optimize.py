@@ -1,41 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/images_optimize.py
-
 """
 import collections
 import unittest
 from gluon import *
-from applications.zcomx.modules.job_queuers import \
-    OptimizeCBZImgForReleaseQueuer, \
-    OptimizeCBZImgQueuer, \
-    OptimizeOriginalImgQueuer, \
-    OptimizeWebImgQueuer
-from applications.zcomx.modules.images_optimize import \
-    AllSizesImages, \
-    BaseImages, \
-    BaseSizedImage, \
-    CBZForReleaseImage, \
-    CBZImage, \
-    CBZImagesForRelease, \
-    Image, \
-    OptimizeImgLog, \
-    OriginalImage, \
-    WebImage
-from applications.zcomx.modules.tests.runner import \
-    LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
-# W0212 (protected-access): *Access to a protected member
-# pylint: disable=W0212
+from applications.zcomx.modules.job_queuers import (
+    OptimizeCBZImgForReleaseQueuer,
+    OptimizeCBZImgQueuer,
+    OptimizeOriginalImgQueuer,
+    OptimizeWebImgQueuer,
+)
+from applications.zcomx.modules.images_optimize import (
+    AllSizesImages,
+    BaseImages,
+    BaseSizedImage,
+    CBZForReleaseImage,
+    CBZImage,
+    CBZImagesForRelease,
+    Image,
+    OptimizeImgLog,
+    OriginalImage,
+    WebImage,
+)
+from applications.zcomx.modules.tests.runner import LocalTestCase
+# pylint: disable=missing-docstring
 
 
-class DubQueuer(object):
+class DubQueuer():
 
     def __init__(self, tbl):
         self.tbl = tbl
@@ -102,8 +95,7 @@ class TestBaseImages(LocalTestCase):
     unoptimized_images = None
     mixed_images = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         sized_images = [DubSizedImage(x) for x in ['a', 'b', 'c']]
@@ -322,8 +314,7 @@ class TestWebImage(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

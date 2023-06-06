@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for modules/stickon/sqlhtml.py
-
 """
 import unittest
 from bs4 import BeautifulSoup
@@ -15,16 +12,10 @@ from applications.zcomx.modules.stickon.sqlhtml import (
     formstyle_bootstrap3_custom,
     formstyle_bootstrap3_login,
     make_grid_class,
-    search_fields_grid
+    search_fields_grid,
 )
-
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-
-# R0904: *Too many public methods (%%s/%%s)*
-# pylint: disable=R0904
-# C0111: *Missing docstring*
-# pylint: disable=C0111
+# pylint: disable=missing-docstring
 
 
 class TestInputWidget(LocalTestCase):
@@ -107,8 +98,7 @@ class TestFunctions(LocalTestCase):
     _table = None
     _fields = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         cls._table = db.creator
@@ -240,8 +230,7 @@ def as_soup(html):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

@@ -1,48 +1,45 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/events.py
-
 """
 import datetime
 import unittest
 from gluon import *
 from applications.zcomx.modules.book_pages import BookPage
-from applications.zcomx.modules.books import \
-    Book, \
-    update_rating
+from applications.zcomx.modules.books import (
+    Book,
+    update_rating,
+)
 from applications.zcomx.modules.creators import AuthUser
-from applications.zcomx.modules.events import \
-    BaseEvent, \
-    BookEvent, \
-    BookView, \
-    Contribution, \
-    ContributionEvent, \
-    Download, \
-    DownloadClick, \
-    DownloadEvent, \
-    Rating, \
-    RatingEvent, \
-    ViewEvent, \
-    ZcoContributionEvent, \
-    is_loggable, \
-    log_download_click
+from applications.zcomx.modules.events import (
+    BaseEvent,
+    BookEvent,
+    BookView,
+    Contribution,
+    ContributionEvent,
+    Download,
+    DownloadClick,
+    DownloadEvent,
+    Rating,
+    RatingEvent,
+    ViewEvent,
+    ZcoContributionEvent,
+    is_loggable,
+    log_download_click,
+)
 from applications.zcomx.modules.user_agents import USER_AGENTS
 from applications.zcomx.modules.tests.runner import LocalTestCase
+# pylint: disable=missing-docstring
+# pylint: disable=protected-access
 
 
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
 class EventTestCase(LocalTestCase):
     """ Base class for Event test cases. Sets up test data."""
     _book = None
     _user = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         book_row = self.add(Book, dict(name='Event Test Case'))
         self._book = Book.from_id(book_row.id)
@@ -58,8 +55,6 @@ class TestBaseEvent(EventTestCase):
         self.assertTrue(event)
 
     def test_log(self):
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event = BaseEvent(self._user.id)
         self.assertRaises(NotImplementedError, event._log, None)
 
@@ -82,8 +77,6 @@ class TestBaseEvent(EventTestCase):
         self.assertEqual(event.actions, ['log_me', 'post_log'])
 
     def test_post_log(self):
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event = BaseEvent(self._user.id)
         self.assertRaises(NotImplementedError, event._post_log)
 
@@ -103,8 +96,6 @@ class TestContributionEvent(EventTestCase):
         event = ContributionEvent(self._book, self._user.id)
 
         # no value
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event_id = event._log()
         self.assertFalse(event_id)
 
@@ -129,8 +120,6 @@ class TestContributionEvent(EventTestCase):
 
         event = ContributionEvent(self._book, self._user.id)
 
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event_id = event._log(123.45)
         contribution = Contribution.from_id(event_id)
         self._objects.append(contribution)
@@ -153,8 +142,6 @@ class TestDownloadEvent(EventTestCase):
         ))
 
         event = DownloadEvent(self._book, self._user.id)
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event_id = event._log(value=download_click)
 
         download = Download.from_id(event_id)
@@ -170,8 +157,6 @@ class TestDownloadEvent(EventTestCase):
 
     def test_post_log(self):
         # This does nothing, test that.
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event = DownloadEvent(self._book, self._user.id)
         event._post_log()
 
@@ -183,8 +168,6 @@ class TestRatingEvent(EventTestCase):
         event = RatingEvent(self._book, self._user.id)
 
         # no value
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event_id = event._log()
         self.assertFalse(event_id)
 
@@ -207,8 +190,6 @@ class TestRatingEvent(EventTestCase):
 
         event = RatingEvent(self._book, self._user.id)
 
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event_id = event._log(5)
         rating = Rating.from_id(event_id)
         self._objects.append(rating)
@@ -223,8 +204,6 @@ class TestViewEvent(EventTestCase):
     def test_log(self):
         update_rating(self._book)
         event = ViewEvent(self._book, self._user.id)
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event_id = event._log()
 
         view = BookView.from_id(event_id)
@@ -244,8 +223,6 @@ class TestViewEvent(EventTestCase):
 
         event = ViewEvent(self._book, self._user.id)
 
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event_id = event._log()
         view = BookView.from_id(event_id)
         self._objects.append(view)
@@ -263,8 +240,6 @@ class TestZcoContributionEvent(EventTestCase):
         event = ZcoContributionEvent(self._user.id)
 
         # no value
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event_id = event._log()
         self.assertFalse(event_id)
 
@@ -282,8 +257,6 @@ class TestZcoContributionEvent(EventTestCase):
 
     def test_post_log(self):
         # This does nothing, test that.
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         event = ZcoContributionEvent(self._user.id)
         event._post_log()
 
@@ -429,8 +402,7 @@ def set_pages(obj, book, num_of_pages):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 original_images.py
 
 Script to print a report on the original images of a book.
 """
-
 import os
 import sys
 import traceback
@@ -33,8 +31,6 @@ def print_report(book):
     for book_page in book.pages():
         upload_image = book_page.upload_image()
         descriptor = ImageDescriptor(upload_image.fullname())
-        # unpacking-non-sequence (W0633): *Attempting to unpack a non-sequence
-        # pylint: disable=W0633
         width, height = descriptor.dimensions()
         fullname = upload_image.fullname().replace(original_path, '')
         print(fmt.format(
@@ -95,11 +91,11 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     if not args:
         parser.print_help()
-        quit(1)
+        sys.exit(1)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -123,4 +119,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

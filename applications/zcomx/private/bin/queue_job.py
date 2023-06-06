@@ -8,8 +8,8 @@ Queue a job.
 import sys
 import time
 import traceback
-from pydal.helpers.methods import bar_decode_integer
 from optparse import OptionParser
+from pydal.helpers.methods import bar_decode_integer
 from applications.zcomx.modules.job_queue import (
     Job,
     parse_cli_options,
@@ -28,9 +28,9 @@ def print_queuers():
     print('')
     jqd = job_queuers.__dict__
     queuers = sorted([
-        c for c in jqd if (
-            isinstance(jqd[c], type) and
-            jqd[c].__module__ == job_queuers.__name__
+        k for k, v in jqd.items() if (
+            isinstance(v, type) and
+            v.__module__ == job_queuers.__name__
         )
     ])
     for queuer in queuers:
@@ -157,15 +157,15 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     if options.list_queuers:
         print_queuers()
-        quit(0)
+        sys.exit(0)
 
     if not options.queuer and len(args) != 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -187,7 +187,7 @@ def main():
             queuer_class = None
             LOG.error('Invalid queuer: %s', options.queuer)
             LOG.error(err)
-            exit(1)
+            sys.exit(1)
         if queuer_class:
             cli_args = options.cli_args.split() if options.cli_args else None
             cli_options = parse_cli_options(options.cli_options)
@@ -210,4 +210,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

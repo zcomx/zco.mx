@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/utils.py
-
 """
 import datetime
 import os
@@ -14,23 +11,21 @@ from bs4 import BeautifulSoup
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.utils import \
-    ClassFactory, \
-    ItemDescription, \
-    abridged_list, \
-    default_record, \
-    faq_tabs, \
-    joined_list, \
-    markmin, \
-    markmin_content, \
-    move_record, \
-    reorder, \
-    replace_in_elements, \
-    vars_to_records
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+from applications.zcomx.modules.utils import (
+    ClassFactory,
+    ItemDescription,
+    abridged_list,
+    default_record,
+    faq_tabs,
+    joined_list,
+    markmin,
+    markmin_content,
+    move_record,
+    reorder,
+    replace_in_elements,
+    vars_to_records,
+)
+# pylint: disable=missing-docstring
 
 
 class TestClassFactory(LocalTestCase):
@@ -38,15 +33,14 @@ class TestClassFactory(LocalTestCase):
     def test____init__(self):
         factory = ClassFactory('code')
         self.assertTrue(factory)
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         self.assertEqual(factory._by_id, {})
 
     def test____call__(self):
         factory = ClassFactory('code')
 
         @factory.register
-        class Aaa(object):
+        class Aaa():
             code = "A"
 
             def __init__(self, arg_1, kwarg_1='_default_'):
@@ -67,15 +61,14 @@ class TestClassFactory(LocalTestCase):
         factory = ClassFactory('code')
 
         @factory.register
-        class Aaa(object):
+        class Aaa():
             code = "A"
 
         @factory.register
-        class Bbb(object):
+        class Bbb():
             code = "B"
 
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         self.assertEqual(sorted(factory._by_id.keys()), ['A', 'B'])
         self.assertEqual(factory._by_id['A'], Aaa)
         self.assertEqual(factory._by_id['B'], Bbb)
@@ -84,11 +77,10 @@ class TestClassFactory(LocalTestCase):
         factory = ClassFactory('code')
 
         @factory.register_as('X')
-        class Ccc(object):
+        class Ccc():
             code = "C"
 
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         self.assertEqual(sorted(factory._by_id.keys()), ['X'])
         self.assertEqual(factory._by_id['X'], Ccc)
 
@@ -126,8 +118,7 @@ class TestItemDescription(LocalTestCase):
         # Test long item, break on space
         item = ItemDescription(self._description)
         item.truncate_length = 10
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             str(item.as_html()),
             '<div><div class="short_description" title="123456789 123456789 ">123456789 ... <a class="desc_more_link" href="#">more</a></div><div class="full_description hidden">123456789 123456789 </div></div>'
@@ -157,8 +148,7 @@ class TestFunctions(LocalTestCase):
     _tmp_backup = None
     _tmp_dir = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         # Duplicate changes here in private/test/data/test.sql
@@ -171,8 +161,7 @@ class TestFunctions(LocalTestCase):
 
         db.test__reorder.truncate()
 
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         if cls._tmp_backup is None:
             cls._tmp_backup = os.path.join(
                 db._adapter.folder,
@@ -223,8 +212,6 @@ class TestFunctions(LocalTestCase):
 
     def _ordered_values(self, field='name'):
         """Get the field values in order."""
-        # R0201 (no-self-use): *Method could be a function*
-        # pylint: disable=R0201
         values = db().select(
             db.test__reorder[field],
             orderby=[db.test__reorder.order_no, db.test__reorder.id],
@@ -479,8 +466,11 @@ class TestFunctions(LocalTestCase):
         # Test callaback
         div = DIV('aaa', DIV('bbb'))
         self.assertEqual(str(div), '<div>aaa<div>bbb</div></div>')
-        callback = lambda x: x.add_class('wrapper')
-        replace_in_elements(div, 'bbb', 'ccc', callback=callback)
+
+        def _callback(tag):
+            return tag.add_class('wrapper')
+
+        replace_in_elements(div, 'bbb', 'ccc', callback=_callback)
         self.assertEqual(
             str(div), '<div>aaa<div class="wrapper">ccc</div></div>')
 
@@ -530,8 +520,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

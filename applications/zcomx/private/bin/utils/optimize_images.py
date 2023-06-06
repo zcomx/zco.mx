@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 optimize_images.py
 
 Utility script to optimize all images for a book, creator or all.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
-
 import sys
 import traceback
 from optparse import OptionParser
@@ -155,7 +151,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -179,4 +175,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Unit test mock classes and functions.
 """
 import datetime
 
 
-class DateMock(object):
+class DateMock():
     """Class representing a DateMock (context manager)"""
 
     def __init__(self, value):
@@ -47,7 +45,6 @@ class DateMock(object):
 
     def mocked_class(self):
         """Return datetime.date subclass with today overridden."""
-        # pylint: disable=no-self-use
         mocked_value = self.value
 
         class MockDate(datetime.date):
@@ -60,7 +57,7 @@ class DateMock(object):
         return MockDate
 
 
-class DateTimeMock(object):
+class DateTimeMock():
     """Class representing a DateTimeMock (context manager)"""
 
     def __init__(self, value):
@@ -99,13 +96,12 @@ class DateTimeMock(object):
 
     def mocked_class(self):
         """Return datetime.datetime subclass with now overridden."""
-        # pylint: disable=no-self-use
         mocked_value = self.value
 
         class MockDatetime(datetime.datetime):
             """Class representing mock datetime"""
             @classmethod
-            def now(cls):
+            def now(cls, tz=None):
                 """Function to override datatime.datetime.now()"""
                 return mocked_value
 

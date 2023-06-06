@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 create_img.py
 
 Script to create images.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
-
 import sys
 import traceback
 from optparse import OptionParser
@@ -86,27 +82,28 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 3:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     try:
         width = int(args[1])
     except (TypeError, ValueError):
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     try:
         height = int(args[2])
     except (TypeError, ValueError):
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     create_img(args[0], (width, height), options.colour)
+
 
 if __name__ == '__main__':
     # pylint: disable=broad-except
@@ -116,4 +113,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

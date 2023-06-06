@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 job_queue.py
 
 Classes related to job queues.
-
 """
 import os
 from gluon import *
-from applications.zcomx.modules.job_queue import \
-    Daemon, \
-    DaemonSignalError, \
-    Queue, \
-    Queuer
+from applications.zcomx.modules.job_queue import (
+    Daemon,
+    DaemonSignalError,
+    Queue,
+    Queuer,
+)
 
 PRIORITIES = [
     # Lowest
@@ -98,7 +97,6 @@ class CreateSiteMapQueuer(Queuer):
         '-v', '--vv',
     ]
     queue_class = QueueWithSignal
-
 
 
 @Queuer.class_factory.register
@@ -421,7 +419,8 @@ def queue_create_sitemap():
     failures are ignored.
     """
     db = current.app.db
-    sitemap_file = os.path.join(current.request.folder, 'static', 'sitemap.xml')
+    sitemap_file = os.path.join(
+        current.request.folder, 'static', 'sitemap.xml')
     job = CreateSiteMapQueuer(
         db.job,
         cli_options={'-o': sitemap_file},

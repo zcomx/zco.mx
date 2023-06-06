@@ -88,12 +88,15 @@ class BookPageTmp(BookPage):
         db = current.app.db
         upload_image = self.upload_image()
         old_fullname = upload_image.fullname()
-        stored_filenames = rename(old_fullname, db[self.db_table].image, new_filename)
+        stored_filenames = rename(
+            old_fullname,
+            db[self.db_table].image, new_filename
+        )
         new_image = os.path.basename(stored_filenames['original'])
         return BookPageTmp.from_updated(self, {'image': new_image})
 
 
-class BookPageNumber(object):
+class BookPageNumber():
     """Class representing a set of book page number."""
 
     def __init__(self, book_page):
@@ -127,7 +130,7 @@ class BookPageNumber(object):
         )
 
 
-class BookPageNumbers(object):
+class BookPageNumbers():
     """Class representing a set of book page numbers."""
 
     def __init__(self, book_pages):

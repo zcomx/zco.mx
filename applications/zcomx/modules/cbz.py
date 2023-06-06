@@ -10,18 +10,21 @@ import zipfile
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.archives import CBZArchive
-from applications.zcomx.modules.books import \
-    Book, \
-    book_name, \
-    cbz_comment
-from applications.zcomx.modules.creators import \
-    Creator, \
-    creator_name
+from applications.zcomx.modules.books import (
+    Book,
+    book_name,
+    cbz_comment,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    creator_name,
+)
 from applications.zcomx.modules.images import filename_for_size
 from applications.zcomx.modules.indicias import BookIndiciaPagePng
-from applications.zcomx.modules.shell_utils import \
-    TempDirectoryMixin, \
-    os_nice
+from applications.zcomx.modules.shell_utils import (
+    TempDirectoryMixin,
+    os_nice,
+)
 from applications.zcomx.modules.zco import NICES
 
 LOG = current.app.logger
@@ -182,14 +185,13 @@ class CBZCreator(TempDirectoryMixin):
         cbz_filename = os.path.join(cbz_dir, self.cbz_filename())
         args.append(cbz_filename)
         args.append(self.working_directory())
+        # pylint: disable=subprocess-popen-preexec-fn
         with subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 preexec_fn=os_nice(nice)) as p:
             unused_stdout, p_stderr = p.communicate()
-        # E1101 (no-member): *%%s %%r has no %%r member*      # p.returncode
-        # pylint: disable=E1101
         if p.returncode:
             LOG.error('7z call failed: %s', p_stderr)
             raise CBZCreateError('Creation of cbz file failed.')

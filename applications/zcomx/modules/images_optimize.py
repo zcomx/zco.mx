@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to optimizing images.
 """
 from gluon import *
-from applications.zcomx.modules.job_queuers import \
-    OptimizeCBZImgForReleaseQueuer, \
-    OptimizeCBZImgQueuer, \
-    OptimizeOriginalImgQueuer, \
-    OptimizeWebImgQueuer
+from applications.zcomx.modules.job_queuers import (
+    OptimizeCBZImgForReleaseQueuer,
+    OptimizeCBZImgQueuer,
+    OptimizeOriginalImgQueuer,
+    OptimizeWebImgQueuer,
+)
 from applications.zcomx.modules.records import Record
 
 LOG = current.app.logger
@@ -21,7 +20,7 @@ class OptimizeImgLog(Record):
     db_table = 'optimize_img_log'
 
 
-class BaseSizedImage(object):
+class BaseSizedImage():
     """Base class representing an image of a specific size."""
 
     def __init__(self, name):
@@ -113,7 +112,7 @@ class WebImage(BaseSizedImage):
         return 'web'
 
 
-class Image(object):
+class Image():
     """Class representing an image for optimizing."""
 
     def __init__(self, sized_images):
@@ -147,7 +146,7 @@ class Image(object):
         return jobs
 
 
-class BaseImages(object):
+class BaseImages():
     """Base class representing a set of images for optimizing."""
 
     def __init__(self, images):

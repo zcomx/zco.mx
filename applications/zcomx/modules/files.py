@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Utilty classes and functions.
 """
 import re
@@ -10,9 +8,6 @@ import re
 
 class FileName(str):
     """Class representing a filename"""
-    # R0904 (too-many-public-methods): *Too many public methods (%%s/%%s)*
-    # pylint: disable=R0904
-
     allowed_in_inputs = [
         # ('char', 'name')
         ('?', 'question mark'),
@@ -58,9 +53,6 @@ class TitleFileName(FileName):
     * Colons are replaced with a spaced hyphen.
         Eg Bubbles: A Comic Odyssey => Bubbles - A Comic Odyssey
     """
-    # R0904 (too-many-public-methods): *Too many public methods (%%s/%%s)*
-    # pylint: disable=R0904
-
     def pre_scrub(self):
         """Return the filename scrubbed.
 

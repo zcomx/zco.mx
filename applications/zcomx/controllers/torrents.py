@@ -2,13 +2,15 @@
 """Torrent controller functions"""
 import traceback
 from gluon.storage import Storage
-from applications.zcomx.modules.books import \
-    Book, \
-    torrent_url as book_torrent_url
-from applications.zcomx.modules.creators import \
-    Creator, \
-    torrent_url as creator_torrent_url, \
-    url as creator_url
+from applications.zcomx.modules.books import (
+    Book,
+    torrent_url as book_torrent_url,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    torrent_url as creator_torrent_url,
+    url as creator_url,
+)
 from applications.zcomx.modules.downloaders import TorrentDownloader
 from applications.zcomx.modules.events import log_download_click
 from applications.zcomx.modules.zco import Zco
@@ -26,7 +28,7 @@ def download():
     if request.args:
         record_table = request.args(0)
         record_id = request.args(1) or 0
-        queue_log_downloads = True if not request.vars.no_queue else False
+        queue_log_downloads = not bool(request.vars.no_queue)
         log_download_click(
             record_table,
             record_id,
@@ -71,10 +73,10 @@ def route():
         except HTTP:
             # These don't need to be logged as they provide no useful info.
             raise
-        except Exception:
+        except Exception as exc:
             for line in traceback.format_exc().split("\n"):
                 LOG.error(line)
-            raise HTTP(404, "Page not found")
+            raise HTTP(404, "Page not found") from exc
 
     def formatted_page_not_found():
         """Page not found formatter."""
@@ -149,7 +151,8 @@ def route():
 
         # Test for request.vars.creator as creator.name_for_url
         if not creator:
-            encoded_name = request.vars.creator.encode('latin-1').decode('utf-8')
+            encoded_name = \
+                request.vars.creator.encode('latin-1').decode('utf-8')
             name = encoded_name.replace('_', ' ')
             try:
                 creator = Creator.from_key({'name_for_url': name})

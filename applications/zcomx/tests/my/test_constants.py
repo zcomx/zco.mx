@@ -1,44 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/my/constants.py
-
 """
-
 import unittest
-from applications.zcomx.modules.my.constants import \
-        ASCII_CHARACTER, \
-        ASCII_DESCRIPTION, \
-        ASCII_FRIENDLY_CODE, \
-        ASCII_HEX_CODE, \
-        ASCII_NUMERICAL_CODE, \
-        CM_PER_INCH, \
-        CM_PER_M, \
-        HOURS_PER_DAY, \
-        KG_PER_LB, \
-        KG_PER_TONNE, \
-        LB_PER_KG, \
-        LB_PER_TON, \
-        MINUTES_PER_DAY, \
-        MINUTES_PER_HOUR, \
-        MM_PER_CM, \
-        MM_PER_INCH, \
-        MM_PER_M, \
-        M_PER_INCH, \
-        OZ_PER_KG, \
-        OZ_PER_LB, \
-        SECONDS_PER_DAY, \
-        SECONDS_PER_HOUR, \
-        SECONDS_PER_MINUTE, \
-        ascii_lookup
+from applications.zcomx.modules.my.constants import (
+    ASCII_CHARACTER,
+    ASCII_DESCRIPTION,
+    ASCII_FRIENDLY_CODE,
+    ASCII_HEX_CODE,
+    ASCII_NUMERICAL_CODE,
+    CM_PER_INCH,
+    CM_PER_M,
+    HOURS_PER_DAY,
+    KG_PER_LB,
+    KG_PER_TONNE,
+    LB_PER_KG,
+    LB_PER_TON,
+    MINUTES_PER_DAY,
+    MINUTES_PER_HOUR,
+    MM_PER_CM,
+    MM_PER_INCH,
+    MM_PER_M,
+    M_PER_INCH,
+    OZ_PER_KG,
+    OZ_PER_LB,
+    SECONDS_PER_DAY,
+    SECONDS_PER_HOUR,
+    SECONDS_PER_MINUTE,
+    ascii_lookup,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: *Missing docstring*
-# pylint: disable=C0111
-# R0904: *Too many public methods (%%s/%%s)*
-# pylint: disable=R0904
+# pylint: disable=missing-docstring
 
 
 class TestConstants(LocalTestCase):

@@ -1,27 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/controllers/torrents.py
-
 """
 import os
 import unittest
 import urllib.parse
-from applications.zcomx.modules.books import \
-    Book, \
-    book_name
-from applications.zcomx.modules.creators import \
-    Creator, \
-    creator_name
+from applications.zcomx.modules.books import (
+    Book,
+    book_name,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    creator_name,
+)
 from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.records import Records
 from applications.zcomx.modules.tests.helpers import WebTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFunctions(WebTestCase):
@@ -38,8 +34,7 @@ class TestFunctions(WebTestCase):
 
     @classmethod
     def setUpClass(cls):
-        # C0103: *Invalid name "%%s" (should match %%s)*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
         # Get the data the tests will use.
         email = web.username
         query = (db.auth_user.email == email)
@@ -239,8 +234,7 @@ class TestFunctions(WebTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     WebTestCase.set_env(globals())
 
 

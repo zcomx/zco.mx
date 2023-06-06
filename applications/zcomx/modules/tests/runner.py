@@ -49,10 +49,6 @@ class LocalTestCase(unittest.TestCase):
         * Each test is timed.
 
     """
-    # R0904: *Too many public methods (%%s/%%s)*
-    # pylint: disable=R0904
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
     _opts = Storage({
         'force': False,
         'quick': False,
@@ -148,8 +144,6 @@ class LocalTestCase(unittest.TestCase):
             data: dict of data, {field: value, ...}
 
         """
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
         db = current.app.db
         if hasattr(obj, 'insert'):
             record_id = obj.insert(**data)
@@ -176,6 +170,7 @@ class LocalTestCase(unittest.TestCase):
             args: Extra args. (see assertRaises)
             kwargs: Extra kwargs. (see assertRaises)
         """
+        # pylint: disable=invalid-name
         safe_repr = unittest.util.safe_repr
         try:
             callable_obj(*args, **kwargs)
@@ -200,6 +195,7 @@ class LocalTestCase(unittest.TestCase):
         Args:
             See _assertRaisesHTTPError
         """
+        # pylint: disable=invalid-name
         self._assertRaisesHTTPError(
             HTTP, expected_code, callable_obj, *args, **kwargs)
 
@@ -214,6 +210,7 @@ class LocalTestCase(unittest.TestCase):
         Args:
             See _assertRaisesHTTPError
         """
+        # pylint: disable=invalid-name
         self._assertRaisesHTTPError(
             urllib.error.HTTPError,
             expected_code,
@@ -248,6 +245,7 @@ class LocalTestCase(unittest.TestCase):
             post_data: see LocalWebClient.post_data
             login_required: see LocalWebClient.login_required
         """
+        # pylint: disable=invalid-name
         if match_page_key is None:
             match_page_key = url_path
         if app is None:
@@ -353,7 +351,7 @@ class LocalTestCase(unittest.TestCase):
             login_password = env['local_settings'].login_password
             login_employee_id = env['local_settings'].login_employee_id
 
-        login_required = True if 'auth_user' in env['db'].tables else False
+        login_required = 'auth_user' in env['db'].tables
         web_client_url = current.app.local_settings.web_site_url \
             if current.app.local_settings.web_site_url else ''
         web = LocalWebClient(
@@ -379,8 +377,7 @@ class LocalTestCase(unittest.TestCase):
             post_vars: dict of data to post. If None the request environment
                 is reset.
         """
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         env['request']._body = None             # Force reload
         env['request']._vars = None             # Force reload
         env['request']._post_vars = None        # Force reload
@@ -645,8 +642,7 @@ class LocalWebClient(WebClient):
             db: gluon.dal.DAL instance
             dump: If true, dump page contents
         """
-        # C0103: *Invalid name "%%s" (should match %%s)*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
 
         self.application = application
         self.username = username
@@ -772,6 +768,7 @@ class LocalWebClient(WebClient):
         )
         self.post(url, data=data)
 
+        # pylint: disable=attribute-defined-outside-init
         self._logged_in_username = email
 
     def login_if_not(self):
@@ -789,6 +786,7 @@ class LocalWebClient(WebClient):
         if not url:
             url = '/{app}/default/user/logout'.format(app=self.application)
         self.get(url)
+        # pylint: disable=attribute-defined-outside-init
         self._logged_in_username = None
 
     def post(

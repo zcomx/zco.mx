@@ -2,16 +2,19 @@
 """
 Controllers for contributions.
 """
-from applications.zcomx.modules.books import \
-    Book, \
-    default_contribute_amount
-from applications.zcomx.modules.creators import \
-    Creator, \
-    book_for_contributions
-from applications.zcomx.modules.events import \
-    ContributionEvent, \
-    PaypalLog, \
-    ZcoContributionEvent
+from applications.zcomx.modules.books import (
+    Book,
+    default_contribute_amount,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    book_for_contributions,
+)
+from applications.zcomx.modules.events import (
+    ContributionEvent,
+    PaypalLog,
+    ZcoContributionEvent,
+)
 from applications.zcomx.modules.zco import Zco
 
 
@@ -38,7 +41,8 @@ def modal():
         creator = Creator.from_id(request.vars.creator_id)
         if not creator:
             raise LookupError(
-                'Creator not found, id %s', request.vars.creator_id)
+                'Creator not found, id {i}'.format(i=request.vars.creator_id)
+            )
 
     return dict(
         book=book,
@@ -173,7 +177,7 @@ def paypal_notify():
 
         amount = 0.00
         gross_field = 'payment_gross' if 'payment_gross' in request.vars \
-                else 'mc_gross'
+            else 'mc_gross'
 
         try:
             amount = float(request.vars[gross_field])
@@ -196,10 +200,8 @@ def paypal_notify():
         if f in request.vars:
             paypal_log_data[f] = request.vars[f]
     if paypal_log_data:
-        # unused-variable (W0612): *Unused variable %%r*
-        # pylint: disable=W0612
         try:
-            paypal_log = PaypalLog.from_add(paypal_log_data)
+            PaypalLog.from_add(paypal_log_data)
         except SyntaxError as err:
             LOG.error('Paypal log failed: %s', str(err))
 
@@ -237,7 +239,8 @@ def widget():
         creator = Creator.from_id(request.vars.creator_id)
         if not creator:
             raise LookupError(
-                'Creator not found, id %s', request.vars.creator_id)
+                'Creator not found, id {i}'.format(i=request.vars.creator_id)
+            )
 
     if book:
         creator = Creator.from_id(book.creator_id)

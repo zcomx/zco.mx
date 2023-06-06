@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 log_downloads.py
 
 Script to log download clicks.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
-
+import functools
 import sys
 import time
 import traceback
@@ -22,7 +19,6 @@ from applications.zcomx.modules.events import (
 from applications.zcomx.modules.job_queuers import \
     LogDownloadsQueuer
 from applications.zcomx.modules.logger import set_cli_logging
-from functools import reduce
 
 VERSION = 'Version 0.1'
 
@@ -115,7 +111,7 @@ def unlogged_generator(limit=None):
                     t=click.record_table)
             )
 
-        query = reduce(lambda x, y: x & y, queries) if queries else None
+        query = functools.reduce(lambda x, y: x & y, queries)
         limitby = (0, limit) if limit is not None else None
 
         rows = db(query).select(
@@ -208,7 +204,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -259,4 +255,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

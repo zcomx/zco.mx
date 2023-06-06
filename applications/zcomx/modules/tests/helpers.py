@@ -15,10 +15,11 @@ from PIL import Image
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.environ import has_terminal
-from applications.zcomx.modules.images import \
-    ImageDescriptor, \
-    UploadImage, \
-    store
+from applications.zcomx.modules.images import (
+    ImageDescriptor,
+    UploadImage,
+    store,
+)
 from applications.zcomx.modules.records import Record
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.shell_utils import TempDirectoryMixin
@@ -54,8 +55,6 @@ class DubMeta(type):
                 calls = getattr(self, dub_translate['calls'])
                 if calls is not None:
                     calls.append((func.__name__, args, kwargs))
-                # W0212: *Access to a protected member %%s of a client class*
-                # pylint: disable=W0212
                 dub = getattr(self, dub_translate['dub'])
                 if func.__name__ in dub:
                     settings = dub[func.__name__]
@@ -458,8 +457,6 @@ def skip_if_not_terminal(func):
     """Decorator to skip tests if test requires a terminal."""
     @wraps(func)
     def wrapper(*args):
-        # C0111: *Missing docstring*
-        # pylint: disable=C0111
         if not has_terminal():
             raise unittest.SkipTest('Tests requires terminal: {t}'.format(
                 t=func.__name__))
@@ -471,10 +468,7 @@ def skip_if_quick(func):
     """Decorator to skip tests if quick option is used."""
     @wraps(func)
     def wrapper(*args):
-        # C0111: *Missing docstring*
-        # pylint: disable=C0111
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         if args[0]._opts.quick:
             raise unittest.SkipTest('Remove --quick option to run {t}'.format(
                 t=func.__name__))
@@ -486,10 +480,7 @@ def skip_unless_force(func):
     """Decorator to skip tests unless force options is used."""
     @wraps(func)
     def wrapper(*args):
-        # C0111: *Missing docstring*
-        # pylint: disable=C0111
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         if not args[0]._opts.force:
             raise unittest.SkipTest('Provide --force option to run {t}'.format(
                 t=func.__name__))

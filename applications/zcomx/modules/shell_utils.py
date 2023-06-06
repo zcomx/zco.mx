@@ -175,8 +175,6 @@ def set_owner(filename, user='http', group='http'):
 def temp_directory():
     """Return a temp directory"""
     db = current.app.db
-    # W0212: *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
     tmp_path = os.path.join(db.book_page.image.uploadfolder, '..', 'tmp')
     if not os.path.exists(tmp_path):
         os.makedirs(tmp_path)

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """Creator controller functions"""
-
-import traceback
 from applications.zcomx.modules.access import requires_login_if_configured
-from applications.zcomx.modules.routing import \
-    Router, \
-    SpareCreatorError
+from applications.zcomx.modules.routing import (
+    Router,
+    SpareCreatorError,
+)
 from applications.zcomx.modules.zco import Zco
 
 
@@ -27,11 +26,13 @@ def index():
         router.route()
     except SpareCreatorError as err:
         LOG.info(err)
+        # pylint: disable=raise-missing-from
         raise HTTP(404, "Page not found")
     except HTTP:
         # These don't need to be logged as they provide no useful info.
         raise
     except Exception:
+        # pylint: disable=raise-missing-from
         # Ensure that during the page_not_found formatting if any exceptions
         # happen a 404 is returned. Then search bots, for example, see they
         # have an invalid page, and also fail2ban can catch them.
@@ -40,9 +41,12 @@ def index():
     if router.redirect:
         redirect(router.redirect)
     if router.view:
-        if router.view == 'creators/monies.html' \
-                or router.view == 'books/scroller.html' \
-                or router.view == 'books/slider.html':
+        need_stylesheets = [
+            'creators/monies.html',
+            'books/scroller.html',
+            'books/slider.html',
+        ]
+        if router.view in need_stylesheets:
             response.files.append(
                 URL('static', 'fonts/sf_cartoonist/stylesheet.css')
             )

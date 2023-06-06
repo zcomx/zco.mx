@@ -1,23 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 stickon/sqlhtml.py
 
 Classes extending functionality of gluon/sqlhtml.py particular to the zcomx
 application.
-
 """
+import functools
 from gluon import *
-from gluon.sqlhtml import \
-    ExporterCSV, \
-    ExporterTSV, \
-    FormWidget
-from functools import reduce
-
-# E1101: *%s %r has no %r member*
-# pylint: disable=E1101
+from gluon.sqlhtml import (
+    ExporterCSV,
+    ExporterTSV,
+    FormWidget,
+)
 
 LOG = current.app.logger
 
@@ -35,10 +30,6 @@ class InputWidget(FormWidget):
             attributes: dict, dictionary of custom attributes.
             class_extra: string, value appended to _class value.
         """
-        # W0221: Arguments number differs from overridden method
-        # W0231: __init__ method from base class FormWidget is not called
-        # pylint: disable=W0221,W0231
-
         self.attributes = attributes if attributes else {}
         self.class_extra = class_extra
 
@@ -47,9 +38,7 @@ class InputWidget(FormWidget):
 
         See gluon.sqlhtml FormWidget
         """
-        # W0221: Arguments number differs from overridden method
-        # pylint: disable=W0221
-
+        # pylint: disable=arguments-differ
         new_attributes = dict(
             _type='text',
             _value=(value != None and str(value)) or '',
@@ -114,10 +103,10 @@ def formstyle_bootstrap3_custom(form, fields):
     """
     form.add_class('form-horizontal')
     parent = FIELDSET()
-    for id, label, controls, help in fields:
+    for tag_id, label, controls, help_text in fields:
 
         # wrappers
-        _help = SPAN(help, _class='help-block')
+        _help = SPAN(help_text, _class='help-block')
         # embed _help into _controls
         _controls = DIV(controls, _help, _class='col-sm-6 col-lg-4')
         # submit unflag by default
@@ -155,12 +144,30 @@ def formstyle_bootstrap3_custom(form, fields):
 
         if _submit:
             # submit button has unwrapped label and controls, different class
-            parent.append(DIV(label, DIV(controls,_class="col-sm-6 col-sm-offset-3 col-lg-4 col-lg-offset-2"), _class='form-group', _id=id))
+            div_class = 'col-sm-6 col-sm-offset-3 col-lg-4 col-lg-offset-2'
+            parent.append(
+                DIV(
+                    label,
+                    DIV(
+                        controls,
+                        _class=div_class,
+                    ),
+                    _class='form-group',
+                    _id=tag_id
+                )
+            )
             # unflag submit (possible side effect)
             _submit = False
         else:
             # unwrapped label
-            parent.append(DIV(label, _controls, _class='form-group', _id=id))
+            parent.append(
+                DIV(
+                    label,
+                    _controls,
+                    _class='form-group',
+                    _id=tag_id
+                )
+            )
     return parent
 
 
@@ -175,9 +182,9 @@ def formstyle_bootstrap3_login(form, fields):
     """
     form.add_class('form-horizontal')
     parent = FIELDSET()
-    for id, label, controls, help in fields:
+    for tag_id, label, controls, help_text in fields:
         # wrappers
-        _help = SPAN(help, _class='help-block')
+        _help = SPAN(help_text, _class='help-block')
         # embed _help into _controls
         _controls = DIV(controls, _help, _class='col-xs-12')
         # submit unflag by default
@@ -232,12 +239,29 @@ def formstyle_bootstrap3_login(form, fields):
 
         if _submit:
             # submit button has unwrapped label and controls, different class
-            parent.append(DIV(label, DIV(controls,_class="col-xs-12"), _class='form-group', _id=id))
+            parent.append(
+                DIV(
+                    label,
+                    DIV(
+                        controls,
+                        _class="col-xs-12"
+                    ),
+                    _class='form-group',
+                    _id=tag_id
+                )
+            )
             # unflag submit (possible side effect)
             _submit = False
         else:
             # unwrapped label
-            parent.append(DIV(label, _controls, _class='form-group', _id=id))
+            parent.append(
+                DIV(
+                    label,
+                    _controls,
+                    _class='form-group',
+                    _id=tag_id
+                )
+            )
     return parent
 
 
@@ -258,6 +282,7 @@ def make_grid_class(export=None, search=None, ui=None, **kwargs):
             If None the SQLFORM.grid default is used.
         kwargs: dict, grid param defaults are updated with this
     """
+    # pylint: disable=invalid-name      # ui
     defaults = {}
 
     # Export classes
@@ -271,7 +296,7 @@ def make_grid_class(export=None, search=None, ui=None, **kwargs):
         'xml',
     ]
 
-    no_exporters = dict([(x, False) for x in export_keys])
+    no_exporters = {x:False for x in export_keys}
     simple_exporters = dict(no_exporters)
     simple_exporters.update(dict(
         csv=(ExporterCSV, 'CSV'),
@@ -299,7 +324,8 @@ def make_grid_class(export=None, search=None, ui=None, **kwargs):
                 for sfield in sfields:
                     if fields is None or str(sfield) in fields_as_str:
                         queries.append((sfield.like('%' + keywords + '%')))
-            query = reduce(lambda x, y: x | y, queries) if queries else None
+            query = functools.reduce(lambda x, y: x | y, queries) \
+                if queries else None
             return query
         return searchable_func
 
@@ -382,8 +408,10 @@ def make_grid_class(export=None, search=None, ui=None, **kwargs):
 
 
 plain_grid = make_grid_class(export='none', search='none', ui='no_icon').grid
-simple_grid = make_grid_class(export='simple', search='none', ui='no_icon').grid
-searchable_grid = make_grid_class(export='simple', search='simple', ui='no_icon').grid
+simple_grid = make_grid_class(
+    export='simple', search='none', ui='no_icon').grid
+searchable_grid = make_grid_class(
+    export='simple', search='simple', ui='no_icon').grid
 
 
 def search_fields_grid(fields):

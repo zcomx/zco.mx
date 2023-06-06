@@ -6,18 +6,16 @@ Test suite for zcomx/controllers/cbz.py
 import os
 import unittest
 import urllib.parse
-from applications.zcomx.modules.books import \
-    Book, \
-    book_name, \
-    cbz_comment
+from applications.zcomx.modules.books import (
+    Book,
+    book_name,
+    cbz_comment,
+)
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.records import Records
 from applications.zcomx.modules.tests.helpers import WebTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFunctions(WebTestCase):
@@ -33,8 +31,7 @@ class TestFunctions(WebTestCase):
 
     @classmethod
     def setUpClass(cls):
-        # C0103: *Invalid name "%%s" (should match %%s)*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
         # Get the data the tests will use.
         cls._creator = Creator.by_email(web.username)
         cls._book = Book.from_key(dict(creator_id=cls._creator.id))
@@ -164,8 +161,7 @@ class TestFunctions(WebTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     WebTestCase.set_env(globals())
 
 

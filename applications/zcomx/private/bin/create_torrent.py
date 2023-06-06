@@ -1,23 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 create_torrent.py
 
 Script to create a torrent file for a book, creator or all.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
-
 import sys
 import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.torrents import \
-    AllTorrentCreator, \
-    BookTorrentCreator, \
-    CreatorTorrentCreator
+from applications.zcomx.modules.torrents import (
+    AllTorrentCreator,
+    BookTorrentCreator,
+    CreatorTorrentCreator,
+)
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -124,13 +121,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1 and not options.all:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     if options.all:
         all_torrent()
@@ -150,4 +147,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

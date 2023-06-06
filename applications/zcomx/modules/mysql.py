@@ -6,23 +6,20 @@ Classes for handling mysql.
 import os
 
 
-class LocalMySQL(object):
-
+class LocalMySQL():
     """Class representing the local MySQL connection parameters."""
 
     def __init__(
-        self,
-        request=None,
-        database=None,
-        user=None,
-        password=None,
-        hostname='127.0.0.1',
-        port=None,
-        charset='utf8',
-        sqldb=None,
-        ):
+            self,
+            request=None,
+            database=None,
+            user=None,
+            password=None,
+            hostname='127.0.0.1',
+            port=None,
+            charset='utf8',
+            sqldb=None):
         """Constructor."""
-
         self.request = request
         self.database = database
         self.user = user
@@ -36,7 +33,6 @@ class LocalMySQL(object):
             self.set_port()
         if not self.sqldb:
             self.set_sqldb()
-        return
 
     def set_port(self):
         """Set the MySQL port
@@ -63,17 +59,17 @@ class LocalMySQL(object):
             self.port,
             self.database,
             self.charset,
-            )
+        )
 
     def __repr__(self):
         fmt = ', '.join([
-                'LocalMySQL(user={user!r}',
-                'password={password!r}',
-                'hostname={hostname!r}',
-                'port={port!r}',
-                'database={database!r}',
-                'charset={charset!r})',
-                ])
+            'LocalMySQL(user={user!r}',
+            'password={password!r}',
+            'hostname={hostname!r}',
+            'port={port!r}',
+            'database={database!r}',
+            'charset={charset!r})',
+        ])
         return fmt.format(
                 user=self.user,
                 password=self.password,

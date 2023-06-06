@@ -1,35 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/html/meta.py
-
 """
 import copy
 import unittest
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
-from applications.zcomx.modules.html.meta import \
-    BaseMetaPreparer, \
-    MetadataFactory, \
-    OpenGraphBookMetaPreparer, \
-    OpenGraphCreatorMetaPreparer, \
-    OpenGraphMetaPreparer, \
-    TwitterBookMetaPreparer, \
-    TwitterCreatorMetaPreparer, \
-    TwitterMetaPreparer, \
-    html_metadata_from_records
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
+from applications.zcomx.modules.html.meta import (
+    BaseMetaPreparer,
+    MetadataFactory,
+    OpenGraphBookMetaPreparer,
+    OpenGraphCreatorMetaPreparer,
+    OpenGraphMetaPreparer,
+    TwitterBookMetaPreparer,
+    TwitterCreatorMetaPreparer,
+    TwitterMetaPreparer,
+    html_metadata_from_records,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.zco import \
+from applications.zcomx.modules.zco import (
     html_metadata as site_metadata
+)
+# pylint: disable=missing-docstring
 
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
 
 METADATA = {
     'book': {
@@ -365,8 +363,7 @@ class TestTwitterMetaPreparer(LocalTestCase):
 
 
 class TestFunctions(LocalTestCase):
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
 
     def test__html_metadata_from_records(self):
 
@@ -436,8 +433,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

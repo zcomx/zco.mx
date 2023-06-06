@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/book_pages.py
-
 """
 import os
 import unittest
@@ -31,21 +28,16 @@ from applications.zcomx.modules.tests.helpers import (
     skip_if_quick,
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 def url_func(book_page, extension=False, host=None):
-    # W0613: *Unused argument %%r*
-    # pylint: disable=W0613
+    # pylint: disable=unused-argument       # extension, host
     return 'http://page/{p:03d}'.format(p=book_page.page_no)
 
 
 class WithPagesTestCase(LocalTestCase):
     """Class representing a WithPagesTestCase"""
-
     _book_pages = None
 
     def setUp(self):
@@ -110,8 +102,7 @@ class TestBookPage(ImageTestCase):
 
     def test____init__(self):
         page = BookPage({})
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         self.assertEqual(page._upload_image, None)
 
     @skip_if_quick
@@ -162,9 +153,7 @@ class TestBookPage(ImageTestCase):
         up_image = book_page.upload_image()
         self.assertTrue(hasattr(up_image, 'retrieve'))
 
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-
+        # pylint: disable=protected-access
         # Test cache
         book_page._upload_image = '_cache_'
         self.assertEqual(book_page.upload_image(), '_cache_')
@@ -224,8 +213,7 @@ class TestBookPageTmp(ImageTestCase):
 
     def test_init__(self):
         page = BookPageTmp({})
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         self.assertEqual(page._upload_image, None)
 
     @skip_if_quick
@@ -289,9 +277,7 @@ class TestBookPageTmp(ImageTestCase):
         up_image = book_page_tmp.upload_image()
         self.assertTrue(hasattr(up_image, 'retrieve'))
 
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-
+        # pylint: disable=protected-access
         # Test cache
         book_page_tmp._upload_image = '_cache_'
         self.assertEqual(book_page_tmp.upload_image(), '_cache_')
@@ -321,7 +307,7 @@ class TestFunctions(LocalTestCase):
             book_page_class = tbl_data['class']
             pages_method = tbl_data['pages_method']
 
-            def get_page_ids(book):
+            def get_page_ids(book, pages_method):
                 return [x.id for x in book.get(pages_method)()]
 
             page_ids = []
@@ -334,7 +320,7 @@ class TestFunctions(LocalTestCase):
 
             self.assertEqual(
                 page_ids,
-                get_page_ids(book)
+                get_page_ids(book, pages_method)
             )
 
             # Keep every other page.
@@ -356,7 +342,7 @@ class TestFunctions(LocalTestCase):
 
             self.assertEqual(
                 keep_ids,
-                get_page_ids(book)
+                get_page_ids(book, pages_method)
             )
 
             self.assertEqual(
@@ -406,7 +392,7 @@ class TestFunctions(LocalTestCase):
             book_page_class = tbl_data['class']
             pages_method = tbl_data['pages_method']
 
-            def get_page_ids_by_page_no(book):
+            def get_page_ids_by_page_no(book, pages_method):
                 return [x.id for x in book.get(pages_method)()]
 
             page_ids = []
@@ -418,7 +404,7 @@ class TestFunctions(LocalTestCase):
                 page_ids.append(book_page.id)
 
             self.assertEqual(
-                get_page_ids_by_page_no(book),
+                get_page_ids_by_page_no(book, pages_method),
                 page_ids
             )
 
@@ -432,15 +418,14 @@ class TestFunctions(LocalTestCase):
             reset_book_page_nos(new_order, book_page_tbl=book_page_tbl)
 
             self.assertEqual(
-                get_page_ids_by_page_no(book),
+                get_page_ids_by_page_no(book, pages_method),
                 new_order
             )
 
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

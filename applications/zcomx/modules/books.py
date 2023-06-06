@@ -8,40 +8,42 @@ import functools
 import json
 import os
 import re
-import shutil
 import urllib.parse
-from gluon import *
 from pydal.helpers.regex import REGEX_UPLOAD_EXTENSION
+from gluon import *
 from applications.zcomx.modules.book_pages import (
     BookPage,
     BookPageTmp,
 )
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.cc_licences import CCLicence
-from applications.zcomx.modules.creators import \
-    Creator, \
-    creator_name, \
-    short_url as creator_short_url
+from applications.zcomx.modules.creators import (
+    Creator,
+    creator_name,
+    short_url as creator_short_url,
+)
 from applications.zcomx.modules.images import (
     CachedImgTag,
     ImageDescriptor,
-    SIZES,
 )
-from applications.zcomx.modules.names import \
-    BookName, \
-    BookNumber, \
-    BookTitle, \
-    names as name_values
-from applications.zcomx.modules.records import \
-    Record, \
-    Records
+from applications.zcomx.modules.names import (
+    BookName,
+    BookNumber,
+    BookTitle,
+    names as name_values,
+)
+from applications.zcomx.modules.records import (
+    Record,
+    Records,
+)
 from applications.zcomx.modules.shell_utils import tthsum
-from applications.zcomx.modules.zco import \
-    BOOK_STATUSES, \
-    BOOK_STATUS_ACTIVE, \
-    BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_DRAFT, \
-    SITE_NAME
+from applications.zcomx.modules.zco import (
+    BOOK_STATUSES,
+    BOOK_STATUS_ACTIVE,
+    BOOK_STATUS_DISABLED,
+    BOOK_STATUS_DRAFT,
+    SITE_NAME,
+)
 
 
 DEFAULT_BOOK_TYPE = 'one-shot'
@@ -115,9 +117,9 @@ def book_name(book, use='file'):
     """
     if use == 'file':
         return names(book.as_dict())['name_for_file']
-    elif use == 'search':
+    if use == 'search':
         return book.name_for_search
-    elif use == 'url':
+    if use == 'url':
         return book.name_for_url
     return
 
@@ -133,9 +135,9 @@ def book_page_for_json(book_page):
             {
                 "name": "picture1.jpg",
                 "size": 902604,
-                "url": "http:\/\/dom.org\/files\/picture1.jpg",
-                "thumbnailUrl": "http:\/\/dom.org\/files\/thumbnail\/pic1.jpg",
-                "deleteUrl": "http:\/\/dom.org\/files\/picture1.jpg",
+                "url": "http://dom.org/files/picture1.jpg",
+                "thumbnailUrl": "http://dom.org/files/thumbnail/pic1.jpg",
+                "deleteUrl": "http://dom.org/files/picture1.jpg",
                 "deleteType": "DELETE"
             },
     """
@@ -218,7 +220,7 @@ def book_pages_from_tmp(book):
             'book_page_tmp.image',
             'book_page.image'
         )
-        book_page = BookPage.from_add(
+        BookPage.from_add(
             data,
             validate=False,
         )
@@ -243,7 +245,7 @@ def book_pages_to_tmp(book):
             'book_page.image',
             'book_page_tmp.image'
         )
-        book_page_tmp = BookPageTmp.from_add(
+        BookPageTmp.from_add(
             data,
             validate=False,
         )
@@ -262,7 +264,7 @@ def book_pages_years(book):
     Returns:
         list of integers
     """
-    return sorted(set([x.created_on.year for x in book.pages()]))
+    return sorted(list({x.created_on.year for x in book.pages()}))
 
 
 def book_tables():
@@ -286,18 +288,19 @@ def book_tables():
     ]
 
 
-def book_types(db):
+def book_types():
     """Return a XML instance representing book types suitable for
     an HTML radio button input.
 
-    Args:
-        db: gluon.dal.DAL instance
+    Returns:
+        XML instance
     """
-    # {'value': record_id, 'text': description}, ...
+    db = current.app.db
     rows = db(db.book_type).select(
         db.book_type.ALL,
         orderby=db.book_type.sequence
     )
+    # {'value': record_id, 'text': description}, ...
     return XML(
         ','.join(
             [
@@ -330,8 +333,7 @@ def calc_contributions_remaining(book):
     contributed_total = rows[0][total] if rows and rows[0][total] else 0.00
 
     remaining = target - contributed_total
-    if remaining < 0:
-        remaining = 0.00
+    remaining = max(remaining, 0.00)
     return remaining
 
 
@@ -534,8 +536,7 @@ def contributions_remaining_by_creator(creator):
     Returns:
         float, dollar amount of contributions remaining.
     """
-    # invalid-name (C0103): *Invalid %%s name "%%s"%%s*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     if not creator:
         return 0.00
 
@@ -607,10 +608,8 @@ def default_contribute_amount(book):
     rate_per_page = 1.0 / 20
 
     amount = int((rate_per_page * book.page_count()) + 0.5)
-    if amount < minimum:
-        amount = minimum
-    if amount > maximum:
-        amount = maximum
+    amount = max(amount, minimum)
+    amount = min(amount, maximum)
     return amount
 
 
@@ -1055,10 +1054,11 @@ def is_completed(book):
     Args:
         book: Row instance representing a book.
     """
-    return True if book.status == BOOK_STATUS_ACTIVE \
-        and not book.complete_in_progress \
-        and book.release_date \
-        else False
+    return bool(
+        book.status == BOOK_STATUS_ACTIVE
+        and not book.complete_in_progress
+        and book.release_date
+    )
 
 
 def is_downloadable(book):
@@ -1067,10 +1067,11 @@ def is_downloadable(book):
     Args:
         book: Row instance representing a book.
     """
-    return True if book.status == BOOK_STATUS_ACTIVE \
-        and book.cbz \
-        and book.torrent \
-        else False
+    return bool(
+        book.status == BOOK_STATUS_ACTIVE
+        and book.cbz
+        and book.torrent
+    )
 
 
 def is_followable(book):
@@ -1079,9 +1080,10 @@ def is_followable(book):
     Args:
         book: Row instance representing a book.
     """
-    return True if book.status == BOOK_STATUS_ACTIVE \
-        and not is_completed(book) \
-        else False
+    return bool(
+        book.status == BOOK_STATUS_ACTIVE
+        and not is_completed(book)
+    )
 
 
 def magnet_link(book, components=None, **attributes):
@@ -1463,9 +1465,10 @@ def show_download_link(book):
     Args:
         book: Row instance representing a book.
     """
-    return True if book.status == BOOK_STATUS_ACTIVE \
-        and is_completed(book) \
-        else False
+    return bool(
+        book.status == BOOK_STATUS_ACTIVE
+        and is_completed(book)
+    )
 
 
 def social_media_data(book):

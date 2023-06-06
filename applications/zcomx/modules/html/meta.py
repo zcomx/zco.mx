@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to HTML meta data.
 """
-from applications.zcomx.modules.books import \
+from applications.zcomx.modules.books import (
     html_metadata as book_metadata
-from applications.zcomx.modules.creators import \
+)
+from applications.zcomx.modules.creators import (
     html_metadata as creator_metadata
-from applications.zcomx.modules.zco import \
+)
+from applications.zcomx.modules.zco import (
     html_metadata as site_metadata
+)
 
 
-class BaseMetaPreparer(object):
+class BaseMetaPreparer():
     """Base class representing an HTML metadata preparer"""
 
     def __init__(self, metadata):
@@ -207,7 +208,7 @@ class TwitterCreatorMetaPreparer(TwitterMetaPreparer):
         return meta
 
 
-class MetadataFactory(object):
+class MetadataFactory():
     """Class representing a factory for metadata."""
 
     class_lookup = {

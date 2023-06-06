@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to names.
 """
 from pydal.validators import urlify
-from applications.zcomx.modules.files import \
-    for_file, \
-    for_title_file
-from applications.zcomx.modules.strings import \
-    camelcase, \
-    replace_punctuation, \
-    squeeze_whitespace
+from applications.zcomx.modules.files import (
+    for_file,
+    for_title_file,
+)
+from applications.zcomx.modules.strings import (
+    camelcase,
+    replace_punctuation,
+    squeeze_whitespace,
+)
 
 
-class BaseName(object):
+class BaseName():
     """Base class representing a name"""
 
     def __init__(self, name):
@@ -88,7 +88,7 @@ class BookNumber(BookName):
         return BookName.for_url(self).lower()
 
 
-class BookTitle(object):
+class BookTitle():
     """Class representing a book title.
 
     A book title is a string representing the book name and number.
@@ -175,6 +175,5 @@ def names(name_instance, fields=None):
         'name_for_url': name_instance.for_url(),
     }
     if fields is not None:
-        name_dict = dict(
-            [(x, name_dict[x]) for x in list(name_dict.keys()) if x in fields])
+        name_dict = {x:name_dict[x] for x in name_dict if x in fields}
     return name_dict

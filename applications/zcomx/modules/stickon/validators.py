@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 stickon/validators.py
 
@@ -17,14 +16,12 @@ from gluon.validators import (
     ValidationError,
 )
 
-# C0103: Invalid name
-# pylint: disable=C0103
-
 
 class IS_ALLOWED_CHARS(Validator):
     """Class representing a validator for text inputs that produces an error
     message if there are any characters in the set of not allowed.
     """
+    # pylint: disable=invalid-name
     def __init__(self, not_allowed=None, error_message='Invalid characters.'):
         """Constructor
         Args:
@@ -48,6 +45,7 @@ class IS_ALLOWED_CHARS(Validator):
 
     def validate(self, value, record_id=None):
         """Validate."""
+        # pylint: disable=unused-argument       # record_id
         found = []
         for c in self.not_allowed:
             if c[0] in value:
@@ -77,6 +75,7 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
         is explicitly case insensitive. IN_NOT_IN_DB is not explicitly case
         sensitive, it depends on the db.
     """
+    # pylint: disable=invalid-name
     def __init__(
             self,
             dbset,
@@ -96,6 +95,7 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
         )
 
     def validate(self, value, record_id=None):
+        """Validate the input value."""
         value = to_native(str(value))
         if not value.strip():
             raise ValidationError(self.translator(self.error_message))
@@ -110,12 +110,14 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
         # custom //
 
         # make sure exclude the record_id
-        id = record_id or self.record_id
-        if isinstance(id, dict):
-            id = table(**id)
-        if not id is None:
-            query &= table._id != id
-        subset = self.dbset(query, ignore_common_filters=self.ignore_common_filters)
+        rec_id = record_id or self.record_id
+        if isinstance(rec_id, dict):
+            rec_id = table(**rec_id)
+        if rec_id is not None:
+            # pylint: disable=protected-access
+            query &= table._id != rec_id
+        subset = self.dbset(
+            query, ignore_common_filters=self.ignore_common_filters)
         if subset.select(limitby=(0, 1)):
             raise ValidationError(self.translator(self.error_message))
         return value
@@ -127,6 +129,7 @@ class IS_NOT_IN_DB_SCRUBBED(IS_NOT_IN_DB_ANYCASE):
     database. If scrub_callback is None or not callable, the validator behaves
     exactly like IS_NOT_IN_DB.
     """
+    # pylint: disable=invalid-name
     def __init__(
             self,
             dbset,
@@ -155,8 +158,8 @@ class IS_NOT_IN_DB_SCRUBBED(IS_NOT_IN_DB_ANYCASE):
 
 
 class IS_TWITTER_HANDLE(IS_MATCH):
-    """Class representing a validator for twitter handles.
-    """
+    """Class representing a validator for twitter handles."""
+    # pylint: disable=invalid-name
     def __init__(
             self,
             error_message=None):
@@ -176,6 +179,7 @@ class IS_URL_FOR_DOMAIN(IS_URL):
     """Class representing a validator like IS_URL but rejects a URL string if
     it is not from a specific domain.
     """
+    # pylint: disable=invalid-name
     def __init__(
             self,
             domain,
@@ -205,10 +209,11 @@ class IS_URL_FOR_DOMAIN(IS_URL):
 
     def validate(self, value, record_id=None):
         """Validate."""
+        # pylint: disable=unused-argument       # record_id
         try:
             result = IS_URL().validate(value)
-        except ValidationError:
-            raise ValidationError(self.translator(self.error_message))
+        except ValidationError as err:
+            raise ValidationError(self.translator(self.error_message)) from err
 
         o = urllib.parse.urlparse(result)
         if not o.hostname:

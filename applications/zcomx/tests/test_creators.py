@@ -52,10 +52,7 @@ from applications.zcomx.modules.tests.helpers import (
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.tests.trackers import TableTracker
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestAuthUser(LocalTestCase):
@@ -100,7 +97,7 @@ class TestCreator(ImageTestCase):
         data = {'image_tmp': os.path.basename(stored_filename)}
         creator = Creator.from_updated(creator, data)
 
-        filename, fullname = db.creator.image_tmp.retrieve(
+        unused_filename, fullname = db.creator.image_tmp.retrieve(
             creator.image_tmp,
             nameonly=True,
         )
@@ -1030,8 +1027,7 @@ class TestFunctions(ImageTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

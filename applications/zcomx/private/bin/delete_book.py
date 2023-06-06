@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 delete_book.py
 
 Script to delete a book.
 """
-
 import sys
 import traceback
 from optparse import OptionParser
-from applications.zcomx.modules.books import \
-    Book, \
-    book_tables
+from applications.zcomx.modules.books import (
+    Book,
+    book_tables,
+)
 from applications.zcomx.modules.job_queuers import (
     queue_create_sitemap,
     queue_search_prefetch,
@@ -91,13 +90,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) != 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     LOG.debug('Starting')
 
@@ -118,4 +117,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

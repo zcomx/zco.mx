@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/access.py
 """
 import unittest
-from gluon.http import HTTP
 from gluon.storage import Storage
 from applications.zcomx.modules.access import \
     requires_admin_ip, \
@@ -16,12 +13,11 @@ from applications.zcomx.modules.creators import \
     AuthUser, \
     Creator
 from applications.zcomx.modules.tests.runner import LocalTestCase
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFunctions(LocalTestCase):
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
 
     _auth_user = None
     _request_client = None
@@ -50,7 +46,8 @@ class TestFunctions(LocalTestCase):
         request = env['request']
         auth = env['auth']
 
-        otherwise = lambda: 'Not logged in'
+        def otherwise():
+            return 'Not logged in'
 
         @requires_admin_ip(requires_login=False, otherwise=otherwise)
         def func():
@@ -123,7 +120,8 @@ class TestFunctions(LocalTestCase):
         env = globals()
         auth = env['auth']
 
-        otherwise = lambda: 'Not logged in'
+        def otherwise():
+            return 'Not logged in'
 
         local_settings = Storage({'require_login': True})
 
@@ -150,8 +148,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

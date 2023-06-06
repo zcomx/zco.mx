@@ -1,21 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 create_cbz.py
 
 Script to create a cbz file for a book.
 """
-# W0404: *Reimport %r (imported line %s)*
-# pylint: disable=W0404
-
 import sys
 import traceback
 from optparse import OptionParser
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.cbz import \
-    CBZCreateError, \
-    archive
+from applications.zcomx.modules.cbz import (
+    CBZCreateError,
+    archive,
+)
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -68,13 +65,13 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
     if len(args) < 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     exit_status = 0
     for book_id in args:
@@ -92,7 +89,8 @@ def main():
             LOG.error('%s, %s', err, book.name)
             exit_status = 1
     if exit_status:
-        exit(exit_status)
+        sys.exit(exit_status)
+
 
 if __name__ == '__main__':
     # pylint: disable=broad-except
@@ -102,4 +100,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

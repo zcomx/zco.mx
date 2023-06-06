@@ -8,16 +8,16 @@ Script to process activity_log records.
 * Create activity_log records from tentative_activity_log records.
 * Delete tentative_activity_log records converted thus.
 """
-
 import sys
 import traceback
 from optparse import OptionParser
-from applications.zcomx.modules.activity_logs import \
-    ActivityLog, \
-    CompletedTentativeLogSet, \
-    MINIMUM_AGE_TO_LOG_IN_SECONDS, \
-    PageAddedTentativeLogSet, \
-    TentativeLogSet
+from applications.zcomx.modules.activity_logs import (
+    ActivityLog,
+    CompletedTentativeLogSet,
+    MINIMUM_AGE_TO_LOG_IN_SECONDS,
+    PageAddedTentativeLogSet,
+    TentativeLogSet,
+)
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -79,7 +79,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -128,4 +128,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

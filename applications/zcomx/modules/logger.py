@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 logger.py
 
 Classes and functions related to logging.
-
 """
 import logging
 

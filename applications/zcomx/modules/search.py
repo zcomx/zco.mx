@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Search classes and functions.
 """
 import string
 from functools import reduce
 from bs4 import BeautifulSoup
+from pydal.validators import urlify
 from gluon import *
 from gluon.tools import prettydate
-from pydal.validators import urlify
 from applications.zcomx.modules.books import (
     Book,
     complete_link as book_complete_link,
@@ -46,13 +44,13 @@ from applications.zcomx.modules.utils import (
 from applications.zcomx.modules.zco import (
     BOOK_STATUS_ACTIVE,
     BOOK_STATUS_DISABLED,
-    BOOK_STATUS_DRAFT
+    BOOK_STATUS_DRAFT,
 )
 
 LOG = current.app.logger
 
 
-class AlphaPaginator(object):
+class AlphaPaginator():
     """Class representing a AlphaPaginator"""
 
     def __init__(self, request):
@@ -138,7 +136,7 @@ class AlphaPaginator(object):
         )
 
 
-class Grid(object):
+class Grid():
     """Class representing a grid for search results."""
 
     # The key element is the one displayed in bottom right corner of tile.
@@ -234,8 +232,7 @@ class Grid(object):
 
         def book_name_rep(value, row):
             """db.book.name.represent."""
-            # unused-argument (W0613): *Unused argument %%r*
-            # pylint: disable=W0613
+            # pylint: disable=unused-argument       # value
             book = Book.from_id(row.book.id)
             return DIV(
                 A(
@@ -395,8 +392,6 @@ class Grid(object):
         Returns:
             list of gluon.dal.Expression instances
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return []
 
     def groupby(self):
@@ -488,7 +483,7 @@ class Grid(object):
                             tile_class = CartoonistTile
                         elif self.request.vars.monies:
                             tile_class = MoniesBookTile
-                    tile = tile_class(db, value, row)
+                    tile = tile_class(value, row)
                     tiles.append(tile.render())
 
                 divs.append(DIV(
@@ -539,17 +534,17 @@ class Grid(object):
 
         orderby = self.request.vars.o \
             if self.request.vars.o in orderbys else orderbys[0]
-        for o in orderbys:
-            active = 'active' if o == orderby else ''
+        for an_orderby in orderbys:
+            active = 'active' if an_orderby == orderby else ''
             request_vars = dict(self.request.vars)
             request_vars.pop('o', None)    # The url takes care of this
             request_vars.pop('contribute', None)    # Del contribute modal trig
             if 'page' in request_vars:
                 # Each tab should reset to page 1.
                 del request_vars['page']
-            if o == 'creators' and 'alpha' not in request_vars:
+            if an_orderby == 'creators' and 'alpha' not in request_vars:
                 request_vars['alpha'] = 'a'
-            label = self.class_factory(o).label('tab_label')
+            label = self.class_factory(an_orderby).label('tab_label')
             lis.append(LI(
                 A(
                     label,
@@ -606,8 +601,6 @@ class Grid(object):
         Returns:
             list of gluon.dal.Field instances
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return []
 
 
@@ -1084,10 +1077,10 @@ class SearchGrid(Grid):
         request = self.request
         queries = []
         if request.vars.kw:
-            kw = urlify(request.vars.kw)
+            keyword = urlify(request.vars.kw)
             queries.append(
-                (db.book.name_for_search.contains(kw)) |
-                (db.creator.name_for_search.contains(kw))
+                (db.book.name_for_search.contains(keyword)) |
+                (db.creator.name_for_search.contains(keyword))
             )
         return queries
 
@@ -1106,40 +1099,32 @@ class SearchGrid(Grid):
         ]
 
 
-class Tile(object):
+class Tile():
     """Class representing a Tile"""
 
     class_name = 'tile'
 
-    def __init__(self, db, value, row):
+    def __init__(self, value, row):
         """Constructor
 
         Args:
-            db: gluon.dal.Dal instance
             value: string, value to display in footer right side.
             row: gluon.dal.Row representing row of grid
         """
-        self.db = db
         self.value = value
         self.row = row
 
     def contribute_link(self):
         """Return the tile contribute link."""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
-        return
+        return ''
 
     def download_link(self):
         """Return the tile download link."""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
-        return
+        return ''
 
     def follow_link(self):
         """Return the tile download link."""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
-        return
+        return ''
 
     def footer(self):
         """Return a div for the tile footer."""
@@ -1160,7 +1145,9 @@ class Tile(object):
         row = self.row
 
         breadcrumb_lis = []
-        append_li = lambda x: x and breadcrumb_lis.append(LI(x))
+
+        def append_li(text):
+            return text and breadcrumb_lis.append(LI(text))
 
         if can_receive_contributions(row.creator):
             append_li(self.contribute_link())
@@ -1180,15 +1167,14 @@ class Tile(object):
 
     def image(self):
         """Return a div for the tile image."""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return
 
     def render(self):
         """Render the tile."""
         divs = []
 
-        append_div = lambda x: x and divs.append(DIV(x, _class='row'))
+        def append_div(text):
+            return text and divs.append(DIV(text, _class='row'))
 
         append_div(self.title())
         append_div(self.subtitle())
@@ -1204,14 +1190,10 @@ class Tile(object):
 
     def subtitle(self):
         """Return div for the tile subtitle."""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return
 
     def title(self):
         """Return a div for the tile title"""
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return
 
 
@@ -1220,15 +1202,14 @@ class BookTile(Tile):
 
     class_name = 'book_tile'
 
-    def __init__(self, db, value, row):
+    def __init__(self, value, row):
         """Constructor
 
         Args:
-            db: gluon.dal.Dal instance
             value: string, value to display in footer right side.
             row: gluon.dal.Row representing row of grid
         """
-        Tile.__init__(self, db, value, row)
+        Tile.__init__(self, value, row)
         self.book = Book.from_id(self.row.book.id)
 
     def contribute_link(self):
@@ -1320,15 +1301,14 @@ class CartoonistTile(Tile):
 
     class_name = 'cartoonist_tile'
 
-    def __init__(self, db, value, row):
+    def __init__(self, value, row):
         """Constructor
 
         Args:
-            db: gluon.dal.Dal instance
             value: string, value to display in footer right side.
             row: gluon.dal.Row representing row of grid
         """
-        Tile.__init__(self, db, value, row)
+        Tile.__init__(self, value, row)
         self.creator = Creator.from_id(self.row.creator.id)
         self.creator_href = creator_url(self.creator, extension=False)
 
@@ -1419,15 +1399,14 @@ class MoniesBookTile(BookTile):
 
     class_name = 'monies_book_tile'
 
-    def __init__(self, db, value, row):
+    def __init__(self, value, row):
         """Constructor
 
         Args:
-            db: gluon.dal.Dal instance
             value: string, value to display in footer right side.
             row: gluon.dal.Row representing row of grid
         """
-        BookTile.__init__(self, db, value, row)
+        BookTile.__init__(self, value, row)
 
     def contribute_link(self):
         """Return the tile contribute link."""
@@ -1472,7 +1451,7 @@ class MoniesBookTile(BookTile):
                 self.book,
                 components=[img],
                 **dict(_class='contribute_button no_rclick_menu')
-            ),
+            )
         else:
             inner = img
 

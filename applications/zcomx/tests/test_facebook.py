@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/facebook.py
-
 """
 import datetime
 import re
@@ -14,22 +11,21 @@ from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
-from applications.zcomx.modules.facebook import \
-    Authenticator, \
-    FacebookAPIAuthenticator, \
-    FacebookAPIClient, \
-    PhotoDataPreparer, \
-    Poster, \
-    TextDataPreparer
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
+from applications.zcomx.modules.facebook import (
+    Authenticator,
+    FacebookAPIAuthenticator,
+    FacebookAPIClient,
+    PhotoDataPreparer,
+    Poster,
+    TextDataPreparer,
+)
 from applications.zcomx.modules.social_media import FacebookPoster
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class WithObjectsTestCase(LocalTestCase):
@@ -41,8 +37,7 @@ class WithObjectsTestCase(LocalTestCase):
     _book_page_2 = None
     _creator = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
 
         self._auth_user = self.add(AuthUser, dict(
@@ -94,14 +89,13 @@ class WithObjectsTestCase(LocalTestCase):
 class WithDateTestCase(LocalTestCase):
     _date = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         self._date = datetime.date.today()
         super().setUp()
 
 
-class DubGraphAPI(object):
+class DubGraphAPI():
 
     def __init__(self):
         self.oauth_token = '_stub_access_token_'
@@ -128,7 +122,7 @@ class DubGraphAPI(object):
         self.kwargs = None
 
 
-class DubClient(object):
+class DubClient():
     """Stub pytumblr client."""
     def __init__(self):
         self.user_id = '1234567890'
@@ -151,6 +145,7 @@ class TestAuthenticator(LocalTestCase):
 
     def test__authenticate(self):
         return      # Facebook is over
+        # pylint: disable=unreachable
         credentials = FacebookPoster().credentials()
         authenticator = Authenticator(credentials)
         client = authenticator.authenticate()
@@ -163,8 +158,7 @@ class TestFacebookAPIAuthenticator(LocalTestCase):
 
     api_authenticator = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         credentials = FacebookPoster().credentials()
         self. api_authenticator = FacebookAPIAuthenticator(
@@ -180,6 +174,7 @@ class TestFacebookAPIAuthenticator(LocalTestCase):
 
     def test__authenticate(self):
         return      # Facebook is over
+        # pylint: disable=unreachable
         client = self.api_authenticator.authenticate()
         self.assertTrue(isinstance(client, FacebookAPIClient))
         self.assertTrue(
@@ -187,6 +182,7 @@ class TestFacebookAPIAuthenticator(LocalTestCase):
 
     def test__get_token(self):
         return      # Facebook is over
+        # pylint: disable=unreachable
         self.assertTrue(self.api_authenticator.login())
         token = self.api_authenticator.get_token()
         self.assertTrue(len(token) > 170)
@@ -195,6 +191,7 @@ class TestFacebookAPIAuthenticator(LocalTestCase):
 
     def test__login(self):
         return      # Facebook is over
+        # pylint: disable=unreachable
         self.assertTrue(self.api_authenticator.login())
 
 
@@ -303,8 +300,7 @@ class TestPhotoDataPreparer(LocalTestCase):
         self.assertTrue(preparer)
 
     def test__caption(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         data = {
             'creator': {'name': 'First Last'}
         }
@@ -313,8 +309,7 @@ class TestPhotoDataPreparer(LocalTestCase):
         self.assertEqual(preparer.caption(), expect)
 
     def test__data(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         data = {
             'book': {
                 'description': 'This is my book',
@@ -389,8 +384,7 @@ class TestPoster(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

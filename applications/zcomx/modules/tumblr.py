@@ -5,25 +5,27 @@ Classes and functions related to tumblr posts.
 """
 import pytumblr2
 from gluon import *
-from applications.zcomx.modules.book_pages import \
-    AbridgedBookPageNumbers, \
-    BookPage
-from applications.zcomx.modules.books import \
-    Book, \
-    formatted_name as book_formatted_name, \
-    page_url, \
-    url as book_url
-from applications.zcomx.modules.creators import \
-    Creator, \
-    short_url as creator_short_url
+from applications.zcomx.modules.book_pages import (
+    AbridgedBookPageNumbers,
+    BookPage,
+)
+from applications.zcomx.modules.books import (
+    Book,
+    formatted_name as book_formatted_name,
+    page_url,
+    url as book_url,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    short_url as creator_short_url,
+)
 from applications.zcomx.modules.utils import joined_list
 from applications.zcomx.modules.zco import SITE_NAME
-
 
 LOG = current.app.logger
 
 
-class Authenticator(object):
+class Authenticator():
     """Class representing a tumblr authenticator"""
 
     def __init__(self, credentials):
@@ -48,7 +50,7 @@ class Authenticator(object):
         )
 
 
-class PhotoDataPreparer(object):
+class PhotoDataPreparer():
     """Class representing a preparer of data for tumblr photo posting."""
 
     def __init__(self, tumblr_data):
@@ -67,17 +69,19 @@ class PhotoDataPreparer(object):
     def caption(self):
         """Return a caption."""
 
-        anchor = lambda name, url: str(A(name, _href=url))
+        def _anchor(name, url):
+            """Convert the name and url into an anchor tag."""
+            return str(A(name, _href=url))
 
         by_links = []
-        by_links.append(anchor(
+        by_links.append(_anchor(
             self.tumblr_data['creator']['url'],
             self.tumblr_data['creator']['url']
         ))
         for name, url in self.tumblr_data['creator']['social_media']:
             if url is None:
                 continue
-            by_links.append(anchor(name, url))
+            by_links.append(_anchor(name, url))
 
         title = '<h3><a href="{u}">{t}</a></h3>'.format(
             u=self.tumblr_data['book']['url'],
@@ -89,9 +93,9 @@ class PhotoDataPreparer(object):
             description_paragraph = "<p>{d}</p>".format(
                 d=self.tumblr_data['book']['description'])
 
-        by = '<p>by {links}</p>'.format(links=' | '.join(by_links))
+        by_p = '<p>by {links}</p>'.format(links=' | '.join(by_links))
 
-        return ''.join([title, description_paragraph, by])
+        return ''.join([title, description_paragraph, by_p])
 
     def data(self):
         """Return data for a tumblr photo posting."""
@@ -124,7 +128,7 @@ class PhotoDataPreparer(object):
         ]
 
 
-class Poster(object):
+class Poster():
     """Class representing a tumblr poster"""
 
     def __init__(self, client):
@@ -162,7 +166,7 @@ class Poster(object):
         return self.client.legacy_create_text(username, **text_data)
 
 
-class TextDataPreparer(object):
+class TextDataPreparer():
     """Class representing a preparer of data for tumblr text posting."""
 
     def __init__(self, date, activity_log_generator):
@@ -217,8 +221,6 @@ class TextDataPreparer(object):
 
     def tags(self):
         """Return the tags."""
-        # R0201: *Method could be a function*
-        # pylint: disable=R0201
         return [
             'comics',
             SITE_NAME,
@@ -232,7 +234,7 @@ class TextDataPreparer(object):
         )
 
 
-class OngoingBookListing(object):
+class OngoingBookListing():
     """Class representing a OngoingBookListing"""
 
     def __init__(self, book, book_pages, creator=None):
@@ -290,7 +292,7 @@ class OngoingBookListing(object):
         return cls(book, book_pages, creator=creator)
 
 
-class BookListingCreator(object):
+class BookListingCreator():
     """Class representing a BookListingCreator"""
 
     def __init__(self, creator):

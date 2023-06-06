@@ -10,9 +10,9 @@ import os
 import unittest
 import urllib.parse
 from bs4 import BeautifulSoup
+from pydal.objects import Row
 from gluon import *
 from gluon.storage import Storage
-from pydal.objects import Row
 from applications.zcomx.modules.book_pages import (
     BookPage,
     BookPageTmp,
@@ -82,9 +82,10 @@ from applications.zcomx.modules.books import (
     url,
 )
 from applications.zcomx.modules.cc_licences import CCLicence
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
 from applications.zcomx.modules.events import Contribution
 from applications.zcomx.modules.images import (
     SIZES,
@@ -97,15 +98,14 @@ from applications.zcomx.modules.tests.helpers import (
 )
 from applications.zcomx.modules.tests.mock import DateMock
 from applications.zcomx.modules.tests.runner import LocalTestCase
-from applications.zcomx.modules.zco import \
-    BOOK_STATUSES, \
-    BOOK_STATUS_ACTIVE, \
-    BOOK_STATUS_DISABLED, \
-    BOOK_STATUS_DRAFT
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+from applications.zcomx.modules.zco import (
+    BOOK_STATUSES,
+    BOOK_STATUS_ACTIVE,
+    BOOK_STATUS_DISABLED,
+    BOOK_STATUS_DRAFT,
+)
+# pylint: disable=missing-docstring
+# pylint: disable=too-many-lines
 
 
 class WithObjectsTestCase(LocalTestCase):
@@ -118,8 +118,7 @@ class WithObjectsTestCase(LocalTestCase):
     _book_page_tmp_2 = None
     _creator = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
 
         self._creator = self.add(Creator, dict(
@@ -215,6 +214,7 @@ class TestBook(WithObjectsTestCase):
 
 
 class TestFunctions(WithObjectsTestCase, ImageTestCase):
+    # pylint: disable=too-many-public-methods
 
     def test__book_name(self):
         book = Book(dict(
@@ -483,7 +483,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(sorted(book_tables()), sorted(expect))
 
     def test__book_types(self):
-        xml = book_types(db)
+        xml = book_types()
         expect = (
             b"""{"value":"1", "text":"Ongoing (eg 001, 002, 003, etc)"},"""
             b"""{"value":"2", "text":"Mini-series (eg 01 of 04)"},"""
@@ -492,8 +492,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(xml.xml(), expect)
 
     def test__calc_contributions_remaining(self):
-        # invalid-name (C0103): *Invalid %%s name "%%s"*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
 
         book = self.add(Book, dict(
             name='test__calc_contributions_remaining',
@@ -574,9 +573,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
         book.update(creator_id=creator.id)
 
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
+        # pylint: disable=line-too-long
         fmt = '1999|Test CBZ Comment|My Book|02 (of 04)|CC BY-ND|http://{cid}.zco.mx'
         self.assertEqual(
             cbz_comment(book),
@@ -732,7 +729,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         link = complete_link(book)
         soup = BeautifulSoup(str(link), 'html.parser')
-        # <a class="modal-complete-btn no_rclick_menu" data-book_id="123" href="/login/book_complete/123">
+        # <a class="modal-complete-btn no_rclick_menu" data-book_id="123"
+        #   href="/login/book_complete/123">
         #   <div class="checkbox_wrapper">
         #     <input type="checkbox" value="off" />
         #   </div>
@@ -841,8 +839,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(anchor['rel'], ['noopener', 'noreferrer'])
 
     def test__contributions_remaining_by_creator(self):
-        # invalid-name (C0103): *Invalid %%s name "%%s"*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
         creator = self.add(Creator, dict(
             name_for_url='FirstLast',
         ))
@@ -952,9 +949,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                 image=i,
             ))
 
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
+        # pylint: disable=line-too-long
         self.assertEqual(
             str(cover_image(book)),
             '<img alt="" src="/images/download/book_page.image.page_trees.png?cache=1&size=original" />'
@@ -1063,7 +1058,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         link = delete_link(book)
-        # Eg <a class="btn btn-default btn-xs modal-delete-btn no_rclick_menu" data-book_id="123" href="/login/book_delete/123">
+        # Eg <a class="btn btn-default btn-xs modal-delete-btn no_rclick_menu"
+        #       data-book_id="123" href="/login/book_delete/123">
         #    <i class="icon zc-trash size-18"></i>
         # </a>
         soup = BeautifulSoup(str(link), 'html.parser')
@@ -1210,7 +1206,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         link = edit_link(book)
-        # Eg <a class="btn btn-default modal-edit-btn no_rclick_menu" data-book_id="123" href="/login/book_edit/123">Edit</a>
+        # Eg <a class="btn btn-default modal-edit-btn no_rclick_menu"
+        #    data-book_id="123" href="/login/book_edit/123">Edit</a>
         soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Edit')
@@ -1285,7 +1282,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         link = fileshare_link(book)
         soup = BeautifulSoup(str(link), 'html.parser')
-        # <a class="modal-fileshare-btn no_rclick_menu" data-book_id="123" href="/login/book_fileshare/123">
+        # <a class="modal-fileshare-btn no_rclick_menu" data-book_id="123"
+        #   href="/login/book_fileshare/123">
         #   <div class="checkbox_wrapper">
         #     <input type="checkbox" value="off" />
         #   </div>
@@ -1476,8 +1474,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         # test as_url
         urls = []
-        for url in generator(query, as_url=True):
-            urls.append(str(url))
+        for a_url in generator(query, as_url=True):
+            urls.append(str(a_url))
         self.assertEqual(urls, expect_urls)
 
     def test__get_page(self):
@@ -1498,7 +1496,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             book_page_tbl = tbl_data['table']
             book_page_class = tbl_data['class']
 
-            def do_test(page_no, expect):
+            def do_test(page_no, book_page_tbl, expect):
                 kwargs = {'book_page_tbl': book_page_tbl}
                 if page_no is not None:
                     kwargs['page_no'] = page_no
@@ -1509,7 +1507,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
                     self.assertRaises(LookupError, get_page, book, **kwargs)
 
             for page_no in ['first', 'last', 'indicia', 1, 2, None]:
-                do_test(page_no, None)
+                do_test(page_no, book_page_tbl, None)
 
             book_page_1 = self.add(book_page_class, dict(
                 book_id=book.id,
@@ -1517,9 +1515,9 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             ))
 
             for page_no in ['first', 'last', 1, None]:
-                do_test(page_no, book_page_1)
+                do_test(page_no, book_page_tbl, book_page_1)
 
-            do_test(2, None)
+            do_test(2, book_page_tbl, None)
 
             book_page_2 = self.add(book_page_class, dict(
                 book_id=book.id,
@@ -1527,10 +1525,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             ))
 
             for page_no in ['first', 1, None]:
-                do_test(page_no, book_page_1)
+                do_test(page_no, book_page_tbl, book_page_1)
             for page_no in ['last', 2]:
-                do_test(page_no, book_page_2)
-            do_test(3, None)
+                do_test(page_no, book_page_tbl, book_page_2)
+            do_test(3, book_page_tbl, None)
 
             last = get_page(book, page_no='last', book_page_tbl=book_page_tbl)
             indicia = get_page(book, page_no='indicia')
@@ -1579,9 +1577,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             image='book_page.image.aaa.000.jpg',
         ))
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
+        # pylint: disable=line-too-long
         expect['image_url'] = 'http://127.0.0.1:8000/images/download/book_page.image.aaa.000.jpg?size=web'
         self.assertEqual(html_metadata(book), expect)
 
@@ -1680,14 +1676,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(str(magnet_link(book)), str(SPAN('')))
 
         cbz_filename = '/tmp/test.cbz'
-        with open(cbz_filename, 'w') as f:
+        with open(cbz_filename, 'w', encoding='utf-8') as f:
             f.write('Fake cbz file used for testing.')
 
         book.update(cbz=cbz_filename)
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
+        # pylint: disable=line-too-long
         def test_href(href):
             parsed = urllib.parse.urlparse(href)
             self.assertEqual(parsed.scheme, 'magnet')
@@ -1758,14 +1752,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         self.assertEqual(magnet_uri(book), None)
 
         cbz_filename = '/tmp/test.cbz'
-        with open(cbz_filename, 'w') as f:
+        with open(cbz_filename, 'w', encoding='utf-8') as f:
             f.write('Fake cbz file used for testing.')
 
         book.update(cbz=cbz_filename)
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
+        # pylint: disable=line-too-long
         got = magnet_uri(book)
         # magnet:?xt=urn:tree:tiger:BOM3RWAED7BCOFOG5EX64QRBECPR4TRYRD7RFTA&xl=31&dn=test.cbz
         parsed = urllib.parse.urlparse(got)
@@ -1934,9 +1926,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             page_no=1,
         )
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
+        # pylint: disable=line-too-long
         self.assertEqual(
             page_url(book_page),
             '/FirstLast/MyBook-01of999/001'
@@ -2151,7 +2141,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(book.status, status)
 
     def test__short_page_img_url(self):
-        book = self.add(Book, dict())
+        book = self.add(Book, {})
         book_page = BookPage(dict(book_id=book.id))
         tests = [
             # (creator_id, book name_for_url, page_no, image,  expect)
@@ -2187,7 +2177,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(short_page_img_url(book_page), t[4])
 
     def test__short_page_url(self):
-        book = self.add(Book, dict())
+        book = self.add(Book, {})
         book_page = BookPage(dict(book_id=book.id))
         tests = [
             # (creator_id, book name_for_url, page_no, expect)
@@ -2203,7 +2193,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             self.assertEqual(short_page_url(book_page), t[3])
 
     def test__short_url(self):
-        book = Book(dict())
+        book = Book({})
         tests = [
             # (creator_id, book name_for_url, expect)
             (None, None, None),
@@ -2277,9 +2267,7 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             image='book_page.image.aaa.000.jpg',
         ))
 
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
-
+        # pylint: disable=line-too-long
         expect['download_url'] = 'https://zco.mx/images/download/book_page.image.aaa.000.jpg?size=web'
         expect['cover_image_name'] = 'book_page.image.aaa.000.jpg'
         self.assertEqual(social_media_data(book), expect)
@@ -2395,14 +2383,13 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             torrent_url(book), '/FirstLast/MyBook-03of09.torrent')
 
     def test__update_contributions_remaining(self):
-        # invalid-name (C0103): *Invalid %%s name "%%s"*
-        # pylint: disable=C0103
+        # pylint: disable=invalid-name
         creator = self.add(Creator, dict(
             email='test__update_contributions_remaining@eg.com'
         ))
 
-        creator_contributions = \
-            lambda c: Creator.from_id(c.id).contributions_remaining
+        def creator_contributions(creator):
+            return Creator.from_id(creator.id).contributions_remaining
 
         # Creator has no books
         self.assertEqual(creator_contributions(creator), 0)
@@ -2579,7 +2566,8 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         ))
 
         link = upload_link(book)
-        # Eg <a class="btn btn-default modal-upload-btn no_rclick_menu" data-book_id="123" href="/login/book_pages/123">Edit</a>
+        # Eg <a class="btn btn-default modal-upload-btn no_rclick_menu"
+        #   data-book_id="123" href="/login/book_pages/123">Edit</a>
         soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
         self.assertEqual(anchor.string, 'Upload')
@@ -2669,8 +2657,7 @@ def set_pages(obj, book, num_of_pages):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

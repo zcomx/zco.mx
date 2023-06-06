@@ -1,28 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/image/validators.py
-
 """
 import unittest
 from gluon import *
-from applications.zcomx.modules.image.validators import \
-    InvalidImageError, \
-    ImageValidator, \
-    CBZValidator, \
-    WebValidator
+from applications.zcomx.modules.image.validators import (
+    InvalidImageError,
+    ImageValidator,
+    CBZValidator,
+    WebValidator,
+)
 from applications.zcomx.modules.images import ImageDescriptor
 from applications.zcomx.modules.tests.helpers import ImageTestCase
-from applications.zcomx.modules.tests.runner import \
+from applications.zcomx.modules.tests.runner import (
     LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
-# W0212 (protected-access): *Access to a protected member
-# pylint: disable=W0212
+)
+# pylint: disable=missing-docstring
 
 
 class ValidatorTestCase(ImageTestCase):
@@ -153,8 +147,7 @@ class TestWebValidator(ValidatorTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

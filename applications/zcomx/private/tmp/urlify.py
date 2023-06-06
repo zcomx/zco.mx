@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 urlify.py
 
 Script to test urlify commands.
 """
-
 import sys
 import traceback
-from gluon import *
-from pydal.validators import urlify
 from optparse import OptionParser
+from pydal.validators import urlify
+from gluon import *
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -65,7 +63,7 @@ def main():
 
     if options.man:
         man_page()
-        quit(0)
+        sys.exit(0)
 
     set_cli_logging(LOG, options.verbose, options.vv)
 
@@ -79,6 +77,7 @@ def main():
 
     y = db(db.creator.name_for_url == x).select(limitby=(0, 1)).first()
     print('FIXME y: {var}'.format(var=y))
+    # pylint: disable=protected-access
     print('FIXME db._lastsql: {var}'.format(var=db._lastsql))
 
     LOG.info('Done.')
@@ -92,4 +91,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

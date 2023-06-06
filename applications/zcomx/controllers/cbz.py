@@ -22,7 +22,7 @@ def download():
     if request.args:
         record_table = 'book'
         record_id = request.args(0)
-        queue_log_downloads = True if not request.vars.no_queue else False
+        queue_log_downloads = not bool(request.vars.no_queue)
         log_download_click(
             record_table,
             record_id,

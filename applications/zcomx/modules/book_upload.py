@@ -36,19 +36,22 @@ import subprocess
 import zipfile
 from gluon import *
 from applications.zcomx.modules.book_pages import BookPageTmp
-from applications.zcomx.modules.books import \
-    Book, \
-    book_page_for_json, \
-    get_page
+from applications.zcomx.modules.books import (
+    Book,
+    book_page_for_json,
+    get_page,
+)
 from applications.zcomx.modules.image.validators import CBZValidator
-from applications.zcomx.modules.images import \
-    ImageDescriptor, \
-    is_image, \
-    store
-from applications.zcomx.modules.shell_utils import \
-    TempDirectoryMixin, \
-    TemporaryDirectory, \
-    UnixFile
+from applications.zcomx.modules.images import (
+    ImageDescriptor,
+    is_image,
+    store,
+)
+from applications.zcomx.modules.shell_utils import (
+    TempDirectoryMixin,
+    TemporaryDirectory,
+    UnixFile,
+)
 
 LOG = current.app.logger
 
@@ -194,8 +197,6 @@ class UnpackerRAR(Unpacker):
                 stderr=subprocess.PIPE) as p:
             unused_output, errors = p.communicate()
         if errors:
-            # E1103: *%%s %%r has no %%r member (some types not be inferred)
-            # pylint: disable=E1103
             msg = ', '.join([x for x in errors.split("\n") if x])
             raise UnpackError(msg)
 

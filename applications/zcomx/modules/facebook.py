@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to facebook posts.
 """
 import base64
@@ -18,10 +16,9 @@ LOG = current.app.logger
 
 class FacebookAPIError(Exception):
     """Exception class for facebook API errors."""
-    pass
 
 
-class FacebookAPIAuthenticator(object):
+class FacebookAPIAuthenticator():
     """Class representing a Facebook API Authenticator"""
 
     page_titles = {
@@ -44,8 +41,7 @@ class FacebookAPIAuthenticator(object):
         self.redirect_uri = redirect_uri
         self.page_name = page_name
         self.session = requests.Session()
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.session.headers.update({
             'Host': 'www.facebook.com',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0',
@@ -105,10 +101,10 @@ class FacebookAPIAuthenticator(object):
         }
         url = 'https://www.facebook.com/dialog/oauth'
         response = self.session.get(url, params=data)
-        for h in response.history:
-            if 'location' not in h.headers:
+        for response_obj in response.history:
+            if 'location' not in response_obj.headers:
                 continue
-            result = urllib.parse.urlparse(h.headers['location'])
+            result = urllib.parse.urlparse(response_obj.headers['location'])
             query = urllib.parse.parse_qs(result.fragment)
             if 'access_token' in query:
                 token = query['access_token'][0]
@@ -178,7 +174,7 @@ class FacebookAPIAuthenticator(object):
         return True
 
 
-class FacebookAPIClient(object):
+class FacebookAPIClient():
     """Class representing a client for the facebook API"""
 
     def __init__(self, graph, user_id='me'):
@@ -245,7 +241,7 @@ class FacebookAPIClient(object):
         return result
 
 
-class Authenticator(object):
+class Authenticator():
     """Class representing a facebook authenticator"""
 
     def __init__(self, credentials):
@@ -272,7 +268,7 @@ class Authenticator(object):
         return auth.authenticate()
 
 
-class PhotoDataPreparer(object):
+class PhotoDataPreparer():
     """Class representing a preparer of data for facebook photo posting."""
 
     def __init__(self, facebook_data):
@@ -303,7 +299,7 @@ class PhotoDataPreparer(object):
         }
 
 
-class Poster(object):
+class Poster():
     """Class representing a facebook poster"""
 
     def __init__(self, client):
@@ -339,7 +335,7 @@ class Poster(object):
         return self.client.page_feed_post(text_data)
 
 
-class TextDataPreparer(object):
+class TextDataPreparer():
     """Class representing a preparer of data for facebook text posting."""
 
     def __init__(self, facebook_data):

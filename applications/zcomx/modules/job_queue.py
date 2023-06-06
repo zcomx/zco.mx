@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 job_queue.py
 
 Classes related to job queues.
-
 """
 import datetime
+import functools
 import os
 import pipes
 import shlex
@@ -18,32 +17,28 @@ import time
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.records import Record
-from applications.zcomx.modules.utils import \
-    ClassFactory, \
-    default_record
-from functools import reduce
+from applications.zcomx.modules.utils import (
+    ClassFactory,
+    default_record,
+)
 
 LOG = current.app.logger
 
 
 class DaemonSignalError(Exception):
     """Exception indicating and error occurred while signaling the daemon."""
-    pass
 
 
 class InvalidCLIOptionError(Exception):
     """Exception indicating an invalid cli option for job command."""
-    pass
 
 
 class InvalidJobOptionError(Exception):
     """Exception indicating an invalid option for the job."""
-    pass
 
 
 class InvalidStatusError(Exception):
     """Exception indicating an invalid status for a job."""
-    pass
 
 
 class JobRunFailedError(Exception):
@@ -52,22 +47,19 @@ class JobRunFailedError(Exception):
 
 class QueueEmptyError(Exception):
     """Exception indicating the Queue is empty."""
-    pass
 
 
 class QueueLockedError(Exception):
     """Exception indicating the Queue is locked."""
-    pass
 
 
 class QueueLockedExtendedError(Exception):
     """Exception indicating the Queue is locked and has been locked for an
     extended period.
     """
-    pass
 
 
-class CLIOption(object):
+class CLIOption():
     """Class representing a cli option for a job command."""
     def __init__(self, option, value=None):
         self.option = option
@@ -95,7 +87,7 @@ class CLIOption(object):
             opt=self.option, val=pipes.quote(str(self.value)))
 
 
-class Daemon(object):
+class Daemon():
     """Class representing the job queue daemon"""
 
     def __init__(self, name, pid_filename=''):
@@ -117,7 +109,7 @@ class Daemon(object):
             dict, dict of pid parameters,  {name1: value1, name2: value2}
         """
         params = {}
-        with open(self.pid_filename, 'r') as f:
+        with open(self.pid_filename, 'r', encoding='utf-8') as f:
             for line in f:
                 parts = line.rstrip().split(':', 1)
                 if len(parts) > 1:
@@ -142,7 +134,7 @@ class Daemon(object):
         except IOError as err:
             msg = 'Unable to read daemon file {f}: {err}'.format(
                 f=self.pid_filename, err=err)
-            raise DaemonSignalError(msg)
+            raise DaemonSignalError(msg) from err
         if 'pid' not in pid_params or not pid_params['pid']:
             err = 'PID not found'
             msg = 'Unable to signal daemon {name}: {err}'.format(
@@ -153,13 +145,13 @@ class Daemon(object):
         except (TypeError, ValueError) as err:
             msg = 'Unable to signal daemon {name}: Invalid pid {err}'.format(
                 name=self.name, err=err)
-            raise DaemonSignalError(msg)
+            raise DaemonSignalError(msg) from err
         try:
             os.kill(pid, interrupt)
         except OSError as err:
             msg = 'Signal daemon {name} failed: {err}'.format(
                 name=self.name, err=err)
-            raise DaemonSignalError(msg)
+            raise DaemonSignalError(msg) from err
 
     def update_pid(self):
         """Update pid file parameters."""
@@ -173,7 +165,7 @@ class Daemon(object):
         Args:
             dict, dict of pid parameters,  {name1: value1, name2: value2}
         """
-        with open(self.pid_filename, 'w') as f:
+        with open(self.pid_filename, 'w', encoding='utf-8') as f:
             for k, v in list(params.items()):
                 f.write("{k}: {v}\n".format(k=k, v=v))
 
@@ -224,7 +216,7 @@ class IgnorableJob(Job):
         if status:
             queries.append((db.job.status == status))
 
-        query = reduce(lambda x, y: x & y, queries) if queries else None
+        query = functools.reduce(lambda x, y: x & y, queries)
         rows = db(query).select()
         if rows:
             return True
@@ -241,7 +233,7 @@ class JobQueuer(Record):
     db_table = 'job_queuer'
 
 
-class Queue(object):
+class Queue():
     """Class representing a job queue."""
 
     job_statuses = {
@@ -278,8 +270,6 @@ class Queue(object):
         """
         self.tbl = tbl
         self.job_class = job_class
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         self.db = self.tbl._db
 
     def add_job(self, job_data):
@@ -375,10 +365,9 @@ class Queue(object):
             msg = 'Queue is locked: {file}'.format(file=filename)
             if extended:
                 raise QueueLockedExtendedError(msg)
-            else:
-                raise QueueLockedError(msg)
+            raise QueueLockedError(msg)
 
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding='utf-8') as f:
             f.write(str(os.getpid()))
         return filename
 
@@ -387,14 +376,12 @@ class Queue(object):
 
         Override this method in a subclass and add any functionality desired.
         """
-        pass
 
     def pre_add_job(self):
         """Pre-processing before adding a job to queue.
 
         Override this method in a subclass and add any functionality desired.
         """
-        pass
 
     def run_job(self, job):
         """Run the job command.
@@ -406,8 +393,6 @@ class Queue(object):
         optional arguments and options. It is run as:
             $ python <command>
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         if not job.command:
             return
         if job.command.startswith('applications/'):
@@ -425,7 +410,7 @@ class Queue(object):
         try:
             subprocess.check_output(args, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
-            raise JobRunFailedError(err)
+            raise JobRunFailedError(err) from err
 
     def set_job_status(self, job, status):
         """Set the status of a job in the queue.
@@ -449,9 +434,6 @@ class Queue(object):
         Returns:
             dict, {status1: count1, status2, count2...}
         """
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
-
         db = self.db
         count = self.tbl.status.count()
         rows = db().select(
@@ -489,10 +471,9 @@ class Queue(object):
             filename = self.lock_filename
         if os.path.exists(filename):
             os.unlink(filename)
-        return
 
 
-class Queuer(object):
+class Queuer():
     """Class representing a job queuer base class.
 
     A job queuer instance is used to queue jobs for a specific program,
@@ -529,8 +510,6 @@ class Queuer(object):
         self.cli_options = cli_options or {}
         self.cli_args = cli_args or []
         self.delay_seconds = delay_seconds
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
         self.db = self.tbl._db
         if not self.queue_class:
             self.queue_class = Queue
@@ -597,7 +576,7 @@ class Queuer(object):
         return self.queue_class(self.tbl).add_job(self.job_data())
 
 
-class Requeuer(object):
+class Requeuer():
     """Class representing a job requeuer. A requeuer queues a job
     repeatedly up to a maximum number of times.
     """
@@ -670,4 +649,3 @@ def parse_cli_options(cli_options):
             opts[prev_part] = part
         prev_part = part
     return opts
-

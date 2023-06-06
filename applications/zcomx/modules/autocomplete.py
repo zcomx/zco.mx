@@ -1,25 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to autocompletion.
 """
+import functools
 import json
 import os
 import shutil
-from gluon import *
 from pydal.validators import urlify
-from applications.zcomx.modules.books import \
-    Book, \
-    formatted_name as formatted_book_name
+from gluon import *
+from applications.zcomx.modules.books import (
+    Book,
+    formatted_name as formatted_book_name,
+)
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.shell_utils import TemporaryDirectory
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
-from functools import reduce
 
 
-class BaseAutocompleter(object):
+class BaseAutocompleter():
     """Base class representing a autocompleter"""
 
     def __init__(self, table, keyword=''):
@@ -41,7 +40,7 @@ class BaseAutocompleter(object):
         items = self.search()
         with TemporaryDirectory() as tmp_dir:
             out_file = os.path.join(tmp_dir, 'output.json')
-            with open(out_file, 'w') as outfile:
+            with open(out_file, 'w', encoding='utf-8') as outfile:
                 outfile.write(json.dumps(items))
             shutil.move(out_file, output)
 
@@ -53,8 +52,8 @@ class BaseAutocompleter(object):
         """
         queries = []
         if self.keyword:
-            kw = urlify(self.keyword)
-            queries.append((self.search_field().contains(kw)))
+            url_kw = urlify(self.keyword)
+            queries.append((self.search_field().contains(url_kw)))
         return queries
 
     def formatted_value(self, record_id):
@@ -63,8 +62,6 @@ class BaseAutocompleter(object):
         Returns:
             string
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return str(record_id)
 
     def id_field(self):
@@ -81,8 +78,6 @@ class BaseAutocompleter(object):
         Returns:
             gluon.dal.Expr instance
         """
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         return None
 
     def orderby(self):
@@ -116,7 +111,8 @@ class BaseAutocompleter(object):
         """Return rows representing search results."""
         db = current.app.db
         queries = self.filters()
-        query = reduce(lambda x, y: x & y, queries) if queries else None
+        query = functools.reduce(lambda x, y: x & y, queries) \
+            if queries else None
         rows = db(query).select(
             self.id_field(),
             left=self.left_join(),
@@ -183,6 +179,6 @@ def autocompleter_class(table):
     """Return BaseAutocompleter subclass for the table."""
     if table == 'book':
         return BookAutocompleter
-    elif table == 'creator':
+    if table == 'creator':
         return CreatorAutocompleter
     return None

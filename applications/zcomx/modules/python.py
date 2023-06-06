@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 python.py
 
 Classes that subclass or augment python builtins.
-
 """
 
 
@@ -40,7 +38,7 @@ class List(list):
 
         if rows is None and columns is None:
             return self
-        elif rows is None:
+        if rows is None:
             rows = int(len(self) / columns) + incomplete(columns)
         elif columns is None:
             columns = int(len(self) / rows) + incomplete(rows)

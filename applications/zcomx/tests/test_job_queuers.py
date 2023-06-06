@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 test_job_queue.py
 
 Test suite for zcomx/modules/job_queue.py
-
 """
 import inspect
 import os
 import unittest
 from gluon import *
-from applications.zcomx.modules.job_queue import \
-    InvalidCLIOptionError, \
-    Queuer
+from applications.zcomx.modules.job_queue import (
+    InvalidCLIOptionError,
+    Queuer,
+)
 from applications.zcomx.modules.job_queuers import (
     CreateAllTorrentQueuer,
     CreateBookTorrentQueuer,
@@ -46,10 +45,8 @@ from applications.zcomx.modules.job_queuers import (
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.tests.trackers import TableTracker
+# pylint: disable=missing-docstring
 
-# C0111: *Missing docstring*
-# R0904: *Too many public methods (%s/%s)*
-# pylint: disable=C0111,R0904
 
 TMP_DIR = '/tmp/test_suite/job_queue'
 
@@ -202,8 +199,7 @@ class TestDeleteBookQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/delete_book.py --vv 123'
@@ -223,8 +219,7 @@ class TestDeleteImgQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/process_img.py --delete -f'
@@ -245,8 +240,7 @@ class TestFileshareBookQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/fileshare_book.py --requeues 4 -m 10 123'
@@ -266,8 +260,7 @@ class TestLogDownloadsQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/log_downloads.py -l 10 -r'
@@ -288,8 +281,7 @@ class TestNotifyP2PQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/notify_p2p_networks.py -d path/to/file.cbz'
@@ -308,8 +300,7 @@ class TestOptimizeCBZImgQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.priority,
             PRIORITIES.index('optimize_cbz_img')
@@ -332,8 +323,7 @@ class TestOptimizeCBZImgForReleaseQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.priority,
             PRIORITIES.index('optimize_cbz_img_for_release')
@@ -357,8 +347,7 @@ class TestOptimizeImgQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/process_img.py -f'
@@ -377,8 +366,7 @@ class TestOptimizeOriginalImgQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.priority,
             PRIORITIES.index('optimize_original_img')
@@ -425,8 +413,7 @@ class TestPostOnSocialMediaQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/social_media/post_book_completed.py --vv 123'
@@ -460,10 +447,9 @@ class TestQueueWithSignal(LocalTestCase):
 
     def test__post_add_job(self):
         queue = QueueWithSignal(db.job)
+        # pylint: disable=bare-except
         # There isn't a real test here. Just make the call and ensure it works
         # without errors.
-        # W0702: *No exception type(s) specified*
-        # pylint: disable=W0702
         try:
             queue.post_add_job()
         except:
@@ -484,8 +470,7 @@ class TestReverseFileshareBookQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/fileshare_book.py --requeues 4 --reverse -m 10 123'
@@ -506,8 +491,7 @@ class TestReverseSetBookCompletedQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/set_book_completed.py --requeues 4 --reverse -m 10 123'
@@ -528,8 +512,7 @@ class TestSearchPrefetchQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/search_prefetch.py -t book'
@@ -550,8 +533,7 @@ class TestSetBookCompletedQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/set_book_completed.py --requeues 4 -m 10 123'
@@ -572,8 +554,7 @@ class TestUpdateIndiciaQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/update_creator_indicia.py -o -r 123'
@@ -594,8 +575,7 @@ class TestUpdateIndiciaForReleaseQueuer(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/update_creator_indicia.py -o -r 123'
@@ -610,8 +590,7 @@ class TestFunctions(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/create_sitemap.py -o applications/zcomx/static/sitemap.xml'
@@ -623,8 +602,7 @@ class TestFunctions(LocalTestCase):
         self.assertFalse(tracker.had(job))
         self.assertTrue(tracker.has(job))
         self._objects.append(job)
-        # C0301: *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
             'applications/zcomx/private/bin/search_prefetch.py'
@@ -686,8 +664,7 @@ class TestIntegrityChecks(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

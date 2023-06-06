@@ -75,7 +75,7 @@
                 'x_editable_settings': {
                     'disabled': {{if book and book.release_date:}}true{{else:}}false{{pass}},
                     'inputclass': 'inplace_crud book_type_id_input',
-                    'source': [ {{=book_types(db)}} ],
+                    'source': [ {{=book_types()}} ],
                     'type': 'radiolist',
                     'value': '{{=book.book_type_id if book else 0}}',
                 },

@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/book/releasers.py
-
 """
 import datetime
 import unittest
 from gluon import *
 from applications.zcomx.modules.activity_logs import TentativeActivityLog
-from applications.zcomx.modules.book.releasers import \
-    BaseReleaser, \
-    FileshareBook, \
-    ReleaseBook, \
-    UnfileshareBook, \
-    UnreleaseBook
+from applications.zcomx.modules.book.releasers import (
+    BaseReleaser,
+    FileshareBook,
+    ReleaseBook,
+    UnfileshareBook,
+    UnreleaseBook,
+)
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
@@ -24,11 +22,7 @@ from applications.zcomx.modules.records import Records
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.tests.trackers import TableTracker
 from applications.zcomx.modules.zco import IN_PROGRESS
-
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class WithObjectsTestCase(LocalTestCase):
@@ -39,8 +33,7 @@ class WithObjectsTestCase(LocalTestCase):
     _creator = None
     _job_options = {'status': 'd'}
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
 
         self._creator = self.add(Creator, dict(
@@ -100,8 +93,7 @@ class TestFileshareBook(WithObjectsTestCase):
             self.assertFalse(tracker.had(job))
             self.assertTrue(tracker.has(job))
             self._objects.append(job)
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             jobs[0].command,
             'applications/zcomx/private/bin/update_creator_indicia.py -o -r {i}'.format(i=self._creator.id)
@@ -139,8 +131,7 @@ class TestFileshareBook(WithObjectsTestCase):
             self.assertFalse(tracker.had(job))
             self.assertTrue(tracker.has(job))
             self._objects.append(job)
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             jobs[0].command,
             'applications/zcomx/private/bin/create_cbz.py {i}'.format(i=self._book.id)
@@ -161,8 +152,7 @@ class TestFileshareBook(WithObjectsTestCase):
             self.assertTrue(tracker.has(job))
             self._objects.append(job)
         self.assertEqual(len(jobs), 4)
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             jobs[0].command,
             'applications/zcomx/private/bin/create_torrent.py {i}'.format(i=self._book.id)
@@ -214,8 +204,7 @@ class TestReleaseBook(WithObjectsTestCase):
             self.assertFalse(tracker.had(job))
             self.assertTrue(tracker.has(job))
             self._objects.append(job)
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             jobs[0].command,
             'applications/zcomx/private/bin/social_media/post_book_completed.py {i}'.format(i=self._book.id)
@@ -275,8 +264,7 @@ class TestUnfileshareBook(WithObjectsTestCase):
             self.assertTrue(tracker.has(job))
             self._objects.append(job)
         self.assertEqual(len(jobs), 3)
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             jobs[0].command,
             'applications/zcomx/private/bin/create_torrent.py --creator {i}'.format(i=self._creator.id)
@@ -353,8 +341,7 @@ class TestUnreleaseBook(WithObjectsTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

@@ -13,8 +13,7 @@ from applications.zcomx.modules.logger import (
     set_stream_logging,
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFunctions(LocalTestCase):
@@ -60,8 +59,7 @@ class TestFunctions(LocalTestCase):
             set_cli_logging(logger, True, True, with_time=t[0])
             handler = logger.handlers[0]
             formatter = handler.formatter
-            # W0212: *Access to a protected member %%s of a client class*
-            # pylint: disable=W0212
+            # pylint: disable=protected-access
             self.assertEqual(formatter._fmt, t[1])
             logger.removeHandler(handler)
 
@@ -73,8 +71,7 @@ class TestFunctions(LocalTestCase):
         set_stream_logging(logger, logging.DEBUG, formatter)
 
         self.assertEqual(len(logger.handlers), 1)
-        # W0212: *Access to a protected member %%s of a client class*
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         self.assertEqual(logger.handlers[0].formatter._fmt, fmt)
         self.assertEqual(logger.handlers[0].level, logging.DEBUG)
 
@@ -84,8 +81,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

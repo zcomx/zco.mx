@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/torrents.py
-
 """
 import os
 import shutil
@@ -12,28 +9,25 @@ import unittest
 from gluon import *
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
 from applications.zcomx.modules.torrentparse import TorrentParser
-from applications.zcomx.modules.torrents import \
-    AllTorrentCreator, \
-    BaseTorrentCreator, \
-    BookTorrentCreator, \
-    CreatorTorrentCreator, \
-    P2PNotifier, \
-    P2PNotifyError, \
-    TorrentCreateError
+from applications.zcomx.modules.torrents import (
+    AllTorrentCreator,
+    BaseTorrentCreator,
+    BookTorrentCreator,
+    CreatorTorrentCreator,
+    P2PNotifier,
+    P2PNotifyError,
+    TorrentCreateError,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class SubBaseTorrentCreator(BaseTorrentCreator):
-    # W0201: *Attribute %r defined outside __init__*
-    # pylint: disable=W0201
     def get_destination(self):
         return self._destination
 
@@ -42,10 +36,12 @@ class SubBaseTorrentCreator(BaseTorrentCreator):
 
     def set_destination(self, dst):
         """Helper function to allow the destination to be provided."""
+        # pylint: disable=attribute-defined-outside-init
         self._destination = dst
 
     def set_target(self, target):
         """Helper function to allow the target to be provided."""
+        # pylint: disable=attribute-defined-outside-init
         self._target = target
 
 
@@ -57,8 +53,7 @@ class TorrentTestCase(LocalTestCase):
     _test_creator_path = None
     _cbz_base_path = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         if not os.path.exists(cls._tmp_dir):
@@ -67,14 +62,17 @@ class TorrentTestCase(LocalTestCase):
 
         cls._test_file = os.path.join(cls._tmp_dir, 'file.cbz')
         if not os.path.exists(cls._test_file):
-            with open(cls._test_file, 'w') as f:
+            with open(cls._test_file, 'w', encoding='utf-8') as f:
                 f.write('Testing')
 
         cls._test_path = os.path.join(cls._tmp_dir, 'subdir')
         if not os.path.exists(cls._test_path):
             os.makedirs(cls._test_path)
             for filename in ['a.cbz', 'b.cbz', 'c.cbz']:
-                with open(os.path.join(cls._test_path, filename), 'w') as f:
+                with open(
+                        os.path.join(cls._test_path, filename),
+                        'w',
+                        encoding='utf-8') as f:
                     f.write('Testing')
 
         cls._test_creator_path = os.path.join(
@@ -83,7 +81,7 @@ class TorrentTestCase(LocalTestCase):
             os.makedirs(cls._test_creator_path)
             for filename in ['a.cbz', 'b.cbz', 'c.cbz']:
                 fullname = os.path.join(cls._test_creator_path, filename)
-                with open(fullname, 'w') as f:
+                with open(fullname, 'w', encoding='utf-8') as f:
                     f.write('Testing')
 
     @classmethod
@@ -124,9 +122,6 @@ class TestBaseTorrentCreator(TorrentTestCase):
         )
 
     def test__create(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
-
         tor_creator = SubBaseTorrentCreator()
 
         # Test creating torrent for a file.
@@ -134,6 +129,7 @@ class TestBaseTorrentCreator(TorrentTestCase):
         tor_creator.create()
 
         tor_file = os.path.join(tor_creator.temp_directory(), 'file.torrent')
+        # pylint: disable=protected-access
         self.assertEqual(
             tor_creator._tor_file,
             tor_file
@@ -326,13 +322,11 @@ class TestCreatorTorrentCreator(TorrentTestCase):
         )
 
     def test__set_cbz_base_path(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
-
         auth_user = self.add(AuthUser, dict(name='First Last'))
         creator = self.add(Creator, dict(auth_user_id=auth_user.id))
 
         tor_creator = CreatorTorrentCreator(creator)
+        # pylint: disable=protected-access
         self.assertEqual(tor_creator._cbz_base_path, None)
         tor_creator.set_cbz_base_path(self._tmp_dir)
         self.assertEqual(tor_creator._cbz_base_path, self._tmp_dir)
@@ -369,8 +363,7 @@ class TestTorrentCreateError(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

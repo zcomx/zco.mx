@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to book page utilities.
 """
 from gluon import *
-from applications.zcomx.modules.activity_logs import \
-    ActivityLog, \
-    TentativeActivityLog
+from applications.zcomx.modules.activity_logs import (
+    ActivityLog,
+    TentativeActivityLog,
+)
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.records import Records
 
 LOG = current.app.logger
 
 
-class ActivityLogDeleter(object):
+class ActivityLogDeleter():
     """Class representing a ActivityLogDeleter"""
 
     def __init__(self, book_page):

@@ -1,21 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 modules/stickon/dal.py
 
 Classes extending functionality of gluon/dal.py.
-
 """
 from gluon import *
-
-# C0103: Invalid name
-# pylint: disable=C0103
 
 LOG = current.app.logger
 
 
-class RecordGenerator(object):
+class RecordGenerator():
     """Class representing a record generator"""
 
     def __init__(self, query, fields=None, orderby=None, limitby=None):

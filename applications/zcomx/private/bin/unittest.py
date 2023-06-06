@@ -10,15 +10,10 @@ python -m unittest path.to.test.module
 # web2py
 python web2py.py -S app -M -R path/to/unittest.py discover path/to/tests
 python web2py.py -S app -M -R path/to/unittest.py path.to.test.module
-
 """
 import logging
 import sys
 import traceback
-# E0611: *No name %%r in module %%r*
-# pylint: disable=E0611
-# F0401: *Unable to import %%r*
-# pylint: disable=F0401
 from unittest.main import TestProgram
 from applications.zcomx.modules.tests.runner import (
     LocalTestCase,
@@ -71,17 +66,16 @@ def main():
             # web2py.py.
             sys.argv[:] = [x for x in sys.argv if x != cli_opt]
 
-    # W0212: *Access to a protected member %%s of a client class*
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     LocalTestCase._opts.update(options)
 
     try:
         TestProgram(
-                argv=sys.argv,
-                module=None,
-                testRunner=LocalTextTestRunner(verbosity=verbosity),
-                verbosity=verbosity,
-                )
+            argv=sys.argv,
+            module=None,
+            testRunner=LocalTextTestRunner(verbosity=verbosity),
+            verbosity=verbosity,
+        )
     except AttributeError:
         # If a module produces an error on import, unittest traps the
         # ImportError exception and raises an AttributeError instead. The
@@ -100,4 +94,4 @@ if __name__ == '__main__':
         pass
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        exit(1)
+        sys.exit(1)

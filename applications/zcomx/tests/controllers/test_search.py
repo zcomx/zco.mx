@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/controllers/search.py
-
 """
 import json
 import unittest
@@ -12,10 +9,7 @@ from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.tests.helpers import WebTestCase
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class WithObjectsTestCase(WebTestCase):
@@ -191,8 +185,7 @@ class TestFunctions(WithObjectsTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     WebTestCase.set_env(globals())
 
 

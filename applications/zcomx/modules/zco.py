@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Zco: System globals, constants and session classes and functions.
 """
 from gluon import *
 from gluon.storage import Storage
 from applications.zcomx.modules.stickon.tools import ModelDb
-
-# Constants
 
 BOOK_STATUS_ACTIVE = 'a'
 BOOK_STATUS_DISABLED = 'x'
@@ -35,16 +31,13 @@ TUMBLR_USERNAME = 'zcomx'
 TWITTER_BOT_HANDLE = '@zcomx_bot'
 
 
-class Zco(object):
+class Zco():
     """Class used for system globals and sessions
 
     Session variables are stored in web2py's globals session. Zco
     is used as a go-between so the variables can be documented in
     a single place and name collisions can be avoided.
     """
-    # R0201: *Method could be a function*
-    # pylint: disable=R0201
-
     def __init__(self):
         """Constructor """
         if current.session.zco is None:
@@ -159,6 +152,7 @@ class ZcoModelDb(ModelDb):
     """ModelDb with Zco customizations."""
 
     def _auth_post_hook(self, auth):
+        # pylint: disable=redefined-outer-name
         if not self.local_settings.disable_authentication:
             auth.settings.extra_fields['auth_user'] = [Field('name')]
 

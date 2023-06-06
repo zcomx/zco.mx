@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to images.
 """
 import os
@@ -14,9 +12,10 @@ from gluon.contenttype import contenttype
 from applications.zcomx.modules.archives import TorrentArchive
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
-from applications.zcomx.modules.images import \
-    filename_for_size, \
-    SIZES
+from applications.zcomx.modules.images import (
+    filename_for_size,
+    SIZES,
+)
 
 LOG = current.app.logger
 
@@ -31,6 +30,7 @@ class CBZDownloader(Response):
         Adapted from Response.download.
         request.args(0): integer, id of book record.
         """
+        # pylint: disable=redefined-outer-name
         current.session.forget(current.response)
 
         if not request.args:
@@ -73,15 +73,13 @@ class ImageDownloader(Response):
         request.vars.cache: boolean, if set, set response headers to
             enable caching.
         """
+        # pylint: disable=redefined-outer-name
         current.session.forget(current.response)
 
         if not request.args:
             raise HTTP(404)
         name = request.args[-1]
-        # W1401 (anomalous-backslash-in-string): *Anomalous backslash in string
-        # pylint: disable=W1401
-        items = re.compile('(?P<table>.*?)\.(?P<field>.*?)\..*')\
-            .match(name)
+        items = re.compile(r'(?P<table>.*?)\.(?P<field>.*?)\..*').match(name)
         if not items:
             raise HTTP(404)
         (t, f) = (items.group('table'), items.group('field'))
@@ -129,6 +127,7 @@ class TorrentDownloader(Response):
         request.args(1): integer, id of record if request.args(0) is 'book' or
             'creator'
         """
+        # pylint: disable=redefined-outer-name
         current.session.forget(current.response)
 
         if not request.args:

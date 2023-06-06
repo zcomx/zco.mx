@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Classes and functions related to rss feeds.
 """
 import datetime
@@ -10,28 +8,32 @@ import os
 import gluon.contrib.rss2 as rss2
 from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
-from applications.zcomx.modules.book_pages import \
-    BookPage, \
-    AbridgedBookPageNumbers
-from applications.zcomx.modules.books import \
-    Book, \
-    formatted_name as book_formatted_name, \
-    get_page, \
-    page_url
-from applications.zcomx.modules.creators import \
-    Creator, \
-    url as creator_url
+from applications.zcomx.modules.book_pages import (
+    BookPage,
+    AbridgedBookPageNumbers,
+)
+from applications.zcomx.modules.books import (
+    Book,
+    formatted_name as book_formatted_name,
+    get_page,
+    page_url,
+)
+from applications.zcomx.modules.creators import (
+    Creator,
+    url as creator_url,
+)
 from applications.zcomx.modules.images import ImageDescriptor
-from applications.zcomx.modules.zco import \
-    SITE_NAME, \
-    Zco
+from applications.zcomx.modules.zco import (
+    SITE_NAME,
+    Zco,
+)
 
 LOG = current.app.logger
 
 MINIMUM_AGE_TO_LOG_IN_SECONDS = 4 * 60 * 60       # 4 hours
 
 
-class BaseRSSChannel(object):
+class BaseRSSChannel():
     """Class representing a BaseRSSChannel"""
 
     max_entry_age_in_days = 7
@@ -72,7 +74,7 @@ class BaseRSSChannel(object):
             activity_log = ActivityLog.from_id(r.id)
             try:
                 entry = activity_log_as_rss_entry(activity_log).feed_item()
-            except LookupError as err:
+            except LookupError:
                 # This may happen if a book deletion is in progress
                 # LOG.error(err)
                 pass        # This is producing too much noise
@@ -109,9 +111,6 @@ class BaseRSSChannel(object):
         Returns
             rss2.Image instance.
         """
-        # R0201: *Method could be a function*
-        # pylint: disable=R0201
-
         # From RSS spec: (Note, in practice the image <title> and <link>
         # should have the same value as the channel's <title> and <link>.
         return rss2.Image(
@@ -227,7 +226,7 @@ class CartoonistRSSChannel(BaseRSSChannel):
         )
 
 
-class BaseRSSEntry(object):
+class BaseRSSEntry():
     """Class representing a BaseRSSEntry"""
 
     def __init__(self, book_page_ids, time_stamp, activity_log_id):
@@ -390,11 +389,9 @@ class PageAddedRSSEntry(BaseRSSEntry):
 
     def description_fmt(self):
         if len(self.book_page_ids) > 1:
-            # line-too-long (C0301): *Line too long (%%s/%%s)*
-            # pylint: disable=C0301
+            # pylint: disable=line-too-long
             return "Posted: {d} - Several pages were added to the book '{b}' by {c}."
-        else:
-            return "Posted: {d} - A page was added to the book '{b}' by {c}."
+        return "Posted: {d} - A page was added to the book '{b}' by {c}."
 
 
 class RSS2WithAtom(rss2.RSS2):
@@ -405,8 +402,7 @@ class RSS2WithAtom(rss2.RSS2):
     )
 
     def publish_extensions(self, handler):
-        # protected-access (W0212): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         rss2._element(
             handler,
             'atom:link',
@@ -474,10 +470,9 @@ def entry_class_from_action(action):
     """Return the appropriate RSS Entry class for the action."""
     if action == 'completed':
         return CompletedRSSEntry
-    elif action == 'page added':
+    if action == 'page added':
         return PageAddedRSSEntry
-    else:
-        raise LookupError('Invalid RSS entry action: {a}'.format(a=action))
+    raise LookupError('Invalid RSS entry action: {a}'.format(a=action))
 
 
 def rss_serializer_with_image(feed):

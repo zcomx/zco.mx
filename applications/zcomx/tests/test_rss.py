@@ -1,49 +1,46 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/rss.py
-
 """
 import io
 import datetime
 import re
 import unittest
 import urllib.parse
-import gluon.contrib.rss2 as rss2
 from xml.sax import saxutils
 from xml.etree import ElementTree as element_tree
+import gluon.contrib.rss2 as rss2
 from gluon import *
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
 from applications.zcomx.modules.books import Book
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
 from applications.zcomx.modules.images import store
-from applications.zcomx.modules.rss import \
-    AllRSSChannel, \
-    BaseRSSChannel, \
-    BaseRSSEntry, \
-    BookRSSChannel, \
-    CartoonistRSSChannel, \
-    CompletedRSSEntry, \
-    PageAddedRSSEntry, \
-    RSS2WithAtom, \
-    activity_log_as_rss_entry, \
-    channel_from_type, \
-    entry_class_from_action, \
-    rss_serializer_with_image
-from applications.zcomx.modules.tests.helpers import \
-    ImageTestCase, \
-    ResizerQuick
+from applications.zcomx.modules.rss import (
+    AllRSSChannel,
+    BaseRSSChannel,
+    BaseRSSEntry,
+    BookRSSChannel,
+    CartoonistRSSChannel,
+    CompletedRSSEntry,
+    PageAddedRSSEntry,
+    RSS2WithAtom,
+    activity_log_as_rss_entry,
+    channel_from_type,
+    entry_class_from_action,
+    rss_serializer_with_image,
+)
+from applications.zcomx.modules.tests.helpers import (
+    ImageTestCase,
+    ResizerQuick,
+)
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class WithObjectsTestCase(LocalTestCase):
@@ -55,8 +52,7 @@ class WithObjectsTestCase(LocalTestCase):
     _book_page_2 = None
     _creator = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
 
         self._auth_user = self.add(AuthUser, dict(
@@ -129,8 +125,7 @@ class DubRSSChannel(BaseRSSChannel):
 class DubRSSEntry(BaseRSSEntry):
 
     def created_on(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         return WithObjectsTestCase._activity_log_time_stamp
 
     def description_fmt(self):
@@ -174,11 +169,10 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
         self.assertRaises(NotImplementedError, channel.description)
 
     def test__entries(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
         self.set_book_page_image()
 
         channel = DubRSSChannel()
+        # pylint: disable=protected-access
         channel._filter_query = (db.activity_log.id < 0)
         self.assertEqual(channel.entries(), [])
 
@@ -197,8 +191,7 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
             self._activity_log_time_stamp
         )
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         desc = "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
         self.assertEqual(entry['description'], desc)
 
@@ -231,10 +224,9 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
         )
 
     def test__feed(self):
-        # W0212 (protected-access): *Access to a protected member
-        # pylint: disable=W0212
         self.set_book_page_image()
         channel = DubRSSChannel()
+        # pylint: disable=protected-access
         channel._filter_query = (db.activity_log.id == self._activity_log.id)
         got = channel.feed()
         self.assertEqual(
@@ -256,8 +248,7 @@ class TestBaseRSSChannel(WithObjectsTestCase, ImageTestCase):
             self._activity_log_time_stamp
         )
 
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         desc = "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
         self.assertEqual(entry['description'], desc)
 
@@ -641,8 +632,7 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
             self._activity_log_time_stamp,
             self._activity_log.id
         )
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             entry.description(),
             "Posted: Dec 31, 1999 - The book 'My Book 001' by First Last has been set as completed."
@@ -663,8 +653,7 @@ class TestCompletedRSSEntry(WithObjectsTestCase):
 class TestPageAddedRSSEntry(WithObjectsTestCase):
 
     def test_description(self):
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
 
         # Single page
         entry = PageAddedRSSEntry(
@@ -726,8 +715,7 @@ class TestRSS2WithAtom(LocalTestCase):
         handler.startDocument()
         rss.publish_extensions(handler)
         handler.endDocument()
-        # line-too-long (C0301): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         self.assertEqual(
             outfile.getvalue(),
             b'<?xml version="1.0" encoding="iso-8859-1"?>\n<atom:link href="link" rel="self" type="application/rss+xml"></atom:link>'
@@ -848,6 +836,7 @@ class TestFunctions(WithObjectsTestCase):
         self.assertEqual(channel.find('description').text, feed['description'])
 
         last_build_date = channel.find('lastBuildDate').text
+        # pylint: disable=protected-access
         self.assertEqual(last_build_date, rss2._format_date(created_on))
 
         image = channel.find('image')
@@ -865,8 +854,7 @@ class TestFunctions(WithObjectsTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

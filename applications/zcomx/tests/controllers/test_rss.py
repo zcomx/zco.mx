@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/controllers/rss.py
-
 """
 import datetime
 import os
@@ -12,20 +9,20 @@ import unittest
 from applications.zcomx.modules.activity_logs import ActivityLog
 from applications.zcomx.modules.book_pages import BookPage
 from applications.zcomx.modules.book_types import BookType
-from applications.zcomx.modules.books import \
-    Book, \
-    book_name
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator
-from applications.zcomx.modules.tests.helpers import \
-    ImageTestCase, \
-    ResizerQuick
+from applications.zcomx.modules.books import (
+    Book,
+    book_name,
+)
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+)
+from applications.zcomx.modules.tests.helpers import (
+    ImageTestCase,
+    ResizerQuick,
+)
 from applications.zcomx.modules.tests.helpers import WebTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class TestFunctions(WebTestCase, ImageTestCase):
@@ -78,8 +75,7 @@ class TestFunctions(WebTestCase, ImageTestCase):
         self.assertWebTest('/rss/modal')
 
     def test__route(self):
-        # C0301 (line-too-long): *Line too long (%%s/%%s)*
-        # pylint: disable=C0301
+        # pylint: disable=line-too-long
         filename = 'file.jpg'
         self._set_image(
             db.book_page.image,
@@ -203,8 +199,7 @@ class TestFunctions(WebTestCase, ImageTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     WebTestCase.set_env(globals())
 
 

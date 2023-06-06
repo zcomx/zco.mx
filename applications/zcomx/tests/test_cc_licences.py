@@ -1,23 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/cc_licences.py
-
 """
 import unittest
 from gluon import *
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.tests.runner import LocalTestCase
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
-# (C0301): *Line too long (%%s/%%s)*
-# pylint: disable=C0301
-# C0302: *Too many lines in module (%%s)*
-# pylint: disable=C0302
+# pylint: disable=missing-docstring
 
 
 class TestCCLicence(LocalTestCase):
@@ -33,8 +23,7 @@ class TestCCLicence(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

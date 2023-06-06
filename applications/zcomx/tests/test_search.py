@@ -1,29 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for zcomx/modules/search.py
-
 """
 import datetime
 import unittest
 import urllib.parse
 from bs4 import BeautifulSoup
+from pydal.objects import Row
 from gluon import *
 from gluon.storage import Storage
-from pydal.objects import Row
 from applications.zcomx.modules.book_pages import BookPage
-from applications.zcomx.modules.books import \
-    Book, \
-    book_name, \
-    get_page, \
-    formatted_name, \
-    page_url
-from applications.zcomx.modules.creators import \
-    AuthUser, \
-    Creator, \
-    creator_name
+from applications.zcomx.modules.books import (
+    Book,
+    book_name,
+    get_page,
+    formatted_name,
+    page_url,
+)
+from applications.zcomx.modules.creators import (
+    AuthUser,
+    Creator,
+    creator_name,
+)
 from applications.zcomx.modules.search import (
     AlphaPaginator,
     BookTile,
@@ -58,10 +57,7 @@ from applications.zcomx.modules.search import (
 )
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.zco import BOOK_STATUS_ACTIVE
-
-# C0111: Missing docstring
-# R0904: Too many public methods
-# pylint: disable=C0111,R0904
+# pylint: disable=missing-docstring
 
 
 class SubGrid(Grid):
@@ -97,8 +93,7 @@ class TileTestCase(LocalTestCase):
     _row = None
     _value = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     @classmethod
     def setUpClass(cls):
         creator = Creator.by_email(web.username)
@@ -206,11 +201,10 @@ class TestAlphaPaginator(LocalTestCase):
 class TestGrid(LocalTestCase):
 
     def test____init__(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         args = {'paginate': 999999}
         grid = SubGrid(form_grid_args=args)
         self.assertTrue(grid)
+        # pylint: disable=protected-access
         self.assertEqual(grid._attributes['table'], 'book')
         self.assertEqual(grid._attributes['field'], 'name')
         self.assertTrue('header_label' in grid._attributes)
@@ -263,9 +257,8 @@ class TestGrid(LocalTestCase):
         self.assertEqual(db.book.name.writable, True)
 
     def test__items_per_page(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         grid = SubGrid()
+        # pylint: disable=protected-access
         self.assertEqual(grid._paginate, 12)
         self.assertEqual(grid.items_per_page(), 12)
 
@@ -276,11 +269,10 @@ class TestGrid(LocalTestCase):
             self.assertEqual(grid.items_per_page(), t)
 
     def test__label(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         grid = SubGrid()
         default = 'sub'     # from class name 'SubGrid'
 
+        # pylint: disable=protected-access
         save_attributes = dict(SubGrid._attributes)
 
         # No 'label' key
@@ -311,11 +303,9 @@ class TestGrid(LocalTestCase):
         self.assertEqual(str(order_fields[0]), 'book.name')
 
     def test__orderby(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
-
         grid = SubGrid()
 
+        # pylint: disable=protected-access
         self.assertEqual(grid._attributes['order_dir'], 'DESC')
         orderby = grid.orderby()
         self.assertEqual(len(orderby), 3)
@@ -347,10 +337,9 @@ class TestGrid(LocalTestCase):
         self.assertEqual(div_2['class'], ['row', 'tile_view'])
 
     def test__rows(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         grid = SubGrid()
         rows = grid.rows()
+        # pylint: disable=protected-access
         self.assertEqual(len(rows), grid._paginate)
         self.assertEqual(
             sorted(rows[0].keys()),
@@ -547,10 +536,9 @@ class TestBaseBookGrid(LocalTestCase):
 class TestCartoonistsGrid(LocalTestCase):
 
     def test____init__(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         grid = CartoonistsGrid()
         self.assertTrue(grid)
+        # pylint: disable=protected-access
         self.assertEqual(grid._attributes['table'], 'creator')
         self.assertEqual(grid._attributes['field'], 'contributions_remaining')
         self.assertEqual(
@@ -620,10 +608,9 @@ class TestCompletedGrid(LocalTestCase):
 class TestCreatorMoniesGrid(LocalTestCase):
 
     def test____init__(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         grid = CreatorMoniesGrid()
         self.assertTrue(grid)
+        # pylint: disable=protected-access
         self.assertEqual(grid._attributes['table'], 'book')
         self.assertEqual(grid._attributes['field'], 'name')
 
@@ -726,19 +713,19 @@ class TestLoginOngoingGrid(LocalTestCase):
 class TestMoniesBookTile(TileTestCase):
 
     def test____init__(self):
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         self.assertTrue(tile)
 
     def test__contribute_link(self):
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         self.assertEqual(tile.contribute_link(), None)
 
     def test__download_link(self):
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         self.assertEqual(tile.contribute_link(), None)
 
     def test__follow_link(self):
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         self.assertEqual(tile.follow_link(), None)
 
     def test__footer(self):
@@ -746,7 +733,7 @@ class TestMoniesBookTile(TileTestCase):
 
         # Test: can contribute = True
         self._row.creator.paypal_email = 'testing@paypal.com'
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer), 'html.parser')
         # <div class="col-sm-12 name">
@@ -771,7 +758,7 @@ class TestMoniesBookTile(TileTestCase):
 
         # Test: can contribute = False
         self._row.creator.paypal_email = None
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer), 'html.parser')
         # <div class="col-sm-12 name">Test Do Not Delete 01 (of 01)</div>
@@ -790,7 +777,7 @@ class TestMoniesBookTile(TileTestCase):
 
         # Test: can contribute = True
         self._row.creator.paypal_email = 'testing@paypal.com'
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div), 'html.parser')
         # <div class="col-sm-12 image_container">
@@ -823,7 +810,7 @@ class TestMoniesBookTile(TileTestCase):
 
         # Test: can contribute = False
         self._row.creator.paypal_email = None
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div), 'html.parser')
         #  <div class="col-sm-12 image_container">
@@ -846,7 +833,7 @@ class TestMoniesBookTile(TileTestCase):
         self._row.creator.paypal_email = save_paypal
 
     def test_render(self):
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         div = tile.render()
         soup = BeautifulSoup(str(div), 'html.parser')
 
@@ -867,11 +854,11 @@ class TestMoniesBookTile(TileTestCase):
         self.assertEqual(str(div_2.div), str(tile.footer()))
 
     def test__subtitle(self):
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         self.assertEqual(tile.contribute_link(), None)
 
     def test__title(self):
-        tile = MoniesBookTile(db, self._value, self._row)
+        tile = MoniesBookTile(self._value, self._row)
         self.assertEqual(tile.contribute_link(), None)
 
 
@@ -897,10 +884,9 @@ class TestOngoingGrid(LocalTestCase):
 class TestSearchGrid(LocalTestCase):
 
     def test____init__(self):
-        # protected-access (W0212): *Access to a protected member %%s
-        # pylint: disable=W0212
         grid = SearchGrid()
         self.assertTrue(grid)
+        # pylint: disable=protected-access
         self.assertEqual(grid._attributes['table'], 'book')
         self.assertEqual(grid._attributes['field'], 'page_added_on')
 
@@ -928,23 +914,23 @@ class TestSearchGrid(LocalTestCase):
 class TestTile(TileTestCase):
 
     def test____init__(self):
-        tile = Tile(db, self._value, self._row)
+        tile = Tile(self._value, self._row)
         self.assertTrue(tile)
 
     def test__contribute_link(self):
-        tile = Tile(db, self._value, self._row)
-        self.assertEqual(tile.contribute_link(), None)
+        tile = Tile(self._value, self._row)
+        self.assertEqual(tile.contribute_link(), '')
 
     def test__download_link(self):
-        tile = Tile(db, self._value, self._row)
-        self.assertEqual(tile.download_link(), None)
+        tile = Tile(self._value, self._row)
+        self.assertEqual(tile.download_link(), '')
 
     def test__follow_link(self):
-        tile = Tile(db, self._value, self._row)
-        self.assertEqual(tile.follow_link(), None)
+        tile = Tile(self._value, self._row)
+        self.assertEqual(tile.follow_link(), '')
 
     def test__footer(self):
-        tile = Tile(db, self._value, self._row)
+        tile = Tile(self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer), 'html.parser')
         # <div class="col-sm-12">
@@ -968,7 +954,7 @@ class TestTile(TileTestCase):
         )
 
     def test__footer_links(self):
-        tile = Tile(db, self._value, self._row)
+        tile = Tile(self._value, self._row)
         links = tile.footer_links()
         soup = BeautifulSoup(str(links), 'html.parser')
         # <ul class="breadcrumb pipe_delimiter"></ul>
@@ -978,11 +964,11 @@ class TestTile(TileTestCase):
         self.assertEqual(ul.string, None)
 
     def test__image(self):
-        tile = Tile(db, self._value, self._row)
+        tile = Tile(self._value, self._row)
         self.assertEqual(tile.image(), None)
 
     def test__render(self):
-        tile = Tile(db, self._value, self._row)
+        tile = Tile(self._value, self._row)
         div = tile.render()
         soup = BeautifulSoup(str(div), 'html.parser')
         #  <div class="item_container">
@@ -1011,22 +997,22 @@ class TestTile(TileTestCase):
         self.assertEqual(div_4['class'], ['orderby_field_value'])
 
     def test__subtitle(self):
-        tile = Tile(db, self._value, self._row)
+        tile = Tile(self._value, self._row)
         self.assertEqual(tile.subtitle(), None)
 
     def test__title(self):
-        tile = Tile(db, self._value, self._row)
+        tile = Tile(self._value, self._row)
         self.assertEqual(tile.title(), None)
 
 
 class TestBookTile(TileTestCase):
 
     def test____init__(self):
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         self.assertTrue(tile)
 
     def test__contribute_link(self):
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         link = tile.contribute_link()
         soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="contribute_button"
@@ -1051,7 +1037,7 @@ class TestBookTile(TileTestCase):
                 limitby=(0, 1)).first()
             self._row.book.id = book_with_cbz_id.id
 
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         link = tile.download_link()
         soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="download_button no_rclick_menu"
@@ -1071,7 +1057,7 @@ class TestBookTile(TileTestCase):
             book_no_cbz_id = Book.from_key(dict(cbz=None))
             self._row.book.id = book_no_cbz_id.id
 
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         link = tile.download_link()
         soup = BeautifulSoup(str(link), 'html.parser')
         self.assertEqual(str(soup), '<span></span>')
@@ -1085,7 +1071,7 @@ class TestBookTile(TileTestCase):
         # Released book (not followable)
         released_book = Book.from_query((db.book.release_date != None))
         self._row.book.id = released_book.id
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         link = tile.follow_link()
         soup = BeautifulSoup(str(link), 'html.parser')
         # <span></span>
@@ -1095,7 +1081,7 @@ class TestBookTile(TileTestCase):
         # Ongoing book (followable)
         released_book = Book.from_query((db.book.release_date == None))
         self._row.book.id = released_book.id
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         link = tile.follow_link()
         soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="rss_button no_rclick_menu" href="/rss/modal/98">
@@ -1113,7 +1099,7 @@ class TestBookTile(TileTestCase):
     def test_footer(self):
         self._row.creator.paypal_email = 'paypal@gmail.com'
 
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer), 'html.parser')
         # <div class="col-sm-12">
@@ -1134,8 +1120,8 @@ class TestBookTile(TileTestCase):
         dl_li = None
 
         self.assertEqual(len(lis), 2)
-        li = lis[0]
-        anchor = li.a
+        a_li = lis[0]
+        anchor = a_li.a
         self.assertEqual(
             anchor['class'], ['contribute_button', 'no_rclick_menu'])
         self.assertEqual(
@@ -1144,7 +1130,7 @@ class TestBookTile(TileTestCase):
                 id=self._row.book.id)
         )
         self.assertEqual(anchor.string, 'contribute')
-        dl_li = li.nextSibling
+        dl_li = a_li.nextSibling
 
         anchor = dl_li.a
         self.assertEqual(
@@ -1165,7 +1151,7 @@ class TestBookTile(TileTestCase):
         # Test without contributions.
         self._row.creator.paypal_email = None
 
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer), 'html.parser')
         div = soup.div
@@ -1175,7 +1161,7 @@ class TestBookTile(TileTestCase):
         self.assertEqual(link_texts, ['download'])
 
     def test__image(self):
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div), 'html.parser')
         # <div class="col-sm-12 image_container">
@@ -1205,7 +1191,7 @@ class TestBookTile(TileTestCase):
         )
 
     def test_render(self):
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         div = tile.render()
         soup = BeautifulSoup(str(div), 'html.parser')
 
@@ -1231,7 +1217,7 @@ class TestBookTile(TileTestCase):
         self.assertEqual(str(div_4.div), str(tile.footer()))
 
     def test__subtitle(self):
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         subtitle_div = tile.subtitle()
         soup = BeautifulSoup(str(subtitle_div), 'html.parser')
         # <div class="col-sm-12 creator">
@@ -1250,7 +1236,7 @@ class TestBookTile(TileTestCase):
         self.assertEqual(anchor.string, self._row.auth_user.name)
 
     def test__title(self):
-        tile = BookTile(db, self._value, self._row)
+        tile = BookTile(self._value, self._row)
         title_div = tile.title()
         soup = BeautifulSoup(str(title_div), 'html.parser')
         # <div class="col-sm-12 name">
@@ -1283,11 +1269,11 @@ class TestBookTile(TileTestCase):
 class TestCartoonistTile(TileTestCase):
 
     def test____init__(self):
-        tile = CartoonistTile(db, self._value, self._row)
+        tile = CartoonistTile(self._value, self._row)
         self.assertTrue(tile)
 
     def test__contribute_link(self):
-        tile = CartoonistTile(db, self._value, self._row)
+        tile = CartoonistTile(self._value, self._row)
         link = tile.contribute_link()
         soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="contribute_button"
@@ -1306,7 +1292,7 @@ class TestCartoonistTile(TileTestCase):
     def test__download_link(self):
         # Test no torrent
         self._row.creator.torrent = None
-        tile = CartoonistTile(db, self._value, self._row)
+        tile = CartoonistTile(self._value, self._row)
         link = tile.download_link()
         soup = BeautifulSoup(str(link), 'html.parser')
         self.assertEqual(str(soup), '<span></span>')
@@ -1327,7 +1313,7 @@ class TestCartoonistTile(TileTestCase):
         )
 
     def test__follow_link(self):
-        tile = CartoonistTile(db, self._value, self._row)
+        tile = CartoonistTile(self._value, self._row)
         link = tile.follow_link()
         soup = BeautifulSoup(str(link), 'html.parser')
         # <a class="rss_button no_rclick_menu" href="/rss/modal/98">
@@ -1345,7 +1331,7 @@ class TestCartoonistTile(TileTestCase):
         self._row.creator.paypal_email = 'paypal@gmail.com'
         self._row.creator.torrent = '_test_torrent_'
 
-        tile = CartoonistTile(db, self._value, self._row)
+        tile = CartoonistTile(self._value, self._row)
         footer = tile.footer()
         soup = BeautifulSoup(str(footer), 'html.parser')
 
@@ -1378,8 +1364,8 @@ class TestCartoonistTile(TileTestCase):
         lis = ul.findAll('li')
         self.assertEqual(len(lis), 3)
 
-        li = lis[0]
-        anchor = li.a
+        a_li = lis[0]
+        anchor = a_li.a
         self.assertEqual(
             anchor['class'], ['contribute_button', 'no_rclick_menu'])
         self.assertEqual(
@@ -1389,7 +1375,7 @@ class TestCartoonistTile(TileTestCase):
         )
         self.assertEqual(anchor.string, 'contribute')
 
-        dl_li = li.nextSibling
+        dl_li = a_li.nextSibling
         anchor = dl_li.a
         self.assertEqual(
             anchor['href'],
@@ -1428,7 +1414,7 @@ class TestCartoonistTile(TileTestCase):
         for t in tests:
             self._row.creator.paypal_email = t[0]
             self._row.creator.torrent = t[1]
-            tile = CartoonistTile(db, self._value, self._row)
+            tile = CartoonistTile(self._value, self._row)
             footer = tile.footer()
             soup = BeautifulSoup(str(footer), 'html.parser')
             div = soup.div
@@ -1444,7 +1430,7 @@ class TestCartoonistTile(TileTestCase):
     def test__image(self):
         # Test with image
         self._row.creator.image = 'creator.image.aaa.000.png'
-        tile = CartoonistTile(db, self._value, self._row)
+        tile = CartoonistTile(self._value, self._row)
         image_div = tile.image()
         soup = BeautifulSoup(str(image_div), 'html.parser')
 
@@ -1476,7 +1462,7 @@ class TestCartoonistTile(TileTestCase):
         # Refactoring is required.
 
         # self._row.creator.image = None        # <--- This doesn't work.
-        # tile = CartoonistTile(db, self._value, self._row)
+        # tile = CartoonistTile(self._value, self._row)
         # image_div = tile.image()
         # soup = BeautifulSoup(str(image_div), 'html.parser')
 
@@ -1510,7 +1496,7 @@ class TestCartoonistTile(TileTestCase):
         # )
 
     def test_render(self):
-        tile = CartoonistTile(db, self._value, self._row)
+        tile = CartoonistTile(self._value, self._row)
         div = tile.render()
         soup = BeautifulSoup(str(div), 'html.parser')
 
@@ -1561,7 +1547,7 @@ class TestCartoonistTile(TileTestCase):
         self.assertEqual(str(div_3.div), str(tile.footer()))
 
     def test__title(self):
-        tile = CartoonistTile(db, self._value, self._row)
+        tile = CartoonistTile(self._value, self._row)
         title_div = tile.title()
         soup = BeautifulSoup(str(title_div), 'html.parser')
         # <div class="col-sm-12 name">
@@ -1587,8 +1573,7 @@ class TestFunctions(LocalTestCase):
     _released_book = None
     _ongoing_book = None
 
-    # C0103: *Invalid name "%s" (should match %s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     def setUp(self):
         self._auth_user = self.add(AuthUser, dict(
             name='First Last',
@@ -1641,8 +1626,6 @@ class TestFunctions(LocalTestCase):
         ).first()
 
     def _parse_link(self, link):
-        # no-self-use (R0201): *Method could be a function*
-        # pylint: disable=R0201
         data = {}
         soup = BeautifulSoup(str(link), 'html.parser')
         anchor = soup.find('a')
@@ -1696,7 +1679,7 @@ class TestFunctions(LocalTestCase):
 
         data = self._parse_link(book_contribute_button(self._row()))
         self.assertEqual(data['string'], None)
-        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_class'], ['grid_icon'])
         self.assertEqual(data['img_title'], 'Contribute')
         self.assertEqual(
             data['img_src'],
@@ -1725,7 +1708,7 @@ class TestFunctions(LocalTestCase):
 
         data = self._parse_link(creator_contribute_button(self._row()))
         self.assertEqual(data['string'], None)
-        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_class'], ['grid_icon'])
         self.assertEqual(data['img_title'], 'Contribute')
         self.assertEqual(
             data['img_src'],
@@ -1757,7 +1740,7 @@ class TestFunctions(LocalTestCase):
         row = self._row()
         data = self._parse_link(download_link(row))
         self.assertEqual(data['string'], None)
-        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_class'], ['grid_icon'])
         self.assertEqual(data['img_title'], 'Download')
         self.assertEqual(
             data['img_src'],
@@ -1827,7 +1810,7 @@ class TestFunctions(LocalTestCase):
         row = self._row(book_id=self._ongoing_book.id)
         data = self._parse_link(follow_link(row))
         self.assertEqual(data['string'], None)
-        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_class'], ['grid_icon'])
         self.assertEqual(data['img_title'], 'Follow')
         self.assertEqual(
             data['img_src'],
@@ -1852,7 +1835,7 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(link_for_creator_follow({}), '')
         data = self._parse_link(link_for_creator_follow(self._row()))
         self.assertEqual(data['string'], None)
-        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_class'], ['grid_icon'])
         self.assertEqual(data['img_title'], 'Follow')
         self.assertEqual(
             data['img_src'],
@@ -1879,7 +1862,7 @@ class TestFunctions(LocalTestCase):
 
         data = self._parse_link(link_for_creator_torrent(self._row()))
         self.assertEqual(data['string'], None)
-        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_class'], ['grid_icon'])
         self.assertEqual(data['img_title'], 'Download')
         self.assertEqual(
             data['img_src'],
@@ -1906,7 +1889,7 @@ class TestFunctions(LocalTestCase):
 
         data = self._parse_link(read_link(self._row()))
         self.assertEqual(data['string'], None)
-        self.assertEqual(data['img_class'],['grid_icon'])
+        self.assertEqual(data['img_class'], ['grid_icon'])
         self.assertEqual(data['img_title'], 'Read')
         self.assertEqual(
             data['img_src'],
@@ -1936,8 +1919,7 @@ class TestFunctions(LocalTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 

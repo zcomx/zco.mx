@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-
 Test suite for modules/stickon/restricted.py
-
 """
 import os
 import re
@@ -12,14 +9,10 @@ import unittest
 from applications.zcomx.modules.stickon.restricted import log_ticket
 from applications.zcomx.modules.tests.runner import LocalTestCase
 from applications.zcomx.modules.tests.helpers import WebTestCase
+# pylint: disable=missing-docstring
 
 
-# R0904: *Too many public methods (%%s/%%s)*
-# pylint: disable=R0904
-# C0111: *Missing docstring*
-# pylint: disable=C0111
-
-class DubLogger(object):
+class DubLogger():
     def __init__(self):
         self.warns = []
         self.errors = []
@@ -100,8 +93,8 @@ class TestFunctions(WebTestCase):
             for word in words_found_status:
                 if error.startswith(word):
                     words_found_status[word] = True
-        for word in words_found_status:
-            self.assertTrue(words_found_status[word])
+        for status in words_found_status.values():
+            self.assertTrue(status)
 
         # Cleanup
         new_files = set(error_files_aft).difference(set(error_files_bef))
@@ -113,8 +106,7 @@ class TestFunctions(WebTestCase):
 
 def setUpModule():
     """Set up web2py environment."""
-    # C0103: *Invalid name "%%s" (should match %%s)*
-    # pylint: disable=C0103
+    # pylint: disable=invalid-name
     LocalTestCase.set_env(globals())
 
 
