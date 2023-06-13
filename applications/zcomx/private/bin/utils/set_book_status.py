@@ -5,9 +5,10 @@ set_book_status.py
 
 Script to set the status of a book.
 """
+import argparse
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.books import (
     calc_status,
     generator,
@@ -48,63 +49,62 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] book_id [book_id book_id ...]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='set_book_status.py')
 
-    parser.add_option(
+    parser.add_argument(
+        'book_ids', nargs='*', default=[], metavar='book_id [book_id ...]')
+
+    parser.add_argument(
         '-a', '--all',
         action='store_true', dest='all', default=False,
         help='Set the status of all books.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-d', '--disable',
         action='store_true', dest='disable', default=False,
         help='Set the status to disabled.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
+    set_cli_logging(LOG, args.verbose)
 
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) < 1 and not options.all:
-        parser.print_help()
-        sys.exit(1)
-
-    if options.all:
+    if args.all:
         generator_query = (db.book)
     else:
-        generator_query = (db.book.id.belongs(args))
+        generator_query = (db.book.id.belongs(args.book_ids))
 
     for book in generator(generator_query):
         LOG.debug('Updating: %s', book.name)
-        if options.disable:
+        if args.disable:
             book = set_status(book, BOOK_STATUS_DISABLED)
         else:
             book = set_status(book, calc_status(book))

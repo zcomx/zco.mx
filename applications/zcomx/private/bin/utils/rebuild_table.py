@@ -5,12 +5,13 @@ rebuild_table.py
 
 A script to rebuild db tables.
 """
+import argparse
 import os
 import sys
 import tarfile
 import tempfile
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -146,48 +147,47 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] table [table2 table3 ...]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='rebuild_table.py')
 
-    parser.add_option(
+    parser.add_argument(
+        'tablenames', nargs='+', metavar='tablename [tablename ...]')
+
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) < 1:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     backup()
 
-    for tablename in args:
+    for tablename in args.tablenames:
         try:
             rebuild_table(tablename)
         except RebuildError as err:

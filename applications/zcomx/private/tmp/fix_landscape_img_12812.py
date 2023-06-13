@@ -10,13 +10,14 @@ width: 750px
 * resize images
 * optimize images
 """
+import argparse
 import os
 import shutil
 import sys
 import traceback
-from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.books import (
     Book,
     images,
@@ -40,9 +41,15 @@ db = APP_ENV['db']
 def man_page():
     """Print manual page-like help"""
     print("""
+OVERVIEW
+    This script fixes landscape images that may have been resized incorrectly.
+    size: 'web'
+    width: 750px
+    * resize images
+    * optimize images
+
 USAGE
     fix_landscape_img_12812.py
-
 
 OPTIONS
     -d, --debug
@@ -60,8 +67,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
     """)
 
@@ -69,42 +79,39 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='fix_landscape_img_12812.py')
 
-    parser.add_option(
+    parser.add_argument(
         '-d', '--debug',
         action='store_true', dest='debug', default=False,
         help='Display a count of how many images would be resized.',
     )
-    parser.add_option(
-        '-l', '--limit', type='int',
+    parser.add_argument(
+        '-l', '--limit', type=int,
         dest='limit', default=0,
         help='Only resize/optimize this many images.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, unused_args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.info('Started.')
 
@@ -130,7 +137,7 @@ def main():
             continue
         count += 1
 
-        if options.debug:
+        if args.debug:
             LOG.debug('Debug, not fixing page: %s', page_id)
             continue
 
@@ -161,13 +168,13 @@ def main():
         page = BookPage.from_updated(page, dict(image=stored_filename))
         book_ids.append(page.book_id)
 
-        if options.limit and count >= options.limit:
+        if args.limit and count >= args.limit:
             LOG.debug('Limit reached, aborting')
             break
 
     print('FIXME count: {var}'.format(var=count))
 
-    if not options.debug:
+    if not args.debug:
         for book_id in set(book_ids):
             book = Book.from_id(book_id)
             AllSizesImages.from_names(images(book)).optimize()

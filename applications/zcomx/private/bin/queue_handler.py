@@ -5,10 +5,10 @@ queue_handler.py
 
 Check queue and run any jobs found.
 """
+import argparse
 import datetime
 import sys
 import traceback
-from optparse import OptionParser
 from applications.zcomx.modules.job_queue import (
     IgnorableJob,
     JobHistory,
@@ -23,28 +23,28 @@ VERSION = 'Version 0.1'
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='queue_handler.py')
 
-    parser.add_option(
+    parser.add_argument(
         '-s', '--summary',
         action='store_true', dest='summary', default=False,
         help='Print summary of jobs checked to stdout',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
-        help='print messages to stdout',
+        action='count', dest='verbose', default=False,
+        help='Log debug messages',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, unused_args) = parser.parse_args()
+    args = parser.parse_args()
 
-    set_cli_logging(LOG, options.verbose, options.vv, with_time=True)
+    set_cli_logging(LOG, args.verbose)
 
     stats = {
         'checked': 0,
@@ -131,7 +131,7 @@ def main():
         JobHistory.from_add(job_history_data)
         job.delete()
 
-    if options.summary:
+    if args.summary:
         for k, v in sorted(stats.items()):
             print('{k}: {v}'.format(k=k, v=v))
 

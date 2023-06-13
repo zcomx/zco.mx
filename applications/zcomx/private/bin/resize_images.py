@@ -5,16 +5,17 @@ resize_images.py
 
 Script to create and maintain images and their sizes.
 """
+import argparse
 import os
 import shutil
 import subprocess
 import sys
 import time
 import traceback
-from optparse import OptionParser
 from pydal.helpers.regex import REGEX_UPLOAD_PATTERN
 from gluon import *
 from gluon.shell import env
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.images import \
     SIZES, \
     UploadImage, \
@@ -196,8 +197,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
     """)
 
@@ -205,73 +209,77 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] [file...]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='resize_images.py')
 
-    parser.add_option(
+    parser.add_argument(
+        'filenames',
+        nargs='*',
+        default=[],
+        metavar='filename [filename ...]',
+    )
+
+    parser.add_argument(
         '-d', '--dry-run',
         action='store_true', dest='dry_run', default=False,
         help='Dry run. Do not resize images. Only report what would be done.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-f', '--field',
         choices=FIELDS,
         dest='field', default=None,
         help='Resize images associated with this database field: table.field',
     )
-    parser.add_option(
+    parser.add_argument(
         '--fields',
         action='store_true', dest='fields', default=False,
         help='List all database image fields and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-i', '--id',
         dest='id', default=None,
         help='Resize images associated with record with this id.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-p', '--purge',
         action='store_true', dest='purge', default=False,
         help='Purge orphaned images.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--sizes',
         action='store_true', dest='sizes', default=False,
         help='List all available image sizes and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     quick_exit = False
 
-    if options.fields:
+    if args.fields:
         print('Database image fields:')
         for f in FIELDS:
             print('    {f}'.format(f=f))
         quick_exit = True
 
-    if options.sizes:
+    if args.sizes:
         print('Image sizes:')
         for name in SIZES:
             print(name)
@@ -281,16 +289,15 @@ def main():
         sys.exit(0)
 
     LOG.info('Started.')
-    filenames = args or []
 
     handler = ImageHandler(
-        filenames,
-        field=options.field,
-        record_id=options.id,
-        dry_run=options.dry_run,
+        args.filenames,
+        field=args.field,
+        record_id=args.id,
+        dry_run=args.dry_run,
     )
 
-    if options.purge:
+    if args.purge:
         handler.purge()
     else:
         handler.resize()

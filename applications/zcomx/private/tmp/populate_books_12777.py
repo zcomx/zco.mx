@@ -5,13 +5,14 @@ populate_books_12777.py
 
 Script to populate books table for testing mod 12777.
 """
+import argparse
 import datetime
 import os
 import sys
 import traceback
-from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -23,9 +24,11 @@ db = APP_ENV['db']
 def man_page():
     """Print manual page-like help"""
     print("""
+OVERVIEW
+    This script populates the book table for testing. See mod 12777.
+
 USAGE
     populate_books_12777.py 100         # Create 100 book records.
-
 
 OPTIONS
     -h, --help
@@ -37,8 +40,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
     """)
 
@@ -46,38 +52,36 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] number'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='populate_books_12777.py')
 
-    parser.add_option(
+    parser.add_argument('number_to_create', type=int)
+
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.info('Started.')
 
     now = datetime.datetime.now()
-    number = int(args[0])
-    for num in range(1, number + 1):
+    for num in range(1, args.number_to_create + 1):
         print('FIXME num: {var}'.format(var=num))
         data = dict(
             name='POC {n:06d}'.format(n=num),

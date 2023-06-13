@@ -5,11 +5,12 @@ original_images.py
 
 Script to print a report on the original images of a book.
 """
+import argparse
 import os
 import sys
 import traceback
-from optparse import OptionParser
 from gluon import *
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.images import ImageDescriptor
 from applications.zcomx.modules.logger import set_cli_logging
@@ -31,7 +32,11 @@ def print_report(book):
     for book_page in book.pages():
         upload_image = book_page.upload_image()
         descriptor = ImageDescriptor(upload_image.fullname())
-        width, height = descriptor.dimensions()
+        try:
+            width, height = descriptor.dimensions()
+        except FileNotFoundError as err:
+            LOG.error(err)
+            width, height = '0', '0'
         fullname = upload_image.fullname().replace(original_path, '')
         print(fmt.format(
             p=str(book_page.page_no),
@@ -45,6 +50,10 @@ def print_report(book):
 def man_page():
     """Print manual page-like help"""
     print("""
+OVERVIEW
+    Print a report on the original images of a book.
+    No database changes are made.
+
 USAGE
     original_images.py [OPTIONS] book_id [book_id ...]
 
@@ -59,8 +68,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
     """)
 
@@ -68,39 +80,38 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='original_images.py')
 
-    parser.add_option(
+    parser.add_argument('book_ids', metavar='book_id [book_id...]')
+
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
-
-    if options.man:
-        man_page()
-        sys.exit(0)
+    args = parser.parse_args()
 
     if not args:
         parser.print_help()
         sys.exit(1)
 
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.info('Started.')
-    for book_id in args:
+    for book_id in args.book_ids:
         try:
             book = Book.from_id(book_id)
         except LookupError as err:

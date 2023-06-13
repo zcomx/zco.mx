@@ -5,9 +5,10 @@ sql_integrity.py
 
 Compare the 'define_tables' table fields to actual table fields in sqlite db.
 """
+import argparse
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -73,13 +74,12 @@ def man_page():
     """Print manual page-like help"""
     print("""
 OVERVIEW
-    Sqlite has some quirks and limitations.
-    * No DROP COLUMN
-    * ADD COLUMN appends fields to end. Tables on different servers
-      can have fields in different order. Import from csv can fail.
-
-    This script rebuild a db table so the columns match the model in name
-    and in order.
+    This script reports any inconsistencies in models and sqlite db tables.
+    Reports:
+    * Differences between the model tables and views vs actual sqlite db
+      tables.
+    * Differences between the model table fields vs actual sqlite db table
+      columns.
 
 USAGE
     sql_integrity.py [OPTIONS]
@@ -95,40 +95,40 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='sql_integrity.py')
 
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, unused_args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     compare_tables()
     compare_fields()

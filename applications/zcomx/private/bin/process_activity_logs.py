@@ -8,9 +8,10 @@ Script to process activity_log records.
 * Create activity_log records from tentative_activity_log records.
 * Delete tentative_activity_log records converted thus.
 """
+import argparse
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.activity_logs import (
     ActivityLog,
     CompletedTentativeLogSet,
@@ -43,45 +44,45 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """.format(m=MINIMUM_AGE_TO_LOG_IN_SECONDS))
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='process_activity_logs.py')
 
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
-        '-m', '--minimum-age', type='int',
+    parser.add_argument(
+        '-m', '--minimum-age', type=int,
         dest='minimum_age', default=MINIMUM_AGE_TO_LOG_IN_SECONDS,
         help='Minimum age of tentative log to process.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version',
     )
 
-    (options, unused_args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.debug('Starting')
     logs = db(db.tentative_activity_log).select(
@@ -94,7 +95,7 @@ def main():
         tentative_log_set = TentativeLogSet.load(filters=filters)
         youngest_log = tentative_log_set.youngest()
         age = youngest_log.age()
-        if age.total_seconds() < options.minimum_age:
+        if age.total_seconds() < args.minimum_age:
             LOG.debug(
                 'Tentative log records too young, book_id: %s', log.book_id)
             continue

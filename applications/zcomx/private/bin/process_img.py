@@ -5,10 +5,11 @@ process_img.py
 
 Script to process an image.
 """
+import argparse
 import os
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.images import (
     SIZES,
     UploadImage,
@@ -20,13 +21,13 @@ from applications.zcomx.modules.logger import set_cli_logging
 VERSION = 'Version 0.1'
 
 
-def run_delete(image, options):
+def run_delete(image, args):
     """Delete an image.
 
     Args:
         image: string, name of image. eg
             book_page.image.801685b627e099e.300332e6a7067.jpg
-        options: dict, OptionParser options
+        args: dict, argparse args
     """
     try:
         table, field, _ = image.split('.', 2)
@@ -38,25 +39,25 @@ def run_delete(image, options):
     LOG.debug('Deleting: %s', image)
 
     upload_image = UploadImage(db[table][field], image)
-    if options.size:
-        upload_image.delete(size=options.size)
+    if args.size:
+        upload_image.delete(size=args.size)
     else:
         upload_image.delete_all()
 
     query = (db.optimize_img_log.image == image)
-    if options.size:
-        query = query & (db.optimize_img_log.size == options.size)
+    if args.size:
+        query = query & (db.optimize_img_log.size == args.size)
     db(query).delete()
     db.commit()
 
 
-def run_optimize(image, options):
+def run_optimize(image, args):
     """Optimize an image.
 
     Args:
         image: string, name of image. eg
             book_page.image.801685b627e099e.300332e6a7067.jpg
-        options: dict, OptionParser options
+        args: dict, argparse args
     """
     try:
         table, field, _ = image.split('.', 2)
@@ -71,18 +72,18 @@ def run_optimize(image, options):
     LOG.debug('Optimizing: %s', image)
 
     size_to_classes = AllSizesImages.size_to_class_hash()
-    sizes = [options.size] if options.size else SIZES
+    sizes = [args.size] if args.size else SIZES
     for size in sizes:
         img_class = size_to_classes[size]
-        if not options.force and img_class(image).is_optimized():
+        if not args.force and img_class(image).is_optimized():
             LOG.debug(
                 'Not necessary, already optimized (size: %s): %s', size, image)
             continue
 
         fullname = upload_image.fullname(size=size)
-        if options.uploads and fullname.startswith(up_folder):
+        if args.uploads and fullname.startswith(up_folder):
             filename = os.path.join(
-                options.uploads,
+                args.uploads,
                 fullname.replace(up_folder, '', 1)
             )
         else:
@@ -138,68 +139,74 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] image [image_2 image_3 ...]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='process_img.py')
 
-    parser.add_option(
+    parser.add_argument(
+        'image_names',
+        nargs='+',
+        metavar='image_name [image_name ...]',
+    )
+
+    parser.add_argument(
         '-d', '--delete',
         action='store_true', dest='delete', default=False,
         help='Delete the image(s).',
     )
-    parser.add_option(
+    parser.add_argument(
         '-f', '--force',
         action='store_true', dest='force', default=False,
         help='Force optimize regardless of optimize_img_log record.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-s', '--size',
         choices=SIZES,
         dest='size', default=None,
         help='Process this size only.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-u', '--uploads-path',
         dest='uploads', default=None,
         help='Path of directory upload images are stored in.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.debug('Starting')
-    for image in args:
-        if options.delete:
-            run_delete(image, options)
+    for image in args.image_names:
+        if args.delete:
+            run_delete(image, args)
         else:
-            run_optimize(image, options)
+            run_optimize(image, args)
     LOG.debug('Done')
 
 

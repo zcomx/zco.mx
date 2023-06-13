@@ -32,6 +32,12 @@ class TestFunctions(LocalTestCase):
             (False, True, True, logging.DEBUG),
             (True, False, True, logging.INFO),
             (True, True, True, logging.DEBUG),
+            (0, False, False, logging.WARNING),
+            (0, True, False, logging.WARNING),
+            (1, False, False, logging.INFO),
+            (1, True, False, logging.INFO),
+            (2, False, False, logging.DEBUG),
+            (2, True, False, logging.DEBUG),
         ]
 
         for t in tests:

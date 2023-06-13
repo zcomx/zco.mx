@@ -5,12 +5,13 @@ queue_check.py
 
 Check job queue for old or invalid jobs.
 """
+import argparse
 import datetime
 import os
 import sys
 import traceback
-from optparse import OptionParser
 from gluon.shell import env
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.job_queue import Job
 from applications.zcomx.modules.records import Records
 from applications.zcomx.modules.logger import set_cli_logging
@@ -39,45 +40,45 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='queue_check.py')
 
-    parser.add_option(
-        '-a', '--age', type='int',
+    parser.add_argument(
+        '-a', '--age', type=int,
         dest='age', default=1440,
         help='Age in minutes where jobs are considered old.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, _) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.info('Started.')
 
@@ -86,13 +87,13 @@ def main():
     if len(jobs) > 1:
         LOG.error("Multiple pending jobs in queue.")
 
-    LOG.debug('Checking for jobs started %s minutes ago.', options.age)
+    LOG.debug('Checking for jobs started %s minutes ago.', args.age)
     threshold = datetime.datetime.now() - \
-        datetime.timedelta(minutes=options.age)
+        datetime.timedelta(minutes=args.age)
     query = (db.job.start < threshold)
     jobs = Records.from_query(Job, query)
     if len(jobs) > 0:
-        LOG.error('Jobs older than %s minutes found in queue.', options.age)
+        LOG.error('Jobs older than %s minutes found in queue.', args.age)
 
     LOG.info('Done.')
 

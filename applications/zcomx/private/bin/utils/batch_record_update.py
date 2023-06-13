@@ -5,11 +5,12 @@ batch_record_update.py
 
 Script to update records from data read from csv file.
 """
+import argparse
 import collections
 import csv
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 from applications.zcomx.modules.records import Record
 
@@ -178,7 +179,7 @@ class BatchUpdater():
         """
         header_labels = ['table']
         seen_header = False
-        with open(self.csv_filename, 'rb') as f:
+        with open(self.csv_filename, 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
             for record in reader:
                 if not seen_header and record[0] in header_labels:
@@ -266,62 +267,60 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] file.csv'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='batch_record_update.py')
 
-    parser.add_option(
+    parser.add_argument('csv_filename')
+
+    parser.add_argument(
         '-d', '--dry-run',
         action='store_true', dest='dry_run', default=False,
         help='Dry run. File validated. No accessories changed.',
     )
-    parser.add_option(
-        '-e', '--errors', type='int',
+    parser.add_argument(
+        '-e', '--errors', type=int,
         dest='max_errors', default=MAX_ERRORS,
         help='Maximum number of errors before aborting.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
+    set_cli_logging(LOG, args.verbose)
 
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) != 1:
-        parser.print_help()
-        sys.exit(1)
-
-    csv_filename = args[0]
+    csv_filename = args.csv_filename
 
     LOG.info('Started.')
-    updater = BatchUpdater(csv_filename, dry_run=options.dry_run)
+    updater = BatchUpdater(csv_filename, dry_run=args.dry_run)
     if updater.valid_csv_filename():
         LOG.info('Validating data.')
-        updater.set_invalid(max_errors=options.max_errors)
+        updater.set_invalid(max_errors=args.max_errors)
         if updater.stats[INVALID] == 0:
             LOG.info('Updating records.')
             LOG.info('Only changes are logged.')

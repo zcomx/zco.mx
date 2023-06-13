@@ -5,14 +5,15 @@ post_ongoing_update.py
 
 Script to post an ongoing books update on tumblr.
 """
+import argparse
 import datetime
 import json
 import random
 import sys
 import traceback
-from optparse import OptionParser
 from twitter import TwitterHTTPError
 from gluon import *
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.stickon.dal import RecordGenerator
 from applications.zcomx.modules.facebook import (
@@ -271,78 +272,76 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] YYYY-MM-DD'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='post_ongoing_update.py')
 
-    parser.add_option(
+    parser.add_argument('for_date')
+
+    parser.add_argument(
         '-f', '--force',
         action='store_true', dest='force', default=False,
         help='Post regardles if ongoing post_ids exist.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--facebook',
         action='store_true', dest='facebook', default=False,
         help='Post only on facebook.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-p', '--process-activity-logs',
         action='store_true', dest='process_activity_logs', default=False,
         help='Process activity_log records.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--tumblr',
         action='store_true', dest='tumblr', default=False,
         help='Post only on tumblr.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--twitter',
         action='store_true', dest='twitter', default=False,
         help='Post only on twitter.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) != 1:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.debug('Starting')
     try:
-        date = datetime.datetime.strptime(args[0], '%Y-%m-%d').date()
+        date = datetime.datetime.strptime(args.for_date, '%Y-%m-%d').date()
     except ValueError as err:
-        LOG.error('Invalid date: %s, %s', args[0], err)
+        LOG.error('Invalid date: %s, %s', args.for_date, err)
         sys.exit(1)
 
-    if options.process_activity_logs:
+    if args.process_activity_logs:
         activity_log_ids = postable_activity_log_ids()
         if not activity_log_ids:
             LOG.info('There are no postable activity_log records')
@@ -361,19 +360,19 @@ def main():
         sys.exit(1)
 
     services = []
-    if options.facebook:
+    if args.facebook:
         services.append('facebook')
-    if options.tumblr:
+    if args.tumblr:
         services.append('tumblr')
-    if options.twitter:
+    if args.twitter:
         services.append('twitter')
-    if not options.facebook and not options.tumblr and not options.twitter:
+    if not args.facebook and not args.tumblr and not args.twitter:
         services = ['facebook', 'tumblr', 'twitter']
 
     if 'tumblr' in services:
         if ongoing_post.tumblr_post_id \
                 and ongoing_post.tumblr_post_id != IN_PROGRESS \
-                and not options.force:
+                and not args.force:
             LOG.warning(
                 'Ongoing_post has tumblr_post_id: %s',
                 ongoing_post.tumblr_post_id
@@ -388,7 +387,7 @@ def main():
     if 'twitter' in services:
         if ongoing_post.twitter_post_id \
                 and ongoing_post.twitter_post_id != IN_PROGRESS \
-                and not options.force:
+                and not args.force:
             LOG.warning(
                 'Ongoing_post has twitter_post_id: %s',
                 ongoing_post.twitter_post_id
@@ -406,7 +405,7 @@ def main():
             LOG.error('Unable to post to facebook without a tumblr_post_id')
         elif ongoing_post.facebook_post_id \
                 and ongoing_post.facebook_post_id != IN_PROGRESS \
-                and not options.force:
+                and not args.force:
             LOG.warning(
                 'Ongoing_post has facebook_post_id: %s',
                 ongoing_post.facebook_post_id

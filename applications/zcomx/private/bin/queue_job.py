@@ -5,11 +5,12 @@ queue_job.py
 
 Queue a job.
 """
+import argparse
 import sys
 import time
 import traceback
-from optparse import OptionParser
 from pydal.helpers.methods import bar_decode_integer
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.job_queue import (
     Job,
     parse_cli_options,
@@ -57,8 +58,11 @@ OPTIONS
     --cli-options OPTS
         Command line options for the queuer. Only applies with --queuer option.
         Combine multiple options or options with values in quotes.
-        Eg --cli-options '-a -b 1 --vv'
+        Eg --cli-options '-a -b 1 -vv'
 
+
+    --version
+        Print the script version.
     -h, --help
         Print a brief help.
 
@@ -87,111 +91,118 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] command'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='queue_job.py')
 
     now = time.strftime('%F %T', time.localtime())
 
-    parser.add_option(
+    parser.add_argument('command', nargs='*', default=[])
+
+    parser.add_argument(
         '--cli-args',
         dest='cli_args', default='',
         help='Queuer command line args.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--cli-options',
         dest='cli_options', default='',
         help='Queuer command line options.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-l', '--list-queuers',
         action='store_true', dest='list_queuers', default=False,
         help='Print queuers and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
-        '-p', '--priority', type='int',
+    parser.add_argument(
+        '-p', '--priority', type=int,
         dest='priority', default=0,
         help='job priority, default: 0',
     )
-    parser.add_option(
+    parser.add_argument(
         '-q', '--queuer',
         dest='queuer', default=None,
         help='Use queuer to queue job',
     )
-    parser.add_option(
+    parser.add_argument(
         '-r', '--retry-minutes',
         dest='retry_minutes', default='',
         help='job retry_minutes, default: ""',
     )
-    parser.add_option(
+    parser.add_argument(
         '-s', '--start',
         dest='start', default=now,
         help='job start time, default: now',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true',
+        action='count',
         dest='verbose',
-        default=False,
-        help='print messages to stdout',
+        default=0,
+        help='Log debug messages',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    if options.list_queuers:
+    if args.list_queuers:
         print_queuers()
         sys.exit(0)
 
-    if not options.queuer and len(args) != 1:
+    if not args.queuer and not args.command:
         parser.print_help()
         sys.exit(1)
 
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     job_d = {
-        'start': options.start,
-        'priority': options.priority,
+        'start': args.start,
+        'priority': args.priority,
         'queued_time': now,
+        'status': 'a',
     }
-    if options.retry_minutes:
-        job_d['retry_minutes'] = bar_decode_integer(options.retry_minutes)
+    if args.retry_minutes:
+        job_d['retry_minutes'] = bar_decode_integer(args.retry_minutes)
 
-    if not options.queuer:
-        job_d['command'] = ' '.join(args)
+    if not args.queuer:
+        job_d['command'] = ' '.join(args.command)
 
-    if options.queuer:
+    if args.queuer:
         try:
-            queuer_class = getattr(job_queuers, options.queuer)
+            queuer_class = getattr(job_queuers, args.queuer)
         except AttributeError as err:
             queuer_class = None
-            LOG.error('Invalid queuer: %s', options.queuer)
+            LOG.error('Invalid queuer: %s', args.queuer)
             LOG.error(err)
             sys.exit(1)
         if queuer_class:
-            cli_args = options.cli_args.split() if options.cli_args else None
-            cli_options = parse_cli_options(options.cli_options)
-            queuer = queuer_class(cli_args=cli_args, cli_options=cli_options)
+            cli_args = args.cli_args.split() if args.cli_args else None
+            cli_options = parse_cli_options(args.cli_options)
+            queuer = queuer_class(
+                db.job,
+                cli_args=cli_args,
+                cli_options=cli_options,
+            )
             queuer.default_job_options.update(job_d)
             job = queuer.queue()
     else:

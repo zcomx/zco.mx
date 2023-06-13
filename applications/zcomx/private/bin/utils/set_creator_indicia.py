@@ -9,11 +9,12 @@ This is used for testing.
 * Sets the creator.indicia_image field.
 The update_creator_indicia is not queued.
 """
+import argparse
 import os
 import shutil
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import (
     ResizeImgIndicia,
@@ -44,51 +45,50 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] id|name file.png'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='set_creator_indicia.py')
 
-    parser.add_option(
+    parser.add_argument('name', metavar='id|name')
+    parser.add_argument('image_fullname')
+
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) != 2:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     record_id = None
     name = None
     try:
-        record_id = int(args[0])
+        record_id = int(args.name)
     except (TypeError, ValueError):
-        name = args[0]
+        name = args.name
 
     if record_id is None:
         query = (db.auth_user.name == name)
@@ -106,13 +106,21 @@ def main():
             sys.exit(1)
         record_id = rows[0].creator.id
 
-    creator = Creator.from_id(record_id)
+    creator = None
+    try:
+        creator = Creator.from_id(record_id)
+    except LookupError:
+        pass
 
-    if not os.path.exists(args[1]):
-        print('File not found: {n}'.format(n=args[1]))
+    if creator is None:
+        LOG.error('Creator not found: %s', args.name)
+        return
+
+    image_fullname = args.image_fullname
+
+    if not os.path.exists(image_fullname):
+        print('File not found: {n}'.format(n=image_fullname))
         sys.exit(1)
-
-    image_fullname = args[1]
 
     # Cp the file to a tmp directory so it is not deleted.
     tmp_dir = '/tmp/set_creator_indicia'

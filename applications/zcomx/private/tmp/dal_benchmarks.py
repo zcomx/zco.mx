@@ -5,14 +5,15 @@ dal_benchmarks.py
 
 Script to benchmark dal queries.
 """
+import argparse
 import os
 import sys
 import traceback
 import random
-from optparse import OptionParser
 from timeit import Timer
 from gluon import *
 from gluon.shell import env
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -24,9 +25,11 @@ db = APP_ENV['db']
 def man_page():
     """Print manual page-like help"""
     print("""
-USAGE
-    dal_tests.py
+OVERVIEW
+    Script to benchmark dal queries. Tests are hard coded.
 
+USAGE
+    dal_benchmarks.py
 
 OPTIONS
     -h, --help
@@ -38,8 +41,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
     """)
 
@@ -47,32 +53,29 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] [file...]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='dal_benchmarks.py')
 
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, unused_args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.info('Started.')
     ids = [x.id for x in db(db.book).select(db.book.id)]

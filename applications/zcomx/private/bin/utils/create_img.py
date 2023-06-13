@@ -5,10 +5,11 @@ create_img.py
 
 Script to create images.
 """
+import argparse
 import sys
 import traceback
-from optparse import OptionParser
 from PIL import Image
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -46,63 +47,63 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] path/to/outfile.jpg width height'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='create_img.py')
 
-    parser.add_option(
+    parser.add_argument('outfile')
+    parser.add_argument('width')
+    parser.add_argument('height')
+
+    parser.add_argument(
         '-c', '--colour',
         dest='colour', default='#000000',
         help='Specify the colour.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) < 3:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     try:
-        width = int(args[1])
+        width = int(args.width)
     except (TypeError, ValueError):
         parser.print_help()
         sys.exit(1)
 
     try:
-        height = int(args[2])
+        height = int(args.height)
     except (TypeError, ValueError):
         parser.print_help()
         sys.exit(1)
 
-    create_img(args[0], (width, height), options.colour)
+    create_img(args.outfile, (width, height), args.colour)
 
 
 if __name__ == '__main__':

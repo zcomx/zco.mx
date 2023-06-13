@@ -7,12 +7,13 @@ Script to create cc_licence records. Script can be re-run without creating
 duplicate records, but will update/replace existing records.
 The --clear is not recommended if books already have cc_licences.
 """
+import argparse
 import os
 import sys
 import traceback
-from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.cc_licences import CCLicence
 from applications.zcomx.modules.logger import set_cli_logging
 
@@ -134,8 +135,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
     """)
 
@@ -143,46 +147,43 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='cc_licences.py')
 
-    parser.add_option(
+    parser.add_argument(
         '-c', '--clear',
         action='store_true', dest='clear', default=False,
         help='Truncate cc_licence table.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-d', '--dry-run',
         action='store_true', dest='dry_run', default=False,
         help='Dry run. Do not create licences. Report what would be done.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, unused_args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
+    set_cli_logging(LOG, args.verbose)
 
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if options.clear:
+    if args.clear:
         LOG.debug('Truncating cc_licence table.')
-        if not options.dry_run:
+        if not args.dry_run:
             db.cc_licence.truncate()
             db.commit()
         else:
@@ -208,12 +209,12 @@ def main():
             LOG.debug('Updating: %s', template.code)
         else:
             LOG.debug('Adding: %s', template.code)
-            if not options.dry_run:
+            if not args.dry_run:
                 cc_licence = CCLicence.from_add(dict(code=template.code))
         if not cc_licence:
             raise LookupError('cc_licence not found, code: {code}'.format(
                 code=template.code))
-        if not options.dry_run:
+        if not args.dry_run:
             data = dict(
                 code=template.code,
                 number=template.number,

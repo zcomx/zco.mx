@@ -6,10 +6,11 @@ post_book_completed.py
 Script to post a completed book on social media (eg facebook, tumblr and
 twitter).
 """
+import argparse
 import sys
 import traceback
-from optparse import OptionParser
 from gluon import *
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.social_media import (
@@ -50,79 +51,77 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] book_id'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='post_book_completed.py')
 
-    parser.add_option(
+    parser.add_argument('book_id', type=int)
+
+    parser.add_argument(
         '-f', '--force',
         action='store_true', dest='force', default=False,
         help='Post regardles if book post_ids exist.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--facebook',
         action='store_true', dest='facebook', default=False,
         help='Post only on facebook.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--tumblr',
         action='store_true', dest='tumblr', default=False,
         help='Post only on tumblr.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--twitter',
         action='store_true', dest='twitter', default=False,
         help='Post only on twitter.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) != 1:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.debug('Starting')
-    book_id = args[0]
+    book_id = args.book_id
 
     book = Book.from_id(book_id)
     creator = Creator.from_id(book.creator_id)
 
     services = []
-    if options.facebook:
+    if args.facebook:
         services.append('facebook')
-    if options.tumblr:
+    if args.tumblr:
         services.append('tumblr')
-    if options.twitter:
+    if args.twitter:
         services.append('twitter')
-    if not options.facebook and not options.tumblr and not options.twitter:
+    if not args.facebook and not args.tumblr and not args.twitter:
         services = ['facebook', 'tumblr', 'twitter']
 
     inactive_services = ['facebook']

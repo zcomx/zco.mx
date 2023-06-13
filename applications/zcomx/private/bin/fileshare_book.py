@@ -5,9 +5,10 @@ fileshare_book.py
 
 Script to release a book for filesharing.
 """
+import argparse
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.book.releasers import (
     FileshareBook,
     UnfileshareBook,
@@ -49,70 +50,68 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] book_id'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='fileshare_book.py')
 
-    parser.add_option(
+    parser.add_argument('book_id', type=int)
+
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-m', '--max-requeues',
-        type='int',
+        type=int,
         dest='max_requeues', default=25,
         help='Requeue this script at most this many times. Default 25.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-r', '--requeues',
-        type='int',
+        type=int,
         dest='requeues', default=0,
         help='The number of times this script has been requeued.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--reverse',
         action='store_true', dest='reverse', default=False,
         help='Reverse the release.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) != 1:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.debug('Starting')
-    book_id = args[0]
+    book_id = args.book_id
     book = Book.from_id(book_id)
-    if not options.reverse and not book.release_date:
+    if not args.reverse and not book.release_date:
         fmt = 'Release for fileshare fail. Book not set completed, id: {i}'
         raise SyntaxError(fmt.format(i=book_id))
     creator = Creator.from_id(book.creator_id)
-    release_class = UnfileshareBook if options.reverse else FileshareBook
+    release_class = UnfileshareBook if args.reverse else FileshareBook
     releaser = release_class(book, creator)
     releaser.run()
     if releaser.needs_requeue:
@@ -122,8 +121,8 @@ def main():
         )
         requeuer = Requeuer(
             queuer,
-            requeues=options.requeues,
-            max_requeues=options.max_requeues,
+            requeues=args.requeues,
+            max_requeues=args.max_requeues,
         )
         requeuer.requeue()
 

@@ -5,13 +5,14 @@ resize_images.py
 
 Script to simulate resize_img.sh from python.
 """
+import argparse
 import os
 import shutil
 import sys
 import traceback
-from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.images import ResizeImg
 from applications.zcomx.modules.logger import set_cli_logging
 
@@ -46,8 +47,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
 
 NOTES:
@@ -59,50 +63,49 @@ NOTES:
 def main():
     """Main processing."""
 
-    usage = '%prog [options] file'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='resize_img.py')
 
-    parser.add_option(
+    parser.add_argument(
+        'filenames',
+        nargs='+',
+        metavar='filename [filename ...]'
+    )
+
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-t', '--tmp-dir',
         dest='tmp_dir', default='/tmp/resize_img_py',
         help='Working directory. Default /tmp/resize_img_py',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) < 1:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.info('Started.')
     # copy the file to a temp name.
-    if not os.path.exists(options.tmp_dir):
-        os.makedirs(options.tmp_dir)
+    if not os.path.exists(args.tmp_dir):
+        os.makedirs(args.tmp_dir)
 
-    for filename in args:
+    for filename in args.filenames:
         base = os.path.basename(filename)
-        dest_filename = os.path.join(options.tmp_dir, base)
+        dest_filename = os.path.join(args.tmp_dir, base)
         shutil.copy(filename, dest_filename)
 
         resize_img = ResizeImg(dest_filename)

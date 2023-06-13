@@ -5,11 +5,12 @@ indicia_png.py
 
 Script to create indicia png files for a creator or a book.
 """
+import argparse
 import os
 import shutil
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.books import Book
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.indicias import (
@@ -23,11 +24,11 @@ from applications.zcomx.modules.logger import set_cli_logging
 VERSION = 'Version 0.1'
 
 
-def create_generic_png(options):
+def create_generic_png(args):
     """Create a generic png file.
 
     Args:
-        options: dict of OptionParser options
+        args: dict of argparse args
 
     """
     creator_id = 0
@@ -46,32 +47,32 @@ def create_generic_png(options):
         '{c:03d}'.format(c=creator_id),
         metadata_filename,
         indicia_filename,
-        landscape=options.landscape
+        landscape=args.landscape
     )
     indicia_sh.run()
-    if options.output:
-        shutil.copy(indicia_sh.png_filename, options.output)
+    if args.output:
+        shutil.copy(indicia_sh.png_filename, args.output)
     else:
         shutil.copy(indicia_sh.png_filename, os.getcwd())
     os.unlink(metadata_filename)
 
 
-def create_png(record, options):
+def create_png(record, args):
     """Create a png file.
 
     Args:
         record: Row instance representing record.
-        options: dict of OptionParser options
+        args: dict of argparse args
 
     """
-    obj_class = CreatorIndiciaPagePng if options.creator \
+    obj_class = CreatorIndiciaPagePng if args.creator \
         else BookIndiciaPagePng
 
-    orientation = 'landscape' if options.landscape else 'portrait'
+    orientation = 'landscape' if args.landscape else 'portrait'
     png_page = obj_class(record)
     png = png_page.create(orientation=orientation)
-    if options.output:
-        shutil.copy(png, options.output)
+    if args.output:
+        shutil.copy(png, args.output)
     else:
         shutil.copy(png, os.getcwd())
 
@@ -79,6 +80,8 @@ def create_png(record, options):
 def man_page():
     """Print manual page-like help"""
     print("""
+OVERVIEW
+    This script creates indicia png files for a creator or a book.
 USAGE
     indicia_png.py [OPTIONS] id|name
 
@@ -111,59 +114,57 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] id|name'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='indicia_png.py')
 
-    parser.add_option(
+    parser.add_argument('name', metavar='id|name')
+
+    parser.add_argument(
         '-c', '--creator',
         action='store_true', dest='creator', default=False,
         help='Create indicia png for a creator.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-l', '--landscape',
         action='store_true', dest='landscape', default=False,
         help='Png orientation=landscape. Default: portrait',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-o', '--output',
         dest='output', default=None,
         help='Create png file with this name.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) < 1:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     record = None
     record_id = None
@@ -171,13 +172,13 @@ def main():
     try:
         record_id = int(args[0])
     except (TypeError, ValueError):
-        name = args[0]
+        name = args.name
 
-    table = db.creator if options.creator else db.book
-    record_class = Creator if options.creator else Book
+    table = db.creator if args.creator else db.book
+    record_class = Creator if args.creator else Book
 
     if record_id is not None:
-        if not options.creator or record_id != 0:
+        if not args.creator or record_id != 0:
             try:
                 record = record_class.from_id(record_id)
             except LookupError:
@@ -185,7 +186,7 @@ def main():
                     'No {t} found, id: {i}'.format(t=str(table), i=record_id))
                 sys.exit(1)
     else:
-        if options.creator:
+        if args.creator:
             query = (db.auth_user.name == name)
             rows = db(query).select(
                 left=db.creator.on(
@@ -205,10 +206,10 @@ def main():
             sys.exit(1)
         record = record_class.from_id(rows[0].id)
 
-    if options.creator and record_id == 0:
-        create_generic_png(options)
+    if args.creator and record_id == 0:
+        create_generic_png(args)
     else:
-        create_png(record, options)
+        create_png(record, args)
 
 
 if __name__ == '__main__':

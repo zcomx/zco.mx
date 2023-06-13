@@ -11,15 +11,21 @@ import logging
 def set_cli_logging(
         logger,
         verbose,
-        more_verbose,
+        more_verbose=False,
         quiet=False,
         with_time=False):
     """Set logging for cli scripts.
 
     Args:
         logger: logging.Logger instance
-        verbose: if True, level is set to logging.INFO
+        verbose: bool or int
+            if bool, if True, level is set to logging.INFO
+            if int,
+                verbose = 0         logging.WARN
+                verbose = 1         logging.INFO
+                verbose = 2         logging.DEBUG
         more_verbose: if True, level is set to logging.DEBUG
+            This is ignored if verbose is int.
         quiet: if True, level is set to logging.critical
         with_time: if True formatter includes a timestamp.
 
@@ -29,10 +35,18 @@ def set_cli_logging(
             verbose
             quiet                   lowest
     """
-    level = logging.DEBUG if more_verbose \
-        else logging.INFO if verbose \
+    do_verbose = verbose
+    do_more_verbose = more_verbose
+
+    if verbose is not None and not isinstance(verbose, bool):
+        do_verbose = verbose > 0
+        do_more_verbose = verbose > 1
+
+    level = logging.DEBUG if do_more_verbose \
+        else logging.INFO if do_verbose \
         else logging.CRITICAL if quiet \
         else logging.WARNING
+
     formats = {
         'default': '%(levelname)s - %(message)s',
         'with_time': '%(asctime)s - %(levelname)s - %(message)s',

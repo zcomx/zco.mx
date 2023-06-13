@@ -5,9 +5,10 @@ update_creator_indicia.py
 
 Script to update a creator's indicia.
 """
+import argparse
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.creators import Creator
 from applications.zcomx.modules.images import on_delete_image
 from applications.zcomx.modules.indicias import create_creator_indicia
@@ -68,66 +69,67 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] creator_id [creator_id_2 creator_id_3 ...]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='update_creator_indicia.py')
 
-    parser.add_option(
+    parser.add_argument(
+        'creator_ids',
+        metavar='creator_id [creator_id ...]'
+    )
+
+    parser.add_argument(
         '-c', '--clear',
         action='store_true', dest='clear', default=False,
         help='Clear creator indicia fields and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-o', '--optimize',
         action='store_true', dest='optimize', default=False,
         help='Optimize the images.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-r', '--resize',
         action='store_true', dest='resize', default=False,
         help='Create different sizes of the images.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) < 1:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     ids = []
-    for arg in args:
+    for raw_record_id in args.creator_ids:
         try:
-            record_id = int(arg)
+            record_id = int(raw_record_id)
         except (TypeError, ValueError):
-            print('Invalid creator id: {i}'.format(i=arg))
+            print('Invalid creator id: {i}'.format(i=raw_record_id))
             sys.exit(1)
         ids.append(record_id)
 
@@ -140,13 +142,13 @@ def main():
 
         LOG.debug('Updating creator: %s', creator.name_for_url)
 
-        if options.clear:
+        if args.clear:
             clear_creator_indicia(creator)
         else:
             create_creator_indicia(
                 creator,
-                resize=options.resize,
-                optimize=options.optimize
+                resize=args.resize,
+                optimize=args.optimize
             )
 
 

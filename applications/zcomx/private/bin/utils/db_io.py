@@ -5,10 +5,11 @@ db_io.py
 
 Script to run massive db io for testing.
 """
+import argparse
 import sys
 import time
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -30,53 +31,51 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] iterations'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='db_io.py')
 
-    parser.add_option(
+    parser.add_argument('number_of_iterations', type=int)
+
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if len(args) != 1:
-        parser.print_help()
-        sys.exit(1)
+    set_cli_logging(LOG, args.verbose)
 
     db.optimize_img_log.truncate()
-    for _ in range(0, int(args[0])):
+    for _ in range(0, int(args.number_of_iterations)):
         record_id = db.optimize_img_log.insert(image='table.field.aaa.111.jpg')
         # db.commit()
         query = (db.optimize_img_log.id == record_id)
         db(query).delete()
         # db.commit()
-        time.sleep(int(args[0]))
+        time.sleep(int(args.number_of_iterations))
 
 
 if __name__ == '__main__':

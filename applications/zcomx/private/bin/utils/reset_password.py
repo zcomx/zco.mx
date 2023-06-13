@@ -4,14 +4,15 @@ reset_password.py
 
 Script reset the password of a auth_user record.
 """
+import argparse
 import getpass
 import os
 import sys
 import traceback
-from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
 from gluon.validators import CRYPT
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.creators import AuthUser
 from applications.zcomx.modules.logger import set_cli_logging
 
@@ -26,6 +27,8 @@ def man_page():
     print("""
 USAGE
     reset_password.py [OPTIONS] email [password]
+    reset_password.py email [password]
+    reset_password.py --all [password]
 
     If the password is not provided, the user is prompted for it.
 
@@ -46,8 +49,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
     -x EMAIL, --exclude=EMAIL
         Exclude the account with this email when updating users.
@@ -58,68 +64,77 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] email [password]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='reset_password.py')
 
-    parser.add_option(
+    parser.add_argument(
+        'user_pws',
+        nargs='*',
+        default=[],
+        metavar='email [password] | --all [password]',
+    )
+
+    parser.add_argument(
         '-a', '--all',
         action='store_true', dest='all', default=False,
         help='Update all accounts.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
-    parser.add_option(
+    parser.add_argument(
         '-x', '--exclude',
         dest='exclude', default=None,
         help='Exclude this account from update.',
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     emails = []
     passwd = None
-    if options.all:
-        if len(args) > 1:
+
+    if args.all:
+        if len(args.user_pws) > 1:
             parser.print_help()
             sys.exit(1)
         emails = [x.email for x in db(db.auth_user).select(db.auth_user.email)]
-        if len(args) == 1:
-            passwd = args[0]
+        if len(args.user_pws) == 1:
+            passwd = args.user_pws[0]
     else:
-        if not args or len(args) > 2:
+        if not args.user_pws or len(args.user_pws) > 2:
             parser.print_help()
             sys.exit(1)
-        emails = [args[0]]
-        if len(args) == 2:
-            passwd = args[1]
+        emails = [args.user_pws[0]]
+        if len(args.user_pws) == 2:
+            passwd = args.user_pws[1]
 
     if not passwd:
         passwd = getpass.getpass()
 
     for email in emails:
-        if options.exclude and options.exclude == email:
+        if args.exclude and args.exclude == email:
             continue
         LOG.debug('Updating: %s', email)
-        auth_user = AuthUser.from_key(dict(email=email))
+        try:
+            auth_user = AuthUser.from_key(dict(email=email))
+        except LookupError as err:
+            LOG.error('Email not found: {e}'.format(e=email))
+            continue
         alg = 'pbkdf2(1000,20,sha512)'
         passkey = str(CRYPT(digest_alg=alg, salt=True)(passwd)[0])
 

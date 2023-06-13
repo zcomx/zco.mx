@@ -6,14 +6,18 @@ settings_json_check.py
 Script for comparing settings.json to settings.conf or
 /srv/http/local/test.conf
 """
+import argparse
 import os
 import sys
 import traceback
 import json
 import unittest
-from optparse import OptionParser
 from gluon import *
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import (
+    AppConfig,
+    AppConfigLoader,
+)
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -41,7 +45,9 @@ def byteify(element):
     if isinstance(element, list):
         return [byteify(element) for element in element]
     if isinstance(element, str):
-        return element.encode('utf-8')
+        return element
+    if isinstance(element, bytes):
+        return element.decode('utf-8')
     return element
 
 
@@ -72,8 +78,11 @@ OPTIONS
 
     Print verbose output.
 
-    --vv
+    -vv
 
+
+    --version
+        Print the script version.
     Print more verbose output.
     """)
 
@@ -85,15 +94,14 @@ def main():
     Returns:
         None.
     """
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='settings_json_check.py')
 
-    parser.add_option(
+    parser.add_argument(
         '-d', '--dump', action='store_true',
         dest='dump',
         help='Dump old settings in json format and exit.'
     )
-    parser.add_option(
+    parser.add_argument(
         '--man', action='store_true',
         dest='man_help',
         help=' '.join((
@@ -101,23 +109,24 @@ def main():
             'Manpage help includes examples and notes.'
         ))
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true',
+        action='count',
         dest='verbose',
         help='Print messages to stdout'
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, unused_args) = parser.parse_args()
+    args = parser.parse_args()
 
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
-    if options.man_help:
+    if args.man_help:
         parser.print_help()
         print('')
         man_page()
@@ -127,14 +136,15 @@ def main():
 
     settings = model_db.settings_loader.settings
 
-    if options.dump:
+    if args.dump:
         print(json.dumps(settings, indent=4, sort_keys=True))
         sys.exit(0)
 
     configfile = os.path.join(
         current.request.folder, 'private', SETTINGS_FILENAME)
 
-    json_settings = byteify(AppConfig(configfile=configfile, reload=True))
+    app_config = AppConfigLoader(configfile=configfile)
+    json_settings = byteify({key:value for key, value in app_config.settings.items()})
 
     is_same(settings['auth'], json_settings['web2py']['auth']['settings'])
     is_same(settings['mail'], json_settings['web2py']['mail']['settings'])

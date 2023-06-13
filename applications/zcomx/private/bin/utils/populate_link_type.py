@@ -5,12 +5,13 @@ populate_link_type.py
 
 Script to populate the link_type table.
 """
+import argparse
 import os
 import sys
 import traceback
-from optparse import OptionParser
 from gluon import *
 from gluon.shell import env
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -74,9 +75,21 @@ def create_records(dry_run=False):
 def list_records():
     """List records."""
     rows = db().select(db.link_type.ALL)
+    fmt = '{rid:2s} {code:20s} {label:20s} {url}'
+    print(fmt.format(
+        rid='ID',
+        code='Code',
+        label='Label',
+        url='Url placeholder',
+    ))
+
     for r in rows:
-        print('{rid} {name:20s} {seq}'.format(
-            rid=r.id, name=r.name, seq=r.sequence))
+        print(fmt.format(
+            rid=str(r.id),
+            code=r.code,
+            label=r.label,
+            url=r.url_placeholder,
+        ))
 
 
 def man_page():
@@ -106,8 +119,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
     """)
 
@@ -115,64 +131,57 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='populate_link_type.py')
 
-    parser.add_option(
+    parser.add_argument(
         '-c', '--clear',
         action='store_true', dest='clear', default=False,
         help='Truncate table and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-d', '--dry-run',
         action='store_true', dest='dry_run', default=False,
         help='Dry run. Do not create records. Only report what would be done.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-l', '--list',
         action='store_true', dest='list', default=False,
         help='List existing records and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
+    set_cli_logging(LOG, args.verbose)
 
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if options.list:
+    if args.list:
         list_records()
         sys.exit(0)
 
-    if options.clear:
+    if args.clear:
         LOG.info('Truncating link_type table')
         db.link_type.truncate()
         db.commit()
         sys.exit(0)
 
-    if len(args) > 1:
-        parser.print_help()
-        sys.exit(1)
-
     LOG.info('Started.')
-    create_records(dry_run=options.dry_run)
+    create_records(dry_run=args.dry_run)
     LOG.info('Done.')
 
 

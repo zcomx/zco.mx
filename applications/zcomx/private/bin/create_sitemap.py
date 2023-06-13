@@ -6,10 +6,11 @@ create_sitemap.py
 Script to tally the yearly and monthly contributions, ratings, and views for
 each book.
 """
+import argparse
 import sys
 import traceback
-from optparse import OptionParser
 from gluon import *
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.books import (
     generator,
     get_page,
@@ -87,8 +88,11 @@ def man_page():
     print("""
 USAGE
     create_sitemap.py
-    create_sitemap.py --vv                         # Verbose output
+    create_sitemap.py -vv                         # Verbose output
     create_sitemap.py -o path/to/sitemap.xml       # Output to file
+
+    --version
+        Print the script version.
 
 OPTIONS
     -h, --help
@@ -104,45 +108,45 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='create_sitemap.py')
 
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-o', '--out-file',
         dest='outfile', default=None,
         help='Write output to this file.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, unused_args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
-
-    set_cli_logging(LOG, options.verbose, options.vv)
+    set_cli_logging(LOG, args.verbose)
 
     LOG.info('Started.')
     sitemap = TAG.urlset(_xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
@@ -171,8 +175,8 @@ def main():
                 ).xml_component()
             )
 
-    if options.outfile:
-        with open(options.outfile, 'wb') as f:
+    if args.outfile:
+        with open(args.outfile, 'wb') as f:
             f.write(sitemap.xml())
     else:
         print(sitemap.xml())

@@ -5,9 +5,10 @@ optimize_images.py
 
 Utility script to optimize all images for a book, creator or all.
 """
+import argparse
 import sys
 import traceback
-from optparse import OptionParser
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.books import \
     Book, \
     images as book_images
@@ -105,66 +106,73 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
     """)
 
 
 def main():
     """Main processing."""
 
-    usage = '%prog [options] [book_id book_id ...]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='optimize_images.py')
 
-    parser.add_option(
+    parser.add_argument(
+        'record_ids',
+        nargs='*',
+        default=[],
+        metavar='record_id [record_id ...]',
+    )
+
+    parser.add_argument(
         '-c', '--creator',
         action='store_true', dest='creator', default=False,
         help='Optimize creator images. Ids are creator record ids.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-d', '--debug',
         action='store_true', dest='debug', default=False,
         help='Debug mode. Show what would be done but do not do it.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-f', '--force',
         action='store_true', dest='force', default=False,
         help='Force optimization even if it was done previously.',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
+    set_cli_logging(LOG, args.verbose)
 
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if not args:
-        optimize_all_images(debug=options.debug, force=options.force)
+    if not args.record_ids:
+        optimize_all_images(debug=args.debug, force=args.force)
     else:
-        for record_id in args:
-            if options.creator:
+        for record_id in args.record_ids:
+            if args.creator:
                 optimize_creator_images(
-                    record_id, debug=options.debug, force=options.force)
+                    record_id, debug=args.debug, force=args.force)
             else:
                 optimize_book_images(
-                    record_id, debug=options.debug, force=options.force)
+                    record_id, debug=args.debug, force=args.force)
 
 
 if __name__ == '__main__':

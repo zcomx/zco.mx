@@ -5,14 +5,15 @@ image_samples.py
 
 Script to create image samples.
 """
+import argparse
 import os
 import subprocess
 import sys
 import traceback
-from optparse import OptionParser
 from PIL import Image, ImageDraw, ImageFont
 from gluon import *
 from gluon.shell import env
+from applications.zcomx.modules.argparse.actions import ManPageAction
 from applications.zcomx.modules.logger import set_cli_logging
 
 VERSION = 'Version 0.1'
@@ -125,7 +126,7 @@ def man_page():
     """Print manual page-like help"""
     print("""
 USAGE
-    image_samples.py [OPTIONS] /path/to/images
+    image_samples.py [OPTIONS] /path/to/images/dir
 
 
 OPTIONS
@@ -162,8 +163,11 @@ OPTIONS
     -v, --verbose
         Print information messages to stdout.
 
-    --vv,
+    -vv,
         More verbose. Print debug messages to stdout.
+
+    --version
+        Print the script version.
 
     """)
 
@@ -171,97 +175,92 @@ OPTIONS
 def main():
     """Main processing."""
 
-    usage = '%prog [options] [path/for/images]'
-    parser = OptionParser(usage=usage, version=VERSION)
+    parser = argparse.ArgumentParser(prog='image_samples.py')
 
-    parser.add_option(
-        '-c', '--color', type='string',
+    parser.add_argument('path', type=str, nargs='?', default='')
+
+    parser.add_argument(
+        '-c', '--color', type=str,
         dest='color', default='black',
         help='Image background color. Default: black',
     )
-    parser.add_option(
+    parser.add_argument(
         '-d', '--dry-run',
         action='store_true', dest='dry_run', default=False,
         help='Dry run. Do not create images. Only report what would be done.',
     )
-    parser.add_option(
-        '-e', '--extension', type='string',
+    parser.add_argument(
+        '-e', '--extension', type=str,
         dest='extension', default='jpg',
         help='Image file extension. Default: jpg',
     )
-    parser.add_option(
-        '--font-size', type='int',
+    parser.add_argument(
+        '--font-size', type=int,
         dest='font_size', default=10,
         help='TrueType font size. Default 10',
     )
-    parser.add_option(
-        '--font-ttf', type='string',
+    parser.add_argument(
+        '--font-ttf', type=str,
         dest='font_ttf', default=None,
         help='TrueType font file.',
     )
-    parser.add_option(
-        '-i', '--increment', type='int',
+    parser.add_argument(
+        '-i', '--increment', type=int,
         dest='increment', default=0,
-        help='Increment in pixels to vary width and hieght by. Default 0',
+        help='Increment in pixels to vary width and height by. Default 0',
     )
-    parser.add_option(
+    parser.add_argument(
         '--list-ttf',
         action='store_true', dest='list_ttf', default=False,
         help='List TTF files available on system and exit.',
     )
-    parser.add_option(
-        '-m', '--min-size', type='int',
+    parser.add_argument(
+        '-m', '--min-size', type=int,
         dest='min_size', default=70,
         help='Minimum image size in pixels. Default 70',
     )
-    parser.add_option(
+    parser.add_argument(
         '--man',
-        action='store_true', dest='man', default=False,
+        action=ManPageAction, dest='man', default=False,
+        callback=man_page,
         help='Display manual page-like help and exit.',
     )
-    parser.add_option(
-        '-s', '--size', type='int',
+    parser.add_argument(
+        '-s', '--size', type=int,
         dest='size', default=170,
         help='Default image size in pixels. Default 170',
     )
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose',
-        action='store_true', dest='verbose', default=False,
+        action='count', dest='verbose', default=False,
         help='Print messages to stdout.',
     )
-    parser.add_option(
-        '--vv',
-        action='store_true', dest='vv', default=False,
-        help='More verbose.',
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=VERSION,
+        help='Print the script version'
     )
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if options.man:
-        man_page()
-        sys.exit(0)
+    set_cli_logging(LOG, args.verbose)
 
-    set_cli_logging(LOG, options.verbose, options.vv)
-
-    if options.list_ttf:
+    if args.list_ttf:
         list_ttf()
         sys.exit(0)
 
-    if len(args) > 1:
-        parser.print_help()
-        sys.exit(1)
-
     path = os.getcwd()
-    if args:
-        path = args[0]
+    if args.path:
+        path = args.path
 
     if not os.path.exists(path):
         LOG.error('Directory not found: {path}'.format(path=path))
         sys.exit(1)
 
-    if options.font_ttf and not os.path.exists(options.font_ttf):
+    if args.font_ttf and not os.path.exists(args.font_ttf):
         LOG.error('TrueType font file not found: {path}'.format(
-            path=options.font_ttf))
+            path=args.font_ttf))
         sys.exit(1)
 
     LOG.debug('path: {var}'.format(var=path))
@@ -269,14 +268,14 @@ def main():
     LOG.info('Started.')
     creator = ImageCreator(
         path,
-        extension=options.extension,
-        size=options.size,
-        min_size=options.min_size,
-        color=options.color,
-        increment=options.increment,
-        font_ttf=options.font_ttf,
-        font_size=options.font_size,
-        dry_run=options.dry_run,
+        extension=args.extension,
+        size=args.size,
+        min_size=args.min_size,
+        color=args.color,
+        increment=args.increment,
+        font_ttf=args.font_ttf,
+        font_size=args.font_size,
+        dry_run=args.dry_run,
     )
     creator.run()
     LOG.info('Done.')
