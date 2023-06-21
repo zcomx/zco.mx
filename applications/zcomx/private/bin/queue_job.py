@@ -206,7 +206,7 @@ def main():
             queuer.default_job_options.update(job_d)
             job = queuer.queue()
     else:
-        job = Job(db.job, **job_d)
+        job = Job(**job_d)
         queue = job_queuers.QueueWithSignal(db.job)
         job = queue.add_job(job)
 
