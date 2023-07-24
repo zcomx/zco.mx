@@ -1,0 +1,20 @@
+{{extend 'layout_main.html'}}
+<div id="ebay_get_product_details_page">
+
+<fieldset id="form_fieldset">
+    <legend>Get Product Details</legend>
+    {{=form}}
+</fieldset>
+
+{{if results:}}
+<hr>
+<div id="results">
+    <ul>
+    {{for result in results:}}
+    <li>{{=result}}</li>
+    {{pass}}
+    </ul>
+</div>
+{{pass}}
+
+</div>
