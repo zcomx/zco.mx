@@ -40,7 +40,7 @@ def get_product_details():
 
     domains = {
         'sandbox': 'svcs.sandbox.ebay.com',
-        'prod': 'svcs.sandbox.ebay.com',
+        'prod': 'svcs.ebay.com',
     }
 
     if form.process(keepvalues=True, message_onsuccess='').accepted:
