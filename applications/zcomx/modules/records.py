@@ -69,13 +69,13 @@ class Record(Row):
         if validate:
             ret = db[cls.db_table].validate_and_insert(**data)
             db.commit()
-            if ret.errors:
+            if ret['errors']:
                 msg = ', '.join([
                     '{k}: {v}'.format(k=k, v=v)
-                    for k, v in list(ret.errors.items())
+                    for k, v in list(ret['errors'].items())
                 ])
                 raise SyntaxError(msg)
-            record_id = ret.id
+            record_id = ret['id']
         else:
             record_id = db[cls.db_table].insert(**data)
             db.commit()
@@ -170,10 +170,10 @@ class Record(Row):
                 validate_data['id'] = record.id
             ret = db(query).validate_and_update(**validate_data)
             db.commit()
-            if ret.errors:
+            if ret['errors']:
                 msg = ', '.join([
                     '{k}: {v}'.format(k=k, v=v)
-                    for k, v in list(ret.errors.items())
+                    for k, v in list(ret['errors'].items())
                 ])
                 raise SyntaxError(msg)
         else:

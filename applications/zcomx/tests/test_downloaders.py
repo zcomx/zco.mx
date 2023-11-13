@@ -103,7 +103,7 @@ class TestCBZDownloader(LocalTestCase):
             dict(
                 status=200,
                 filename=os.path.basename(book.cbz),
-                size=os.stat(book.cbz).st_size,
+                size=str(os.stat(book.cbz).st_size),
             )
         )
 
@@ -149,7 +149,7 @@ class TestImageDownloader(WithObjectsTestCase, ImageTestCase):
                 )
                 self.assertEqual(
                     http.headers['Content-Length'],
-                    lengths[expect_size]
+                    str(lengths[expect_size]),
                 )
 
         # web.jpg is small, only the web should be created.
@@ -225,7 +225,7 @@ class TestTorrentDownloader(LocalTestCase):
             dict(
                 status=200,
                 filename=os.path.basename(book.torrent),
-                size=os.stat(book.torrent).st_size,
+                size=str(os.stat(book.torrent).st_size),
             )
         )
 
@@ -236,7 +236,7 @@ class TestTorrentDownloader(LocalTestCase):
             dict(
                 status=200,
                 filename=os.path.basename(creator.torrent),
-                size=os.stat(creator.torrent).st_size,
+                size=str(os.stat(creator.torrent).st_size),
             )
         )
 
@@ -254,7 +254,7 @@ class TestTorrentDownloader(LocalTestCase):
             dict(
                 status=200,
                 filename='zco.mx.torrent',
-                size=os.stat(all_tor_file).st_size,
+                size=str(os.stat(all_tor_file).st_size),
             )
         )
 
