@@ -14,7 +14,7 @@ Note:
 
 import copy
 import fnmatch
-import imp
+from importlib import import_module
 import marshal
 import os
 import py_compile
@@ -34,7 +34,6 @@ from gluon._compat import (PY2, basestring, builtin, integer_types, iteritems,
                            reload, to_bytes, to_native, unicodeT, xrange)
 from gluon.cache import Cache
 from gluon.cfs import getcfs
-from gluon.custom_import import custom_import_install
 from gluon.dal import DAL, Field
 from gluon.fileutils import (abspath, add_path_first, listdir, mktree,
                              read_file, write_file)
@@ -345,7 +344,7 @@ def local_import_aux(name, reload_force=False, app="welcome"):
     """
     items = name.replace("/", ".")
     name = "applications.%s.modules.%s" % (app, items)
-    module = __import__(name)
+    module = import_module(name)
     for item in name.split(".")[1:]:
         module = getattr(module, item)
     if reload_force:
@@ -469,6 +468,7 @@ def build_environment(request, response, session, store_current=True):
         name, reload, app
     )
     BaseAdapter.set_folder(pjoin(request.folder, "databases"))
+    from gluon.custom_import import custom_import_install
     custom_import_install()
     return environment
 
