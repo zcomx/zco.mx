@@ -1,5 +1,46 @@
 Sitemap: https://zco.mx/sitemap.xml
 
+User-agent: 360Spider
+User-agent: AhrefsBot
+User-agent: Amazonbot
+User-agent: Applebot
+User-agent: AwarioBot
+User-agent: AwarioRssBot
+User-agent: AwarioSmartBot
+User-agent: BLEXBot
+User-agent: Baiduspider
+User-agent: Bytespider
+User-agent: DataForSeoBot
+User-agent: FreshBot
+User-agent: Facebot
+User-agent: GeedoBot
+User-agent: GnowitNewsbot
+User-agent: MojeekBot
+User-agent: Monsidobot
+User-agent: PetalBot
+User-agent: SeekportBot
+User-agent: SemrushBot
+User-agent: SenutoBot
+User-agent: SeznamBot
+User-agent: Sogou inst spider
+User-agent: Sogou web spider
+User-agent: TinyTestBot
+User-agent: Twitterbot
+User-agent: VelenPublicWebCrawler
+User-agent: Yandex
+User-agent: YandexBot
+User-agent: Yisouspider
+User-agent: coccocbot
+User-agent: coccocbot-ads
+User-agent: coccocbot-fast
+User-agent: coccocbot-image
+User-agent: coccocbot-shopping
+User-agent: coccocbot-web
+User-agent: dotbot
+User-agent: rogerbot
+User-agent: yacybot
+Disallow: /
+
 User-agent: *
 Disallow: /static/
 Disallow: /contributions/
