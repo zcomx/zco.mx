@@ -31,6 +31,7 @@ class Download(Record):
 class DownloadClick(Record):
     """Class representing a download_click record."""
     db_table = 'download_click'
+    download_click_tables = ['all', 'book', 'creator']
 
 
 class PaypalLog(Record):
@@ -261,6 +262,10 @@ def log_download_click(record_table, record_id, queue_log_downloads=True):
     db = current.app.db
     request = current.request
     auth = current.app.auth
+
+    if record_table not in DownloadClick.download_click_tables:
+        LOG.error('Invalid download_click record_table: %s', record_table)
+        return 0
 
     data = dict(
         ip_address=request.client,

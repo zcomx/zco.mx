@@ -390,6 +390,9 @@ class TestFunctions(LocalTestCase):
         self.assertEqual(download_click_2.completed, True)
         self._objects.append(download_click_2)
 
+        # Test invalid record_table.
+        got = log_download_click('_invalid_', 0, queue_log_downloads=False)
+        self.assertEqual(got, 0)
 
 def set_pages(obj, book, num_of_pages):
     """Create pages for a book."""

@@ -16,7 +16,10 @@ from applications.zcomx.modules.creators import (
     downloadable as downable_creators,
     torrent_url as creator_torrent_url,
 )
-from applications.zcomx.modules.events import log_download_click
+from applications.zcomx.modules.events import (
+    DownloadClick,
+    log_download_click,
+)
 
 
 def download_click_handler():
@@ -31,7 +34,8 @@ def download_click_handler():
         return json.dumps({'status': 'error', 'msg': msg})
 
     if not request.vars.record_table \
-            or request.vars.record_table not in ['all', 'book', 'creator']:
+            or request.vars.record_table \
+            not in DownloadClick.download_click_tables:
         return do_error('Invalid data provided')
 
     record_id = 0

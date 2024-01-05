@@ -53,12 +53,22 @@ def about():
 
 def cartoonists():
     """Front page 'cartoonists' tab."""
-    return _search_results(request, response, 'creators')
+    try:
+        results = _search_results(request, response, 'creators')
+    except KeyError as err:
+        # invalid order fields can cause foo, redirect to default.
+        redirect(URL('creators'))
+    return results
 
 
 def completed():
     """Front page 'completed' tab."""
-    return _search_results(request, response, 'completed')
+    try:
+        results = _search_results(request, response, 'completed')
+    except KeyError as err:
+        # invalid order fields can cause foo, redirect to default.
+        redirect(URL('completed'))
+    return results
 
 
 def contribute():
@@ -133,7 +143,12 @@ def monies():
 
 def ongoing():
     """Front page 'ongoing' tab."""
-    return _search_results(request, response, 'ongoing')
+    try:
+        results = _search_results(request, response, 'ongoing')
+    except KeyError as err:
+        # invalid order fields can cause foo, redirect to default.
+        redirect(URL('ongoing'))
+    return results
 
 
 def overview():
@@ -148,7 +163,12 @@ def rss():
 
 def search():
     """Front page 'search' input post controller."""
-    return _search_results(request, response, 'search')
+    try:
+        results = _search_results(request, response, 'search')
+    except KeyError as err:
+        # invalid order fields can cause foo, redirect to default.
+        redirect(URL('search'))
+    return results
 
 
 def terms():
