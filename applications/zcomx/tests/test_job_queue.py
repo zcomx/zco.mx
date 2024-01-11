@@ -789,14 +789,14 @@ class TestFunctions(LocalTestCase):
             ('-a', {'-a': True}),
             ('-b 123', {'-b': '123'}),
             ('-c abc', {'-c': 'abc'}),
-            ('--vv', {'--vv': True}),
+            ('-vv', {'-vv': True}),
             (
-                '-a -b 123 -c abc --vv',
+                '-a -b 123 -c abc -vv',
                 {
                     '-a': True,
                     '-b': '123',
                     '-c': 'abc',
-                    '--vv': True,
+                    '-vv': True,
                 }
             ),
         ]

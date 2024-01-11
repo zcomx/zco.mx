@@ -191,7 +191,7 @@ class TestDeleteBookQueuer(LocalTestCase):
         queuer = DeleteBookQueuer(
             db.job,
             job_options={'status': 'd'},
-            cli_options={'--vv': True},
+            cli_options={'-vv': True},
             cli_args=[str(123)],
         )
         tracker = TableTracker(db.job)
@@ -202,7 +202,7 @@ class TestDeleteBookQueuer(LocalTestCase):
         # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/delete_book.py --vv 123'
+            'applications/zcomx/private/bin/delete_book.py -vv 123'
         )
 
 
@@ -405,7 +405,7 @@ class TestPostOnSocialMediaQueuer(LocalTestCase):
         queuer = PostOnSocialMediaQueuer(
             db.job,
             job_options={'status': 'd'},
-            cli_options={'--vv': True},
+            cli_options={'-vv': True},
             cli_args=[str(123)],
         )
         tracker = TableTracker(db.job)
@@ -416,7 +416,7 @@ class TestPostOnSocialMediaQueuer(LocalTestCase):
         # pylint: disable=line-too-long
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/social_media/post_book_completed.py --vv 123'
+            'applications/zcomx/private/bin/social_media/post_book_completed.py -vv 123'
         )
 
 
@@ -426,7 +426,7 @@ class TestPurgeTorrentsQueuer(LocalTestCase):
         queuer = PurgeTorrentsQueuer(
             db.job,
             job_options={'status': 'd'},
-            cli_options={'--vv': True},
+            cli_options={'-vv': True},
         )
         tracker = TableTracker(db.job)
         job = queuer.queue()
@@ -435,7 +435,7 @@ class TestPurgeTorrentsQueuer(LocalTestCase):
         self._objects.append(job)
         self.assertEqual(
             job.command,
-            'applications/zcomx/private/bin/purge_torrents.py --vv'
+            'applications/zcomx/private/bin/purge_torrents.py -vv'
         )
 
 

@@ -78,7 +78,7 @@ class CreateCBZQueuer(Queuer):
         'status': 'a',
     }
     valid_cli_options = [
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -94,7 +94,7 @@ class CreateSiteMapQueuer(Queuer):
     }
     valid_cli_options = [
         '-o', '--out-file',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -111,7 +111,7 @@ class CreateTorrentQueuer(Queuer):
     valid_cli_options = [
         '-a', '--all',
         '-c', '--creator',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -125,7 +125,7 @@ class CreateAllTorrentQueuer(CreateTorrentQueuer):
     default_cli_options = {'--all': True}
     valid_cli_options = [
         '-a', '--all',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
 
 
@@ -137,7 +137,7 @@ class CreateBookTorrentQueuer(CreateTorrentQueuer):
     default_job_options['priority'] = \
         PRIORITIES.index('create_book_torrent')
     valid_cli_options = [
-        '-v', '--vv',
+        '-v', '-vv',
     ]
 
 
@@ -151,7 +151,7 @@ class CreateCreatorTorrentQueuer(CreateTorrentQueuer):
     default_cli_options = {'--creator': True}
     valid_cli_options = [
         '-c', '--creator',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
 
 
@@ -165,7 +165,7 @@ class DeleteBookQueuer(Queuer):
         'status': 'a',
     }
     valid_cli_options = [
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -182,7 +182,7 @@ class FileshareBookQueuer(Queuer):
     valid_cli_options = [
         '-m', '--max-requeues',
         '-r', '--requeues',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -199,7 +199,7 @@ class LogDownloadsQueuer(Queuer):
     valid_cli_options = [
         '-l', '--limit',
         '-r', '--requeue',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -215,7 +215,7 @@ class NotifyP2PQueuer(Queuer):
     }
     valid_cli_options = [
         '-d', '--delete',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -233,7 +233,7 @@ class OptimizeImgQueuer(Queuer):
         '-f', '--force',
         '-s', '--size',
         '-u', '--uploads-path',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -303,7 +303,7 @@ class PostOnSocialMediaQueuer(Queuer):
         'status': 'a',
     }
     valid_cli_options = [
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -318,7 +318,7 @@ class PurgeTorrentsQueuer(Queuer):
         'status': 'a',
     }
     valid_cli_options = [
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -348,7 +348,7 @@ class SearchPrefetchQueuer(Queuer):
     valid_cli_options = [
         '-o', '--output',
         '-t', '--table',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -365,7 +365,7 @@ class SetBookCompletedQueuer(Queuer):
     valid_cli_options = [
         '-m', '--max-requeues',
         '-r', '--requeues',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 
@@ -397,7 +397,7 @@ class UpdateIndiciaQueuer(Queuer):
         '-c', '--clear',
         '-o', '--optimize',
         '-r', '--resize',
-        '-v', '--vv',
+        '-v', '-vv',
     ]
     queue_class = QueueWithSignal
 

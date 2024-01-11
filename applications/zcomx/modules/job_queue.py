@@ -626,7 +626,7 @@ class Requeuer():
 def parse_cli_options(cli_options):
     """Convert cli options in str format to dict.
 
-    Eg '-a -b 1 --vv' => {'-a': True, '-b': 1, '--v': True}
+    Eg '-a -b 1 -vv' => {'-a': True, '-b': 1, '-vv': True}
 
     Args:
         cli_options: str
