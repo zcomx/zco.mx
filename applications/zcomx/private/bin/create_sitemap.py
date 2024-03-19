@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 create_sitemap.py
-
-Script to tally the yearly and monthly contributions, ratings, and views for
-each book.
 """
 import argparse
 import sys
@@ -86,6 +83,9 @@ def creator_generator():
 def man_page():
     """Print manual page-like help"""
     print("""
+OVERVIEW
+    This script will create print sitemap XML for the zco.mx site.
+
 USAGE
     create_sitemap.py
     create_sitemap.py -vv                         # Verbose output
@@ -149,6 +149,8 @@ def main():
     set_cli_logging(LOG, args.verbose)
 
     LOG.info('Started.')
+
+    xml_version_line = '<?xml version="1.0" encoding="UTF-8"?>'
     sitemap = TAG.urlset(_xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
 
     for mapper in MAPPERS:
@@ -175,11 +177,13 @@ def main():
                 ).xml_component()
             )
 
+    xml_str = xml_version_line + "\n" + sitemap.xml().decode('utf-8')
+    xml_str = xml_str.replace('</url>', '</url>\n')
     if args.outfile:
-        with open(args.outfile, 'wb') as f:
-            f.write(sitemap.xml())
+        with open(args.outfile, 'w') as f:
+            f.write(xml_str)
     else:
-        print(sitemap.xml())
+        print(xml_str)
 
     LOG.info('Done.')
 
