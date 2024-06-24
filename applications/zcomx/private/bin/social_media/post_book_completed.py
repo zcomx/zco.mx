@@ -124,7 +124,7 @@ def main():
     if not args.facebook and not args.tumblr and not args.twitter:
         services = ['facebook', 'tumblr', 'twitter']
 
-    inactive_services = ['facebook']
+    inactive_services = ['facebook', 'twitter']
 
     for social_media_service in services:
         if social_media_service in inactive_services:
