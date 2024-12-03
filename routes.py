@@ -71,6 +71,8 @@ routes_in = (
     ('/robots.txt', '/zcomx/static/robots.txt'),
     ('/sitemap.xml', '/zcomx/static/sitemap.xml'),
     ('/google23f195580c35fe70.html', '/zcomx/static/google23f195580c35fe70.html'),
+    # bing IndexNow
+    ('/4599971b72cf43b89f2f5ca60ca7cdae.txt', '/zcomx/static/4599971b72cf43b89f2f5ca60ca7cdae.txt'),
     ('/BingSiteAuth.xml', '/zcomx/static/BingSiteAuth.xml'),
 
     # reroute cbz files, look for .cbz extension
