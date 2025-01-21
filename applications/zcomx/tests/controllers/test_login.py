@@ -76,7 +76,7 @@ class TestFunctions(WebTestCase):
         cls._creator_as_dict = cls._creator.as_dict()
 
         query = (db.book.creator_id == cls._creator.id) & \
-                (db.book.name_for_url == 'TestDoNotDelete-001')
+            (db.book.name == 'Test Do Not Delete')
         cls._book = Book.from_query(query)
         cls._book_page = get_page(cls._book, page_no='first')
 
@@ -260,16 +260,14 @@ class TestFunctions(WebTestCase):
         self.assertEqual(result['status'], 'ok')
 
         # The job to delete the book, may take a few seconds to complete
-        retry_seconds = [1, 2, 5, 10, 30]
-        tries = 0
+        retry_seconds = [1, 2, 5, 10, 60]
         while True:
             book = get_book(book_id)
             if not book:
                 break
-            key = len(retry_seconds) - 1 \
-                if tries >= len(retry_seconds) else tries
-            time.sleep(retry_seconds[key])
-            tries += 1
+            time.sleep(retry_seconds.pop(0))
+            if not retry_seconds:
+                break
         self.assertFalse(book)
 
     def test__book_delete(self):
@@ -730,6 +728,7 @@ class TestFunctions(WebTestCase):
                 self._book.id
             )
         ]
+
         for links_key in links_keys:
             reset(links_key, 'test_do_not_delete')
 

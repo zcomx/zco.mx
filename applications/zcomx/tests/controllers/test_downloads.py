@@ -32,7 +32,9 @@ class TestFunctions(WebTestCase):
     def setUp(self):
         # Get a book from a creator with a paypal_email.
         self._creator = Creator.by_email(web.username)
-        self._book = Book.from_key(dict(creator_id=self._creator.id))
+        query = (db.book.creator_id == self._creator.id) & \
+            (db.book.name == 'Test Do Not Delete')
+        self._book = Book.from_query(query)
 
         max_book_id = db.book.id.max()
         rows = db().select(max_book_id)

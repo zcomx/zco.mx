@@ -97,7 +97,8 @@ class TileTestCase(LocalTestCase):
     @classmethod
     def setUpClass(cls):
         creator = Creator.by_email(web.username)
-        book = Book.from_key(dict(creator_id=creator.id))
+        book_name = 'Test Do Not Delete'
+        book = Book.from_key(dict(name=book_name))
 
         book_type_id = db(db.book_type).select(limitby=(0, 1)).first().id
         cls._row = Row({
@@ -804,9 +805,10 @@ class TestMoniesBookTile(TileTestCase):
         img = anchor.img
         self.assertEqual(img['alt'], '')
         first = get_page(self._row.book, page_no='first')
+        first_image = urllib.parse.quote(first.image)
         self.assertEqual(
             img['src'],
-            '/images/download/{i}?cache=1&size=web'.format(i=first.image))
+            '/images/download/{i}?cache=1&size=web'.format(i=first_image))
 
         # Test: can contribute = False
         self._row.creator.paypal_email = None
@@ -824,9 +826,10 @@ class TestMoniesBookTile(TileTestCase):
         img = div.img
         self.assertEqual(img['alt'], '')
         first = get_page(self._row.book, page_no='first')
+        first_image = urllib.parse.quote(first.image)
         self.assertEqual(
             img['src'],
-            '/images/download/{i}?cache=1&size=web'.format(i=first.image)
+            '/images/download/{i}?cache=1&size=web'.format(i=first_image)
         )
 
         # Restore
@@ -1183,11 +1186,13 @@ class TestBookTile(TileTestCase):
         self.assertEqual(anchor['href'], page_url(first))
         self.assertEqual(anchor['title'], '')
 
+        first_image = urllib.parse.quote(first.image)
+
         img = anchor.img
         self.assertEqual(img['alt'], '')
         self.assertEqual(
             img['src'],
-            '/images/download/{i}?cache=1&size=web'.format(i=first.image)
+            '/images/download/{i}?cache=1&size=web'.format(i=first_image)
         )
 
     def test_render(self):

@@ -46,7 +46,8 @@ class TestFunctions(WebTestCase):
         if not cls._creator:
             raise SyntaxError('No creator with email: {e}'.format(e=email))
 
-        query = db.book.creator_id == cls._creator.id
+        query = (db.book.creator_id == cls._creator.id) & \
+            (db.book.name == 'Test Do Not Delete')
         cls._book = Book.from_query(query)
         if not cls._book:
             raise SyntaxError('No book for creator with email: {e}'.format(

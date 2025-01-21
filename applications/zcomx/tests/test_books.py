@@ -1440,15 +1440,15 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
     def test__generator(self):
         expect_name_for_urls = [
-            'TestDoNotDelete-001',
             'TestDisabledDoNotDelete',
             'TestDraftDoNotDelete',
+            'TestDoNotDelete-001',
         ]
 
         expect_urls = [
-            '/JimKarsten/TestDoNotDelete-001',
             '/JimKarsten/TestDisabledDoNotDelete',
             '/JimKarsten/TestDraftDoNotDelete',
+            '/JimKarsten/TestDoNotDelete-001',
         ]
 
         queries = []

@@ -75,15 +75,18 @@ class WithMediaTestCase(LocalTestCase):
     def setUpClass(cls):
         # Use an existing image to test with.
         creator = Creator.by_email(web.username)
+        book_name = 'Test Do Not Delete'
+        query = (db.book.name == book_name)
+        rows = db(query).select(db.book.id)
+        if not rows:
+            cls.fail('Book not found, name: {n}'.format(n=book_name))
 
-        query = (db.book.release_date != None) & \
-                (db.book.creator_id == creator.id) & \
-                (db.book_page.page_no == 1)
+        book_id = rows[0].id
+
+        query = (db.book_page.book_id == book_id) & \
+            (db.book_page.page_no == 1)
         rows = db(query).select(
             db.book_page.image,
-            left=[
-                db.book.on(db.book_page.book_id == db.book.id),
-            ],
             limitby=(0, 1),
         )
         if not rows:

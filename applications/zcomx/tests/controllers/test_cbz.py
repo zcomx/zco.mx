@@ -34,7 +34,10 @@ class TestFunctions(WebTestCase):
         # pylint: disable=invalid-name
         # Get the data the tests will use.
         cls._creator = Creator.by_email(web.username)
-        cls._book = Book.from_key(dict(creator_id=cls._creator.id))
+        query = (db.book.creator_id == cls._creator.id) & \
+            (db.book.name == 'Test Do Not Delete')
+        cls._book = Book.from_query(query)
+
         cls._server_ip = web.server_ip()
 
     def _get_download_clicks(self, record_table, record_id):
