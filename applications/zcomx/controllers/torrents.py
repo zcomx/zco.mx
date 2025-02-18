@@ -133,7 +133,7 @@ def route():
         return page_not_found()
 
     torrent_type = None
-    torrent_name = None
+    torrent_name = request.vars.torrent.encode('latin-1').decode('utf-8')
 
     if request.vars.creator:
         creator = None
@@ -165,19 +165,17 @@ def route():
         if '{i:03d}'.format(i=creator.id) == request.vars.creator:
             # Redirect to name version
             c_url = creator_url(creator)
-            redirect_url = '/'.join([c_url, request.vars.torrent])
+            redirect_url = '/'.join([c_url, torrent_name])
             if request.vars.no_queue:
                 redirect_url += '?no_queue=' + str(request.vars.no_queue)
             redirect(redirect_url)
 
         torrent_type = 'book'
-        torrent_name = request.vars.torrent
     else:
-        if request.vars.torrent == 'zco.mx.torrent':
+        if torrent_name == 'zco.mx.torrent':
             torrent_type = 'all'
         else:
             torrent_type = 'creator'
-            torrent_name = request.vars.torrent
 
     download_vars = {'no_queue': request.vars.no_queue} \
         if request.vars.no_queue else {}
