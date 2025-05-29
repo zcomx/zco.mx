@@ -7,7 +7,7 @@ This tests nginx settings on the live server.
 import unittest
 import requests
 from requests.exceptions import SSLError
-from applications.zcomx.modules.tests.helpers import skip_if_quick
+from applications.zcomx.modules.tests.helpers import skip_unless_force
 from applications.zcomx.modules.tests.runner import LocalTestCase
 # pylint: disable=missing-docstring
 
@@ -27,12 +27,11 @@ class TestFunctions(LocalTestCase):
         # Prevent 'Changed session ID' warnings.
         web.sessions = {}
 
-    @skip_if_quick
+    # JK 2025-05-29 Since implementing cloudflare, some of these tests
+    # are no longer reliable. Results change every run of test. Added
+    # skip_unless_force.
+    @skip_unless_force
     def test_routes(self):
-        # JK 2025-05-29 Since implementing cloudflare, some of these tests
-        # are no longer reliable. Results change every run of test.
-        return
-
         tests = [
             # (url, verify ssl cert, expect title)
             ('http://zco.mx', False, 'index'),
