@@ -20,8 +20,10 @@ User-agent: GnowitNewsbot
 User-agent: GoogleOther
 User-agent: GPTBot
 User-agent: ImagesiftBot
+User-agent: MJ12bot
 User-agent: MojeekBot
 User-agent: Monsidobot
+User-agent: Pinterestbot
 User-agent: PetalBot
 User-agent: SeekportBot
 User-agent: SemrushBot
@@ -54,5 +56,5 @@ Disallow: /contributions/
 Disallow: /torrents/download/
 Disallow: /*.torrent$
 
-Crawl-delay: 10
+Crawl-delay: 30
 Host: zco.mx
