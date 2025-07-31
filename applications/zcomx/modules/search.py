@@ -375,12 +375,19 @@ class Grid():
         grid_class = make_grid_class(
             export='none', search='none', ui='glyphicon')
 
-        self.form_grid = grid_class.grid(query, **kwargs)
+        self.form_grid = None
+        try:
+            self.form_grid = grid_class.grid(query, **kwargs)
+        except AttributeError as err:
+            LOG.error('str(err): %s', str(err))
+
         self._paginate = kwargs['paginate']
-        # Remove 'None' record count if applicable.
-        for count, div in enumerate(self.form_grid[0]):
-            if str(div) == '<div class="web2py_counter">None</div>':
-                del self.form_grid[0][count]
+
+        if self.form_grid:
+            # Remove 'None' record count if applicable.
+            for count, div in enumerate(self.form_grid[0]):
+                if str(div) == '<div class="web2py_counter">None</div>':
+                    del self.form_grid[0][count]
 
     def alpha_paginator(self):
         """Return alpha paginator instance."""
