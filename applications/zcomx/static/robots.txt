@@ -1,7 +1,9 @@
 Sitemap: https://zco.mx/sitemap.xml
 
 User-agent: 360Spider
+User-agent: AdsBot-Google-Mobile
 User-agent: AhrefsBot
+User-agent: AliyunSecBot
 User-agent: Amazonbot
 User-agent: Applebot
 User-agent: AwarioBot
@@ -9,26 +11,33 @@ User-agent: AwarioRssBot
 User-agent: AwarioSmartBot
 User-agent: BLEXBot
 User-agent: Baiduspider
+User-agent: Brightbot
 User-agent: Bytespider
+User-agent: ChatGPT-User
 User-agent: DAUM
 User-agent: DataForSeoBot
+User-agent: Discordbot
 User-agent: DotBot
-User-agent: FreshBot
+User-agent: DuckDuckBot
 User-agent: Facebot
+User-agent: FreshBot
+User-agent: GPTBot
 User-agent: GeedoBot
 User-agent: GnowitNewsbot
 User-agent: GoogleOther
-User-agent: GPTBot
 User-agent: ImagesiftBot
 User-agent: MJ12bot
 User-agent: MojeekBot
 User-agent: Monsidobot
-User-agent: Pinterestbot
+User-agent: OAI-SearchBot
+User-agent: PerplexityBot
 User-agent: PetalBot
+User-agent: Pinterestbot
 User-agent: SeekportBot
 User-agent: SemrushBot
 User-agent: SenutoBot
 User-agent: SeznamBot
+User-agent: Snapbot
 User-agent: Sogou inst spider
 User-agent: Sogou web spider
 User-agent: TinyTestBot
@@ -37,6 +46,8 @@ User-agent: VelenPublicWebCrawler
 User-agent: Yandex
 User-agent: YandexBot
 User-agent: Yisouspider
+User-agent: ZoominfoBot
+User-agent: barkrowler
 User-agent: coccocbot
 User-agent: coccocbot-ads
 User-agent: coccocbot-fast
