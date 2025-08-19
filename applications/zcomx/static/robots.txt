@@ -63,6 +63,7 @@ Disallow: /
 
 User-agent: *
 Disallow: /static/
+Allow: /static/robots.txt
 Disallow: /contributions/
 Disallow: /torrents/download/
 Disallow: /*.torrent$
