@@ -58,6 +58,7 @@ User-agent: dotbot
 User-agent: facebookexternalhit/1.1
 User-agent: meta-externalagent
 User-agent: rogerbot
+User-agent: serpstatbot
 User-agent: yacybot
 Disallow: /
 
