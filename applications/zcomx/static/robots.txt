@@ -25,6 +25,7 @@ User-agent: GPTBot
 User-agent: GeedoBot
 User-agent: GnowitNewsbot
 User-agent: GoogleOther
+User-agent: HaloBot
 User-agent: ImagesiftBot
 User-agent: MJ12bot
 User-agent: MojeekBot
