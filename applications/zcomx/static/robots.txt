@@ -41,6 +41,7 @@ User-agent: SeznamBot
 User-agent: Snapbot
 User-agent: Sogou inst spider
 User-agent: Sogou web spider
+User-agent: TelegramBot
 User-agent: TinyTestBot
 User-agent: Twitterbot
 User-agent: VelenPublicWebCrawler
