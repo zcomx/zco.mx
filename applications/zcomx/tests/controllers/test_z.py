@@ -68,7 +68,7 @@ class TestFunctions(WebTestCase):
         self.assertWebTest('/z/todo')
 
     def test__top(self):
-        self.assertWebTest('/z/top')
+        self.assertWebTest('/z/top.load')
 
 
 def setUpModule():

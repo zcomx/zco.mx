@@ -435,7 +435,7 @@ class WebTestCase(LocalTestCase):
         '/z/search': '<div id="front_page">',
         '/z/terms': '<h1>Terms and Conditions</h1>',
         '/z/todo': '<h1>TODO</h1>',
-        '/z/top': '<h2>Top</h2>',
+        '/z/top.load': 'id="top_section"',
     }
 
 

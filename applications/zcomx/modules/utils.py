@@ -5,6 +5,7 @@ Utilty classes and functions.
 """
 import os
 import re
+import subprocess
 from gluon import *
 from gluon.html import XmlComponent
 from gluon.languages import lazyT
@@ -213,6 +214,25 @@ def faq_tabs(active='faq'):
         ),
         _class='faq_options_container',
     )
+
+
+def get_myip():
+    """Get the local ip.
+
+    Returns: str, ip address
+    """
+    args = ['curl']
+    args.append('-4')
+    args.append('-s')
+    args.append('ifconfig.co')
+    p_stdout = ''
+    with subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE) as p:
+        p_stdout, unused_p_stderr = p.communicate()
+
+    return str(p_stdout.decode('utf-8').strip())
 
 
 def joined_list(items, element):

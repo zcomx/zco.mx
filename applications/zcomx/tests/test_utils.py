@@ -17,6 +17,7 @@ from applications.zcomx.modules.utils import (
     abridged_list,
     default_record,
     faq_tabs,
+    get_myip,
     joined_list,
     markmin,
     markmin_content,
@@ -333,6 +334,9 @@ class TestFunctions(LocalTestCase):
         anchor_2 = li_2.a
         self.assertEqual(anchor_2['href'], '/z/faqc')
         self.assertEqual(anchor_2.string, 'cartoonist')
+
+    def test__get_myip(self):
+        self.assertEqual(get_myip(), '192.241.188.220')
 
     def test__joined_list(self):
         items = ['a', 'b', 'c']

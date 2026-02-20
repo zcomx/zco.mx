@@ -17,6 +17,7 @@ from applications.zcomx.modules.creators import (
 from applications.zcomx.modules.events import DownloadClick
 from applications.zcomx.modules.records import Records
 from applications.zcomx.modules.tests.helpers import WebTestCase
+from applications.zcomx.modules.utils import get_myip
 # pylint: disable=missing-docstring
 
 
@@ -53,7 +54,7 @@ class TestFunctions(WebTestCase):
             raise SyntaxError('No book for creator with email: {e}'.format(
                 e=email))
 
-        cls._server_ip = web.server_ip()
+        cls._server_ip = get_myip()
 
     def _get_download_clicks(self, record_table, record_id):
         query = (db.download_click.record_table == record_table) & \
