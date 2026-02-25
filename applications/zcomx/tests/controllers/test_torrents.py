@@ -73,8 +73,9 @@ class TestFunctions(WebTestCase):
             charset='latin-1',
         )
         download_clicks = self._get_download_clicks('book', self._book.id)
+        for download_click in download_clicks:
+            self._objects.append(download_click)
         self.assertEqual(len(download_clicks), 1)
-        self._objects.append(download_clicks[0])
 
         # Test creator torrent.
         self.assertWebTest(
@@ -87,8 +88,9 @@ class TestFunctions(WebTestCase):
         )
         download_clicks = self._get_download_clicks(
             'creator', self._creator.id)
+        for download_click in download_clicks:
+            self._objects.append(download_click)
         self.assertEqual(len(download_clicks), 1)
-        self._objects.append(download_clicks[0])
 
         # Test 'all' torrent.
         expect = []
@@ -101,8 +103,9 @@ class TestFunctions(WebTestCase):
             charset='latin-1',
         )
         download_clicks = self._get_download_clicks('all', 0)
+        for download_click in download_clicks:
+            self._objects.append(download_click)
         self.assertEqual(len(download_clicks), 1)
-        self._objects.append(download_clicks[0])
 
         def test_invalid(url):
             self.assertRaisesHTTPError(
@@ -139,8 +142,9 @@ class TestFunctions(WebTestCase):
         )
         download_clicks = self._get_download_clicks(
             'creator', self._creator.id)
+        for download_click in download_clicks:
+            self._objects.append(download_click)
         self.assertEqual(len(download_clicks), 1)
-        self._objects.append(download_clicks[0])
 
         # Test book torrent, creator as id
         fmt = '/torrents/route?no_queue=1&creator={cid:03d}&torrent={tor}'
@@ -154,8 +158,9 @@ class TestFunctions(WebTestCase):
             charset='latin-1',
         )
         download_clicks = self._get_download_clicks('book', self._book.id)
+        for download_click in download_clicks:
+            self._objects.append(download_click)
         self.assertEqual(len(download_clicks), 1)
-        self._objects.append(download_clicks[0])
 
         # Test book torrent, creator as name
         self.assertWebTest(
@@ -168,8 +173,9 @@ class TestFunctions(WebTestCase):
             charset='latin-1',
         )
         download_clicks = self._get_download_clicks('book', self._book.id)
+        for download_click in download_clicks:
+            self._objects.append(download_click)
         self.assertEqual(len(download_clicks), 2)
-        self._objects.append(download_clicks[1])
 
         # Test 'all' torrent
         expect = []
@@ -182,8 +188,9 @@ class TestFunctions(WebTestCase):
             charset='latin-1',
         )
         download_clicks = self._get_download_clicks('all', 0)
+        for download_click in download_clicks:
+            self._objects.append(download_click)
         self.assertEqual(len(download_clicks), 1)
-        self._objects.append(download_clicks[0])
 
         # page not found: no args
         self.assertRaisesHTTPError(

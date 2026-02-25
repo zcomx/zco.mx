@@ -61,8 +61,9 @@ class TestFunctions(WebTestCase):
         )
 
         download_clicks = self._get_download_clicks('book', self._book.id)
+        for download_click in download_clicks:
+            self._objects.append(download_click)
         self.assertEqual(len(download_clicks), 1)
-        self._objects.append(download_clicks[0])
 
         self.assertRaisesHTTPError(
             404,
@@ -96,8 +97,9 @@ class TestFunctions(WebTestCase):
         )
 
         download_clicks = self._get_download_clicks('book', self._book.id)
+        for download_click in download_clicks:
+            self._objects.append(download_click)
         self.assertEqual(len(download_clicks), 1)
-        self._objects.append(download_clicks[0])
 
         # Test book cbz, creator as name
         expect = []
