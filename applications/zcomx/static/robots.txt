@@ -40,6 +40,7 @@ User-agent: SemrushBot
 User-agent: SenutoBot
 User-agent: SeznamBot
 User-agent: Snapbot
+User-agent: SleepBot
 User-agent: Sogou inst spider
 User-agent: Sogou web spider
 User-agent: TelegramBot
