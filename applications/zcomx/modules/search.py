@@ -106,7 +106,10 @@ class AlphaPaginator():
 
         current_letter = None
         if self.request.vars and self.request.vars.alpha:
-            current_letter = self.request.vars.alpha.upper()
+            alpha_var = self.request.vars.alpha
+            if isinstance(alpha_var, (list, tuple)):
+                alpha_var = alpha_var[0]
+            current_letter = alpha_var.upper()
 
         for letter in string.ascii_uppercase:
             url = self.get_url(letter)

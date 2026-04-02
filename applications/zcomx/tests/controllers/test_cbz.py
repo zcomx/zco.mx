@@ -45,7 +45,13 @@ class TestFunctions(WebTestCase):
         query = (db.download_click.record_table == record_table) & \
                 (db.download_click.record_id == record_id) & \
                 (db.download_click.ip_address == self._server_ip)
-        return db(query).select()
+        rows = db(query).select()
+        objs = []
+        for row in rows:
+            if 'id' in row and row['id']:
+                download_click = DownloadClick.from_id(row['id'])
+                objs.append(download_click)
+        return objs
 
     def test__download(self):
 
