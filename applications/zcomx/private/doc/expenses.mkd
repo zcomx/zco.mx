@@ -32,7 +32,13 @@ INCOME
     Aug 2022                            $ 10
     Oct 2022                            $ 38
     Nov 2022                            $ 96
-  TOTAL Income                                  $1701
+    Mar 2023                            $ 48
+    Apr 2023                            $ 38
+    May 2023                            $ 72
+    Jun 2023                            $ 72
+    Jun 2023                            $ 96
+    Jun 2023                            $ 38
+  TOTAL Income                                  $2065
 
 EXPENSES
     Jun 2014    Domain Registration     $ 45
@@ -57,16 +63,27 @@ EXPENSES
     Jun 2021    Domain Registration     $ 45
     Jun 2021    Server Hosting (1yr)    $480
     Jun 2022    Domain Registration     $ 45
-    Jun 2022    Server Hosting          $ 40
-    Jul 2022    Server Hosting          $ 40
-    Aug 2022    Server Hosting          $ 40
-    Sep 2022    Server Hosting          $ 40
-    Oct 2022    Server Hosting          $ 40
-    Nov 2022    Server Hosting          $ 40
-    Dec 2022    Server Hosting          $ 40
-    Jan 2023    Server Hosting          $ 40
-  TOTAL Expense                                 $5757
+    Jun 2022    Server Hosting (1yr)    $480
+    Jun 2023    Domain Registration     $ 45
+    Jun 2023    Server Hosting (1yr)    $480
+    Jun 2024    Domain Registration     $ 45
+    Jun 2024    Server Hosting (1yr)    $480
+    Jun 2025    Domain Registration     $ 45
+    Jun 2025    Server Hosting          $ 40
+    Jul 2025    Server Hosting          $ 40
+    Aug 2025    Server Hosting          $ 40
+    Sep 2025    Server Hosting          $ 40
+    Oct 2025    Server Hosting          $ 40
+    Nov 2025    Server Hosting          $ 40
+    Dec 2025    Server Hosting          $ 40
+    Jan 2026    Server Hosting          $ 40
+    Feb 2026    Server Hosting          $ 40
+    Mar 2026    Server Hosting          $ 40
+    Apr 2026    Server Hosting          $ 40
+    May 2026    Server Hosting          $ 40
+    Jun 2026    Server Hosting          $ 40
+  TOTAL Expense                                 $7512
 
 
-NET TOTAL                                      -$4056
+NET TOTAL                                      -$5467
 ``
