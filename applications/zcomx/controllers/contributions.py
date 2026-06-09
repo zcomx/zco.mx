@@ -35,10 +35,20 @@ def modal():
     creator = None
 
     if request.vars.book_id:
-        book = Book.from_id(request.vars.book_id)
-        creator = Creator.from_id(book.creator_id)
+        try:
+            book = Book.from_id(request.vars.book_id)
+            creator = Creator.from_id(book.creator_id)
+        except LookupError as err:
+            # This happens often from scrapers, log error and redirect
+            LOG.error(str(err))
+            redirect(URL(c='default', f='index'))
     elif request.vars.creator_id:
-        creator = Creator.from_id(request.vars.creator_id)
+        try:
+            creator = Creator.from_id(request.vars.creator_id)
+        except LookupError as err:
+            # This happens often from scrapers, log error and redirect
+            LOG.error(str(err))
+            redirect(URL(c='default', f='index'))
         if not creator:
             raise LookupError(
                 'Creator not found, id {i}'.format(i=request.vars.creator_id)

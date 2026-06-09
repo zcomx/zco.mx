@@ -208,7 +208,12 @@ def widget():
     """
     creator = None
     if request.args(0):
-        creator = Creator.from_id(request.args(0))
+        try:
+            creator = Creator.from_id(request.args(0))
+        except LookupError as err:
+            # This happens often from scrapers, log error and redirect
+            LOG.error(str(err))
+            redirect(URL(c='default', f='index'))
 
     books = None
     if creator:
