@@ -5,6 +5,8 @@ User-agent: AdsBot-Google-Mobile
 User-agent: AhrefsBot
 User-agent: AliyunSecBot
 User-agent: Amazonbot
+User-agent: Amzn-SearchBot
+User-agent: Amzn-User
 User-agent: Applebot
 User-agent: AwarioBot
 User-agent: AwarioRssBot
@@ -42,8 +44,8 @@ User-agent: SeekportBot
 User-agent: SemrushBot
 User-agent: SenutoBot
 User-agent: SeznamBot
-User-agent: Snapbot
 User-agent: SleepBot
+User-agent: Snapbot
 User-agent: Sogou inst spider
 User-agent: Sogou web spider
 User-agent: TelegramBot
