@@ -40,6 +40,7 @@ User-agent: OpenVAS
 User-agent: PerplexityBot
 User-agent: PetalBot
 User-agent: Pinterestbot
+User-agent: SecurityResearch
 User-agent: SeekportBot
 User-agent: SemrushBot
 User-agent: SenutoBot
