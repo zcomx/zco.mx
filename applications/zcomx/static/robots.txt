@@ -65,6 +65,7 @@ User-agent: coccocbot-image
 User-agent: coccocbot-shopping
 User-agent: coccocbot-web
 User-agent: dotbot
+User-agent: facebookexternalhit
 User-agent: facebookexternalhit/1.1
 User-agent: meta-externalagent
 User-agent: rogerbot
