@@ -12,8 +12,7 @@ import tempfile
 import unittest
 
 from gluon import languages
-from gluon._compat import PY2, to_bytes, to_unicode
-from gluon.html import SPAN
+from gluon.html import INPUT, SPAN
 from gluon.storage import Messages
 
 MP_WORKING = 0
@@ -60,8 +59,8 @@ class TestLanguagesParallel(unittest.TestCase):
     @unittest.skipIf(MP_WORKING == 0, "multiprocessing tests unavailable")
     def test_reads_and_writes(self):
         readwriters = 10
-        pool = multiprocessing.Pool(processes=readwriters)
-        results = pool.map(read_write, [[self.filename, 10]] * readwriters)
+        with multiprocessing.Pool(processes=readwriters) as pool:
+            results = pool.map(read_write, [[self.filename, 10]] * readwriters)
         for result in results:
             self.assertTrue(result)
 
@@ -193,8 +192,9 @@ class TestTranslations(unittest.TestCase):
             str(T("%(key)i %%{??two_or_more?(key)}", dict(key=2))), "2 two_or_more"
         )
         T.force("it")
+        self.assertEqual(T.accepted_language, "it")
         self.assertEqual(str(T("Hello World")), "Salve Mondo")
-        self.assertEqual(to_unicode(T("Hello World")), "Salve Mondo")
+        self.assertEqual(str(T("Hello World")), "Salve Mondo")
 
 
 class TestDummyApp(unittest.TestCase):
@@ -290,7 +290,7 @@ class TestMessages(unittest.TestCase):
         T = languages.TranslatorFactory(self.langpath, self.http_accept_language)
         messages = Messages(T)
         messages.update({"email_sent": "Email sent", "test": "ä"})
-        self.assertEqual(to_unicode(messages.email_sent, "utf-8"), "Email sent")
+        self.assertEqual(messages.email_sent, "Email sent")
 
 
 class TestHTMLTag(unittest.TestCase):
@@ -309,7 +309,14 @@ class TestHTMLTag(unittest.TestCase):
         elem = SPAN(T("Complete"))
         self.assertEqual(elem.flatten(), "Complete")
         elem = SPAN(T("Cannot be empty", language="ru"))
-        self.assertEqual(
-            elem.xml(), to_bytes("<span>Пустое значение недопустимо</span>")
-        )
+        self.assertEqual(elem.xml(), "<span>Пустое значение недопустимо</span>")
         self.assertEqual(elem.flatten(), "Пустое значение недопустимо")
+
+    def test_attribute_quote_escaping(self):
+        # A lazyT used as an attribute value must escape double quotes,
+        # otherwise a symbol carrying a '"' breaks out of the attribute.
+        T = languages.TranslatorFactory(self.langpath, self.http_accept_language)
+        payload = 'Bob" onmouseover="alert(1)'
+        elem = INPUT(_value=T("Hello %(name)s", dict(name=payload)))
+        self.assertNotIn('value="Hello Bob" onmouseover=', elem.xml())
+        self.assertIn("&quot;", elem.xml())

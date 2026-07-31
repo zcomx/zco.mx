@@ -39,7 +39,7 @@ class TestSiteMapUrl(LocalTestCase):
                 <priority>1.0</priority>
             </url>
             """
-        ).encode('utf-8')
+        )
         self.assertEqual(got.xml(), expect)
 
         sitemap_url = SiteMapUrl(
@@ -57,7 +57,7 @@ class TestSiteMapUrl(LocalTestCase):
                 <priority>0.3</priority>
             </url>
             """
-        ).encode('utf-8')
+        )
         self.assertEqual(got.xml(), expect)
 
 

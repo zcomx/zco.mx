@@ -18,6 +18,8 @@ from gluon.fileutils import open_file
 from gluon.http import HTTP
 from gluon.languages import TranslatorFactory
 from gluon.storage import List, Storage
+from gluon import utils
+from gluon.utils import safe_eval_expression
 
 DEFAULT_URI = os.getenv("DB", "sqlite:memory")
 
@@ -47,6 +49,8 @@ class TestAppAdmin(unittest.TestCase):
         request.folder = "applications/welcome"
         request.env.http_host = "127.0.0.1:8000"
         request.env.remote_addr = "127.0.0.1"
+        request.client = request.env.remote_addr
+        request.is_local = True
         response = Response()
         session = Session()
         T = TranslatorFactory("", "en")
@@ -84,8 +88,96 @@ class TestAppAdmin(unittest.TestCase):
 
     def run_view_file_stream(self):
         view_path = os.path.join(self.env["request"].folder, "views", "appadmin.html")
-        self.env["response"].view = open_file(view_path, "r")
-        return run_view_in(self.env)
+        view_file = open_file(view_path, "r")
+        self.env["response"].view = view_file
+        try:
+            return run_view_in(self.env)
+        finally:
+            view_file.close()
+
+    def assertUnsafe(self, expr):
+        """Assert that evaluating expr raises a ValueError (unsafe)."""
+        with self.assertRaises(ValueError):
+            safe_eval_expression(expr, {"db": self.env["db"]})
+
+    def assertSafe(self, expr, expected_str=None):
+        """Assert that expr evaluates safely; optionally compare str()."""
+        res = safe_eval_expression(expr, {"db": self.env["db"]})
+        if expected_str is not None:
+            # DAL string representations may include SQL quoting
+            # Normalize by removing double quotes so tests remain
+            # robust across adapters (e.g. "auth_user"."id" -> auth_user.id)
+            normalized = str(res).replace('"', '')
+            self.assertEqual(normalized, expected_str)
+        return res
+
+    def prepare_multi_user_admin_env(self):
+        from gluon.fileutils import read_file
+        from gluon.restricted import compile2, restricted
+
+        env = self.env
+        request = env["request"]
+        request.folder = os.path.abspath("applications/admin")
+        env["MULTI_USER_MODE"] = True
+        env["is_manager"] = lambda: False
+        env["auth"].user = Storage(id=1, is_manager=False)
+        db = DAL(DEFAULT_URI)
+        db.define_table("app", Field("name"), Field("owner", "integer"))
+        env["db"] = db
+        db.app.insert(name="welcome", owner=1)
+        db.app.insert(name="admin", owner=2)
+        db.app.insert(name="ghost", owner=2)
+
+        def load_controller(controller):
+            filename = os.path.join(
+                request.folder, "controllers", "%s.py" % controller)
+            restricted(
+                compile2(read_file(filename), filename),
+                env,
+                layer=filename)
+            return env
+
+        return load_controller
+
+    def make_multi_user_appadmin_request(self, application, user_id=2, is_manager=False):
+        import shutil
+        import tempfile
+        import time
+
+        from gluon.dal import DAL
+        from gluon.globals import Request
+        from gluon.storage import save_storage
+
+        root = tempfile.mkdtemp(prefix="web2py-appadmin-")
+        self.addCleanup(shutil.rmtree, root)
+        apps = os.path.join(root, "applications")
+        admin_sessions = os.path.join(apps, "admin", "sessions")
+        admin_databases = os.path.join(apps, "admin", "databases")
+        os.makedirs(admin_sessions)
+        os.makedirs(admin_databases)
+        os.makedirs(os.path.join(apps, "owned"))
+        os.makedirs(os.path.join(apps, "victim"))
+
+        db = DAL("sqlite://storage.sqlite", folder=admin_databases)
+        db.define_table("app", Field("name"), Field("owner", "integer"))
+        db.app.insert(name="owned", owner=2)
+        db.app.insert(name="victim", owner=3)
+        db.commit()
+        db.close()
+
+        session_id = "session"
+        admin_session = Storage(authorized=True, last_time=time.time())
+        if user_id is not None:
+            admin_session.auth = Storage(user=Storage(id=user_id, is_manager=is_manager))
+        save_storage(admin_session, os.path.join(admin_sessions, session_id))
+
+        request = Request(env={})
+        request.application = application
+        request.folder = os.path.join(apps, application)
+        request.cookies["session_id_admin"] = session_id
+        request.env.web2py_runtime_gae = False
+
+        return request
 
     def _test_index(self):
         result = self.run_function()
@@ -102,6 +194,32 @@ class TestAppAdmin(unittest.TestCase):
 
     def test_index(self):
         self._test_index()
+
+    def test_index_rejects_host_header_spoofing(self):
+        request = self.env["request"]
+        request.env.http_host = "127.0.0.1:8000"
+        request.env.remote_addr = "203.0.113.10"
+        request.client = request.env.remote_addr
+        request.is_local = False
+        request.is_https = False
+        request.env.trusted_lan_prefix = None
+        with self.assertRaises(HTTP) as ctx:
+            self.run_function()
+        error = ctx.exception
+        self.assertEqual(error.status, 200)
+        self.assertIn("appadmin is disabled because insecure channel", str(error.body))
+
+    def test_index_allows_shell(self):
+        request = self.env["request"]
+        request.env.remote_addr = "203.0.113.10"
+        request.client = request.env.remote_addr
+        request.is_local = False
+        request.is_https = False
+        request.is_shell = True
+        request.env.trusted_lan_prefix = None
+        # should not raise HTTP — shell execution must bypass the channel check
+        result = self.run_function()
+        self.assertIn("db", result["databases"])
 
     def test_index_compiled(self):
         appname_path = os.path.join(os.getcwd(), "applications", "welcome")
@@ -140,6 +258,16 @@ class TestAppAdmin(unittest.TestCase):
 
             print(traceback.format_exc())
             self.fail("Could not make the view")
+
+    def test_safe_eval_dict_handles_commas(self):
+        self.assertEqual(
+            utils.safe_eval_dict('foo="hello world", bar="hello, world"'),
+            {"foo": "hello world", "bar": "hello, world"},
+        )
+        self.assertEqual(
+            utils.safe_eval_dict("a=1, b='x,y', c=foo"),
+            {"a": 1, "b": "x,y", "c": "foo"},
+        )
 
     def test_insert(self):
         request = self.env["request"]
@@ -203,3 +331,246 @@ class TestAppAdmin(unittest.TestCase):
         data["id"] = "1"
         request._vars = data
         self.assertRaises(HTTP, self.run_function)
+
+    def test_path_validation_security(self):
+        """Test path validation security patches prevent traversal attacks"""
+        from gluon.admin import apath, up
+        from gluon.globals import Request
+        from gluon.http import HTTP
+
+        # Mock request for testing
+        request = Request(env={})
+        request.folder = "applications/welcome"
+
+        # Test allowed paths
+        web2py_apps_root = os.path.abspath(up(request.folder))
+        web2py_deposit_root = os.path.join(up(web2py_apps_root), 'deposit')
+        allowed_roots = [web2py_apps_root, web2py_deposit_root]
+
+        def is_path_allowed(path):
+            """Simulate the path validation logic from safe_open"""
+            a_for_check = os.path.abspath(os.path.normpath(path))
+            return any(a_for_check == root or a_for_check.startswith(root + os.sep)
+                      for root in allowed_roots)
+
+        # Test legitimate paths are allowed
+        self.assertTrue(is_path_allowed(os.path.join(web2py_apps_root, 'welcome', 'models', 'db.py')),
+                       "Should allow valid app files")
+        self.assertTrue(is_path_allowed(web2py_apps_root),
+                       "Should allow applications root")
+        self.assertTrue(is_path_allowed(web2py_deposit_root),
+                       "Should allow deposit root")
+
+        # Test malicious paths are blocked
+        self.assertFalse(is_path_allowed('/etc/passwd'),
+                        "Should block system files")
+        self.assertFalse(is_path_allowed('/workspaces/web2py/applications_evil'),
+                        "Should block prefix match attacks")
+        self.assertFalse(is_path_allowed(os.path.join(web2py_apps_root, '..', 'etc', 'passwd')),
+                        "Should block path traversal")
+        self.assertFalse(is_path_allowed('/tmp/malicious'),
+                        "Should block temp directory access")
+
+    def test_admin_file_manager_boundaries(self):
+        """Test that admin file manager enforces app boundaries."""
+        from gluon.admin import apath, check_app_path, is_within_root, join_app_path
+        from gluon.globals import Request
+        from gluon.http import HTTP
+        request = Request(env={})
+        request.folder = os.path.abspath('applications/admin')
+
+        web2py_apps_root = os.path.abspath('applications')
+        app_root = os.path.join(web2py_apps_root, "welcome")
+
+        base = os.path.join(app_root, "views")
+        res = join_app_path(request, "welcome", base, "default/index.html")
+        self.assertTrue(res.endswith(os.path.join("welcome", "views", "default", "index.html")))
+
+        static_base = os.path.join(app_root, "static")
+        static_res = join_app_path(request, "welcome", static_base, "js/app.js")
+        self.assertTrue(static_res.endswith(os.path.join("welcome", "static", "js", "app.js")))
+
+        cross_app_path = apath("welcome/../admin/controllers/default.py", r=request)
+        normalized_cross_app_path = os.path.abspath(os.path.normpath(cross_app_path))
+        self.assertTrue(is_within_root(normalized_cross_app_path, web2py_apps_root))
+        self.assertRaises(
+            HTTP,
+            check_app_path,
+            request,
+            "welcome",
+            cross_app_path
+        )
+
+        self.assertRaises(
+            HTTP,
+            join_app_path,
+            request,
+            "welcome",
+            os.path.join(app_root, "views"),
+            "../controllers/default.py"
+        )
+
+        self.assertRaises(
+            HTTP,
+            join_app_path,
+            request,
+            "welcome",
+            os.path.join(app_root, "static"),
+            "../../admin/controllers/default.py"
+        )
+
+        self.assertRaises(
+            HTTP,
+            join_app_path,
+            request,
+            "welcome",
+            os.path.join(app_root, "static"),
+            "/tmp/pwn.py"
+        )
+
+    def test_appadmin_rejects_unowned_app_in_multi_user_mode(self):
+        """Test appadmin enforces app ownership for multi-user admin sessions."""
+        request = self.make_multi_user_appadmin_request("victim")
+        self.assertFalse(self.original_check_credentials(request))
+
+    def test_appadmin_allows_owned_app_in_multi_user_mode(self):
+        """Test appadmin still works for the current admin user's apps."""
+        request = self.make_multi_user_appadmin_request("owned")
+        self.assertTrue(self.original_check_credentials(request))
+
+    def test_appadmin_allows_manager_in_multi_user_mode(self):
+        """Test managers can still use appadmin across apps."""
+        request = self.make_multi_user_appadmin_request("victim", is_manager=True)
+        self.assertTrue(self.original_check_credentials(request))
+
+    def test_appadmin_allows_global_admin_session_without_multi_user_auth(self):
+        """Test global admin-password sessions still work outside multi-user auth."""
+        request = self.make_multi_user_appadmin_request("victim", user_id=None)
+        self.assertTrue(self.original_check_credentials(request))
+
+    def test_admin_wizard_blocks_cross_user_app_overwrite(self):
+        """Test that the wizard cannot overwrite another user's app."""
+        env = self.prepare_multi_user_admin_env()("wizard")
+        self.assertTrue(env["app_can_be_written"]("welcome"))
+        self.assertFalse(env["app_can_be_written"]("admin"))
+        self.assertFalse(env["app_can_be_written"]("ghost"))
+        self.assertTrue(env["app_can_be_written"]("brand_new"))
+
+    def test_pythonanywhere_blocks_cross_user_app_export(self):
+        """Test that PythonAnywhere deployment only sees owned apps."""
+        env = self.prepare_multi_user_admin_env()("pythonanywhere")
+        apps = env["list_authorized_apps"]()
+        self.assertIn("welcome", apps)
+        self.assertNotIn("admin", apps)
+        self.assertRaises(HTTP, env["authorized_app_path"], "admin")
+        self.assertRaises(HTTP, env["authorized_app_path"], "../admin")
+        self.assertTrue(
+            env["authorized_app_path"]("welcome").endswith(
+                os.path.join("applications", "welcome")))
+
+    def test_safe_eval_expression_blocks_function_calls(self):
+        """Test that safe_eval_expression blocks arbitrary function calls (RCE)"""
+        self.assertUnsafe('__import__("os").system("id")')
+
+    def test_safe_eval_expression_blocks_subscript(self):
+        """Test that safe_eval_expression blocks subscript access (introspection)"""
+        self.assertUnsafe('db.__class__[0]')
+
+    def test_safe_eval_expression_blocks_dunder_access(self):
+        """Test that safe_eval_expression blocks dunder attribute access"""
+        self.assertUnsafe('db.__class__')
+        self.assertUnsafe('db.auth_user.__dict__')
+
+    def test_safe_eval_expression_blocks_private_access(self):
+        """Test that safe_eval_expression blocks private attribute access"""
+        self.assertUnsafe('db._internals')
+        # calling an unsafe underscore method must also be blocked
+        self.assertUnsafe('db._execute("DROP TABLE auth_user")')
+        self.assertUnsafe('db.auth_user._filter_fields({})')
+
+    def test_safe_eval_expression_blocks_lambda(self):
+        """Test that safe_eval_expression blocks lambda functions"""
+        self.assertUnsafe('lambda x: x > 0')
+
+    def test_safe_eval_expression_blocks_comprehensions(self):
+        """Test that safe_eval_expression blocks list/dict/set comprehensions"""
+        self.assertUnsafe('[x for x in range(10)]')
+
+    def test_safe_eval_expression_blocks_imports(self):
+        """Test that safe_eval_expression blocks import statements"""
+        self.assertUnsafe('__import__("os")')
+
+    def test_safe_eval_expression_blocks_undefined_names(self):
+        """Test that safe_eval_expression blocks undefined variable names"""
+        self.assertUnsafe('undefined_var > 0')
+
+    def test_safe_eval_expression_blocks_getattr(self):
+        """Test that safe_eval_expression blocks getattr (attribute crawling)"""
+        self.assertUnsafe('getattr(db, "__class__")')
+
+    def test_safe_eval_expression_blocks_set_dict_comprehension(self):
+        """Set and dict comprehensions are blocked."""
+        self.assertUnsafe('{x for x in range(10)}')
+        self.assertUnsafe('{x: x for x in range(10)}')
+
+    def test_safe_eval_expression_blocks_generator(self):
+        """Generator expressions are blocked."""
+        self.assertUnsafe('(x for x in range(10))')
+
+    def test_safe_eval_expression_blocks_ternary(self):
+        """Ternary (if-else) expressions are blocked."""
+        self.assertUnsafe('db.auth_user.id if True else db.auth_user.email')
+
+    def test_safe_eval_expression_blocks_walrus(self):
+        """Walrus operator (:=) is blocked."""
+        self.assertUnsafe('(x := db.auth_user.id)')
+
+    def test_safe_eval_expression_blocks_fstring(self):
+        """f-strings are blocked."""
+        self.assertUnsafe('f"hello {db.auth_user.id}"')
+
+    def test_safe_eval_expression_blocks_extra_undefined_names(self):
+        """Any name not in the allowed set is blocked."""
+        self.assertUnsafe('os.getcwd()')
+
+    def test_safe_eval_expression_empty_allowed_names(self):
+        """With no allowed names, even 'db' is rejected."""
+        with self.assertRaises(ValueError):
+            safe_eval_expression('db.auth_user.id', {})
+
+    def test_safe_eval_expression_invalid_syntax(self):
+        """Unparseable input raises ValueError."""
+        with self.assertRaises(ValueError):
+            safe_eval_expression('db.auth_user.id >', {"db": self.env["db"]})
+
+    def test_safe_eval_expression_allowed_dal_expressions(self):
+        """Positive test: all DAL expression patterns used in appadmin are allowed."""
+        db_names = {"db": self.env["db"]}
+        # simple field reference and comparison
+        self.assertSafe('db.auth_user.id', 'auth_user.id')
+        self.assertSafe('db.auth_user.id > 0', '(auth_user.id > 0)')
+        self.assertSafe('db.auth_user.username', 'auth_user.username')
+        # compound AND / OR conditions
+        self.assertIsNotNone(self.assertSafe(
+            '(db.auth_membership.user_id == db.auth_user.id) & (db.auth_user.id > 0)'
+        ))
+        self.assertIsNotNone(self.assertSafe(
+            '(db.auth_user.id > 0) | (db.auth_user.id == 0)'
+        ))
+        # cross-table join condition
+        self.assertIsNotNone(self.assertSafe(
+            'db.auth_membership.user_id == db.auth_user.id'
+        ))
+        # DAL unary operators: ~ (NOT/DESC) and | (multi-field orderby)
+        self.assertIn('auth_user', str(self.assertSafe('~db.auth_user.id')).replace('"', ''))
+        self.assertIsNotNone(self.assertSafe('db.auth_user.id|db.auth_user.username'))
+        # DAL query methods: belongs, like, startswith, contains
+        safe_eval_expression('db.auth_user.id.belongs([1, 2, 3])', db_names)
+        safe_eval_expression('db.auth_user.username.like("admin%")', db_names)
+        safe_eval_expression('db.auth_user.email.startswith("test@")', db_names)
+        safe_eval_expression('db.auth_user.first_name.contains("John")', db_names)
+        # belongs() with _select() subquery
+        self.assertIsNotNone(safe_eval_expression(
+            'db.auth_user.id.belongs(db()._select(db.auth_membership.user_id))',
+            db_names,
+        ))

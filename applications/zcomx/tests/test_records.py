@@ -230,6 +230,16 @@ class TestRecord(LocalTestCase):
         self.assertEqual(book.name_for_url, 'N001')
         self.assertEqual(updated_book.name_for_url, 'N002')
 
+    def test__validate_fields(self):
+        # def from_add and def from updated will test this thoroughly.
+        table = db.book
+        data = {'name': 'My Name'}
+        response, unused_new_fields = DubBook.validate_fields(table, data)
+        self.assertEqual(
+            response,
+            {'id': None, 'errors': {}}
+        )
+
 
 class TestRecords(LocalTestCase):
 

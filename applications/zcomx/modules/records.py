@@ -7,6 +7,7 @@ import functools
 import traceback
 from pydal.objects import Row
 from gluon import *
+from gluon.validators import CRYPT
 
 LOG = current.app.logger
 
@@ -67,18 +68,19 @@ class Record(Row):
         record_id = 0
         db = current.app.db
         if validate:
-            ret = db[cls.db_table].validate_and_insert(**data)
-            db.commit()
-            if ret['errors']:
+            response, unused_new_fields = cls.validate_fields(
+                db[cls.db_table],
+                data
+            )
+            if response.get("errors"):
                 msg = ', '.join([
                     '{k}: {v}'.format(k=k, v=v)
-                    for k, v in list(ret['errors'].items())
+                    for k, v in list(response['errors'].items())
                 ])
                 raise SyntaxError(msg)
-            record_id = ret['id']
-        else:
-            record_id = db[cls.db_table].insert(**data)
-            db.commit()
+
+        record_id = db[cls.db_table].insert(**data)
+        db.commit()
         return cls.from_id(record_id)
 
     @classmethod
@@ -168,17 +170,21 @@ class Record(Row):
             validate_data = dict(data)
             if 'id' not in validate_data:
                 validate_data['id'] = record.id
-            ret = db(query).validate_and_update(**validate_data)
-            db.commit()
-            if ret['errors']:
+            response, unused_new_fields = cls.validate_fields(
+                db[cls.db_table],
+                validate_data,
+                defattr='update',
+                id=record.id,
+            )
+            if response.get("errors"):
                 msg = ', '.join([
                     '{k}: {v}'.format(k=k, v=v)
-                    for k, v in list(ret['errors'].items())
+                    for k, v in list(response['errors'].items())
                 ])
                 raise SyntaxError(msg)
-        else:
-            db(query).update(**data)
-            db.commit()
+
+        db(query).update(**data)
+        db.commit()
         return cls.from_id(record.id)
 
     def update_record(self, **data):
@@ -189,6 +195,43 @@ class Record(Row):
         db = current.app.db
         db(db[self.db_table].id == self.id).update(**data)
         db.commit()
+
+    @classmethod
+    def validate_fields(cls, table, fields, defattr="default", id=None):
+        """Validate field values before insert/update.
+        Notes:
+            Adpated from web2py v 2.27.1 gluon/packages/dal/pydal/objects.py
+            web2py changed the way field values are validated.
+
+        Args:
+            table: Table instance
+            fields: dict, {field1: value1, ...}
+            defattr: str
+            id: integer, record id value.
+
+        Returns:
+            tuple (dict, Row() instance)
+        """
+        response = {"id": None, "errors": {}}
+        new_fields = Row()
+        for field in table:
+            # we validate even if not passed in case it is required
+            error = default = None
+            if not field.required and not field.compute:
+                default = getattr(field, defattr)
+                if callable(default):
+                    default = default()
+            if not field.compute and field.name in fields:
+                ovalue = fields.get(field.name, default)
+                value, error = field.validate(ovalue, id)
+            if error:
+                response["errors"][field.name] = "%s" % error
+            elif field.type == "password" and ovalue == CRYPT.STARS:
+                pass
+            elif field.name in fields:
+                # only write if the field was passed and no error
+                new_fields[field.name] = value
+        return response, new_fields
 
 
 class Records():

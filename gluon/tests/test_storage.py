@@ -3,9 +3,9 @@
 
 """ Unit tests for storage.py """
 
+import pickle
 import unittest
 
-from gluon._compat import pickle
 from gluon.http import HTTP
 from gluon.storage import List, Storage, StorageList
 
@@ -117,7 +117,6 @@ class TestStorageList(unittest.TestCase):
 
 
 class TestList(unittest.TestCase):
-
     """Tests Storage.List (fast-check for request.args())"""
 
     def test_listcall(self):

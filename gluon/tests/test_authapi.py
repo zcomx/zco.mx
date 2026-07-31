@@ -5,7 +5,6 @@
 import os
 import unittest
 
-from gluon._compat import add_charset, to_bytes, to_native
 from gluon.authapi import AuthAPI
 from gluon.dal import DAL, Field
 from gluon.globals import Request, Response, Session
@@ -37,19 +36,19 @@ class TestAuthAPI(unittest.TestCase):
         self.auth = AuthAPI(self.db)
         self.auth.define_tables(username=True, signature=False)
         # Create a user
-        self.auth.table_user().validate_and_insert(
+        ret = self.auth.table_user().validate_and_insert(
             first_name="Bart",
             last_name="Simpson",
             username="bart",
             email="bart@simpson.com",
             password="bart_password",
-            registration_key="",
-            registration_id="",
         )
+        self.assertEqual(ret["errors"], {})
         self.db.commit()
 
     def test_login(self):
         result = self.auth.login(**{"username": "bart", "password": "bart_password"})
+        self.assertEqual(result.get("errors"), None)
         self.assertTrue(self.auth.is_logged_in())
         self.assertTrue(result["user"]["email"] == "bart@simpson.com")
         self.auth.logout()
@@ -57,6 +56,29 @@ class TestAuthAPI(unittest.TestCase):
         self.auth.settings.username_case_sensitive = False
         result = self.auth.login(**{"username": "BarT", "password": "bart_password"})
         self.assertTrue(self.auth.is_logged_in())
+
+    def test_login_without_stored_password(self):
+        # users provisioned by an alternate login method (or by register_bare
+        # with no password) have no local password and must not be reachable
+        for stored in (None, ""):
+            uid = self.auth.table_user().insert(
+                first_name="Maggie",
+                last_name="Simpson",
+                username="maggie%s" % (stored is None),
+                email="maggie%s@simpson.com" % (stored is None),
+                password=stored,
+                registration_key="",
+            )
+            self.db.commit()
+            for candidate in (None, ""):
+                result = self.auth.login(
+                    **{
+                        "username": self.auth.table_user()[uid].username,
+                        "password": candidate,
+                    }
+                )
+                self.assertTrue(result["errors"] is not None)
+                self.assertFalse(self.auth.is_logged_in())
 
     def test_logout(self):
         self.auth.login(**{"username": "bart", "password": "bart_password"})
@@ -76,7 +98,7 @@ class TestAuthAPI(unittest.TestCase):
                 "password": "lisa_password",
             }
         )
-        self.assertTrue(result["user"]["email"] == "lisa@simpson.com")
+        self.assertEqual(result["user"]["email"], "lisa@simpson.com")
         self.assertTrue(self.auth.is_logged_in())
         with self.assertRaises(AssertionError):  # Can't register if you're logged in
             result = self.auth.register(

@@ -11,10 +11,19 @@ HTTP statuses helpers
 """
 
 import re
+from urllib.parse import quote as urllib_quote
+from xml.sax.saxutils import escape as xml_escape
 
-from gluon._compat import iteritems, to_bytes, unicodeT
+__all__ = [
+    "HTTP",
+    "redirect",
+    "content_disposition_filename",
+    "content_disposition_header",
+]
 
-__all__ = ["HTTP", "redirect"]
+# RFC 7230 token characters: the only bytes allowed in a Content-Disposition
+# disposition type (e.g. "attachment", "inline").
+CONTENT_DISPOSITION_TYPE = re.compile(r"^[A-Za-z0-9!#$%&'*+.^_`|~-]+$")
 
 defined_status = {
     200: "OK",
@@ -60,7 +69,7 @@ defined_status = {
     509: "BANDWIDTH LIMIT EXCEEDED",
 }
 
-regex_status = re.compile("^\d{3} [0-9A-Z ]+$")
+regex_status = re.compile(r"^\d{3} [0-9A-Z ]+$")
 regex_header_newlines = re.compile(r"[\r\n]")
 
 
@@ -82,7 +91,7 @@ class HTTP(Exception):
         self.status = status
         self.body = body
         self.headers = {}
-        for k, v in iteritems(headers):
+        for k, v in headers.items():
             if isinstance(v, list):
                 self.headers[k] = [
                     regex_header_newlines.sub("", str(item)) for item in v
@@ -115,28 +124,28 @@ class HTTP(Exception):
             if not body:
                 body = status
             if isinstance(body, (str, bytes, bytearray)):
-                if isinstance(body, unicodeT):
-                    body = to_bytes(body)  # This must be done before len
+                if isinstance(body, str):
+                    body = body.encode("utf8")
                 headers["Content-Length"] = len(body)
         rheaders = []
-        for k, v in iteritems(headers):
+        for k, v in headers.items():
             if isinstance(v, list):
                 rheaders += [(k, str(item)) for item in v]
             else:
                 rheaders.append((k, str(v)))
         responder(status, rheaders)
         if env.get("request_method", "") == "HEAD":
-            return [to_bytes("")]
+            return [b""]
         elif isinstance(body, (str, bytes, bytearray)):
-            if isinstance(body, unicodeT):
-                body = to_bytes(body)
+            if isinstance(body, str):
+                body = body.encode("utf8")
             return [body]
         elif hasattr(body, "__iter__"):
             return body
         else:
             body = str(body)
-            if isinstance(body, unicodeT):
-                body = to_bytes(body)
+            if isinstance(body, str):
+                body = body.encode("utf8")
             return [body]
 
     @property
@@ -184,7 +193,10 @@ def redirect(location="", how=303, client_side=False, headers=None):
         else:
             headers["Location"] = loc
             raise HTTP(
-                how, 'You are being redirected <a href="%s">here</a>' % loc, **headers
+                how,
+                'You are being redirected <a href="%s">here</a>'
+                % xml_escape(loc, {'"': "&quot;"}),
+                **headers,
             )
     else:
         from gluon.globals import current
@@ -192,3 +204,22 @@ def redirect(location="", how=303, client_side=False, headers=None):
         if client_side and current.request.ajax:
             headers["web2py-component-command"] = "window.location.reload(true)"
             raise HTTP(200, **headers)
+
+
+def content_disposition_filename(filename):
+    if filename is None:
+        filename = ""
+    # Keep historical semantics for normal values while ensuring dangerous
+    # bytes are encoded before insertion in a quoted header parameter.
+    if isinstance(filename, bytes):
+        return urllib_quote(filename, safe=b"")
+    return urllib_quote(str(filename), safe="")
+
+
+def content_disposition_header(filename, disposition="attachment"):
+    if not CONTENT_DISPOSITION_TYPE.fullmatch(disposition):
+        raise ValueError("invalid Content-Disposition type: %r" % disposition)
+    return '%s; filename="%s"' % (
+        disposition,
+        content_disposition_filename(filename),
+    )

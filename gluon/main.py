@@ -8,13 +8,10 @@
 The gluon wsgi application
 ---------------------------
 """
-
-if False:
-    from . import import_all  # DO NOT REMOVE PART OF FREEZE PROCESS
-
 import copy
 import datetime
 import gc
+import http
 import os
 import random
 import re
@@ -23,11 +20,16 @@ import socket
 import string
 import sys
 import time
+from urllib.parse import quote
 
-from gluon._compat import Cookie, urllib_quote
-from gluon.fileutils import (abspath, add_path_first,
-                             create_missing_app_folders,
-                             create_missing_folders, read_file, write_file)
+from gluon.fileutils import (
+    abspath,
+    add_path_first,
+    create_missing_app_folders,
+    create_missing_folders,
+    read_file,
+    write_file,
+)
 from gluon.globals import current
 from gluon.settings import global_settings
 from gluon.utils import unlocalised_http_header_date, web2py_uuid
@@ -53,7 +55,10 @@ from gluon.utils import unlocalised_http_header_date, web2py_uuid
 
 web2py_path = global_settings.applications_parent  # backward compatibility
 
-create_missing_folders()
+try:
+    create_missing_folders()
+except OSError:
+    print("Unable to create missing folders - perhaps readonly filesystem")
 
 # set up logging for subsequent imports
 import logging.config
@@ -82,11 +87,21 @@ logger = logging.getLogger("web2py")
 exists = os.path.exists
 pjoin = os.path.join
 
+# monkey patch pydal
+import pydal
+
+pydal.get_default_represent = lambda value: value
+# end monkey patch
+
 from pydal.base import BaseAdapter
 
 from gluon import newcron
-from gluon.compileapp import (build_environment, run_controller_in,
-                              run_models_in, run_view_in)
+from gluon.compileapp import (
+    build_environment,
+    run_controller_in,
+    run_models_in,
+    run_view_in,
+)
 from gluon.contenttype import contenttype
 from gluon.globals import Request, Response, Session
 from gluon.html import URL, xmlescape
@@ -98,6 +113,7 @@ from gluon.rewrite import load as load_routes
 from gluon.rewrite import try_rewrite_on_error, url_in
 from gluon.utils import getipaddrinfo, is_valid_ip_address
 from gluon.validators import CRYPT
+from gluon.version import VERSION
 
 __all__ = ["wsgibase", "save_password", "appfactory", "HttpServer"]
 
@@ -106,16 +122,8 @@ requests = 0  # gc timer
 # Security Checks: validate URL and session_id here,
 # accept_language is validated in languages
 
-try:
-    version_info = read_file(pjoin(global_settings.gluon_parent, "VERSION"))
-    web2py_version = global_settings.web2py_version = version_info.split()[-1].strip()
-except:
-    raise RuntimeError("Cannot determine web2py version")
+web2py_version = global_settings.web2py_version = VERSION
 
-# do not need rocket nor HttpServer when served by handler
-# (e.g. apache + mod_wsgi), speed up execution and save memory
-if not global_settings.web2py_runtime_handler:
-    from gluon import rocket
 
 load_routes()
 
@@ -352,14 +360,6 @@ def wsgibase(environ, responder):
                             local_hosts.update(
                                 [addrinfo[4][0] for addrinfo in getipaddrinfo(fqdn)]
                             )
-                            if env.server_name:
-                                local_hosts.add(env.server_name)
-                                local_hosts.update(
-                                    [
-                                        addrinfo[4][0]
-                                        for addrinfo in getipaddrinfo(env.server_name)
-                                    ]
-                                )
                         except (socket.gaierror, TypeError):
                             pass
                     global_settings.local_hosts = list(local_hosts)
@@ -383,6 +383,7 @@ def wsgibase(environ, responder):
                     or env.https == "on",
                 )
                 request.url = environ["PATH_INFO"]
+                request.parse_content_type()
 
                 # ##################################################
                 # access the requested application
@@ -421,8 +422,12 @@ def wsgibase(environ, responder):
                 # ##################################################
                 # build missing folders
                 # ##################################################
-
-                create_missing_app_folders(request)
+                try:
+                    create_missing_app_folders(request)
+                except OSError:
+                    print(
+                        "Unable to create missing app folders - perhaps readonly filesystem"
+                    )
 
                 # ##################################################
                 # get the GET and POST data
@@ -446,7 +451,7 @@ def wsgibase(environ, responder):
                         if single_cookie:
                             try:
                                 request.cookies.load(single_cookie)
-                            except Cookie.CookieError:
+                            except http.cookies.CookieError:
                                 pass  # single invalid cookie ignore
 
                 # ##################################################
@@ -509,15 +514,13 @@ def wsgibase(environ, responder):
 
                     if request.ajax:
                         if response.flash:
-                            http_response.headers[
-                                "web2py-component-flash"
-                            ] = urllib_quote(
-                                xmlescape(response.flash).replace(b"\n", b"")
+                            http_response.headers["web2py-component-flash"] = quote(
+                                xmlescape(response.flash).replace("\n", "")
                             )
                         if response.js:
-                            http_response.headers[
-                                "web2py-component-command"
-                            ] = urllib_quote(response.js.replace("\n", ""))
+                            http_response.headers["web2py-component-command"] = quote(
+                                response.js.replace("\n", "")
+                            )
 
                     # ##################################################
                     # store cookies in headers
@@ -651,7 +654,7 @@ def appfactory(
         raise BaseException("Deprecated API")
     if profiler_dir:
         profiler_dir = abspath(profiler_dir)
-        logger.warn("profiler is on. will use dir %s", profiler_dir)
+        logger.warning("profiler is on. will use dir %s", profiler_dir)
         if not os.path.isdir(profiler_dir):
             try:
                 os.makedirs(profiler_dir)
@@ -746,6 +749,8 @@ class HttpServer(object):
         starts the web server.
         """
 
+        import rocket3
+
         if interfaces:
             # if interfaces is specified, it must be tested for rocket parameter correctness
             # not necessarily completely tested (e.g. content of tuples or ip-format)
@@ -779,12 +784,12 @@ class HttpServer(object):
         if not server_name:
             server_name = socket.gethostname()
         logger.info("starting web server...")
-        rocket.SERVER_NAME = server_name
-        rocket.SOCKET_TIMEOUT = socket_timeout
+        rocket3.SERVER_NAME = server_name
+        rocket3.SOCKET_TIMEOUT = socket_timeout
         sock_list = [ip, port]
         if not ssl_certificate or not ssl_private_key:
             logger.info("SSL is off")
-        elif not rocket.has_ssl:
+        elif not rocket3.has_ssl:
             logger.warning('Python "ssl" module unavailable. SSL is OFF')
         elif not exists(ssl_certificate):
             logger.warning("unable to open SSL certificate. SSL is OFF")
@@ -798,7 +803,7 @@ class HttpServer(object):
             logger.info("SSL is ON")
         app_info = {"wsgi_app": appfactory(wsgibase, log_filename, profiler_dir)}
 
-        self.server = rocket.Rocket(
+        self.server = rocket3.Rocket3(
             interfaces or tuple(sock_list),
             method="wsgi",
             app_info=app_info,
@@ -830,8 +835,11 @@ class HttpServer(object):
                 newcron.stopcron()
             except:
                 pass
-        self.server.stop(stoplogging)
         try:
             os.unlink(self.pid_filename)
+        except:
+            pass
+        try:
+            os.kill(os.getpid(), signal.SIGKILL)
         except:
             pass

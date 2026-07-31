@@ -5,7 +5,6 @@
     Unit tests for gluon.cache
 """
 import os
-import tempfile
 import unittest
 
 from gluon import recfile
@@ -14,6 +13,13 @@ from gluon.dal import DAL, Field
 from gluon.storage import Storage
 
 oldcwd = None
+
+try:
+    import tempfile
+
+    TemporaryDirectory = tempfile.TemporaryDirectory
+except:
+    from temporary_directory import TemporaryDirectory
 
 
 def setUpModule():
@@ -92,7 +98,7 @@ class TestCache(unittest.TestCase):
         self.assertEqual(cache("b", lambda: "x", 100), 1)
 
     def test_corrupt_CacheOnDsk(self):
-        with tempfile.TemporaryDirectory() as tmpdirname:
+        with TemporaryDirectory() as tmpdirname:
             s = Storage({"application": "admin", "folder": tmpdirname})
 
             cache = CacheOnDisk(s)
@@ -100,8 +106,11 @@ class TestCache(unittest.TestCase):
 
             # empty cache file
             folder = os.path.join(s.folder, "cache")
-            val_file = recfile.open("a", mode="r+b", path=folder)
+            # Use the filtered key name for Windows compatibility
+            filtered_key = cache.storage.key_filter_in("a")
+            val_file = recfile.open(filtered_key, mode="r+b", path=folder)
             val_file.truncate()
+            val_file.close()
 
             self.assertEqual(cache("a", lambda: 2, 0), 2)
 

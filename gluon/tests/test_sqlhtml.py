@@ -9,7 +9,8 @@ import os
 import sys
 import unittest
 
-from gluon.sqlhtml import SQLFORM, SQLTABLE, safe_int
+from gluon.sqlhtml import (SQLFORM, SQLTABLE, ExporterCSV, ExporterCSV_hidden,
+                           ExporterTSV, ExporterTSV_hidden, safe_int)
 
 DEFAULT_URI = os.getenv("DB", "sqlite:memory")
 
@@ -51,6 +52,42 @@ class Test_safe_int(unittest.TestCase):
         self.assertEqual(safe_int("1x"), 0)
         # not safe int (alternate default)
         self.assertEqual(safe_int("1x", 1), 1)
+
+
+class TestGridExportFormulaInjection(unittest.TestCase):
+    # The grid's CSV/TSV "export" buttons serve attacker-storable DB values to
+    # spreadsheet software. A cell starting with =, +, -, @, TAB or CR is run as
+    # a formula when opened (CSV/formula injection, CWE-1236); the exporters
+    # must neutralize it while leaving genuine numbers and structure intact.
+    def setUp(self):
+        self.db = DAL("sqlite:memory")
+        self.db.define_table("t", Field("name"), Field("score", "integer"))
+        self.db.t.insert(name="=cmd|'/C calc'!A0", score=-5)
+        self.db.t.insert(name="@SUM(1+1)", score=10)
+        self.db.t.insert(name="plain, comma", score=3)
+        self.rows = self.db(self.db.t).select()
+
+    def tearDown(self):
+        self.db.close()
+
+    def test_csv_exporters_neutralize_formulas(self):
+        for cls in (ExporterCSV, ExporterCSV_hidden):
+            out = cls(self.rows).export()
+            self.assertIn("'=cmd|'/C calc'!A0", out)
+            self.assertIn("'@SUM(1+1)", out)
+            self.assertNotIn(",=cmd", out)
+            # genuine negative number is preserved (not quoted as text)
+            self.assertIn(",-5", out)
+            # value containing the delimiter still round-trips
+            self.assertIn('"plain, comma"', out)
+
+    def test_tsv_exporters_neutralize_formulas(self):
+        for cls in (ExporterTSV, ExporterTSV_hidden):
+            out = cls(self.rows).export()
+            self.assertIn("\t'=cmd|'/C calc'!A0", out)
+            self.assertIn("\t'@SUM(1+1)", out)
+            self.assertNotIn("\t=cmd", out)
+            self.assertIn("\t-5", out)
 
 
 # class Test_safe_float(unittest.TestCase):
@@ -282,7 +319,7 @@ class TestSQLFORM(unittest.TestCase):
 
     def test_SQLFORM(self):
         form = SQLFORM(self.db.auth_user)
-        self.assertEqual(form.xml()[:5], b"<form")
+        self.assertEqual(form.xml()[:5], "<form")
 
     def test_represent_SQLFORM(self):
         id = self.db.t0.insert()
@@ -290,10 +327,10 @@ class TestSQLFORM(unittest.TestCase):
         self.db.t0.tt.writable = False
         self.db.t0.tt.readable = True
         form = SQLFORM(self.db.t0, id)
-        self.assertTrue(b"Web2py" in form.xml())
+        self.assertTrue("Web2py" in form.xml())
         self.db.t0.tt.represent = lambda value, row: value.capitalize()
         form = SQLFORM(self.db.t0, id)
-        self.assertTrue(b"Web2py" in form.xml())
+        self.assertTrue("Web2py" in form.xml())
 
     # def test_assert_status(self):
     #     pass
@@ -314,7 +351,7 @@ class TestSQLFORM(unittest.TestCase):
         factory_form = SQLFORM.factory(
             Field("field_one", "string", IS_NOT_EMPTY()), Field("field_two", "string")
         )
-        self.assertEqual(factory_form.xml()[:5], b"<form")
+        self.assertEqual(factory_form.xml()[:5], "<form")
 
     def test_factory_applies_default_validators(self):
         from gluon import current
@@ -344,11 +381,137 @@ class TestSQLFORM(unittest.TestCase):
 
     def test_grid(self):
         grid_form = SQLFORM.grid(self.db.auth_user)
-        self.assertEqual(grid_form.xml()[:4], b"<div")
+        self.assertEqual(grid_form.xml()[:4], "<div")
+
+    def test_grid_order_limited_to_sortable_columns(self):
+        # request.vars.order must be constrained to the grid's sortable
+        # columns. A crafted value must not sort by an undisplayed column
+        # (which leaks its ordering) nor reference an unrelated table (which
+        # raised an unhandled 500).
+        from gluon.globals import current
+
+        self.db.define_table(
+            "gitem",
+            Field("name"),
+            Field("secret", readable=False, writable=False),
+        )
+        self.db.gitem.insert(name="alpha", secret="zzz")
+        self.db.gitem.insert(name="bravo", secret="aaa")
+        self.db.commit()
+
+        def name_order(order):
+            current.request.vars.order = order
+            xml = SQLFORM.grid(self.db.gitem, sortable=True).xml()
+            return "alpha,bravo" if xml.find(">alpha<") < xml.find(">bravo<") else "bravo,alpha"
+
+        default = name_order("")
+        # sorting by the hidden readable=False column is refused
+        self.assertEqual(name_order("gitem.secret"), default)
+        # malformed and foreign-table order values are ignored, not fatal
+        self.assertEqual(name_order("boom"), default)
+        self.assertEqual(name_order("nosuchtable.x"), default)
+        # a real displayed column can still be sorted
+        self.assertEqual(name_order("~gitem.name"), "bravo,alpha")
+        current.request.vars.order = ""
+
+    def test_grid_view_limited_to_own_tables(self):
+        # The view/edit/delete/new action must only reference a table the grid
+        # was built on. The table name is taken from the URL (request.args), and
+        # the "view" action is reachable without a signature for anonymous
+        # visitors, so an unchecked name lets anyone read a record of an
+        # unrelated table (e.g. auth_user) through a grid on a public table.
+        from gluon.globals import current
+        from gluon.storage import List
+
+        self.db.define_table("product", Field("name"))
+        self.db.product.insert(name="widget")
+        self.db.commit()
+
+        # anonymous visitor requesting /f/view/auth_user/1 on a grid over product
+        current.request.args = List(["view", "auth_user", "1"])
+        try:
+            xml = SQLFORM.grid(self.db.product).xml()
+        except HTTP as e:
+            self.assertEqual(e.status, 303)
+        else:
+            self.assertNotIn("user1@test.com", xml)
+
+        # a legitimate view of the grid's own table still renders
+        current.request.args = List(["view", "product", "1"])
+        xml = SQLFORM.grid(self.db.product).xml()
+        self.assertIn("widget", xml)
+        current.request.args = List([])
 
     def test_smartgrid(self):
         smartgrid_form = SQLFORM.smartgrid(self.db.auth_user)
-        self.assertEqual(smartgrid_form.xml()[:4], b"<div")
+        self.assertEqual(smartgrid_form.xml()[:4], "<div")
+
+    def _grid_export_disposition(self, export_filename):
+        # SQLFORM.grid raises HTTP(200, body, **headers) when an export is
+        # triggered via `_export_type`. Drive that path and return the
+        # Content-Disposition header that would be emitted.
+        from gluon.globals import current
+
+        current.request.vars._export_type = "csv"
+        if export_filename is not None:
+            current.request.vars._export_filename = export_filename
+        with self.assertRaises(HTTP) as cm:
+            SQLFORM.grid(self.db.auth_user)
+        # Cleanup so the next test sees a clean request.vars
+        del current.request.vars._export_type
+        if "_export_filename" in current.request.vars:
+            del current.request.vars._export_filename
+        return cm.exception.headers["Content-Disposition"]
+
+    def test_grid_export_filename_encodes_quote(self):
+        # Pre-fix: `_export_filename=a"b` produced
+        #   attachment;filename=a"b.csv;
+        # which is a broken-out quoted-string and lets the attacker close
+        # the quote and append directives. Must be percent-encoded.
+        disposition = self._grid_export_disposition('a"b')
+        self.assertEqual(disposition, 'attachment; filename="a%22b.csv"')
+
+    def test_grid_export_filename_encodes_semicolon(self):
+        # Pre-fix: `_export_filename=a; filename=evil.exe` produced
+        #   attachment;filename=a; filename=evil.exe.csv;
+        # which browsers parse as two directives -- a classic filename
+        # spoof / RFD primitive. The injected directive must not survive.
+        disposition = self._grid_export_disposition("a; filename=evil.exe")
+        self.assertEqual(
+            disposition,
+            'attachment; filename="a%3B%20filename%3Devil.exe.csv"',
+        )
+        # exactly one ";" separator between "attachment" and "filename="
+        self.assertEqual(disposition.count(";"), 1)
+        self.assertNotIn("filename=evil.exe", disposition)
+
+    def test_grid_export_filename_encodes_crlf(self):
+        # The http layer already strips CR/LF from header values, but the
+        # filename must also lose them before that happens so the header
+        # stays well-formed (defense in depth, matches Response.stream).
+        disposition = self._grid_export_disposition("a\r\nX-Evil: yes")
+        self.assertEqual(
+            disposition,
+            'attachment; filename="a%0D%0AX-Evil%3A%20yes.csv"',
+        )
+        self.assertNotIn("\r", disposition)
+        self.assertNotIn("\n", disposition)
+
+    def test_grid_export_filename_safe_values_compatibility(self):
+        # Plain values keep working; only unsafe characters are encoded.
+        # The default ("rows", no _export_filename) must still produce the
+        # historical filename, just now in canonical quoted form.
+        cases = [
+            (None, 'attachment; filename="rows.csv"'),
+            ("report", 'attachment; filename="report.csv"'),
+            ("my report", 'attachment; filename="my%20report.csv"'),
+            ("café", 'attachment; filename="caf%C3%A9.csv"'),
+            ("100%done", 'attachment; filename="100%25done.csv"'),
+        ]
+        for export_filename, expected in cases:
+            self.assertEqual(
+                self._grid_export_disposition(export_filename), expected
+            )
 
 
 class TestSQLTABLE(unittest.TestCase):
@@ -389,7 +552,7 @@ class TestSQLTABLE(unittest.TestCase):
     def test_SQLTABLE(self):
         rows = self.db(self.db.auth_user.id > 0).select(self.db.auth_user.ALL)
         sqltable = SQLTABLE(rows)
-        self.assertEqual(sqltable.xml()[:7], b"<table>")
+        self.assertEqual(sqltable.xml()[:7], "<table>")
 
 
 # class TestExportClass(unittest.TestCase):

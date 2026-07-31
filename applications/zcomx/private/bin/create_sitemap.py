@@ -177,7 +177,7 @@ def main():
                 ).xml_component()
             )
 
-    xml_str = xml_version_line + "\n" + sitemap.xml().decode('utf-8')
+    xml_str = xml_version_line + "\n" + sitemap.xml()
     xml_str = xml_str.replace('</url>', '</url>\n')
     if args.outfile:
         with open(args.outfile, 'w') as f:

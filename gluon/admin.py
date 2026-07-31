@@ -14,16 +14,45 @@ from __future__ import print_function
 
 import os
 import traceback
+import urllib.request
 import zipfile
 from shutil import copyfileobj, rmtree
 
-from gluon._compat import to_native, urlopen
 from gluon.cache import CacheOnDisk
-from gluon.fileutils import (abspath, create_app, fix_newlines, parse_version,
-                             recursive_unlink, up, w2p_pack, w2p_pack_plugin,
-                             w2p_unpack, w2p_unpack_plugin, write_file)
+from gluon.fileutils import (
+    abspath,
+    create_app,
+    fix_newlines,
+    parse_version,
+    recursive_unlink,
+    up,
+    w2p_pack,
+    w2p_pack_plugin,
+    w2p_unpack,
+    w2p_unpack_plugin,
+    write_file,
+)
+from gluon.http import HTTP
 from gluon.restricted import RestrictedError
 from gluon.settings import global_settings
+from gluon.utils import safe_path_join
+
+
+def _safe_extract_path(base_dir, member_name):
+    """Return an absolute safe extraction path inside base_dir."""
+    try:
+        return safe_path_join(base_dir, member_name)
+    except ValueError:
+        raise RuntimeError("Attempted path traversal in zip file")
+
+
+def safe_deposit_path(request, filename):
+    """Return a safe path for a temporary file in the deposit folder."""
+    basename = os.path.basename(filename)
+    if basename != filename or basename in ("", os.curdir, os.pardir):
+        raise RuntimeError("Invalid upload filename")
+    return apath("../deposit/%s" % basename, request)
+
 
 # TODO: move into add_path_first
 if not global_settings.web2py_runtime_gae:
@@ -50,6 +79,26 @@ def apath(path="", r=None):
         opath = up(opath)
         path = path[3:]
     return os.path.join(opath, path).replace("\\", "/")
+
+
+def is_within_root(path, root):
+    return path == root or path.startswith(root + os.sep)
+
+
+def check_app_path(request, app, path):
+    app_root = os.path.abspath(apath(app, r=request))
+    path = os.path.abspath(os.path.normpath(path))
+    if not is_within_root(path, app_root):
+        raise HTTP(403)
+    return path
+
+
+def join_app_path(request, app, base, *paths):
+    base = check_app_path(request, app, base)
+    path = os.path.abspath(os.path.normpath(os.path.join(base, *paths)))
+    if not is_within_root(path, base):
+        raise HTTP(403)
+    return path
 
 
 def app_pack(app, request, raise_ex=False, filenames=None):
@@ -153,8 +202,7 @@ def app_compile(app, request, skip_failed_views=False):
         None if everything went ok, traceback text if errors are found
 
     """
-    from gluon.compileapp import (compile_application,
-                                  remove_compiled_application)
+    from gluon.compileapp import compile_application, remove_compiled_application
 
     folder = apath(app, request)
     try:
@@ -307,9 +355,10 @@ def plugin_install(app, fobj, request, filename):
         or `False` on failure
 
     """
-    upname = apath("../deposit/%s" % filename, request)
+    upname = None
 
     try:
+        upname = safe_deposit_path(request, filename)
         with open(upname, "wb") as appfp:
             copyfileobj(fobj, appfp, 4194304)  # 4 MB buffer
         path = apath(app, request)
@@ -317,7 +366,8 @@ def plugin_install(app, fobj, request, filename):
         fix_newlines(path)
         return upname
     except Exception:
-        os.unlink(upname)
+        if upname and os.path.exists(upname):
+            os.unlink(upname)
         return False
 
 
@@ -340,7 +390,7 @@ def check_new_version(myversion, version_url):
 
     """
     try:
-        version = to_native(urlopen(version_url).read())
+        version = urllib.request.urlopen(version_url).read().decode("utf8")
         pversion = parse_version(version)
         pmyversion = parse_version(myversion)
     except IOError as e:
@@ -375,20 +425,24 @@ def unzip(filename, dir, subfolder=""):
     filename = abspath(filename)
     if not zipfile.is_zipfile(filename):
         raise RuntimeError("Not a valid zipfile")
-    zf = zipfile.ZipFile(filename)
-    if not subfolder.endswith("/"):
-        subfolder += "/"
-    n = len(subfolder)
-    for name in sorted(zf.namelist()):
-        if not name.startswith(subfolder):
-            continue
-        # print(name[n:])
-        if name.endswith("/"):
-            folder = os.path.join(dir, name[n:])
-            if not os.path.exists(folder):
-                os.mkdir(folder)
-        else:
-            write_file(os.path.join(dir, name[n:]), zf.read(name), "wb")
+    with zipfile.ZipFile(filename) as zf:
+        if not subfolder.endswith("/"):
+            subfolder += "/"
+        n = len(subfolder)
+        for name in sorted(zf.namelist()):
+            if not name.startswith(subfolder):
+                continue
+            entry_name = name[n:]
+            if not entry_name:
+                continue
+            target_path = _safe_extract_path(dir, entry_name)
+            if name.endswith("/"):
+                os.makedirs(target_path, exist_ok=True)
+            else:
+                target_dir = os.path.dirname(target_path)
+                if target_dir and not os.path.exists(target_dir):
+                    os.makedirs(target_dir, exist_ok=True)
+                write_file(target_path, zf.read(name), "wb")
 
 
 def upgrade(request, url="http://web2py.com"):

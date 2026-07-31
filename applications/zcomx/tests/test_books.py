@@ -485,10 +485,11 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
     def test__book_types(self):
         xml = book_types()
         expect = (
-            b"""{"value":"1", "text":"Ongoing (eg 001, 002, 003, etc)"},"""
-            b"""{"value":"2", "text":"Mini-series (eg 01 of 04)"},"""
-            b"""{"value":"3", "text":"One-shot/Graphic Novel"}"""
+            """{"value":"1", "text":"Ongoing (eg 001, 002, 003, etc)"},"""
+            """{"value":"2", "text":"Mini-series (eg 01 of 04)"},"""
+            """{"value":"3", "text":"One-shot/Graphic Novel"}"""
         )
+        got = xml.xml()
         self.assertEqual(xml.xml(), expect)
 
     def test__calc_contributions_remaining(self):

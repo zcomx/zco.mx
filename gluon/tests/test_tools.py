@@ -5,6 +5,8 @@
     Unit tests for gluon.tools
 """
 import datetime
+import io
+import json
 import os
 import shutil
 import smtplib
@@ -15,16 +17,16 @@ import unittest
 DEFAULT_URI = os.getenv("DB", "sqlite:memory")
 
 from pydal.objects import Table
+from pydal.utils import utcnow
 
 from gluon import H3, SPAN, TABLE, TD, TR, URL, A, current, tools
-from gluon._compat import PY2, to_bytes
 from gluon.dal import DAL, Field
 from gluon.globals import Request, Response, Session
 from gluon.http import HTTP
 from gluon.languages import TranslatorFactory
 from gluon.storage import Storage
-from gluon.tools import (Auth, Expose, Mail, Recaptcha2, prettydate,
-                         prevent_open_redirect)
+from gluon.tools import (Auth, Expose, Mail, Recaptcha2, Wiki, csv_safe,
+                         csv_safe_text, prettydate, prevent_open_redirect)
 
 IS_IMAP = "imap" in DEFAULT_URI
 
@@ -67,7 +69,7 @@ class TestMail(unittest.TestCase):
 
         def login(self, username, password):
             if username not in self.users or self.users[username] != password:
-                raise smtplib.SMTPAuthenticationError
+                raise smtplib.SMTPAuthenticationError(535, b"Authentication failed")
             self.username = username
             self.password = password
 
@@ -229,7 +231,7 @@ class TestMail(unittest.TestCase):
         message = TestMail.DummySMTP.inbox.pop()
         attachment = message.parsed_payload.get_payload(1).get_payload(decode=True)
         with open(module_file, "rb") as mf:
-            self.assertEqual(to_bytes(attachment), to_bytes(mf.read()))
+            self.assertEqual(attachment, mf.read())
         # Test missing attachment name error
         stream = open(module_file)
         self.assertRaises(
@@ -251,6 +253,111 @@ class TestMail(unittest.TestCase):
         self.assertTrue("Content-Type: tra/lala" in message.payload)
         self.assertTrue("Content-Id: <trololo>" in message.payload)
 
+    def test_nonascii_subject(self):
+        mail = Mail()
+        mail.settings.server = "smtp.example.com:25"
+        mail.settings.sender = "you@example.com"
+        self.assertTrue(
+            mail.send(
+                to=["somebody@example.com"],
+                subject="Ünïcödé subject: äöü",
+                message="world",
+            )
+        )
+        message = TestMail.DummySMTP.inbox.pop()
+        # Must be RFC 2047 encoded, not a raw unicode string
+        self.assertIn("=?utf-8?", message.payload)
+        # Decoded subject must round-trip correctly
+        import email.header
+        parsed = message.parsed_payload
+        decoded = email.header.decode_header(parsed["Subject"])
+        subject = "".join(
+            part.decode(enc or "utf-8") if isinstance(part, bytes) else part
+            for part, enc in decoded
+        )
+        self.assertEqual(subject, "Ünïcödé subject: äöü")
+
+    def test_nonascii_from(self):
+        mail = Mail()
+        mail.settings.server = "smtp.example.com:25"
+        mail.settings.sender = "you@example.com"
+        self.assertTrue(
+            mail.send(
+                to=["somebody@example.com"],
+                subject="hello",
+                message="world",
+                from_address="Ünïcödé Sender <you@example.com>",
+            )
+        )
+        message = TestMail.DummySMTP.inbox.pop()
+        self.assertIn("=?utf-8?", message.payload)
+
+    def test_nonascii_custom_header(self):
+        mail = Mail()
+        mail.settings.server = "smtp.example.com:25"
+        mail.settings.sender = "you@example.com"
+        self.assertTrue(
+            mail.send(
+                to=["somebody@example.com"],
+                subject="hello",
+                message="world",
+                headers={"X-Custom": "Héllo"},
+            )
+        )
+        message = TestMail.DummySMTP.inbox.pop()
+        self.assertIn("=?utf-8?", message.payload)
+
+    def test_lazyt_message(self):
+        """lazyT passed as message should not raise AttributeError (issue #2524)."""
+        T = TranslatorFactory("", "en")
+        mail = Mail()
+        mail.settings.server = "smtp.example.com:25"
+        mail.settings.sender = "you@example.com"
+        lazy_body = T("Hello, please verify your email")
+        self.assertTrue(
+            mail.send(
+                to=["somebody@example.com"],
+                subject=T("Email verification"),
+                message=lazy_body,
+            )
+        )
+        message = TestMail.DummySMTP.inbox.pop()
+        self.assertIn("Hello, please verify your email", message.payload)
+
+    def test_lazyt_html_message(self):
+        """lazyT passed as html part of message should not raise AttributeError."""
+        T = TranslatorFactory("", "en")
+        mail = Mail()
+        mail.settings.server = "smtp.example.com:25"
+        mail.settings.sender = "you@example.com"
+        lazy_html = T("<html><body>Verify your email</body></html>")
+        self.assertTrue(
+            mail.send(
+                to=["somebody@example.com"],
+                subject=T("Email verification"),
+                message=(None, lazy_html),
+            )
+        )
+        message = TestMail.DummySMTP.inbox.pop()
+        self.assertIn("Content-Type: text/html", message.payload)
+
+    def test_lazyt_raw_message(self):
+        """lazyT passed as raw message should not raise AttributeError."""
+        T = TranslatorFactory("", "en")
+        mail = Mail()
+        mail.settings.server = "smtp.example.com:25"
+        mail.settings.sender = "you@example.com"
+        self.assertTrue(
+            mail.send(
+                to=["somebody@example.com"],
+                subject="hello",
+                message=T("raw body text"),
+                raw=True,
+            )
+        )
+        message = TestMail.DummySMTP.inbox.pop()
+        self.assertIn("raw body text", message.payload)
+
 
 # TODO: class TestAuthJWT(unittest.TestCase):
 class TestAuthJWT(unittest.TestCase):
@@ -263,8 +370,15 @@ class TestAuthJWT(unittest.TestCase):
         self.request.controller = "c"
         self.request.function = "f"
         self.request.folder = "applications/admin"
+        self.response = Response()
+        self.session = Session()
+        self.T = TranslatorFactory("", "en")
+        self.session.connect(self.request, self.response)
         self.current = current
         self.current.request = self.request
+        self.current.response = self.response
+        self.current.session = self.session
+        self.current.T = self.T
 
         self.db = DAL(DEFAULT_URI, check_reserved=["all"])
         self.auth = Auth(self.db)
@@ -310,6 +424,289 @@ class TestAuthJWT(unittest.TestCase):
             self.assertEqual(self.user_data["username"], self.auth.user.username)
 
         optional_auth()
+
+    def test_allows_jwt_rejects_oversized_token_required(self):
+        self.request.env.http_authorization = "Bearer " + (
+            "x" * self.jwtauth.max_header_length
+        )
+
+        @self.jwtauth.allows_jwt(required=True)
+        def protected_action():
+            return "ok"
+
+        with self.assertRaises(HTTP) as err:
+            protected_action()
+        self.assertEqual(err.exception.status, 400)
+
+    def test_allows_jwt_rejects_oversized_token_optional(self):
+        self.request.env.http_authorization = "Bearer " + (
+            "x" * self.jwtauth.max_header_length
+        )
+
+        @self.jwtauth.allows_jwt(required=False)
+        def optional_action():
+            return "ok"
+
+        with self.assertRaises(HTTP) as err:
+            optional_action()
+        self.assertEqual(err.exception.status, 400)
+
+
+class TestAuthVerifyEmail(unittest.TestCase):
+    def setUp(self):
+        self.request = Request(env={})
+        self.request.application = "a"
+        self.request.controller = "c"
+        self.request.function = "f"
+        self.request.folder = "applications/admin"
+        self.response = Response()
+        self.session = Session()
+        self.T = TranslatorFactory("", "en")
+        self.session.connect(self.request, self.response)
+        current.request = self.request
+        current.response = self.response
+        current.session = self.session
+        current.T = self.T
+        self.db = DAL(DEFAULT_URI, check_reserved=["all"])
+        self.auth = Auth(self.db)
+        self.auth.define_tables(username=True, signature=False)
+
+    def _verify_email_with_arg(self, arg):
+        from gluon.storage import List
+
+        self.request.args = List(["verify_email", arg])
+        try:
+            self.auth.verify_email()
+        except HTTP:
+            pass
+
+    def test_reserved_key_does_not_activate_account(self):
+        # a reserved registration_key must not be accepted as a
+        # verification token, otherwise verify_email/<state> would clear it
+        for state in ("disabled", "blocked", "pending"):
+            uid = self.db.auth_user.insert(
+                username="u_" + state, password="x", registration_key=state
+            )
+            self.db.commit()
+            self._verify_email_with_arg(state)
+            self.assertEqual(self.db.auth_user[uid].registration_key, state)
+
+    def test_valid_key_verifies_account(self):
+        from gluon.utils import web2py_uuid
+
+        key = web2py_uuid()
+        uid = self.db.auth_user.insert(
+            username="legit", password="x", registration_key=key
+        )
+        self.db.commit()
+        self._verify_email_with_arg(key)
+        self.assertEqual(self.db.auth_user[uid].registration_key, "")
+
+
+class TestAuthTokenExpiry(unittest.TestCase):
+    def setUp(self):
+        self.request = Request(env={})
+        self.request.application = "a"
+        self.request.controller = "c"
+        self.request.function = "f"
+        self.request.folder = "applications/admin"
+        self.response = Response()
+        self.session = Session()
+        self.T = TranslatorFactory("", "en")
+        self.session.connect(self.request, self.response)
+        current.request = self.request
+        current.response = self.response
+        current.session = self.session
+        current.T = self.T
+        self.db = DAL(DEFAULT_URI, check_reserved=["all"])
+        self.auth = Auth(self.db)
+        self.auth.define_tables(username=True, signature=False, enable_tokens=True)
+        self.uid = self.db.auth_user.insert(username="victim", password="x")
+
+    def _login_with(self, token):
+        self.auth.user = None
+        self.session.auth = None
+        self.request.env.http_web2py_user_token = token
+        self.request.vars._token = None
+        self.auth.requires_login_or_token()
+        return self.auth.user
+
+    def test_expired_token_is_rejected(self):
+        self.db.auth_token.insert(
+            user_id=self.uid,
+            token="expired",
+            expires_on=datetime.datetime(2000, 1, 1),
+        )
+        self.db.commit()
+        self.assertEqual(self._login_with("expired"), None)
+
+    def test_missing_token_does_not_match_null_row(self):
+        # token is None when neither the header nor _token is sent, which
+        # makes the lookup a "token IS NULL" query
+        self.db.auth_token.insert(user_id=self.uid, token=None)
+        self.db.commit()
+        self.assertEqual(self._login_with(None), None)
+
+    def test_valid_token_logs_user_in(self):
+        self.db.auth_token.insert(user_id=self.uid, token="live")
+        self.db.commit()
+        self.assertEqual(self._login_with("live").username, "victim")
+
+
+class TestWikiFirstParagraph(unittest.TestCase):
+    def _wiki(self, groups=None, user=None):
+        # build a Wiki without running __init__ (which needs a full
+        # request/db context); first_paragraph and can_read only touch
+        # settings and auth
+        wiki = Wiki.__new__(Wiki)
+        wiki.settings = Storage(manage_permissions=True, groups=groups or [])
+        wiki.auth = Storage(user=user)
+        return wiki
+
+    def _page(self, can_read):
+        return Storage(
+            body="teaser paragraph\n\n## heading\n\nmore body",
+            can_read=can_read,
+            can_edit=[],
+            created_by=0,
+        )
+
+    def test_unreadable_page_body_not_leaked_in_preview(self):
+        # an anonymous searcher must not receive the body of a page whose
+        # read access is restricted to a group they are not in
+        wiki = self._wiki()
+        page = self._page(can_read=["admins"])
+        self.assertFalse(wiki.can_read(page))
+        self.assertEqual(wiki.first_paragraph(page), "")
+
+    def test_readable_page_preview_is_returned(self):
+        wiki = self._wiki()
+        page = self._page(can_read=["everybody"])
+        self.assertTrue(wiki.can_read(page))
+        self.assertEqual(wiki.first_paragraph(page), "teaser paragraph")
+
+
+class TestWikiTemplateBody(unittest.TestCase):
+    # _edit is reachable as /wiki/_edit/<newslug>/<id> with a raw page id, so
+    # the template pre-fill must honour can_read; otherwise a wiki_author could
+    # read the body of any restricted page by using it as a "template".
+    def _wiki(self, groups=None, user=None, pages=None):
+        wiki = Wiki.__new__(Wiki)
+        wiki.settings = Storage(manage_permissions=True, groups=groups or [])
+        pages = pages or {}
+        db = Storage(wiki_page=lambda id: pages.get(id))
+        wiki.auth = Storage(user=user, db=db)
+        return wiki
+
+    def _page(self, can_read):
+        return Storage(body="secret body", can_read=can_read, can_edit=[], created_by=0)
+
+    def test_unreadable_template_body_not_leaked(self):
+        page = self._page(can_read=["admins"])
+        wiki = self._wiki(pages={7: page})
+        self.assertFalse(wiki.can_read(page))
+        self.assertEqual(wiki._template_body(7, "Slug"), "## Slug\n\npage content")
+
+    def test_readable_template_body_is_used(self):
+        page = self._page(can_read=["everybody"])
+        wiki = self._wiki(pages={7: page})
+        self.assertEqual(wiki._template_body(7, "Slug"), "secret body")
+
+    def test_no_template_returns_default(self):
+        wiki = self._wiki()
+        self.assertEqual(wiki._template_body(0, "Slug"), "## Slug\n\npage content")
+
+    def test_missing_template_returns_default(self):
+        wiki = self._wiki(pages={})
+        self.assertEqual(wiki._template_body(99, "Slug"), "## Slug\n\npage content")
+
+
+class TestWikiPreview(unittest.TestCase):
+    # /wiki/_preview renders whatever is posted, and with more than one render
+    # engine configured the engine is taken from the same post vars, so asking
+    # for the html one echoes the posted body back as markup. It needs the same
+    # authoring permission as the edit and create forms it belongs to.
+    def _wiki(self, groups=None, user=None):
+        wiki = Wiki.__new__(Wiki)
+        wiki.settings = Storage(
+            manage_permissions=True,
+            groups=groups or [],
+            render={"rst": lambda page: page.body},
+            extra={},
+        )
+        wiki.auth = Storage(user=user, settings=Storage(login_url="/a/c/login"))
+        wiki.env = {}
+        return wiki
+
+    def _post(self, body, render):
+        request = Request(env={})
+        request.application = "a"
+        request.controller = "c"
+        request.function = "f"
+        request.folder = "applications/welcome"
+        request.post_vars.update(body=body, render=render, tags=None)
+        current.request = request
+
+    def test_anonymous_preview_is_refused(self):
+        wiki = self._wiki()
+        self._post("<script>alert(1)</script>", "html")
+        self.assertRaises(HTTP, wiki.preview, wiki.get_renderer())
+
+    def test_author_preview_still_renders(self):
+        wiki = self._wiki(groups=["wiki_author"], user=Storage(id=1))
+        self._post("<b>hello</b>", "html")
+        self.assertIn("<b>hello</b>", wiki.preview(wiki.get_renderer()))
+
+
+class TestWikiSearchSerialization(unittest.TestCase):
+    # the rendered (html/load) search path withholds restricted page bodies
+    # via first_paragraph, but the serialized path (any other extension, e.g.
+    # .json) returned as_dict() for every matched page. as_dict() carries the
+    # full body, so an unauthorised searcher could read restricted pages.
+    def setUp(self):
+        self.request = Request(env={})
+        self.request.application = "a"
+        self.request.controller = "c"
+        self.request.function = "f"
+        self.request.folder = "applications/admin"
+        self.response = Response()
+        self.session = Session()
+        self.T = TranslatorFactory("", "en")
+        self.session.connect(self.request, self.response)
+        current.request = self.request
+        current.response = self.response
+        current.session = self.session
+        current.T = self.T
+        self.db = DAL(DEFAULT_URI, check_reserved=["all"])
+        self.auth = Auth(self.db)
+        self.auth.define_tables(username=True, signature=False)
+        self.wiki = Wiki(self.auth, manage_permissions=True)
+
+    def _add_page(self, slug, body, can_read):
+        pid = self.db.wiki_page.insert(
+            slug=slug,
+            title="secret topic %s" % slug,
+            body=body,
+            can_read=can_read,
+            can_edit=["admins"],
+            tags=["shared"],
+        )
+        self.db.wiki_tag.insert(name="shared", wiki_page=pid)
+        return pid
+
+    def test_restricted_body_not_leaked_on_json_path(self):
+        # anonymous searcher, manage_permissions on, restrict_search off
+        self._add_page("public", "PUBLIC BODY", ["everybody"])
+        self._add_page("restricted", "RESTRICTED SECRET BODY", ["admins"])
+        self.db.commit()
+        self.request.extension = "json"
+        result = self.wiki.search(
+            query=self.db.wiki_page.title.contains("secret topic"),
+            cloud=False,
+        )
+        bodies = [row.get("body") for row in result["content"]]
+        self.assertIn("PUBLIC BODY", bodies)
+        self.assertNotIn("RESTRICTED SECRET BODY", bodies)
 
 
 @unittest.skipIf(IS_IMAP, "TODO: Imap raises 'Connection refused'")
@@ -534,8 +931,6 @@ class TestAuthJWT(unittest.TestCase):
 #     #     self.assertEqual(impersonate_form, 'test')
 class TestAuth(unittest.TestCase):
     def myassertRaisesRegex(self, *args, **kwargs):
-        if PY2:
-            return getattr(self, "assertRaisesRegexp")(*args, **kwargs)
         return getattr(self, "assertRaisesRegex")(*args, **kwargs)
 
     def setUp(self):
@@ -619,7 +1014,7 @@ class TestAuth(unittest.TestCase):
     def test_basic_blank_forms(self):
         for f in ["login", "retrieve_password", "retrieve_username", "register"]:
             html_form = getattr(self.auth, f)().xml()
-            self.assertTrue(b'name="_formkey"' in html_form)
+            self.assertTrue('name="_formkey"' in html_form)
 
         for f in [
             "logout",
@@ -653,6 +1048,26 @@ class TestAuth(unittest.TestCase):
     def test_get_vars_next(self):
         self.current.request.vars._next = "next_test"
         self.assertEqual(self.auth.get_vars_next(), "next_test")
+
+    def test_cas_logout_open_redirect(self):
+        from gluon.storage import List
+
+        # the CAS provider redirects to `service` after logout; a service on a
+        # host outside the allowlist must not be usable as a redirect target
+        self.current.request.args = List(["cas", "logout"])
+        self.current.request.vars.service = "https://evil.example/"
+        self.myassertRaisesRegex(HTTP, "403*", self.auth)
+
+        # a service on an allowed host (cas_domains) still redirects there
+        self.current.session.auth = None
+        host = self.auth.settings.cas_domains[0]
+        allowed = "https://%s/a/default/user/login" % host
+        self.current.request.args = List(["cas", "logout"])
+        self.current.request.vars.service = allowed
+        with self.assertRaises(HTTP) as cm:
+            self.auth()
+        self.assertEqual(cm.exception.status, 303)
+        self.assertEqual(cm.exception.headers["Location"], allowed)
 
     # TODO: def test_navbar(self):
     # TODO: def test___get_migrate(self):
@@ -894,7 +1309,7 @@ class TestAuth(unittest.TestCase):
         )  # bypass login_bare()
         self.auth.settings.bulk_register_enabled = True
         bulk_register_form = self.auth.bulk_register(max_emails=10).xml()
-        self.assertTrue(b'name="_formkey"' in bulk_register_form)
+        self.assertTrue('name="_formkey"' in bulk_register_form)
 
     # TODO: def test_manage_tokens(self):
     # TODO: def test_reset_password(self):
@@ -907,14 +1322,14 @@ class TestAuth(unittest.TestCase):
             self.db(self.db.auth_user.username == "bart").select().first()
         )  # bypass login_bare()
         change_password_form = getattr(self.auth, "change_password")().xml()
-        self.assertTrue(b'name="_formkey"' in change_password_form)
+        self.assertTrue('name="_formkey"' in change_password_form)
 
     def test_profile(self):
         self.auth.login_user(
             self.db(self.db.auth_user.username == "bart").select().first()
         )  # bypass login_bare()
         profile_form = getattr(self.auth, "profile")().xml()
-        self.assertTrue(b'name="_formkey"' in profile_form)
+        self.assertTrue('name="_formkey"' in profile_form)
 
     # TODO: def test_run_login_onaccept(self):
     # TODO: def test_jwt(self):
@@ -967,7 +1382,7 @@ class TestAuth(unittest.TestCase):
         # basic impersonate() test that return a read form
         self.assertEqual(
             self.auth.impersonate().xml(),
-            b'<form action="#" enctype="multipart/form-data" method="post"><table><tr id="no_table_user_id__row"><td class="w2p_fl"><label class="" for="no_table_user_id" id="no_table_user_id__label">User Id: </label></td><td class="w2p_fw"><input class="integer" id="no_table_user_id" name="user_id" type="text" value="" /></td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw"><input type="submit" value="Submit" /></td><td class="w2p_fc"></td></tr></table></form>',
+            '<form action="#" enctype="multipart/form-data" method="post"><table><tr id="no_table_user_id__row"><td class="w2p_fl"><label class="" for="no_table_user_id" id="no_table_user_id__label">User Id: </label></td><td class="w2p_fw"><input class="integer" id="no_table_user_id" name="user_id" type="text" value="" /></td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw"><input type="submit" value="Submit" /></td><td class="w2p_fc"></td></tr></table></form>',
         )
         # bart impersonate itself
         self.assertEqual(self.auth.impersonate(bart_id), None)
@@ -986,7 +1401,7 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(self.auth.user_id, omer_id)  # we make it really sure
         self.assertEqual(
             impersonate_form.xml(),
-            b'<form action="#" enctype="multipart/form-data" method="post"><table><tr id="auth_user_id__row"><td class="w2p_fl"><label class="readonly" for="auth_user_id" id="auth_user_id__label">Id: </label></td><td class="w2p_fw"><span id="auth_user_id">2</span></td><td class="w2p_fc"></td></tr><tr id="auth_user_first_name__row"><td class="w2p_fl"><label class="readonly" for="auth_user_first_name" id="auth_user_first_name__label">First name: </label></td><td class="w2p_fw">Omer</td><td class="w2p_fc"></td></tr><tr id="auth_user_last_name__row"><td class="w2p_fl"><label class="readonly" for="auth_user_last_name" id="auth_user_last_name__label">Last name: </label></td><td class="w2p_fw">Simpson</td><td class="w2p_fc"></td></tr><tr id="auth_user_email__row"><td class="w2p_fl"><label class="readonly" for="auth_user_email" id="auth_user_email__label">E-mail: </label></td><td class="w2p_fw">omer@test.com</td><td class="w2p_fc"></td></tr><tr id="auth_user_username__row"><td class="w2p_fl"><label class="readonly" for="auth_user_username" id="auth_user_username__label">Username: </label></td><td class="w2p_fw">omer</td><td class="w2p_fc"></td></tr></table><div style="display:none;"><input name="id" type="hidden" value="2" /></div></form>',
+            '<form action="#" enctype="multipart/form-data" method="post"><table><tr id="auth_user_id__row"><td class="w2p_fl"><label class="readonly" for="auth_user_id" id="auth_user_id__label">Id: </label></td><td class="w2p_fw"><span id="auth_user_id">2</span></td><td class="w2p_fc"></td></tr><tr id="auth_user_first_name__row"><td class="w2p_fl"><label class="readonly" for="auth_user_first_name" id="auth_user_first_name__label">First name: </label></td><td class="w2p_fw">Omer</td><td class="w2p_fc"></td></tr><tr id="auth_user_last_name__row"><td class="w2p_fl"><label class="readonly" for="auth_user_last_name" id="auth_user_last_name__label">Last name: </label></td><td class="w2p_fw">Simpson</td><td class="w2p_fc"></td></tr><tr id="auth_user_email__row"><td class="w2p_fl"><label class="readonly" for="auth_user_email" id="auth_user_email__label">E-mail: </label></td><td class="w2p_fw">omer@test.com</td><td class="w2p_fc"></td></tr><tr id="auth_user_username__row"><td class="w2p_fl"><label class="readonly" for="auth_user_username" id="auth_user_username__label">Username: </label></td><td class="w2p_fw">omer</td><td class="w2p_fc"></td></tr></table><div style="display:none;"><input name="id" type="hidden" value="2" /></div></form>',
         )
         self.auth.logout_bare()
         # Failing impersonation
@@ -1020,7 +1435,7 @@ class TestAuth(unittest.TestCase):
         )  # bypass login_bare()
         self.assertEqual(
             self.auth.groups().xml(),
-            b"<table><tr><td><h3>user_1(1)</h3></td></tr><tr><td><p></p></td></tr></table>",
+            "<table><tr><td><h3>user_1(1)</h3></td></tr><tr><td><p></p></td></tr></table>",
         )
 
     def test_not_authorized(self):
@@ -1313,11 +1728,336 @@ class TestAuth(unittest.TestCase):
     # End Auth test
 
 
+class TestAuthHostHeaderPoisoning(unittest.TestCase):
+    """
+    Regression tests for Host-header poisoning in Auth.url(scheme=True).
+
+    Without this guard, an attacker can submit a password-reset request
+    with `Host: attacker.com` and the framework emails the victim a reset
+    link rooted at attacker.com -- the token leaks on click (CWE-640).
+    """
+
+    def _make_auth(self, http_host, host_names=None):
+        request = Request(env={})
+        request.application = "a"
+        request.controller = "c"
+        request.function = "f"
+        request.folder = "applications/admin"
+        request.env.http_host = http_host
+        response = Response()
+        session = Session()
+        T = TranslatorFactory("", "en")
+        session.connect(request, response)
+        current.request = request
+        current.response = response
+        current.session = session
+        current.T = T
+        db = DAL(DEFAULT_URI, check_reserved=["all"])
+        auth = Auth(db, host_names=host_names)
+        auth.define_tables(username=True, signature=False)
+        auth.settings.function = "user"
+        return auth, db
+
+    def tearDown(self):
+        # cleanup any tables this test left behind
+        try:
+            db = getattr(self, "_db", None)
+            if db is not None:
+                for t in (
+                    "auth_cas",
+                    "auth_event",
+                    "auth_membership",
+                    "auth_permission",
+                    "auth_group",
+                    "auth_user",
+                ):
+                    if t in db:
+                        db[t].drop()
+        except Exception:
+            pass
+
+    def test_absolute_url_refuses_request_host_without_allowlist(self):
+        # Default config: no settings.host, no host_names. The pre-fix
+        # behavior used request.env.http_host directly, allowing the
+        # attacker to poison absolute URLs. Post-fix: HTTP 500.
+        auth, self._db = self._make_auth("attacker.example")
+        self.assertIsNone(auth.settings.host)
+        with self.assertRaises(HTTP) as cm:
+            auth.url("user", args=("reset_password",), scheme=True)
+        self.assertEqual(cm.exception.status, 500)
+
+    def test_absolute_url_uses_explicit_settings_host(self):
+        # If the developer pinned settings.host, that wins regardless of
+        # the attacker's Host header.
+        auth, self._db = self._make_auth("attacker.example")
+        auth.settings.host = "good.example"
+        url = auth.url("user", args=("reset_password",), scheme=True)
+        self.assertIn("//good.example", str(url))
+        self.assertNotIn("attacker.example", str(url))
+
+    def test_absolute_url_with_host_names_allowlist_accepts_match(self):
+        # Host header is in the allowlist -> validated, URL minted.
+        auth, self._db = self._make_auth(
+            "good.example", host_names=["good.example"]
+        )
+        url = auth.url("user", args=("reset_password",), scheme=True)
+        self.assertIn("//good.example", str(url))
+
+    def test_absolute_url_with_host_names_allowlist_rejects_mismatch(self):
+        # Host header is NOT in the allowlist. Auth.__init__ raises 403
+        # via select_host before Auth.url() is ever reached -- this is
+        # the existing behavior we are relying on, and the test guards
+        # against a regression.
+        with self.assertRaises(HTTP) as cm:
+            self._make_auth("attacker.example", host_names=["good.example"])
+        self.assertEqual(cm.exception.status, 403)
+
+    def test_relative_url_unaffected_by_missing_host(self):
+        # scheme=False is the common case and must still work without
+        # any host configuration -- we are not breaking that.
+        auth, self._db = self._make_auth("attacker.example")
+        url = auth.url("user", args=("login",))
+        self.assertTrue(str(url).startswith("/"))
+        self.assertNotIn("attacker.example", str(url))
+
+    def test_email_reset_password_link_not_poisoned(self):
+        # End-to-end: the password-reset link that would have been
+        # emailed must not contain the attacker's Host header.
+        auth, self._db = self._make_auth("attacker.example")
+        auth.settings.host = "good.example"
+        link = auth.url(
+            "user",
+            args=("reset_password",),
+            vars={"key": "abc"},
+            scheme=True,
+        )
+        self.assertIn("//good.example", str(link))
+        self.assertNotIn("attacker.example", str(link))
+
+
+class TestAuthTwoFactor(unittest.TestCase):
+    """
+    Regression tests for the second challenge in Auth.login().
+
+    A two_factor_methods / two_factor_onvalidation callback that returns
+    None leaves session.auth_two_factor unset, and the code check used to
+    compare the submitted value against str(None). Submitting the literal
+    string "None" then passed the second factor (CWE-287).
+    """
+
+    def _set_post(self, request, **kw):
+        request._get_vars = Storage()
+        request._post_vars = Storage(kw)
+        request._vars = Storage(kw)
+
+    def _make_auth(self):
+        request = Request(env={})
+        request.application = "a"
+        request.controller = "c"
+        request.function = "f"
+        request.folder = "applications/admin"
+        request.env.request_method = "POST"
+        response = Response()
+        session = Session()
+        session.connect(request, response)
+        current.request = request
+        current.response = response
+        current.session = session
+        current.T = TranslatorFactory("", "en")
+        db = DAL(DEFAULT_URI, check_reserved=["all"])
+        auth = Auth(db)
+        auth.define_tables(username=True, signature=False)
+        auth.settings.registration_requires_verification = False
+        auth.settings.registration_requires_approval = False
+        auth.register_bare(
+            first_name="Bart",
+            last_name="Simpson",
+            username="bart",
+            email="bart@simpson.com",
+            password="bart_password",
+        )
+        auth.csrf_prevention = False
+        auth.settings.auth_two_factor_enabled = True
+        self._db = db
+        return auth, request, session
+
+    def _first_factor(self, auth, request):
+        self._set_post(
+            request,
+            username="bart",
+            password="bart_password",
+            _formname="login",
+        )
+        auth.login(next="/")
+
+    def _second_factor(self, auth, request, code):
+        self._set_post(request, authentication_code=code, _formname="login")
+        try:
+            auth.login(next="/")
+        except HTTP:
+            pass  # redirect to next on success
+        return auth.is_logged_in()
+
+    def tearDown(self):
+        try:
+            db = getattr(self, "_db", None)
+            if db is not None:
+                for t in (
+                    "auth_cas",
+                    "auth_event",
+                    "auth_membership",
+                    "auth_permission",
+                    "auth_group",
+                    "auth_user",
+                ):
+                    if t in db:
+                        db[t].drop()
+        except Exception:
+            pass
+
+    def test_two_factor_method_returning_none_rejects_none_literal(self):
+        # An external OTP client owns the code, so two_factor_methods
+        # returns None -- no code is issued for this session.
+        auth, request, session = self._make_auth()
+        auth.settings.two_factor_methods = [lambda user, code: None]
+        self._first_factor(auth, request)
+        self.assertIsNotNone(session.auth_two_factor_user)
+        self.assertIsNone(session.auth_two_factor)
+        self.assertFalse(self._second_factor(auth, request, "None"))
+
+    def test_onvalidation_returning_none_rejects_none_literal(self):
+        # The framework issued a real code, but the onvalidation callback
+        # overwrites it with its None return value on a failed check.
+        auth, request, session = self._make_auth()
+        auth.settings.mailer = Storage(send=lambda **kw: True)
+        auth.settings.two_factor_onvalidation = [lambda user, otp: None]
+        self._first_factor(auth, request)
+        self.assertIsNotNone(session.auth_two_factor_user)
+        self.assertFalse(self._second_factor(auth, request, "None"))
+
+    def test_valid_code_still_accepted(self):
+        auth, request, session = self._make_auth()
+        auth.settings.two_factor_methods = [lambda user, code: "123456"]
+        self._first_factor(auth, request)
+        self.assertEqual(session.auth_two_factor, "123456")
+        self.assertTrue(self._second_factor(auth, request, "123456"))
+        self.assertEqual(auth.user.username, "bart")
+
+    def test_wrong_code_still_rejected(self):
+        auth, request, session = self._make_auth()
+        auth.settings.two_factor_methods = [lambda user, code: "123456"]
+        self._first_factor(auth, request)
+        self.assertFalse(self._second_factor(auth, request, "654321"))
+
+
 # TODO: class TestCrud(unittest.TestCase):
 # It deprecated so far from a priority
 
 
-# TODO: class TestService(unittest.TestCase):
+class TestService(unittest.TestCase):
+    def setUp(self):
+        self.old_request = getattr(current, "request", None)
+        self.old_response = getattr(current, "response", None)
+
+    def tearDown(self):
+        if self.old_request is None:
+            del current.request
+        else:
+            current.request = self.old_request
+        if self.old_response is None:
+            del current.response
+        else:
+            current.response = self.old_response
+
+    def test_jsonrpc2_does_not_mutate_registered_methods(self):
+        service = tools.Service()
+
+        @service.jsonrpc
+        def legacy():
+            return "legacy"
+
+        @service.jsonrpc2
+        def modern():
+            return "modern"
+
+        current.request = Storage(
+            body=io.BytesIO(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "legacy",
+                        "params": [],
+                    }
+                ).encode("utf8")
+            ),
+            is_local=False,
+        )
+        current.response = Storage(headers={})
+
+        service.serve_jsonrpc2()
+
+        self.assertEqual(set(service.jsonrpc_procedures), {"legacy"})
+        self.assertEqual(set(service.jsonrpc2_procedures), {"modern"})
+
+    def test_serve_csv_neutralizes_formula_injection(self):
+        service = tools.Service()
+
+        @service.csv
+        def evil():
+            # attacker-controlled values that reached the database / response
+            return [
+                {"name": "=cmd|'/c calc'!A1", "note": "ok"},
+                {"name": "+danger", "note": "-2+3"},
+            ]
+
+        current.request = Storage(args=["evil"], vars=Storage())
+        current.response = Storage(headers={})
+
+        out = service.serve_csv()
+
+        # the dangerous leading characters must be defused with a leading quote
+        self.assertIn("'=cmd", out)
+        self.assertIn("'+danger", out)
+        self.assertIn("'-2+3", out)
+        # a benign value is preserved verbatim
+        self.assertIn("ok", out)
+        # and no raw formula survives at the start of a field
+        for field in out.replace("\r", "").split("\n"):
+            for cell in field.split(","):
+                cell = cell.strip().strip('"')
+                self.assertFalse(
+                    cell[:1] in ("=", "+", "-", "@"),
+                    "unescaped formula cell: %r" % cell,
+                )
+
+    def test_serve_csv_rows_branch_neutralizes_formula_injection(self):
+        # a @service.csv function may return DAL Rows; those go through
+        # pydal's export_to_csv_file() and must be defused on the serialized
+        # text, while genuine numeric columns keep their value (not '-5).
+        db = DAL(DEFAULT_URI, check_reserved=["all"])
+        try:
+            db.define_table("evil_rows", Field("name"), Field("amount", "integer"))
+            db.evil_rows.insert(name="=cmd|'/c calc'!A1", amount=-5)
+            db.commit()
+
+            service = tools.Service()
+
+            @service.csv
+            def evil():
+                return db(db.evil_rows).select()
+
+            current.request = Storage(args=["evil"], vars=Storage())
+            current.response = Storage(headers={})
+
+            out = service.serve_csv()
+
+            self.assertIn("'=cmd", out)  # string formula neutralized
+            self.assertIn(",-5", out)  # genuine number preserved
+            self.assertNotIn("'-5", out)
+        finally:
+            db.evil_rows.drop()
+            db.close()
 
 
 # TODO: class TestPluginManager(unittest.TestCase):
@@ -1333,6 +2073,38 @@ class TestToolsFunctions(unittest.TestCase):
     """
     Test suite for all the tools.py functions
     """
+
+    def test_csv_safe_neutralizes_formula_prefixes(self):
+        # string cells starting with a formula trigger get quoted ...
+        for payload in ("=1+1", "+1", "-1+cmd", "@SUM(A1)", "\tx", "\rx"):
+            self.assertEqual(csv_safe(payload), "'" + payload)
+        # ... while harmless strings and non-strings are left untouched
+        self.assertEqual(csv_safe("hello"), "hello")
+        self.assertEqual(csv_safe("a=b"), "a=b")
+        self.assertEqual(csv_safe(""), "")
+        self.assertEqual(csv_safe(-5), -5)
+        self.assertEqual(csv_safe(3.14), 3.14)
+        self.assertEqual(csv_safe(None), None)
+
+    def test_csv_safe_text_neutralizes_serialized_rows(self):
+        # text emitted by a writer we do not control (e.g. pydal's
+        # export_to_csv_file) is re-parsed and dangerous cells get quoted
+        src = "id,name\r\n1,=cmd|'/C calc'!A0\r\n2,@SUM(1+1)\r\n"
+        out = csv_safe_text(src)
+        self.assertIn("'=cmd|'/C calc'!A0", out)
+        self.assertIn("'@SUM(1+1)", out)
+        self.assertNotIn(",=cmd", out)
+        # genuine numbers keep their type/meaning, structure is preserved
+        out = csv_safe_text("a,b\r\n-5,3.14\r\n")
+        self.assertIn("-5,3.14", out)
+        self.assertNotIn("'-5", out)
+        # a value carrying the delimiter still round-trips (quoting preserved)
+        self.assertIn('"x, y"', csv_safe_text('h\r\n"x, y"\r\n'))
+        # TSV uses a tab delimiter
+        self.assertIn("\t'=evil", csv_safe_text("h\tk\r\nok\t=evil\r\n", delimiter="\t"))
+        # empty / falsy input is returned untouched
+        self.assertEqual(csv_safe_text(""), "")
+        self.assertEqual(csv_safe_text(None), None)
 
     def test_prettydate(self):
         # plain
@@ -1404,7 +2176,7 @@ class TestToolsFunctions(unittest.TestCase):
         in_one_year = now - datetime.timedelta(days=-366)
         self.assertEqual(prettydate(d=in_one_year), "1 year from now")
         # utc=True
-        now = datetime.datetime.utcnow()
+        now = utcnow()
         self.assertEqual(prettydate(d=now, utc=True), "now")
         one_second = now - datetime.timedelta(seconds=1)
         self.assertEqual(prettydate(d=one_second, utc=True), "1 second ago")
@@ -1669,6 +2441,62 @@ class TestExpose(unittest.TestCase):
         with self.assertRaises(HTTP):
             self.make_expose(base="inside", show="link_to_file3")
 
+    def test_private_entries_hidden_from_listing(self):
+        # Guard that the relative-path isprivate() keeps filtering "private"
+        # components and editor backups (*~) out of the listing (dotfiles are
+        # also excluded by glob itself).
+        inside = pjoin(self.base_dir, "inside")
+        for name in (".hidden", ".env", "secret.txt~"):
+            with open(pjoin(inside, name), "a"):
+                pass
+        os.mkdir(pjoin(inside, ".git"))
+        os.mkdir(pjoin(inside, "private"))
+        expose = self.make_expose(base="inside", show="")
+        self.assertNotIn(".hidden", expose.filenames)
+        self.assertNotIn(".env", expose.filenames)
+        self.assertNotIn("secret.txt~", expose.filenames)
+        self.assertNotIn(".git", expose.folders)
+        self.assertNotIn("private", expose.folders)
+        # non-private entries must still be listed
+        self.assertIn("README", expose.filenames)
+        self.assertEqual(sorted(expose.folders), ["dir1", "dir2"])
+
+    def test_private_file_not_downloadable(self):
+        # Regression: the direct-download branch never applied isprivate(), so
+        # a file hidden from the listing was still served on a direct request.
+        inside = pjoin(self.base_dir, "inside")
+        with open(pjoin(inside, ".env"), "w") as fp:
+            fp.write("SECRET=1")
+        with self.assertRaises(HTTP) as ctx:
+            self.make_expose(base="inside", show=".env")
+        self.assertEqual(ctx.exception.status, 404)
+
+    def test_base_with_private_component_lists_files(self):
+        # Regression: "private" in <absolute path> previously hid every file
+        # when the base directory itself contained a "private" component.
+        os.mkdir(pjoin(self.base_dir, "private"))
+        os.mkdir(pjoin(self.base_dir, "private", "pub"))
+        with open(pjoin(self.base_dir, "private", "pub", "visible.txt"), "a"):
+            pass
+        expose = self.make_expose(base=pjoin("private", "pub"), show="")
+        self.assertIn("visible.txt", expose.filenames)
+
+    def test_isprivate_fails_closed_when_relpath_raises(self):
+        # When the path cannot be made relative to base (e.g. a different
+        # drive on Windows raises ValueError), isprivate() must fail closed
+        # and treat the entry as private.
+        expose = self.make_expose(base="inside", show="")
+        real_relpath = os.path.relpath
+
+        def boom(*args, **kwargs):
+            raise ValueError("path is on mount '%s', start on '%s'" % args[:2])
+
+        os.path.relpath = boom
+        try:
+            self.assertTrue(expose.isprivate(pjoin(self.base_dir, "inside", "x")))
+        finally:
+            os.path.relpath = real_relpath
+
 
 class Test_OpenRedirectPrevention(unittest.TestCase):
     def test_open_redirect(self):
@@ -1709,3 +2537,188 @@ class Test_OpenRedirectPrevention(unittest.TestCase):
                 self.assertEqual(prevent_open_redirect(url, "test.com"), url)
         # extra corner cases
         self.assertEqual(prevent_open_redirect("https:/example.com"), None)
+        self.assertEqual(prevent_open_redirect("/%09/www.example.org/"), None)
+        # C0 control characters / DEL must be rejected: they can bypass the
+        # prefix checks and be stripped by browsers from the Location header.
+        for c in ("\x00", "\x01", "\x08", "\x0e", "\x1f", "\x7f"):
+            self.assertEqual(
+                prevent_open_redirect(c + "//evil.com", "test.com"), None)
+            self.assertEqual(
+                prevent_open_redirect("/foo" + c + "bar", "test.com"), None)
+
+
+class TestCASServiceAllowlist(unittest.TestCase):
+    """Regression tests for the CAS provider service-URL allowlist.
+
+    Before this guard was added, `Auth.cas_login` accepted any value for
+    `request.vars.service` and redirected the authenticated user there with
+    a freshly-minted CAS ticket appended, leaking the ticket to attacker-
+    controlled origins.
+    """
+
+    def setUp(self):
+        request = Request(env={})
+        request.application = "a"
+        request.controller = "c"
+        request.function = "f"
+        request.folder = "applications/admin"
+        request.env.http_host = "cas.example.com"
+        request.env.remote_addr = "127.0.0.1"
+        response = Response()
+        session = Session()
+        T = TranslatorFactory("", "en")
+        session.connect(request, response)
+        from gluon.globals import current
+
+        current.request = request
+        current.response = response
+        current.session = session
+        current.T = T
+        self.current = current
+        self.request = request
+        self.db = DAL(DEFAULT_URI, check_reserved=["all"])
+        self.auth = Auth(self.db)
+        self.auth.define_tables(username=True, signature=False)
+        self.auth.settings.cas_domains = ["cas.example.com"]
+
+    def tearDown(self):
+        self.db.commit()
+        self.db.close()
+
+    def test_default_denies_external_service(self):
+        # No allowlist configured → only same-host services accepted.
+        self.assertFalse(
+            self.auth._is_allowed_cas_service("https://evil.example/")
+        )
+        self.assertFalse(
+            self.auth._is_allowed_cas_service("http://evil.example/path")
+        )
+
+    def test_default_allows_same_host_service(self):
+        self.assertTrue(
+            self.auth._is_allowed_cas_service("https://cas.example.com/app")
+        )
+
+    def test_list_allowlist_exact_and_origin_match(self):
+        self.auth.settings.cas_allowed_services = [
+            "https://relying.example/app",
+            "https://other.example",
+        ]
+        self.assertTrue(
+            self.auth._is_allowed_cas_service("https://relying.example/app")
+        )
+        self.assertTrue(
+            self.auth._is_allowed_cas_service("https://other.example")
+        )
+        # Different path, no trailing-slash prefix entry → reject.
+        self.assertFalse(
+            self.auth._is_allowed_cas_service("https://relying.example/other")
+        )
+
+    def test_list_allowlist_prefix_requires_trailing_slash(self):
+        # Prefix-match entries must end with "/" so that "https://good.example"
+        # does not match "https://good.example.attacker.com/...".
+        self.auth.settings.cas_allowed_services = ["https://good.example/"]
+        self.assertTrue(
+            self.auth._is_allowed_cas_service("https://good.example/")
+        )
+        self.assertTrue(
+            self.auth._is_allowed_cas_service("https://good.example/anything")
+        )
+        self.assertFalse(
+            self.auth._is_allowed_cas_service(
+                "https://good.example.attacker.com/x"
+            )
+        )
+
+    def test_callable_allowlist(self):
+        self.auth.settings.cas_allowed_services = (
+            lambda u: u.startswith("https://ok.example/")
+        )
+        self.assertTrue(
+            self.auth._is_allowed_cas_service("https://ok.example/foo")
+        )
+        self.assertFalse(
+            self.auth._is_allowed_cas_service("https://nope.example/foo")
+        )
+
+    def test_rejects_non_https_schemes(self):
+        # http:// is rejected even if explicitly listed: tickets would be
+        # exposed in plaintext in transit and in proxy/server access logs.
+        self.auth.settings.cas_allowed_services = [
+            "http://internal.example/",
+            "http://internal.example/app",
+        ]
+        self.assertFalse(
+            self.auth._is_allowed_cas_service("http://internal.example/")
+        )
+        self.assertFalse(
+            self.auth._is_allowed_cas_service("http://internal.example/app")
+        )
+        # Non-http schemes are also rejected.
+        self.auth.settings.cas_allowed_services = ["javascript:alert(1)"]
+        self.assertFalse(
+            self.auth._is_allowed_cas_service("javascript:alert(1)")
+        )
+        self.assertFalse(self.auth._is_allowed_cas_service("file:///etc/passwd"))
+        self.assertFalse(self.auth._is_allowed_cas_service("ftp://example/"))
+
+    def test_rejects_control_characters(self):
+        # CRLF / NUL must not be accepted — browsers strip them from
+        # Location headers and the residual prefix would bypass the check.
+        self.auth.settings.cas_allowed_services = ["https://ok.example/"]
+        self.assertFalse(
+            self.auth._is_allowed_cas_service(
+                "https://ok.example/\r\nLocation: https://evil/"
+            )
+        )
+        self.assertFalse(
+            self.auth._is_allowed_cas_service("https://ok.example/\x00")
+        )
+
+    def test_cas_login_blocks_disallowed_service(self):
+        # Reproduces the original bug: a request to cas/login with an
+        # attacker-controlled service URL must be rejected, not redirected.
+        self.request.vars.service = "https://attacker.example/"
+        with self.assertRaises(HTTP) as ctx:
+            self.auth.cas_login()
+        self.assertEqual(ctx.exception.status, 403)
+
+    def test_cas_login_does_not_poison_session_with_invalid_service(self):
+        # An invalid request.vars.service must not overwrite a previously
+        # stored session._cas_service value.
+        self.current.session._cas_service = "https://cas.example.com/legit"
+        self.request.vars.service = "https://attacker.example/"
+        with self.assertRaises(HTTP):
+            self.auth.cas_login()
+        self.assertEqual(
+            self.current.session._cas_service, "https://cas.example.com/legit"
+        )
+
+    def test_cas_validate_refuses_ticket_for_disallowed_service(self):
+        user_id = self.db.auth_user.insert(
+            username="alice", email="alice@example.com", password="x"
+        )
+        self.db.commit()
+        table = self.auth.table_cas()
+        ticket = "ST-test-ticket-1234567890"
+        table.insert(
+            service="https://attacker.example/",
+            user_id=user_id,
+            ticket=ticket,
+            created_on=self.request.now,
+            renew=False,
+        )
+        self.db.commit()
+        self.request.vars.ticket = ticket
+        with self.assertRaises(HTTP) as ctx:
+            self.auth.cas_validate(version=2)
+        # cas_validate always returns 200 with an XML body. Failure is signalled
+        # in the body, not the status code.
+        self.assertEqual(ctx.exception.status, 200)
+        body = ctx.exception.body
+        if isinstance(body, bytes):
+            body = body.decode("utf8")
+        self.assertIn("authenticationFailure", body)
+        # And the stored ticket must have been purged.
+        self.assertIsNone(table(ticket=ticket))

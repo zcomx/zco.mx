@@ -45,7 +45,7 @@ class ExposeImproved(Expose):
         basename=None,
         extensions=None,
         allow_download=True,
-            display_breadcrumbs=True):
+        display_breadcrumbs=True):
         """Constructor.
         """
         if 'raw_args' not in current.request:

@@ -335,8 +335,12 @@ class TestUnreleaseBook(WithObjectsTestCase):
             jobs = releaser.run(job_options=self._job_options)
             self.assertEqual(jobs, [])
             book = Book.from_id(self._book.id)      # reload
-            self.assertEqual(book.tumblr_post_id, t[1])
-            self.assertEqual(book.twitter_post_id, t[1])
+            if t[1] is None:
+                self.assertFalse(book.tumblr_post_id)
+                self.assertFalse(book.twitter_post_id)
+            else:
+                self.assertEqual(book.tumblr_post_id, t[1])
+                self.assertEqual(book.twitter_post_id, t[1])
 
 
 def setUpModule():

@@ -6,7 +6,7 @@ stickon/validators.py
 Classes extending functionality of gluon/validators.py.
 """
 import urllib.parse
-from gluon.packages.dal.pydal._compat import to_native
+from gluon.packages.pydal.pydal._compat import to_native
 from gluon.sqlhtml import safe_float, safe_int
 from gluon.validators import (
     IS_MATCH,
@@ -102,7 +102,7 @@ class IS_NOT_IN_DB_ANYCASE(IS_NOT_IN_DB):
         if value in self.allowed_override:
             return value
         (tablename, fieldname) = str(self.field).split(".")
-        table = self.dbset.db[tablename]
+        table = self.dbset[tablename]
         field = table[fieldname]
         # custom \\
         # query = field == value

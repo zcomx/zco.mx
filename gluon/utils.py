@@ -11,12 +11,16 @@ This file specifically includes utilities for security.
 --------------------------------------------------------
 """
 
+import ast
 import base64
+import csv
 import hashlib
 import hmac
 import inspect
+import io
 import logging
 import os
+import pickle
 import random
 import re
 import socket
@@ -26,8 +30,6 @@ import threading
 import time
 import uuid
 import zlib
-
-from gluon._compat import PY2, basestring, pickle, to_bytes, to_native, xrange
 
 _struct_2_long_long = struct.Struct("=QQ")
 
@@ -86,7 +88,7 @@ def compare(a, b):
         if HAVE_COMPARE_DIGEST:
             return hmac.compare_digest(a, b)
         result = len(a) ^ len(b)
-        for i in xrange(len(b)):
+        for i in range(len(b)):
             result |= ord(a[i % len(a)]) ^ ord(b[i])
         return result == 0
     except:
@@ -95,7 +97,63 @@ def compare(a, b):
 
 def md5_hash(text):
     """Generate an md5 hash with the given text."""
-    return hashlib.md5(to_bytes(text)).hexdigest()
+    return hashlib.md5(text.encode("utf8")).hexdigest()
+
+
+# Leading characters that make spreadsheet software (Excel, LibreOffice,
+# Google Sheets, ...) treat a CSV/TSV cell as a formula. A value beginning
+# with one of these can execute arbitrary spreadsheet expressions when the
+# exported file is opened -- this is "CSV/formula injection" (CWE-1236).
+CSV_INJECTION_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def csv_safe(value):
+    """Neutralize a single CSV/TSV cell against formula injection.
+
+    A string cell that starts with a formula-triggering character is prefixed
+    with a single quote so spreadsheet software renders it as literal text.
+    Non-string values (numbers, dates, ...) are returned unchanged, so genuine
+    numeric cells such as ``-5`` keep their type and meaning.
+    """
+    if isinstance(value, str) and value.startswith(CSV_INJECTION_PREFIXES):
+        return "'" + value
+    return value
+
+
+def _csv_safe_cell_text(cell):
+    """:func:`csv_safe` for a cell that has already been stringified.
+
+    At the text level every cell is a string, so :func:`csv_safe` could no
+    longer tell a genuine negative/positive number (``-5``, ``+3.14``) from a
+    formula and would wrongly quote it. Numeric literals can never be formulas,
+    so they are left untouched; anything else starting with a formula-triggering
+    character is prefixed with a single quote.
+    """
+    if cell.startswith(CSV_INJECTION_PREFIXES):
+        try:
+            float(cell)
+        except ValueError:
+            return "'" + cell
+    return cell
+
+
+def csv_safe_text(text, delimiter=","):
+    """Neutralize already-serialized CSV/TSV text against formula injection.
+
+    Some export paths hand the row data to a writer we do not control (e.g.
+    pydal's ``Rows.export_to_csv_file``), so the cells cannot be passed through
+    :func:`csv_safe` individually. Re-parsing the produced text and re-emitting
+    every cell keeps the exact CSV structure (same delimiter, quoting and line
+    endings) while making dangerous cells render as literal text. ``text`` may be
+    empty/None, in which case it is returned as-is.
+    """
+    if not text:
+        return text
+    out = io.StringIO()
+    writer = csv.writer(out, delimiter=delimiter)
+    for row in csv.reader(io.StringIO(text), delimiter=delimiter):
+        writer.writerow([_csv_safe_cell_text(cell) for cell in row])
+    return out.getvalue()
 
 
 def get_callable_argspec(fn):
@@ -108,6 +166,38 @@ def get_callable_argspec(fn):
     else:
         inspectable = fn
     return inspect.getargspec(inspectable)
+
+
+def safe_eval_dict(s):
+    """Parse keyword-style arguments into a dict.
+
+    Example: 'foo="hello, world", bar=1'
+    """
+    if not s:
+        return {}
+    source = "f(%s)" % s
+    try:
+        node = ast.parse(source, mode="eval")
+    except SyntaxError:
+        return {}
+    if not isinstance(node, ast.Expression) or not isinstance(node.body, ast.Call):
+        return {}
+    result = {}
+    for kw in node.body.keywords:
+        if kw.arg is None:
+            continue
+        try:
+            result[kw.arg] = ast.literal_eval(kw.value)
+        except (ValueError, SyntaxError):
+            if hasattr(ast, "get_source_segment"):
+                result[kw.arg] = ast.get_source_segment(source, kw.value)
+            elif isinstance(kw.value, ast.Name):
+                result[kw.arg] = kw.value.id
+            elif isinstance(kw.value, ast.Constant):
+                result[kw.arg] = kw.value.value
+            else:
+                result[kw.arg] = None
+    return result
 
 
 def pad(s, n=32):
@@ -132,37 +222,50 @@ def secure_dumps(data, encryption_key, hash_key=None, compression_level=None):
     dump = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
     if compression_level:
         dump = zlib.compress(dump, compression_level)
-    encryption_key = to_bytes(encryption_key)
+    encryption_key = encryption_key.encode("utf8")
     if not hash_key:
         hash_key = hashlib.sha256(encryption_key).digest()
+    elif isinstance(hash_key, str):
+        hash_key = hash_key.encode("utf8")
     cipher, IV = AES_new(pad(encryption_key)[:32])
     encrypted_data = base64.urlsafe_b64encode(IV + AES_enc(cipher, pad(dump)))
-    signature = to_bytes(
-        hmac.new(to_bytes(hash_key), encrypted_data, hashlib.sha256).hexdigest()
+    signature = (
+        hmac.new(hash_key, encrypted_data, hashlib.sha256).hexdigest().encode("utf8")
     )
     return b"hmac256:" + signature + b":" + encrypted_data
 
 
-def secure_loads(data, encryption_key, hash_key=None, compression_level=None):
+def secure_loads(
+    data,
+    encryption_key,
+    hash_key=None,
+    compression_level=None,
+    safe_unpickle=True,
+    allowed_classes=None,
+):
     """loads a signed data dump"""
-    data = to_bytes(data)
     components = data.count(b":")
     if components == 1:
         return secure_loads_deprecated(
-            data, encryption_key, hash_key, compression_level
+            data,
+            encryption_key,
+            hash_key,
+            compression_level,
+            safe_unpickle=safe_unpickle,
+            allowed_classes=allowed_classes,
         )
     if components != 2:
         return None
     version, signature, encrypted_data = data.split(b":", 2)
     if version != b"hmac256":
         return None
-    encryption_key = to_bytes(encryption_key)
+    encryption_key = encryption_key.encode("utf8")
     if not hash_key:
         hash_key = hashlib.sha256(encryption_key).digest()
-    actual_signature = hmac.new(
-        to_bytes(hash_key), encrypted_data, hashlib.sha256
-    ).hexdigest()
-    if not compare(to_native(signature), actual_signature):
+    elif isinstance(hash_key, str):
+        hash_key = hash_key.encode("utf8")
+    actual_signature = hmac.new(hash_key, encrypted_data, hashlib.sha256).hexdigest()
+    if not compare(signature.decode("utf8"), actual_signature):
         return None
     encrypted_data = base64.urlsafe_b64decode(encrypted_data)
     IV, encrypted_data = encrypted_data[:16], encrypted_data[16:]
@@ -171,6 +274,10 @@ def secure_loads(data, encryption_key, hash_key=None, compression_level=None):
         data = unpad(AES_dec(cipher, encrypted_data))
         if compression_level:
             data = zlib.decompress(data)
+        if safe_unpickle:
+            from gluon.restricted import safe_loads as safe_loads_restricted
+
+            return safe_loads_restricted(data, allowed_classes=allowed_classes)
         return pickle.loads(data)
     except Exception:
         return None
@@ -185,35 +292,45 @@ def secure_dumps_deprecated(
     data, encryption_key, hash_key=None, compression_level=None
 ):
     """dumps data with a signature (deprecated because of incorrect padding)"""
-    encryption_key = to_bytes(encryption_key)
+    encryption_key = encryption_key.encode("utf8")
     if not hash_key:
         hash_key = hashlib.sha1(encryption_key).hexdigest()
+    elif isinstance(hash_key, str):
+        hash_key = hash_key.encode("utf8")
     dump = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
     if compression_level:
         dump = zlib.compress(dump, compression_level)
     key = __pad_deprecated(encryption_key)[:32]
     cipher, IV = AES_new(key)
     encrypted_data = base64.urlsafe_b64encode(IV + AES_enc(cipher, pad(dump)))
-    signature = to_bytes(
-        hmac.new(to_bytes(hash_key), encrypted_data, hashlib.md5).hexdigest()
+    signature = (
+        hmac.new(hash_key.encode("utf8"), encrypted_data, hashlib.md5)
+        .hexdigest()
+        .encode("utf8")
     )
     return signature + b":" + encrypted_data
 
 
 def secure_loads_deprecated(
-    data, encryption_key, hash_key=None, compression_level=None
+    data,
+    encryption_key,
+    hash_key=None,
+    compression_level=None,
+    safe_unpickle=True,
+    allowed_classes=None,
 ):
     """loads signed data (deprecated because of incorrect padding)"""
-    encryption_key = to_bytes(encryption_key)
-    data = to_native(data)
+    encryption_key = encryption_key.encode("utf8")
+    if isinstance(data, bytes):
+        data = data.decode("utf8")
     if ":" not in data:
         return None
     if not hash_key:
         hash_key = hashlib.sha1(encryption_key).hexdigest()
     signature, encrypted_data = data.split(":", 1)
-    encrypted_data = to_bytes(encrypted_data)
+    encrypted_data = encrypted_data.encode("utf8")
     actual_signature = hmac.new(
-        to_bytes(hash_key), encrypted_data, hashlib.md5
+        hash_key.encode("utf8"), encrypted_data, hashlib.md5
     ).hexdigest()
     if not compare(signature, actual_signature):
         return None
@@ -226,6 +343,10 @@ def secure_loads_deprecated(
         data = data.rstrip(b" ")
         if compression_level:
             data = zlib.decompress(data)
+        if safe_unpickle:
+            from gluon.restricted import safe_loads as safe_loads_restricted
+
+            return safe_loads_restricted(data, allowed_classes=allowed_classes)
         return pickle.loads(data)
     except Exception:
         return None
@@ -259,10 +380,7 @@ def initialize_urandom():
                 # try to add process-specific entropy
                 frandom = open("/dev/urandom", "wb")
                 try:
-                    if PY2:
-                        frandom.write("".join(chr(t) for t in ctokens))
-                    else:
-                        frandom.write(bytes([]).join(bytes([t]) for t in ctokens))
+                    frandom.write(bytes([]).join(bytes([t]) for t in ctokens))
                 finally:
                     frandom.close()
             except IOError:
@@ -275,10 +393,7 @@ def initialize_urandom():
 your system does not provide a cryptographically secure entropy source.
 This is not specific to web2py; consider deploying on a different operating system."""
         )
-    if PY2:
-        packed = "".join(chr(x) for x in ctokens)
-    else:
-        packed = bytes([]).join(bytes([x]) for x in ctokens)
+    packed = bytes([]).join(bytes([x]) for x in ctokens)
     unpacked_ctokens = _struct_2_long_long.unpack(packed)
     return unpacked_ctokens, have_urandom
 
@@ -297,7 +412,7 @@ def fast_urandom16(urandom=[], locker=threading.RLock()):
         try:
             locker.acquire()
             ur = os.urandom(16 * 1024)
-            urandom += [ur[i : i + 16] for i in xrange(16, 1024 * 16, 16)]
+            urandom += [ur[i : i + 16] for i in range(16, 1024 * 16, 16)]
             return ur[0:16]
         finally:
             locker.release()
@@ -377,7 +492,7 @@ def is_loopback_ip_address(ip=None, addrinfo=None):
     if addrinfo:  # see socket.getaddrinfo() for layout of addrinfo tuple
         if addrinfo[0] == socket.AF_INET or addrinfo[0] == socket.AF_INET6:
             ip = addrinfo[4]
-    if not isinstance(ip, basestring):
+    if not isinstance(ip, str):
         return False
     # IPv4 or IPv6-embedded IPv4 or IPv4-compatible IPv6
     if ip.count(".") == 3:
@@ -396,9 +511,9 @@ def getipaddrinfo(host):
             addrinfo
             for addrinfo in socket.getaddrinfo(host, None)
             if (addrinfo[0] == socket.AF_INET or addrinfo[0] == socket.AF_INET6)
-            and isinstance(addrinfo[4][0], basestring)
+            and isinstance(addrinfo[4][0], str)
         ]
-    except socket.error:
+    except Exception:
         return []
 
 
@@ -446,3 +561,155 @@ def unlocalised_http_header_date(data):
     return "{}, {} {} {}".format(
         short_weekday, day_of_month, short_month, year_and_time
     )
+
+
+def safe_path_join(*paths):
+    """Joins root and path and ensures the result is inside root.
+
+    Raises:
+        ValueError: if the resulting path is not a subfolder of root.
+    """
+    root = os.path.realpath(os.path.join(*paths[:-1]))
+    path = paths[-1]
+    result = os.path.realpath(os.path.join(root, path))
+    if not (result == root or result.startswith(root + os.sep)):
+        raise ValueError("Unsafe path: %s is not inside %s" % (result, root))
+    return result
+
+def safe_eval_expression(text, allowed_names=None):
+    """Security utilities for web2py.
+
+    This module provides a shared, hardened expression evaluator used by
+    appadmin to safely evaluate user-supplied query and orderby expressions.
+
+    Safely evaluate a Python expression with strict AST validation.
+
+    Blocks dangerous operations (function calls, comprehensions, imports,
+    dunder/private attributes, subscripting, and all statement nodes).
+
+    Args:
+        text (str): expression to evaluate
+        allowed_names (iterable|dict|set): names allowed in the expression
+
+    Returns:
+        The result of evaluating the expression in a tightly restricted namespace.
+
+    Raises:
+        ValueError: on unsafe constructs or evaluation failure
+    """
+    # Normalize allowed_names. If caller passed a mapping (e.g. databases)
+    # keep a reference to it (allowed_mapping) so we can populate the
+    # evaluation namespace only with explicitly allowed entries.
+    allowed_mapping = None
+    if allowed_names is None:
+        allowed_names = set()
+    elif isinstance(allowed_names, dict):
+        allowed_mapping = allowed_names
+        allowed_names = set(allowed_names.keys())
+    else:
+        allowed_names = set(allowed_names)
+
+    SAFE_FIELD_METHODS = frozenset({
+        "belongs", "like", "ilike", "startswith", "endswith",
+        "contains", "upper", "lower", "year", "month", "day",
+        "hour", "minutes", "seconds", "regexp",
+    })
+    # DAL Set methods (underscore-prefixed) allowed only when called on a chain
+    # rooted in a name from allowed_names (e.g. db()._select(...) is fine;
+    # untrusted_obj._select(...) is not).
+    SAFE_SET_METHODS = frozenset({"_select"})
+
+    def ast_root_name(node):
+        while True:
+            if isinstance(node, ast.Name):
+                return node.id
+            elif isinstance(node, ast.Attribute):
+                node = node.value
+            elif isinstance(node, ast.Call):
+                node = node.func
+            else:
+                return None
+
+    DANGEROUS_NODES = (
+        ast.Lambda,
+        ast.Subscript,
+        ast.ListComp,
+        ast.SetComp,
+        ast.DictComp,
+        ast.GeneratorExp,
+        ast.Import,
+        ast.ImportFrom,
+        ast.For,
+        ast.While,
+        ast.If,
+        ast.Try,
+        ast.With,
+        ast.Raise,
+        ast.Assert,
+        ast.Delete,
+        ast.FunctionDef,
+        ast.AsyncFunctionDef,
+        ast.ClassDef,
+        ast.Assign,
+        ast.AugAssign,
+        ast.AnnAssign,
+        ast.Global,
+        ast.Nonlocal,
+        ast.Return,
+        ast.Yield,
+        ast.YieldFrom,
+        ast.Await,
+        ast.FormattedValue,
+        ast.JoinedStr,
+        ast.IfExp,            # ternary: a if b else c
+        ast.NamedExpr,        # walrus :=
+    )
+
+    try:
+        tree = ast.parse(text, mode="eval")
+    except SyntaxError as e:
+        raise ValueError("Invalid expression: %s" % str(e))
+
+    for node in ast.walk(tree):
+        if isinstance(node, DANGEROUS_NODES):
+            raise ValueError("unsafe appadmin expression")
+        if isinstance(node, ast.Attribute):
+            if node.attr.startswith("_"):
+                if not (node.attr in SAFE_SET_METHODS
+                        and ast_root_name(node.value) in allowed_names):
+                    raise ValueError("unsafe appadmin expression")
+        if isinstance(node, ast.Name):
+            if node.id not in allowed_names:
+                raise ValueError("unsafe appadmin expression")
+        if isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name):
+                # e.g. db() — calling a trusted object directly
+                if func.id not in allowed_names:
+                    raise ValueError("unsafe appadmin expression")
+            elif isinstance(func, ast.Attribute):
+                if func.attr in SAFE_FIELD_METHODS:
+                    pass  # safe DAL query method
+                elif (func.attr in SAFE_SET_METHODS
+                      and ast_root_name(func.value) in allowed_names):
+                    pass  # _select on a trusted Set chain
+                else:
+                    raise ValueError("unsafe appadmin expression")
+            else:
+                raise ValueError("unsafe appadmin expression")
+
+
+    # Build restricted namespace containing only the allowed names from the
+    # provided mapping (if any). This ensures we only expose the database
+    # objects that the caller explicitly allowed.
+    namespace = {"__builtins__": None}
+    if allowed_mapping is not None:
+        namespace.update({k: allowed_mapping[k] for k in allowed_names if k in allowed_mapping})
+
+    # Evaluate in the restricted namespace
+    try:
+        return eval(compile(tree, "<appadmin>", "eval"), namespace)
+    except ValueError:
+        raise
+    except Exception as e:
+        raise ValueError("Expression evaluation failed: %s" % str(e))
