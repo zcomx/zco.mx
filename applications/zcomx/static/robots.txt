@@ -45,6 +45,7 @@ User-agent: SeekportBot
 User-agent: SemrushBot
 User-agent: SenutoBot
 User-agent: SeznamBot
+User-agent: ShapBot
 User-agent: SleepBot
 User-agent: Snapbot
 User-agent: Sogou inst spider
