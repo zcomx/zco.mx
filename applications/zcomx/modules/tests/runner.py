@@ -391,9 +391,9 @@ class LocalTestCase(unittest.TestCase):
             env['request'].env['request_method'] = 'POST'  # parse_post_vars
 
 
-class LocalTextTestResult(unittest._TextTestResult):
+class LocalTextTestResult(unittest.TextTestResult):
     """A test result class that can print formatted text results to streams.
-    Differs from unittest._TextTestResult
+    Differs from unittest.TextTestResult
     * use distinct streams for errors and general output
     * Replace the "dots" mode with a showErr mode, prints only errors
 
@@ -423,7 +423,7 @@ class LocalTextTestResult(unittest._TextTestResult):
         self._runner_trackers = []
 
     def startTest(self, test):
-        """Adapted from unittest._TextTestResult. Method called just prior to
+        """Adapted from unittest.TextTestResult. Method called just prior to
         test run
         """
         self.testsRun = self.testsRun + 1
@@ -438,17 +438,17 @@ class LocalTextTestResult(unittest._TextTestResult):
                     self._runner_trackers.append(x)
 
     def addSuccess(self, test):
-        """Adapted from unittest._TextTestResult"""
+        """Adapted from unittest.TextTestResult"""
         unittest.TestResult.addSuccess(self, test)
         self.printTestResult(test, 'ok')
 
     def addError(self, test, err):
-        """Adapted from unittest._TextTestResult"""
+        """Adapted from unittest.TextTestResult"""
         unittest.TestResult.addError(self, test, err)
         self.printTestResult(test, 'ERROR')
 
     def addFailure(self, test, err):
-        """Adapted from unittest._TextTestResult"""
+        """Adapted from unittest.TextTestResult"""
         unittest.TestResult.addFailure(self, test, err)
         self.printTestResult(test, 'FAIL')
 
@@ -457,12 +457,12 @@ class LocalTextTestResult(unittest._TextTestResult):
         self.printTestResult(test, 'Skip')
 
     def printErrors(self):
-        """Adapted from unittest._TextTestResult"""
+        """Adapted from unittest.TextTestResult"""
         self.printErrorList('ERROR', self.errors)
         self.printErrorList('FAIL', self.failures)
 
     def printErrorList(self, flavour, errors):
-        """Adapted from unittest._TextTestResult"""
+        """Adapted from unittest.TextTestResult"""
         re_fname = re.compile(r'.*/test_(.*).py$')
         for test, err in errors:
             # self.stream_err.writeln(self.separator1)

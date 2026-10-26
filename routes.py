@@ -182,7 +182,7 @@ routes_onerror = [
 
 
 def __routes_doctest():
-    """
+    r"""
     Dummy function for doctesting routes.py.
 
     Use filter_url() to test incoming or outgoing routes;
@@ -252,9 +252,9 @@ def __routes_doctest():
     'myapp'
     >>> filter_url('http://domain.com', app=True)
     'myapp'
-    >>> compile_regex('.*http://otherdomain.com.* (?P<any>.*)', r'/app/ctr\g<any>')[0].pattern
+    >>> compile_regex(r'.*http://otherdomain.com.* (?P<any>.*)', r'/app/ctr\g<any>')[0].pattern
     '^.*http://otherdomain.com.* (?P<any>.*)$'
-    >>> compile_regex('.*http://otherdomain.com.* (?P<any>.*)', r'/app/ctr\g<any>')[1]
+    >>> compile_regex(r'.*http://otherdomain.com.* (?P<any>.*)', r'/app/ctr\g<any>')[1]
     '/app/ctr\\\\g<any>'
     >>> compile_regex('/$c/$f', '/init/$c/$f')[0].pattern
     '^.*?:https?://[^:/]+:[a-z]+ /(?P<c>\\\\w+)/(?P<f>\\\\w+)$'

@@ -8,7 +8,6 @@ Classes related to job queues.
 import datetime
 import functools
 import os
-import pipes
 import shlex
 import signal
 import subprocess
@@ -80,11 +79,11 @@ class CLIOption():
             options = []
             for v in self.value:
                 options.append('{opt} {val}'.format(
-                    opt=self.option, val=pipes.quote(v)))
+                    opt=self.option, val=shlex.quote(v)))
             return ' '.join(options)
 
         return '{opt} {val}'.format(
-            opt=self.option, val=pipes.quote(str(self.value)))
+            opt=self.option, val=shlex.quote(str(self.value)))
 
 
 class Daemon():
@@ -527,7 +526,7 @@ class Queuer():
                     'Invalid cli option: {opt}'.format(opt=k))
             options.append(CLIOption(k, value=v))
         options_str = ' '.join([str(x) for x in options if str(x)])
-        args_str = ' '.join([pipes.quote(x) for x in self.cli_args])
+        args_str = ' '.join([shlex.quote(x) for x in self.cli_args])
         return '{prg} {opts} {args}'.format(
             prg=self.program,
             opts=options_str,

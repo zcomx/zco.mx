@@ -640,7 +640,10 @@ class TestResizeImgIndicia(WithObjectsTestCase, ImageTestCase, FileTestCase):
             },
             '7.1.0-53': {
                 'ori-256colour-jpg.jpg': '2a2044593502677db9321be6337e289d',
-            }
+            },
+            '7.1.2-34': {
+                'ori-256colour-jpg.jpg': '6e28ac8a31579230f2fb67e9facbb1c7',
+            },
         }
 
         imagemagick_ver = imagemagick_version()
@@ -817,7 +820,6 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
         tests = [
             # (filename, format, expect)
             ('file.gif', 'GIF', True),
-            ('file.ppm', 'PPM', True),
             ('file.tiff', 'TIFF', True),
             ('file.jpg', 'JPEG', True),
             ('file.jpeg', 'JPEG', True),

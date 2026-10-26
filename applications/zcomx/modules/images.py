@@ -4,7 +4,7 @@
 Classes and functions related to images.
 """
 import glob
-import imghdr
+import filetype
 import os
 import re
 import shutil
@@ -287,7 +287,7 @@ class ResizeImgIndicia(ResizeImg):
 
     Features:
     * minimal resizing: 'ori' only
-    * quick: uses convert command directly, resizes img to max 1600px
+    * quick: uses magick command directly, resizes img to max 1600px
 
     This is used for creator.indicia_image
     Not used for creator.indicia_landscape and creator.indicia_portrait.
@@ -309,13 +309,13 @@ class ResizeImgIndicia(ResizeImg):
             nice: If True, run resize script with nice. See os_nice for
                 acceptable values.
         """
-        #  $ convert infile -quiet -filter catrom -resize 1600x1600> \
+        #  $ magick infile -quiet -filter catrom -resize 1600x1600> \
         #     -colorspace sRGB +repage outfile
 
         real_filename = os.path.abspath(self.filename)
 
         args = []
-        args.append('convert')
+        args.append('magick')
         if self.filename:
             args.append(real_filename)
         args.append('-quiet')
@@ -446,28 +446,32 @@ def is_image(filename, image_types=None):
 
     Args:
         filename: string, name of file.
-        image_types: list of image types as returned by imghdr
+        image_types: list of image types as returned by filetype
 
     Returns:
         True if file is an image.
     """
     if image_types is None:
-        # image types recognized by imghdr
+        # image types recognized by filetype
         image_types = [
             'rgb',   # SGI ImgLib Files
             'gif',   # GIF 87a and 89a Files
             'pbm',   # Portable Bitmap Files
             'pgm',   # Portable Graymap Files
-            'ppm',   # Portable Pixmap Files
             'tiff',  # TIFF Files
+            'tif',   # TIFF Files
             'rast',  # Sun Raster Files
             'xbm',   # X Bitmap Files
             'jpeg',  # JPEG data in JFIF or Exif formats
+            'jpg',   # JPEG data in JFIF or Exif formats
             'bmp',   # BMP files
             'png',   # Portable Network Graphics
         ]
 
-    if imghdr.what(filename) not in image_types:
+    kind = filetype.guess(filename)
+    if not kind:
+        return False
+    if kind.extension not in image_types:
         return False
     return True
 
