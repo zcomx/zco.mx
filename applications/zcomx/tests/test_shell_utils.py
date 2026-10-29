@@ -117,9 +117,9 @@ class TestFunctions(LocalTestCase):
 
     def test__imagemagick_version(self):
         by_host = {
-            'dtjimk': '7.0.10-31',
-            'jimk': '7.1.0-53',
-            'zc': '7.1.0-53',
+            'dtjimk': '7.1.0-53',
+            'jimk': '7.1.2-34',
+            'zc': '7.1.2-34',
         }
         self.assertEqual(
             imagemagick_version(),
@@ -169,10 +169,17 @@ class TestFunctions(LocalTestCase):
             # Typical path:
             # 'applications/zcomx/uploads/original/../tmp/tmprHbFAM
             dirs = path.split('/')
-            self.assertEqual(dirs[0], 'applications')
-            self.assertEqual(dirs[1], 'zcomx')
-            self.assertEqual(dirs[2], 'uploads')
-            self.assertEqual(dirs[-2], 'tmp')
+            expect = [
+                '',
+                'srv',
+                'http',
+                'dev.zco.mx',
+                'web2py',
+                'applications',
+                'zcomx',
+                'uploads',
+                'tmp',
+            ]
             self.assertRegex(
                 dirs[-1],
                 re.compile(r'tmp[a-zA-Z0-9_].*')

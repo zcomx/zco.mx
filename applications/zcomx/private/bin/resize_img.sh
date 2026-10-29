@@ -39,8 +39,8 @@ _colourmap() {
         return
     fi
 
-    colours=$(convert "$f" $cj -unique-colors txt: | awk -v _=\" 'NR>1 {print "xc:"_$4_}')
-    eval convert -size 1x1 $colours +append colourmap.png
+    colours=$(magick "$f" $cj -unique-colors txt: | awk -v _=\" 'NR>1 {print "xc:"_$4_}')
+    eval magick -size 1x1 $colours +append colourmap.png
     cm="-remap colourmap.png"
 }
 
@@ -78,7 +78,7 @@ _resize() {
         fi
 
         filter=RobidouxSharp
-        convert \( "$f[0]" -quiet -define jpeg:preserve-settings -colorspace $cs \) \
+        magick \( "$f[0]" -quiet -define jpeg:preserve-settings -colorspace $cs \) \
             \( -clone 0 -gamma 1.666666666666666 -filter $filter -distort Resize $res -gamma 0.6 \) \
             \( -clone 0 -filter $filter -distort Resize $res \) -delete 0 \
             \( -clone 1 -colorspace gray -auto-level \) -compose over -composite \
@@ -96,7 +96,7 @@ _rename() {
     ext=$(identify -format '%m' "$j"[0] 2>/dev/null)
     [[ $ext == JPEG ]] && ext=jpg
     ## there is no reason to store a gif; conver to png
-    [[ $ext == GIF ]] && { ext=png; convert "$j[0]" "${j%.*}.$ext"; rm "$j"; j=${j%.*}.$ext; }
+    [[ $ext == GIF ]] && { ext=png; magick "$j[0]" "${j%.*}.$ext"; rm "$j"; j=${j%.*}.$ext; }
     ori=${j##*/}; ori=ori-${ori%.*}.${ext,,}    ## strip off path and ensure ext is correct
     mv "$j" "$ori"  ## add 'ori-' to filename and mv file to current dir
     return 0
@@ -107,7 +107,7 @@ grep -q ^processor /proc/cpuinfo || _me "Could not determind number of CPUs"
 cpu=$(grep -c ^processor /proc/cpuinfo)
 export MAGICK_THREAD_LIMIT=$cpu
 
-for i in convert identify; do command -v "$i" &>/dev/null || _me "$i not installed"; done
+for i in magick identify; do command -v "$i" &>/dev/null || _me "$i not installed"; done
 (( $# == 0 )) && { _u; exit 1; }
 for i in "$@"; do _check_files; done
 for f in "$@"; do _resize; done

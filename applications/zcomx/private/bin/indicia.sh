@@ -49,13 +49,13 @@ d=" 960 54 center #333333 46   0  80 IF  YOU  ENJOYED THIS WORK YOU CAN
         (( $pt == 46 )) && font=$action_font || font=$text_font
         [[ $l ]] && (( $pt == 46 )) && pt=42
 
-        convert -size ${w}x$h -gravity $pos -fill $colour \
+        magick -size ${w}x$h -gravity $pos -fill $colour \
             -font "$font" -background none -pointsize $pt \
             -page +${x}+$y  caption:"$text"  miff:-
-    done <<< "$d" | convert -size 960x$b xc: - -flatten "$indiciatxt"
+    done <<< "$d" | magick -size 960x$b xc: - -flatten "$indiciatxt"
 
     [[ $l ]] && append='+append'
-    convert -gravity center "$append" "$indiciaimg" "$indiciatxt" "$indicia"
+    magick "$indiciaimg" "$indiciatxt" -gravity center "$append" "$indicia"
     rm "$indiciatxt"
 }
 
@@ -64,13 +64,13 @@ _textbox() {
     font=$text_font
     read -r w pos colour pt x y text <<< $"960 center #333333 26 0 560 $metadata"
     [[ $l ]] && w=800 x=80
-    h=$(identify -format "%@" <(convert -size ${w}x -gravity $pos -font "$font" -pointsize $pt caption:"$text" miff:-))
+    h=$(identify -format "%@" <(magick -size ${w}x -gravity $pos -font "$font" -pointsize $pt caption:"$text" miff:-))
     h=${h#*x} h=${h%%+*}
     h=$(($h+100))                   ## Move text up 100px for padding
     (($h < 400)) && y=$((960-$h))
     (($h > 400)) && y=560 && b=$(($h-400+$b))
 
-#    convert -size ${w}x -gravity $pos -font "$font" -pointsize $pt caption:"$text" foo.png && exit
+#    magick -size ${w}x -gravity $pos -font "$font" -pointsize $pt caption:"$text" foo.png && exit
 }
 
 _options() {

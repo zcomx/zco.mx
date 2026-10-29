@@ -448,7 +448,15 @@ class TestResizeImg(ImageTestCase, WithObjectsTestCase, FileTestCase):
                 'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
                 'web-256+colour.jpg': '3ef1017981eefa6e5896a3e3dbaad5ac',
                 'web-256colour-jpg.jpg': '5f754bd77232f1d6d5036932f479f0f6',
-            }
+            },
+            '7.1.2-34': {
+                'cbz-256+colour.jpg': '3efc0de46989039de4fc1d0dc902a466',
+                'cbz-256colour-jpg.jpg': '7ea6740bd52cb2e33b28aae2fd5689f8',
+                'ori-256+colour.jpg': '02f34f15b65cb06712a4b18711c21cf6',
+                'ori-256colour-jpg.jpg': 'a0c2469208f00a9c2ba7e6cb71858008',
+                'web-256+colour.jpg': '85d89665823ab3978f82bd54bf27e195',
+                'web-256colour-jpg.jpg': '837a799282f8c586e9f2eb43e2631664',
+            },
         }
 
         # Test 256 colour jpg.

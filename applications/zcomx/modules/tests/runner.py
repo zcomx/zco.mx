@@ -251,6 +251,11 @@ class LocalTestCase(unittest.TestCase):
         if app is None:
             app = self.get_app()
         url = '/' + '/'.join([app, url_path])
+        if '://' in url:
+            scheme, rest = url.split('://', 1)
+            url = f"{scheme}://{re.sub(r'/+', '/', rest)}"
+        else:
+            url = re.sub(r'/+', '/', url)
         matches = []
         if match_page_key:
             page_identifiers = self.page_identifiers[match_page_key]

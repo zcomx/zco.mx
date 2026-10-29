@@ -433,7 +433,7 @@ class TestCreatorIndiciaPagePng(WithObjectsTestCase):
         filename = png_page.create('portrait')
         self.assertRegex(
             filename,
-            r'^applications/zcomx/uploads/original/../tmp/tmp.*/indicia.png$'
+            r'^/srv/http/dev.zco.mx/web2py/applications/zcomx/uploads/tmp/tmp.*/indicia.png$'
         )
         im = Image.open(filename)
         width, height = im.size
@@ -442,7 +442,7 @@ class TestCreatorIndiciaPagePng(WithObjectsTestCase):
         filename = png_page.create('landscape')
         self.assertRegex(
             filename,
-            r'^applications/zcomx/uploads/original/../tmp/tmp.*/indicia.png$'
+            r'^/srv/http/dev.zco.mx/web2py/applications/zcomx/uploads/tmp/tmp.*/indicia.png$'
         )
         im = Image.open(filename)
         width, height = im.size

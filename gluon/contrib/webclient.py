@@ -28,7 +28,7 @@ DEFAULT_HEADERS = {
 }
 
 FORM_REGEX = re.compile(
-    '(\<input name\="_formkey" type\="hidden" value\="(?P<formkey>.+?)" \/\>)?\<input name\="_formname" type\="hidden" value\="(?P<formname>.+?)" \/\>'
+    r'(<input name="_formkey" type="hidden" value="(?P<formkey>.+?)" />)?<input name="_formname" type="hidden" value="(?P<formname>.+?)" />'
 )
 
 SESSION_REGEX = "session_id_(?P<name>.+)"

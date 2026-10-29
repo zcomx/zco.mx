@@ -2171,8 +2171,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             ),
         ]
         for t in tests:
-            book.update_record(creator_id=t[0], name_for_url=t[1])
-            db.commit()
+            if not t[0] or t[0] < 0:
+                book.update(creator_id=t[0], name_for_url=t[1])
+                db.commit()
+            else:
+                book = Book.from_updated(
+                    book, dict(creator_id=t[0], name_for_url=t[1]))
             book_page.page_no = t[2]
             book_page.image = t[3]
             self.assertEqual(short_page_img_url(book_page), t[4])
@@ -2188,8 +2192,12 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
             (101, 'MyBook', 2, 'http://101.zco.mx/MyBook/002'),
         ]
         for t in tests:
-            book.update_record(creator_id=t[0], name_for_url=t[1])
-            db.commit()
+            if not t[0] or t[0] < 0:
+                book.update(creator_id=t[0], name_for_url=t[1])
+                db.commit()
+            else:
+                book = Book.from_updated(
+                    book, dict(creator_id=t[0], name_for_url=t[1]))
             book_page.page_no = t[2]
             self.assertEqual(short_page_url(book_page), t[3])
 

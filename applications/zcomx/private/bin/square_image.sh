@@ -194,7 +194,7 @@ else
     geometry=$(_get_geometry "$h" "$w" "$offset_px")
     __v && __md "offset_px: $offset_px"
     __v && __md "geometry: $geometry"
-    convert "$infile" -crop "$geometry" "$tmpfile"
+    magick "$infile" -crop "$geometry" "$tmpfile"
 fi
 
 if [[ $outfile ]]; then

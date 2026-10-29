@@ -37,7 +37,7 @@ _optimize() {
     fi
 
     if [[ $ff == GIF ]]; then
-        convert "$i" "${i%.*}.png"
+        magick "$i" "${i%.*}.png"
         rm "$i"
         ff=PNG
         i="${i%.*}.png"
@@ -47,7 +47,7 @@ _optimize() {
         nice pingo -s9 -strip=3 "$i" >/dev/null || _me "pingo failed on file: $i"
         [[ $t ]] && { defluff < "$i" > "$t" 2>/dev/null && mv "$t" "$i"; }
     elif [[ $ff == JPG ]]; then
-        [[ $(identify -format '%[colorspace]' "$i") == CMYK ]] && { convert "$i" -colorspace sRGB "$t" && mv "$t" "$i"; }
+        [[ $(identify -format '%[colorspace]' "$i") == CMYK ]] && { magick "$i" -colorspace sRGB "$t" && mv "$t" "$i"; }
         [[ $Q ]] && _jq             ## If -Q, then check to see if jpg_quality should be lowered
         jpegoptim -q -s "$i" || _me "jpegoptim failed on file: $i"
     else
@@ -79,7 +79,7 @@ _options() {
 
 _options "$@"
 
-for i in defluff convert identify jpegoptim pingo; do command -v "$i" &>/dev/null || _me "$i not installed"; done
+for i in defluff magick identify jpegoptim pingo; do command -v "$i" &>/dev/null || _me "$i not installed"; done
 for i in "${args[@]}"; do _check_files; done
 for i in "${args[@]}"; do _optimize; done
 #[[ -t 1 ]] && printf '\a'       ## when done, ring the bell
