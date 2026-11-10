@@ -615,42 +615,42 @@ class TestFunctions(WithObjectsTestCase, WithDateTestCase):
             book_id=book.id,
         ))
 
-        def reset():
-            book.update_record(release_date=None)
-            db.commit()
+        def reset(book, activity_log):
+            book = Book.from_updated(book, dict(release_date=None))
             data = dict(
                 book_id=book.id,
                 action='page added',
                 ongoing_post_id=None,
             )
-            activity_log.update_record(**data)
-            db.commit()
+            activity_log = ActivityLog.from_updated(activity_log, data)
 
-        reset()
+        reset(book, activity_log)
         self.assertTrue(activity_log.id in postable_activity_log_ids())
 
         # Change book_id
-        reset()
-        activity_log.update_record(book_id=-1)
-        db.commit()
+        reset(book, activity_log)
+        activity_log = ActivityLog.from_updated(activity_log, dict(book_id=-1))
         self.assertTrue(activity_log.id not in postable_activity_log_ids())
 
         # Released book should be ignored
-        reset()
-        book.update_record(release_date=self._date)
-        db.commit()
+        reset(book, activity_log)
+        book = Book.from_updated(book, dict(release_date=self._date))
         self.assertTrue(activity_log.id not in postable_activity_log_ids())
 
         # Action != 'page added' should be ignored
-        reset()
-        activity_log.update_record(action='completed')
-        db.commit()
+        reset(book, activity_log)
+        activity_log = ActivityLog.from_updated(
+            activity_log,
+            dict(action='completed')
+        )
         self.assertTrue(activity_log.id not in postable_activity_log_ids())
 
         # Already posted should be ignored
-        reset()
-        activity_log.update_record(ongoing_post_id=-1)
-        db.commit()
+        reset(book, activity_log)
+        activity_log = ActivityLog.from_updated(
+            activity_log,
+            dict(ongoing_post_id=-1)
+        )
         self.assertTrue(activity_log.id not in postable_activity_log_ids())
 
 

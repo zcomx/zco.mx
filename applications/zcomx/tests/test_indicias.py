@@ -229,8 +229,8 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             filename = self._prep_image(img)
             stored_filename = store(
                 db.book_page.image, filename, resizer=ResizerQuick)
-            self._book_page.update_record(image=stored_filename)
-            db.commit()
+            self._book_page = BookPage.from_updated(
+                self._book_page, dict(image=stored_filename))
 
             indicia._orientation = None     # Clear cache
             self.assertEqual(
@@ -283,8 +283,10 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             resizer=ResizerQuick
         )
 
-        self._book_page.update_record(image=portrait_filename)
-        db.commit()
+        self._book_page = BookPage.from_updated(
+            self._book_page,
+            dict(image=portrait_filename)
+        )
         indicia = BookIndiciaPage(self._book)
 
         got = indicia.render()
@@ -370,8 +372,10 @@ class TestBookIndiciaPage(WithObjectsTestCase, ImageTestCase):
             self._prep_image('landscape.png'),
             resizer=ResizerQuick
         )
-        self._book_page.update_record(image=landscape_filename)
-        db.commit()
+        self._book_page = BookPage.from_updated(
+            self._book_page,
+            dict(image=landscape_filename)
+        )
 
         # pylint: disable=protected-access
         indicia._orientation = None     # clear cache
@@ -404,8 +408,10 @@ class TestBookIndiciaPagePng(WithObjectsTestCase, ImageTestCase):
         stored_filename = store(
             db.book_page.image, filename, resizer=ResizerQuick)
 
-        self._book_page.update_record(image=stored_filename)
-        db.commit()
+        self._book_page = BookPage.from_updated(
+            self._book_page,
+            dict(image=stored_filename)
+        )
 
         png_page = BookIndiciaPagePng(self._book)
         png = png_page.create()

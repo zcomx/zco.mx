@@ -279,8 +279,7 @@ class TestFunctions(ImageTestCase):
 
         # If contributions are applied to book so that its remaining is
         # lower, the higher book should be returned.
-        book_1.update_record(contributions_remaining=98.00)
-        db.commit()
+        book_1 = Book.from_updated(book_1, dict(contributions_remaining=98.00))
 
         got = book_for_contributions(creator)
         self.assertEqual(got, book_2)
@@ -928,8 +927,8 @@ class TestFunctions(ImageTestCase):
         )
 
         # Test scrubbed character.
-        auth_user.update_record(name='First <Middle> Last')
-        db.commit()
+        auth_user = AuthUser.from_updated(
+            auth_user, dict(name='First <Middle> Last'))
 
         self.assertEqual(
             torrent_file_name(creator),
@@ -1000,8 +999,8 @@ class TestFunctions(ImageTestCase):
         )
 
         # Test scrubbed character.
-        auth_user.update_record(name='First <Middle> Last')
-        db.commit()
+        auth_user = AuthUser.from_updated(
+            auth_user, dict(name='First <Middle> Last'))
 
         self.assertEqual(
             torrent_url(creator),
@@ -1009,7 +1008,7 @@ class TestFunctions(ImageTestCase):
         )
 
     def test__url(self):
-        creator = Creator(dict(email='test__url@example.com'))
+        creator = Creator(email='test__url@example.com')
 
         tests = [
             # (name_for_url, expect)

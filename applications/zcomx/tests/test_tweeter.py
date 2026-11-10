@@ -675,8 +675,10 @@ class TestFunctions(LocalTestCase):
         )
 
         # Single activity log associated with ongoing post.
-        activity_log_1.update_record(ongoing_post_id=ongoing_post.id)
-        db.commit()
+        activity_log_1 = ActivityLog.from_updated(
+            activity_log_1,
+            dict(ongoing_post_id=ongoing_post.id)
+        )
 
         self.assertEqual(
             creators_in_ongoing_post(ongoing_post),
@@ -684,8 +686,10 @@ class TestFunctions(LocalTestCase):
         )
 
         # Multiple activity logs associated with ongoing post.
-        activity_log_2.update_record(ongoing_post_id=ongoing_post.id)
-        db.commit()
+        activity_log_2 = ActivityLog.from_updated(
+            activity_log_2,
+            dict(ongoing_post_id=ongoing_post.id)
+        )
 
         self.assertEqual(
             creators_in_ongoing_post(ongoing_post),

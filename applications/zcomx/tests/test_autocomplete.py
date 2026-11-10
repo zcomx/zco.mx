@@ -219,8 +219,7 @@ class TestBookAutocompleter(LocalTestCase):
         # Test variations on status
         autocompleter = BookAutocompleter(keyword='azbycx')
         for status in BOOK_STATUSES:
-            book.update_record(status=status)
-            db.commit()
+            book = Book.from_updated(book, dict(status=status))
             if status == BOOK_STATUS_ACTIVE:
                 expect = [book_as_item]
             else:
@@ -228,8 +227,7 @@ class TestBookAutocompleter(LocalTestCase):
             self.assertEqual(autocompleter.search(), expect)
 
         # Test multiple matches and order of results.
-        book.update_record(status=BOOK_STATUS_ACTIVE)
-        db.commit()
+        book = Book.from_updated(book, dict(status=BOOK_STATUS_ACTIVE))
         book_2 = self.add(Book, dict(
             name='Another Book',
             number=2,

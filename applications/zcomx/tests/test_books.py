@@ -1595,12 +1595,10 @@ class TestFunctions(WithObjectsTestCase, ImageTestCase):
 
         self.assertEqual(images(book), [])
 
-        book_page_1.update_record(image='a.1.jpg')
-        db.commit()
+        book_page_1 = BookPage.from_updated(book_page_1, dict(image='a.1.jpg'))
         self.assertEqual(images(book), ['a.1.jpg'])
 
-        book_page_2.update_record(image='b.2.jpg')
-        db.commit()
+        book_page_2 = BookPage.from_updated(book_page_2, dict(image='b.2.jpg'))
         self.assertEqual(sorted(images(book)), ['a.1.jpg', 'b.2.jpg'])
 
     def test__is_completed(self):

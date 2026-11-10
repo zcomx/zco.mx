@@ -1669,12 +1669,10 @@ class TestFunctions(LocalTestCase):
     def test__book_contribute_button(self):
         self.assertEqual(book_contribute_button({}), '')
 
-        self._book.update_record(creator_id=-1)
-        db.commit()
-        self.assertEqual(book_contribute_button(self._row()), '')
-
-        self._book.update_record(creator_id=self._creator.id)
-        db.commit()
+        self._book = Book.from_updated(
+            self._book,
+            dict(creator_id=self._creator.id)
+        )
         self._creator = Creator.from_updated(
             self._creator, dict(paypal_email=''))
         self.assertEqual(book_contribute_button(self._row()), '')

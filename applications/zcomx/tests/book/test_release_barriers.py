@@ -358,10 +358,11 @@ class TestDupeNumberBarrier(LocalTestCase):
 
         # Change each field one a time to see test that if changed, the
         # record is no longer a dupe.
+        creator_2 = self.add(Creator, dict(name_for_url='test__applies_2'))
         not_dupe_data = dict(
             name=book.name + '_',
             number=book.number + 1,
-            creator_id=book.creator_id - 1,
+            creator_id=creator_2.id,
             book_type_id=book.book_type_id + 1,
             release_date=None
         )
@@ -369,8 +370,7 @@ class TestDupeNumberBarrier(LocalTestCase):
         for k, v in list(not_dupe_data.items()):
             data = dict(dupe_data)
             data[k] = v
-            book_2.update_record(**data)
-            db.commit()
+            book_2 = Book.from_updated(book_2, data)
             self.assertFalse(barrier.applies())
 
     def test__code(self):
@@ -423,16 +423,13 @@ class TestInvalidPageNoBarrier(LocalTestCase):
         self.assertFalse(barrier.applies())
 
         # Has no cover
-        book_page_1.update_record(page_no=4)
-        db.commit()
+        book_page_1 = BookPage.from_updated(book_page_1, dict(page_no=4))
         barrier = InvalidPageNoBarrier(book)
         self.assertTrue(barrier.applies())
 
         # Has dupe page no
-        book_page_1.update_record(page_no=1)
-        db.commit()
-        book_page_3.update_record(page_no=2)
-        db.commit()
+        book_page_1 = BookPage.from_updated(book_page_1, dict(page_no=1))
+        book_page_3 = BookPage.from_updated(book_page_3, dict(page_no=2))
         barrier = InvalidPageNoBarrier(book)
         self.assertTrue(barrier.applies())
 
@@ -725,8 +722,7 @@ class TestNoPublicationMetadataBarrier(LocalTestCase):
         barrier = NoPublicationMetadataBarrier(book)
         self.assertFalse(barrier.applies())
 
-        metadata.update_record(book_id=-2)
-        db.commit()
+        metadata = PublicationMetadata.from_updated(metadata, dict(book_id=-2))
         barrier = NoPublicationMetadataBarrier(book)
         self.assertTrue(barrier.applies())
 

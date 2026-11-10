@@ -743,8 +743,10 @@ class TestFunctions(WithObjectsTestCase):
         # Test handling of non-existent book_page ids.
         old_book_page_ids = self._activity_log.book_page_ids
         new_book_page_ids = self._activity_log.book_page_ids + [-1]
-        self._activity_log.update_record(book_page_ids=new_book_page_ids)
-        db.commit()
+        self._activity_log = ActivityLog.from_updated(
+            self._activity_log,
+            dict(book_page_ids=new_book_page_ids)
+        )
 
         got = activity_log_as_rss_entry(
             ActivityLog(self._activity_log.as_dict()))
