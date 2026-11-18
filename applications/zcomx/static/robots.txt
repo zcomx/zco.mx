@@ -133,6 +133,7 @@ User-agent: NotebookLM
 User-agent: NovaAct
 User-agent: OAI-AdsBot
 User-agent: OAI-SearchBot
+User-agent: OctenSearchBot
 User-agent: OpenAI
 User-agent: OpenVAS
 User-agent: Operator
