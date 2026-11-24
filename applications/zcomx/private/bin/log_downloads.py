@@ -118,9 +118,9 @@ def unlogged_generator(limit=None):
         rows = db(query).select(
             db.book.id,
             left=[
+                db.download.on(db.book.id == db.download.book_id),
                 db.download_click.on(
                     db.download_click.id == db.download.download_click_id),
-                db.download.on(db.book.id == db.download.book_id),
             ],
             limitby=limitby
         )
