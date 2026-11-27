@@ -236,6 +236,7 @@ User-agent: qodercli
 User-agent: quillbot.com
 User-agent: rogerbot
 User-agent: serpstatbot
+User-agent: tphotobot
 User-agent: webzio-extended
 User-agent: wpbot
 User-agent: yacybot
